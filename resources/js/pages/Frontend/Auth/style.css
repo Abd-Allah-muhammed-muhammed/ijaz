@@ -1,0 +1,6 @@
+:where(.css-dev-only-do-not-override-1vjf2v5).ant-tree-select-dropdown .ant-select-tree .ant-select-tree-treenode-disabled .ant-select-tree-node-content-wrapper{
+  color: rgba(0,0,0,.65) !important;
+}
+.form-check-input:not(:checked){
+  background-color: var(--bs-gray-400) !important;
+}

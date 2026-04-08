@@ -1,0 +1,13 @@
+:root {
+  --bs-success-dark: #19777B;
+  --bs-success: #28A745;
+}
+
+
+.bg-success-dark {
+  background-color: var(--bs-success-dark) !important;
+}
+
+.text-success-dark {
+  color: var(--bs-success-dark) !important;
+}

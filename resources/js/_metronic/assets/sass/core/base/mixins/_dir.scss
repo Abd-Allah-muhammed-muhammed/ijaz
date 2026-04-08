@@ -1,0 +1,11 @@
+@mixin dir-rtl() {
+  html[dir="rtl"] & {
+    @content;
+  }
+}
+
+@mixin dir-ltr() {
+  html[dir="ltr"] & {
+    @content;
+  }
+}

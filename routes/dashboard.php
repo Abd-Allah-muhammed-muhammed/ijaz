@@ -1,0 +1,123 @@
+<?php
+
+use App\Http\Controllers\Dashboard\AdminController;
+use App\Http\Controllers\Dashboard\AuthController;
+use App\Http\Controllers\Dashboard\BannerController;
+use App\Http\Controllers\Dashboard\CarAdvisementController;
+use App\Http\Controllers\Dashboard\CarBrandController;
+use App\Http\Controllers\Dashboard\CarCategoryController;
+use App\Http\Controllers\Dashboard\CarTypeController;
+use App\Http\Controllers\Dashboard\CategoryController;
+use App\Http\Controllers\Dashboard\CityController;
+use App\Http\Controllers\Dashboard\DeviceCategoryController;
+use App\Http\Controllers\Dashboard\GuaranteeRequestController;
+use App\Http\Controllers\Dashboard\HomeController;
+use App\Http\Controllers\Dashboard\MessageController;
+use App\Http\Controllers\Dashboard\NationalityController;
+use App\Http\Controllers\Dashboard\OrderController;
+use App\Http\Controllers\Dashboard\PageController;
+use App\Http\Controllers\Dashboard\PanAnalyticsController;
+use App\Http\Controllers\Dashboard\PropertyAdvisementController;
+use App\Http\Controllers\Dashboard\PropertyCategoryController;
+use App\Http\Controllers\Dashboard\PropertyTypeController;
+use App\Http\Controllers\Dashboard\ProviderController;
+use App\Http\Controllers\Dashboard\ProviderTypeController;
+use App\Http\Controllers\Dashboard\QuestionController;
+use App\Http\Controllers\Dashboard\RegionController;
+use App\Http\Controllers\Dashboard\RoleController;
+use App\Http\Controllers\Dashboard\SkillController;
+use App\Http\Controllers\Dashboard\SupportController;
+use App\Http\Controllers\Dashboard\TopUpRequestController;
+use App\Http\Controllers\Dashboard\UserController;
+use App\Http\Controllers\Dashboard\WithdrawRequestController;
+use Illuminate\Support\Facades\Route;
+
+Route::group(
+    [
+        'prefix' => LaravelLocalization::setLocale(),
+        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
+    ], static function () {
+        Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], static function () {
+            Route::group(['middleware' => ['guest:admin']], static function () {
+                Route::get('/login', [AuthController::class, 'loginForm'])->name('login.form');
+                Route::post('/login', [AuthController::class, 'login'])->name('login');
+            });
+            Route::middleware('auth:admin')->group(function () {
+                Route::get('/', HomeController::class)->name('home');
+                Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+                Route::resource('roles', RoleController::class)->except(['show']);
+                Route::resource('admins', AdminController::class)->except(['show']);
+                Route::resource('categories', CategoryController::class)->except(['show']);
+                Route::resource('banners', BannerController::class)->except(['show']);
+                Route::resource('property-categories', PropertyCategoryController::class)->except(['show']);
+                Route::controller(PropertyTypeController::class)->prefix('property-types')->as('property-types.')->group(function () {
+                    Route::put('/{propertyType}/update-status', 'updateStatus')->name('update-status');
+                });
+                Route::resource('property-advisements', PropertyAdvisementController::class)->only(['index', 'show']);
+                Route::resource('car-advisements', CarAdvisementController::class)->only(['index', 'show']);
+
+                Route::resource('property-types', PropertyTypeController::class)->except(['show']);
+                Route::controller(CarBrandController::class)->prefix('car-brands')->as('car-brands.')->group(function () {
+                    Route::put('/{carBrand}/update-status', 'updateStatus')->name('update-status');
+                });
+                Route::resource('car-brands', CarBrandController::class)->except(['show']);
+                Route::controller(CarTypeController::class)->prefix('car-types')->as('car-types.')->group(function () {
+                    Route::put('/{carType}/update-status', 'updateStatus')->name('update-status');
+                });
+                Route::resource('car-types', CarTypeController::class)->except(['show']);
+                Route::resource('car-categories', CarCategoryController::class)->except(['show']);
+                Route::resource('device-categories', DeviceCategoryController::class)->except(['show']);
+                Route::resource('skills', SkillController::class)->except(['show']);
+                Route::resource('regions', RegionController::class)->except(['show']);
+                Route::resource('cities', CityController::class)->except(['show']);
+                Route::resource('nationalities', NationalityController::class)->except(['show']);
+                Route::resource('provider-types', ProviderTypeController::class)->except(['show']);
+                Route::controller(ProviderController::class)->prefix('providers')->as('providers.')->group(function () {
+                    Route::put('/{provider}/status', 'updateStatus')->name('update-status');
+                });
+                Route::resource('providers', ProviderController::class);
+                Route::controller(UserController::class)->prefix('users')->as('users.')->group(function () {
+                    Route::put('/{user}/status', 'updateStatus')->name('update-status');
+                });
+                Route::resource('users', UserController::class);
+                Route::resource('pages', PageController::class)->except(['show']);
+                Route::resource('questions', QuestionController::class)->except(['show']);
+                Route::controller(MessageController::class)->prefix('messages')->as('messages.')->group(function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::delete('/{message}', 'destroy')->name('destroy');
+                });
+                Route::controller(TopUpRequestController::class)->prefix('top-up-requests')->as('top-up-requests.')->group(static function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('/{topUpRequest}', 'show')->name('show');
+                    Route::put('/{topUpRequest}/update-status', 'updateStatus')->name('updateStatus');
+                });
+                Route::controller(WithdrawRequestController::class)->prefix('withdraw-requests')->as('withdraw-requests.')->group(static function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('/{withdrawRequest}', 'show')->name('show');
+                    Route::put('/{withdrawRequest}/update-status', 'updateStatus')->name('updateStatus');
+                });
+                Route::prefix('/orders')->controller(OrderController::class)->as('orders.')->group(static function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('/{order}', 'show')->name('show');
+                    Route::get('/{order}/conversation-messages', 'conversationMessages')->name('conversation-messages');
+                });
+                Route::controller(GuaranteeRequestController::class)->prefix('guarantee-requests')->as('guarantee-requests.')->group(static function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('/{guaranteeRequest}', 'show')->name('show');
+                    Route::get('/{guaranteeRequest}/conversation-messages', 'conversationMessages')->name('conversation-messages');
+                });
+                Route::controller(SupportController::class)->prefix('support')->as('support.')->group(function () {
+                    Route::get('/tickets', 'index')->name('tickets.index');
+                    Route::get('/tickets/{ticket}', 'show')->name('tickets.show');
+                    Route::post('/tickets/{ticket}', 'openChat')->name('tickets.open-chat');
+                    Route::post('/tickets/{ticket}/send', 'send')->name('tickets.send');
+                    Route::put('/tickets/{ticket}/status', 'updateStatus')->name('tickets.update-status');
+                });
+                Route::controller(PanAnalyticsController::class)->prefix('pan-analytics')->as('pan-analytics.')->group(function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::post('/export', 'export')->name('export');
+                    Route::delete('/clear', 'clear')->name('clear');
+                });
+            });
+        });
+    });
