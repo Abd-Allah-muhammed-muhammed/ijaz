@@ -11,7 +11,6 @@
   "require": {
     "php": "^8.2",
     "ext-curl": "*",
-    "ext-http": "*",
     "ext-openssl": "*",
     "ext-sockets": "*",
     "astrotomic/laravel-translatable": "^11.16",
