@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\MessagRequest;
 use App\Models\Message;
 use DB;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Throwable;
 
+#[Group('Messages')]
 class MessageController extends Controller
 {
     use HasApiResponse;

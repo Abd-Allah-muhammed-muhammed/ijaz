@@ -10,6 +10,7 @@ use App\Models\JobOffer;
 use App\Traits\HasJobs;
 use Carbon\Carbon;
 use DB;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ use MMAE\ApiResponse\Traits\HasApiResponse;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Throwable;
 
+#[Group('Jobs')]
 class JobController extends Controller
 {
     use HasApiResponse;
@@ -27,8 +29,8 @@ class JobController extends Controller
             JobOffer::query()
                 ->latest()
                 ->when($request->filled('search'), function ($q) use ($request) {
-                    $q->where('title', 'like', '%'.$request->string('search').'%')
-                        ->orWhere('description', 'like', '%'.$request->string('search').'%');
+                    $q->where('title', 'like', '%' . $request->string('search') . '%')
+                        ->orWhere('description', 'like', '%' . $request->string('search') . '%');
                 })
                 ->with(['city.translation', 'region.translation', 'nationality.translation', 'skills.translation', 'user', 'media'])
                 ->active()
@@ -121,7 +123,6 @@ class JobController extends Controller
 
             return $this->failedMessageResponse(__('something went wrong'));
         }
-
     }
 
     public function destroy(JobOffer $job): JsonResponse
@@ -149,7 +150,11 @@ class JobController extends Controller
     {
         return $this->successResponse(JobResource::make(
             $job->load([
-                'city.translation', 'region.translation', 'nationality.translation', 'skills.translation', 'media',
+                'city.translation',
+                'region.translation',
+                'nationality.translation',
+                'skills.translation',
+                'media',
             ])
         ));
     }
@@ -175,6 +180,5 @@ class JobController extends Controller
 
             return $this->failedMessageResponse(__('something went wrong'));
         }
-
     }
 }

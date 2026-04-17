@@ -15,12 +15,14 @@ use App\Services\Chat\Facades\Chat;
 use App\Services\Chat\Requests\SendSupportMessageRequest;
 use App\Services\Chat\Resources\ConversationMessageResource;
 use DB;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use RuntimeException;
 use Throwable;
 
+#[Group('Tickets')]
 class TicketSupportController extends Controller
 {
   use HasApiResponse;

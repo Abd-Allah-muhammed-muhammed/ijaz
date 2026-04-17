@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\VerificationCode;
 use App\Services\Sms\Phone;
 use App\Traits\OTPGeneration;
+use Dedoc\Scramble\Attributes\Group;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -20,6 +21,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Random\RandomException;
 
+#[Group('Auth')]
 class OtpController extends Controller
 {
   use HasApiResponse, OTPGeneration;

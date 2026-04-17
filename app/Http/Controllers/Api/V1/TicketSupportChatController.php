@@ -11,6 +11,7 @@ use App\Services\Chat\Requests\SendMessageRequest;
 use App\Services\Chat\Resources\ConversationCollection;
 use App\Services\Chat\Resources\ConversationMessageCollection;
 use App\Services\Chat\Resources\ConversationMessageResource;
+use Dedoc\Scramble\Attributes\Group;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Throwable;
 
+#[Group('Chat')]
 class TicketSupportChatController extends Controller
 {
     use HasApiResponse;
@@ -58,23 +60,28 @@ class TicketSupportChatController extends Controller
                 DB::rollBack();
 
                 return $this->failedResponse(
-                    errors: [], message: 'User Not Authenticated', statusCode: 401
+                    errors: [],
+                    message: 'User Not Authenticated',
+                    statusCode: 401
                 );
             }
             if ($conversation->operation_type !== TicketSupport::class) {
                 DB::rollBack();
 
                 return $this->failedResponse(
-                    errors: [], message: 'not found', statusCode: 404
+                    errors: [],
+                    message: 'not found',
+                    statusCode: 404
                 );
-
             }
 
             if (! $conversation->user1()->is($user) && ! $conversation->user2()->is($user)) {
                 DB::rollBack();
 
                 return $this->failedResponse(
-                    errors: [], message: 'not found', statusCode: 404
+                    errors: [],
+                    message: 'not found',
+                    statusCode: 404
                 );
             }
             /**
@@ -106,12 +113,16 @@ class TicketSupportChatController extends Controller
         $user = auth()->user();
         if (! $user) {
             return $this->failedResponse(
-                errors: [], message: 'User Not Authenticated', statusCode: 401
+                errors: [],
+                message: 'User Not Authenticated',
+                statusCode: 401
             );
         }
         if (! $conversation->user1()->is($user) && ! $conversation->user2()->is($user)) {
             return $this->failedResponse(
-                errors: [], message: 'not found', statusCode: 404
+                errors: [],
+                message: 'not found',
+                statusCode: 404
             );
         }
         $conversation->messages()->whereNull('read_at')

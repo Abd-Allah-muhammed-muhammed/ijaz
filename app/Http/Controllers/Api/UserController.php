@@ -10,11 +10,13 @@ use App\Models\ConversationMessage;
 use App\Models\GuaranteeRequest;
 use App\Models\Provider;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 
+#[Group('Users')]
 class UserController extends Controller
 {
     use HasApiResponse;

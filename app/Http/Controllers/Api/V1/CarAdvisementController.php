@@ -8,6 +8,7 @@ use App\Http\Requests\Api\V1\CarAdvisementRequest;
 use App\Http\Resources\Api\V1\CarAdvisementCollection;
 use App\Http\Resources\Api\V1\CarAdvisementResource;
 use App\Models\CarAdvisement;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
+#[Group('Car Advisements')]
 class CarAdvisementController extends Controller
 {
     use HasApiResponse;
@@ -90,6 +92,8 @@ class CarAdvisementController extends Controller
 
     /**
      * List all published advisements (public endpoint)
+     *
+     * @unauthenticated
      */
     public function all(Request $request): JsonResponse
     {

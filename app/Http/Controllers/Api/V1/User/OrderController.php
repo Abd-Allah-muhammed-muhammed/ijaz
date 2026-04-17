@@ -21,6 +21,7 @@ use App\Notifications\Provider\NewOrderAssignNotification;
 use App\Notifications\Provider\OrderOfferAcceptedNotification;
 use App\Notifications\Provider\OrderOfferCanceledNotification;
 use App\Notifications\Provider\OrderOfferRejectedNotification;
+use Dedoc\Scramble\Attributes\Group;
 use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -35,6 +36,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
+#[Group('Orders')]
 class OrderController extends Controller
 {
     use HasApiResponse;
@@ -179,8 +181,13 @@ class OrderController extends Controller
     public function show(Order $order): JsonResponse
     {
         $order->load([
-            'offers.provider', 'category.translation', 'provider', 'media', 'skills.translation',
-            'city.translation', 'region.translation',
+            'offers.provider',
+            'category.translation',
+            'provider',
+            'media',
+            'skills.translation',
+            'city.translation',
+            'region.translation',
         ]);
 
         return $this->successResponse(OrderResource::make($order));
@@ -233,7 +240,7 @@ class OrderController extends Controller
                 case OfferStatusEnum::Accepted:
                     if ($order->status->is(OrderStatusEnum::New)) {
                         $categoryFees = $order->category->getFees($offer->price);
-                        $paymentGatewayFees = app('settings')->get(Payment::getDefaultDriver().'_fees');
+                        $paymentGatewayFees = app('settings')->get(Payment::getDefaultDriver() . '_fees');
                         $fees = (float) $paymentGatewayFees + $categoryFees + (15 / 100 * $categoryFees);
                         $order->update([
                             'provider_id' => $offer->provider_id,

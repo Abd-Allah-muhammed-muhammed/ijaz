@@ -15,6 +15,7 @@ use App\Services\Chat\Resources\ConversationMessageCollection;
 use App\Services\Chat\Resources\ConversationMessageResource;
 use App\Services\Chat\Resources\ConversationResource;
 use DB;
+use Dedoc\Scramble\Attributes\Group;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -23,6 +24,7 @@ use MMAE\ApiResponse\Traits\HasApiResponse;
 use RuntimeException;
 use Throwable;
 
+#[Group('Chat')]
 class OrderChatController extends Controller
 {
     use HasApiResponse;
@@ -83,7 +85,6 @@ class OrderChatController extends Controller
         return $this->successResponse(
             ConversationResource::make($conversation->load(['lastMassage.sender', 'lastMassage.lastAttachment', 'user2', 'user1']))
         );
-
     }
 
     /**
@@ -101,23 +102,28 @@ class OrderChatController extends Controller
                 DB::rollBack();
 
                 return $this->failedResponse(
-                    errors: [], message: 'User Not Authenticated', statusCode: 401
+                    errors: [],
+                    message: 'User Not Authenticated',
+                    statusCode: 401
                 );
             }
             if ($conversation->operation_type !== Order::class) {
                 DB::rollBack();
 
                 return $this->failedResponse(
-                    errors: [], message: 'not found', statusCode: 404
+                    errors: [],
+                    message: 'not found',
+                    statusCode: 404
                 );
-
             }
 
             if (! $conversation->user1()->is($user) && ! $conversation->user2()->is($user)) {
                 DB::rollBack();
 
                 return $this->failedResponse(
-                    errors: [], message: 'not found', statusCode: 404
+                    errors: [],
+                    message: 'not found',
+                    statusCode: 404
                 );
             }
             /**
@@ -134,7 +140,7 @@ class OrderChatController extends Controller
                     message: $request->input('content'),
                     attachments: $request->file('files', []),
                 ),
-                default => throw new RuntimeException('No Model Matched With '.get_class($user))
+                default => throw new RuntimeException('No Model Matched With ' . get_class($user))
             };
 
             DB::commit();
@@ -155,12 +161,16 @@ class OrderChatController extends Controller
         $user = auth()->user();
         if (! $user) {
             return $this->failedResponse(
-                errors: [], message: 'User Not Authenticated', statusCode: 401
+                errors: [],
+                message: 'User Not Authenticated',
+                statusCode: 401
             );
         }
         if (! $conversation->user1()->is($user) && ! $conversation->user2()->is($user)) {
             return $this->failedResponse(
-                errors: [], message: 'not found', statusCode: 404
+                errors: [],
+                message: 'not found',
+                statusCode: 404
             );
         }
         $conversation->messages()->whereNull('read_at')

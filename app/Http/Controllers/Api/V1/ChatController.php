@@ -20,6 +20,7 @@ use App\Services\Chat\Resources\ConversationMessageCollection;
 use App\Services\Chat\Resources\ConversationMessageResource;
 use App\Services\Chat\Resources\ConversationResource;
 use DB;
+use Dedoc\Scramble\Attributes\Group;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -28,6 +29,7 @@ use MMAE\ApiResponse\Traits\HasApiResponse;
 use RuntimeException;
 use Throwable;
 
+#[Group('Chat')]
 class ChatController extends Controller
 {
   use HasApiResponse;
@@ -47,8 +49,6 @@ class ChatController extends Controller
   }
 
   /**
-   * @return JsonResponse
-   *
    * @throws Throwable
    */
   public function sendToProvider(Request $request, Provider $provider): JsonResponse
@@ -74,8 +74,6 @@ class ChatController extends Controller
   }
 
   /**
-   * @return JsonResponse
-   *
    * @throws Throwable
    */
   public function sendToUser(Request $request, User $user): JsonResponse
@@ -122,8 +120,6 @@ class ChatController extends Controller
   }
 
   /**
-   * @return JsonResponse
-   *
    * @throws Throwable
    */
   public function sendToSupport(SendSupportMessageRequest $request): JsonResponse

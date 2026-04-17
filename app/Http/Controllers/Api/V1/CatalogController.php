@@ -21,14 +21,19 @@ use App\Models\Question;
 use App\Models\Region;
 use App\Models\Skill;
 use App\Services\Sms\Phone;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 
+#[Group('Catalog')]
 class CatalogController extends Controller
 {
   use HasApiResponse;
 
+  /**
+   * @unauthenticated
+   */
   public function categories(Request $request): JsonResponse
   {
     return $this->successResponse(
@@ -52,6 +57,9 @@ class CatalogController extends Controller
     );
   }
 
+  /**
+   * @unauthenticated
+   */
   public function categoriesWithNoChildren(Request $request): JsonResponse
   {
     return $this->successResponse(
@@ -72,6 +80,9 @@ class CatalogController extends Controller
     );
   }
 
+  /**
+   * @unauthenticated
+   */
   public function categoryChildren(Category $category, Request $request): JsonResponse
   {
     return $this->successResponse(
@@ -87,6 +98,9 @@ class CatalogController extends Controller
     );
   }
 
+  /**
+   * @unauthenticated
+   */
   public function categorySkills(Request $request, string $id): JsonResponse
   {
 
@@ -116,6 +130,9 @@ class CatalogController extends Controller
     );
   }
 
+  /**
+   * @unauthenticated
+   */
   public function skills(Request $request): JsonResponse
   {
     return $this->successResponse(SkillCollection::make(
@@ -133,6 +150,9 @@ class CatalogController extends Controller
     ));
   }
 
+  /**
+   * @unauthenticated
+   */
   public function regions(): JsonResponse
   {
     return $this->successResponse(
@@ -148,6 +168,9 @@ class CatalogController extends Controller
     );
   }
 
+  /**
+   * @unauthenticated
+   */
   public function cities(Region $region, Request $request): JsonResponse
   {
     return $this->successResponse(
@@ -163,6 +186,9 @@ class CatalogController extends Controller
     );
   }
 
+  /**
+   * @unauthenticated
+   */
   public function nationalities(Request $request): JsonResponse
   {
     return $this->successResponse(
@@ -178,6 +204,9 @@ class CatalogController extends Controller
     );
   }
 
+  /**
+   * @unauthenticated
+   */
   public function providers(Request $request): JsonResponse
   {
     if (! $request->filled('phone')) {
@@ -218,11 +247,17 @@ class CatalogController extends Controller
     );
   }
 
+  /**
+   * @unauthenticated
+   */
   public function banners(): JsonResponse
   {
     return $this->successResponse(BannerResource::collection(Banner::all()));
   }
 
+  /**
+   * @unauthenticated
+   */
   public function pages(): JsonResponse
   {
     return $this->successResponse(
@@ -236,6 +271,9 @@ class CatalogController extends Controller
     );
   }
 
+  /**
+   * @unauthenticated
+   */
   public function page(Page $page): JsonResponse
   {
     $page->load('translation');
@@ -243,11 +281,17 @@ class CatalogController extends Controller
     return $this->successResponse(PageResource::make($page));
   }
 
+  /**
+   * @unauthenticated
+   */
   public function settings(): JsonResponse
   {
     return $this->successResponse(app('settings')->toArray());
   }
 
+  /**
+   * @unauthenticated
+   */
   public function questions(Request $request): JsonResponse
   {
     return $this->successResponse(

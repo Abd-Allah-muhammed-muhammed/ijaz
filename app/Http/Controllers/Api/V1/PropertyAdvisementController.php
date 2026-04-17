@@ -8,6 +8,7 @@ use App\Http\Requests\Api\V1\PropertyAdvisementRequest;
 use App\Http\Resources\Api\V1\PropertyAdvisementCollection;
 use App\Http\Resources\Api\V1\PropertyAdvisementResource;
 use App\Models\PropertyAdvisement;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
+#[Group('Property Advisements')]
 class PropertyAdvisementController extends Controller
 {
     use HasApiResponse;
@@ -86,6 +88,8 @@ class PropertyAdvisementController extends Controller
 
     /**
      * List all published advisements (public endpoint)
+     *
+     * @unauthenticated
      */
     public function all(Request $request): JsonResponse
     {

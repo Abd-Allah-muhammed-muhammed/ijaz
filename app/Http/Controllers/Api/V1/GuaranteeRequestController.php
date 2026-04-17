@@ -13,6 +13,7 @@ use App\Models\GuaranteeRequest;
 use App\Models\Provider;
 use App\Models\User;
 use App\Services\Sms\Phone;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response as ResponseAlias;
 use Throwable;
 
+#[Group('Guarantee Requests')]
 class GuaranteeRequestController extends Controller
 {
     use HasApiResponse;
@@ -108,7 +110,6 @@ class GuaranteeRequestController extends Controller
             DB::commit();
 
             return $this->successResponse(GuaranteeRequestResource::make($guaranteeRequest));
-
         } catch (Throwable $throwable) {
             DB::rollBack();
             report($throwable);
@@ -162,7 +163,6 @@ class GuaranteeRequestController extends Controller
             DB::commit();
 
             return $this->successResponse(GuaranteeRequestResource::make($guaranteeRequest));
-
         } catch (Throwable $throwable) {
             DB::rollBack();
             report($throwable);
@@ -205,9 +205,12 @@ class GuaranteeRequestController extends Controller
         $data = $request->validated();
         $user = auth()->user();
         if (($guaranteeRequest->user()->isNot($user) && $guaranteeRequest->provider()->isNot($user)) ||
-          ! GuaranteeRequestStatusEnum::isAllowed($guaranteeRequest->status,
-              GuaranteeRequestStatusEnum::tryFrom($data['status']),
-              $guaranteeRequest->user()->is($user) ? 'user' : 'provider')) {
+            ! GuaranteeRequestStatusEnum::isAllowed(
+                $guaranteeRequest->status,
+                GuaranteeRequestStatusEnum::tryFrom($data['status']),
+                $guaranteeRequest->user()->is($user) ? 'user' : 'provider'
+            )
+        ) {
             return $this->failedMessageResponse(__('you can not update this guarantee request status.'));
         }
 
@@ -217,7 +220,6 @@ class GuaranteeRequestController extends Controller
             DB::commit();
 
             return $this->successMessageResponse(__('data saved successfully'));
-
         } catch (Throwable $throwable) {
             DB::rollBack();
             report($throwable);
@@ -244,7 +246,6 @@ class GuaranteeRequestController extends Controller
             DB::commit();
 
             return $this->successMessageResponse(__('data deleted successfully'));
-
         } catch (Throwable $throwable) {
             DB::rollBack();
             report($throwable);
@@ -283,7 +284,6 @@ class GuaranteeRequestController extends Controller
             }
 
             return $this->successResponse($paymentObject->toArray());
-
         } catch (Throwable $throwable) {
             DB::rollBack();
             report($throwable);

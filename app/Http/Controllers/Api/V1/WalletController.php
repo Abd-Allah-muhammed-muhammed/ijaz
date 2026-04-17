@@ -16,6 +16,7 @@ use App\Models\TopUpRequest;
 use App\Traits\HasPayments;
 use App\Traits\HasWallet;
 use DB;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
@@ -24,6 +25,7 @@ use Lib\Payment\Facade\Payment;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Throwable;
 
+#[Group('Wallet')]
 class WalletController extends Controller
 {
     use HasApiResponse;
@@ -95,7 +97,6 @@ class WalletController extends Controller
                 'data' => TopUpResource::make($topRequest),
                 'message' => trans('top up request created successfully, waiting for admin approval'),
             ]);
-
         } catch (Throwable $throwable) {
             DB::rollBack();
             report($throwable);
@@ -126,7 +127,7 @@ class WalletController extends Controller
                 'balance_before' => $wallet->balance,
                 'operation_type' => get_class($withdrawRequest),
                 'operation_id' => $withdrawRequest->id,
-                'description' => 'Withdraw Request Created #'.$withdrawRequest->id,
+                'description' => 'Withdraw Request Created #' . $withdrawRequest->id,
                 'pending_debit' => $withdrawRequest->amount,
                 'pending_credit' => 0,
             ]);
