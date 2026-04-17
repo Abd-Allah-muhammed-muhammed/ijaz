@@ -15,6 +15,7 @@ use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
@@ -43,7 +44,15 @@ class AppServiceProvider extends ServiceProvider
         $openApi->secure(SecurityScheme::http('bearer'));
       });
 
-    Gate::define('viewApiDocs', static fn($user = null): bool => app()->environment(['local', 'testing']));
+    Gate::define('viewApiDocs', static function ($user = null): bool {
+      if (app()->environment(['local', 'testing'])) {
+        return true;
+      }
+
+      $admin = Auth::guard('admin')->user();
+
+      return (bool) ($admin?->root);
+    });
 
     $this->app->bind(IChatService::class, ChatService::class);
     $this->app->singleton('settings', fn() => cache()->rememberForever('settings', fn() => Setting::pluck('content', 'key')));
