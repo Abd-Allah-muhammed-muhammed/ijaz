@@ -37,7 +37,7 @@ This application is a multi-actor marketplace/platform built around service orde
 - Notable packages: `spatie/laravel-permission`, `spatie/laravel-medialibrary`, `mcamara/laravel-localization`, `mmae/apiresponse`, `paytabscom/laravel_paytabs`, `laravel/reverb`, `laravel/wayfinder`, `ratchet/pawl`, `astrotomic/laravel-translatable`
 
 **Verified app metadata from config/env:**
-- App name: `Ngaze`
+- App name: `Ijaz`
 - Locale: `en`
 - Timezone: `UTC`
 - Default DB connection in `.env.example`: `sqlite`
@@ -252,7 +252,7 @@ Full issue list is in [docs/REFACTOR_NOTES.md](docs/REFACTOR_NOTES.md).
 ## Appendix: Quick Reference
 
 ### Important Config Files
-- `config/app.php` — App name (Ngaze), locale (en), timezone (UTC)
+- `config/app.php` — App name (Ijaz), locale (en), timezone (UTC)
 - `config/auth.php` — Guard definitions (user-api, sanctum, admin, provider, employee, web)
 - `config/broadcasting.php` — Reverb broadcast driver setup
 - `config/firebase.php` — Firebase credentials and settings

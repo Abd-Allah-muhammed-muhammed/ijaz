@@ -31,7 +31,7 @@ Last verified from source: 2026-04-16
 
 - The order and guarantee payment/status flows are the highest-risk areas because they combine state transitions, wallet effects, and payment provider responses.
 - The duplicated filtering logic in advisement controllers will become expensive to maintain as filters grow.
-- The request namespace mismatch and model typos are refactor traps for future contributors and will complicate Swagger/OpenAPI generation.
+- The request namespace mismatch and model typos are refactor traps for future contributors and will complicate dedoc/scramble generation.
 - Response shapes are not fully uniform across endpoints, which will make client SDK generation harder.
 
 ## Notes
@@ -44,7 +44,7 @@ Last verified from source: 2026-04-16
 
 | Item | Why It Matters | Priority |
 |---|---|---|
-| Swagger/OpenAPI documentation | Better client integration, SDK generation | Medium |
+| dedoc/scramble documentation | Better client integration, SDK generation | Medium |
 | Unified API response envelope | Client consistency, error handling | Medium |
 | Fully centralized service/action layer for order/guarantee/payment workflows | Logic is currently scattered between controllers and traits | High |
 | Dedicated Job directory with discovered async jobs | Current implementation or location unclear | Low |
