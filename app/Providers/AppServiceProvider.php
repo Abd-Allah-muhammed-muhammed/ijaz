@@ -3,10 +3,14 @@
 namespace App\Providers;
 
 use App\Contracts\Repositories\PropertyAdvisement\PropertyAdvisementRepositoryInterface;
+use App\Contracts\Repositories\PropertyCategory\PropertyCategoryRepositoryInterface;
+use App\Contracts\Repositories\PropertyType\PropertyTypeRepositoryInterface;
 use App\Models\Setting;
 use App\NotificationChannel\EventChannel;
 use App\NotificationChannel\FirebaseChannel;
 use App\Repositories\PropertyAdvisement\PropertyAdvisementRepository;
+use App\Repositories\PropertyCategory\PropertyCategoryRepository;
+use App\Repositories\PropertyType\PropertyTypeRepository;
 use App\Services\Chat\ChatService;
 use App\Services\Chat\Contracts\IChatService;
 use Dedoc\Scramble\Scramble;
@@ -26,69 +30,79 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-  /**
-   * Register any application services.
-   */
-  public function register(): void
-  {
-    require_once app_path('Helpers/arrays.php');
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        require_once app_path('Helpers/arrays.php');
 
-    $this->app->bind(
-      PropertyAdvisementRepositoryInterface::class,
-      PropertyAdvisementRepository::class,
-    );
-  }
+        $this->app->bind(
+            PropertyAdvisementRepositoryInterface::class,
+            PropertyAdvisementRepository::class,
+        );
 
-  /**
-   * Bootstrap any application services.
-   */
-  public function boot(): void
-  {
-    Scramble::configure()
-      ->routes(static fn(Route $route): bool => str_starts_with($route->uri, 'api/v1/'))
-      ->expose(ui: '/docs/api', document: '/docs/api.json')
-      ->withDocumentTransformers(static function (OpenApi $openApi): void {
-        $openApi->secure(SecurityScheme::http('bearer'));
-      });
+        $this->app->bind(
+            PropertyTypeRepositoryInterface::class,
+            PropertyTypeRepository::class,
+        );
 
-    Gate::define('viewApiDocs', static function ($user = null): bool {
-      if (app()->environment(['local', 'testing'])) {
-        return true;
-      }
+        $this->app->bind(
+            PropertyCategoryRepositoryInterface::class,
+            PropertyCategoryRepository::class,
+        );
+    }
 
-      $admin = Auth::guard('admin')->user();
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        Scramble::configure()
+            ->routes(static fn (Route $route): bool => str_starts_with($route->uri, 'api/v1/'))
+            ->expose(ui: '/docs/api', document: '/docs/api.json')
+            ->withDocumentTransformers(static function (OpenApi $openApi): void {
+                $openApi->secure(SecurityScheme::http('bearer'));
+            });
 
-      return (bool) ($admin?->root);
-    });
+        Gate::define('viewApiDocs', static function ($user = null): bool {
+            if (app()->environment(['local', 'testing'])) {
+                return true;
+            }
 
-    $this->app->bind(IChatService::class, ChatService::class);
-    $this->app->singleton('settings', fn() => cache()->rememberForever('settings', fn() => Setting::pluck('content', 'key')));
-    JsonResource::withoutWrapping();
-    Schema::defaultStringLength(191);
-    Vite::prefetch(concurrency: 3);
-    Authenticate::redirectUsing(static function (Request $request) {
-      if ($request->routeIs('dashboard.*')) {
-        return route('dashboard.login.form');
-      }
+            $admin = Auth::guard('admin')->user();
 
-      if ($request->routeIs('provider.*')) {
-        return route('provider.login');
-      }
+            return (bool) ($admin?->root);
+        });
 
-      return route('login');
-    });
-    RedirectIfAuthenticated::redirectUsing(static function (Request $request) {
-      if ($request->routeIs('dashboard.*')) {
-        return route('dashboard.home');
-      }
+        $this->app->bind(IChatService::class, ChatService::class);
+        $this->app->singleton('settings', fn () => cache()->rememberForever('settings', fn () => Setting::pluck('content', 'key')));
+        JsonResource::withoutWrapping();
+        Schema::defaultStringLength(191);
+        Vite::prefetch(concurrency: 3);
+        Authenticate::redirectUsing(static function (Request $request) {
+            if ($request->routeIs('dashboard.*')) {
+                return route('dashboard.login.form');
+            }
 
-      if ($request->routeIs('provider.*')) {
-        return route('provider.home');
-      }
+            if ($request->routeIs('provider.*')) {
+                return route('provider.login');
+            }
 
-      return route('/');
-    });
-    Notification::extend('firebase', static fn($app) => $app->make(FirebaseChannel::class));
-    Notification::extend('event', static fn($app) => $app->make(EventChannel::class));
-  }
+            return route('login');
+        });
+        RedirectIfAuthenticated::redirectUsing(static function (Request $request) {
+            if ($request->routeIs('dashboard.*')) {
+                return route('dashboard.home');
+            }
+
+            if ($request->routeIs('provider.*')) {
+                return route('provider.home');
+            }
+
+            return route('/');
+        });
+        Notification::extend('firebase', static fn ($app) => $app->make(FirebaseChannel::class));
+        Notification::extend('event', static fn ($app) => $app->make(EventChannel::class));
+    }
 }

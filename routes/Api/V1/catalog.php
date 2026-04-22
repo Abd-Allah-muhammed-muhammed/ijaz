@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\V1\CarAdvisementController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\GuaranteeRequestController;
@@ -8,8 +9,9 @@ use App\Http\Controllers\Api\V1\JobController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\OrderChatController;
 use App\Http\Controllers\Api\V1\OtpController;
-use App\Http\Controllers\Api\V1\CarAdvisementController;
 use App\Http\Controllers\Api\V1\PropertyAdvisementController;
+use App\Http\Controllers\Api\V1\PropertyCategoryController;
+use App\Http\Controllers\Api\V1\PropertyTypeController;
 use App\Http\Controllers\Api\V1\TicketSupportChatController;
 use App\Http\Controllers\Api\V1\TicketSupportController;
 use App\Http\Controllers\Api\V1\WalletController;
@@ -40,6 +42,14 @@ Route::prefix('catalog')->group(static function () {
 });
 
 // Public endpoint - no auth required
+Route::controller(PropertyTypeController::class)->group(static function () {
+    Route::get('property-types', 'index');
+});
+
+Route::controller(PropertyCategoryController::class)->group(static function () {
+    Route::get('property-categories', 'index');
+});
+
 Route::get('property-advisements/all', [PropertyAdvisementController::class, 'all']);
 Route::get('car-advisements/all', [CarAdvisementController::class, 'all']);
 
@@ -63,7 +73,6 @@ Route::middleware('auth:sanctum')->group(static function () {
         Route::post('/send/{conversation}', 'send');
         Route::get('/{conversation}/show', 'chat');
         Route::get('/{conversation}', 'show');
-
     });
 
     Route::controller(WalletController::class)->prefix('wallet')->group(static function () {
@@ -136,5 +145,4 @@ Route::middleware('auth:sanctum')->group(static function () {
         Route::delete('/{carAdvisement}/media/{media:uuid}', 'deleteMedia');
         Route::delete('/{carAdvisement}', 'destroy');
     });
-
 });
