@@ -4,10 +4,10 @@ namespace App\Services\PropertyAdvisement;
 
 use App\Contracts\Repositories\PropertyAdvisement\PropertyAdvisementRepositoryInterface;
 use App\DTOs\PropertyAdvisement\PropertyAdvisementDTO;
-use App\DTOs\PropertyAdvisement\PropertyAdvisementFiltersDTO;
 use App\Enums\Advisements\AdvisementStatusEnum;
 use App\Models\PropertyAdvisement;
 use App\Models\User;
+use App\QueryFilters\PropertyAdvisement\PropertyAdvisementFilters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -19,12 +19,12 @@ class PropertyAdvisementService
     private readonly PropertyAdvisementRepositoryInterface $repository,
   ) {}
 
-  public function listUserAdvisements(User $user, PropertyAdvisementFiltersDTO $filters): LengthAwarePaginator
+  public function listUserAdvisements(User $user, PropertyAdvisementFilters $filters): LengthAwarePaginator
   {
     return $this->repository->getUserAdvisements($user, $filters);
   }
 
-  public function listPublishedAdvisements(PropertyAdvisementFiltersDTO $filters): LengthAwarePaginator
+  public function listPublishedAdvisements(PropertyAdvisementFilters $filters): LengthAwarePaginator
   {
     return $this->repository->getPublishedAdvisements($filters);
   }

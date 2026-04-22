@@ -3,19 +3,18 @@
 namespace App\Repositories\PropertyAdvisement;
 
 use App\Contracts\Repositories\PropertyAdvisement\PropertyAdvisementRepositoryInterface;
-use App\DTOs\PropertyAdvisement\PropertyAdvisementFiltersDTO;
 use App\Models\PropertyAdvisement;
 use App\Models\User;
+use App\QueryFilters\PropertyAdvisement\PropertyAdvisementFilters;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
 
 class PropertyAdvisementRepository implements PropertyAdvisementRepositoryInterface
 {
-  public function getUserAdvisements(User $user, PropertyAdvisementFiltersDTO $filters): LengthAwarePaginator
+  public function getUserAdvisements(User $user, PropertyAdvisementFilters $filters): LengthAwarePaginator
   {
     $query = $user->propertyAdvisements()->getQuery();
 
-    $this->applyFilters($query, $filters, true);
+    $query = $filters->apply($query);
 
     return $query
       ->with([
@@ -26,14 +25,14 @@ class PropertyAdvisementRepository implements PropertyAdvisementRepositoryInterf
         'media',
       ])
       ->latest()
-      ->paginate($filters->perPage);
+      ->paginate($filters->perPage());
   }
 
-  public function getPublishedAdvisements(PropertyAdvisementFiltersDTO $filters): LengthAwarePaginator
+  public function getPublishedAdvisements(PropertyAdvisementFilters $filters): LengthAwarePaginator
   {
     $query = PropertyAdvisement::query()->published();
 
-    $this->applyFilters($query, $filters);
+    $query = $filters->apply($query);
 
     return $query
       ->with([
@@ -45,7 +44,7 @@ class PropertyAdvisementRepository implements PropertyAdvisementRepositoryInterf
         'media',
       ])
       ->latest()
-      ->paginate($filters->perPage);
+      ->paginate($filters->perPage());
   }
 
   /**
@@ -64,59 +63,5 @@ class PropertyAdvisementRepository implements PropertyAdvisementRepositoryInterf
     $model->update($data);
 
     return $model;
-  }
-
-  private function applyFilters(Builder $query, PropertyAdvisementFiltersDTO $filters, bool $includeStatus = false): void
-  {
-    if ($includeStatus && $filters->status !== null) {
-      $query->where('status', $filters->status);
-    }
-
-    if ($filters->operation !== null) {
-      $query->where('operation', $filters->operation);
-    }
-
-    if ($filters->propertyTypeId !== null) {
-      $query->where('property_type_id', $filters->propertyTypeId);
-    }
-
-    if ($filters->cityId !== null) {
-      $query->where('city_id', $filters->cityId);
-    }
-
-    if ($filters->regionId !== null) {
-      $query->where('region_id', $filters->regionId);
-    }
-
-    if ($filters->categoryId !== null) {
-      $query->where('category_id', $filters->categoryId);
-    }
-
-    if ($filters->minPrice !== null) {
-      $query->where('price', '>=', $filters->minPrice);
-    }
-
-    if ($filters->maxPrice !== null) {
-      $query->where('price', '<=', $filters->maxPrice);
-    }
-
-    if ($filters->minArea !== null) {
-      $query->where('area', '>=', $filters->minArea);
-    }
-
-    if ($filters->maxArea !== null) {
-      $query->where('area', '<=', $filters->maxArea);
-    }
-
-    if ($filters->bedroomsCount !== null) {
-      $query->where('bedrooms_count', $filters->bedroomsCount);
-    }
-
-    if ($filters->search !== null) {
-      $query->where(function (Builder $nestedQuery) use ($filters) {
-        $nestedQuery->where('title', 'like', "%{$filters->search}%")
-          ->orWhere('description', 'like', "%{$filters->search}%");
-      });
-    }
   }
 }
