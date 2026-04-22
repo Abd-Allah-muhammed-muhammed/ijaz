@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
+use App\Contracts\Repositories\CarAdvisement\CarAdvisementRepositoryInterface;
 use App\Contracts\Repositories\PropertyAdvisement\PropertyAdvisementRepositoryInterface;
 use App\Contracts\Repositories\PropertyCategory\PropertyCategoryRepositoryInterface;
 use App\Contracts\Repositories\PropertyType\PropertyTypeRepositoryInterface;
 use App\Models\Setting;
 use App\NotificationChannel\EventChannel;
 use App\NotificationChannel\FirebaseChannel;
+use App\Repositories\CarAdvisement\CarAdvisementRepository;
 use App\Repositories\PropertyAdvisement\PropertyAdvisementRepository;
 use App\Repositories\PropertyCategory\PropertyCategoryRepository;
 use App\Repositories\PropertyType\PropertyTypeRepository;
@@ -30,79 +32,84 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        require_once app_path('Helpers/arrays.php');
+  /**
+   * Register any application services.
+   */
+  public function register(): void
+  {
+    require_once app_path('Helpers/arrays.php');
 
-        $this->app->bind(
-            PropertyAdvisementRepositoryInterface::class,
-            PropertyAdvisementRepository::class,
-        );
+    $this->app->bind(
+      CarAdvisementRepositoryInterface::class,
+      CarAdvisementRepository::class,
+    );
 
-        $this->app->bind(
-            PropertyTypeRepositoryInterface::class,
-            PropertyTypeRepository::class,
-        );
+    $this->app->bind(
+      PropertyAdvisementRepositoryInterface::class,
+      PropertyAdvisementRepository::class,
+    );
 
-        $this->app->bind(
-            PropertyCategoryRepositoryInterface::class,
-            PropertyCategoryRepository::class,
-        );
-    }
+    $this->app->bind(
+      PropertyTypeRepositoryInterface::class,
+      PropertyTypeRepository::class,
+    );
 
-    /**
-     * Bootstrap any application services.
-     */
-    public function boot(): void
-    {
-        Scramble::configure()
-            ->routes(static fn (Route $route): bool => str_starts_with($route->uri, 'api/v1/'))
-            ->expose(ui: '/docs/api', document: '/docs/api.json')
-            ->withDocumentTransformers(static function (OpenApi $openApi): void {
-                $openApi->secure(SecurityScheme::http('bearer'));
-            });
+    $this->app->bind(
+      PropertyCategoryRepositoryInterface::class,
+      PropertyCategoryRepository::class,
+    );
+  }
 
-        Gate::define('viewApiDocs', static function ($user = null): bool {
-            if (app()->environment(['local', 'testing'])) {
-                return true;
-            }
+  /**
+   * Bootstrap any application services.
+   */
+  public function boot(): void
+  {
+    Scramble::configure()
+      ->routes(static fn(Route $route): bool => str_starts_with($route->uri, 'api/v1/'))
+      ->expose(ui: '/docs/api', document: '/docs/api.json')
+      ->withDocumentTransformers(static function (OpenApi $openApi): void {
+        $openApi->secure(SecurityScheme::http('bearer'));
+      });
 
-            $admin = Auth::guard('admin')->user();
+    Gate::define('viewApiDocs', static function ($user = null): bool {
+      if (app()->environment(['local', 'testing'])) {
+        return true;
+      }
 
-            return (bool) ($admin?->root);
-        });
+      $admin = Auth::guard('admin')->user();
 
-        $this->app->bind(IChatService::class, ChatService::class);
-        $this->app->singleton('settings', fn () => cache()->rememberForever('settings', fn () => Setting::pluck('content', 'key')));
-        JsonResource::withoutWrapping();
-        Schema::defaultStringLength(191);
-        Vite::prefetch(concurrency: 3);
-        Authenticate::redirectUsing(static function (Request $request) {
-            if ($request->routeIs('dashboard.*')) {
-                return route('dashboard.login.form');
-            }
+      return (bool) ($admin?->root);
+    });
 
-            if ($request->routeIs('provider.*')) {
-                return route('provider.login');
-            }
+    $this->app->bind(IChatService::class, ChatService::class);
+    $this->app->singleton('settings', fn() => cache()->rememberForever('settings', fn() => Setting::pluck('content', 'key')));
+    JsonResource::withoutWrapping();
+    Schema::defaultStringLength(191);
+    Vite::prefetch(concurrency: 3);
+    Authenticate::redirectUsing(static function (Request $request) {
+      if ($request->routeIs('dashboard.*')) {
+        return route('dashboard.login.form');
+      }
 
-            return route('login');
-        });
-        RedirectIfAuthenticated::redirectUsing(static function (Request $request) {
-            if ($request->routeIs('dashboard.*')) {
-                return route('dashboard.home');
-            }
+      if ($request->routeIs('provider.*')) {
+        return route('provider.login');
+      }
 
-            if ($request->routeIs('provider.*')) {
-                return route('provider.home');
-            }
+      return route('login');
+    });
+    RedirectIfAuthenticated::redirectUsing(static function (Request $request) {
+      if ($request->routeIs('dashboard.*')) {
+        return route('dashboard.home');
+      }
 
-            return route('/');
-        });
-        Notification::extend('firebase', static fn ($app) => $app->make(FirebaseChannel::class));
-        Notification::extend('event', static fn ($app) => $app->make(EventChannel::class));
-    }
+      if ($request->routeIs('provider.*')) {
+        return route('provider.home');
+      }
+
+      return route('/');
+    });
+    Notification::extend('firebase', static fn($app) => $app->make(FirebaseChannel::class));
+    Notification::extend('event', static fn($app) => $app->make(EventChannel::class));
+  }
 }

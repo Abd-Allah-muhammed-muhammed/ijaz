@@ -77,7 +77,7 @@ class PropertyAdvisementController extends Controller
       return $this->successResponse(PropertyAdvisementResource::make($propertyAdvisement));
     } catch (Throwable $throwable) {
       report($throwable);
-
+      
       return $this->failedMessageResponse(__('something went wrong'));
     }
   }
