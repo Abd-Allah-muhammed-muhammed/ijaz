@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Contracts\Repositories\PropertyAdvisement\PropertyAdvisementRepositoryInterface;
 use App\Models\Setting;
 use App\NotificationChannel\EventChannel;
 use App\NotificationChannel\FirebaseChannel;
+use App\Repositories\PropertyAdvisement\PropertyAdvisementRepository;
 use App\Services\Chat\ChatService;
 use App\Services\Chat\Contracts\IChatService;
 use Dedoc\Scramble\Scramble;
@@ -17,10 +19,10 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Notification;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,6 +32,11 @@ class AppServiceProvider extends ServiceProvider
   public function register(): void
   {
     require_once app_path('Helpers/arrays.php');
+
+    $this->app->bind(
+      PropertyAdvisementRepositoryInterface::class,
+      PropertyAdvisementRepository::class,
+    );
   }
 
   /**
