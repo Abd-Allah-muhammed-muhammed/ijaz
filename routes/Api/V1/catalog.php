@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\V1\CarAdvisementController;
+use App\Http\Controllers\Api\V1\CarBrandController;
+use App\Http\Controllers\Api\V1\CarCategoryController;
+use App\Http\Controllers\Api\V1\CarTypeController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\GuaranteeRequestController;
@@ -48,6 +51,21 @@ Route::controller(PropertyTypeController::class)->group(static function () {
 
 Route::controller(PropertyCategoryController::class)->group(static function () {
     Route::get('property-categories', 'index');
+});
+
+Route::controller(CarBrandController::class)->group(static function () {
+    Route::get('car-brands', 'index');
+    Route::get('car-brands/{carBrand}', 'show');
+});
+
+Route::controller(CarTypeController::class)->group(static function () {
+    Route::get('car-types', 'index');
+    Route::get('car-types/{carType}', 'show');
+});
+
+Route::controller(CarCategoryController::class)->group(static function () {
+    Route::get('car-categories', 'index');
+    Route::get('car-categories/{carCategory}', 'show');
 });
 
 Route::get('property-advisements/all', [PropertyAdvisementController::class, 'all']);

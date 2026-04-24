@@ -2,20 +2,24 @@
 
 namespace App\Http\Controllers\Dashboard;
 
+use App\Contracts\Services\CarTypeServiceInterface;
+use App\DTOs\CarType\StoreCarTypeDTO;
+use App\DTOs\CarType\UpdateCarTypeDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\CarTypeRequest;
 use App\Http\Resources\Dashboard\CarTypeCollection;
 use App\Http\Resources\Dashboard\CarTypeResource;
 use App\Models\CarType;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Support\Facades\DB;
-use Throwable;
 
 class CarTypeController extends Controller implements HasMiddleware
 {
+    public function __construct(
+        private readonly CarTypeServiceInterface $service,
+    ) {}
+
     public static function middleware(): array
     {
         return [
@@ -28,12 +32,7 @@ class CarTypeController extends Controller implements HasMiddleware
 
     public function index(Request $request)
     {
-        $carTypes = CarType::with(['translation', 'carBrand.translation'])
-            ->when($request->input('search'), function ($query, $v) {
-                return $query->whereTranslationLike('name', "%{$v}%");
-            })
-            ->paginate($request->integer('per_page', 10))
-            ->withQueryString();
+        $carTypes = $this->service->index($request);
 
         return inertia('Dashboard/CarTypes/Index', [
             'prams' => fn () => $request->all() ?: [],
@@ -46,32 +45,17 @@ class CarTypeController extends Controller implements HasMiddleware
         return inertia('Dashboard/CarTypes/Create');
     }
 
-    /**
-     * @throws Throwable
-     */
-    public function store(CarTypeRequest $request): RedirectResponse
+    public function store(CarTypeRequest $request)
     {
-        DB::beginTransaction();
-        try {
-            $data = $request->validated();
-            if ($request->hasFile('image')) {
-                $data['image'] = $request->file('image')->store('car_types', 'public');
-            }
-            CarType::create($data);
-            DB::commit();
+        $dto = StoreCarTypeDTO::fromRequest($request);
+        $this->service->store($dto);
 
-            return redirect()->route('dashboard.car-types.index')->with('success', __('data saved successfully'));
-        } catch (Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-
-            return redirect()->back()->with('error', __('something went wrong'));
-        }
+        return redirect()->route('dashboard.car-types.index')->with('success', __('data saved successfully'));
     }
 
     public function edit(CarType $carType)
     {
-        $carType->load(['translations', 'carBrand']);
+        $carType = $this->service->show($carType);
 
         return inertia('Dashboard/CarTypes/Edit', [
             'carType' => CarTypeResource::make($carType),
@@ -80,49 +64,22 @@ class CarTypeController extends Controller implements HasMiddleware
 
     public function update(CarTypeRequest $request, CarType $carType)
     {
-        DB::beginTransaction();
-        try {
-            $data = $request->validated();
-            if ($request->hasFile('image')) {
-                $carType->deleteImage();
-                $data['image'] = $request->file('image')->store('car_types', 'public');
-            } else {
-                unset($data['image']);
-            }
-            $carType->update($data);
-            DB::commit();
+        $dto = UpdateCarTypeDTO::fromRequest($request);
+        $this->service->update($carType, $dto);
 
-            return redirect()->route('dashboard.car-types.index')->with('success', __('data updated successfully'));
-        } catch (Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-
-            return redirect()->back()->with('error', __('something went wrong'));
-        }
+        return redirect()->route('dashboard.car-types.index')->with('success', __('data updated successfully'));
     }
 
     public function updateStatus(Request $request, CarType $carType)
     {
-        DB::beginTransaction();
-        try {
-            $carType->update([
-                'is_active' => $request->boolean('is_active'),
-            ]);
-            DB::commit();
+        $this->service->updateStatus($carType, $request->boolean('is_active'));
 
-            return redirect()->route('dashboard.car-types.index')->with('success', __('data updated successfully'));
-        } catch (Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-
-            return redirect()->back()->with('error', __('something went wrong'));
-        }
+        return redirect()->route('dashboard.car-types.index')->with('success', __('data updated successfully'));
     }
 
     public function destroy(CarType $carType)
     {
-        $carType->deleteImage();
-        $carType->delete();
+        $this->service->destroy($carType);
 
         return redirect()->route('dashboard.car-types.index')->with('success', __('data deleted successfully'));
     }

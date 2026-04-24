@@ -13,7 +13,11 @@ class CarCategoryResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'title' => $this->name,
+            'title' => $this->title,
+            'description' => $this->description,
+            'parent_id' => $this->parent_id,
+            'children_count' => $this->whenCounted('children', $this->children_count),
+            'icon' => $this->icon_url,
         ];
     }
 }

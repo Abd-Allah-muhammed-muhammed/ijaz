@@ -13,8 +13,14 @@ class CarTypeResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'title' => $this->name,
+            'name' => $this->name,
             'car_brand_id' => $this->car_brand_id,
+            'car_brand' => $this->whenLoaded('carBrand', fn () => [
+                'id' => $this->carBrand->id,
+                'name' => $this->carBrand->name,
+            ]),
+            'image' => $this->image_url,
+            'is_active' => $this->is_active,
         ];
     }
 }

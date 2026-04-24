@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('normalized_title')->invisible()->nullable()->index();
             $table->text('description');
             $table->text('normalized_description')->invisible()->nullable()->fullText();
-            $table->string('image');
+            $table->string('image')->nullable();
             $table->string('status');
             $table->string('operation');
             $table->string('usage_status');

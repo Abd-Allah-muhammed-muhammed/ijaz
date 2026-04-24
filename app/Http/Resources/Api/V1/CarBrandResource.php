@@ -13,8 +13,9 @@ class CarBrandResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'title' => $this->name,
+            'name' => $this->name,
             'image' => $this->image_url,
+            'is_active' => $this->is_active,
         ];
     }
 }
