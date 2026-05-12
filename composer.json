@@ -23,6 +23,7 @@
     "laravel/wayfinder": "^0.1.4",
     "mcamara/laravel-localization": "^2.3",
     "mmae/apiresponse": "^1.0",
+    "nwidart/laravel-modules": "^13.0",
     "panphp/pan": "^0.1.8",
     "paytabscom/laravel_paytabs": "^1.9",
     "ratchet/pawl": "^0.4.3",
@@ -95,6 +96,7 @@
     "sort-packages": true,
     "allow-plugins": {
       "dealerdirect/phpcodesniffer-composer-installer": true,
+      "wikimedia/composer-merge-plugin": true,
       "pestphp/pest-plugin": true,
       "php-http/discovery": true
     }
