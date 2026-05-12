@@ -2,29 +2,9 @@
 
 namespace App\Providers;
 
-use App\Contracts\Repositories\CarAdvisement\CarAdvisementRepositoryInterface;
-use App\Contracts\Repositories\CarBrandRepositoryInterface;
-use App\Contracts\Repositories\CarCategoryRepositoryInterface;
-use App\Contracts\Repositories\CarTypeRepositoryInterface;
-use App\Contracts\Repositories\PropertyAdvisement\PropertyAdvisementRepositoryInterface;
-use App\Contracts\Repositories\PropertyCategory\PropertyCategoryRepositoryInterface;
-use App\Contracts\Repositories\PropertyType\PropertyTypeRepositoryInterface;
-use App\Contracts\Services\CarBrandServiceInterface;
-use App\Contracts\Services\CarCategoryServiceInterface;
-use App\Contracts\Services\CarTypeServiceInterface;
 use App\Models\Setting;
 use App\NotificationChannel\EventChannel;
 use App\NotificationChannel\FirebaseChannel;
-use App\Repositories\CarAdvisement\CarAdvisementRepository;
-use App\Repositories\CarBrandRepository;
-use App\Repositories\CarCategoryRepository;
-use App\Repositories\CarTypeRepository;
-use App\Repositories\PropertyAdvisement\PropertyAdvisementRepository;
-use App\Repositories\PropertyCategory\PropertyCategoryRepository;
-use App\Repositories\PropertyType\PropertyTypeRepository;
-use App\Services\CarBrandService;
-use App\Services\CarCategoryService;
-use App\Services\CarTypeService;
 use App\Services\Chat\ChatService;
 use App\Services\Chat\Contracts\IChatService;
 use Dedoc\Scramble\Scramble;
@@ -50,56 +30,6 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         require_once app_path('Helpers/arrays.php');
-
-        $this->app->bind(
-            CarAdvisementRepositoryInterface::class,
-            CarAdvisementRepository::class,
-        );
-
-        $this->app->bind(
-            PropertyAdvisementRepositoryInterface::class,
-            PropertyAdvisementRepository::class,
-        );
-
-        $this->app->bind(
-            PropertyTypeRepositoryInterface::class,
-            PropertyTypeRepository::class,
-        );
-
-        $this->app->bind(
-            PropertyCategoryRepositoryInterface::class,
-            PropertyCategoryRepository::class,
-        );
-
-        $this->app->bind(
-            CarBrandRepositoryInterface::class,
-            CarBrandRepository::class,
-        );
-
-        $this->app->bind(
-            CarTypeRepositoryInterface::class,
-            CarTypeRepository::class,
-        );
-
-        $this->app->bind(
-            CarCategoryRepositoryInterface::class,
-            CarCategoryRepository::class,
-        );
-
-        $this->app->bind(
-            CarBrandServiceInterface::class,
-            CarBrandService::class,
-        );
-
-        $this->app->bind(
-            CarTypeServiceInterface::class,
-            CarTypeService::class,
-        );
-
-        $this->app->bind(
-            CarCategoryServiceInterface::class,
-            CarCategoryService::class,
-        );
     }
 
     /**
