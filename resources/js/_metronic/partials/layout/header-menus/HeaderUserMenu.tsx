@@ -7,7 +7,11 @@ import {Admin} from "@/types/models";
 
 const HeaderUserMenu: FC = () => {
   const logoutForm = useForm()
-  const currentUser = usePage().props.auth.user as unknown as Admin
+  const currentUser = (usePage().props.auth?.user ?? null) as Admin | null
+  if (!currentUser) {
+    return null
+  }
+  const roles = currentUser.roles ?? []
   return (
     <div
       className='menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg menu-state-primary fw-bold py-4 fs-6 w-275px'
@@ -23,7 +27,7 @@ const HeaderUserMenu: FC = () => {
             <div className='fw-bolder d-flex align-items-center fs-5'>
               {currentUser.name}
               <span className='badge badge-light-success fw-bolder fs-8 px-2 py-1 ms-2'>
-                {currentUser.root ? 'root' : currentUser.roles.length > 0 ? currentUser.roles[0].name : 'user'}
+                {currentUser.root ? 'root' : roles.length > 0 ? roles[0].name : 'user'}
               </span>
             </div>
             <a href='#' className='fw-bold text-muted text-hover-primary fs-7'>

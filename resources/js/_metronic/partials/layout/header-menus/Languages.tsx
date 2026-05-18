@@ -15,11 +15,14 @@ const replaceLocale = (currentLocale: string, locale: string, url: string) => {
 
 const Languages: FC = () => {
   const pageData = usePage();
-  const props = pageData.props;
-  const currentLocale = props.app.locale
+  const props = pageData.props as { app?: { locale?: string } };
+  const currentLocale = props.app?.locale ?? 'en';
   const route = pageData.url
-  const currentLanguage = lang[currentLocale]
+  const currentLanguage = lang[currentLocale] ?? Object.values(lang)[0];
   const {t} = useTranslation()
+  if (!currentLanguage) {
+    return null;
+  }
   return (
     <>
       <a href='#' className='menu-link px-5'

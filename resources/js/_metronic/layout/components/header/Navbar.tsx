@@ -13,7 +13,8 @@ const btnIconClass = 'fs-2'
 
 const Navbar = () => {
   const {config} = useLayout()
-  const currentUser = usePage().props.auth.user as unknown as Admin
+  const currentUser = (usePage().props.auth?.user ?? null) as Admin | null
+  const avatarUrl = currentUser?.image ?? toAbsoluteUrl('media/avatars/blank.png')
   return (
     <div className='app-navbar flex-shrink-0'>
       {/*<div className={clsx('app-navbar-item align-items-stretch', itemClass)}>*/}
@@ -56,7 +57,7 @@ const Navbar = () => {
           data-kt-menu-attach='parent'
           data-kt-menu-placement='bottom-end'
         >
-          <img src={currentUser.image} alt='' />
+          <img src={avatarUrl} alt='' />
         </div>
         <HeaderUserMenu />
       </div>
