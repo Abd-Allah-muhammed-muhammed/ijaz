@@ -2,6 +2,7 @@ import { KTIcon } from '@/_metronic/helpers';
 import { CarAdvisement } from '@/types/models';
 import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
+import CarAdvisementController from '@/actions/App/Http/Controllers/Dashboard/CarAdvisementController';
 
 type Props = {
   row: CarAdvisement;
@@ -14,7 +15,7 @@ const CarAdvisementCard = ({ row }: Props) => {
     <div className="card h-100 border-0 shadow-sm overflow-hidden hover-elevate-up">
       {/* ── Image ── */}
       <div className="card-header border-0 p-0 position-relative min-h-200px">
-        <Link href={route('dashboard.car-advisements.show', row.id)} className="d-block h-100 w-100">
+        <Link href={CarAdvisementController.show(row.id as number).url} className="d-block h-100 w-100">
           <img
             src={row.image}
             alt={row.title}
@@ -44,7 +45,7 @@ const CarAdvisementCard = ({ row }: Props) => {
       <div className="card-body p-6">
         <div className="mb-4">
           <Link
-            href={route('dashboard.car-advisements.show', row.id)}
+            href={CarAdvisementController.show(row.id as number).url}
             className="text-gray-900 text-hover-primary fs-4 fw-bold d-block mb-1 text-truncate"
           >
             {row.title}
@@ -103,7 +104,7 @@ const CarAdvisementCard = ({ row }: Props) => {
             </div>
           </div>
           <Link
-            href={route('dashboard.car-advisements.show', row.id)}
+            href={CarAdvisementController.show(row.id as number).url}
             className="btn btn-icon btn-light-primary btn-sm rounded-circle"
           >
             <KTIcon iconName="arrow-right" className="fs-4" />
