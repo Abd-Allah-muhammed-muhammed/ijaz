@@ -28,6 +28,8 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
+use Modules\Classifieds\Models\CarAdvisement;
+use Modules\Classifieds\Models\PropertyAdvisement;
 
 /**
  * App\Models\User

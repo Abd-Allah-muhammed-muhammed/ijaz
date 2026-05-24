@@ -1,6 +1,6 @@
 import { AdvisementStatusEnum, OperationEnum } from '@/Enums/Advisements';
 import { KTIcon } from '@/_metronic/helpers';
-import PropertyAdvisementController from '@/actions/App/Http/Controllers/Dashboard/PropertyAdvisementController';
+import PropertyAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/PropertyAdvisementController';
 import { PropertyAdvisement } from '@/types/models';
 import { router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';

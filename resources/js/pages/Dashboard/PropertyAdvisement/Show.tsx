@@ -2,7 +2,7 @@ import { KTIcon } from '@/_metronic/helpers';
 import MasterLayout from '@/_metronic/layout/MasterLayout';
 import { Content } from '@/_metronic/layout/components/content';
 import { PageTitle } from '@/_metronic/layout/core';
-import PropertyAdvisementController from '@/actions/App/Http/Controllers/Dashboard/PropertyAdvisementController';
+import PropertyAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/PropertyAdvisementController';
 import { AdvisementStatusEnum, OperationEnum } from '@/Enums/Advisements';
 import { Media, PropertyAdvisement } from '@/types/models';
 import { Head, Link, router } from '@inertiajs/react';

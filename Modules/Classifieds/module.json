@@ -1,0 +1,11 @@
+{
+    "name": "Classifieds",
+    "alias": "classifieds",
+    "description": "Property and car classified advisements",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Classifieds\\Providers\\ClassifiedsServiceProvider"
+    ],
+    "files": []
+}

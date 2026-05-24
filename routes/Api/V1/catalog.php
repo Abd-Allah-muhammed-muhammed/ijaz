@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\V1\CarAdvisementController;
 use App\Http\Controllers\Api\V1\CarBrandController;
 use App\Http\Controllers\Api\V1\CarCategoryController;
 use App\Http\Controllers\Api\V1\CarTypeController;
@@ -12,7 +11,6 @@ use App\Http\Controllers\Api\V1\JobController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\OrderChatController;
 use App\Http\Controllers\Api\V1\OtpController;
-use App\Http\Controllers\Api\V1\PropertyAdvisementController;
 use App\Http\Controllers\Api\V1\PropertyCategoryController;
 use App\Http\Controllers\Api\V1\PropertyTypeController;
 use App\Http\Controllers\Api\V1\TicketSupportChatController;
@@ -67,9 +65,6 @@ Route::controller(CarCategoryController::class)->group(static function () {
     Route::get('car-categories', 'index');
     Route::get('car-categories/{carCategory}', 'show');
 });
-
-Route::get('property-advisements/all', [PropertyAdvisementController::class, 'all']);
-Route::get('car-advisements/all', [CarAdvisementController::class, 'all']);
 
 Route::middleware('auth:sanctum')->group(static function () {
     Route::controller(ChatController::class)->prefix('chats')->group(static function () {
@@ -144,23 +139,5 @@ Route::middleware('auth:sanctum')->group(static function () {
         Route::delete('/{ticketSupport}', 'destroy');
         Route::get('/{ticketSupport}/conversation', 'conversation');
         Route::post('/{ticketSupport}/conversation', 'conversationStore');
-    });
-
-    Route::controller(PropertyAdvisementController::class)->prefix('property-advisements')->group(static function () {
-        Route::get('/', 'index');
-        Route::post('/', 'store');
-        Route::get('/{propertyAdvisement}', 'show');
-        Route::post('/{propertyAdvisement}/edit', 'edit');
-        Route::delete('/{propertyAdvisement}/media/{media:uuid}', 'deleteMedia');
-        Route::delete('/{propertyAdvisement}', 'destroy');
-    });
-
-    Route::controller(CarAdvisementController::class)->prefix('car-advisements')->group(static function () {
-        Route::get('/', 'index');
-        Route::post('/', 'store');
-        Route::get('/{carAdvisement}', 'show');
-        Route::post('/{carAdvisement}/edit', 'edit');
-        Route::delete('/{carAdvisement}/media/{media:uuid}', 'deleteMedia');
-        Route::delete('/{carAdvisement}', 'destroy');
     });
 });

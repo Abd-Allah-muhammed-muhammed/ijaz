@@ -29,8 +29,8 @@ import usePermissions from '@/hooks/use-permissions';
 import { useTranslation } from 'react-i18next';
 import { SidebarMenuItem } from './SidebarMenuItem';
 import DeviceCategoryController from '@/actions/App/Http/Controllers/Dashboard/DeviceCategoryController';
-import PropertyAdvisementController from '@/actions/App/Http/Controllers/Dashboard/PropertyAdvisementController';
-import CarAdvisementController from '@/actions/App/Http/Controllers/Dashboard/CarAdvisementController';
+import PropertyAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/PropertyAdvisementController';
+import CarAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/CarAdvisementController';
 
 const SidebarMenuMain = () => {
   const { matchUrl, matchComponents } = useActiveRoute();

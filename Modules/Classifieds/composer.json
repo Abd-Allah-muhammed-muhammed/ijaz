@@ -1,0 +1,28 @@
+{
+    "name": "nwidart/classifieds",
+    "description": "Classifieds module for property and car advisements",
+    "authors": [
+        {
+            "name": "Ijaz",
+            "email": "dev@ijaz.test"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Classifieds\\": "./",
+            "Modules\\Classifieds\\Database\\Factories\\": "database/factories/",
+            "Modules\\Classifieds\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Classifieds\\Tests\\": "tests/"
+        }
+    }
+}

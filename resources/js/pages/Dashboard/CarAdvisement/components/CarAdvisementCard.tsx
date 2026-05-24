@@ -2,7 +2,7 @@ import { KTIcon } from '@/_metronic/helpers';
 import { CarAdvisement } from '@/types/models';
 import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import CarAdvisementController from '@/actions/App/Http/Controllers/Dashboard/CarAdvisementController';
+import CarAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/CarAdvisementController';
 
 type Props = {
   row: CarAdvisement;
