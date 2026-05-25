@@ -5,7 +5,7 @@ import { PaymentMethodEnum, PaymentStatusEnum } from "@/Enums/Payment";
 import { UserStatusEnum } from '@/Enums/Users';
 import { TicketSupportStatusEnum } from "@/Enums/SupportTickets";
 import { GuaranteeRequestStatusEnum } from "@/Enums/GuaranteeRequest";
-import { AdvisementStatusEnum, ElectronicConditionEnum } from "@/Enums/Advisements";
+import { AdvisementStatusEnum, ElectronicConditionEnum, InstituteTypeEnum, StudyTypeEnum } from "@/Enums/Advisements";
 
 export interface Model {
   id: number | string;
@@ -633,6 +633,8 @@ export interface GuaranteeRequest extends Model {
 export type AdvisementStatus = typeof AdvisementStatusEnum[keyof typeof AdvisementStatusEnum];
 export type OperationEnum = typeof OperationEnum[keyof typeof OperationEnum];
 export type ElectronicCondition = typeof ElectronicConditionEnum[keyof typeof ElectronicConditionEnum];
+export type InstituteType = typeof InstituteTypeEnum[keyof typeof InstituteTypeEnum];
+export type StudyType = typeof StudyTypeEnum[keyof typeof StudyTypeEnum];
 export interface PropertyAdvisement extends Model {
   title: string;
   description: string;
@@ -724,6 +726,40 @@ export interface ElectronicAdvisement extends Model {
   city_id: number;
   region_id: number;
   device_category?: DeviceCategory;
+  city?: City;
+  region?: Region;
+  user?: User;
+  media?: Media[];
+  created_at: Date;
+  updated_at: Date;
+}
+export interface InstituteAdvisement extends Model {
+  title: string;
+  description: string;
+  image: string;
+  image_url: string;
+  status: EnumWithColors<AdvisementStatus>;
+  type: EnumWithColors<InstituteType>;
+  study_type: EnumWithColors<StudyType>;
+  fees_from: number | null;
+  fees_to: number | null;
+  show_fees: boolean;
+  phone: string | null;
+  website: string | null;
+  registration_url: string | null;
+  quality_url: string | null;
+  address: string | null;
+  latitude: string | null;
+  longitude: string | null;
+  registration_start: string | null;
+  registration_end: string | null;
+  study_start: string | null;
+  study_end: string | null;
+  options: Record<string, unknown> | null;
+  specialization_id: number;
+  city_id: number;
+  region_id: number;
+  specialization?: Specialization;
   city?: City;
   region?: Region;
   user?: User;

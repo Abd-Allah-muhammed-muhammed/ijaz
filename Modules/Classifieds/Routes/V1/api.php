@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Classifieds\Http\Controllers\V1\CarAdvisementController;
 use Modules\Classifieds\Http\Controllers\V1\ElectronicAdvisementController;
+use Modules\Classifieds\Http\Controllers\V1\InstituteAdvisementController;
 use Modules\Classifieds\Http\Controllers\V1\PropertyAdvisementController;
 
 Route::group(['prefix' => 'classifieds'], function () {
@@ -11,6 +12,7 @@ Route::group(['prefix' => 'classifieds'], function () {
     Route::get('properties/all', [PropertyAdvisementController::class, 'all'])->name('properties.all');
     Route::get('cars/all', [CarAdvisementController::class, 'all'])->name('cars.all');
     Route::get('electronics/all', [ElectronicAdvisementController::class, 'all'])->name('electronics.all');
+    Route::get('institutes/all', [InstituteAdvisementController::class, 'all'])->name('institutes.all');
 
     // Protected Routes
     Route::middleware('auth:sanctum')->group(function () {
@@ -26,5 +28,9 @@ Route::group(['prefix' => 'classifieds'], function () {
         // Electronic Advisements Routes
         Route::apiResource('electronics', ElectronicAdvisementController::class)->parameters(['electronics' => 'electronicAdvisement']);
         Route::delete('electronics/{electronicAdvisement}/media/{media:uuid}', [ElectronicAdvisementController::class, 'deleteMedia'])->name('electronics.deleteMedia');
+
+        // Institute Advisements Routes
+        Route::apiResource('institutes', InstituteAdvisementController::class)->parameters(['institutes' => 'instituteAdvisement']);
+        Route::delete('institutes/{instituteAdvisement}/media/{media:uuid}', [InstituteAdvisementController::class, 'deleteMedia'])->name('institutes.deleteMedia');
     });
 });

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Classifieds\Http\Controllers\Dashboard\CarAdvisementController;
 use Modules\Classifieds\Http\Controllers\Dashboard\ElectronicAdvisementController;
+use Modules\Classifieds\Http\Controllers\Dashboard\InstituteAdvisementController;
 use Modules\Classifieds\Http\Controllers\Dashboard\PropertyAdvisementController;
 
 Route::middleware(['localeSessionRedirect', 'localizationRedirect', 'localeViewPath', 'auth:admin'])
@@ -14,5 +15,8 @@ Route::middleware(['localeSessionRedirect', 'localizationRedirect', 'localeViewP
             ->only(['index', 'show', 'update']);
 
         Route::resource('electronic-advisements', ElectronicAdvisementController::class)
+            ->only(['index', 'show', 'update', 'destroy']);
+
+        Route::resource('institute-advisements', InstituteAdvisementController::class)
             ->only(['index', 'show', 'update', 'destroy']);
     });

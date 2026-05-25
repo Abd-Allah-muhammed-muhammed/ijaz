@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { SidebarMenuItem } from './SidebarMenuItem';
 import DeviceCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/DeviceCategoryController';
 import SpecializationController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/SpecializationController';
+import InstituteAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/InstituteAdvisementController';
 import PropertyAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/PropertyAdvisementController';
 import CarAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/CarAdvisementController';
 import ElectronicAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/ElectronicAdvisementController';
@@ -255,7 +256,14 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.specializations.*')}
         show={hasPermission('show specializations')}
       />
-      {/* InstituteAdvisementController entry will be added here in Step 4 */}
+      <SidebarMenuItem
+        to={InstituteAdvisementController.index().url}
+        title={t('institute_advisements')}
+        icon="building"
+        fontIcon="bi-building"
+        isActive={matchComponents('dashboard.institute-advisements.*')}
+        show={hasPermission('show instituteAdvisements')}
+      />
       {hasAnyPermission(['show providerTypes', 'show providers']) && (
         <div className="menu-item">
           <div className="menu-content pt-8 pb-2">
