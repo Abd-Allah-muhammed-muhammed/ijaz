@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Catalog\Models;
 
 use App\Services\Normalize\Normalize;
 use Illuminate\Database\Eloquent\Model;

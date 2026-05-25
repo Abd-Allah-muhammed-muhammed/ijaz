@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\Dashboard;
+namespace Modules\Catalog\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Dashboard\DeviceCategoryRequest;
-use App\Http\Resources\Dashboard\DeviceCategoryCollection;
-use App\Http\Resources\Dashboard\DeviceCategoryResource;
-use App\Models\DeviceCategory;
 use App\Services\Normalize\Normalize;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
+use Modules\Catalog\Http\Requests\Dashboard\DeviceCategoryRequest;
+use Modules\Catalog\Http\Resources\Dashboard\DeviceCategoryCollection;
+use Modules\Catalog\Http\Resources\Dashboard\DeviceCategoryResource;
+use Modules\Catalog\Models\DeviceCategory;
 use Throwable;
 
 class DeviceCategoryController extends Controller implements HasMiddleware

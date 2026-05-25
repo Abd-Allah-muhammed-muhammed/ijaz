@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Dashboard;
+namespace Modules\Catalog\Http\Requests\Dashboard;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
