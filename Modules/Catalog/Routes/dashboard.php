@@ -10,32 +10,24 @@ use Modules\Catalog\Http\Controllers\Dashboard\PropertyTypeController;
 
 Route::middleware(['localeSessionRedirect', 'localizationRedirect', 'localeViewPath', 'auth:admin'])
     ->group(function () {
+
+        // Property
         Route::resource('property-categories', PropertyCategoryController::class)->except(['show']);
-
-        Route::controller(PropertyTypeController::class)
-            ->prefix('property-types')
-            ->as('property-types.')
-            ->group(function () {
-                Route::put('/{propertyType}/update-status', 'updateStatus')->name('update-status');
-            });
         Route::resource('property-types', PropertyTypeController::class)->except(['show']);
+        Route::put('property-types/{propertyType}/update-status', [PropertyTypeController::class, 'updateStatus'])
+            ->name('property-types.update-status');
 
-        Route::controller(CarBrandController::class)
-            ->prefix('car-brands')
-            ->as('car-brands.')
-            ->group(function () {
-                Route::put('/{carBrand}/update-status', 'updateStatus')->name('update-status');
-            });
+        // Cars
         Route::resource('car-brands', CarBrandController::class)->except(['show']);
+        Route::put('car-brands/{carBrand}/update-status', [CarBrandController::class, 'updateStatus'])
+            ->name('car-brands.update-status');
 
-        Route::controller(CarTypeController::class)
-            ->prefix('car-types')
-            ->as('car-types.')
-            ->group(function () {
-                Route::put('/{carType}/update-status', 'updateStatus')->name('update-status');
-            });
         Route::resource('car-types', CarTypeController::class)->except(['show']);
+        Route::put('car-types/{carType}/update-status', [CarTypeController::class, 'updateStatus'])
+            ->name('car-types.update-status');
 
         Route::resource('car-categories', CarCategoryController::class)->except(['show']);
+
+        // Devices
         Route::resource('device-categories', DeviceCategoryController::class)->except(['show']);
     });
