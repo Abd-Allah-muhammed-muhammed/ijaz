@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\Catalog\Database\Seeders\DeviceCategorySeeder;
 use Modules\Catalog\Database\Seeders\PropertyCategoriesSeeder;
 use Modules\Catalog\Database\Seeders\PropertyTypesSeeder;
 use Modules\Classifieds\Database\Seeders\PropertyAdvisementsSeeder;
@@ -24,6 +25,7 @@ class DatabaseSeeder extends Seeder
             RegionsAndCitiesSeeder::class,
             PropertyTypesSeeder::class,
             PropertyCategoriesSeeder::class,
+            DeviceCategorySeeder::class,
             PropertyAdvisementsSeeder::class,
         ]);
     }
