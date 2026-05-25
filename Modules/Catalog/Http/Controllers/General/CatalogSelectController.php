@@ -13,6 +13,7 @@ use Modules\Catalog\Models\CarType;
 use Modules\Catalog\Models\DeviceCategory;
 use Modules\Catalog\Models\PropertiyCategory;
 use Modules\Catalog\Models\PropertyType;
+use Modules\Catalog\Models\Specialization;
 
 class CatalogSelectController extends Controller
 {
@@ -68,6 +69,16 @@ class CatalogSelectController extends Controller
     {
         $rows = DeviceCategory::query()->withTranslation()
             ->when($request->search, fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%"))
+            ->get();
+
+        return $this->successResponse(ReactSelectResource::collection($rows));
+    }
+
+    public function specializations(Request $request): JsonResponse
+    {
+        $rows = Specialization::query()->withTranslation()
+            ->when($request->search, fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%"))
+            ->when($request->integer('parent_id'), fn ($query, $v) => $query->where('parent_id', $v))
             ->get();
 
         return $this->successResponse(ReactSelectResource::collection($rows));

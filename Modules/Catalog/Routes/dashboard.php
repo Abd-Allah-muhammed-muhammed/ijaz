@@ -7,6 +7,7 @@ use Modules\Catalog\Http\Controllers\Dashboard\CarTypeController;
 use Modules\Catalog\Http\Controllers\Dashboard\DeviceCategoryController;
 use Modules\Catalog\Http\Controllers\Dashboard\PropertyCategoryController;
 use Modules\Catalog\Http\Controllers\Dashboard\PropertyTypeController;
+use Modules\Catalog\Http\Controllers\Dashboard\SpecializationController;
 
 Route::middleware(['localeSessionRedirect', 'localizationRedirect', 'localeViewPath', 'auth:admin'])
     ->group(function () {
@@ -30,4 +31,7 @@ Route::middleware(['localeSessionRedirect', 'localizationRedirect', 'localeViewP
 
         // Devices
         Route::resource('device-categories', DeviceCategoryController::class)->except(['show']);
+
+        // Specializations
+        Route::resource('specializations', SpecializationController::class)->except(['show']);
     });

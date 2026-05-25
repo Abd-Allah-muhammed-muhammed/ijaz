@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Modules\Catalog\Database\Seeders\DeviceCategorySeeder;
 use Modules\Catalog\Database\Seeders\PropertyCategoriesSeeder;
 use Modules\Catalog\Database\Seeders\PropertyTypesSeeder;
+use Modules\Catalog\Database\Seeders\SpecializationSeeder;
 use Modules\Classifieds\Database\Seeders\PropertyAdvisementsSeeder;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -26,6 +27,7 @@ class DatabaseSeeder extends Seeder
             PropertyTypesSeeder::class,
             PropertyCategoriesSeeder::class,
             DeviceCategorySeeder::class,
+            SpecializationSeeder::class,
             PropertyAdvisementsSeeder::class,
         ]);
     }
