@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Classifieds\Models\CarAdvisement;
 use Modules\Classifieds\Models\ElectronicAdvisement;
+use Modules\Classifieds\Models\InstituteAdvisement;
 use Modules\Classifieds\Models\PropertyAdvisement;
 
 /**
@@ -178,6 +179,11 @@ class User extends Authenticatable implements HasConversation, HasOTPsContract, 
     public function electronicAdvisements(): MorphMany
     {
         return $this->morphMany(ElectronicAdvisement::class, 'user');
+    }
+
+    public function instituteAdvisements(): MorphMany
+    {
+        return $this->morphMany(InstituteAdvisement::class, 'user');
     }
 
     public function receivedMessages(): MorphMany
