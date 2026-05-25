@@ -5,14 +5,9 @@ namespace App\Http\Controllers\General;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\CategoryCollection;
 use App\Http\Resources\General\ReactSelectResource;
-use App\Models\CarBrand;
-use App\Models\CarCategory;
-use App\Models\CarType;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Nationality;
-use App\Models\PropertiyCategory;
-use App\Models\PropertyType;
 use App\Models\Region;
 use App\Models\Skill;
 use Illuminate\Http\JsonResponse;
@@ -75,52 +70,6 @@ class ReactSelectController extends Controller
     public function nationalities(Request $request): JsonResponse
     {
         $rows = Nationality::query()->withTranslation()
-            ->when($request->search, fn ($query, $v) => $query->whereTranslationLike('name', "%{$v}%"))
-            ->get();
-
-        return $this->successResponse(ReactSelectResource::collection($rows));
-    }
-
-    public function propertyTypes(Request $request): JsonResponse
-    {
-        $rows = PropertyType::query()->withTranslation()
-            ->when($request->search, fn ($query, $v) => $query->whereTranslationLike('name', "%{$v}%"))
-            ->get();
-
-        return $this->successResponse(ReactSelectResource::collection($rows));
-    }
-
-    public function propertyCategories(Request $request): JsonResponse
-    {
-        $rows = PropertiyCategory::query()->withTranslation()
-            ->when($request->search, fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%"))
-            ->get();
-
-        return $this->successResponse(ReactSelectResource::collection($rows));
-    }
-
-    public function carCategories(Request $request): JsonResponse
-    {
-        $rows = CarCategory::query()->withTranslation()
-            ->when($request->search, fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%"))
-            ->get();
-
-        return $this->successResponse(ReactSelectResource::collection($rows));
-    }
-
-    public function carTypes(Request $request): JsonResponse
-    {
-        $rows = CarType::query()->withTranslation()
-            ->when($request->search, fn ($query, $v) => $query->whereTranslationLike('name', "%{$v}%"))
-            ->when($request->integer('car_brand_id'), fn ($query, $v) => $query->where('car_brand_id', $v))
-            ->get();
-
-        return $this->successResponse(ReactSelectResource::collection($rows));
-    }
-
-    public function carBrands(Request $request): JsonResponse
-    {
-        $rows = CarBrand::query()->withTranslation()
             ->when($request->search, fn ($query, $v) => $query->whereTranslationLike('name', "%{$v}%"))
             ->get();
 

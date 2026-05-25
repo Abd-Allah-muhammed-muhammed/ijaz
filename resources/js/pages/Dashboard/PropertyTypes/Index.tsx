@@ -2,7 +2,7 @@ import { KTCard, KTIcon } from '@/_metronic/helpers';
 import MasterLayout from '@/_metronic/layout/MasterLayout';
 import { Content } from '@/_metronic/layout/components/content';
 import { PageTitle } from '@/_metronic/layout/core';
-import PropertyTypeController from '@/actions/App/Http/Controllers/Dashboard/PropertyTypeController';
+import PropertyTypeController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/PropertyTypeController';
 import Table, { LinkAction } from '@/components/Table';
 import ConfirmAction from '@/components/Table/partials/confirm-action';
 import usePermissions from '@/hooks/use-permissions';

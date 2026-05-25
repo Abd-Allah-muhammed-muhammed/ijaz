@@ -3,7 +3,7 @@ import MasterLayout from '@/_metronic/layout/MasterLayout';
 import { Content } from '@/_metronic/layout/components/content';
 import { ToolbarWrapper } from '@/_metronic/layout/components/toolbar';
 import { PageTitle } from '@/_metronic/layout/core';
-import PropertyCategoryController from '@/actions/App/Http/Controllers/Dashboard/PropertyCategoryController';
+import PropertyCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/PropertyCategoryController';
 import Table, { LinkAction } from '@/components/Table';
 import ConfirmAction from '@/components/Table/partials/confirm-action';
 import { PaginationResource } from '@/types';

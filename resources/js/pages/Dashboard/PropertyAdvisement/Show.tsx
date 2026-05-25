@@ -44,7 +44,7 @@ const ShowPropertyAdvisement = ({ row }: Props) => {
   return (
     <Content>
       <Head title={`${t('view_property_advisement')} #${row.id}`} />
-      <PageTitle breadcrumbs={[{ title: t('property_advisements'), path: '/admin/property-advisements', isSeparator: false, isActive: false }]}>
+      <PageTitle breadcrumbs={[{ title: t('property_advisements'), path: PropertyAdvisementController.index().url, isSeparator: false, isActive: false }]}>
         {t('view_property_advisement')}
       </PageTitle>
 

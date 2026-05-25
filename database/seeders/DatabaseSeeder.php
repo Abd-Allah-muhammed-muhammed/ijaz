@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\Catalog\Database\Seeders\PropertyCategoriesSeeder;
+use Modules\Catalog\Database\Seeders\PropertyTypesSeeder;
 use Modules\Classifieds\Database\Seeders\PropertyAdvisementsSeeder;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;

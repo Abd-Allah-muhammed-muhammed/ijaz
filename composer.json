@@ -42,10 +42,12 @@
     "pestphp/pest-plugin-laravel": "^4.0",
     "roave/security-advisories": "dev-latest"
   },
-  "autoload": {
+    "autoload": {
     "psr-4": {
       "App\\": "app/",
       "Modules\\": "Modules/",
+      "Modules\\Catalog\\Database\\Factories\\": "Modules/Catalog/database/factories/",
+      "Modules\\Catalog\\Database\\Seeders\\": "Modules/Catalog/database/seeders/",
       "Database\\Factories\\": "database/factories/",
       "Database\\Seeders\\": "database/seeders/",
       "Lib\\": "lib/"

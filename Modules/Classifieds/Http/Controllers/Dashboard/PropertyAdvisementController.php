@@ -4,13 +4,13 @@ namespace Modules\Classifieds\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\City;
-use App\Models\PropertiyCategory;
-use App\Models\PropertyType;
 use App\Models\Region;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Inertia\Response;
+use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyType;
 use Modules\Classifieds\Http\Resources\Dashboard\PropertyAdvisementCollection;
 use Modules\Classifieds\Http\Resources\Dashboard\PropertyAdvisementResource;
 use Modules\Classifieds\Models\PropertyAdvisement;

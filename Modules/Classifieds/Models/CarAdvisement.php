@@ -2,9 +2,6 @@
 
 namespace Modules\Classifieds\Models;
 
-use App\Models\CarBrand;
-use App\Models\CarCategory;
-use App\Models\CarType;
 use App\Models\City;
 use App\Models\Region;
 use App\Traits\HasNormalizedAttributes;
@@ -16,6 +13,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
+use Modules\Catalog\Models\CarBrand;
+use Modules\Catalog\Models\CarCategory;
+use Modules\Catalog\Models\CarType;
 use Modules\Classifieds\Database\Factories\CarAdvisementFactory;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;

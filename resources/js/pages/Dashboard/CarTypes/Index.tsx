@@ -2,14 +2,14 @@ import { KTCard, KTIcon } from '@/_metronic/helpers';
 import MasterLayout from '@/_metronic/layout/MasterLayout';
 import { Content } from '@/_metronic/layout/components/content';
 import { PageTitle } from '@/_metronic/layout/core';
-import CarTypeController from '@/actions/App/Http/Controllers/Dashboard/CarTypeController';
+import CarTypeController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarTypeController';
 import Table, { LinkAction } from '@/components/Table';
 import ConfirmAction from '@/components/Table/partials/confirm-action';
 import usePermissions from '@/hooks/use-permissions';
 import { PaginationResource } from '@/types';
 import { CarType } from '@/types/models';
 import { Head, Link, router } from '@inertiajs/react';
-import { ReactNode } from 'react';
+import { ReactElement, ReactNode } from 'react';
 import FormCheckInput from 'react-bootstrap/FormCheck';
 import { useTranslation } from 'react-i18next';
 import {ToolbarWrapper} from "@/_metronic/layout/components/toolbar";
@@ -145,6 +145,6 @@ const Index = ({ rows, prams }: Props) => {
   );
 };
 
-Index.layout = (page:ChildNode) => <MasterLayout {...page}>{page}</MasterLayout>;
+Index.layout = (page: ReactElement) => <MasterLayout children={page} />;
 
 export default Index;

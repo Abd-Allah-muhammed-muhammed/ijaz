@@ -1,20 +1,17 @@
 import { KTCard, KTCardBody, KTIcon } from '@/_metronic/helpers';
-import CarBrandController from '@/actions/App/Http/Controllers/Dashboard/CarBrandController';
+import CarBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarBrandController';
 import ActionButton from '@/components/action-button';
 import ImageInput from '@/components/inputs/ImageInput';
 import InputError from '@/components/inputs/InputError';
 import { getSupportedLocales } from '@/hooks/use-locales';
 import { CarBrand, CarBrandTranslation } from '@/types/models';
-import { Link, useForm } from '@inertiajs/react';
+import { InertiaFormProps, Link, useForm } from '@inertiajs/react';
 import React, { useState } from 'react';
 import { Col, Form as BTForm, FormCheck, FormControl, FormGroup, FormLabel, Nav, Row, Tab } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import { FormInput as CarBrandForm } from './types';
 
-export interface CarBrandForm {
-  translations: Record<string, Partial<CarBrandTranslation>>;
-  is_active: boolean;
-  image?: File | null;
-}
+export type { CarBrandForm };
 
 type Props = {
   carBrand?: CarBrand;
@@ -27,7 +24,7 @@ export default function Form({ carBrand, onSubmit }: Props) {
   const [activeTab, setActiveTab] = useState(Object.keys(locales)[0]);
 
   const form = useForm<CarBrandForm>({
-    translations: Object.keys(locales).reduce<Record<string, Partial<CarBrandTranslation>>>(
+    translations: Object.keys(locales).reduce<CarBrandForm['translations']>(
       (previousValue, currentValue) => {
         const transObj = carBrand?.translations as Record<string, Partial<CarBrandTranslation>> | CarBrandTranslation[] | undefined;
         let translation: Partial<CarBrandTranslation> | undefined;
@@ -40,7 +37,6 @@ export default function Form({ carBrand, onSubmit }: Props) {
 
         previousValue[currentValue] = {
           name: translation?.name || '',
-          locale: currentValue,
         };
         return previousValue;
       },

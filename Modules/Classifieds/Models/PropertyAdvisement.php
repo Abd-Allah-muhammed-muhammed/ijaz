@@ -3,8 +3,6 @@
 namespace Modules\Classifieds\Models;
 
 use App\Models\City;
-use App\Models\PropertiyCategory;
-use App\Models\PropertyType;
 use App\Models\Region;
 use App\Traits\HasNormalizedAttributes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -14,6 +12,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Storage;
+use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyType;
 use Modules\Classifieds\Database\Factories\PropertyAdvisementFactory;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;

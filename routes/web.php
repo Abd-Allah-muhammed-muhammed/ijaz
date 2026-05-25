@@ -7,6 +7,7 @@ use App\Http\Controllers\General\MediaController;
 use App\Http\Controllers\General\ReactSelectController;
 use App\Http\Controllers\Payments\PayTabsController;
 use Illuminate\Support\Facades\Route;
+use Modules\Catalog\Http\Controllers\General\CatalogSelectController;
 
 Route::get('testing', static function () {
 
@@ -66,6 +67,8 @@ Route::group(
             Route::get('/regions', 'regions')->name('regions');
             Route::get('/cities', 'cities')->name('cities');
             Route::get('/nationalities', 'nationalities')->name('nationalities');
+        });
+        Route::controller(CatalogSelectController::class)->prefix('general')->as('general.')->group(function () {
             Route::get('/property-types', 'propertyTypes')->name('propertyTypes');
             Route::get('/property-categories', 'propertyCategories')->name('propertyCategories');
             Route::get('/car-categories', 'carCategories')->name('carCategories');

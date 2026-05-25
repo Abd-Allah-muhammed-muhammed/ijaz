@@ -201,6 +201,25 @@ export interface CarTypeTranslation extends Model {
   name: string;
 }
 
+export interface CarCategory extends Model {
+  icon: string | null;
+  parent_id: number | null;
+  title: string;
+  parent?: CarCategory;
+  children?: CarCategory[];
+  translations?: Record<string, CarCategoryTranslation>;
+  translation?: CarCategoryTranslation;
+  children_count?: number;
+  has_children?: boolean;
+}
+
+export interface CarCategoryTranslation extends Model {
+  car_category_id: number;
+  locale: string;
+  title: string;
+  normalized_title?: string;
+}
+
 export interface Skill extends Model {
   title: string;
   category?: Category;

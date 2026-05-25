@@ -1,4 +1,4 @@
-import PropertyCategoryController from '@/actions/App/Http/Controllers/Dashboard/PropertyCategoryController';
+import PropertyCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/PropertyCategoryController';
 import ActionButton from '@/components/action-button';
 import InputError from '@/components/inputs/InputError';
 import { getSupportedLocales } from '@/hooks/use-locales';

@@ -4,12 +4,12 @@ namespace Modules\Classifieds\Http\Resources\Api;
 
 use App\Http\Resources\Api\V1\CityResource;
 use App\Http\Resources\Api\V1\MediaResource;
-use App\Http\Resources\Api\V1\PropertyCategoryResource;
-use App\Http\Resources\Api\V1\PropertyTypeResource;
 use App\Http\Resources\Api\V1\RegionResource;
 use App\Http\Resources\Api\V1\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Catalog\Http\Resources\Api\PropertyCategoryResource;
+use Modules\Catalog\Http\Resources\Api\PropertyTypeResource;
 use Modules\Classifieds\Models\PropertyAdvisement;
 
 /** @mixin PropertyAdvisement */

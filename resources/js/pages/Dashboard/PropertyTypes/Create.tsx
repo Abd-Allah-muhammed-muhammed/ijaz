@@ -3,7 +3,7 @@ import MasterLayout from '@/_metronic/layout/MasterLayout';
 import { Content } from '@/_metronic/layout/components/content';
 import { ToolbarWrapper } from '@/_metronic/layout/components/toolbar';
 import { PageTitle } from '@/_metronic/layout/core';
-import PropertyTypeController from '@/actions/App/Http/Controllers/Dashboard/PropertyTypeController';
+import PropertyTypeController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/PropertyTypeController';
 import { Head } from '@inertiajs/react';
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';

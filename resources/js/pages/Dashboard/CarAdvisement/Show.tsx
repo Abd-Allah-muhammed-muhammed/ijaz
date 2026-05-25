@@ -39,7 +39,7 @@ const ShowCarAdvisement = ({ row }: Props) => {
   return (
     <Content>
       <Head title={`${t('view_car_advisement')} #${row.id}`} />
-      <PageTitle breadcrumbs={[{ title: t('car_advisements'), path: '/admin/car-advisements', isSeparator: false, isActive: false }]}>
+      <PageTitle breadcrumbs={[{ title: t('car_advisements'), path: CarAdvisementController.index().url, isSeparator: false, isActive: false }]}>
         {t('view_car_advisement')}
       </PageTitle>
 

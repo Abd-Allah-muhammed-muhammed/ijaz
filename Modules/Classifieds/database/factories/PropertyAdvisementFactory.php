@@ -3,12 +3,12 @@
 namespace Modules\Classifieds\Database\Factories;
 
 use App\Models\City;
-use App\Models\PropertiyCategory;
-use App\Models\PropertyType;
 use App\Models\Region;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyType;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;
 use Modules\Classifieds\Models\PropertyAdvisement;

@@ -1,12 +1,12 @@
 import axios from "@/helpers/axios";
 import {useQuery, UseQueryOptions, UseQueryResult} from "@tanstack/react-query";
 import {usePage} from "@inertiajs/react";
-import ReactSelectController from "@/actions/App/Http/Controllers/General/ReactSelectController";
+import CatalogSelectController from "@/actions/Modules/Catalog/Http/Controllers/General/CatalogSelectController";
 import {ApiResponse} from "@/types/api";
 import {SelectOption} from "@/types";
 
 export const fetchCarTypes = async (locale: string, signal: AbortSignal, carBrandId?: number | string, search?: string): Promise<SelectOption[]> => {
-  const url = '/' + locale + ReactSelectController.carTypes({mergeQuery: {car_brand_id: carBrandId, search}}).url
+  const url = '/' + locale + CatalogSelectController.carTypes({mergeQuery: {car_brand_id: carBrandId, search}}).url
   const {data} = await axios.get<ApiResponse<SelectOption>>(url, {signal});
   return data.data;
 }

@@ -1,12 +1,12 @@
 import axios from "@/helpers/axios";
 import {useQuery, UseQueryOptions, UseQueryResult} from "@tanstack/react-query";
 import {usePage} from "@inertiajs/react";
-import ReactSelectController from "@/actions/App/Http/Controllers/General/ReactSelectController";
+import CatalogSelectController from "@/actions/Modules/Catalog/Http/Controllers/General/CatalogSelectController";
 import {ApiResponse} from "@/types/api";
 import {SelectOption} from "@/types";
 
 export const fetchPropertyCategories = async (locale: string, signal: AbortSignal, search?: string): Promise<SelectOption[]> => {
-  const url = '/' + locale + ReactSelectController.propertyCategories({mergeQuery: {search}}).url
+  const url = '/' + locale + CatalogSelectController.propertyCategories({mergeQuery: {search}}).url
   const {data} = await axios.get<ApiResponse<SelectOption>>(url, {signal});
   return data.data;
 }

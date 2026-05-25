@@ -1,4 +1,4 @@
-import PropertyTypeController from '@/actions/App/Http/Controllers/Dashboard/PropertyTypeController';
+import PropertyTypeController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/PropertyTypeController';
 import ActionButton from '@/components/action-button';
 import InputError from '@/components/inputs/InputError';
 import { getSupportedLocales } from '@/hooks/use-locales';

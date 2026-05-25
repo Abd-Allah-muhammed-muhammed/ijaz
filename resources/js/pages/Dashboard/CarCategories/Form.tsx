@@ -1,4 +1,4 @@
-import CarCategoryController from '@/actions/App/Http/Controllers/Dashboard/CarCategoryController';
+import CarCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarCategoryController';
 import ActionButton from '@/components/action-button';
 import ImageInput from '@/components/inputs/ImageInput';
 import InputError from '@/components/inputs/InputError';

@@ -3,14 +3,14 @@
 namespace Modules\Classifieds\Http\Resources\Dashboard;
 
 use App\Http\Resources\Api\V1\MediaResource;
-use App\Http\Resources\Dashboard\CarBrandResource;
-use App\Http\Resources\Dashboard\CarCategoryResource;
-use App\Http\Resources\Dashboard\CarTypeResource;
 use App\Http\Resources\Dashboard\CityResource;
 use App\Http\Resources\Dashboard\RegionResource;
 use App\Http\Resources\Dashboard\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Catalog\Http\Resources\Dashboard\CarBrandResource;
+use Modules\Catalog\Http\Resources\Dashboard\CarCategoryResource;
+use Modules\Catalog\Http\Resources\Dashboard\CarTypeResource;
 use Modules\Classifieds\Models\CarAdvisement;
 
 /** @mixin CarAdvisement */

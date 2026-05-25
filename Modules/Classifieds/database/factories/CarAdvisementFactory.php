@@ -2,13 +2,13 @@
 
 namespace Modules\Classifieds\Database\Factories;
 
-use App\Models\CarBrand;
-use App\Models\CarCategory;
-use App\Models\CarType;
 use App\Models\City;
 use App\Models\Region;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
+use Modules\Catalog\Models\CarBrand;
+use Modules\Catalog\Models\CarCategory;
+use Modules\Catalog\Models\CarType;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;
 use Modules\Classifieds\Enums\UsageStatusEnum;

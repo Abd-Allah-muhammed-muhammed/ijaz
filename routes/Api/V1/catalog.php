@@ -1,9 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\V1\CarBrandController;
-use App\Http\Controllers\Api\V1\CarCategoryController;
-use App\Http\Controllers\Api\V1\CarTypeController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\GuaranteeRequestController;
@@ -11,8 +8,6 @@ use App\Http\Controllers\Api\V1\JobController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\OrderChatController;
 use App\Http\Controllers\Api\V1\OtpController;
-use App\Http\Controllers\Api\V1\PropertyCategoryController;
-use App\Http\Controllers\Api\V1\PropertyTypeController;
 use App\Http\Controllers\Api\V1\TicketSupportChatController;
 use App\Http\Controllers\Api\V1\TicketSupportController;
 use App\Http\Controllers\Api\V1\WalletController;
@@ -40,30 +35,6 @@ Route::prefix('catalog')->group(static function () {
         Route::get('/settings', 'settings');
         Route::get('/questions', 'questions');
     });
-});
-
-// Public endpoint - no auth required
-Route::controller(PropertyTypeController::class)->group(static function () {
-    Route::get('property-types', 'index');
-});
-
-Route::controller(PropertyCategoryController::class)->group(static function () {
-    Route::get('property-categories', 'index');
-});
-
-Route::controller(CarBrandController::class)->group(static function () {
-    Route::get('car-brands', 'index');
-    Route::get('car-brands/{carBrand}', 'show');
-});
-
-Route::controller(CarTypeController::class)->group(static function () {
-    Route::get('car-types', 'index');
-    Route::get('car-types/{carType}', 'show');
-});
-
-Route::controller(CarCategoryController::class)->group(static function () {
-    Route::get('car-categories', 'index');
-    Route::get('car-categories/{carCategory}', 'show');
 });
 
 Route::middleware('auth:sanctum')->group(static function () {

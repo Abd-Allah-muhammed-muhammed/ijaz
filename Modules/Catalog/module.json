@@ -1,0 +1,11 @@
+{
+    "name": "Catalog",
+    "alias": "catalog",
+    "description": "Property and car catalog lookup data",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Catalog\\Providers\\CatalogServiceProvider"
+    ],
+    "files": []
+}

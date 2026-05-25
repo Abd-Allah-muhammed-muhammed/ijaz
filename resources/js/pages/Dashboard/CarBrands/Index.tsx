@@ -3,7 +3,7 @@ import MasterLayout from '@/_metronic/layout/MasterLayout';
 import { Content } from '@/_metronic/layout/components/content';
 import { ToolbarWrapper } from '@/_metronic/layout/components/toolbar';
 import { PageTitle } from '@/_metronic/layout/core';
-import CarBrandController from '@/actions/App/Http/Controllers/Dashboard/CarBrandController';
+import CarBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarBrandController';
 import Table, { LinkAction } from '@/components/Table';
 import ConfirmAction from '@/components/Table/partials/confirm-action';
 import usePermissions from '@/hooks/use-permissions';

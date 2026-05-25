@@ -1,6 +1,6 @@
 import { PageTitle } from '@/_metronic/layout/core';
 import MasterLayout from '@/_metronic/layout/MasterLayout';
-import CarBrandController from '@/actions/App/Http/Controllers/Dashboard/CarBrandController';
+import CarBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarBrandController';
 import { CarBrand } from '@/types/models';
 import { Head } from '@inertiajs/react';
 import { ReactNode } from 'react';

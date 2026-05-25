@@ -3,7 +3,7 @@ import MasterLayout from '@/_metronic/layout/MasterLayout';
 import { Content } from '@/_metronic/layout/components/content';
 import { ToolbarWrapper } from '@/_metronic/layout/components/toolbar';
 import { PageTitle } from '@/_metronic/layout/core';
-import CarTypeController from '@/actions/App/Http/Controllers/Dashboard/CarTypeController';
+import CarTypeController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarTypeController';
 import { ReactSelect } from '@/types';
 import { Head } from '@inertiajs/react';
 import { ReactNode } from 'react';
