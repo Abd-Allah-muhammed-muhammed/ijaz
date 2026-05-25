@@ -29,6 +29,7 @@ import usePermissions from '@/hooks/use-permissions';
 import { useTranslation } from 'react-i18next';
 import { SidebarMenuItem } from './SidebarMenuItem';
 import DeviceCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/DeviceCategoryController';
+import SpecializationController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/SpecializationController';
 import PropertyAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/PropertyAdvisementController';
 import CarAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/CarAdvisementController';
 import ElectronicAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/ElectronicAdvisementController';
@@ -239,6 +240,22 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.electronic-advisements.*')}
         show={hasPermission('show electronicAdvisements')}
       />
+      {hasAnyPermission(['show specializations', 'show instituteAdvisements']) && (
+        <div className="menu-item">
+          <div className="menu-content pt-8 pb-2">
+            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('institutes')}</span>
+          </div>
+        </div>
+      )}
+      <SidebarMenuItem
+        to={SpecializationController.index().url}
+        title={t('specializations')}
+        icon="book"
+        fontIcon="bi-book"
+        isActive={matchComponents('dashboard.specializations.*')}
+        show={hasPermission('show specializations')}
+      />
+      {/* InstituteAdvisementController entry will be added here in Step 4 */}
       {hasAnyPermission(['show providerTypes', 'show providers']) && (
         <div className="menu-item">
           <div className="menu-content pt-8 pb-2">

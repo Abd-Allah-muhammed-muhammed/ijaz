@@ -164,6 +164,25 @@ export interface DeviceCategoryTranslation extends Model {
   deviceCategory?: DeviceCategory;
 }
 
+export interface Specialization extends Model {
+  title: string;
+  icon: string | null;
+  parent_id: number | null;
+  parent?: Specialization;
+  children?: Specialization[];
+  translations?: Record<string, SpecializationTranslation>;
+  translation?: SpecializationTranslation;
+  children_count?: number;
+  has_children?: boolean;
+}
+
+export interface SpecializationTranslation extends Model {
+  specialization_id: number;
+  locale: string;
+  title: string;
+  normalized_title?: string;
+}
+
 export interface PropertyTypeTranslation {
   id: number;
   property_type_id: number;
