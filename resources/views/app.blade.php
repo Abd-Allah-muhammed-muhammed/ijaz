@@ -23,7 +23,9 @@
     rel="stylesheet">
   @viteReactRefresh
   {{-- {!!app(TranslationServices::class)->render($locale)!!}--}}
-  @locales
+  <script>
+    window._locales = {!! json_encode(config('laravellocalization.supportedLocales')) !!};
+  </script>
   @if($direction === 'rtl')
     <link rel="stylesheet" href="{{asset('css/style.bundle.rtl.css')}}" />
   @else

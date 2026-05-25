@@ -45,9 +45,7 @@ class DeviceCategoryController extends Controller implements HasMiddleware
     public function create(): Response
     {
         return inertia('Dashboard/DeviceCategories/Create', [
-            'categories' => DeviceCategoryResource::collection(
-                DeviceCategory::with(['translation'])->whereNull('parent_id')->get()
-            ),
+            'categories' => DeviceCategoryResource::collection($this->service->getRootCategories()),
         ]);
     }
 
@@ -66,9 +64,7 @@ class DeviceCategoryController extends Controller implements HasMiddleware
         return inertia('Dashboard/DeviceCategories/Edit', [
             'category' => DeviceCategoryResource::make($device_category),
             'categories' => DeviceCategoryResource::collection(
-                DeviceCategory::with(['translation'])
-                    ->whereNull('parent_id')
-                    ->get()
+                $this->service->getRootCategories(excludeId: $device_category->id)
             ),
         ]);
     }

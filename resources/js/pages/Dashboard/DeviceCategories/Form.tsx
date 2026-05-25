@@ -1,4 +1,4 @@
-import DeviceCategoryController from '@/actions/App/Http/Controllers/Dashboard/DeviceCategoryController';
+import DeviceCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/DeviceCategoryController';
 import ActionButton from '@/components/action-button';
 import ImageInput from '@/components/inputs/ImageInput';
 import InputError from '@/components/inputs/InputError';

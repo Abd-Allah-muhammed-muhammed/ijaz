@@ -10,7 +10,7 @@ class DeviceCategoryTranslation extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['title'];
+    protected $fillable = ['title', 'locale'];
 
     public function deviceCategory(): BelongsTo
     {
@@ -20,8 +20,8 @@ class DeviceCategoryTranslation extends Model
     protected static function booted(): void
     {
         static::saving(static function ($translation) {
-            if ($translation->isDirty('title')) {
-                $translation->normalized_title = Normalize::make($translation->title, $translation->locale);
+            if ($translation->isDirty('title') && ! empty($translation->locale)) {
+                $translation->normalized_title = Normalize::make($translation->title, $translation->locale)->toString();
             }
         });
     }

@@ -3,6 +3,7 @@
 namespace Modules\Catalog\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Catalog\Contracts\Repositories\DeviceCategoryRepositoryInterface;
@@ -78,6 +79,14 @@ class DeviceCategoryService implements DeviceCategoryServiceInterface
 
     public function show(DeviceCategory $deviceCategory): DeviceCategory
     {
-        return $deviceCategory->load(['translation']);
+        return $deviceCategory->load(['translations', 'parent']);
+    }
+
+    /**
+     * @return Collection<int, DeviceCategory>
+     */
+    public function getRootCategories(?int $excludeId = null): Collection
+    {
+        return $this->repository->getRootCategories($excludeId);
     }
 }

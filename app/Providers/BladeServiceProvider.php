@@ -23,14 +23,11 @@ class BladeServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->app->afterResolving('blade.compiler', function (BladeCompiler $bladeCompiler) {
-            $bladeCompiler->directive('translation', function ($expression) {
-                $locale = $this->app->getLocale();
-                dd($locale);
-
-                return $this->app->make(TranslationServices::class)->render($locale);
+            $bladeCompiler->directive('translation', function () {
+                return '<?php echo app(\\'.TranslationServices::class.'::class)->render(app()->getLocale()); ?>';
             });
             $bladeCompiler->directive('locales', function () {
-                return $this->app->make(LocaleServices::class)->render();
+                return '<?php echo app(\\'.LocaleServices::class.'::class)->render(); ?>';
             });
         });
     }

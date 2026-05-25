@@ -2,20 +2,20 @@
 
 namespace Modules\Catalog\Models;
 
+use App\Services\Normalize\Normalize;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Catalog\Services\Normalize\Normalize;
 
 class CarCategoryTranslation extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['title'];
+    protected $fillable = ['title', 'locale'];
 
-    protected static function booted()
+    protected static function booted(): void
     {
-        static::saving(function ($model) {
-            if ($model->isDirty('title')) {
-                $model->normalized_title = Normalize::make($model->title, $model->locale);
+        static::saving(static function ($translation) {
+            if ($translation->isDirty('title') && ! empty($translation->locale)) {
+                $translation->normalized_title = Normalize::make($translation->title, $translation->locale)->toString();
             }
         });
     }

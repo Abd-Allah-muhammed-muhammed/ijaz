@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\DTOs;
 
+use Illuminate\Support\Collection;
 use Modules\Catalog\Http\Requests\Dashboard\DeviceCategoryRequest;
 use Modules\Catalog\Models\DeviceCategory;
 
@@ -16,7 +17,10 @@ class UpdateDeviceCategoryDTO
     public static function fromRequest(DeviceCategoryRequest $request, DeviceCategory $deviceCategory): self
     {
         return new self(
-            translations: $request->validated('translations'),
+            translations: Collection::make($request->validated('translations'))
+                ->map(fn ($attrs, $locale) => array_merge($attrs, ['locale' => $locale]))
+                ->values()
+                ->all(),
             icon: $request->hasFile('icon') ? $request->file('icon')->store('device_categories') : null,
             parentId: $request->validated('parent_id'),
         );

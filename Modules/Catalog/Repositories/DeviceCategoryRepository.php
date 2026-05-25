@@ -4,6 +4,7 @@ namespace Modules\Catalog\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Contracts\Repositories\DeviceCategoryRepositoryInterface;
 use Modules\Catalog\Models\DeviceCategory;
@@ -50,5 +51,16 @@ class DeviceCategoryRepository implements DeviceCategoryRepositoryInterface
     public function findById(int $id): DeviceCategory
     {
         return DeviceCategory::findOrFail($id);
+    }
+
+    /**
+     * @return Collection<int, DeviceCategory>
+     */
+    public function getRootCategories(?int $excludeId = null): Collection
+    {
+        return DeviceCategory::with(['translation'])
+            ->whereNull('parent_id')
+            ->when($excludeId, fn (Builder $query) => $query->where('id', '!=', $excludeId))
+            ->get();
     }
 }

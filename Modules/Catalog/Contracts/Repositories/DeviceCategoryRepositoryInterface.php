@@ -4,6 +4,7 @@ namespace Modules\Catalog\Contracts\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Models\DeviceCategory;
 
@@ -20,4 +21,9 @@ interface DeviceCategoryRepositoryInterface
     public function delete(DeviceCategory $deviceCategory): void;
 
     public function findById(int $id): DeviceCategory;
+
+    /**
+     * @return Collection<int, DeviceCategory>
+     */
+    public function getRootCategories(?int $excludeId = null): Collection;
 }

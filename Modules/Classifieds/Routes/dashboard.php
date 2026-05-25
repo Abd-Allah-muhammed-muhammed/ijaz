@@ -14,5 +14,5 @@ Route::middleware(['localeSessionRedirect', 'localizationRedirect', 'localeViewP
             ->only(['index', 'show', 'update']);
 
         Route::resource('electronic-advisements', ElectronicAdvisementController::class)
-            ->only(['index', 'show', 'update']);
+            ->only(['index', 'show', 'update', 'destroy']);
     });

@@ -59,6 +59,7 @@ class AdminPermissionSeeder extends Seeder
             'electronicAdvisements' => [
                 'show electronicAdvisements',
                 'edit electronicAdvisements',
+                'delete electronicAdvisements',
             ],
             'deviceCategories' => [
                 'crud',

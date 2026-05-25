@@ -163,6 +163,7 @@ return [
     'url' => 'The :attribute field must be a valid URL.',
     'ulid' => 'The :attribute field must be a valid ULID.',
     'uuid' => 'The :attribute field must be a valid UUID.',
+    'device_category_cannot_be_own_parent' => 'A device category cannot be set as its own parent.',
 
     /*
     |--------------------------------------------------------------------------

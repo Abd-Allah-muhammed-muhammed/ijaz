@@ -25,6 +25,7 @@ class ElectronicAdvisementController extends Controller implements HasMiddleware
         return [
             new Middleware('permission:show electronicAdvisements', only: ['index', 'show']),
             new Middleware('permission:edit electronicAdvisements', only: ['update']),
+            new Middleware('permission:delete electronicAdvisements', only: ['destroy']),
         ];
     }
 
@@ -71,6 +72,15 @@ class ElectronicAdvisementController extends Controller implements HasMiddleware
         $electronicAdvisement->update(['status' => $validated['status']]);
 
         return redirect()->back()->with('success', __('advisement.status_updated_successfully'));
+    }
+
+    public function destroy(ElectronicAdvisement $electronicAdvisement): RedirectResponse
+    {
+        $electronicAdvisement->delete();
+
+        return redirect()
+            ->route('dashboard.electronic-advisements.index')
+            ->with('success', __('data deleted successfully'));
     }
 
     /**

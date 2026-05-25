@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\DTOs;
 
+use Illuminate\Support\Collection;
 use Modules\Catalog\Http\Requests\Dashboard\DeviceCategoryRequest;
 
 class StoreDeviceCategoryDTO
@@ -15,7 +16,10 @@ class StoreDeviceCategoryDTO
     public static function fromRequest(DeviceCategoryRequest $request): self
     {
         return new self(
-            translations: $request->validated('translations'),
+            translations: Collection::make($request->validated('translations'))
+                ->map(fn ($attrs, $locale) => array_merge($attrs, ['locale' => $locale]))
+                ->values()
+                ->all(),
             icon: $request->file('icon')?->store('device_categories'),
             parentId: $request->validated('parent_id'),
         );
