@@ -680,5 +680,12 @@
   "advisement.status.rejected": "مرفوض",
   "advisement.status.closed": "مغلق",
   "car_details": "تفاصيل السيارة",
-  "status_updated_successfully": "تم تحديث الحالة بنجاح"
+  "status_updated_successfully": "تم تحديث الحالة بنجاح",
+  "electronic_advisements": "إعلانات الإلكترونيات",
+  "electronic_advisement": "إعلان إلكتروني",
+  "view_electronic_advisement": "عرض الإعلان الإلكتروني",
+  "condition": "الحالة",
+  "advisement.condition.new": "جديد",
+  "advisement.condition.used": "مستعمل",
+  "advisement.condition.less_than_year": "أقل من سنة"
 }

@@ -28,9 +28,10 @@ import useActiveRoute from '@/hooks/use-active-route';
 import usePermissions from '@/hooks/use-permissions';
 import { useTranslation } from 'react-i18next';
 import { SidebarMenuItem } from './SidebarMenuItem';
-import DeviceCategoryController from '@/actions/App/Http/Controllers/Dashboard/DeviceCategoryController';
+import DeviceCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/DeviceCategoryController';
 import PropertyAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/PropertyAdvisementController';
 import CarAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/CarAdvisementController';
+import ElectronicAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/ElectronicAdvisementController';
 
 const SidebarMenuMain = () => {
   const { matchUrl, matchComponents } = useActiveRoute();
@@ -215,7 +216,7 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.car-advisements.*')}
         show={hasPermission('show carAdvisements')}
       />
-      {hasAnyPermission(['show deviceCategories']) && (
+      {hasAnyPermission(['show deviceCategories', 'show electronicAdvisements']) && (
         <div className="menu-item">
           <div className="menu-content pt-8 pb-2">
             <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('devices')}</span>
@@ -229,6 +230,14 @@ const SidebarMenuMain = () => {
         fontIcon="bi-laptop"
         isActive={matchComponents('dashboard.device-categories.*')}
         show={hasPermission('show deviceCategories')}
+      />
+      <SidebarMenuItem
+        to={ElectronicAdvisementController.index().url}
+        title={t('electronic_advisements')}
+        icon="devices"
+        fontIcon="bi-laptop"
+        isActive={matchComponents('dashboard.electronic-advisements.*')}
+        show={hasPermission('show electronicAdvisements')}
       />
       {hasAnyPermission(['show providerTypes', 'show providers']) && (
         <div className="menu-item">

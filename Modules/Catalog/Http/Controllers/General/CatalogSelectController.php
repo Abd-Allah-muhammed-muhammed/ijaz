@@ -10,6 +10,7 @@ use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Catalog\Models\CarBrand;
 use Modules\Catalog\Models\CarCategory;
 use Modules\Catalog\Models\CarType;
+use Modules\Catalog\Models\DeviceCategory;
 use Modules\Catalog\Models\PropertiyCategory;
 use Modules\Catalog\Models\PropertyType;
 
@@ -58,6 +59,15 @@ class CatalogSelectController extends Controller
     {
         $rows = CarBrand::query()->withTranslation()
             ->when($request->search, fn ($query, $v) => $query->whereTranslationLike('name', "%{$v}%"))
+            ->get();
+
+        return $this->successResponse(ReactSelectResource::collection($rows));
+    }
+
+    public function deviceCategories(Request $request): JsonResponse
+    {
+        $rows = DeviceCategory::query()->withTranslation()
+            ->when($request->search, fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%"))
             ->get();
 
         return $this->successResponse(ReactSelectResource::collection($rows));

@@ -6,6 +6,7 @@ export {default as PropertyCategoriesSelect} from './PropertyCategoriesSelect';
 export {default as CarCategoriesSelect} from './CarCategoriesSelect';
 export {default as CarTypesSelect} from './CarTypesSelect';
 export {default as CarBrandsSelect} from './CarBrandsSelect';
+export {default as DeviceCategoriesSelect} from './DeviceCategoriesSelect';
 export {default as CategoriesSelect} from './CategoriesSelect';
 export {default as SkillsSelect} from './SkillsSelect';
 export {reactSelectStyles, reactSelectMultiStyles} from './react-select-styles';

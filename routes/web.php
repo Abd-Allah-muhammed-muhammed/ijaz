@@ -74,6 +74,7 @@ Route::group(
             Route::get('/car-categories', 'carCategories')->name('carCategories');
             Route::get('/car-types', 'carTypes')->name('carTypes');
             Route::get('/car-brands', 'carBrands')->name('carBrands');
+            Route::get('/device-categories', 'deviceCategories')->name('deviceCategories');
         });
         Route::controller(AjaxController::class)->prefix('ajax')->as('ajax.')->group(function () {
             Route::get('/categories', 'categories')->name('categories.index');

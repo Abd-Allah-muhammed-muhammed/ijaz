@@ -56,6 +56,10 @@ class AdminPermissionSeeder extends Seeder
                 'edit carAdvisements',
                 'delete carAdvisements',
             ],
+            'electronicAdvisements' => [
+                'show electronicAdvisements',
+                'edit electronicAdvisements',
+            ],
             'deviceCategories' => [
                 'crud',
             ],

@@ -784,5 +784,12 @@
   "advisement.status.rejected": "Rejected",
   "advisement.status.closed": "Closed",
   "car_details": "Car Details",
-  "status_updated_successfully": "Status updated successfully"
+  "status_updated_successfully": "Status updated successfully",
+  "electronic_advisements": "Electronic Advisements",
+  "electronic_advisement": "Electronic Advisement",
+  "view_electronic_advisement": "View Electronic Advisement",
+  "condition": "Condition",
+  "advisement.condition.new": "New",
+  "advisement.condition.used": "Used",
+  "advisement.condition.less_than_year": "Less Than a Year"
 }

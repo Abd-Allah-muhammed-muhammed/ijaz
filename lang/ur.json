@@ -591,5 +591,12 @@
   "advisement.status.rejected": "مسترد شدہ",
   "advisement.status.closed": "بند",
   "car_details": "کار کی تفصیلات",
-  "status_updated_successfully": "حیثیت کامیابی سے اپ ڈیٹ ہو گئی"
+  "status_updated_successfully": "حیثیت کامیابی سے اپ ڈیٹ ہو گئی",
+  "electronic_advisements": "الیکٹرانک اشتہارات",
+  "electronic_advisement": "الیکٹرانک اشتہار",
+  "view_electronic_advisement": "الیکٹرانک اشتہار دیکھیں",
+  "condition": "حالت",
+  "advisement.condition.new": "نیا",
+  "advisement.condition.used": "استعمال شدہ",
+  "advisement.condition.less_than_year": "سال سے کم"
 }

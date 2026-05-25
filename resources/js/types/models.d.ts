@@ -5,7 +5,7 @@ import { PaymentMethodEnum, PaymentStatusEnum } from "@/Enums/Payment";
 import { UserStatusEnum } from '@/Enums/Users';
 import { TicketSupportStatusEnum } from "@/Enums/SupportTickets";
 import { GuaranteeRequestStatusEnum } from "@/Enums/GuaranteeRequest";
-import { AdvisementStatusEnum } from "@/Enums/Advisements";
+import { AdvisementStatusEnum, ElectronicConditionEnum } from "@/Enums/Advisements";
 
 export interface Model {
   id: number | string;
@@ -613,6 +613,7 @@ export interface GuaranteeRequest extends Model {
 
 export type AdvisementStatus = typeof AdvisementStatusEnum[keyof typeof AdvisementStatusEnum];
 export type OperationEnum = typeof OperationEnum[keyof typeof OperationEnum];
+export type ElectronicCondition = typeof ElectronicConditionEnum[keyof typeof ElectronicConditionEnum];
 export interface PropertyAdvisement extends Model {
   title: string;
   description: string;
@@ -682,6 +683,32 @@ export interface CarAdvisement extends Model {
   region?: Region;
   media?: Media[];
   user?: User;
+  created_at: Date;
+  updated_at: Date;
+}
+export interface ElectronicAdvisement extends Model {
+  title: string;
+  description: string;
+  image: string;
+  image_url: string;
+  status: EnumWithColors<AdvisementStatus>;
+  condition: EnumWithColors<ElectronicCondition>;
+  color: string | null;
+  price: number;
+  show_price: boolean;
+  phone: string | null;
+  address: string | null;
+  latitude: string | null;
+  longitude: string | null;
+  options: Record<string, unknown> | null;
+  device_category_id: number;
+  city_id: number;
+  region_id: number;
+  device_category?: DeviceCategory;
+  city?: City;
+  region?: Region;
+  user?: User;
+  media?: Media[];
   created_at: Date;
   updated_at: Date;
 }
