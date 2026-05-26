@@ -60,7 +60,7 @@ class ElectronicBrandController extends Controller implements HasMiddleware
         $electronic_brand = $this->service->show($electronic_brand);
 
         return inertia('Dashboard/ElectronicBrands/Edit', [
-            'brand' => ElectronicBrandResource::make($electronic_brand),
+            'electronicBrand' => ElectronicBrandResource::make($electronic_brand),
         ]);
     }
 
