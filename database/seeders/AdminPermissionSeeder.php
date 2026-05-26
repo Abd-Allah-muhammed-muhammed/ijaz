@@ -69,6 +69,9 @@ class AdminPermissionSeeder extends Seeder
             'deviceCategories' => [
                 'crud',
             ],
+            'electronicBrands' => [
+                'crud',
+            ],
             'specializations' => [
                 'crud',
             ],

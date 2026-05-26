@@ -256,6 +256,24 @@ const ShowElectronicAdvisement = ({ row }: Props) => {
                   <div className="separator separator-dashed"></div>
 
                   <div className="d-flex align-items-center justify-content-between">
+                    <span className="text-muted fw-semibold">{t('electronic_brand')}</span>
+                    <span className="fs-6 fw-bold text-gray-900">{row.electronic_brand?.name ?? '-'}</span>
+                  </div>
+                  <div className="separator separator-dashed"></div>
+
+                  <div className="d-flex align-items-center justify-content-between">
+                    <span className="text-muted fw-semibold">{t('model_name')}</span>
+                    <span className="fs-6 fw-bold text-gray-900">{row.model_name ?? '-'}</span>
+                  </div>
+                  <div className="separator separator-dashed"></div>
+
+                  <div className="d-flex align-items-center justify-content-between">
+                    <span className="text-muted fw-semibold">{t('storage')}</span>
+                    <span className="fs-6 fw-bold text-gray-900">{row.storage ?? '-'}</span>
+                  </div>
+                  <div className="separator separator-dashed"></div>
+
+                  <div className="d-flex align-items-center justify-content-between">
                     <span className="text-muted fw-semibold">{t('condition')}</span>
                     <span className="fs-6 fw-bold text-gray-900">{row.condition?.label ?? '-'}</span>
                   </div>

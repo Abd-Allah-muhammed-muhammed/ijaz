@@ -9,6 +9,7 @@ use App\Http\Resources\Api\V1\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Catalog\Http\Resources\Api\DeviceCategoryResource;
+use Modules\Catalog\Http\Resources\Api\ElectronicBrandResource;
 use Modules\Classifieds\Models\ElectronicAdvisement;
 
 /** @mixin ElectronicAdvisement */
@@ -43,10 +44,14 @@ class ElectronicAdvisementResource extends JsonResource
             'updated_at' => $this->updated_at,
 
             'device_category_id' => $this->device_category_id,
+            'electronic_brand_id' => $this->electronic_brand_id,
+            'model_name' => $this->model_name,
+            'storage' => $this->storage,
             'city_id' => $this->city_id,
             'region_id' => $this->region_id,
 
             'device_category' => new DeviceCategoryResource($this->whenLoaded('deviceCategory')),
+            'electronic_brand' => new ElectronicBrandResource($this->whenLoaded('electronicBrand')),
             'city' => new CityResource($this->whenLoaded('city')),
             'region' => new RegionResource($this->whenLoaded('region')),
 

@@ -12,6 +12,7 @@ use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Validation\Rule;
 use Inertia\Response;
 use Modules\Catalog\Models\DeviceCategory;
+use Modules\Catalog\Models\ElectronicBrand;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\ElectronicConditionEnum;
 use Modules\Classifieds\Http\Resources\Dashboard\ElectronicAdvisementCollection;
@@ -44,6 +45,7 @@ class ElectronicAdvisementController extends Controller implements HasMiddleware
                     ->when($request->status, fn ($query, $v) => $query->where('status', $v))
                     ->when($request->condition, fn ($query, $v) => $query->where('condition', $v))
                     ->when($request->device_category_id, fn ($query, $v) => $query->where('device_category_id', $v))
+                    ->when($request->electronic_brand_id, fn ($query, $v) => $query->where('electronic_brand_id', $v))
                     ->when($request->city_id, fn ($query, $v) => $query->where('city_id', $v))
                     ->when($request->region_id, fn ($query, $v) => $query->where('region_id', $v))
                     ->paginate($request->integer('per_page', 10))
@@ -56,7 +58,7 @@ class ElectronicAdvisementController extends Controller implements HasMiddleware
 
     public function show(ElectronicAdvisement $electronicAdvisement): Response
     {
-        $electronicAdvisement->load(['deviceCategory', 'city', 'region', 'user', 'media']);
+        $electronicAdvisement->load(['deviceCategory', 'electronicBrand', 'city', 'region', 'user', 'media']);
 
         return inertia('Dashboard/ElectronicAdvisement/Show', [
             'row' => ElectronicAdvisementResource::make($electronicAdvisement),
@@ -84,7 +86,7 @@ class ElectronicAdvisementController extends Controller implements HasMiddleware
     }
 
     /**
-     * @return array{status: array{value: string, label: string, color: string}|null, condition: array{value: string, label: string, color: string}|null, device_category: array{value: int, label: string}|null, city: array{value: int, label: string}|null, region: array{value: int, label: string}|null}
+     * @return array{status: array{value: string, label: string, color: string}|null, condition: array{value: string, label: string, color: string}|null, device_category: array{value: int, label: string}|null, electronic_brand: array{value: int, label: string}|null, city: array{value: int, label: string}|null, region: array{value: int, label: string}|null}
      */
     private function buildSelectsFromRequest(Request $request): array
     {
@@ -92,6 +94,7 @@ class ElectronicAdvisementController extends Controller implements HasMiddleware
             'status' => null,
             'condition' => null,
             'device_category' => null,
+            'electronic_brand' => null,
             'city' => null,
             'region' => null,
         ];
@@ -114,6 +117,10 @@ class ElectronicAdvisementController extends Controller implements HasMiddleware
 
         if ($deviceCategory = DeviceCategory::find($request->device_category_id)) {
             $selects['device_category'] = ['value' => $deviceCategory->id, 'label' => $deviceCategory->title];
+        }
+
+        if ($electronicBrand = ElectronicBrand::find($request->electronic_brand_id)) {
+            $selects['electronic_brand'] = ['value' => $electronicBrand->id, 'label' => $electronicBrand->name];
         }
 
         if ($city = City::find($request->city_id)) {

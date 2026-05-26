@@ -29,6 +29,7 @@ import usePermissions from '@/hooks/use-permissions';
 import { useTranslation } from 'react-i18next';
 import { SidebarMenuItem } from './SidebarMenuItem';
 import DeviceCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/DeviceCategoryController';
+import ElectronicBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/ElectronicBrandController';
 import SpecializationController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/SpecializationController';
 import InstituteAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/InstituteAdvisementController';
 import PropertyAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/PropertyAdvisementController';
@@ -218,7 +219,7 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.car-advisements.*')}
         show={hasPermission('show carAdvisements')}
       />
-      {hasAnyPermission(['show deviceCategories', 'show electronicAdvisements']) && (
+      {hasAnyPermission(['show deviceCategories', 'show electronicAdvisements', 'show electronicBrands']) && (
         <div className="menu-item">
           <div className="menu-content pt-8 pb-2">
             <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('devices')}</span>
@@ -240,6 +241,14 @@ const SidebarMenuMain = () => {
         fontIcon="bi-laptop"
         isActive={matchComponents('dashboard.electronic-advisements.*')}
         show={hasPermission('show electronicAdvisements')}
+      />
+      <SidebarMenuItem
+        to={ElectronicBrandController.index().url}
+        title={t('electronic_brands')}
+        icon="star"
+        fontIcon="bi-star"
+        isActive={matchComponents('dashboard.electronic-brands.*')}
+        show={hasPermission('show electronicBrands')}
       />
       {hasAnyPermission(['show specializations', 'show instituteAdvisements']) && (
         <div className="menu-item">

@@ -164,6 +164,22 @@ export interface DeviceCategoryTranslation extends Model {
   deviceCategory?: DeviceCategory;
 }
 
+export interface ElectronicBrand extends Model {
+  name: string;
+  image: string | null;
+  image_url: string | null;
+  is_active: boolean;
+  translations?: Record<string, ElectronicBrandTranslation>;
+  translation?: ElectronicBrandTranslation;
+}
+
+export interface ElectronicBrandTranslation extends Model {
+  electronic_brand_id: number;
+  locale: string;
+  name: string;
+  normalized_name?: string;
+}
+
 export interface Specialization extends Model {
   title: string;
   icon: string | null;
@@ -724,9 +740,13 @@ export interface ElectronicAdvisement extends Model {
   longitude: string | null;
   options: Record<string, unknown> | null;
   device_category_id: number;
+  electronic_brand_id: number | null;
+  model_name: string | null;
+  storage: string | null;
   city_id: number;
   region_id: number;
   device_category?: DeviceCategory;
+  electronic_brand?: ElectronicBrand;
   city?: City;
   region?: Region;
   user?: User;

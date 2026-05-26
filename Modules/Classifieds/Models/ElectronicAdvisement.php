@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 use Modules\Catalog\Models\DeviceCategory;
+use Modules\Catalog\Models\ElectronicBrand;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\ElectronicConditionEnum;
 use Spatie\MediaLibrary\HasMedia;
@@ -46,6 +47,9 @@ class ElectronicAdvisement extends Model implements HasMedia
         'user_type',
         'user_id',
         'device_category_id',
+        'electronic_brand_id',
+        'model_name',
+        'storage',
         'city_id',
         'region_id',
         'options',
@@ -62,6 +66,11 @@ class ElectronicAdvisement extends Model implements HasMedia
     public function deviceCategory(): BelongsTo
     {
         return $this->belongsTo(DeviceCategory::class);
+    }
+
+    public function electronicBrand(): BelongsTo
+    {
+        return $this->belongsTo(ElectronicBrand::class);
     }
 
     public function city(): BelongsTo

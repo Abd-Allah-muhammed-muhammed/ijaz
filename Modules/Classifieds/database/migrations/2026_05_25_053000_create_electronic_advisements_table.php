@@ -29,6 +29,9 @@ return new class extends Migration
             $table->string('longitude')->nullable();
             $table->morphs('user');
             $table->foreignId('device_category_id')->constrained('device_categories')->cascadeOnDelete();
+            $table->foreignId('electronic_brand_id')->nullable()->constrained('electronic_brands')->nullOnDelete();
+            $table->string('model_name')->nullable();
+            $table->string('storage')->nullable();
             $table->foreignId('city_id')->constrained('cities')->cascadeOnDelete();
             $table->foreignId('region_id')->constrained('regions')->cascadeOnDelete();
             $table->json('options')->nullable();

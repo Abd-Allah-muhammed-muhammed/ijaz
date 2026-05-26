@@ -18,6 +18,7 @@ final class ElectronicAdvisementRepository implements ElectronicAdvisementReposi
         return $query
             ->with([
                 'deviceCategory',
+                'electronicBrand',
                 'city',
                 'region',
                 'media',
@@ -34,6 +35,7 @@ final class ElectronicAdvisementRepository implements ElectronicAdvisementReposi
         return $query
             ->with([
                 'deviceCategory',
+                'electronicBrand',
                 'city',
                 'region',
                 'user',

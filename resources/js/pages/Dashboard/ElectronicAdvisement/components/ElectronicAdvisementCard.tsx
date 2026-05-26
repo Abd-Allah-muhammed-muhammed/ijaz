@@ -76,6 +76,22 @@ const ElectronicAdvisementCard = ({ row }: Props) => {
               </div>
             </div>
           )}
+          {row.electronic_brand && (
+            <div className="col-6">
+              <div className="bg-light-warning rounded-2 p-2 d-flex align-items-center">
+                <KTIcon iconName="star" className="fs-5 text-warning me-2" />
+                <span className="text-gray-700 fw-bold fs-8 text-truncate">{row.electronic_brand.name}</span>
+              </div>
+            </div>
+          )}
+          {row.model_name && (
+            <div className="col-6">
+              <div className="bg-light-success rounded-2 p-2 d-flex align-items-center">
+                <KTIcon iconName="abstract-26" className="fs-5 text-success me-2" />
+                <span className="text-gray-700 fw-bold fs-8 text-truncate">{row.model_name}</span>
+              </div>
+            </div>
+          )}
           {row.color && (
             <div className="col-6">
               <div className="bg-light-info rounded-2 p-2 d-flex align-items-center">

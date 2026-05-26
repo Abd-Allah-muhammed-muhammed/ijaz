@@ -11,6 +11,7 @@ use Modules\Catalog\Models\CarBrand;
 use Modules\Catalog\Models\CarCategory;
 use Modules\Catalog\Models\CarType;
 use Modules\Catalog\Models\DeviceCategory;
+use Modules\Catalog\Models\ElectronicBrand;
 use Modules\Catalog\Models\PropertiyCategory;
 use Modules\Catalog\Models\PropertyType;
 use Modules\Catalog\Models\Specialization;
@@ -69,6 +70,16 @@ class CatalogSelectController extends Controller
     {
         $rows = DeviceCategory::query()->withTranslation()
             ->when($request->search, fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%"))
+            ->get();
+
+        return $this->successResponse(ReactSelectResource::collection($rows));
+    }
+
+    public function electronicBrands(Request $request): JsonResponse
+    {
+        $rows = ElectronicBrand::query()->withTranslation()
+            ->where('is_active', true)
+            ->when($request->search, fn ($query, $v) => $query->whereTranslationLike('name', "%{$v}%"))
             ->get();
 
         return $this->successResponse(ReactSelectResource::collection($rows));

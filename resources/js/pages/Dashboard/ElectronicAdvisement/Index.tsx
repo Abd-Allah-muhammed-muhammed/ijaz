@@ -5,7 +5,7 @@ import { Content } from '@/_metronic/layout/components/content';
 import { ToolbarWrapper } from '@/_metronic/layout/components/toolbar';
 import { PageTitle } from '@/_metronic/layout/core';
 import Pagination from '@/components/Table/partials/Pagination';
-import { CitiesSelect, DeviceCategoriesSelect, RegionsSelect } from '@/components/selects';
+import { CitiesSelect, DeviceCategoriesSelect, ElectronicBrandsSelect, RegionsSelect } from '@/components/selects';
 import { PaginationResource, SelectOption } from '@/types';
 import { ElectronicAdvisement } from '@/types/models';
 import { Head, router } from '@inertiajs/react';
@@ -26,6 +26,7 @@ type SearchPrams = {
   status?: string;
   condition?: string;
   device_category_id?: string | number;
+  electronic_brand_id?: string | number;
   region_id?: string | number;
   city_id?: string | number;
 };
@@ -34,6 +35,7 @@ type Selects = {
   status: SelectOption | null;
   condition: SelectOption | null;
   device_category: SelectOption | null;
+  electronic_brand: SelectOption | null;
   region: SelectOption | null;
   city: SelectOption | null;
 };
@@ -154,7 +156,7 @@ const Index = ({ rows, prams, selects }: Props) => {
                 </Col>
               </Row>
               <Row>
-                <Col md={4}>
+                <Col md={3}>
                   <DeviceCategoriesSelect
                     value={selectsData?.device_category}
                     placeholder={t('device_category')}
@@ -164,7 +166,17 @@ const Index = ({ rows, prams, selects }: Props) => {
                     }}
                   />
                 </Col>
-                <Col md={4}>
+                <Col md={3}>
+                  <ElectronicBrandsSelect
+                    value={selectsData?.electronic_brand}
+                    placeholder={t('electronic_brand')}
+                    onChange={(e) => {
+                      searchPramsChanged('electronic_brand_id', e?.value as string);
+                      setSelectsData((prev) => ({ ...prev, electronic_brand: e }));
+                    }}
+                  />
+                </Col>
+                <Col md={3}>
                   <RegionsSelect
                     value={selectsData?.region}
                     placeholder={t('region')}
@@ -175,7 +187,7 @@ const Index = ({ rows, prams, selects }: Props) => {
                     }}
                   />
                 </Col>
-                <Col md={4}>
+                <Col md={3}>
                   <CitiesSelect
                     regionId={selectsData?.region?.value}
                     value={selectsData?.city}

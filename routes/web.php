@@ -75,6 +75,7 @@ Route::group(
             Route::get('/car-types', 'carTypes')->name('carTypes');
             Route::get('/car-brands', 'carBrands')->name('carBrands');
             Route::get('/device-categories', 'deviceCategories')->name('deviceCategories');
+            Route::get('/electronic-brands', 'electronicBrands')->name('electronicBrands');
             Route::get('/specializations', 'specializations')->name('specializations');
         });
         Route::controller(AjaxController::class)->prefix('ajax')->as('ajax.')->group(function () {

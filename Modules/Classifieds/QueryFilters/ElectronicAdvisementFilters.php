@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Modules\Classifieds\QueryFilters\Filters\CityFilter;
 use Modules\Classifieds\QueryFilters\Filters\ConditionFilter;
 use Modules\Classifieds\QueryFilters\Filters\DeviceCategoryFilter;
+use Modules\Classifieds\QueryFilters\Filters\ElectronicBrandFilter;
 use Modules\Classifieds\QueryFilters\Filters\PriceRangeFilter;
 use Modules\Classifieds\QueryFilters\Filters\RegionFilter;
 use Modules\Classifieds\QueryFilters\Filters\SearchFilter;
@@ -41,6 +42,7 @@ final class ElectronicAdvisementFilters
         $filters = [
             new ConditionFilter($this->request->filled('condition') ? (string) $this->request->string('condition') : null),
             new DeviceCategoryFilter($this->request->filled('device_category_id') ? $this->request->integer('device_category_id') : null),
+            new ElectronicBrandFilter($this->request->filled('electronic_brand_id') ? $this->request->integer('electronic_brand_id') : null),
             new CityFilter($this->request->filled('city_id') ? $this->request->integer('city_id') : null),
             new RegionFilter($this->request->filled('region_id') ? $this->request->integer('region_id') : null),
             new PriceRangeFilter(

@@ -9,6 +9,7 @@ use App\Http\Resources\Dashboard\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Catalog\Http\Resources\Dashboard\DeviceCategoryResource;
+use Modules\Catalog\Http\Resources\Dashboard\ElectronicBrandResource;
 use Modules\Classifieds\Models\ElectronicAdvisement;
 
 /** @mixin ElectronicAdvisement */
@@ -42,15 +43,19 @@ class ElectronicAdvisementResource extends JsonResource
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'options' => $this->options,
+            'model_name' => $this->model_name,
+            'storage' => $this->storage,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
             $this->mergeWhen(! $this->relationLoaded('user'), fn () => ['user_id' => $this->user_id]),
             $this->mergeWhen(! $this->relationLoaded('deviceCategory'), fn () => ['device_category_id' => $this->device_category_id]),
+            $this->mergeWhen(! $this->relationLoaded('electronicBrand'), fn () => ['electronic_brand_id' => $this->electronic_brand_id]),
             $this->mergeWhen(! $this->relationLoaded('city'), fn () => ['city_id' => $this->city_id]),
             $this->mergeWhen(! $this->relationLoaded('region'), fn () => ['region_id' => $this->region_id]),
 
             'device_category' => new DeviceCategoryResource($this->whenLoaded('deviceCategory')),
+            'electronic_brand' => new ElectronicBrandResource($this->whenLoaded('electronicBrand')),
             'city' => new CityResource($this->whenLoaded('city')),
             'region' => new RegionResource($this->whenLoaded('region')),
             'media' => MediaResource::collection($this->whenLoaded('media')),
