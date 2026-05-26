@@ -624,5 +624,19 @@
   "specializations": "تخصصات",
   "important_dates": "اہم تاریخیں",
   "links": "لنکس",
-  "no_links_listed": "کوئی لنک درج نہیں"
+  "no_links_listed": "کوئی لنک درج نہیں",
+  "study_level": "تعلیمی سطح",
+  "discounted_price": "رعایتی قیمت",
+  "hours_count": "گھنٹوں کی تعداد",
+  "goals": "اہداف",
+  "payment_notes": "ادائیگی کے نوٹس",
+  "course_url": "کورس URL",
+  "duration": "دورانیہ",
+  "days": "دن",
+  "hours": "گھنٹے",
+  "advisement.study_level.diploma": "ڈپلومہ",
+  "advisement.study_level.bachelor": "بیچلر",
+  "advisement.study_level.master": "ماسٹر",
+  "advisement.study_level.phd": "پی ایچ ڈی",
+  "advisement.study_level.certificate": "سرٹیفکیٹ"
 }

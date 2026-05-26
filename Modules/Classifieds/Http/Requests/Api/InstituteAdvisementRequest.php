@@ -7,6 +7,7 @@ use Illuminate\Validation\Rules\Enum;
 use JsonException;
 use MMAE\ApiResponse\Request\ApiRequest;
 use Modules\Classifieds\Enums\InstituteTypeEnum;
+use Modules\Classifieds\Enums\StudyLevelEnum;
 use Modules\Classifieds\Enums\StudyTypeEnum;
 
 class InstituteAdvisementRequest extends ApiRequest
@@ -26,15 +27,20 @@ class InstituteAdvisementRequest extends ApiRequest
             'description' => ['required', 'string'],
             'type' => ['required', new Enum(InstituteTypeEnum::class)],
             'study_type' => ['required', new Enum(StudyTypeEnum::class)],
+            'study_level' => ['nullable', new Enum(StudyLevelEnum::class)],
             'specialization_id' => ['required', 'exists:specializations,id'],
             'city_id' => ['required', 'exists:cities,id'],
             'region_id' => ['required', 'exists:regions,id'],
-            'show_fees' => ['sometimes', 'boolean'],
-            'fees_from' => ['nullable', 'numeric', 'min:0'],
-            'fees_to' => ['nullable', 'numeric', 'min:0', 'gte:fees_from'],
+            'price' => ['nullable', 'numeric', 'min:0'],
+            'discounted_price' => ['nullable', 'numeric', 'min:0', 'lte:price'],
+            'days_count' => ['nullable', 'integer', 'min:1'],
+            'hours_count' => ['nullable', 'integer', 'min:1'],
+            'goals' => ['nullable', 'string'],
+            'payment_notes' => ['nullable', 'string'],
             'phone' => ['nullable', 'string', 'max:20'],
             'website' => ['nullable', 'url', 'max:500'],
             'registration_url' => ['nullable', 'url', 'max:500'],
+            'course_url' => ['nullable', 'url', 'max:500'],
             'quality_url' => ['nullable', 'url', 'max:500'],
             'address' => ['nullable', 'string', 'max:500'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
@@ -57,12 +63,6 @@ class InstituteAdvisementRequest extends ApiRequest
         if (is_string($this->get('options'))) {
             $this->merge([
                 'options' => json_decode($this->get('options'), true, 512, JSON_THROW_ON_ERROR),
-            ]);
-        }
-
-        if ($this->has('show_fees') && is_string($this->get('show_fees'))) {
-            $this->merge([
-                'show_fees' => filter_var($this->get('show_fees'), FILTER_VALIDATE_BOOLEAN),
             ]);
         }
     }

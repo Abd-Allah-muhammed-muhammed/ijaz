@@ -5,12 +5,13 @@ namespace Modules\Classifieds\QueryFilters;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Modules\Classifieds\QueryFilters\Filters\CityFilter;
-use Modules\Classifieds\QueryFilters\Filters\FeesRangeFilter;
 use Modules\Classifieds\QueryFilters\Filters\InstituteTypeFilter;
+use Modules\Classifieds\QueryFilters\Filters\PriceRangeFilter;
 use Modules\Classifieds\QueryFilters\Filters\RegionFilter;
 use Modules\Classifieds\QueryFilters\Filters\SearchFilter;
 use Modules\Classifieds\QueryFilters\Filters\SpecializationFilter;
 use Modules\Classifieds\QueryFilters\Filters\StatusFilter;
+use Modules\Classifieds\QueryFilters\Filters\StudyLevelFilter;
 use Modules\Classifieds\QueryFilters\Filters\StudyTypeFilter;
 
 final class InstituteAdvisementFilters
@@ -42,12 +43,13 @@ final class InstituteAdvisementFilters
         $filters = [
             new InstituteTypeFilter($this->request->filled('type') ? (string) $this->request->string('type') : null),
             new StudyTypeFilter($this->request->filled('study_type') ? (string) $this->request->string('study_type') : null),
+            new StudyLevelFilter($this->request->filled('study_level') ? (string) $this->request->string('study_level') : null),
             new SpecializationFilter($this->request->filled('specialization_id') ? $this->request->integer('specialization_id') : null),
             new CityFilter($this->request->filled('city_id') ? $this->request->integer('city_id') : null),
             new RegionFilter($this->request->filled('region_id') ? $this->request->integer('region_id') : null),
-            new FeesRangeFilter(
-                $this->request->filled('min_fees') ? $this->request->float('min_fees') : null,
-                $this->request->filled('max_fees') ? $this->request->float('max_fees') : null,
+            new PriceRangeFilter(
+                $this->request->filled('min_price') ? $this->request->float('min_price') : null,
+                $this->request->filled('max_price') ? $this->request->float('max_price') : null,
             ),
             new SearchFilter($this->request->filled('search') ? (string) $this->request->string('search') : null),
         ];

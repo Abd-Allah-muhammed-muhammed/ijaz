@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use Modules\Catalog\Models\Specialization;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\InstituteTypeEnum;
+use Modules\Classifieds\Enums\StudyLevelEnum;
 use Modules\Classifieds\Enums\StudyTypeEnum;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -34,16 +35,21 @@ class InstituteAdvisement extends Model implements HasMedia
         'normalized_title',
         'description',
         'normalized_description',
+        'goals',
+        'payment_notes',
         'image',
         'status',
+        'price',
+        'discounted_price',
         'type',
         'study_type',
-        'fees_from',
-        'fees_to',
-        'show_fees',
+        'study_level',
+        'days_count',
+        'hours_count',
         'phone',
         'website',
         'registration_url',
+        'course_url',
         'quality_url',
         'address',
         'latitude',
@@ -64,9 +70,11 @@ class InstituteAdvisement extends Model implements HasMedia
         'status' => AdvisementStatusEnum::class,
         'type' => InstituteTypeEnum::class,
         'study_type' => StudyTypeEnum::class,
-        'fees_from' => 'float',
-        'fees_to' => 'float',
-        'show_fees' => 'boolean',
+        'study_level' => StudyLevelEnum::class,
+        'price' => 'float',
+        'discounted_price' => 'float',
+        'days_count' => 'integer',
+        'hours_count' => 'integer',
         'registration_start' => 'date',
         'registration_end' => 'date',
         'study_start' => 'date',

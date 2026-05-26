@@ -626,5 +626,19 @@
   "specializations": "विशेषज्ञताएँ",
   "important_dates": "महत्वपूर्ण तिथियाँ",
   "links": "लिंक",
-  "no_links_listed": "कोई लिंक सूचीबद्ध नहीं"
+  "no_links_listed": "कोई लिंक सूचीबद्ध नहीं",
+  "study_level": "अध्ययन स्तर",
+  "discounted_price": "छूट के बाद मूल्य",
+  "hours_count": "घंटों की संख्या",
+  "goals": "लक्ष्य",
+  "payment_notes": "भुगतान नोट्स",
+  "course_url": "कोर्स URL",
+  "duration": "अवधि",
+  "days": "दिन",
+  "hours": "घंटे",
+  "advisement.study_level.diploma": "डिप्लोमा",
+  "advisement.study_level.bachelor": "स्नातक",
+  "advisement.study_level.master": "स्नातकोत्तर",
+  "advisement.study_level.phd": "पीएचडी",
+  "advisement.study_level.certificate": "प्रमाण पत्र"
 }

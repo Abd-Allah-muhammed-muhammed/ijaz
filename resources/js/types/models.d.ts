@@ -5,7 +5,7 @@ import { PaymentMethodEnum, PaymentStatusEnum } from "@/Enums/Payment";
 import { UserStatusEnum } from '@/Enums/Users';
 import { TicketSupportStatusEnum } from "@/Enums/SupportTickets";
 import { GuaranteeRequestStatusEnum } from "@/Enums/GuaranteeRequest";
-import { AdvisementStatusEnum, ElectronicConditionEnum, InstituteTypeEnum, StudyTypeEnum } from "@/Enums/Advisements";
+import { AdvisementStatusEnum, ElectronicConditionEnum, InstituteTypeEnum, StudyLevelEnum, StudyTypeEnum } from "@/Enums/Advisements";
 
 export interface Model {
   id: number | string;
@@ -635,6 +635,7 @@ export type OperationEnum = typeof OperationEnum[keyof typeof OperationEnum];
 export type ElectronicCondition = typeof ElectronicConditionEnum[keyof typeof ElectronicConditionEnum];
 export type InstituteType = typeof InstituteTypeEnum[keyof typeof InstituteTypeEnum];
 export type StudyType = typeof StudyTypeEnum[keyof typeof StudyTypeEnum];
+export type StudyLevel = typeof StudyLevelEnum[keyof typeof StudyLevelEnum];
 export interface PropertyAdvisement extends Model {
   title: string;
   description: string;
@@ -736,17 +737,22 @@ export interface ElectronicAdvisement extends Model {
 export interface InstituteAdvisement extends Model {
   title: string;
   description: string;
+  goals: string | null;
+  payment_notes: string | null;
   image: string;
   image_url: string;
   status: EnumWithColors<AdvisementStatus>;
   type: EnumWithColors<InstituteType>;
   study_type: EnumWithColors<StudyType>;
-  fees_from: number | null;
-  fees_to: number | null;
-  show_fees: boolean;
+  study_level: EnumWithColors<StudyLevel> | null;
+  price: number | null;
+  discounted_price: number | null;
+  days_count: number | null;
+  hours_count: number | null;
   phone: string | null;
   website: string | null;
   registration_url: string | null;
+  course_url: string | null;
   quality_url: string | null;
   address: string | null;
   latitude: string | null;

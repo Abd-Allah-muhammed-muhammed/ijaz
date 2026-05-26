@@ -817,5 +817,19 @@
   "specializations": "Specializations",
   "important_dates": "Important Dates",
   "links": "Links",
-  "no_links_listed": "No links listed"
+  "no_links_listed": "No links listed",
+  "study_level": "Study Level",
+  "discounted_price": "Discounted Price",
+  "hours_count": "Hours Count",
+  "goals": "Goals",
+  "payment_notes": "Payment Notes",
+  "course_url": "Course URL",
+  "duration": "Duration",
+  "days": "days",
+  "hours": "hours",
+  "advisement.study_level.diploma": "Diploma",
+  "advisement.study_level.bachelor": "Bachelor",
+  "advisement.study_level.master": "Master",
+  "advisement.study_level.phd": "PhD",
+  "advisement.study_level.certificate": "Certificate"
 }

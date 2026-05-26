@@ -14,6 +14,7 @@ use Inertia\Response;
 use Modules\Catalog\Models\Specialization;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\InstituteTypeEnum;
+use Modules\Classifieds\Enums\StudyLevelEnum;
 use Modules\Classifieds\Enums\StudyTypeEnum;
 use Modules\Classifieds\Http\Resources\Dashboard\InstituteAdvisementCollection;
 use Modules\Classifieds\Http\Resources\Dashboard\InstituteAdvisementResource;
@@ -45,6 +46,7 @@ class InstituteAdvisementController extends Controller implements HasMiddleware
                     ->when($request->status, fn ($query, $v) => $query->where('status', $v))
                     ->when($request->type, fn ($query, $v) => $query->where('type', $v))
                     ->when($request->study_type, fn ($query, $v) => $query->where('study_type', $v))
+                    ->when($request->study_level, fn ($query, $v) => $query->where('study_level', $v))
                     ->when($request->specialization_id, fn ($query, $v) => $query->where('specialization_id', $v))
                     ->when($request->city_id, fn ($query, $v) => $query->where('city_id', $v))
                     ->when($request->region_id, fn ($query, $v) => $query->where('region_id', $v))
@@ -86,7 +88,7 @@ class InstituteAdvisementController extends Controller implements HasMiddleware
     }
 
     /**
-     * @return array{status: array{value: string, label: string, color: string}|null, type: array{value: string, label: string, color: string}|null, study_type: array{value: string, label: string, color: string}|null, specialization: array{value: int, label: string}|null, city: array{value: int, label: string}|null, region: array{value: int, label: string}|null}
+     * @return array{status: array{value: string, label: string, color: string}|null, type: array{value: string, label: string, color: string}|null, study_type: array{value: string, label: string, color: string}|null, study_level: array{value: string, label: string, color: string}|null, specialization: array{value: int, label: string}|null, city: array{value: int, label: string}|null, region: array{value: int, label: string}|null}
      */
     private function buildSelectsFromRequest(Request $request): array
     {
@@ -94,6 +96,7 @@ class InstituteAdvisementController extends Controller implements HasMiddleware
             'status' => null,
             'type' => null,
             'study_type' => null,
+            'study_level' => null,
             'specialization' => null,
             'city' => null,
             'region' => null,
@@ -120,6 +123,14 @@ class InstituteAdvisementController extends Controller implements HasMiddleware
                 'value' => $studyType->value,
                 'label' => $studyType->label(),
                 'color' => $studyType->color(),
+            ];
+        }
+
+        if ($studyLevel = StudyLevelEnum::tryFrom((string) $request->input('study_level'))) {
+            $selects['study_level'] = [
+                'value' => $studyLevel->value,
+                'label' => $studyLevel->label(),
+                'color' => $studyLevel->color(),
             ];
         }
 

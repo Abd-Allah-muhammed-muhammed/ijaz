@@ -11,21 +11,7 @@ type Props = {
 const InstituteAdvisementCard = ({ row }: Props) => {
   const { t } = useTranslation();
 
-  const formatFees = (): string => {
-    if (!row.show_fees) {
-      return t('on_contact');
-    }
-    if (row.fees_from != null && row.fees_to != null) {
-      return `${Number(row.fees_from).toLocaleString()} - ${Number(row.fees_to).toLocaleString()} ${t('currency')}`;
-    }
-    if (row.fees_from != null) {
-      return `${Number(row.fees_from).toLocaleString()} ${t('currency')}`;
-    }
-    if (row.fees_to != null) {
-      return `${Number(row.fees_to).toLocaleString()} ${t('currency')}`;
-    }
-    return t('not_available');
-  };
+  const hasDiscount = row.discounted_price != null && row.price != null && row.discounted_price < row.price;
 
   return (
     <div className="card h-100 border-0 shadow-sm overflow-hidden hover-elevate-up">
@@ -47,18 +33,38 @@ const InstituteAdvisementCard = ({ row }: Props) => {
             {row.status?.label}
           </span>
         </div>
-        {/* Type Badge */}
-        {row.type && (
-          <div className="position-absolute top-0 inset-s-0 m-4">
+        {/* Type + Study Level Badges */}
+        <div className="position-absolute top-0 inset-s-0 m-4 d-flex flex-column gap-2">
+          {row.type && (
             <span className={`badge badge-${row.type.color} fw-bold px-4 py-2`}>
               {row.type.label}
             </span>
-          </div>
-        )}
-        {/* Fees Tag */}
+          )}
+          {row.study_level && (
+            <span className={`badge badge-${row.study_level.color} fw-bold px-4 py-2`}>
+              {row.study_level.label}
+            </span>
+          )}
+        </div>
+        {/* Price Tag */}
         <div className="position-absolute bottom-0 inset-s-0 m-4">
-          <div className="bg-white rounded-2 px-3 py-1 shadow-sm border">
-            <span className="fw-bolder text-gray-900 fs-5">{formatFees()}</span>
+          <div className="bg-white rounded-2 px-3 py-1 shadow-sm border d-flex align-items-center gap-2">
+            {hasDiscount ? (
+              <>
+                <span className="text-gray-500 text-decoration-line-through fs-7">
+                  {Number(row.price).toLocaleString()} {t('currency')}
+                </span>
+                <span className="fw-bolder text-danger fs-5">
+                  {Number(row.discounted_price).toLocaleString()} {t('currency')}
+                </span>
+              </>
+            ) : row.price != null ? (
+              <span className="fw-bolder text-gray-900 fs-5">
+                {Number(row.price).toLocaleString()} {t('currency')}
+              </span>
+            ) : (
+              <span className="fw-bolder text-gray-700 fs-6">{t('on_contact')}</span>
+            )}
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { AdvisementStatusEnum, InstituteTypeEnum, StudyTypeEnum } from '@/Enums/Advisements';
+import { AdvisementStatusEnum, InstituteTypeEnum, StudyLevelEnum, StudyTypeEnum } from '@/Enums/Advisements';
 import { KTIcon } from '@/_metronic/helpers';
 import MasterLayout from '@/_metronic/layout/MasterLayout';
 import { Content } from '@/_metronic/layout/components/content';
@@ -26,6 +26,7 @@ type SearchPrams = {
   status?: string;
   type?: string;
   study_type?: string;
+  study_level?: string;
   specialization_id?: string | number;
   region_id?: string | number;
   city_id?: string | number;
@@ -35,6 +36,7 @@ type Selects = {
   status: SelectOption | null;
   type: SelectOption | null;
   study_type: SelectOption | null;
+  study_level: SelectOption | null;
   specialization: SelectOption | null;
   region: SelectOption | null;
   city: SelectOption | null;
@@ -154,21 +156,24 @@ const Index = ({ rows, prams, selects }: Props) => {
                     <option value={StudyTypeEnum.HYBRID}>{t('advisement.study_type.hybrid')}</option>
                   </select>
                 </Col>
-                <Col md={2} className="d-flex align-items-center justify-content-end">
+                <Col md={2}>
                   <select
-                    aria-label={t('per_page')}
-                    className="form-select form-select-solid w-100px"
-                    defaultValue={searchPrams.per_page ?? 10}
-                    onChange={(e) => searchPramsChanged('per_page', Number(e.target.value))}
+                    aria-label={t('study_level')}
+                    className="form-select form-select-solid"
+                    defaultValue={searchPrams.study_level ?? ''}
+                    onChange={(e) => searchPramsChanged('study_level', e.target.value)}
                   >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
+                    <option value="">{t('study_level')}</option>
+                    <option value={StudyLevelEnum.DIPLOMA}>{t('advisement.study_level.diploma')}</option>
+                    <option value={StudyLevelEnum.BACHELOR}>{t('advisement.study_level.bachelor')}</option>
+                    <option value={StudyLevelEnum.MASTER}>{t('advisement.study_level.master')}</option>
+                    <option value={StudyLevelEnum.PHD}>{t('advisement.study_level.phd')}</option>
+                    <option value={StudyLevelEnum.CERTIFICATE}>{t('advisement.study_level.certificate')}</option>
                   </select>
                 </Col>
               </Row>
               <Row>
-                <Col md={4}>
+                <Col md={3}>
                   <SpecializationsSelect
                     value={selectsData?.specialization}
                     placeholder={t('specialization')}
@@ -178,7 +183,7 @@ const Index = ({ rows, prams, selects }: Props) => {
                     }}
                   />
                 </Col>
-                <Col md={4}>
+                <Col md={3}>
                   <RegionsSelect
                     value={selectsData?.region}
                     placeholder={t('region')}
@@ -189,7 +194,7 @@ const Index = ({ rows, prams, selects }: Props) => {
                     }}
                   />
                 </Col>
-                <Col md={4}>
+                <Col md={3}>
                   <CitiesSelect
                     regionId={selectsData?.region?.value}
                     value={selectsData?.city}
@@ -199,6 +204,18 @@ const Index = ({ rows, prams, selects }: Props) => {
                       setSelectsData((prev) => ({ ...prev, city: e }));
                     }}
                   />
+                </Col>
+                <Col md={3} className="d-flex align-items-center justify-content-end">
+                  <select
+                    aria-label={t('per_page')}
+                    className="form-select form-select-solid w-100px"
+                    defaultValue={searchPrams.per_page ?? 10}
+                    onChange={(e) => searchPramsChanged('per_page', Number(e.target.value))}
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                  </select>
                 </Col>
               </Row>
             </div>

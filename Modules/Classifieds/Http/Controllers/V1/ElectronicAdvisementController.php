@@ -82,6 +82,9 @@ class ElectronicAdvisementController extends Controller
     }
 
     /**
+     * Create a new electronic advisement
+     *
+     * @authenticated
      * @throws Throwable
      */
     public function store(ElectronicAdvisementRequest $request): JsonResponse
@@ -101,6 +104,12 @@ class ElectronicAdvisementController extends Controller
         }
     }
 
+    /**
+     * Get an electronic advisement
+     *
+     * @authenticated
+     * @throws Throwable
+     */
     public function show(ElectronicAdvisement $electronicAdvisement): JsonResponse
     {
         $electronicAdvisement = $this->service->loadForShow($electronicAdvisement);
@@ -109,6 +118,9 @@ class ElectronicAdvisementController extends Controller
     }
 
     /**
+     * Update an existing electronic advisement
+     *
+     * @authenticated
      * @throws Throwable
      */
     public function update(ElectronicAdvisementRequest $request, ElectronicAdvisement $electronicAdvisement): JsonResponse
@@ -131,6 +143,9 @@ class ElectronicAdvisementController extends Controller
     }
 
     /**
+     * Delete a media from an electronic advisement
+     *
+     * @authenticated
      * @throws Throwable
      */
     public function deleteMedia(ElectronicAdvisement $electronicAdvisement, Media $media): JsonResponse
@@ -152,6 +167,9 @@ class ElectronicAdvisementController extends Controller
     }
 
     /**
+     * Delete an electronic advisement
+     *
+     * @authenticated
      * @throws Throwable
      */
     public function destroy(ElectronicAdvisement $electronicAdvisement): JsonResponse

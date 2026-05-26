@@ -24,21 +24,7 @@ const ShowInstituteAdvisement = ({ row }: Props) => {
     ? { badge: `badge-light-${row.type.color}`, color: `text-${row.type.color}` }
     : { badge: 'badge-light-secondary', color: 'text-gray-500' };
 
-  const formatFees = (): string => {
-    if (!row.show_fees) {
-      return t('on_contact');
-    }
-    if (row.fees_from != null && row.fees_to != null) {
-      return `${Number(row.fees_from).toLocaleString()} - ${Number(row.fees_to).toLocaleString()}`;
-    }
-    if (row.fees_from != null) {
-      return `${Number(row.fees_from).toLocaleString()}`;
-    }
-    if (row.fees_to != null) {
-      return `${Number(row.fees_to).toLocaleString()}`;
-    }
-    return t('not_available');
-  };
+  const hasDiscount = row.discounted_price != null && row.price != null && row.discounted_price < row.price;
 
   const formatDate = (d?: string | null): string => (d ? new Date(d).toLocaleDateString() : '-');
 
@@ -78,10 +64,11 @@ const ShowInstituteAdvisement = ({ row }: Props) => {
               <div className="grow">
                 <div className="d-flex justify-content-between align-items-start mb-2 flex-wrap">
                   <div className="d-flex flex-column">
-                    <div className="d-flex align-items-center mb-2 gap-2">
+                    <div className="d-flex align-items-center mb-2 gap-2 flex-wrap">
                       <h3 className="fs-2 fw-bolder mb-0 text-gray-900">{row.title}</h3>
                       {row.type && <span className={`badge ${tCfg.badge} fw-bolder fs-8`}>{row.type.label}</span>}
                       {row.study_type && <span className={`badge badge-light-${row.study_type.color} fw-bolder fs-8`}>{row.study_type.label}</span>}
+                      {row.study_level && <span className={`badge badge-light-${row.study_level.color} fw-bolder fs-8`}>{row.study_level.label}</span>}
                       {row.status && <span className={`badge badge-light-${row.status.color} fw-bolder fs-8`}>{row.status.label}</span>}
                     </div>
 
@@ -138,19 +125,40 @@ const ShowInstituteAdvisement = ({ row }: Props) => {
                   <div className="d-flex flex-column grow pe-8">
                     <div className="d-flex flex-wrap gap-6">
                       <div className="min-w-125px me-3 mb-3 rounded border border-dashed border-gray-300 px-4 py-3">
-                        <div className="d-flex align-items-center">
-                          <div className={`fs-2 fw-bolder ${tCfg.color}`}>
-                            {row.show_fees ? (
-                              <>
-                                {formatFees()} <span className="fs-6 text-gray-600">{t('SAR')}</span>
-                              </>
-                            ) : (
-                              <span className="fs-5 fst-italic text-gray-600">{t('not_available')}</span>
-                            )}
-                          </div>
+                        <div className="d-flex align-items-center flex-wrap gap-2">
+                          {hasDiscount ? (
+                            <>
+                              <span className="text-gray-500 text-decoration-line-through fs-5">
+                                {Number(row.price).toLocaleString()}
+                              </span>
+                              <div className={`fs-2 fw-bolder text-danger`}>
+                                {Number(row.discounted_price).toLocaleString()} <span className="fs-6 text-gray-600">{t('SAR')}</span>
+                              </div>
+                            </>
+                          ) : row.price != null ? (
+                            <div className={`fs-2 fw-bolder ${tCfg.color}`}>
+                              {Number(row.price).toLocaleString()} <span className="fs-6 text-gray-600">{t('SAR')}</span>
+                            </div>
+                          ) : (
+                            <span className="fs-5 fst-italic text-gray-600">{t('on_contact')}</span>
+                          )}
                         </div>
-                        <div className="fw-bold fs-6 text-gray-500">{t('fees')}</div>
+                        <div className="fw-bold fs-6 text-gray-500">{t('price')}</div>
                       </div>
+
+                      {(row.days_count != null || row.hours_count != null) && (
+                        <div className="min-w-125px me-3 mb-3 rounded border border-dashed border-gray-300 px-4 py-3">
+                          <div className="d-flex align-items-center gap-2">
+                            <KTIcon iconName="time" className="fs-3 text-primary" />
+                            <div className="fs-2 fw-bolder text-gray-900">
+                              {row.days_count != null && `${row.days_count} ${t('days')}`}
+                              {row.days_count != null && row.hours_count != null && ' / '}
+                              {row.hours_count != null && `${row.hours_count} ${t('hours')}`}
+                            </div>
+                          </div>
+                          <div className="fw-bold fs-6 text-gray-500">{t('duration')}</div>
+                        </div>
+                      )}
 
                       {row.study_type && (
                         <div className="min-w-100px me-3 mb-3 rounded border border-dashed border-gray-300 px-4 py-3">
@@ -192,6 +200,22 @@ const ShowInstituteAdvisement = ({ row }: Props) => {
                 <div className="fs-5 fw-semibold mb-8 whitespace-pre-wrap text-gray-700">
                   {row.description || <span className="text-muted fst-italic">{t('no_description')}</span>}
                 </div>
+
+                {row.goals && (
+                  <>
+                    <div className="separator separator-dashed my-8"></div>
+                    <h3 className="fw-bolder m-0 mb-5">{t('goals')}</h3>
+                    <div className="fs-5 fw-semibold mb-4 whitespace-pre-wrap text-gray-700">{row.goals}</div>
+                  </>
+                )}
+
+                {row.payment_notes && (
+                  <>
+                    <div className="separator separator-dashed my-8"></div>
+                    <h3 className="fw-bolder m-0 mb-5">{t('payment_notes')}</h3>
+                    <div className="fs-5 fw-semibold mb-4 whitespace-pre-wrap text-gray-700">{row.payment_notes}</div>
+                  </>
+                )}
 
                 <div className="separator separator-dashed my-8"></div>
 
@@ -239,13 +263,19 @@ const ShowInstituteAdvisement = ({ row }: Props) => {
                       <span>{t('registration_url')}: {row.registration_url}</span>
                     </a>
                   )}
+                  {row.course_url && (
+                    <a href={row.course_url} target="_blank" rel="noopener noreferrer" className="d-flex align-items-center gap-2 text-primary fw-semibold">
+                      <KTIcon iconName="external-link" className="fs-5" />
+                      <span>{t('course_url')}: {row.course_url}</span>
+                    </a>
+                  )}
                   {row.quality_url && (
                     <a href={row.quality_url} target="_blank" rel="noopener noreferrer" className="d-flex align-items-center gap-2 text-primary fw-semibold">
                       <KTIcon iconName="external-link" className="fs-5" />
                       <span>{t('quality_url')}: {row.quality_url}</span>
                     </a>
                   )}
-                  {!row.website && !row.registration_url && !row.quality_url && (
+                  {!row.website && !row.registration_url && !row.course_url && !row.quality_url && (
                     <span className="text-muted fst-italic">{t('no_links_listed')}</span>
                   )}
                 </div>
@@ -329,20 +359,32 @@ const ShowInstituteAdvisement = ({ row }: Props) => {
                   <div className="separator separator-dashed"></div>
 
                   <div className="d-flex align-items-center justify-content-between">
-                    <span className="text-muted fw-semibold">{t('fees_from')}</span>
-                    <span className="fs-6 fw-bold text-gray-900">{row.fees_from != null ? Number(row.fees_from).toLocaleString() : '-'}</span>
+                    <span className="text-muted fw-semibold">{t('study_level')}</span>
+                    <span className="fs-6 fw-bold text-gray-900">{row.study_level?.label ?? '-'}</span>
                   </div>
                   <div className="separator separator-dashed"></div>
 
                   <div className="d-flex align-items-center justify-content-between">
-                    <span className="text-muted fw-semibold">{t('fees_to')}</span>
-                    <span className="fs-6 fw-bold text-gray-900">{row.fees_to != null ? Number(row.fees_to).toLocaleString() : '-'}</span>
+                    <span className="text-muted fw-semibold">{t('price')}</span>
+                    <span className="fs-6 fw-bold text-gray-900">{row.price != null ? Number(row.price).toLocaleString() : '-'}</span>
                   </div>
                   <div className="separator separator-dashed"></div>
 
                   <div className="d-flex align-items-center justify-content-between">
-                    <span className="text-muted fw-semibold">{t('show_fees')}</span>
-                    <span className="fs-6 fw-bold text-gray-900">{row.show_fees ? t('yes') : t('no')}</span>
+                    <span className="text-muted fw-semibold">{t('discounted_price')}</span>
+                    <span className="fs-6 fw-bold text-gray-900">{row.discounted_price != null ? Number(row.discounted_price).toLocaleString() : '-'}</span>
+                  </div>
+                  <div className="separator separator-dashed"></div>
+
+                  <div className="d-flex align-items-center justify-content-between">
+                    <span className="text-muted fw-semibold">{t('days_count')}</span>
+                    <span className="fs-6 fw-bold text-gray-900">{row.days_count ?? '-'}</span>
+                  </div>
+                  <div className="separator separator-dashed"></div>
+
+                  <div className="d-flex align-items-center justify-content-between">
+                    <span className="text-muted fw-semibold">{t('hours_count')}</span>
+                    <span className="fs-6 fw-bold text-gray-900">{row.hours_count ?? '-'}</span>
                   </div>
                   <div className="separator separator-dashed"></div>
 

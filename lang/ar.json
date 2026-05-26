@@ -713,5 +713,19 @@
   "specializations": "التخصصات",
   "important_dates": "تواريخ مهمة",
   "links": "الروابط",
-  "no_links_listed": "لا توجد روابط"
+  "no_links_listed": "لا توجد روابط",
+  "study_level": "المرحلة الدراسية",
+  "discounted_price": "السعر بعد الخصم",
+  "hours_count": "عدد الساعات",
+  "goals": "الأهداف",
+  "payment_notes": "ملاحظات الدفع",
+  "course_url": "رابط الدورة",
+  "duration": "المدة",
+  "days": "يوم",
+  "hours": "ساعة",
+  "advisement.study_level.diploma": "دبلوم",
+  "advisement.study_level.bachelor": "بكالوريوس",
+  "advisement.study_level.master": "ماجستير",
+  "advisement.study_level.phd": "دكتوراه",
+  "advisement.study_level.certificate": "شهادة"
 }
