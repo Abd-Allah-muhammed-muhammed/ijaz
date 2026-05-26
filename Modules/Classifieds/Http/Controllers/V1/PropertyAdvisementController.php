@@ -63,6 +63,9 @@ class PropertyAdvisementController extends Controller
     }
 
     /**
+     * Create a new property advisement
+     *
+     * @authenticated
      * @throws Throwable
      */
     public function store(PropertyAdvisementRequest $request): JsonResponse
@@ -82,6 +85,12 @@ class PropertyAdvisementController extends Controller
         }
     }
 
+    /**
+     * Get a property advisement
+     *
+     * @authenticated
+     * @throws Throwable
+     */
     public function show(PropertyAdvisement $propertyAdvisement): JsonResponse
     {
         $propertyAdvisement = $this->propertyAdvisementService->loadForShow($propertyAdvisement);
@@ -90,6 +99,9 @@ class PropertyAdvisementController extends Controller
     }
 
     /**
+     * Update an existing property advisement
+     *
+     * @authenticated
      * @throws Throwable
      */
     public function update(PropertyAdvisementRequest $request, PropertyAdvisement $propertyAdvisement): JsonResponse
@@ -112,6 +124,9 @@ class PropertyAdvisementController extends Controller
     }
 
     /**
+     * Delete a media from a property advisement
+     *
+     * @authenticated
      * @throws Throwable
      */
     public function deleteMedia(PropertyAdvisement $propertyAdvisement, Media $media): JsonResponse
@@ -133,6 +148,9 @@ class PropertyAdvisementController extends Controller
     }
 
     /**
+     * Delete a property advisement
+     *
+     * @authenticated
      * @throws Throwable
      */
     public function destroy(PropertyAdvisement $propertyAdvisement): JsonResponse

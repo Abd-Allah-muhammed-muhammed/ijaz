@@ -91,6 +91,9 @@ class CarAdvisementController extends Controller
     }
 
     /**
+     * Create a new car advisement
+     *
+     * @authenticated
      * @throws Throwable
      */
     public function store(CarAdvisementRequest $request): JsonResponse
@@ -110,6 +113,12 @@ class CarAdvisementController extends Controller
         }
     }
 
+    /**
+     * Get a car advisement
+     *
+     * @authenticated
+     * @throws Throwable
+     */
     public function show(CarAdvisement $carAdvisement): JsonResponse
     {
         $carAdvisement = $this->carAdvisementService->loadForShow($carAdvisement);
@@ -118,6 +127,9 @@ class CarAdvisementController extends Controller
     }
 
     /**
+     * Update an existing car advisement
+     *
+     * @authenticated
      * @throws Throwable
      */
     public function update(CarAdvisementRequest $request, CarAdvisement $carAdvisement): JsonResponse
@@ -140,6 +152,9 @@ class CarAdvisementController extends Controller
     }
 
     /**
+     * Delete a media from a car advisement
+     *
+     * @authenticated
      * @throws Throwable
      */
     public function deleteMedia(CarAdvisement $carAdvisement, Media $media): JsonResponse
@@ -161,6 +176,9 @@ class CarAdvisementController extends Controller
     }
 
     /**
+     * Delete a car advisement
+     *
+     * @authenticated
      * @throws Throwable
      */
     public function destroy(CarAdvisement $carAdvisement): JsonResponse
