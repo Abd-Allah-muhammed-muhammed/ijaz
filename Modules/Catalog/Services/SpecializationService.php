@@ -23,6 +23,11 @@ class SpecializationService implements SpecializationServiceInterface
         return $this->repository->paginate($request);
     }
 
+    public function getAll(Request $request): Collection
+    {
+        return $this->repository->getAll($request);
+    }
+
     public function store(StoreSpecializationDTO $dto): Specialization
     {
         DB::beginTransaction();

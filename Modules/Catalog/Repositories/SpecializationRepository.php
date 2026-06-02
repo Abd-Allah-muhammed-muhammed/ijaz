@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\Repositories;
 
+use App\Services\Normalize\Normalize;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -25,6 +26,23 @@ class SpecializationRepository implements SpecializationRepositoryInterface
             ->tap(fn (Builder $query) => $filters->apply($query))
             ->paginate($filters->perPage())
             ->withQueryString();
+    }
+
+    /**
+     * @return Collection<int, Specialization>
+     */
+    public function getAll(Request $request): Collection
+    {
+        return Specialization::with(['translation'])
+            ->when($request->parent_id,
+                fn (Builder $query, mixed $value) => $query->where('parent_id', $value),
+                fn (Builder $query) => $query->whereNull('parent_id'))
+            ->when($request->search, function (Builder $query, mixed $value) {
+                $normalized = Normalize::make($value, app()->getLocale())->toString();
+
+                return $query->whereTranslationLike('normalized_title', "%{$normalized}%");
+            })
+            ->get();
     }
 
     public function create(array $data): Specialization

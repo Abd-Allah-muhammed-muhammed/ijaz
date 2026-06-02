@@ -13,6 +13,11 @@ interface DeviceCategoryServiceInterface
 {
     public function index(Request $request): LengthAwarePaginator;
 
+    /**
+     * @return Collection<int, DeviceCategory>
+     */
+    public function getAll(Request $request): Collection;
+
     public function store(StoreDeviceCategoryDTO $dto): DeviceCategory;
 
     public function update(DeviceCategory $deviceCategory, UpdateDeviceCategoryDTO $dto): DeviceCategory;

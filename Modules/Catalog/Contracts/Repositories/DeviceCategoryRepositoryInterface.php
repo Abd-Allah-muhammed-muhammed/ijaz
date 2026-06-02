@@ -14,6 +14,11 @@ interface DeviceCategoryRepositoryInterface
 
     public function paginate(Request $request): LengthAwarePaginator;
 
+    /**
+     * @return Collection<int, DeviceCategory>
+     */
+    public function getAll(Request $request): Collection;
+
     public function create(array $data): DeviceCategory;
 
     public function update(DeviceCategory $deviceCategory, array $data): DeviceCategory;

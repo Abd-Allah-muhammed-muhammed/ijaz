@@ -8,7 +8,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Catalog\Contracts\Services\DeviceCategoryServiceInterface;
-use Modules\Catalog\Http\Resources\Api\DeviceCategoryCollection;
 use Modules\Catalog\Http\Resources\Api\DeviceCategoryResource;
 use Modules\Catalog\Models\DeviceCategory;
 
@@ -26,11 +25,11 @@ class DeviceCategoryController extends Controller
      *
      * @response DeviceCategoryResource[]
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        $deviceCategories = $this->service->index($request);
-
-        return $this->successResponse(DeviceCategoryCollection::make($deviceCategories));
+        return $this->successResponse(
+            DeviceCategoryResource::collection($this->service->getAll($request))
+        );
     }
 
     /**

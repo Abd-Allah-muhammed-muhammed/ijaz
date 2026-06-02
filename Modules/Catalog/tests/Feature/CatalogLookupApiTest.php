@@ -38,7 +38,7 @@ function createElectronicBrand(bool $isActive = true): ElectronicBrand
     return $electronicBrand->fresh();
 }
 
-it('lists root device categories with children count', function (): void {
+it('lists root device categories as a flat array', function (): void {
     /** @var TestCase $this */
     $parent = createDeviceCategory();
     createDeviceCategory(['parent_id' => $parent->id]);
@@ -47,33 +47,29 @@ it('lists root device categories with children count', function (): void {
     $response = $this->getJson(action([DeviceCategoryController::class, 'index']));
 
     $response->assertOk()
-        ->assertJsonPath('data.total', 2)
+        ->assertJsonCount(2, 'data')
         ->assertJsonStructure([
+            'success',
             'data' => [
-                'items' => [
-                    '*' => [
-                        'id',
-                        'title',
-                        'icon',
-                        'parent_id',
-                        'children_count',
-                    ],
+                '*' => [
+                    'id',
+                    'title',
+                    'parent_id',
                 ],
             ],
         ]);
 });
 
-it('shows a device category with its children', function (): void {
+it('shows a device category', function (): void {
     /** @var TestCase $this */
     $parent = createDeviceCategory();
-    $child = createDeviceCategory(['parent_id' => $parent->id]);
 
     $response = $this->getJson(action([DeviceCategoryController::class, 'show'], ['deviceCategory' => $parent->id]));
 
     $response->assertOk()
         ->assertJsonPath('data.id', $parent->id)
-        ->assertJsonPath('data.children_count', 1)
-        ->assertJsonPath('data.children.0.id', $child->id);
+        ->assertJsonPath('data.title', 'Smartphones')
+        ->assertJsonPath('data.parent_id', null);
 });
 
 it('lists only active electronic brands', function (): void {
@@ -84,20 +80,17 @@ it('lists only active electronic brands', function (): void {
     $response = $this->getJson(action([ElectronicBrandController::class, 'index']));
 
     $response->assertOk()
-        ->assertJsonPath('data.total', 1)
+        ->assertJsonCount(1, 'data')
         ->assertJsonStructure([
+            'success',
             'data' => [
-                'items' => [
-                    '*' => [
-                        'id',
-                        'name',
-                        'image_url',
-                        'is_active',
-                    ],
+                '*' => [
+                    'id',
+                    'name',
                 ],
             ],
         ])
-        ->assertJsonPath('data.items.0.is_active', true);
+        ->assertJsonPath('data.0.name', 'Samsung');
 });
 
 it('shows a single electronic brand', function (): void {
@@ -111,7 +104,7 @@ it('shows a single electronic brand', function (): void {
         ->assertJsonPath('data.name', 'Samsung');
 });
 
-it('lists root specializations with children count', function (): void {
+it('lists root specializations as a flat array', function (): void {
     /** @var TestCase $this */
     $parent = Specialization::factory()->create();
     Specialization::factory()->create(['parent_id' => $parent->id]);
@@ -120,31 +113,26 @@ it('lists root specializations with children count', function (): void {
     $response = $this->getJson(action([SpecializationController::class, 'index']));
 
     $response->assertOk()
-        ->assertJsonPath('data.total', 2)
+        ->assertJsonCount(2, 'data')
         ->assertJsonStructure([
+            'success',
             'data' => [
-                'items' => [
-                    '*' => [
-                        'id',
-                        'title',
-                        'icon',
-                        'parent_id',
-                        'children_count',
-                    ],
+                '*' => [
+                    'id',
+                    'title',
+                    'parent_id',
                 ],
             ],
         ]);
 });
 
-it('shows a specialization with its children', function (): void {
+it('shows a specialization', function (): void {
     /** @var TestCase $this */
     $parent = Specialization::factory()->create();
-    $child = Specialization::factory()->create(['parent_id' => $parent->id]);
 
     $response = $this->getJson(action([SpecializationController::class, 'show'], ['specialization' => $parent->id]));
 
     $response->assertOk()
         ->assertJsonPath('data.id', $parent->id)
-        ->assertJsonPath('data.children_count', 1)
-        ->assertJsonPath('data.children.0.id', $child->id);
+        ->assertJsonPath('data.parent_id', null);
 });

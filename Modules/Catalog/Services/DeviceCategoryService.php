@@ -23,6 +23,11 @@ class DeviceCategoryService implements DeviceCategoryServiceInterface
         return $this->repository->paginate($request);
     }
 
+    public function getAll(Request $request): Collection
+    {
+        return $this->repository->getAll($request);
+    }
+
     public function store(StoreDeviceCategoryDTO $dto): DeviceCategory
     {
         DB::beginTransaction();

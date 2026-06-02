@@ -2,8 +2,10 @@
 
 namespace Modules\Catalog\Repositories;
 
+use App\Services\Normalize\Normalize;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Contracts\Repositories\ElectronicBrandRepositoryInterface;
 use Modules\Catalog\Models\ElectronicBrand;
@@ -24,6 +26,21 @@ class ElectronicBrandRepository implements ElectronicBrandRepositoryInterface
             ->tap(fn (Builder $query) => $filters->apply($query))
             ->paginate($filters->perPage())
             ->withQueryString();
+    }
+
+    /**
+     * @return Collection<int, ElectronicBrand>
+     */
+    public function getAll(Request $request): Collection
+    {
+        return ElectronicBrand::with(['translation'])
+            ->where('is_active', true)
+            ->when($request->search, function (Builder $query, mixed $value) {
+                $normalized = Normalize::make($value, app()->getLocale())->toString();
+
+                return $query->whereTranslationLike('normalized_name', "%{$normalized}%");
+            })
+            ->get();
     }
 
     public function create(array $data): ElectronicBrand

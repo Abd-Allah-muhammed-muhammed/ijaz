@@ -13,6 +13,11 @@ interface SpecializationServiceInterface
 {
     public function index(Request $request): LengthAwarePaginator;
 
+    /**
+     * @return Collection<int, Specialization>
+     */
+    public function getAll(Request $request): Collection;
+
     public function store(StoreSpecializationDTO $dto): Specialization;
 
     public function update(Specialization $specialization, UpdateSpecializationDTO $dto): Specialization;

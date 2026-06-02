@@ -14,6 +14,11 @@ interface SpecializationRepositoryInterface
 
     public function paginate(Request $request): LengthAwarePaginator;
 
+    /**
+     * @return Collection<int, Specialization>
+     */
+    public function getAll(Request $request): Collection;
+
     public function create(array $data): Specialization;
 
     public function update(Specialization $specialization, array $data): Specialization;

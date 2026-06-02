@@ -3,6 +3,7 @@
 namespace Modules\Catalog\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Catalog\Contracts\Repositories\ElectronicBrandRepositoryInterface;
@@ -20,6 +21,11 @@ class ElectronicBrandService implements ElectronicBrandServiceInterface
     public function index(Request $request): LengthAwarePaginator
     {
         return $this->repository->paginate($request);
+    }
+
+    public function getAll(Request $request): Collection
+    {
+        return $this->repository->getAll($request);
     }
 
     public function store(StoreElectronicBrandDTO $dto): ElectronicBrand

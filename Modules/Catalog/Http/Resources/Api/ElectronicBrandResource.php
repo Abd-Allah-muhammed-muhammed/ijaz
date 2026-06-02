@@ -14,8 +14,6 @@ class ElectronicBrandResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'image_url' => $this->image_url,
-            'is_active' => $this->is_active,
         ];
     }
 }

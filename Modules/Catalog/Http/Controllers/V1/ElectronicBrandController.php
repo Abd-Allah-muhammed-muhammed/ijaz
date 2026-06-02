@@ -8,7 +8,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Catalog\Contracts\Services\ElectronicBrandServiceInterface;
-use Modules\Catalog\Http\Resources\Api\ElectronicBrandCollection;
 use Modules\Catalog\Http\Resources\Api\ElectronicBrandResource;
 use Modules\Catalog\Models\ElectronicBrand;
 
@@ -26,13 +25,11 @@ class ElectronicBrandController extends Controller
      *
      * @response ElectronicBrandResource[]
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        $request->merge(['is_active' => true]);
-
-        $electronicBrands = $this->service->index($request);
-
-        return $this->successResponse(ElectronicBrandCollection::make($electronicBrands));
+        return $this->successResponse(
+            ElectronicBrandResource::collection($this->service->getAll($request))
+        );
     }
 
     /**

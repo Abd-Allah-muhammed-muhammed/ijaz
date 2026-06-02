@@ -8,7 +8,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Catalog\Contracts\Services\SpecializationServiceInterface;
-use Modules\Catalog\Http\Resources\Api\SpecializationCollection;
 use Modules\Catalog\Http\Resources\Api\SpecializationResource;
 use Modules\Catalog\Models\Specialization;
 
@@ -26,11 +25,11 @@ class SpecializationController extends Controller
      *
      * @response SpecializationResource[]
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        $specializations = $this->service->index($request);
-
-        return $this->successResponse(SpecializationCollection::make($specializations));
+        return $this->successResponse(
+            SpecializationResource::collection($this->service->getAll($request))
+        );
     }
 
     /**
