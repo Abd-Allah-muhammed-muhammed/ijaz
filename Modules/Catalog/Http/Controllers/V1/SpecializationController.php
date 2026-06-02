@@ -4,6 +4,7 @@ namespace Modules\Catalog\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Catalog\Contracts\Services\SpecializationServiceInterface;
@@ -37,10 +38,16 @@ class SpecializationController extends Controller
      *
      * @response SpecializationResource
      */
-    public function show(Specialization $specialization)
+    public function show(int $specialization): JsonResponse
     {
-        $specialization = $this->service->show($specialization);
+        $record = Specialization::find($specialization);
 
-        return $this->successResponse(new SpecializationResource($specialization));
+        if (! $record) {
+            return $this->failedMessageResponse(__('not_found'), 404);
+        }
+
+        return $this->successResponse(
+            SpecializationResource::make($this->service->show($record))
+        );
     }
 }

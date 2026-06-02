@@ -4,6 +4,7 @@ namespace Modules\Catalog\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Catalog\Contracts\Services\DeviceCategoryServiceInterface;
@@ -37,10 +38,16 @@ class DeviceCategoryController extends Controller
      *
      * @response DeviceCategoryResource
      */
-    public function show(DeviceCategory $deviceCategory)
+    public function show(int $deviceCategory): JsonResponse
     {
-        $deviceCategory = $this->service->show($deviceCategory);
+        $record = DeviceCategory::find($deviceCategory);
 
-        return $this->successResponse(new DeviceCategoryResource($deviceCategory));
+        if (! $record) {
+            return $this->failedMessageResponse(__('not_found'), 404);
+        }
+
+        return $this->successResponse(
+            DeviceCategoryResource::make($this->service->show($record))
+        );
     }
 }

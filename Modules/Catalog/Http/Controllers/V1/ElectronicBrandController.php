@@ -4,6 +4,7 @@ namespace Modules\Catalog\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Catalog\Contracts\Services\ElectronicBrandServiceInterface;
@@ -39,10 +40,16 @@ class ElectronicBrandController extends Controller
      *
      * @response ElectronicBrandResource
      */
-    public function show(ElectronicBrand $electronicBrand)
+    public function show(int $electronicBrand): JsonResponse
     {
-        $electronicBrand = $this->service->show($electronicBrand);
+        $record = ElectronicBrand::find($electronicBrand);
 
-        return $this->successResponse(new ElectronicBrandResource($electronicBrand));
+        if (! $record) {
+            return $this->failedMessageResponse(__('not_found'), 404);
+        }
+
+        return $this->successResponse(
+            ElectronicBrandResource::make($this->service->show($record))
+        );
     }
 }
