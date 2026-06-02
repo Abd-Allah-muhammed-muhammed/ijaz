@@ -15,9 +15,10 @@ class SpecializationResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
+            'icon' => $this->icon ? Storage::url($this->icon) : null,
             'parent_id' => $this->parent_id,
             'children_count' => $this->whenCounted('children', $this->children_count),
-            'icon' => $this->icon ? Storage::url($this->icon) : null,
+            'children' => self::collection($this->whenLoaded('children')),
         ];
     }
 }

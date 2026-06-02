@@ -79,7 +79,12 @@ class DeviceCategoryService implements DeviceCategoryServiceInterface
 
     public function show(DeviceCategory $deviceCategory): DeviceCategory
     {
-        return $deviceCategory->load(['translations', 'parent']);
+        return $deviceCategory
+            ->loadCount('children')
+            ->load([
+                'translation',
+                'children.translation',
+            ]);
     }
 
     /**

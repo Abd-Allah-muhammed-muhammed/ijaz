@@ -79,7 +79,12 @@ class SpecializationService implements SpecializationServiceInterface
 
     public function show(Specialization $specialization): Specialization
     {
-        return $specialization->load(['translations', 'parent']);
+        return $specialization
+            ->loadCount('children')
+            ->load([
+                'translation',
+                'children.translation',
+            ]);
     }
 
     /**

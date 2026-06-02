@@ -83,6 +83,6 @@ class ElectronicBrandService implements ElectronicBrandServiceInterface
 
     public function show(ElectronicBrand $electronicBrand): ElectronicBrand
     {
-        return $electronicBrand->load(['translations']);
+        return $electronicBrand->load(['translation']);
     }
 }
