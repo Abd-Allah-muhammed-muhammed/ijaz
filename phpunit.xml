@@ -12,6 +12,8 @@
             <directory>tests/Feature</directory>
             <directory>Modules/Classifieds/tests/Feature</directory>
             <directory>Modules/Catalog/tests/Feature</directory>
+            <directory>Modules/Opportunity/tests/Feature</directory>
+            <directory>Modules/Opportunity/tests/Unit</directory>
         </testsuite>
     </testsuites>
     <source>
@@ -19,6 +21,7 @@
             <directory>app</directory>
             <directory>Modules/Classifieds</directory>
             <directory>Modules/Catalog</directory>
+            <directory>Modules/Opportunity</directory>
         </include>
     </source>
     <php>
