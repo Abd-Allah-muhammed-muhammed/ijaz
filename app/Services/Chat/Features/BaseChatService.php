@@ -15,6 +15,7 @@ use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Pusher\ApiErrorException;
 
@@ -66,13 +67,23 @@ abstract class BaseChatService
         $onlineUsers = $this->getOnlineUsers();
         $receiver = $this->getReviver($sender);
         $read_at = $this->getReadAt($sender, $receiver, $onlineUsers);
-        $lastMessage = $this->generateMessage($message, $sender, $receiver, $read_at, collect($attachments));
-        $this->attachLastMessage($lastMessage);
 
-        if (empty($lastMessage->read_at)) {
-            $this->notifyReceiver($lastMessage, $sender, $receiver);
+        $lastMessage = DB::transaction(function () use ($message, $sender, $receiver, $read_at, $attachments) {
+            $lastMessage = $this->generateMessage($message, $sender, $receiver, $read_at, collect($attachments));
+            $this->attachLastMessage($lastMessage);
+
+            if (empty($lastMessage->read_at)) {
+                $this->notifyReceiver($lastMessage, $sender, $receiver);
+            }
+
+            return $lastMessage;
+        });
+
+        try {
+            $this->triggerEvents($lastMessage, $sender, $receiver);
+        } catch (\Throwable $e) {
+            report($e);
         }
-        $this->triggerEvents($lastMessage, $sender, $receiver);
 
         return $this->chat;
     }

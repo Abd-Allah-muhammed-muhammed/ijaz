@@ -6,7 +6,6 @@ use App\Models\Conversation;
 use App\Models\ConversationMessage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\DB;
 use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Support\OpportunityConversationMessenger;
@@ -21,16 +20,14 @@ class SendOpportunityChatMessageAction
      */
     public function handle(Conversation $conversation, Model $sender, ?string $content, array $files): ConversationMessage
     {
-        return DB::transaction(function () use ($conversation, $sender, $content, $files) {
-            if ($conversation->operation_type !== Opportunity::class) {
-                throw new OpportunityException('opportunity.not_found', 404);
-            }
+        if ($conversation->operation_type !== Opportunity::class) {
+            throw new OpportunityException('opportunity.not_found', 404);
+        }
 
-            $messenger = new OpportunityConversationMessenger($conversation);
-            $updatedConversation = $messenger->sendAs($sender, $content, $files);
-            $updatedConversation->loadMissing(['lastMassage.sender', 'lastMassage.attachments']);
+        $messenger = new OpportunityConversationMessenger($conversation);
+        $updatedConversation = $messenger->sendAs($sender, $content, $files);
+        $updatedConversation->loadMissing(['lastMassage.sender', 'lastMassage.attachments']);
 
-            return $updatedConversation->lastMassage;
-        });
+        return $updatedConversation->lastMassage;
     }
 }
