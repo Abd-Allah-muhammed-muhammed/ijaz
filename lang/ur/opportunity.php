@@ -33,4 +33,8 @@ return [
     'cannot_accept_offer' => 'آپ اس موقع کے لیے پیشکش قبول نہیں کر سکتے',
     'cannot_reject_offer' => 'آپ اس پیشکش کو مسترد نہیں کر سکتے',
     'offer_not_belong_to_opportunity' => 'یہ پیشکش مخصوص موقع سے تعلق نہیں رکھتی',
+
+    'no_accepted_offer' => 'اس موقع کے لیے ابھی تک کوئی قبول شدہ پیشکش نہیں ہے',
+    'chat_unauthorized' => 'آپ اس موقع میں شریک نہیں ہیں',
+    'chat_opened_successfully' => 'چیٹ کامیابی سے کھل گئی',
 ];

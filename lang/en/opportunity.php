@@ -33,4 +33,8 @@ return [
     'cannot_accept_offer' => 'You cannot accept an offer for this opportunity',
     'cannot_reject_offer' => 'You cannot reject this offer',
     'offer_not_belong_to_opportunity' => 'This offer does not belong to the specified opportunity',
+
+    'no_accepted_offer' => 'This opportunity has no accepted offer yet',
+    'chat_unauthorized' => 'You are not a participant in this opportunity',
+    'chat_opened_successfully' => 'Chat opened successfully',
 ];

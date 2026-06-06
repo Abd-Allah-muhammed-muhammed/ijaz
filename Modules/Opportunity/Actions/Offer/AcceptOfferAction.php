@@ -2,16 +2,21 @@
 
 namespace Modules\Opportunity\Actions\Offer;
 
-use App\Models\Conversation;
 use Illuminate\Support\Facades\DB;
+use Modules\Opportunity\Actions\Chat\OpenOpportunityChatAction;
 use Modules\Opportunity\Enums\OfferStatusEnum;
 use Modules\Opportunity\Enums\OpportunityStatusEnum;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityOffer;
+use Modules\Opportunity\Notifications\OpportunityOfferAcceptedNotification;
 use Throwable;
 
 class AcceptOfferAction
 {
+    public function __construct(
+        private readonly OpenOpportunityChatAction $openOpportunityChatAction,
+    ) {}
+
     /**
      * @throws Throwable
      */
@@ -30,20 +35,12 @@ class AcceptOfferAction
                 'accepted_offer_id' => $offer->id,
             ]);
 
-            $opportunity->load(['author']);
-            $offer->load(['author']);
+            $opportunity->load(['author', 'acceptedOffer.author']);
 
-            Conversation::firstOrCreate([
-                'operation_type' => $opportunity::class,
-                'operation_id' => $opportunity->id,
-            ], [
-                'user1_id' => $opportunity->author->getKey(),
-                'user1_type' => $opportunity->author::class,
-                'user2_id' => $offer->author->getKey(),
-                'user2_type' => $offer->author::class,
-            ]);
+            $this->openOpportunityChatAction->handle($opportunity);
 
-            // TODO: dispatch OpportunityOfferAcceptedEvent (for notifications)
+            $offer->refresh()->load('author');
+            $offer->author->notify(new OpportunityOfferAcceptedNotification($offer));
 
             $opportunity->load([
                 'author',

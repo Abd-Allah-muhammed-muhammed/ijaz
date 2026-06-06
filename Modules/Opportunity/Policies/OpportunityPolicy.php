@@ -43,4 +43,24 @@ class OpportunityPolicy
     {
         return $offer->opportunity_id === $opportunity->id;
     }
+
+    public function chat(Model $user, Opportunity $opportunity): bool
+    {
+        if (! in_array($opportunity->status, [OpportunityStatusEnum::OfferAccepted, OpportunityStatusEnum::InProgress], true)) {
+            return false;
+        }
+
+        if ($this->isAuthor($user, $opportunity)) {
+            return true;
+        }
+
+        $opportunity->loadMissing('acceptedOffer');
+
+        if ($opportunity->acceptedOffer === null) {
+            return false;
+        }
+
+        return $opportunity->acceptedOffer->author_type === $user::class
+            && $opportunity->acceptedOffer->author_id === $user->getKey();
+    }
 }

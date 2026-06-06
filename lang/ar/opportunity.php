@@ -33,4 +33,8 @@ return [
     'cannot_accept_offer' => 'لا يمكنك قبول عرض لهذه الفرصة',
     'cannot_reject_offer' => 'لا يمكنك رفض هذا العرض',
     'offer_not_belong_to_opportunity' => 'هذا العرض لا ينتمي إلى الفرصة المحددة',
+
+    'no_accepted_offer' => 'لا يوجد عرض مقبول لهذه الفرصة بعد',
+    'chat_unauthorized' => 'أنت لست مشاركاً في هذه الفرصة',
+    'chat_opened_successfully' => 'تم فتح المحادثة بنجاح',
 ];

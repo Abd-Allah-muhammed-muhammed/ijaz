@@ -4,6 +4,7 @@ use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Modules\Opportunity\Enums\OfferStatusEnum;
 use Modules\Opportunity\Enums\OpportunityStatusEnum;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityComment;
@@ -82,4 +83,33 @@ test('opportunity policy denies remove media when file belongs to another opport
         ->toMediaCollection('files');
 
     expect(Gate::forUser($user)->allows('removeMedia', [$opportunity, $media]))->toBeFalse();
+});
+
+test('opportunity policy allows chat for author when offer accepted', function () {
+    $author = User::factory()->create();
+    $offerer = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::OfferAccepted,
+    ]);
+    $offer = OpportunityOffer::factory()->create([
+        'opportunity_id' => $opportunity->id,
+        'author_type' => User::class,
+        'author_id' => $offerer->id,
+        'status' => OfferStatusEnum::Accepted,
+    ]);
+    $opportunity->update(['accepted_offer_id' => $offer->id]);
+
+    expect(Gate::forUser($author)->allows('chat', $opportunity))->toBeTrue();
+});
+
+test('opportunity policy denies chat when status is new', function () {
+    $author = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+    ]);
+
+    expect(Gate::forUser($author)->allows('chat', $opportunity))->toBeFalse();
 });

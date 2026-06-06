@@ -836,5 +836,11 @@
   "advisement.study_level.bachelor": "Bachelor",
   "advisement.study_level.master": "Master",
   "advisement.study_level.phd": "PhD",
-  "advisement.study_level.certificate": "Certificate"
+  "advisement.study_level.certificate": "Certificate",
+  "opportunity_offer_submitted": "New offer on your opportunity",
+  "opportunity_offer_has_been_submitted": "Someone submitted a new price offer on your opportunity",
+  "opportunity_offer_accepted": "Your offer was accepted",
+  "opportunity_offer_has_been_accepted": "The client accepted your offer on the opportunity",
+  "opportunity_offer_rejected": "Your offer was rejected",
+  "opportunity_offer_has_been_rejected": "The client rejected your offer on the opportunity"
 }

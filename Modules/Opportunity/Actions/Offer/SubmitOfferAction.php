@@ -9,6 +9,7 @@ use Modules\Opportunity\DTOs\OfferData;
 use Modules\Opportunity\Enums\OfferStatusEnum;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityOffer;
+use Modules\Opportunity\Notifications\OpportunityOfferSubmittedNotification;
 use Throwable;
 
 class SubmitOfferAction
@@ -34,6 +35,9 @@ class SubmitOfferAction
             // TODO: dispatch PaymentInitiatedEvent
 
             $offer->load(['author']);
+
+            $opportunity->loadMissing('author');
+            $opportunity->author->notify(new OpportunityOfferSubmittedNotification($offer));
 
             return $offer;
         });

@@ -33,4 +33,8 @@ return [
     'cannot_accept_offer' => 'आप इस अवसर के लिए प्रस्ताव स्वीकार नहीं कर सकते',
     'cannot_reject_offer' => 'आप इस प्रस्ताव को अस्वीकार नहीं कर सकते',
     'offer_not_belong_to_opportunity' => 'यह प्रस्ताव निर्दिष्ट अवसर से संबंधित नहीं है',
+
+    'no_accepted_offer' => 'इस अवसर के लिए अभी तक कोई स्वीकृत प्रस्ताव नहीं है',
+    'chat_unauthorized' => 'आप इस अवसर में भागीदार नहीं हैं',
+    'chat_opened_successfully' => 'चैट सफलतापूर्वक खोली गई',
 ];
