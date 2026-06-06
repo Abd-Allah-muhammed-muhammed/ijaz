@@ -26,6 +26,8 @@ class OpportunityConversationMessenger extends BaseChatService
             throw new RuntimeException('Sender must implement HasConversation.');
         }
 
+        $this->chat->loadMissing(['user1', 'user2']);
+
         return $this->send($sender, $message, $attachments);
     }
 
@@ -35,15 +37,25 @@ class OpportunityConversationMessenger extends BaseChatService
             return collect();
         }
 
-        return parent::getOnlineUsers();
+        try {
+            return parent::getOnlineUsers();
+        } catch (\Throwable) {
+            return collect();
+        }
     }
 
     protected function getReviver(HasConversation $sender): HasConversation
     {
-        if ($this->chat->user1()->is($sender)) {
-            return $this->chat->user2;
+        $this->chat->loadMissing(['user1', 'user2']);
+
+        $receiver = $this->chat->user1()->is($sender)
+            ? $this->chat->user2
+            : $this->chat->user1;
+
+        if (! $receiver instanceof HasConversation) {
+            throw new RuntimeException('Receiver must implement HasConversation.');
         }
 
-        return $this->chat->user1;
+        return $receiver;
     }
 }

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Opportunity\Contracts\Repositories\OpportunityOfferRepositoryInterface;
 use Modules\Opportunity\DTOs\OfferData;
 use Modules\Opportunity\Enums\OfferStatusEnum;
+use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityOffer;
 use Modules\Opportunity\Notifications\OpportunityOfferSubmittedNotification;
@@ -24,6 +25,19 @@ class SubmitOfferAction
     public function handle(Opportunity $opportunity, OfferData $data, Model $author): OpportunityOffer
     {
         return DB::transaction(function () use ($opportunity, $data, $author) {
+            $existingOffer = $opportunity->offers()
+                ->where('author_type', $author::class)
+                ->where('author_id', $author->getKey())
+                ->whereIn('status', [
+                    OfferStatusEnum::Pending,
+                    OfferStatusEnum::Accepted,
+                ])
+                ->exists();
+
+            if ($existingOffer) {
+                throw new OpportunityException('opportunity.offer_already_submitted', 422);
+            }
+
             $offer = $this->offers->create([
                 ...$data->toPersistenceArray(),
                 'opportunity_id' => $opportunity->id,

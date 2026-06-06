@@ -443,6 +443,90 @@ test('rejecting offer sends notification to offer author', function () {
     );
 });
 
+test('model not found returns 404 with message', function () {
+    $this->getJson(action([OpportunityController::class, 'show'], [
+        'opportunity' => '01234567-89ab-7def-0123-456789abcdef',
+    ]))->assertNotFound()
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('message', __('opportunity.not_found'));
+});
+
+test('cannot submit second pending offer', function () {
+    Notification::fake();
+
+    $author = User::factory()->create();
+    $offerer = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+    ]);
+
+    Sanctum::actingAs($offerer);
+
+    $this->postJson(action([OfferController::class, 'store'], ['opportunity' => $opportunity->id]), [
+        'price' => 1000,
+    ])->assertSuccessful();
+
+    $this->postJson(action([OfferController::class, 'store'], ['opportunity' => $opportunity->id]), [
+        'price' => 2000,
+    ])->assertUnprocessable()
+        ->assertJsonPath('message', __('opportunity.offer_already_submitted'));
+});
+
+test('offerer only sees own offers in list', function () {
+    $author = User::factory()->create();
+    $offerer1 = User::factory()->create();
+    $offerer2 = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+    ]);
+    OpportunityOffer::factory()->create([
+        'opportunity_id' => $opportunity->id,
+        'author_type' => User::class,
+        'author_id' => $offerer1->id,
+    ]);
+    OpportunityOffer::factory()->create([
+        'opportunity_id' => $opportunity->id,
+        'author_type' => User::class,
+        'author_id' => $offerer2->id,
+    ]);
+
+    Sanctum::actingAs($offerer1);
+
+    $this->getJson(action([OfferController::class, 'index'], ['opportunity' => $opportunity->id]))
+        ->assertSuccessful()
+        ->assertJsonPath('data.total', 1)
+        ->assertJsonCount(1, 'data.items');
+});
+
+test('opportunity author sees all offers in list', function () {
+    $author = User::factory()->create();
+    $offerer1 = User::factory()->create();
+    $offerer2 = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+    ]);
+    OpportunityOffer::factory()->create([
+        'opportunity_id' => $opportunity->id,
+        'author_type' => User::class,
+        'author_id' => $offerer1->id,
+    ]);
+    OpportunityOffer::factory()->create([
+        'opportunity_id' => $opportunity->id,
+        'author_type' => User::class,
+        'author_id' => $offerer2->id,
+    ]);
+
+    Sanctum::actingAs($author);
+
+    $this->getJson(action([OfferController::class, 'index'], ['opportunity' => $opportunity->id]))
+        ->assertSuccessful()
+        ->assertJsonPath('data.total', 2)
+        ->assertJsonCount(2, 'data.items');
+});
+
 test('non author cannot accept offer', function () {
     $author = User::factory()->create();
     $intruder = User::factory()->create();
@@ -741,7 +825,7 @@ test('open chat creates conversation', function () {
     $this->postJson(action([OpportunityChatController::class, 'store']), [
         'opportunity_id' => $opportunity->id,
     ])->assertSuccessful()
-        ->assertJsonStructure(['data' => ['id', 'user1', 'user2']]);
+        ->assertJsonStructure(['data' => ['id', 'opportunity_author', 'offer_author']]);
 
     expect(Conversation::query()
         ->where('operation_type', Opportunity::class)
@@ -812,6 +896,49 @@ test('actor can send message', function () {
         'content' => 'Hello, when can we start?',
     ])->assertSuccessful()
         ->assertJsonPath('data.content', 'Hello, when can we start?');
+});
+
+test('can send chat message successfully', function () {
+    Bus::fake();
+    Event::fake([
+        NewMessageEvent::class,
+        ChatUpdatedEvent::class,
+    ]);
+
+    ['author' => $author, 'offerer' => $offerer, 'opportunity' => $opportunity] = createOpportunityWithAcceptedOffer();
+
+    $conversation = Conversation::query()->create([
+        'operation_type' => Opportunity::class,
+        'operation_id' => $opportunity->id,
+        'user1_id' => $author->id,
+        'user1_type' => User::class,
+        'user2_id' => $offerer->id,
+        'user2_type' => User::class,
+    ]);
+
+    Sanctum::actingAs($offerer);
+
+    $this->postJson(action([OpportunityChatController::class, 'send'], ['conversation' => $conversation->id]), [
+        'content' => 'Ready to start the project.',
+    ])->assertSuccessful()
+        ->assertJsonPath('data.content', 'Ready to start the project.');
+});
+
+test('conversation resource has opportunity author and offer author keys', function () {
+    ['author' => $author, 'opportunity' => $opportunity] = createOpportunityWithAcceptedOffer();
+
+    Sanctum::actingAs($author);
+
+    $this->postJson(action([OpportunityChatController::class, 'store']), [
+        'opportunity_id' => $opportunity->id,
+    ])->assertSuccessful()
+        ->assertJsonStructure([
+            'data' => [
+                'id',
+                'opportunity_author' => ['id', 'name', 'type', 'image'],
+                'offer_author' => ['id', 'name', 'type', 'image'],
+            ],
+        ]);
 });
 
 test('can send chat message with files only', function () {

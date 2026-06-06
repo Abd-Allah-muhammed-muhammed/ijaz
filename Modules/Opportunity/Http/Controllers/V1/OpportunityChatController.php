@@ -4,18 +4,19 @@ namespace Modules\Opportunity\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
-use App\Services\Chat\Resources\ConversationCollection;
 use App\Services\Chat\Resources\ConversationMessageCollection;
 use App\Services\Chat\Resources\ConversationMessageResource;
-use App\Services\Chat\Resources\ConversationResource;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Opportunity\DTOs\ChatData;
+use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Http\Controllers\Concerns\AuthorizesOpportunityRequests;
 use Modules\Opportunity\Http\Requests\SendOpportunityChatMessageRequest;
 use Modules\Opportunity\Http\Requests\StoreChatRequest;
+use Modules\Opportunity\Http\Resources\OpportunityConversationCollection;
+use Modules\Opportunity\Http\Resources\OpportunityConversationResource;
 use Modules\Opportunity\Services\OpportunityChatService;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
@@ -36,7 +37,7 @@ class OpportunityChatController extends Controller
     public function index(Request $request): JsonResponse
     {
         return $this->successResponse(
-            ConversationCollection::make(
+            OpportunityConversationCollection::make(
                 $this->chatService->listForActor(
                     auth()->user(),
                     $request->integer('per_page', 15),
@@ -61,10 +62,12 @@ class OpportunityChatController extends Controller
             $conversation = $this->chatService->open($opportunity);
 
             return $this->successResponse(
-                ConversationResource::make(
-                    $conversation->load(['user1', 'user2', 'lastMassage'])
+                OpportunityConversationResource::make(
+                    $conversation->load(['user1', 'user2', 'lastMassage', 'operation'])
                 )
             );
+        } catch (OpportunityException $e) {
+            throw $e;
         } catch (Throwable $throwable) {
             report($throwable);
 
@@ -107,6 +110,8 @@ class OpportunityChatController extends Controller
             $message = $this->chatService->sendMessage($conversation, auth()->user(), $request);
 
             return $this->successResponse(ConversationMessageResource::make($message));
+        } catch (OpportunityException $e) {
+            throw $e;
         } catch (Throwable $throwable) {
             report($throwable);
 

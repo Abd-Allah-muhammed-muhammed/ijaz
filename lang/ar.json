@@ -738,5 +738,6 @@
   "opportunity_offer_accepted": "تم قبول عرضك",
   "opportunity_offer_has_been_accepted": "قبل العميل عرضك على الفرصة",
   "opportunity_offer_rejected": "تم رفض عرضك",
-  "opportunity_offer_has_been_rejected": "رفض العميل عرضك على الفرصة"
+  "opportunity_offer_has_been_rejected": "رفض العميل عرضك على الفرصة",
+  "errors.not_found": "المورد غير موجود"
 }

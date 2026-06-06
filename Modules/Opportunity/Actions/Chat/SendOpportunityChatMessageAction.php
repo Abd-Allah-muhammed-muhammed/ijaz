@@ -7,6 +7,7 @@ use App\Models\ConversationMessage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Support\OpportunityConversationMessenger;
 use Throwable;
@@ -21,11 +22,9 @@ class SendOpportunityChatMessageAction
     public function handle(Conversation $conversation, Model $sender, ?string $content, array $files): ConversationMessage
     {
         return DB::transaction(function () use ($conversation, $sender, $content, $files) {
-            abort_if(
-                $conversation->operation_type !== Opportunity::class,
-                404,
-                __('opportunity.not_found'),
-            );
+            if ($conversation->operation_type !== Opportunity::class) {
+                throw new OpportunityException('opportunity.not_found', 404);
+            }
 
             $messenger = new OpportunityConversationMessenger($conversation);
             $updatedConversation = $messenger->sendAs($sender, $content, $files);

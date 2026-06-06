@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Opportunity\Actions\Chat\OpenOpportunityChatAction;
 use Modules\Opportunity\Enums\OfferStatusEnum;
 use Modules\Opportunity\Enums\OpportunityStatusEnum;
+use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityOffer;
 use Modules\Opportunity\Notifications\OpportunityOfferAcceptedNotification;
@@ -23,6 +24,14 @@ class AcceptOfferAction
     public function handle(Opportunity $opportunity, OpportunityOffer $offer): Opportunity
     {
         return DB::transaction(function () use ($opportunity, $offer) {
+            if ($opportunity->status->isNot(OpportunityStatusEnum::New)) {
+                throw new OpportunityException('opportunity.cannot_accept_offer', 422);
+            }
+
+            if ($offer->opportunity_id !== $opportunity->id) {
+                throw new OpportunityException('opportunity.offer_not_belong_to_opportunity', 403);
+            }
+
             $offer->update(['status' => OfferStatusEnum::Accepted]);
 
             $opportunity->offers()

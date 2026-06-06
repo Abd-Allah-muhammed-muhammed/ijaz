@@ -649,5 +649,6 @@
   "opportunity_offer_accepted": "آپ کی پیشکش قبول کر لی گئی",
   "opportunity_offer_has_been_accepted": "کلائنٹ نے موقع پر آپ کی پیشکش قبول کر لی",
   "opportunity_offer_rejected": "آپ کی پیشکش مسترد کر دی گئی",
-  "opportunity_offer_has_been_rejected": "کلائنٹ نے موقع پر آپ کی پیشکش مسترد کر دی"
+  "opportunity_offer_has_been_rejected": "کلائنٹ نے موقع پر آپ کی پیشکش مسترد کر دی",
+  "errors.not_found": "وسیلہ نہیں ملا"
 }

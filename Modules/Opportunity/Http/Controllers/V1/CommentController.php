@@ -10,6 +10,7 @@ use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Opportunity\Actions\Comment\AddCommentAction;
 use Modules\Opportunity\Contracts\Repositories\OpportunityCommentRepositoryInterface;
 use Modules\Opportunity\DTOs\CommentData;
+use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Http\Controllers\Concerns\AuthorizesOpportunityRequests;
 use Modules\Opportunity\Http\Requests\StoreCommentRequest;
 use Modules\Opportunity\Http\Resources\CommentCollection;
@@ -100,6 +101,8 @@ class CommentController extends Controller
             $comment = $this->addCommentAction->handle($opportunity, $data, auth()->user());
 
             return $this->successResponse(CommentResource::make($comment));
+        } catch (OpportunityException $e) {
+            throw $e;
         } catch (Throwable $throwable) {
             report($throwable);
 

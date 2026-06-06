@@ -651,5 +651,6 @@
   "opportunity_offer_accepted": "आपका प्रस्ताव स्वीकार कर लिया गया",
   "opportunity_offer_has_been_accepted": "ग्राहक ने अवसर पर आपका प्रस्ताव स्वीकार कर लिया",
   "opportunity_offer_rejected": "आपका प्रस्ताव अस्वीकार कर दिया गया",
-  "opportunity_offer_has_been_rejected": "ग्राहक ने अवसर पर आपका प्रस्ताव अस्वीकार कर दिया"
+  "opportunity_offer_has_been_rejected": "ग्राहक ने अवसर पर आपका प्रस्ताव अस्वीकार कर दिया",
+  "errors.not_found": "संसाधन नहीं मिला"
 }

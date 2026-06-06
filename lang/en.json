@@ -842,5 +842,6 @@
   "opportunity_offer_accepted": "Your offer was accepted",
   "opportunity_offer_has_been_accepted": "The client accepted your offer on the opportunity",
   "opportunity_offer_rejected": "Your offer was rejected",
-  "opportunity_offer_has_been_rejected": "The client rejected your offer on the opportunity"
+  "opportunity_offer_has_been_rejected": "The client rejected your offer on the opportunity",
+  "errors.not_found": "Resource not found"
 }
