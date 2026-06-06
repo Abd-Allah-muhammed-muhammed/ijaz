@@ -16,7 +16,11 @@ return new class extends Migration
             $table->string('title');
             $table->string('normalized_title')->invisible()->nullable()->index();
             $table->text('description');
-            $table->text('normalized_description')->invisible()->nullable()->fullText();
+            if (Schema::getConnection()->getDriverName() === 'mysql') {
+                $table->text('normalized_description')->invisible()->nullable()->fullText();
+            } else {
+                $table->text('normalized_description')->nullable();
+            }
             $table->text('goals')->nullable();
             $table->text('payment_notes')->nullable();
             $table->string('image')->nullable();

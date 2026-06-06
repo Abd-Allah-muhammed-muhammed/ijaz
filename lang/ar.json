@@ -732,5 +732,11 @@
   "advisement.study_level.bachelor": "بكالوريوس",
   "advisement.study_level.master": "ماجستير",
   "advisement.study_level.phd": "دكتوراه",
-  "advisement.study_level.certificate": "شهادة"
+  "advisement.study_level.certificate": "شهادة",
+  "opportunity_offer_submitted": "عرض جديد على فرصتك",
+  "opportunity_offer_has_been_submitted": "قام شخص ما بتقديم عرض سعر جديد على فرصتك",
+  "opportunity_offer_accepted": "تم قبول عرضك",
+  "opportunity_offer_has_been_accepted": "قبل العميل عرضك على الفرصة",
+  "opportunity_offer_rejected": "تم رفض عرضك",
+  "opportunity_offer_has_been_rejected": "رفض العميل عرضك على الفرصة"
 }

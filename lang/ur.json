@@ -643,5 +643,11 @@
   "advisement.study_level.bachelor": "بیچلر",
   "advisement.study_level.master": "ماسٹر",
   "advisement.study_level.phd": "پی ایچ ڈی",
-  "advisement.study_level.certificate": "سرٹیفکیٹ"
+  "advisement.study_level.certificate": "سرٹیفکیٹ",
+  "opportunity_offer_submitted": "آپ کے موقع پر نئی پیشکش",
+  "opportunity_offer_has_been_submitted": "کسی نے آپ کے موقع پر نئی قیمت کی پیشکش جمع کروائی",
+  "opportunity_offer_accepted": "آپ کی پیشکش قبول کر لی گئی",
+  "opportunity_offer_has_been_accepted": "کلائنٹ نے موقع پر آپ کی پیشکش قبول کر لی",
+  "opportunity_offer_rejected": "آپ کی پیشکش مسترد کر دی گئی",
+  "opportunity_offer_has_been_rejected": "کلائنٹ نے موقع پر آپ کی پیشکش مسترد کر دی"
 }

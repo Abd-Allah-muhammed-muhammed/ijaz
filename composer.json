@@ -48,6 +48,8 @@
       "Modules\\": "Modules/",
       "Modules\\Catalog\\Database\\Factories\\": "Modules/Catalog/database/factories/",
       "Modules\\Catalog\\Database\\Seeders\\": "Modules/Catalog/database/seeders/",
+      "Modules\\Opportunity\\Database\\Factories\\": "Modules/Opportunity/database/factories/",
+      "Modules\\Opportunity\\Database\\Seeders\\": "Modules/Opportunity/database/seeders/",
       "Database\\Factories\\": "database/factories/",
       "Database\\Seeders\\": "database/seeders/",
       "Lib\\": "lib/"
