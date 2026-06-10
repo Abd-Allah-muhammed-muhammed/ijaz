@@ -32,6 +32,7 @@ import DeviceCategoryController from '@/actions/Modules/Catalog/Http/Controllers
 import ElectronicBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/ElectronicBrandController';
 import SpecializationController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/SpecializationController';
 import InstituteAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/InstituteAdvisementController';
+import OpportunityController from '@/actions/Modules/Opportunity/Http/Controllers/Dashboard/OpportunityController';
 import PropertyAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/PropertyAdvisementController';
 import CarAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/CarAdvisementController';
 import ElectronicAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/ElectronicAdvisementController';
@@ -272,6 +273,21 @@ const SidebarMenuMain = () => {
         fontIcon="bi-building"
         isActive={matchComponents('dashboard.institute-advisements.*')}
         show={hasPermission('show instituteAdvisements')}
+      />
+      {hasPermission('show opportunities') && (
+        <div className="menu-item">
+          <div className="menu-content pt-8 pb-2">
+            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('opportunities')}</span>
+          </div>
+        </div>
+      )}
+      <SidebarMenuItem
+        to={OpportunityController.index().url}
+        title={t('opportunities')}
+        icon="briefcase"
+        fontIcon="bi-briefcase"
+        isActive={matchComponents('dashboard.opportunities.*')}
+        show={hasPermission('show opportunities')}
       />
       {hasAnyPermission(['show providerTypes', 'show providers']) && (
         <div className="menu-item">
