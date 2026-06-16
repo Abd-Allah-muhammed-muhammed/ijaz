@@ -18,7 +18,7 @@ class ExpireOpportunitiesCommand extends Command
         $count = 0;
 
         $repository->getExpired()->each(function (Opportunity $opportunity) use (&$count) {
-            ExpireOpportunityJob::dispatch($opportunity)->onQueue('default');
+            ExpireOpportunityJob::dispatch($opportunity)->onQueue('opportunities');
             $count++;
         });
 
