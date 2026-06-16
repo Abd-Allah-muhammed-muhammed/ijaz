@@ -14,26 +14,24 @@ use Throwable;
 
 class ExpireOpportunityJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+  use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public string $queue = 'opportunities';
+  public int $tries = 3;
 
-    public int $tries = 3;
+  public int $backoff = 60;
 
-    public int $backoff = 60;
+  public function __construct(public Opportunity $opportunity) {}
 
-    public function __construct(public Opportunity $opportunity) {}
+  public function handle(ExpireOpportunityAction $action): void
+  {
+    $action->handle($this->opportunity);
+  }
 
-    public function handle(ExpireOpportunityAction $action): void
-    {
-        $action->handle($this->opportunity);
-    }
-
-    public function failed(Throwable $e): void
-    {
-        Log::error('ExpireOpportunityJob failed', [
-            'opportunity_id' => $this->opportunity->id,
-            'error' => $e->getMessage(),
-        ]);
-    }
+  public function failed(Throwable $e): void
+  {
+    Log::error('ExpireOpportunityJob failed', [
+      'opportunity_id' => $this->opportunity->id,
+      'error' => $e->getMessage(),
+    ]);
+  }
 }
