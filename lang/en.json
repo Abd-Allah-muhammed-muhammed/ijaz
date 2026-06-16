@@ -858,5 +858,7 @@
   "opportunity_offer_has_been_accepted": "The client accepted your offer on the opportunity",
   "opportunity_offer_rejected": "Your offer was rejected",
   "opportunity_offer_has_been_rejected": "The client rejected your offer on the opportunity",
+  "opportunity_expired": "Opportunity Expired",
+  "opportunity_has_expired": "Your opportunity has passed its expiry date",
   "errors.not_found": "Resource not found"
 }

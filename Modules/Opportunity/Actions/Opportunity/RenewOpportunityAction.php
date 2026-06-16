@@ -20,13 +20,17 @@ class RenewOpportunityAction
             if ($opportunity->status->isNotIn([
                 OpportunityStatusEnum::New,
                 OpportunityStatusEnum::OfferAccepted,
+                OpportunityStatusEnum::Expired,
             ])) {
                 throw new OpportunityException('opportunity.cannot_renew', 422);
             }
 
             $newExpiresAt = $expiresAt ?? now()->max($opportunity->expires_at)->addDays(7);
 
-            $opportunity->update(['expires_at' => $newExpiresAt]);
+            $opportunity->update([
+                'expires_at' => $newExpiresAt,
+                'status' => OpportunityStatusEnum::New,
+            ]);
 
             return $opportunity->fresh();
         });

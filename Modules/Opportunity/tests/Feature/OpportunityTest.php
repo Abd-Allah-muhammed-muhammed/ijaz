@@ -9,17 +9,21 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
+use Modules\Opportunity\Actions\Opportunity\ExpireOpportunityAction;
 use Modules\Opportunity\Enums\OfferStatusEnum;
 use Modules\Opportunity\Enums\OpportunityStatusEnum;
 use Modules\Opportunity\Http\Controllers\V1\CommentController;
 use Modules\Opportunity\Http\Controllers\V1\OfferController;
 use Modules\Opportunity\Http\Controllers\V1\OpportunityChatController;
 use Modules\Opportunity\Http\Controllers\V1\OpportunityController;
+use Modules\Opportunity\Jobs\ExpireOpportunityJob;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityComment;
 use Modules\Opportunity\Models\OpportunityOffer;
+use Modules\Opportunity\Notifications\OpportunityExpiredNotification;
 use Modules\Opportunity\Notifications\OpportunityOfferAcceptedNotification;
 use Modules\Opportunity\Notifications\OpportunityOfferRejectedNotification;
 use Modules\Opportunity\Notifications\OpportunityOfferSubmittedNotification;
@@ -1119,7 +1123,7 @@ test('renew extends from now when already expired', function () {
 
 // ─── Expiry scope ────────────────────────────────────────────────────────────
 
-test('expired opportunity not in public list', function () {
+test('expired opportunity hidden from public list', function () {
     $expired = Opportunity::factory()->create([
         'author_type' => User::class,
         'author_id' => User::factory(),
@@ -1199,4 +1203,95 @@ test('store with files returns media in response', function () {
 
     expect($response->json('data.media'))->not->toBeEmpty();
     expect($response->json('data.media.0.url'))->toContain('storage');
+});
+
+// ─── Expire system ───────────────────────────────────────────────────────────
+
+test('expire command dispatches jobs for expired opportunities', function () {
+    Queue::fake();
+
+    $author = User::factory()->create();
+
+    Opportunity::factory()->count(2)->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'expires_at' => now()->subHour(),
+        'status' => OpportunityStatusEnum::New,
+    ]);
+
+    Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'expires_at' => now()->addDays(3),
+        'status' => OpportunityStatusEnum::New,
+    ]);
+
+    $this->artisan('opportunities:expire')->assertSuccessful();
+
+    Queue::assertPushed(ExpireOpportunityJob::class, 2);
+});
+
+test('expire command skips already terminal opportunities', function () {
+    Queue::fake();
+
+    Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => User::factory(),
+        'expires_at' => now()->subHour(),
+        'status' => OpportunityStatusEnum::Cancelled,
+    ]);
+
+    $this->artisan('opportunities:expire')->assertSuccessful();
+
+    Queue::assertNotPushed(ExpireOpportunityJob::class);
+});
+
+test('expire job updates status to expired', function () {
+    Notification::fake();
+
+    $author = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'expires_at' => now()->subHour(),
+        'status' => OpportunityStatusEnum::New,
+    ]);
+
+    (new ExpireOpportunityJob($opportunity))->handle(app(ExpireOpportunityAction::class));
+
+    expect($opportunity->fresh()->status)->toBe(OpportunityStatusEnum::Expired);
+});
+
+test('expire job sends notification to author', function () {
+    Notification::fake();
+
+    $author = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'expires_at' => now()->subHour(),
+        'status' => OpportunityStatusEnum::New,
+    ]);
+
+    (new ExpireOpportunityJob($opportunity))->handle(app(ExpireOpportunityAction::class));
+
+    Notification::assertSentTo($author, OpportunityExpiredNotification::class);
+});
+
+test('owner can renew expired opportunity', function () {
+    $user = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $user->id,
+        'status' => OpportunityStatusEnum::Expired,
+        'expires_at' => now()->subDay(),
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $response = $this->postJson(action([OpportunityController::class, 'renew'], ['opportunity' => $opportunity->id]))
+        ->assertSuccessful()
+        ->assertJsonPath('data.status.value', OpportunityStatusEnum::New->value);
+
+    expect(Carbon::parse($response->json('data.expires_at'))->isFuture())->toBeTrue();
 });

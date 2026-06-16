@@ -15,6 +15,7 @@ enum OpportunityStatusEnum: string
     case InProgress = 'in_progress';
     case Ended = 'ended';
     case Cancelled = 'cancelled';
+    case Expired = 'expired';
 
     public function toString(): string
     {
@@ -28,6 +29,7 @@ enum OpportunityStatusEnum: string
             self::OfferAccepted, self::InProgress => 'info',
             self::Ended => 'success',
             self::Cancelled => 'danger',
+            self::Expired => '#6b7280',
         };
     }
 
@@ -45,11 +47,16 @@ enum OpportunityStatusEnum: string
 
     public static function isAllowed(self $old, self $new, string $actor): bool
     {
+        if ($new === self::Expired) {
+            return false;
+        }
+
         if ($actor === 'author') {
             return match ($old) {
                 self::New => in_array($new, [self::OfferAccepted, self::Cancelled], true),
                 self::OfferAccepted => $new === self::Cancelled,
                 self::InProgress => in_array($new, [self::Ended, self::Cancelled], true),
+                self::Expired => false,
                 default => false,
             };
         }

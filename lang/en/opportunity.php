@@ -7,6 +7,7 @@ return [
         'in_progress' => 'In Progress',
         'ended' => 'Ended',
         'cancelled' => 'Cancelled',
+        'expired' => 'Expired',
     ],
     'offer_status' => [
         'pending' => 'Pending',
@@ -45,6 +46,7 @@ return [
     'no_accepted_offer' => 'This opportunity has no accepted offer yet',
     'chat_unauthorized' => 'You are not a participant in this opportunity',
     'chat_opened_successfully' => 'Chat opened successfully',
+    'opportunity_expired' => 'Your opportunity has expired',
 
     'opportunities' => 'Opportunities',
     'opportunity' => 'Opportunity',

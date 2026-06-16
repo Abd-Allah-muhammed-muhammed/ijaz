@@ -7,6 +7,7 @@ return [
         'in_progress' => 'प्रगति पर',
         'ended' => 'समाप्त',
         'cancelled' => 'रद्द',
+        'expired' => 'समाप्त हो चुका',
     ],
     'offer_status' => [
         'pending' => 'लंबित',
@@ -44,4 +45,5 @@ return [
     'no_accepted_offer' => 'इस अवसर के लिए अभी तक कोई स्वीकृत प्रस्ताव नहीं है',
     'chat_unauthorized' => 'आप इस अवसर में भागीदार नहीं हैं',
     'chat_opened_successfully' => 'चैट सफलतापूर्वक खोली गई',
+    'opportunity_expired' => 'आपका अवसर समाप्त हो गया है',
 ];

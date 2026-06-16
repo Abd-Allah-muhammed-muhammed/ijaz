@@ -7,6 +7,7 @@ return [
         'in_progress' => 'قيد التنفيذ',
         'ended' => 'منتهي',
         'cancelled' => 'ملغي',
+        'expired' => 'منتهي الصلاحية',
     ],
     'offer_status' => [
         'pending' => 'قيد الانتظار',
@@ -45,6 +46,7 @@ return [
     'no_accepted_offer' => 'لا يوجد عرض مقبول لهذه الفرصة بعد',
     'chat_unauthorized' => 'أنت لست مشاركاً في هذه الفرصة',
     'chat_opened_successfully' => 'تم فتح المحادثة بنجاح',
+    'opportunity_expired' => 'انتهت صلاحية فرصتك',
 
     'opportunities' => 'الفرص',
     'opportunity' => 'فرصة',

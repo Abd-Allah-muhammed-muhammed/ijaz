@@ -652,5 +652,7 @@
   "opportunity_offer_has_been_accepted": "ग्राहक ने अवसर पर आपका प्रस्ताव स्वीकार कर लिया",
   "opportunity_offer_rejected": "आपका प्रस्ताव अस्वीकार कर दिया गया",
   "opportunity_offer_has_been_rejected": "ग्राहक ने अवसर पर आपका प्रस्ताव अस्वीकार कर दिया",
+  "opportunity_expired": "अवसर समाप्त",
+  "opportunity_has_expired": "आपके अवसर की समाप्ति तिथि बीत चुकी है",
   "errors.not_found": "संसाधन नहीं मिला"
 }

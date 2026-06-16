@@ -7,6 +7,7 @@ return [
         'in_progress' => 'جاری',
         'ended' => 'ختم',
         'cancelled' => 'منسوخ',
+        'expired' => 'میعاد ختم',
     ],
     'offer_status' => [
         'pending' => 'زیر التواء',
@@ -44,4 +45,5 @@ return [
     'no_accepted_offer' => 'اس موقع کے لیے ابھی تک کوئی قبول شدہ پیشکش نہیں ہے',
     'chat_unauthorized' => 'آپ اس موقع میں شریک نہیں ہیں',
     'chat_opened_successfully' => 'چیٹ کامیابی سے کھل گئی',
+    'opportunity_expired' => 'آپ کی موقع کی میعاد ختم ہو گئی ہے',
 ];

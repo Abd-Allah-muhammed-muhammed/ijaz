@@ -650,5 +650,7 @@
   "opportunity_offer_has_been_accepted": "کلائنٹ نے موقع پر آپ کی پیشکش قبول کر لی",
   "opportunity_offer_rejected": "آپ کی پیشکش مسترد کر دی گئی",
   "opportunity_offer_has_been_rejected": "کلائنٹ نے موقع پر آپ کی پیشکش مسترد کر دی",
+  "opportunity_expired": "موقع کی میعاد ختم",
+  "opportunity_has_expired": "آپ کی موقع کی میعاد ختم ہو چکی ہے",
   "errors.not_found": "وسیلہ نہیں ملا"
 }

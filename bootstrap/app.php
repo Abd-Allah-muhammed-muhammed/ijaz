@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureAcceptJsonMiddleware;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LocalizationMiddleware;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -95,6 +96,9 @@ return Application::configure(basePath: dirname(__DIR__))
         __DIR__.'/../routes/channels.php',
         ['middleware' => ['web', 'auth:admin,provider']],
     )
+    ->withSchedule(function (Schedule $schedule) {
+        $schedule->command('opportunities:expire')->hourly();
+    })
     ->withExceptions(function (Exceptions $exceptions) {
         $renderModelNotFound = function (ModelNotFoundException $e, $request) {
             if ($request->expectsJson()) {

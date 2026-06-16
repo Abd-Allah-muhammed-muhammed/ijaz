@@ -4,6 +4,7 @@ namespace Modules\Opportunity\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\LazyCollection;
 use Modules\Opportunity\Contracts\Repositories\OpportunityRepositoryInterface;
 use Modules\Opportunity\Models\Opportunity;
 
@@ -50,5 +51,12 @@ class OpportunityRepository implements OpportunityRepositoryInterface
             ->withCount(['offers', 'comments'])
             ->latest()
             ->paginate($perPage);
+    }
+
+    public function getExpired(int $chunkSize = 100): LazyCollection
+    {
+        return Opportunity::expired()
+            ->with(['author'])
+            ->lazyById($chunkSize);
     }
 }

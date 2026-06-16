@@ -754,5 +754,7 @@
   "opportunity_offer_has_been_accepted": "قبل العميل عرضك على الفرصة",
   "opportunity_offer_rejected": "تم رفض عرضك",
   "opportunity_offer_has_been_rejected": "رفض العميل عرضك على الفرصة",
+  "opportunity_expired": "انتهت صلاحية الفرصة",
+  "opportunity_has_expired": "لقد تجاوزت فرصتك تاريخ انتهاء الصلاحية",
   "errors.not_found": "المورد غير موجود"
 }

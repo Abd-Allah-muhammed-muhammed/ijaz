@@ -4,6 +4,7 @@ namespace Modules\Opportunity\Providers;
 
 use App\Models\Conversation;
 use Illuminate\Support\Facades\Gate;
+use Modules\Opportunity\Console\Commands\ExpireOpportunitiesCommand;
 use Modules\Opportunity\Contracts\Repositories\ConversationRepositoryInterface;
 use Modules\Opportunity\Contracts\Repositories\OpportunityCommentRepositoryInterface;
 use Modules\Opportunity\Contracts\Repositories\OpportunityOfferRepositoryInterface;
@@ -39,6 +40,12 @@ class OpportunityServiceProvider extends ModuleServiceProvider
         Gate::policy(OpportunityOffer::class, OpportunityOfferPolicy::class);
         Gate::policy(OpportunityComment::class, OpportunityCommentPolicy::class);
         Gate::policy(Conversation::class, ConversationPolicy::class);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ExpireOpportunitiesCommand::class,
+            ]);
+        }
     }
 
     public function register(): void

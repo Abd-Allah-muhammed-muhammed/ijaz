@@ -26,6 +26,7 @@ class OpportunityPolicy
         return $isOwner && $opportunity->status->isIn([
             OpportunityStatusEnum::New,
             OpportunityStatusEnum::OfferAccepted,
+            OpportunityStatusEnum::Expired,
         ]);
     }
 
