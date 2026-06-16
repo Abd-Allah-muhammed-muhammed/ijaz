@@ -5,6 +5,7 @@
   "settings": "Settings",
   "profile": "Profile",
   "logout": "Logout",
+  "unauthenticated": "You must be logged in to perform this action",
   "login": "Login",
   "sign_in": "Sign In",
   "register": "Register",

@@ -25,6 +25,9 @@ return [
     'comment_added_successfully' => 'Comment added successfully',
     'comment_deleted_successfully' => 'Comment deleted successfully',
     'media_deleted_successfully' => 'Media deleted successfully',
+    'renewed_successfully' => 'Opportunity renewed successfully for 7 days',
+    'cannot_renew' => 'You cannot renew this opportunity',
+    'unauthenticated' => 'You must be logged in to perform this action',
 
     'not_found' => 'Opportunity not found',
     'offer_not_found' => 'Offer not found',

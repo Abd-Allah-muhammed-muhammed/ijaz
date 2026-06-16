@@ -24,6 +24,9 @@ return [
     'comment_added_successfully' => 'टिप्पणी सफलतापूर्वक जोड़ी गई',
     'comment_deleted_successfully' => 'टिप्पणी सफलतापूर्वक हटाई गई',
     'media_deleted_successfully' => 'मीडिया सफलतापूर्वक हटाया गया',
+    'renewed_successfully' => 'अवसर 7 दिनों के लिए सफलतापूर्वक नवीनीकृत किया गया',
+    'cannot_renew' => 'आप इस अवसर को नवीनीकृत नहीं कर सकते',
+    'unauthenticated' => 'इस कार्रवाई को करने के लिए आपको लॉग इन करना होगा',
 
     'not_found' => 'अवसर नहीं मिला',
     'offer_not_found' => 'प्रस्ताव नहीं मिला',

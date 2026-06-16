@@ -18,6 +18,17 @@ class OpportunityPolicy
         return $this->isAuthor($user, $opportunity);
     }
 
+    public function renew(Model $user, Opportunity $opportunity): bool
+    {
+        $isOwner = $opportunity->author_type === $user::class
+            && $opportunity->author_id === $user->getKey();
+
+        return $isOwner && $opportunity->status->isIn([
+            OpportunityStatusEnum::New,
+            OpportunityStatusEnum::OfferAccepted,
+        ]);
+    }
+
     public function delete(Model $user, Opportunity $opportunity): bool
     {
         return $opportunity->status === OpportunityStatusEnum::New;

@@ -5,6 +5,7 @@ use App\Models\User;
 use App\Services\Chat\Events\ChatUpdatedEvent;
 use App\Services\Chat\Events\NewMessageEvent;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
@@ -1007,4 +1008,164 @@ test('non actor cannot send message', function () {
         'content' => 'Unauthorized message',
     ])->assertForbidden()
         ->assertJsonPath('message', __('opportunity.chat_unauthorized'));
+});
+
+// ─── Renew ───────────────────────────────────────────────────────────────────
+
+test('owner can renew opportunity', function () {
+    $user = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $user->id,
+        'expires_at' => now()->subDay(),
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $response = $this->postJson(action([OpportunityController::class, 'renew'], ['opportunity' => $opportunity->id]))
+        ->assertSuccessful();
+
+    $expiresAt = Carbon::parse($response->json('data.expires_at'));
+    expect($expiresAt->isFuture())->toBeTrue();
+});
+
+test('non owner cannot renew opportunity', function () {
+    $owner = User::factory()->create();
+    $intruder = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $owner->id,
+        'expires_at' => now()->subDay(),
+    ]);
+
+    Sanctum::actingAs($intruder);
+
+    $this->postJson(action([OpportunityController::class, 'renew'], ['opportunity' => $opportunity->id]))
+        ->assertForbidden();
+});
+
+test('cannot renew ended opportunity', function () {
+    $user = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $user->id,
+        'status' => OpportunityStatusEnum::Ended,
+        'expires_at' => now()->subDay(),
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $this->postJson(action([OpportunityController::class, 'renew'], ['opportunity' => $opportunity->id]))
+        ->assertForbidden();
+});
+
+test('renew extends from now when already expired', function () {
+    Carbon::setTestNow('2026-06-06 12:00:00');
+
+    $user = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $user->id,
+        'expires_at' => now()->subDay(),
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $this->postJson(action([OpportunityController::class, 'renew'], ['opportunity' => $opportunity->id]))
+        ->assertSuccessful();
+
+    $opportunity->refresh();
+    expect($opportunity->expires_at->equalTo(now()->addDays(7)))->toBeTrue();
+
+    Carbon::setTestNow();
+});
+
+// ─── Expiry scope ────────────────────────────────────────────────────────────
+
+test('expired opportunity not in public list', function () {
+    $expired = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => User::factory(),
+        'expires_at' => now()->subHour(),
+        'status' => OpportunityStatusEnum::New,
+    ]);
+
+    $ids = collect($this->getJson(action([OpportunityController::class, 'all']))
+        ->assertSuccessful()
+        ->json('data.items'))
+        ->pluck('id');
+
+    expect($ids)->not->toContain($expired->id);
+});
+
+test('active opportunity appears in public list', function () {
+    $active = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => User::factory(),
+        'expires_at' => now()->addDays(3),
+        'status' => OpportunityStatusEnum::New,
+    ]);
+
+    $ids = collect($this->getJson(action([OpportunityController::class, 'all']))
+        ->assertSuccessful()
+        ->json('data.items'))
+        ->pluck('id');
+
+    expect($ids)->toContain($active->id);
+});
+
+// ─── Unauthenticated ─────────────────────────────────────────────────────────
+
+test('unauthenticated user cannot create opportunity', function () {
+    $this->postJson(action([OpportunityController::class, 'store']), [
+        'title' => 'Backend Developer Needed',
+        'description' => 'Looking for a Laravel developer for a 3 month project.',
+    ])->assertUnauthorized()
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('message', __('opportunity.unauthenticated'));
+});
+
+test('unauthenticated user cannot submit offer', function () {
+    $opportunity = Opportunity::factory()->create();
+
+    $this->postJson(action([OfferController::class, 'store'], ['opportunity' => $opportunity->id]), [
+        'price' => 1500,
+        'description' => 'I can start immediately',
+    ])->assertUnauthorized()
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('message', __('opportunity.unauthenticated'));
+});
+
+test('unauthenticated user cannot open chat', function () {
+    $opportunity = Opportunity::factory()->create([
+        'status' => OpportunityStatusEnum::OfferAccepted,
+    ]);
+
+    $this->postJson(action([OpportunityChatController::class, 'store']), [
+        'opportunity_id' => $opportunity->id,
+    ])->assertUnauthorized()
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('message', __('opportunity.unauthenticated'));
+});
+
+// ─── Media upload ────────────────────────────────────────────────────────────
+
+test('store with files returns media in response', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    Sanctum::actingAs($user);
+
+    $response = $this->post(
+        action([OpportunityController::class, 'store']),
+        [
+            'title' => 'Opportunity with media',
+            'description' => 'This opportunity includes an attachment.',
+            'files' => [UploadedFile::fake()->image('test.jpg')],
+        ],
+        ['Accept' => 'application/json'],
+    )->assertSuccessful();
+
+    expect($response->json('data.media'))->not->toBeEmpty();
+    expect($response->json('data.media.0.url'))->toContain('storage');
 });

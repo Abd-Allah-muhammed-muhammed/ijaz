@@ -92,9 +92,23 @@ class Opportunity extends Model implements HasMedia
     protected function active(Builder $query): Builder
     {
         return $query->whereNotIn('status', [
-            OpportunityStatusEnum::Ended,
-            OpportunityStatusEnum::Cancelled,
-        ]);
+            OpportunityStatusEnum::Ended->value,
+            OpportunityStatusEnum::Cancelled->value,
+        ])->where(function (Builder $q) {
+            $q->whereNull('expires_at')
+                ->orWhere('expires_at', '>', now());
+        });
+    }
+
+    #[Scope]
+    protected function expired(Builder $query): Builder
+    {
+        return $query->whereNotNull('expires_at')
+            ->where('expires_at', '<=', now())
+            ->whereNotIn('status', [
+                OpportunityStatusEnum::Ended->value,
+                OpportunityStatusEnum::Cancelled->value,
+            ]);
     }
 
     #[Scope]

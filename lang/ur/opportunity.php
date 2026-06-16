@@ -24,6 +24,9 @@ return [
     'comment_added_successfully' => 'تبصرہ کامیابی سے شامل ہو گیا',
     'comment_deleted_successfully' => 'تبصرہ کامیابی سے حذف ہو گیا',
     'media_deleted_successfully' => 'میڈیا کامیابی سے حذف ہو گیا',
+    'renewed_successfully' => 'موقع 7 دنوں کے لیے کامیابی سے تجدید ہو گئی',
+    'cannot_renew' => 'آپ اس موقع کی تجدید نہیں کر سکتے',
+    'unauthenticated' => 'اس کارروائی کو انجام دینے کے لیے آپ کو لاگ ان ہونا ضروری ہے',
 
     'not_found' => 'موقع نہیں ملی',
     'offer_not_found' => 'پیشکش نہیں ملی',

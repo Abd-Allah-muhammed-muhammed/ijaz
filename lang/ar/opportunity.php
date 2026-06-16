@@ -25,6 +25,9 @@ return [
     'comment_added_successfully' => 'تمت إضافة التعليق بنجاح',
     'comment_deleted_successfully' => 'تم حذف التعليق بنجاح',
     'media_deleted_successfully' => 'تم حذف الملف بنجاح',
+    'renewed_successfully' => 'تم تجديد الفرصة بنجاح لمدة 7 أيام',
+    'cannot_renew' => 'لا يمكنك تجديد هذه الفرصة',
+    'unauthenticated' => 'يجب تسجيل الدخول أولاً',
 
     'not_found' => 'الفرصة غير موجودة',
     'offer_not_found' => 'العرض غير موجود',
