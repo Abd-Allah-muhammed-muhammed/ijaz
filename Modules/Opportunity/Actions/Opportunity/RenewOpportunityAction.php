@@ -14,24 +14,19 @@ class RenewOpportunityAction
     /**
      * @throws Throwable
      */
-    public function handle(Opportunity $opportunity): Opportunity
+    public function handle(Opportunity $opportunity, ?Carbon $expiresAt = null): Opportunity
     {
-        return DB::transaction(function () use ($opportunity) {
-            if (! $opportunity->status->isIn([
+        return DB::transaction(function () use ($opportunity, $expiresAt) {
+            if ($opportunity->status->isNotIn([
                 OpportunityStatusEnum::New,
                 OpportunityStatusEnum::OfferAccepted,
             ])) {
                 throw new OpportunityException('opportunity.cannot_renew', 422);
             }
 
-            $baseDate = max(
-                now(),
-                $opportunity->expires_at ?? now(),
-            );
+            $newExpiresAt = $expiresAt ?? now()->max($opportunity->expires_at)->addDays(7);
 
-            $opportunity->update([
-                'expires_at' => Carbon::parse($baseDate)->addDays(7),
-            ]);
+            $opportunity->update(['expires_at' => $newExpiresAt]);
 
             return $opportunity->fresh();
         });

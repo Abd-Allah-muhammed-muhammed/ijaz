@@ -5,8 +5,10 @@ namespace Modules\Opportunity\Services;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Modules\Opportunity\Actions\Opportunity\CreateOpportunityAction;
 use Modules\Opportunity\Actions\Opportunity\DeleteOpportunityAction;
+use Modules\Opportunity\Actions\Opportunity\RenewOpportunityAction;
 use Modules\Opportunity\Actions\Opportunity\UpdateOpportunityAction;
 use Modules\Opportunity\Contracts\Repositories\OpportunityRepositoryInterface;
 use Modules\Opportunity\DTOs\OpportunityData;
@@ -21,6 +23,7 @@ class OpportunityService
         private readonly CreateOpportunityAction $createAction,
         private readonly UpdateOpportunityAction $updateAction,
         private readonly DeleteOpportunityAction $deleteAction,
+        private readonly RenewOpportunityAction $renewAction,
     ) {}
 
     public function listPublic(int $perPage = 10): LengthAwarePaginator
@@ -69,6 +72,14 @@ class OpportunityService
     public function delete(Opportunity $opportunity): void
     {
         $this->deleteAction->handle($opportunity);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function renew(Opportunity $opportunity, ?Carbon $expiresAt = null): Opportunity
+    {
+        return $this->renewAction->handle($opportunity, $expiresAt);
     }
 
     public function deleteMedia(Opportunity $opportunity, Media $media): void

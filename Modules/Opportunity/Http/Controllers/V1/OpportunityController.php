@@ -4,14 +4,14 @@ namespace Modules\Opportunity\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use MMAE\ApiResponse\Traits\HasApiResponse;
-use Modules\Opportunity\Actions\Opportunity\RenewOpportunityAction;
 use Modules\Opportunity\DTOs\OpportunityData;
 use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Http\Controllers\Concerns\AuthorizesOpportunityRequests;
+use Modules\Opportunity\Http\Requests\RenewOpportunityRequest;
 use Modules\Opportunity\Http\Requests\StoreOpportunityRequest;
 use Modules\Opportunity\Http\Requests\UpdateOpportunityRequest;
 use Modules\Opportunity\Http\Resources\OpportunityCollection;
@@ -19,7 +19,6 @@ use Modules\Opportunity\Http\Resources\OpportunityResource;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Services\OpportunityService;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
@@ -31,7 +30,6 @@ class OpportunityController extends Controller
 
     public function __construct(
         private readonly OpportunityService $service,
-        private readonly RenewOpportunityAction $renewAction,
     ) {}
 
     /**
@@ -290,28 +288,19 @@ class OpportunityController extends Controller
      * @response 403 { "success": false, "message": "You are not authorized" }
      * @response 422 { "success": false, "message": "Cannot renew opportunity" }
      */
-    public function renew(Opportunity $opportunity): JsonResponse
+    public function renew(RenewOpportunityRequest $request, Opportunity $opportunity): JsonResponse
     {
-        try {
-            $this->authorize('renew', $opportunity);
-            $opportunity = $this->renewAction->handle($opportunity);
+        $this->authorize('renew', $opportunity);
 
-            return $this->successResponse(
-                OpportunityResource::make($this->service->loadForShow($opportunity)),
-            );
-        } catch (OpportunityException $e) {
-            throw $e;
-        } catch (AuthorizationException) {
-            throw new HttpException(403, __('opportunity.unauthorized'));
-        } catch (Throwable $throwable) {
-            report($throwable);
+        $expiresAt = $request->filled('expires_at')
+            ? Carbon::parse($request->validated('expires_at'))
+            : null;
 
-            if ($throwable instanceof HttpExceptionInterface) {
-                return $this->failedMessageResponse($throwable->getMessage(), $throwable->getStatusCode());
-            }
+        $opportunity = $this->service->renew($opportunity, $expiresAt);
 
-            return $this->failedMessageResponse(__('something went wrong'));
-        }
+        return $this->successResponse(
+            OpportunityResource::make($this->service->loadForShow($opportunity)),
+        );
     }
 
     /**

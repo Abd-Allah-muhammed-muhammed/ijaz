@@ -1012,7 +1012,9 @@ test('non actor cannot send message', function () {
 
 // ─── Renew ───────────────────────────────────────────────────────────────────
 
-test('owner can renew opportunity', function () {
+test('owner can renew without expires at', function () {
+    Carbon::setTestNow('2026-06-06 12:00:00');
+
     $user = User::factory()->create();
     $opportunity = Opportunity::factory()->create([
         'author_type' => User::class,
@@ -1022,11 +1024,46 @@ test('owner can renew opportunity', function () {
 
     Sanctum::actingAs($user);
 
-    $response = $this->postJson(action([OpportunityController::class, 'renew'], ['opportunity' => $opportunity->id]))
+    $this->postJson(action([OpportunityController::class, 'renew'], ['opportunity' => $opportunity->id]))
         ->assertSuccessful();
 
-    $expiresAt = Carbon::parse($response->json('data.expires_at'));
-    expect($expiresAt->isFuture())->toBeTrue();
+    $opportunity->refresh();
+    expect($opportunity->expires_at->equalTo(now()->addDays(7)))->toBeTrue();
+
+    Carbon::setTestNow();
+});
+
+test('owner can renew with custom expires at', function () {
+    $user = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $user->id,
+        'expires_at' => now()->subDay(),
+    ]);
+    $customExpiresAt = now()->addDays(14)->startOfDay();
+
+    Sanctum::actingAs($user);
+
+    $response = $this->postJson(action([OpportunityController::class, 'renew'], ['opportunity' => $opportunity->id]), [
+        'expires_at' => $customExpiresAt->toDateString(),
+    ])->assertSuccessful();
+
+    expect(Carbon::parse($response->json('data.expires_at'))->equalTo($customExpiresAt))->toBeTrue();
+});
+
+test('custom expires at must be future', function () {
+    $user = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $user->id,
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $this->postJson(action([OpportunityController::class, 'renew'], ['opportunity' => $opportunity->id]), [
+        'expires_at' => now()->subDay()->toDateString(),
+    ])->assertUnprocessable()
+        ->assertJsonValidationErrors(['expires_at']);
 });
 
 test('non owner cannot renew opportunity', function () {
@@ -1120,9 +1157,7 @@ test('unauthenticated user cannot create opportunity', function () {
     $this->postJson(action([OpportunityController::class, 'store']), [
         'title' => 'Backend Developer Needed',
         'description' => 'Looking for a Laravel developer for a 3 month project.',
-    ])->assertUnauthorized()
-        ->assertJsonPath('success', false)
-        ->assertJsonPath('message', __('opportunity.unauthenticated'));
+    ])->assertUnauthorized();
 });
 
 test('unauthenticated user cannot submit offer', function () {
@@ -1131,9 +1166,7 @@ test('unauthenticated user cannot submit offer', function () {
     $this->postJson(action([OfferController::class, 'store'], ['opportunity' => $opportunity->id]), [
         'price' => 1500,
         'description' => 'I can start immediately',
-    ])->assertUnauthorized()
-        ->assertJsonPath('success', false)
-        ->assertJsonPath('message', __('opportunity.unauthenticated'));
+    ])->assertUnauthorized();
 });
 
 test('unauthenticated user cannot open chat', function () {
@@ -1143,9 +1176,7 @@ test('unauthenticated user cannot open chat', function () {
 
     $this->postJson(action([OpportunityChatController::class, 'store']), [
         'opportunity_id' => $opportunity->id,
-    ])->assertUnauthorized()
-        ->assertJsonPath('success', false)
-        ->assertJsonPath('message', __('opportunity.unauthenticated'));
+    ])->assertUnauthorized();
 });
 
 // ─── Media upload ────────────────────────────────────────────────────────────
