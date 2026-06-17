@@ -249,26 +249,33 @@ ConversationPolicy uses participant check (registered in app booted callback so 
 GuarantorPolicy/InstallmentPolicy cast morph ids to string for uuidMorph column compatibility.
 PolicyTest covers requester/counterparty/stranger scenarios via Gate::forUser().
 
-## Phase 11 — Controllers (thin — zero logic)
-- [ ] `GuarantorController`
-      index, store (individual + company), show,
-      update, destroy, deleteMedia, updateStatus,
-      pay, end, cancel
-- [ ] `GuarantorChatController`
+## Phase 11 — Controllers ✅
+- [x] `GuarantorController`
+      index, storeIndividual, storeCompany, show,
+      update, destroy, deleteMedia, updateStatus, pay
+- [x] `GuarantorChatController`
       index, store, show, send
-- [ ] `InstallmentController`
+- [x] `InstallmentController`
       index, pay
 
+### Completed: 2026-06-17
+### Summary:
+Thin V1 controllers delegate to GuarantorService, GuarantorInstallmentService, and GuarantorChatService.
+Validate → DTO → authorize → service → JsonResponse via HasApiResponse.
+GuarantorConversationResource + API resources created alongside controllers (Phase 12 overlap).
+
 ## Phase 12 — Resources
-- [ ] `GuarantorResource` — all fields, status→toArray(),
+- [x] `GuarantorResource` — all fields, status→toArray(),
       installments whenLoaded, companyDetail whenLoaded,
       statusHistories whenLoaded, media whenLoaded
-- [ ] `GuarantorCollection` extends BaseCollection
-- [ ] `InstallmentResource` — id, order, amount, due_date,
+- [x] `GuarantorCollection` extends BaseCollection
+- [x] `InstallmentResource` — id, order, amount, due_date,
       paid_at, released_at, status→toArray()
 - [ ] `InstallmentCollection` extends BaseCollection
-- [ ] `CompanyDetailResource`
-- [ ] `StatusHistoryResource`
+- [x] `CompanyDetailResource`
+- [x] `StatusHistoryResource`
+- [x] `GuarantorConversationResource` + `GuarantorConversationCollection`
+- [x] `GuarantorParticipantResource`
 
 ## Phase 13 — Notifications
 - [ ] `GuarantorCreatedNotification` → notify counterparty
@@ -430,3 +437,9 @@ Translation keys in lang/{en,ar,hi,ur}.json
 - Added GuarantorPolicy, InstallmentPolicy, ConversationPolicy
 - Registered policies in GuarantorServiceProvider
 - Added PolicyTest.php with 24 unit tests
+
+### Phase 11 — Controllers (2026-06-17)
+- Added GuarantorController, InstallmentController, GuarantorChatController (V1)
+- Added API resources: GuarantorResource, GuarantorCollection, InstallmentResource,
+  CompanyDetailResource, StatusHistoryResource, GuarantorConversationResource
+- Controllers use HasApiResponse, DTOs, and $this->authorize() — zero business logic
