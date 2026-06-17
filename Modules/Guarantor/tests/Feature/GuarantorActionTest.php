@@ -1,11 +1,14 @@
 <?php
 
+use App\Enums\Payment\PaymentStatusEnum;
 use App\Models\Conversation;
+use App\Models\Payment;
 use App\Models\User;
 use App\Services\Sms\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\Sanctum;
 use Modules\Guarantor\Actions\Chat\OpenGuarantorChatAction;
@@ -17,6 +20,10 @@ use Modules\Guarantor\Actions\Guarantor\EndGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorStatusAction;
 use Modules\Guarantor\Actions\Installment\PayInstallmentAction;
 use Modules\Guarantor\Actions\Installment\ReleaseInstallmentAction;
+use Modules\Guarantor\Actions\Payment\AddCounterpartyWalletTransaction;
+use Modules\Guarantor\Actions\Payment\AddRequesterWalletTransaction;
+use Modules\Guarantor\Actions\Payment\PayIndividualGuarantorAction;
+use Modules\Guarantor\Actions\Payment\ProcessGuarantorPayment;
 use Modules\Guarantor\DTOs\CompanyDetailData;
 use Modules\Guarantor\DTOs\GuarantorData;
 use Modules\Guarantor\DTOs\InstallmentData;
@@ -26,6 +33,7 @@ use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
+use Modules\Guarantor\Jobs\ReleaseInstallmentJob;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Guarantor\Notifications\GuarantorApprovedNotification;
@@ -435,4 +443,139 @@ test('releasing installment notifies requester', function () {
     app(ReleaseInstallmentAction::class)->handle($installment);
 
     Notification::assertSentTo($requester, InstallmentReleasedNotification::class);
+});
+
+function acceptedGuarantorPayment(GuarantorRequest $request, User $payer, float $amount): Payment
+{
+    $payment = Payment::query()->create([
+        'user_id' => $payer->getKey(),
+        'user_type' => User::class,
+        'product_id' => $request->id,
+        'product_type' => GuarantorRequest::class,
+        'amount' => $amount,
+        'status' => PaymentStatusEnum::Accepted,
+        'driver' => 'testing',
+    ]);
+
+    return $payment->load('product');
+}
+
+function acceptedInstallmentPayment(GuarantorInstallment $installment, User $payer): Payment
+{
+    $payment = Payment::query()->create([
+        'user_id' => $payer->getKey(),
+        'user_type' => User::class,
+        'product_id' => $installment->id,
+        'product_type' => GuarantorInstallment::class,
+        'amount' => $installment->amount,
+        'status' => PaymentStatusEnum::Accepted,
+        'driver' => 'testing',
+    ]);
+
+    return $payment->load('product');
+}
+
+function runPaymentPipelineStage(object $stage, Payment $payment): Payment
+{
+    return $stage($payment, fn (Payment $passed) => $passed);
+}
+
+test('PayIndividualGuarantorAction creates payment and returns gateway url', function () {
+    config(['app.payment.driver' => 'testing']);
+
+    $guarantorRequest = GuarantorRequest::factory()->approved()->create(['amount' => 1000, 'fees' => 10]);
+    $counterparty = $guarantorRequest->counterparty;
+
+    $response = app(PayIndividualGuarantorAction::class)->handle($guarantorRequest, $counterparty);
+
+    expect($response)->toHaveKey('url')
+        ->and(Payment::query()->where('product_id', $guarantorRequest->id)->exists())->toBeTrue();
+});
+
+test('ProcessGuarantorPayment sets request to in_progress on payment accepted', function () {
+    $guarantorRequest = GuarantorRequest::factory()->approved()->create(['amount' => 1000, 'fees' => 10]);
+    $payment = acceptedGuarantorPayment($guarantorRequest, $guarantorRequest->counterparty, 1010);
+
+    runPaymentPipelineStage(app(ProcessGuarantorPayment::class), $payment);
+
+    expect($guarantorRequest->fresh()->status)->toBe(GuarantorStatusEnum::InProgress);
+});
+
+test('ProcessGuarantorPayment sets installment to paid on installment payment', function () {
+    $guarantorRequest = GuarantorRequest::factory()->company()->inProgress()->create(['amount' => 1000, 'fees' => 10]);
+    $installment = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create([
+        'order' => 1,
+        'amount' => 500,
+    ]);
+    $payment = acceptedInstallmentPayment($installment, $guarantorRequest->counterparty);
+
+    runPaymentPipelineStage(app(ProcessGuarantorPayment::class), $payment);
+
+    $installment->refresh();
+
+    expect($installment->status)->toBe(InstallmentStatusEnum::Paid)
+        ->and($installment->paid_at)->not->toBeNull();
+});
+
+test('ProcessGuarantorPayment dispatches ReleaseInstallmentJob for previous installment', function () {
+    Queue::fake();
+
+    $guarantorRequest = GuarantorRequest::factory()->company()->inProgress()->create(['amount' => 1000, 'fees' => 10]);
+    $first = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->paid()->create([
+        'order' => 1,
+        'amount' => 500,
+    ]);
+    $second = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create([
+        'order' => 2,
+        'amount' => 500,
+    ]);
+
+    $payment = acceptedInstallmentPayment($second, $guarantorRequest->counterparty);
+
+    runPaymentPipelineStage(app(ProcessGuarantorPayment::class), $payment);
+
+    Queue::assertPushed(ReleaseInstallmentJob::class, fn (ReleaseInstallmentJob $job) => $job->installment->is($first));
+});
+
+test('AddCounterpartyWalletTransaction increments pending_credit on requester wallet', function () {
+    $guarantorRequest = GuarantorRequest::factory()->approved()->create(['amount' => 1000, 'fees' => 10]);
+    $payment = acceptedGuarantorPayment($guarantorRequest, $guarantorRequest->counterparty, 1010);
+    $requester = $guarantorRequest->requester;
+    $requester->wallet->update(['pending_credit' => 0, 'balance' => 0]);
+
+    runPaymentPipelineStage(app(AddCounterpartyWalletTransaction::class), $payment);
+
+    expect((float) $requester->wallet->fresh()->pending_credit)->toBe(1010.0);
+});
+
+test('AddRequesterWalletTransaction increments pending_debit on counterparty wallet', function () {
+    $guarantorRequest = GuarantorRequest::factory()->approved()->create(['amount' => 1000, 'fees' => 10]);
+    $payment = acceptedGuarantorPayment($guarantorRequest, $guarantorRequest->counterparty, 1010);
+    $counterparty = $guarantorRequest->counterparty;
+    $counterparty->wallet->update(['pending_debit' => 0, 'balance' => 0]);
+
+    runPaymentPipelineStage(app(AddRequesterWalletTransaction::class), $payment);
+
+    expect((float) $counterparty->wallet->fresh()->pending_debit)->toBe(1010.0);
+});
+
+test('ReleaseInstallmentJob releases installment and updates wallet', function () {
+    $guarantorRequest = GuarantorRequest::factory()->company()->inProgress()->create(['amount' => 1000, 'fees' => 10]);
+    $installment = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->paid()->create([
+        'order' => 1,
+        'amount' => 500,
+    ]);
+
+    $requester = $guarantorRequest->requester;
+    $requester->wallet->update(['pending_credit' => 500, 'balance' => 0]);
+
+    (new ReleaseInstallmentJob($installment, 'payment'))
+        ->handle(app(ReleaseInstallmentAction::class));
+
+    $installment->refresh();
+    $requester->wallet->refresh();
+
+    expect($installment->status)->toBe(InstallmentStatusEnum::Released)
+        ->and((float) $requester->wallet->pending_credit)->toBe(0.0)
+        ->and((float) $requester->wallet->balance)->toBeGreaterThan(0);
 });

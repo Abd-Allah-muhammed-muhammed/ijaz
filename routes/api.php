@@ -2,13 +2,16 @@
 
 use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Payments\PayTabsController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
-\Illuminate\Support\Facades\Broadcast::routes(['middleware' => ['auth:sanctum']]);
+Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
 Route::group(['prefix' => 'payments', 'as' => 'payment.'], static function () {
     Route::controller(PayTabsController::class)->as('paytabs.')->group(function () {
         Route::prefix('paytabs')->group(function () {
+            Route::match(['get', 'post'], '/guarantor/{payment}/redirect', 'guarantorPayment')->name('guarantor.redirect');
+            Route::match(['get', 'post'], '/guarantor/{payment}/callback', 'guarantorPayment')->name('guarantor.callback');
             Route::match(['get', 'post'], '/{payment}/redirect', 'redirect')->name('redirect');
             Route::match(['get', 'post'], '/{payment}/callback', 'callback')->name('callback');
         });

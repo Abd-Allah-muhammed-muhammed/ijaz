@@ -26,6 +26,12 @@ use http\Exception\RuntimeException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Pipeline;
+use Modules\Guarantor\Actions\Payment\AddCounterpartyWalletTransaction;
+use Modules\Guarantor\Actions\Payment\AddRequesterWalletTransaction;
+use Modules\Guarantor\Actions\Payment\NotifyGuarantorPayment;
+use Modules\Guarantor\Actions\Payment\ProcessGuarantorPayment;
+use Modules\Guarantor\Models\GuarantorInstallment;
+use Modules\Guarantor\Models\GuarantorRequest;
 use Throwable;
 
 class PayTabsController extends Controller
@@ -41,6 +47,7 @@ class PayTabsController extends Controller
             OrderOffer::class => $this->offerRequestPayment($request, $payment),
             TopUpRequest::class => $this->TopUpPayment($request, $payment),
             GuaranteeRequest::class => $this->GuaranteeRequestPayment($request, $payment),
+            GuarantorRequest::class, GuarantorInstallment::class => $this->guarantorPayment($payment, $request),
             default => throw new RuntimeException('Unknown product type: '.$payment->product_type),
         };
     }
@@ -127,9 +134,37 @@ class PayTabsController extends Controller
         }
     }
 
-    public function callback(Payment $payment, Request $request)
+    public function guarantorPayment(Payment $payment, Request $request): RedirectResponse
     {
-        dd($payment, $request);
+        assert($request->input('cartId') === $payment->id, 'Payment ID mismatch');
+
+        try {
+            $payment = Pipeline::send($payment)
+                ->withinTransaction()
+                ->through([
+                    new UpdatePaymentStatus($request),
+                    ProcessGuarantorPayment::class,
+                    AddCounterpartyWalletTransaction::class,
+                    AddRequesterWalletTransaction::class,
+                    NotifyGuarantorPayment::class,
+                ])
+                ->thenReturn();
+
+            return match ($payment->status) {
+                PaymentStatusEnum::Accepted => redirect()->route('payment.paytabs.success', ['payment' => $payment->id]),
+                PaymentStatusEnum::Rejected, PaymentStatusEnum::Canceled->value => redirect()->route('payment.paytabs.failed', ['payment' => $payment->id]),
+                default => throw new RuntimeException('Unsupported payment status: '.$payment->status, 500),
+            };
+        } catch (Throwable $e) {
+            report($e);
+
+            return redirect()->route('payment.paytabs.failed', ['payment' => $payment->id]);
+        }
+    }
+
+    public function callback(Payment $payment, Request $request): RedirectResponse
+    {
+        return $this->redirect($payment, $request);
     }
 
     public function success()

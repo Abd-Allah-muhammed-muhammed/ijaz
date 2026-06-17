@@ -304,21 +304,22 @@ toArray stores translation keys; toBroadcast/toFirebase resolve at send time.
 InstallmentDue/Overdue classes ready for Phase 15 scheduled jobs.
 GuarantorActionTest extended with five notification assertions.
 
-## Phase 14 — Payment Pipeline
-- [ ] Move + fix `ProcessGuarantorPayment` action
-      (was ProcessGuaranteeRequest — fix types + add installment support)
-- [ ] Move + fix `AddRequesterWalletTransaction`
-      (was AddUserTransactionForGuaranteeRequest)
-- [ ] Move + fix `AddCounterpartyWalletTransaction`
-      (was AddProviderTransactionForGuaranteeRequest + fix fee deduction)
-- [ ] Implement `NotifyRequesterAfterPayment`
-      (was empty stub)
-- [ ] Implement `NotifyCounterpartyAfterPayment`
-      (was empty stub)
-- [ ] Add PayTabs callback route for Guarantor
-      `POST /api/payments/paytabs/guarantor/{payment}/callback`
-- [ ] Implement `SettleGuarantorAction` on payment success
-      release pending → balance on completion
+## Phase 14 — Payment Pipeline ✅
+- [x] `ProcessGuarantorPayment` — individual + installment payment processing
+- [x] `AddCounterpartyWalletTransaction` — pending_credit on requester wallet
+- [x] `AddRequesterWalletTransaction` — pending_debit on counterparty wallet
+- [x] `NotifyGuarantorPayment` — log stub (dedicated notification TODO)
+- [x] `ReleaseInstallmentJob` — auto-release previous paid installment
+- [x] PayTabs guarantor routes + `guarantorPayment` pipeline
+- [x] PayTabsGate / TestingGate guarantor callback URLs
+- [x] Fixed `PayTabsController::callback` dd() production blocker
+
+### Completed: 2026-06-17
+### Summary:
+Laravel Pipeline mirrors Order payment flow with withinTransaction().
+Individual payments transition Approved → InProgress; installment payments mark Paid and queue release of prior installment.
+Wallet holds use pending_credit (requester) and pending_debit (counterparty).
+Seven payment pipeline tests added to GuarantorActionTest.
 
 ## Phase 15 — Scheduled Jobs
 - [ ] `CheckOverdueInstallmentsCommand`
@@ -467,3 +468,8 @@ GuarantorActionTest extended with five notification assertions.
 - Added seven notifications in Modules/Guarantor/Notifications/
 - Wired into create, updateStatus, end, cancel, and release installment actions
 - Translation keys in en, ar, hi, ur JSON files; five notification tests in GuarantorActionTest
+
+### Phase 14 — Payment Pipeline (2026-06-17)
+- Added ProcessGuarantorPayment, wallet transaction stages, NotifyGuarantorPayment, ReleaseInstallmentJob
+- PayTabs guarantor routes and pipeline; fixed callback dd() blocker
+- PayTabsGate resolves guarantor-specific redirect/callback URLs

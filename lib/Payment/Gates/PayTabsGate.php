@@ -6,6 +6,8 @@ use App\Models\Payment;
 use Illuminate\Http\RedirectResponse;
 use Lib\Payment\Contracts\IPaymentGate;
 use Lib\Payment\DTOs\PaymentResponse;
+use Modules\Guarantor\Models\GuarantorInstallment;
+use Modules\Guarantor\Models\GuarantorRequest;
 use Paytabscom\Laravel_paytabs\paypage;
 use Paytabscom\Laravel_paytabs\PaytabsEnum;
 
@@ -32,7 +34,7 @@ readonly class PayTabsGate implements IPaymentGate
                 $payment->user->phone, null, null, null, 'SAU', null,
                 request()->ip(),
             )
-            ->sendURLs(route('payment.paytabs.redirect', $payment), route('payment.paytabs.callback', $payment))
+            ->sendURLs($this->redirectUrl($payment), $this->callbackUrl($payment))
             ->sendLanguage(app()->getLocale())
             ->create_pay_page();
 
@@ -74,5 +76,31 @@ readonly class PayTabsGate implements IPaymentGate
     public function refund(string $transactionId): PaymentResponse
     {
         // TODO: Implement refund() method.
+    }
+
+    private function redirectUrl(Payment $payment): string
+    {
+        if ($this->isGuarantorPayment($payment)) {
+            return route('payment.paytabs.guarantor.redirect', $payment);
+        }
+
+        return route('payment.paytabs.redirect', $payment);
+    }
+
+    private function callbackUrl(Payment $payment): string
+    {
+        if ($this->isGuarantorPayment($payment)) {
+            return route('payment.paytabs.guarantor.callback', $payment);
+        }
+
+        return route('payment.paytabs.callback', $payment);
+    }
+
+    private function isGuarantorPayment(Payment $payment): bool
+    {
+        return in_array($payment->product_type, [
+            GuarantorRequest::class,
+            GuarantorInstallment::class,
+        ], true);
     }
 }

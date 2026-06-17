@@ -36,6 +36,9 @@ class PayIndividualGuarantorAction
                 'driver' => PaymentFacade::getDefaultDriver(),
             ]);
 
+            // PayTabs redirect/callback URLs resolved in PayTabsGate by product_type
+            // route('payment.paytabs.guarantor.redirect', $payment)
+            // route('payment.paytabs.guarantor.callback', $payment)
             $paymentResponse = PaymentFacade::pay($payment);
 
             return $paymentResponse->toArray();

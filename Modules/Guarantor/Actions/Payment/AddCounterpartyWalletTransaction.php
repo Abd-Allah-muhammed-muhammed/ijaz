@@ -1,0 +1,81 @@
+<?php
+
+namespace Modules\Guarantor\Actions\Payment;
+
+use App\Enums\Payment\PaymentStatusEnum;
+use App\Models\Payment;
+use App\Models\Wallet;
+use Closure;
+use Illuminate\Database\Eloquent\Model;
+use Modules\Guarantor\Models\GuarantorInstallment;
+use Modules\Guarantor\Models\GuarantorRequest;
+use RuntimeException;
+
+class AddCounterpartyWalletTransaction
+{
+    public function __invoke(Payment $payment, Closure $next): mixed
+    {
+        if ($payment->status->isNot(PaymentStatusEnum::Accepted)) {
+            return $next($payment);
+        }
+
+        [$recipient, $fees, $operation] = $this->resolveRecipient($payment);
+
+        /** @var Wallet $wallet */
+        $wallet = $recipient->wallet()->lockForUpdate()->firstOrCreate();
+        $balanceBefore = (float) $wallet->balance;
+
+        $wallet->increment('pending_credit', $payment->amount);
+
+        $recipient->walletTTransactions()->create([
+            'wallet_id' => $wallet->id,
+            'debit' => 0,
+            'credit' => 0,
+            'balance_before' => $balanceBefore,
+            'balance_after' => $balanceBefore,
+            'operation_type' => $operation::class,
+            'operation_id' => $operation->getKey(),
+            'pending_credit' => $payment->amount,
+            'pending_debit' => $fees,
+            'description' => 'Guarantor payment received — pending release',
+        ]);
+
+        return $next($payment);
+    }
+
+    /**
+     * @return array{0: Model, 1: float, 2: Model}
+     */
+    private function resolveRecipient(Payment $payment): array
+    {
+        return match ($payment->product_type) {
+            GuarantorRequest::class => $this->fromGuarantorRequest($payment->product),
+            GuarantorInstallment::class => $this->fromInstallment($payment->product),
+            default => throw new RuntimeException('Unsupported guarantor product type: '.$payment->product_type),
+        };
+    }
+
+    /**
+     * @return array{0: Model, 1: float, 2: GuarantorRequest}
+     */
+    private function fromGuarantorRequest(GuarantorRequest $request): array
+    {
+        $request->loadMissing('requester');
+
+        return [$request->requester, (float) $request->fees, $request];
+    }
+
+    /**
+     * @return array{0: Model, 1: float, 2: GuarantorInstallment}
+     */
+    private function fromInstallment(GuarantorInstallment $installment): array
+    {
+        $installment->loadMissing('guarantorRequest.requester');
+        $request = $installment->guarantorRequest;
+        $fees = (float) $request->amount > 0
+            ? round((float) $installment->amount / (float) $request->amount * (float) $request->fees, 2)
+            : 0.0;
+
+        return [$request->requester, $fees, $installment];
+    }
+}
