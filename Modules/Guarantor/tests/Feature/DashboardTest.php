@@ -119,15 +119,13 @@ test('admin can filter by type', function () {
         );
 });
 
-test('admin can change status with reason', function () {
+test('admin can approve pending request via dashboard', function () {
     $admin = createGuarantorDashboardAdmin(['show guarantors', 'manage guarantors']);
     $guarantorRequest = GuarantorRequest::factory()->pendingAdmin()->create();
 
     $this->actingAs($admin, 'admin')
         ->from(action([DashboardGuarantorController::class, 'show'], $guarantorRequest))
-        ->post(action([DashboardGuarantorController::class, 'updateStatus'], $guarantorRequest), [
-            'status' => GuarantorStatusEnum::ApprovedByAdmin->value,
-            'reason' => 'Approved by admin review',
+        ->post(action([DashboardGuarantorController::class, 'approveByAdmin'], $guarantorRequest), [
             'notes' => 'Verified documents',
         ])
         ->assertRedirect()
@@ -160,7 +158,7 @@ test('admin can release installment', function () {
 });
 
 test('admin can delete guarantor request', function () {
-    $admin = createGuarantorDashboardAdmin(['show guarantors']);
+    $admin = createGuarantorDashboardAdmin(['show guarantors', 'manage guarantors']);
     $guarantorRequest = GuarantorRequest::factory()->create();
 
     $this->actingAs($admin, 'admin')

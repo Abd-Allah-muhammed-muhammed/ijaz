@@ -28,7 +28,7 @@ return new class extends Migration
                 $table->decimal('total', 10, 2)->default(0);
             }
 
-            $table->string('status')->default('new');
+            $table->string('status')->default('pending_admin');
 
             $table->string('project_type')->nullable();
             $table->string('requester_signature')->nullable();
@@ -39,6 +39,7 @@ return new class extends Migration
             $table->timestamp('overdue_at')->nullable();
             $table->timestamp('ended_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
+            $table->timestamp('rejected_at')->nullable();
             $table->timestamp('refunded_at')->nullable();
 
             $table->timestamps();

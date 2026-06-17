@@ -7,25 +7,35 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Validation\Rule;
 use Inertia\Response;
-use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorStatusAction;
-use Modules\Guarantor\Actions\Installment\ReleaseInstallmentAction;
-use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\GuarantorTypeEnum;
+use Modules\Guarantor\Http\Requests\Dashboard\ApproveGuarantorRequest;
+use Modules\Guarantor\Http\Requests\Dashboard\CancelGuarantorRequest;
+use Modules\Guarantor\Http\Requests\Dashboard\RejectGuarantorRequest;
 use Modules\Guarantor\Http\Resources\Dashboard\GuarantorDashboardCollection;
 use Modules\Guarantor\Http\Resources\Dashboard\GuarantorDashboardResource;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Services\GuarantorDashboardService;
 
 class GuarantorController extends Controller implements HasMiddleware
 {
+    public function __construct(
+        private readonly GuarantorDashboardService $service,
+    ) {}
+
     public static function middleware(): array
     {
         return [
             new Middleware('permission:show guarantors', only: ['index', 'show']),
-            new Middleware('permission:manage guarantors', only: ['updateStatus', 'releaseInstallment', 'approveByAdmin', 'rejectByAdmin', 'cancel']),
+            new Middleware('permission:manage guarantors', only: [
+                'approveByAdmin',
+                'rejectByAdmin',
+                'cancel',
+                'releaseInstallment',
+                'destroy',
+            ]),
         ];
     }
 
@@ -33,17 +43,7 @@ class GuarantorController extends Controller implements HasMiddleware
     {
         return inertia('Dashboard/Guarantor/Index', [
             'rows' => fn () => GuarantorDashboardCollection::make(
-                GuarantorRequest::query()
-                    ->with(['requester', 'counterparty', 'media'])
-                    ->withCount(['installments'])
-                    ->when($request->search, fn ($query) => $query->where('title', 'like', "%{$request->search}%"))
-                    ->when($request->status, fn ($query) => $query->where('status', $request->status))
-                    ->when($request->type, fn ($query) => $query->where('type', $request->type))
-                    ->when($request->date_from, fn ($query) => $query->whereDate('created_at', '>=', $request->date_from))
-                    ->when($request->date_to, fn ($query) => $query->whereDate('created_at', '<=', $request->date_to))
-                    ->latest()
-                    ->paginate($request->integer('per_page', 15))
-                    ->withQueryString()
+                $this->service->listAll($request, $request->integer('per_page', 15))
             ),
             'prams' => fn () => $request->all() ?: [],
             'selects' => fn () => [
@@ -54,14 +54,7 @@ class GuarantorController extends Controller implements HasMiddleware
                     ->map(fn ($type) => $type->toArray())
                     ->values(),
             ],
-            'stats' => fn () => [
-                'total' => GuarantorRequest::count(),
-                'pending_admin' => GuarantorRequest::where('status', GuarantorStatusEnum::PendingAdmin)->count(),
-                'approved_by_admin' => GuarantorRequest::where('status', GuarantorStatusEnum::ApprovedByAdmin)->count(),
-                'in_progress' => GuarantorRequest::where('status', GuarantorStatusEnum::InProgress)->count(),
-                'overdue' => GuarantorRequest::where('status', GuarantorStatusEnum::Overdue)->count(),
-                'ended' => GuarantorRequest::where('status', GuarantorStatusEnum::Ended)->count(),
-            ],
+            'stats' => fn () => $this->service->getStats(),
         ]);
     }
 
@@ -80,95 +73,32 @@ class GuarantorController extends Controller implements HasMiddleware
 
         return inertia('Dashboard/Guarantor/Show', [
             'guarantorRequest' => fn () => new GuarantorDashboardResource($guarantorRequest),
-            'selects' => fn () => [
-                'statuses' => GuarantorStatusEnum::collect()
-                    ->map(fn ($status) => $status->toArray())
-                    ->values(),
-            ],
         ]);
     }
 
-    public function updateStatus(Request $request, GuarantorRequest $guarantorRequest): RedirectResponse
-    {
-        $request->validate([
-            'status' => ['required', Rule::enum(GuarantorStatusEnum::class)],
-            'reason' => ['required', 'string', 'max:1000'],
-            'notes' => ['nullable', 'string', 'max:2000'],
-        ]);
-
-        $data = new UpdateGuarantorStatusData(
-            status: GuarantorStatusEnum::from($request->string('status')->toString()),
-            reason: $request->string('reason')->toString(),
-            notes: $request->input('notes'),
-        );
-
-        app(UpdateGuarantorStatusAction::class)->handle(
-            $guarantorRequest,
-            $data,
-            auth('admin')->user(),
-            'admin'
-        );
+    public function approveByAdmin(
+        ApproveGuarantorRequest $request,
+        GuarantorRequest $guarantorRequest,
+    ): RedirectResponse {
+        $this->service->approve($guarantorRequest, $request, auth('admin')->user());
 
         return back()->with('success', __('guarantor.status_updated_successfully'));
     }
 
-    public function approveByAdmin(Request $request, GuarantorRequest $guarantorRequest): RedirectResponse
-    {
-        $request->validate([
-            'notes' => ['nullable', 'string', 'max:2000'],
-        ]);
-
-        app(UpdateGuarantorStatusAction::class)->handle(
-            $guarantorRequest,
-            new UpdateGuarantorStatusData(
-                status: GuarantorStatusEnum::ApprovedByAdmin,
-                notes: $request->input('notes'),
-            ),
-            auth('admin')->user(),
-            'admin'
-        );
+    public function rejectByAdmin(
+        RejectGuarantorRequest $request,
+        GuarantorRequest $guarantorRequest,
+    ): RedirectResponse {
+        $this->service->reject($guarantorRequest, $request, auth('admin')->user());
 
         return back()->with('success', __('guarantor.status_updated_successfully'));
     }
 
-    public function rejectByAdmin(Request $request, GuarantorRequest $guarantorRequest): RedirectResponse
-    {
-        $request->validate([
-            'reason' => ['required', 'string', 'max:1000'],
-            'notes' => ['nullable', 'string', 'max:2000'],
-        ]);
-
-        app(UpdateGuarantorStatusAction::class)->handle(
-            $guarantorRequest,
-            new UpdateGuarantorStatusData(
-                status: GuarantorStatusEnum::RejectedByAdmin,
-                reason: $request->string('reason')->toString(),
-                notes: $request->input('notes'),
-            ),
-            auth('admin')->user(),
-            'admin'
-        );
-
-        return back()->with('success', __('guarantor.status_updated_successfully'));
-    }
-
-    public function cancel(Request $request, GuarantorRequest $guarantorRequest): RedirectResponse
-    {
-        $request->validate([
-            'reason' => ['required', 'string', 'max:1000'],
-            'notes' => ['nullable', 'string', 'max:2000'],
-        ]);
-
-        app(UpdateGuarantorStatusAction::class)->handle(
-            $guarantorRequest,
-            new UpdateGuarantorStatusData(
-                status: GuarantorStatusEnum::Cancelled,
-                reason: $request->string('reason')->toString(),
-                notes: $request->input('notes'),
-            ),
-            auth('admin')->user(),
-            'admin'
-        );
+    public function cancel(
+        CancelGuarantorRequest $request,
+        GuarantorRequest $guarantorRequest,
+    ): RedirectResponse {
+        $this->service->cancel($guarantorRequest, $request, auth('admin')->user());
 
         return back()->with('success', __('guarantor.status_updated_successfully'));
     }
@@ -177,14 +107,14 @@ class GuarantorController extends Controller implements HasMiddleware
         GuarantorRequest $guarantorRequest,
         GuarantorInstallment $installment,
     ): RedirectResponse {
-        app(ReleaseInstallmentAction::class)->handle($installment, 'admin');
+        $this->service->releaseInstallment($installment);
 
         return back()->with('success', __('guarantor.installment_released_successfully'));
     }
 
     public function destroy(GuarantorRequest $guarantorRequest): RedirectResponse
     {
-        $guarantorRequest->delete();
+        $this->service->delete($guarantorRequest);
 
         return redirect()
             ->route('dashboard.guarantor.index')
