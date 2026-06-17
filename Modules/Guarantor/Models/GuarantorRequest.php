@@ -120,6 +120,10 @@ class GuarantorRequest extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
+        $this->addMediaCollection('signature')
+            ->useDisk('public')
+            ->singleFile();
+
         $this->addMediaCollection('files')
             ->useDisk('public');
     }

@@ -100,7 +100,7 @@ test('CreateIndividualGuarantorAction creates request and uploads signature', fu
     expect($guarantorRequest->type)->toBe(GuarantorTypeEnum::Individual)
         ->and($guarantorRequest->status)->toBe(GuarantorStatusEnum::New)
         ->and($guarantorRequest->counterparty_id)->toBe($counterparty->getKey())
-        ->and($guarantorRequest->getMedia('files'))->toHaveCount(1);
+        ->and($guarantorRequest->getMedia('signature'))->toHaveCount(1);
 });
 
 test('CreateIndividualGuarantorAction fails if counterparty not found', function () {
@@ -171,7 +171,7 @@ test('CreateCompanyGuarantorAction creates request with installments and company
         ->and($guarantorRequest->installments)->toHaveCount(2)
         ->and($guarantorRequest->companyDetail)->not->toBeNull()
         ->and($guarantorRequest->companyDetail->company_name)->toBe('Acme Corp')
-        ->and($guarantorRequest->getMedia('files'))->toHaveCount(1);
+        ->and($guarantorRequest->getMedia('signature'))->toHaveCount(1);
 });
 
 test('CreateCompanyGuarantorAction fails if installments sum != total', function () {

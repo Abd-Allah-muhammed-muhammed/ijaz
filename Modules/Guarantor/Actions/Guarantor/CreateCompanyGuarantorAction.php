@@ -87,7 +87,7 @@ class CreateCompanyGuarantorAction
 
             if ($request->hasFile('signature')) {
                 $guarantorRequest->addMedia($request->file('signature'))
-                    ->toMediaCollection('files');
+                    ->toMediaCollection('signature');
             }
 
             if ($request->hasFile('authorized_id')) {
