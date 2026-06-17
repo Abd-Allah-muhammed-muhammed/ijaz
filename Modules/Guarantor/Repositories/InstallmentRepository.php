@@ -5,6 +5,7 @@ namespace Modules\Guarantor\Repositories;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\LazyCollection;
 use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
+use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 
@@ -55,6 +56,11 @@ class InstallmentRepository implements InstallmentRepositoryInterface
     {
         return GuarantorInstallment::query()
             ->overdue()
+            ->whereHas('guarantorRequest', fn ($query) => $query->whereNotIn('status', [
+                GuarantorStatusEnum::Ended->value,
+                GuarantorStatusEnum::Cancelled->value,
+                GuarantorStatusEnum::Refunded->value,
+            ]))
             ->with(['guarantorRequest.requester', 'guarantorRequest.counterparty'])
             ->lazyById();
     }

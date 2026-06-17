@@ -321,14 +321,16 @@ Individual payments transition Approved → InProgress; installment payments mar
 Wallet holds use pending_credit (requester) and pending_debit (counterparty).
 Seven payment pipeline tests added to GuarantorActionTest.
 
-## Phase 15 — Scheduled Jobs
-- [ ] `CheckOverdueInstallmentsCommand`
-      `php artisan guarantor:check-overdue` runs daily
-      Finds installments past due_date, dispatches jobs
-- [ ] `NotifyOverdueInstallmentJob` (day 1 + day 3 notifications)
-- [ ] `AutoReleaseInstallmentJob` (day 14 auto-release)
-- [ ] Register command + schedule in `GuarantorServiceProvider`
-- [ ] Add to `opportunities` queue (or dedicated `guarantor` queue)
+## Phase 15 — Scheduled Jobs ✅
+- [x] `CheckOverdueInstallmentsCommand`
+      `php artisan guarantor:check-overdue` runs daily at midnight
+      Finds installments past due_date, dispatches jobs on `guarantor` queue
+- [x] `NotifyOverdueInstallmentJob` (day 1 + day 3 notifications, day 14 auto-release dispatch)
+- [x] `AutoReleaseInstallmentJob` (day 14 auto-release for paid installments)
+- [x] Register command in `GuarantorServiceProvider`
+- [x] Schedule in `bootstrap/app.php` — daily at 00:00
+- [x] `InstallmentRepository::getOverdue()` excludes ended/cancelled/refunded requests
+- [x] `SchedulerTest.php` — 9 tests
 
 ## Phase 16 — Routes
 - [ ] `Modules/Guarantor/Routes/V1/api.php`

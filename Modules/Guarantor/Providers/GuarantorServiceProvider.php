@@ -4,6 +4,7 @@ namespace Modules\Guarantor\Providers;
 
 use App\Models\Conversation;
 use Illuminate\Support\Facades\Gate;
+use Modules\Guarantor\Console\Commands\CheckOverdueInstallmentsCommand;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\StatusHistoryRepositoryInterface;
@@ -63,6 +64,10 @@ class GuarantorServiceProvider extends ModuleServiceProvider
             Gate::policy(Conversation::class, ConversationPolicy::class);
         });
 
-        // Commands will be added in Phase 15
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                CheckOverdueInstallmentsCommand::class,
+            ]);
+        }
     }
 }
