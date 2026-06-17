@@ -2,10 +2,11 @@
 
 namespace Modules\Guarantor\Http\Requests;
 
+use App\Rules\CheckAuthenticatableId;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
+use MMAE\ApiResponse\Request\ApiRequest;
 
-class StoreIndividualGuarantorRequest extends FormRequest
+class StoreIndividualGuarantorRequest extends ApiRequest
 {
     public function authorize(): bool
     {
@@ -17,6 +18,21 @@ class StoreIndividualGuarantorRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [];
+        return [
+            'counterparty_phone' => [
+                'required',
+                'string',
+                new CheckAuthenticatableId('user'),
+            ],
+            'amount' => ['required', 'numeric', 'min:1'],
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string', 'max:2000'],
+            'signature' => [
+                'required',
+                'file',
+                'mimes:jpg,jpeg,png,pdf',
+                'max:5120',
+            ],
+        ];
     }
 }

@@ -144,15 +144,15 @@ GuarantorRepository eager-loads relations in findById and list methods.
 InstallmentRepository uses lazyById for getOverdue().
 All interfaces bound in GuarantorServiceProvider. RepositoryTest covers CRUD, scoping, and status logging.
 
-## Phase 7 — FormRequests
+## Phase 7 — FormRequests ✅
 All extend `MMAE\ApiResponse\Request\ApiRequest`
-- [ ] `StoreIndividualGuarantorRequest`
+- [x] `StoreIndividualGuarantorRequest`
       Fields: counterparty_phone (required, CheckAuthenticatableId),
       amount (required, numeric, min:1),
       title (required, string, max:255),
       description (required, string, max:2000),
       signature (required, file, mimes:jpg,jpeg,png,pdf, max:5120)
-- [ ] `StoreCompanyGuarantorRequest`
+- [x] `StoreCompanyGuarantorRequest`
       Fields: counterparty_phone, project_type, total_amount,
       installments (array, min:1), installments.*.amount,
       installments.*.due_date (date, after:today),
@@ -163,10 +163,23 @@ All extend `MMAE\ApiResponse\Request\ApiRequest`
       signature (required, file), authorized_id (file),
       contracts (array of files), iban_certificate (file, nullable),
       company_documents (array of files)
-- [ ] `UpdateGuarantorStatusRequest`
+      withValidator: installments sum must equal total_amount
+- [x] `UpdateGuarantorRequest` — partial update fields
+- [x] `UpdateGuarantorStatusRequest`
       Fields: status (required, GuarantorStatusEnum),
       reason (required_if cancelled or rejected, string)
-- [ ] `StoreInstallmentPaymentRequest` (company pay)
+- [x] `PayInstallmentRequest` (company pay)
+- [x] `StoreChatRequest` — guarantor_request_id
+- [x] `SendMessageRequest` — content or files
+- [x] Translation keys in lang/{en,ar,hi,ur}/guarantor.php
+- [x] Unit tests: `Modules/Guarantor/tests/Unit/FormRequestTest.php`
+
+### Completed: 2026-06-16
+### Summary:
+Seven FormRequests with full validation rules extending ApiRequest.
+StoreCompanyGuarantorRequest validates installment sum via withValidator().
+Validation and success message keys added to all four locales.
+FormRequestTest covers required fields, sum mismatch, status reason rules, and chat messages.
 
 ## Phase 8 — Actions
 - [ ] `CreateIndividualGuarantorAction`
@@ -405,3 +418,9 @@ Translation keys in lang/{en,ar,hi,ur}.json
 - Added GuarantorRepository, InstallmentRepository, StatusHistoryRepository with interfaces
 - Bound all repositories in GuarantorServiceProvider
 - Added RepositoryTest.php with 9 unit tests
+
+### Phase 7 — FormRequests (2026-06-16)
+- Added seven FormRequests with validation rules extending ApiRequest
+- Added validation/success translation keys to en, ar, hi, ur
+- Added FormRequestTest.php with 9 unit tests
+- Fixed mmae/apiresponse ApiRequest trait namespace typo (Apiresponse → ApiResponse)
