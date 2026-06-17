@@ -56,6 +56,7 @@ Route::middleware('auth:sanctum')->group(static function () {
         Route::get('/guarantee', 'guaranteeChatIndex');
 
         require base_path('Modules/Opportunity/Routes/V1/chat.php');
+        require base_path('Modules/Guarantor/Routes/V1/chat.php');
 
         Route::post('/send/{conversation}', 'send');
         Route::get('/{conversation}/show', 'chat');

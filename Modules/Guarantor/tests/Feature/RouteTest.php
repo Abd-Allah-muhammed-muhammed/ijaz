@@ -17,7 +17,7 @@ test('unauthenticated cannot create guarantor', function () {
 });
 
 test('unauthenticated cannot access chat', function () {
-    $this->getJson(route('api.v1.chats.guarantor.index'))
+    $this->getJson(route('chats.guarantor.index'))
         ->assertUnauthorized();
 });
 
@@ -53,13 +53,13 @@ test('installments index route resolves correctly', function () {
 });
 
 test('chat index route resolves correctly', function () {
-    expect(Route::has('api.v1.chats.guarantor.index'))->toBeTrue()
-        ->and(route('api.v1.chats.guarantor.index'))->toBe(url('api/v1/chats/guarantor'));
+    expect(Route::has('chats.guarantor.index'))->toBeTrue()
+        ->and(route('chats.guarantor.index'))->toBe(url('api/v1/chats/guarantor'));
 });
 
 test('chat store route resolves correctly', function () {
-    expect(Route::has('api.v1.chats.guarantor.store'))->toBeTrue()
-        ->and(route('api.v1.chats.guarantor.store'))->toBe(url('api/v1/chats/guarantor'));
+    expect(Route::has('chats.guarantor.store'))->toBeTrue()
+        ->and(route('chats.guarantor.store'))->toBe(url('api/v1/chats/guarantor'));
 });
 
 test('authenticated user can access guarantor index', function () {
@@ -96,7 +96,7 @@ test('chat show route resolves correctly', function () {
         'operation_id' => $guarantorRequest->id,
     ]);
 
-    expect(Route::has('api.v1.chats.guarantor.show'))->toBeTrue()
-        ->and(route('api.v1.chats.guarantor.show', $conversation))
+    expect(Route::has('chats.guarantor.show'))->toBeTrue()
+        ->and(route('chats.guarantor.show', $conversation))
         ->toBe(url('api/v1/chats/guarantor/'.$conversation->getKey()));
 });
