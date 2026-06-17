@@ -21,30 +21,38 @@ ServiceProvider + RouteServiceProvider registered.
 Empty route files and directory structure in place.
 composer dump-autoload ran successfully with no errors.
 
-## Phase 2 — Database
-- [ ] Migration: `create_guarantor_requests_table`
+## Phase 2 — Database ✅
+- [x] Migration: `create_guarantor_requests_table`
       Columns: id (uuid), type, requester morph, counterparty morph,
       title, description, amount, fees, total (storedAs), status,
       project_type (nullable), requester_signature (nullable),
       cancellation_reason (nullable), admin_notes (nullable),
       overdue_at, ended_at, cancelled_at, refunded_at,
       timestamps, softDeletes
-- [ ] Migration: `create_guarantor_installments_table`
+- [x] Migration: `create_guarantor_installments_table`
       Columns: id (uuid), guarantor_request_id (FK), order (int),
       amount, due_date, paid_at, released_at, overdue_notified_at,
       status (enum), timestamps
-- [ ] Migration: `create_guarantor_company_details_table`
+- [x] Migration: `create_guarantor_company_details_table`
       Columns: id (uuid), guarantor_request_id (FK unique),
       company_name, commercial_register, region_id, city_id,
       authorized_name, authorized_id_number, authorization_type,
       requester_account_holder, requester_iban,
       counterparty_account_holder, counterparty_iban (nullable),
       timestamps
-- [ ] Migration: `create_guarantor_status_histories_table`
+- [x] Migration: `create_guarantor_status_histories_table`
       Columns: id (uuid), guarantor_request_id (FK),
       actor morph, from_status (nullable), to_status,
       reason (nullable), notes (nullable), timestamps
-- [ ] Run migrations and verify tables
+- [x] Run migrations and verify tables
+
+### Completed: 2026-06-16
+### Summary:
+Created 4 migrations under Modules/Guarantor/database/migrations/.
+Tables: guarantor_requests, guarantor_installments, guarantor_company_details, guarantor_status_histories.
+UUID PKs on all tables; uuidMorphs on requester, counterparty, and actor.
+total column uses storedAs on MySQL; plain decimal default on SQLite for tests.
+php artisan migrate ran successfully — all 4 tables verified.
 
 ## Phase 3 — Enums
 - [ ] `GuarantorTypeEnum` — individual / company
@@ -337,3 +345,9 @@ Translation keys in lang/{en,ar,hi,ur}.json
 - Registered module in `modules_statuses.json`
 - Created empty route stubs: `Routes/V1/api.php`, `Routes/V1/chat.php`, `Routes/dashboard.php`
 - Ran `composer dump-autoload` — no errors; module shows as Enabled in `php artisan module:list`
+
+### Phase 2 — Database (2026-06-16)
+- Added migrations `2026_06_16_000001` through `000004` for requests, installments, company details, status histories
+- SQLite-safe `total` column (storedAs skipped on sqlite driver)
+- `city_id` FK references `cities` table (matches Opportunity / existing schema)
+- All migrations applied successfully via `php artisan migrate`
