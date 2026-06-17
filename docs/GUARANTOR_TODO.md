@@ -332,16 +332,16 @@ Seven payment pipeline tests added to GuarantorActionTest.
 - [x] `InstallmentRepository::getOverdue()` excludes ended/cancelled/refunded requests
 - [x] `SchedulerTest.php` — 9 tests
 
-## Phase 16 — Routes
-- [ ] `Modules/Guarantor/Routes/V1/api.php`
+## Phase 16 — Routes ✅
+- [x] `Modules/Guarantor/Routes/V1/api.php`
       Individual + company store, show, update, destroy,
-      updateStatus, pay, end, cancel, deleteMedia
-- [ ] `Modules/Guarantor/Routes/V1/chat.php`
+      updateStatus, pay, deleteMedia, installments index/pay
+- [x] `Modules/Guarantor/Routes/V1/chat.php`
       chats/guarantor → index, store, show, send
-- [ ] `Modules/Guarantor/Routes/V1/installments.php`
-      guarantor/{id}/installments → index, pay
+- [x] Chat routes registered via `mapChatRoutes()` in `RouteServiceProvider`
+- [x] `RouteTest.php` — route resolution + auth tests
 - [ ] `Modules/Guarantor/Routes/dashboard.php`
-      Admin: index, show, updateStatus, cancel, releaseInstallment
+      Admin: index, show, updateStatus, cancel, releaseInstallment (Phase 17)
 
 ## Phase 17 — Dashboard (Admin)
 - [ ] `GuarantorDashboardController`

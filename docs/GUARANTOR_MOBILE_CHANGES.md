@@ -1,7 +1,7 @@
 # Guarantor Module — Mobile Developer Changes
 
 > Branch: feat/guarantor-module
-> Last updated: 2026-06-16
+> Last updated: 2026-06-17
 > Note: This file can be used directly as a prompt for AI assistants
 >       to implement changes on the mobile side.
 
@@ -204,4 +204,5 @@ Notify team before removal.
 <!-- Updated after each phase -->
 | Date | Change | Phase |
 |------|--------|-------|
+| 2026-06-17 | Routes registered — all endpoints live | Phase 16 |
 | TBD | Initial module created | Phase 1 |
