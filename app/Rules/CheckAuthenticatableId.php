@@ -23,10 +23,10 @@ class CheckAuthenticatableId implements ValidationRule
         $user = auth()->user();
         $phone = Phone::make($value);
         $exists = match ($this->type) {
-            'user' => User::where($this->attribute ?? $attribute, $phone)
+            'user' => User::where($this->attribute ?? 'phone', $phone)
                 ->when(get_class($user) === User::class, fn ($q) => $q->where('id', '!=', $user->id))
                 ->exists(),
-            'provider' => Provider::where($this->attribute ?? $attribute, $phone)
+            'provider' => Provider::where($this->attribute ?? 'phone', $phone)
                 ->when(get_class($user) === Provider::class, fn ($q) => $q->where('id', '!=', $user->id))
                 ->exists(),
             default => false,
