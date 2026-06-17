@@ -60,7 +60,7 @@ const GuarantorCard = ({ row }: Props) => {
           <div className="d-flex align-items-center mb-2">
             <KTIcon iconName="profile-circle" className="fs-6 me-2 text-muted" />
             <span className="text-muted fw-semibold fs-7">
-              {t('requester')}: {row.requester.name}
+              {t('guarantor.requester')}: {row.requester.name}
             </span>
           </div>
         )}
@@ -69,7 +69,7 @@ const GuarantorCard = ({ row }: Props) => {
           <div className="d-flex align-items-center mb-3">
             <KTIcon iconName="people" className="fs-6 me-2 text-muted" />
             <span className="text-muted fw-semibold fs-7">
-              {t('counterparty')}: {row.counterparty.name}
+              {t('guarantor.counterparty')}: {row.counterparty.name}
             </span>
           </div>
         )}
@@ -77,7 +77,7 @@ const GuarantorCard = ({ row }: Props) => {
         <div className="row g-2 mb-4">
           <div className="col-6">
             <div className="bg-light-primary rounded-2 p-2">
-              <span className="text-gray-700 fw-bold fs-8">{t('total_amount')}</span>
+              <span className="text-gray-700 fw-bold fs-8">{t('guarantor.total_amount')}</span>
               <div className="fw-bolder text-gray-900 fs-6">
                 {Number(row.total ?? row.amount).toLocaleString()} {t('SAR')}
               </div>
@@ -86,7 +86,7 @@ const GuarantorCard = ({ row }: Props) => {
           {row.type?.value === 'company' && (
             <div className="col-6">
               <div className="bg-light-info rounded-2 p-2">
-                <span className="text-gray-700 fw-bold fs-8">{t('installments')}</span>
+                <span className="text-gray-700 fw-bold fs-8">{t('guarantor.installments')}</span>
                 <div className="fw-bolder text-gray-900 fs-6">{row.installments_count ?? 0}</div>
               </div>
             </div>
@@ -101,7 +101,7 @@ const GuarantorCard = ({ row }: Props) => {
 
         <div className="d-flex align-items-center justify-content-between pt-4 border-top mt-auto gap-2">
           <Link href={GuarantorDashboardController.show(row.id).url} className="btn btn-sm btn-light-primary">
-            {t('details')}
+            {t('guarantor.details')}
           </Link>
           <button
             type="button"

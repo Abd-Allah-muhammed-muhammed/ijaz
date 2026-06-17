@@ -29,7 +29,7 @@ type Props = {
   selects: { statuses: StatusOption[]; types: TypeOption[] };
   stats: {
     total: number;
-    new: number;
+    pending_admin: number;
     in_progress: number;
     overdue: number;
     ended: number;
@@ -83,17 +83,17 @@ const Index = ({ rows, prams, selects, stats }: Props) => {
   }, [searchValue]);
 
   const statCards = [
-    { label: t('total'), value: stats.total, icon: 'shield', bg: 'bg-light-primary', color: 'text-primary' },
-    { label: t('guarantor_status_new'), value: stats.new, icon: 'plus-square', bg: 'bg-light-info', color: 'text-info' },
-    { label: t('guarantor_status_in_progress'), value: stats.in_progress, icon: 'time', bg: 'bg-light-success', color: 'text-success' },
-    { label: t('guarantor_status_overdue'), value: stats.overdue, icon: 'information-2', bg: 'bg-light-danger', color: 'text-danger' },
-    { label: t('guarantor_status_ended'), value: stats.ended, icon: 'check-circle', bg: 'bg-light-success', color: 'text-success' },
+    { label: t('guarantor.total'), value: stats.total, icon: 'shield', bg: 'bg-light-primary', color: 'text-primary' },
+    { label: t('guarantor.status.pending_admin'), value: stats.pending_admin, icon: 'plus-square', bg: 'bg-light-info', color: 'text-info' },
+    { label: t('guarantor.status.in_progress'), value: stats.in_progress, icon: 'time', bg: 'bg-light-success', color: 'text-success' },
+    { label: t('guarantor.status.overdue'), value: stats.overdue, icon: 'information-2', bg: 'bg-light-danger', color: 'text-danger' },
+    { label: t('guarantor.status.ended'), value: stats.ended, icon: 'check-circle', bg: 'bg-light-success', color: 'text-success' },
   ];
 
   return (
     <>
-      <Head title={t('guarantors')} />
-      <PageTitle breadcrumbs={[{ title: '', path: '', isSeparator: true, isActive: false }]}>{t('guarantors')}</PageTitle>
+      <Head title={t('guarantor.module_title')} />
+      <PageTitle breadcrumbs={[{ title: '', path: '', isSeparator: true, isActive: false }]}>{t('guarantor.module_title')}</PageTitle>
       <ToolbarWrapper />
       <Content>
         <div className="row g-5 g-xl-8 mb-8">
@@ -126,7 +126,7 @@ const Index = ({ rows, prams, selects, stats }: Props) => {
                     type="text"
                     value={searchValue}
                     className="form-control form-control-solid w-100 ps-12"
-                    placeholder={t('search')}
+                    placeholder={t('guarantor.search_placeholder')}
                     onChange={(e) => setSearchValue(e.target.value)}
                   />
                 </div>
@@ -137,7 +137,7 @@ const Index = ({ rows, prams, selects, stats }: Props) => {
                   defaultValue={searchPrams.status ?? ''}
                   onChange={(e) => searchPramsChanged('status', e.target.value || undefined)}
                 >
-                  <option value="">{t('status')}</option>
+                  <option value="">{t('guarantor.filter_by_status')}</option>
                   {selects.statuses.map((status) => (
                     <option key={status.value} value={status.value}>
                       {status.label}
@@ -151,7 +151,7 @@ const Index = ({ rows, prams, selects, stats }: Props) => {
                   defaultValue={searchPrams.type ?? ''}
                   onChange={(e) => searchPramsChanged('type', e.target.value || undefined)}
                 >
-                  <option value="">{t('type')}</option>
+                  <option value="">{t('guarantor.filter_by_type')}</option>
                   {selects.types.map((type) => (
                     <option key={type.value} value={type.value}>
                       {type.label}
@@ -165,7 +165,7 @@ const Index = ({ rows, prams, selects, stats }: Props) => {
                   className="form-control form-control-solid"
                   defaultValue={searchPrams.date_from ?? ''}
                   onChange={(e) => searchPramsChanged('date_from', e.target.value || undefined)}
-                  placeholder={t('date_from')}
+                  placeholder={t('guarantor.date_from')}
                 />
               </Col>
               <Col md={2}>
@@ -174,7 +174,7 @@ const Index = ({ rows, prams, selects, stats }: Props) => {
                   className="form-control form-control-solid"
                   defaultValue={searchPrams.date_to ?? ''}
                   onChange={(e) => searchPramsChanged('date_to', e.target.value || undefined)}
-                  placeholder={t('date_to')}
+                  placeholder={t('guarantor.date_to')}
                 />
               </Col>
               <Col md={1} className="d-flex align-items-center justify-content-end">
@@ -196,7 +196,7 @@ const Index = ({ rows, prams, selects, stats }: Props) => {
           <div className="card border-0 shadow-sm">
             <div className="card-body py-20 text-center">
               <KTIcon iconName="shield" className="fs-5x mb-5 text-gray-300" />
-              <p className="text-muted fw-semibold fs-5">{t('no_guarantors')}</p>
+              <p className="text-muted fw-semibold fs-5">{t('guarantor.no_guarantors')}</p>
             </div>
           </div>
         ) : (

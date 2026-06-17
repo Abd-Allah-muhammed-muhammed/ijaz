@@ -164,7 +164,7 @@ const Show = ({ guarantorRequest }: Props) => {
   };
 
   const releaseInstallment = (installmentId: string) => {
-    if (window.confirm(t('are_you_sure'))) {
+    if (window.confirm(t('guarantor.release_confirm'))) {
       router.post(
         GuarantorDashboardController.releaseInstallment({
           guarantorRequest: guarantorRequest.id,
@@ -181,13 +181,13 @@ const Show = ({ guarantorRequest }: Props) => {
 
   return (
     <Content>
-      <Head title={`${t('guarantor')} #${guarantorRequest.id}`} />
+      <Head title={`${t('guarantor.module_title_show')} #${guarantorRequest.id}`} />
       <PageTitle
         breadcrumbs={[
-          { title: t('guarantors'), path: GuarantorDashboardController.index().url, isSeparator: false, isActive: false },
+          { title: t('guarantor.module_title'), path: GuarantorDashboardController.index().url, isSeparator: false, isActive: false },
         ]}
       >
-        {t('guarantor')}
+        {t('guarantor.module_title_show')}
       </PageTitle>
 
       <div className="d-flex flex-column gap-lg-10 gap-7">
@@ -200,7 +200,7 @@ const Show = ({ guarantorRequest }: Props) => {
                   <span className={`badge ${badgeClass} fw-bold px-3 py-2`}>{guarantorRequest.status?.label}</span>
                   <span className="badge badge-light-info fw-bold px-3 py-2">{guarantorRequest.type?.label}</span>
                   {currentStatus === 'overdue' && (
-                    <span className="badge badge-danger fw-bold px-3 py-2">{t('guarantor_status_overdue')}</span>
+                    <span className="badge badge-danger fw-bold px-3 py-2">{t('guarantor.status.overdue')}</span>
                   )}
                 </div>
                 <div className="text-muted fw-semibold fs-6">
@@ -215,16 +215,16 @@ const Show = ({ guarantorRequest }: Props) => {
                 {canApproveReject && (
                   <>
                     <button type="button" className="btn btn-sm btn-light-success" onClick={() => setAdminAction('approve')}>
-                      {t('approve')}
+                      {t('guarantor.approve')}
                     </button>
                     <button type="button" className="btn btn-sm btn-light-danger" onClick={() => setAdminAction('reject')}>
-                      {t('reject')}
+                      {t('guarantor.reject')}
                     </button>
                   </>
                 )}
                 {canCancel && (
                   <button type="button" className="btn btn-sm btn-light-warning" onClick={() => setAdminAction('cancel')}>
-                    {t('cancel')}
+                    {t('guarantor.cancel')}
                   </button>
                 )}
                 {canManage && (
@@ -240,11 +240,11 @@ const Show = ({ guarantorRequest }: Props) => {
                 <div className="fs-2 fw-bolder text-primary">
                   {Number(guarantorRequest.total).toLocaleString()} <span className="fs-6 text-gray-600">{t('SAR')}</span>
                 </div>
-                <div className="fw-bold fs-6 text-gray-500">{t('total_amount')}</div>
+                <div className="fw-bold fs-6 text-gray-500">{t('guarantor.total_amount')}</div>
               </div>
               <div className="min-w-100px rounded border border-dashed border-gray-300 px-4 py-3">
                 <div className="fs-2 fw-bolder text-gray-900">{guarantorRequest.installments?.length ?? 0}</div>
-                <div className="fw-bold fs-6 text-gray-500">{t('installments')}</div>
+                <div className="fw-bold fs-6 text-gray-500">{t('guarantor.installments')}</div>
               </div>
             </div>
           </KTCardBody>
@@ -254,10 +254,10 @@ const Show = ({ guarantorRequest }: Props) => {
           <div className="card-header border-0 pt-6">
             <ul className="nav nav-stretch nav-line-tabs nav-line-tabs-2x border-transparent fs-5 fw-bold">
               {[
-                { key: 'overview', label: t('overview'), icon: 'element-11' },
-                { key: 'installments', label: t('installments'), icon: 'wallet' },
-                { key: 'history', label: t('status_history'), icon: 'time' },
-                ...(isCompany ? [{ key: 'company', label: t('company_details'), icon: 'office-bag' }] : []),
+                { key: 'overview', label: t('guarantor.overview'), icon: 'element-11' },
+                { key: 'installments', label: t('guarantor.installments'), icon: 'wallet' },
+                { key: 'history', label: t('guarantor.status_history'), icon: 'time' },
+                ...(isCompany ? [{ key: 'company', label: t('guarantor.company_details'), icon: 'office-bag' }] : []),
               ].map((tab) => (
                 <li className="nav-item" key={tab.key}>
                   <a
@@ -284,14 +284,14 @@ const Show = ({ guarantorRequest }: Props) => {
                 </div>
                 <div className="row g-4">
                   <div className="col-md-6">
-                    <h4 className="fw-bold mb-2">{t('requester')}</h4>
+                    <h4 className="fw-bold mb-2">{t('guarantor.requester')}</h4>
                     <p className="mb-0">{guarantorRequest.requester?.name ?? '—'}</p>
                     {guarantorRequest.requester?.phone && (
                       <p className="text-muted mb-0">{guarantorRequest.requester.phone}</p>
                     )}
                   </div>
                   <div className="col-md-6">
-                    <h4 className="fw-bold mb-2">{t('counterparty')}</h4>
+                    <h4 className="fw-bold mb-2">{t('guarantor.counterparty')}</h4>
                     <p className="mb-0">{guarantorRequest.counterparty?.name ?? '—'}</p>
                     {guarantorRequest.counterparty?.phone && (
                       <p className="text-muted mb-0">{guarantorRequest.counterparty.phone}</p>
@@ -300,16 +300,16 @@ const Show = ({ guarantorRequest }: Props) => {
                 </div>
                 <div className="row g-4">
                   <div className="col-md-4">
-                    <span className="text-muted d-block">{t('amount')}</span>
+                    <span className="text-muted d-block">{t('guarantor.amount')}</span>
                     <span className="fw-bold">{Number(guarantorRequest.amount).toLocaleString()} {t('SAR')}</span>
                   </div>
                   <div className="col-md-4">
-                    <span className="text-muted d-block">{t('fees')}</span>
+                    <span className="text-muted d-block">{t('guarantor.fees')}</span>
                     <span className="fw-bold">{Number(guarantorRequest.fees).toLocaleString()} {t('SAR')}</span>
                   </div>
                   {guarantorRequest.admin_notes && (
                     <div className="col-md-12">
-                      <span className="text-muted d-block">{t('admin_notes')}</span>
+                      <span className="text-muted d-block">{t('guarantor.admin_notes')}</span>
                       <span className="fw-semibold">{guarantorRequest.admin_notes}</span>
                     </div>
                   )}
@@ -338,18 +338,18 @@ const Show = ({ guarantorRequest }: Props) => {
             {activeTab === 'installments' && (
               <>
                 {!guarantorRequest.installments?.length ? (
-                  <p className="text-muted fst-italic mb-0">{t('no_installments')}</p>
+                  <p className="text-muted fst-italic mb-0">{t('guarantor.no_installments')}</p>
                 ) : (
                   <div className="table-responsive">
                     <table className="table table-row-bordered align-middle gs-0 gy-4">
                       <thead>
                         <tr className="fw-bold text-muted bg-light">
                           <th>#</th>
-                          <th>{t('amount')}</th>
-                          <th>{t('due_date')}</th>
+                          <th>{t('guarantor.amount')}</th>
+                          <th>{t('guarantor.due_date')}</th>
                           <th>{t('status')}</th>
-                          <th>{t('paid_at')}</th>
-                          <th>{t('released_at')}</th>
+                          <th>{t('guarantor.paid_at')}</th>
+                          <th>{t('guarantor.released_at')}</th>
                           {canManage && <th>{t('actions')}</th>}
                         </tr>
                       </thead>
@@ -372,7 +372,7 @@ const Show = ({ guarantorRequest }: Props) => {
                                     className="btn btn-sm btn-light-success"
                                     onClick={() => releaseInstallment(installment.id)}
                                   >
-                                    {t('release_installment')}
+                                    {t('guarantor.release_installment')}
                                   </button>
                                 )}
                               </td>
@@ -389,7 +389,7 @@ const Show = ({ guarantorRequest }: Props) => {
             {activeTab === 'history' && (
               <>
                 {!guarantorRequest.status_histories?.length ? (
-                  <p className="text-muted fst-italic mb-0">—</p>
+                  <p className="text-muted fst-italic mb-0">{t('guarantor.no_history')}</p>
                 ) : (
                   <div className="d-flex flex-column gap-4">
                     {guarantorRequest.status_histories.map((history) => (
@@ -405,12 +405,12 @@ const Show = ({ guarantorRequest }: Props) => {
                         )}
                         {history.reason && (
                           <div className="mb-1">
-                            <span className="fw-semibold">{t('reason')}:</span> {history.reason}
+                            <span className="fw-semibold">{t('guarantor.reason')}:</span> {history.reason}
                           </div>
                         )}
                         {history.notes && (
                           <div>
-                            <span className="fw-semibold">{t('notes')}:</span> {history.notes}
+                            <span className="fw-semibold">{t('guarantor.notes')}:</span> {history.notes}
                           </div>
                         )}
                       </div>
@@ -423,27 +423,27 @@ const Show = ({ guarantorRequest }: Props) => {
             {activeTab === 'company' && guarantorRequest.company_detail && (
               <div className="row g-4">
                 <div className="col-md-6">
-                  <span className="text-muted d-block">{t('company_name')}</span>
+                  <span className="text-muted d-block">{t('guarantor.company_name')}</span>
                   <span className="fw-bold">{guarantorRequest.company_detail.company_name}</span>
                 </div>
                 <div className="col-md-6">
-                  <span className="text-muted d-block">{t('commercial_register')}</span>
+                  <span className="text-muted d-block">{t('guarantor.commercial_register')}</span>
                   <span className="fw-bold">{guarantorRequest.company_detail.commercial_register}</span>
                 </div>
                 <div className="col-md-6">
-                  <span className="text-muted d-block">{t('authorized_name')}</span>
+                  <span className="text-muted d-block">{t('guarantor.authorized_name')}</span>
                   <span className="fw-bold">{guarantorRequest.company_detail.authorized_name}</span>
                 </div>
                 <div className="col-md-6">
-                  <span className="text-muted d-block">{t('authorized_id_number')}</span>
+                  <span className="text-muted d-block">{t('guarantor.authorized_id_number')}</span>
                   <span className="fw-bold">{guarantorRequest.company_detail.authorized_id_number}</span>
                 </div>
                 <div className="col-md-6">
-                  <span className="text-muted d-block">{t('requester_iban')}</span>
+                  <span className="text-muted d-block">{t('guarantor.requester_iban')}</span>
                   <span className="fw-bold">{guarantorRequest.company_detail.requester_iban ?? '—'}</span>
                 </div>
                 <div className="col-md-6">
-                  <span className="text-muted d-block">{t('counterparty_iban')}</span>
+                  <span className="text-muted d-block">{t('guarantor.counterparty_iban')}</span>
                   <span className="fw-bold">{guarantorRequest.company_detail.counterparty_iban ?? '—'}</span>
                 </div>
               </div>
@@ -455,27 +455,28 @@ const Show = ({ guarantorRequest }: Props) => {
       <Modal show={adminAction !== null} onHide={closeAdminModal} centered>
         <Modal.Header closeButton>
           <Modal.Title>
-            {adminAction === 'approve' && t('approve')}
-            {adminAction === 'reject' && t('reject')}
-            {adminAction === 'cancel' && t('cancel')}
+            {adminAction === 'approve' && t('guarantor.approve')}
+            {adminAction === 'reject' && t('guarantor.reject')}
+            {adminAction === 'cancel' && t('guarantor.cancel')}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {adminAction === 'approve' && (
             <div className="mb-0">
-              <label className="form-label">{t('notes')}</label>
+              <label className="form-label">{t('guarantor.notes')}</label>
               <textarea
                 className="form-control form-control-solid"
                 rows={3}
                 value={approveForm.data.notes}
                 onChange={(e) => approveForm.setData('notes', e.target.value)}
+                placeholder={t('guarantor.enter_notes')}
               />
             </div>
           )}
           {(adminAction === 'reject' || adminAction === 'cancel') && (
             <>
               <div className="mb-4">
-                <label className="form-label required">{t('reason')}</label>
+                <label className="form-label required">{t('guarantor.reason')}</label>
                 <textarea
                   className="form-control form-control-solid"
                   rows={3}
@@ -485,6 +486,7 @@ const Show = ({ guarantorRequest }: Props) => {
                       ? rejectForm.setData('reason', e.target.value)
                       : cancelForm.setData('reason', e.target.value)
                   }
+                  placeholder={t('guarantor.enter_reason')}
                 />
                 {(adminAction === 'reject' ? rejectForm.errors.reason : cancelForm.errors.reason) && (
                   <div className="text-danger fs-7 mt-1">
@@ -493,7 +495,7 @@ const Show = ({ guarantorRequest }: Props) => {
                 )}
               </div>
               <div className="mb-0">
-                <label className="form-label">{t('notes')}</label>
+                <label className="form-label">{t('guarantor.notes')}</label>
                 <textarea
                   className="form-control form-control-solid"
                   rows={3}
@@ -503,6 +505,7 @@ const Show = ({ guarantorRequest }: Props) => {
                       ? rejectForm.setData('notes', e.target.value)
                       : cancelForm.setData('notes', e.target.value)
                   }
+                  placeholder={t('guarantor.enter_notes')}
                 />
               </div>
             </>

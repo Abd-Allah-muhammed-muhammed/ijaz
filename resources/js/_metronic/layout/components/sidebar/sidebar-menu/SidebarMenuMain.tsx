@@ -292,7 +292,7 @@ const SidebarMenuMain = () => {
       />
       <SidebarMenuItem
         to={GuarantorDashboardController.index().url}
-        title={t('guarantors')}
+        title={t('guarantor.module_title')}
         icon="shield-check"
         fontIcon="bi-shield-check"
         isActive={matchComponents('dashboard.guarantor.*')}
