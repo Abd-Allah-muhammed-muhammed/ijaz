@@ -228,18 +228,26 @@ Three orchestration services delegate to Actions with zero business logic.
 Chat list/send actions stubbed for Phase 14 full integration.
 GuarantorService includes resolveActorRole() helper for controllers/policies.
 
-## Phase 10 — Policies
-- [ ] `GuarantorPolicy`
-      update: requester + status new
-      delete: requester + status new
-      deleteMedia: requester + status new
-      approve: counterparty + status new
-      reject: counterparty + status new
+## Phase 10 — Policies ✅
+- [x] `GuarantorPolicy`
+      update/delete/deleteMedia: requester + status new
+      updateStatus: party only
       pay: counterparty + status approved
-      end: requester or counterparty + status in_progress
-      cancel: requester or counterparty + status new/approved
-      chat: requester or counterparty + status approved+
-- [ ] Register all policies in `GuarantorServiceProvider::boot()`
+      end: party + status in_progress/overdue
+      cancel: party + status new/approved
+      chat: party + status approved/in_progress/overdue
+      view: party only
+- [x] `InstallmentPolicy` — pay: counterparty only
+- [x] `ConversationPolicy` — view/send: participant only
+- [x] Register policies in `GuarantorServiceProvider::boot()`
+- [x] Unit tests: `Modules/Guarantor/tests/Unit/PolicyTest.php`
+
+### Completed: 2026-06-17
+### Summary:
+GuarantorPolicy, InstallmentPolicy, and ConversationPolicy return bool only.
+ConversationPolicy uses participant check (registered in app booted callback so it wins over Opportunity's policy).
+GuarantorPolicy/InstallmentPolicy cast morph ids to string for uuidMorph column compatibility.
+PolicyTest covers requester/counterparty/stranger scenarios via Gate::forUser().
 
 ## Phase 11 — Controllers (thin — zero logic)
 - [ ] `GuarantorController`
@@ -417,3 +425,8 @@ Translation keys in lang/{en,ar,hi,ur}.json
 ### Phase 9 — Services (2026-06-17)
 - Added GuarantorService, GuarantorInstallmentService, GuarantorChatService
 - Added chat action stubs and GuarantorConversationMessenger support class
+
+### Phase 10 — Policies (2026-06-17)
+- Added GuarantorPolicy, InstallmentPolicy, ConversationPolicy
+- Registered policies in GuarantorServiceProvider
+- Added PolicyTest.php with 24 unit tests
