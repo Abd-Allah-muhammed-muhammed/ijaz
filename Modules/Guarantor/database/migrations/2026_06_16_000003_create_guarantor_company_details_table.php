@@ -25,11 +25,11 @@ return new class extends Migration
             $table->string('authorized_id_number');
             $table->string('authorization_type');
 
-            $table->string('requester_account_holder');
-            $table->string('requester_iban');
+            $table->text('requester_account_holder');
+            $table->text('requester_iban');
 
-            $table->string('counterparty_account_holder');
-            $table->string('counterparty_iban')->nullable();
+            $table->text('counterparty_account_holder');
+            $table->text('counterparty_iban')->nullable();
 
             $table->timestamps();
         });
