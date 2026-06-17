@@ -122,8 +122,7 @@ class GuarantorController extends Controller
         );
 
         return $this->successResponse(
-            GuarantorResource::make($guarantorRequest),
-            __('guarantor.created_successfully')
+            GuarantorResource::make($guarantorRequest)
         );
     }
 
@@ -170,8 +169,7 @@ class GuarantorController extends Controller
         );
 
         return $this->successResponse(
-            GuarantorResource::make($guarantorRequest),
-            __('guarantor.created_successfully')
+            GuarantorResource::make($guarantorRequest)
         );
     }
 
@@ -236,8 +234,7 @@ class GuarantorController extends Controller
         );
 
         return $this->successResponse(
-            GuarantorResource::make($this->service->loadForShow($updated)),
-            __('guarantor.updated_successfully')
+            GuarantorResource::make($this->service->loadForShow($updated))
         );
     }
 
@@ -298,8 +295,7 @@ class GuarantorController extends Controller
         );
 
         return $this->successResponse(
-            GuarantorResource::make($this->service->loadForShow($updated)),
-            __('guarantor.status_updated_successfully')
+            GuarantorResource::make($this->service->loadForShow($updated))
         );
     }
 

@@ -91,9 +91,6 @@ class InstallmentController extends Controller
             auth()->user()
         );
 
-        return $this->successResponse(
-            $paymentResponse,
-            __('guarantor.payment_initiated')
-        );
+        return $this->successResponse($paymentResponse);
     }
 }
