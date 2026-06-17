@@ -32,6 +32,7 @@ return [
     'cannot_delete_non_new' => 'لا يمكنك حذف الطلب إلا في حالة جديد',
     'cannot_delete_media_non_new' => 'لا يمكنك حذف الملفات إلا في حالة جديد',
     'status_transition_not_allowed' => 'هذا التحول في الحالة غير مسموح به',
+    'status_already_set' => 'الطلب بالفعل في هذه الحالة',
     'not_found' => 'طلب الضامن غير موجود',
     'installment_not_found' => 'الدفعة غير موجودة',
     'unauthorized' => 'غير مصرح لك بتنفيذ هذا الإجراء',

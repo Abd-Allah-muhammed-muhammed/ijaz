@@ -32,6 +32,7 @@ return [
     'cannot_delete_non_new' => 'You can only delete requests with status New',
     'cannot_delete_media_non_new' => 'You can only delete media when status is New',
     'status_transition_not_allowed' => 'This status transition is not allowed',
+    'status_already_set' => 'The request is already in this status',
     'not_found' => 'Guarantor request not found',
     'installment_not_found' => 'Installment not found',
     'unauthorized' => 'You are not authorized to perform this action',

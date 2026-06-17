@@ -41,6 +41,7 @@ use Modules\Guarantor\Notifications\GuarantorCreatedNotification;
 use Modules\Guarantor\Notifications\GuarantorEndedNotification;
 use Modules\Guarantor\Notifications\GuarantorRejectedNotification;
 use Modules\Guarantor\Notifications\InstallmentReleasedNotification;
+use Modules\Guarantor\Services\GuarantorService;
 
 const TEST_COUNTERPARTY_PHONE = '0501234567';
 
@@ -258,6 +259,31 @@ test('UpdateGuarantorStatusAction fails for invalid transition', function () {
         new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Approved),
         $guarantorRequest->requester,
         'requester',
+    );
+})->throws(GuarantorException::class);
+
+test('requester cannot approve', function () {
+    $guarantorRequest = GuarantorRequest::factory()->create(['status' => GuarantorStatusEnum::New]);
+    $requester = $guarantorRequest->requester;
+    $service = app(GuarantorService::class);
+
+    $service->updateStatus(
+        $guarantorRequest,
+        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Approved),
+        $requester,
+        $service->resolveActorRole($guarantorRequest, $requester),
+    );
+})->throws(GuarantorException::class);
+
+test('cannot set same status twice', function () {
+    $guarantorRequest = GuarantorRequest::factory()->approved()->create();
+    $counterparty = $guarantorRequest->counterparty;
+
+    app(UpdateGuarantorStatusAction::class)->handle(
+        $guarantorRequest,
+        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Approved),
+        $counterparty,
+        'counterparty',
     );
 })->throws(GuarantorException::class);
 

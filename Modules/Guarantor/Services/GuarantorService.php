@@ -19,6 +19,7 @@ use Modules\Guarantor\DTOs\CompanyDetailData;
 use Modules\Guarantor\DTOs\GuarantorData;
 use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
+use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Throwable;
@@ -175,18 +176,18 @@ class GuarantorService
     {
         if (
             $request->requester_type === $actor::class
-            && $request->requester_id === $actor->getKey()
+            && (string) $request->requester_id === (string) $actor->getKey()
         ) {
             return 'requester';
         }
 
         if (
             $request->counterparty_type === $actor::class
-            && $request->counterparty_id === $actor->getKey()
+            && (string) $request->counterparty_id === (string) $actor->getKey()
         ) {
             return 'counterparty';
         }
 
-        return 'admin';
+        throw new GuarantorException('guarantor.unauthorized', 403);
     }
 }

@@ -33,6 +33,10 @@ class UpdateGuarantorStatusAction
         string $actorRole,
     ): GuarantorRequest {
         return DB::transaction(function () use ($request, $data, $actor, $actorRole) {
+            if ($request->status->is($data->status)) {
+                throw new GuarantorException('guarantor.status_already_set', 422);
+            }
+
             if (! GuarantorStatusEnum::isAllowed($request->status, $data->status, $actorRole)) {
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }
