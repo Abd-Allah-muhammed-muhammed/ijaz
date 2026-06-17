@@ -32,6 +32,7 @@ use Modules\Classifieds\Models\CarAdvisement;
 use Modules\Classifieds\Models\ElectronicAdvisement;
 use Modules\Classifieds\Models\InstituteAdvisement;
 use Modules\Classifieds\Models\PropertyAdvisement;
+use Modules\Guarantor\Models\GuarantorRequest;
 
 /**
  * App\Models\User
@@ -59,6 +60,8 @@ use Modules\Classifieds\Models\PropertyAdvisement;
  * @property-read Collection<int, ConversationMessage> $sentMessages
  * @property-read Collection<int, GuaranteeRequest> $assignedGuaranteeRequests
  * @property-read Collection<int , GuaranteeRequest> $guaranteeRequests
+ * @property-read Collection<int, GuarantorRequest> $assignedGuarantorRequests
+ * @property-read Collection<int, GuarantorRequest> $guarantorRequests
  * @property-read Collection<int, Order> $orders
  * @property-read Nationality|null $nationality
  * @property-read string $image_url
@@ -164,6 +167,22 @@ class User extends Authenticatable implements HasConversation, HasOTPsContract, 
     public function assignedGuaranteeRequests(): MorphMany
     {
         return $this->morphMany(GuaranteeRequest::class, 'provider');
+    }
+
+    public function guarantorRequests(): MorphMany
+    {
+        return $this->morphMany(
+            GuarantorRequest::class,
+            'requester'
+        );
+    }
+
+    public function assignedGuarantorRequests(): MorphMany
+    {
+        return $this->morphMany(
+            GuarantorRequest::class,
+            'counterparty'
+        );
     }
 
     public function propertyAdvisements(): MorphMany

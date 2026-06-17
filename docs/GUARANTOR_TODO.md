@@ -75,8 +75,8 @@ Custom toString() via guarantor.* translation keys; toArray() with value, label,
 GuarantorStatusEnum::isAllowed() covers requester, counterparty, and admin actors.
 Translations added for en, ar, hi, ur. Enum unit tests registered and passing.
 
-## Phase 4 — Models
-- [ ] `GuarantorRequest` model
+## Phase 4 — Models ✅
+- [x] `GuarantorRequest` model
       Traits: HasUuids, SoftDeletes, InteractsWithMedia
       Casts: status → GuarantorStatusEnum, type → GuarantorTypeEnum
       Media collections: 'files' on public disk
@@ -84,20 +84,28 @@ Translations added for en, ar, hi, ur. Enum unit tests registered and passing.
       installments hasMany, companyDetail hasOne,
       statusHistories hasMany, conversation morphOne
       Scopes: scopeForActor, scopeActive
-- [ ] `GuarantorInstallment` model
+- [x] `GuarantorInstallment` model
       Traits: HasUuids
       Casts: status → InstallmentStatusEnum
       Relationships: guarantorRequest belongsTo
-- [ ] `GuarantorCompanyDetail` model
+- [x] `GuarantorCompanyDetail` model
       Traits: HasUuids, InteractsWithMedia
       Media collections: 'authorized_id', 'contracts',
       'iban_certificates', 'company_documents'
       Relationships: guarantorRequest belongsTo
-- [ ] `GuarantorStatusHistory` model
+- [x] `GuarantorStatusHistory` model
       Traits: HasUuids
       Relationships: guarantorRequest belongsTo, actor morphTo
-- [ ] Add `guarantorRequests()` and `assignedGuarantorRequests()`
+- [x] Add `guarantorRequests()` and `assignedGuarantorRequests()`
       morphMany to User model
+- [x] Factories: GuarantorRequestFactory, GuarantorInstallmentFactory
+
+### Completed: 2026-06-16
+### Summary:
+Four models in Modules/Guarantor/Models/ with relationships, scopes, and media collections.
+GuarantorRequest includes total accessor for SQLite compatibility.
+User model extended with guarantorRequests() and assignedGuarantorRequests().
+Factories with individual/company/approved/inProgress and overdue/paid states.
 
 ## Phase 5 — DTOs (readonly classes)
 - [ ] `GuarantorData` — title, description, amount, type,
@@ -365,3 +373,8 @@ Translation keys in lang/{en,ar,hi,ur}.json
 - Added GuarantorTypeEnum, GuarantorStatusEnum, InstallmentStatusEnum, AuthorizationTypeEnum
 - Added lang/en|ar|hi|ur/guarantor.php translation files
 - Added EnumTest.php with isAllowed() coverage; registered in phpunit.xml and Pest.php
+
+### Phase 4 — Models (2026-06-16)
+- Added GuarantorRequest, GuarantorInstallment, GuarantorCompanyDetail, GuarantorStatusHistory models
+- Added GuarantorRequestFactory and GuarantorInstallmentFactory
+- Extended User with guarantorRequests() and assignedGuarantorRequests() morph relationships
