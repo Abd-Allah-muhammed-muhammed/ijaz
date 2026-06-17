@@ -107,15 +107,22 @@ GuarantorRequest includes total accessor for SQLite compatibility.
 User model extended with guarantorRequests() and assignedGuarantorRequests().
 Factories with individual/company/approved/inProgress and overdue/paid states.
 
-## Phase 5 — DTOs (readonly classes)
-- [ ] `GuarantorData` — title, description, amount, type,
+## Phase 5 — DTOs (readonly classes) ✅
+- [x] `GuarantorData` — title, description, amount, type,
       project_type, counterparty_phone
-- [ ] `CompanyDetailData` — company_name, commercial_register,
+- [x] `CompanyDetailData` — company_name, commercial_register,
       region_id, city_id, authorized_name, authorized_id_number,
       authorization_type, requester_account_holder, requester_iban,
       counterparty_account_holder, counterparty_iban
-- [ ] `InstallmentData` — order, amount, due_date
-- [ ] `UpdateGuarantorStatusData` — status, reason, notes
+- [x] `InstallmentData` — order, amount, due_date
+- [x] `UpdateGuarantorStatusData` — status, reason, notes
+- [x] Unit tests: `Modules/Guarantor/tests/Unit/DTOTest.php`
+
+### Completed: 2026-06-16
+### Summary:
+Four readonly DTOs in Modules/Guarantor/DTOs/ with fromRequest() factories.
+Minimal FormRequest stubs added for compile-time type hints (validation rules in Phase 7).
+DTOTest covers construction, fromArray, collectionFromRequest, and enum casting.
 
 ## Phase 6 — Repositories
 - [ ] `GuarantorRepositoryInterface`
@@ -378,3 +385,8 @@ Translation keys in lang/{en,ar,hi,ur}.json
 - Added GuarantorRequest, GuarantorInstallment, GuarantorCompanyDetail, GuarantorStatusHistory models
 - Added GuarantorRequestFactory and GuarantorInstallmentFactory
 - Extended User with guarantorRequests() and assignedGuarantorRequests() morph relationships
+
+### Phase 5 — DTOs (2026-06-16)
+- Added GuarantorData, CompanyDetailData, InstallmentData, UpdateGuarantorStatusData readonly DTOs
+- Added minimal FormRequest stubs for DTO type hints (full validation in Phase 7)
+- Added DTOTest.php with 5 unit tests
