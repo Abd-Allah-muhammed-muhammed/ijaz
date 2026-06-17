@@ -1,0 +1,28 @@
+{
+    "name": "nwidart/guarantor",
+    "description": "Guarantor module for individual and company guarantor requests",
+    "authors": [
+        {
+            "name": "Ijaz",
+            "email": "dev@ijaz.test"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Guarantor\\": "./",
+            "Modules\\Guarantor\\Database\\Factories\\": "database/factories/",
+            "Modules\\Guarantor\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Guarantor\\Tests\\": "tests/"
+        }
+    }
+}

@@ -1,5 +1,6 @@
 {
     "Classifieds": true,
     "Catalog": true,
-    "Opportunity": true
+    "Opportunity": true,
+    "Guarantor": true
 }

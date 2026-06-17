@@ -1,0 +1,12 @@
+{
+    "name": "Guarantor",
+    "alias": "guarantor",
+    "description": "Guarantor requests module — individuals and companies",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Guarantor\\Providers\\GuarantorServiceProvider"
+    ],
+    "aliases": {},
+    "files": []
+}
