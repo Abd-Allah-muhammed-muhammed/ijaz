@@ -44,7 +44,8 @@ type HistoryItem = {
 };
 
 type MediaItem = {
-  uuid: string;
+  id?: string;
+  uuid?: string;
   url: string;
   mime_type: string;
 };
@@ -90,35 +91,50 @@ type GuarantorResource = {
 
 type Props = {
   guarantorRequest: GuarantorResource;
-  selects: { statuses: StatusOption[] };
 };
 
+type AdminAction = 'approve' | 'reject' | 'cancel' | null;
+
+const TERMINAL_STATUSES = ['rejected_by_admin', 'rejected', 'ended', 'cancelled', 'refunded'];
+
 const statusBadgeClass: Record<string, string> = {
-  new: 'badge-light-primary',
-  approved: 'badge-light-info',
+  new: 'badge-light-secondary',
+  pending_admin: 'badge-light-warning',
+  approved_by_admin: 'badge-light-info',
+  rejected_by_admin: 'badge-light-danger',
+  accepted: 'badge-light-primary',
   rejected: 'badge-light-warning',
   in_progress: 'badge-light-success',
   overdue: 'badge-light-danger',
   ended: 'badge-light-success',
-  cancelled: 'badge-light-danger',
+  cancelled: 'badge-light-secondary',
   refunded: 'badge-light-secondary',
 };
 
-const Show = ({ guarantorRequest, selects }: Props) => {
+const Show = ({ guarantorRequest }: Props) => {
   const { t } = useTranslation();
   const { hasPermission } = usePermissions();
   const [activeTab, setActiveTab] = useState('overview');
-  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [adminAction, setAdminAction] = useState<AdminAction>(null);
   const canManage = hasPermission('manage guarantors');
 
-  const statusForm = useForm({
-    status: guarantorRequest.status?.value ?? '',
-    reason: '',
-    notes: '',
-  });
+  const currentStatus = guarantorRequest.status?.value ?? '';
+  const canApproveReject = canManage && currentStatus === 'pending_admin';
+  const canCancel = canManage && !TERMINAL_STATUSES.includes(currentStatus);
 
-  const badgeClass = statusBadgeClass[guarantorRequest.status?.value] ?? 'badge-light-secondary';
+  const approveForm = useForm({ notes: '' });
+  const rejectForm = useForm({ reason: '', notes: '' });
+  const cancelForm = useForm({ reason: '', notes: '' });
+
+  const badgeClass = statusBadgeClass[currentStatus] ?? 'badge-light-secondary';
   const isCompany = guarantorRequest.type?.value === 'company';
+
+  const closeAdminModal = () => {
+    setAdminAction(null);
+    approveForm.reset();
+    rejectForm.reset();
+    cancelForm.reset();
+  };
 
   const confirmDelete = () => {
     if (window.confirm(t('are_you_sure_delete'))) {
@@ -126,14 +142,25 @@ const Show = ({ guarantorRequest, selects }: Props) => {
     }
   };
 
-  const submitStatusChange = () => {
-    statusForm.post(GuarantorDashboardController.updateStatus(guarantorRequest.id).url, {
+  const submitAdminAction = () => {
+    const options = {
       preserveScroll: true,
-      onSuccess: () => {
-        setShowStatusModal(false);
-        statusForm.reset('reason', 'notes');
-      },
-    });
+      onSuccess: () => closeAdminModal(),
+    };
+
+    if (adminAction === 'approve') {
+      approveForm.post(GuarantorDashboardController.approveByAdmin(guarantorRequest.id).url, options);
+      return;
+    }
+
+    if (adminAction === 'reject') {
+      rejectForm.post(GuarantorDashboardController.rejectByAdmin(guarantorRequest.id).url, options);
+      return;
+    }
+
+    if (adminAction === 'cancel') {
+      cancelForm.post(GuarantorDashboardController.cancel(guarantorRequest.id).url, options);
+    }
   };
 
   const releaseInstallment = (installmentId: string) => {
@@ -148,6 +175,9 @@ const Show = ({ guarantorRequest, selects }: Props) => {
       );
     }
   };
+
+  const activeForm =
+    adminAction === 'approve' ? approveForm : adminAction === 'reject' ? rejectForm : cancelForm;
 
   return (
     <Content>
@@ -169,7 +199,7 @@ const Show = ({ guarantorRequest, selects }: Props) => {
                   <h1 className="fs-2 fw-bolder text-gray-900 mb-0">{guarantorRequest.title}</h1>
                   <span className={`badge ${badgeClass} fw-bold px-3 py-2`}>{guarantorRequest.status?.label}</span>
                   <span className="badge badge-light-info fw-bold px-3 py-2">{guarantorRequest.type?.label}</span>
-                  {guarantorRequest.status?.value === 'overdue' && (
+                  {currentStatus === 'overdue' && (
                     <span className="badge badge-danger fw-bold px-3 py-2">{t('guarantor_status_overdue')}</span>
                   )}
                 </div>
@@ -182,14 +212,26 @@ const Show = ({ guarantorRequest, selects }: Props) => {
                   <KTIcon iconName="arrow-left" className="fs-6 px-1" />
                   {t('back')}
                 </Link>
-                {canManage && (
-                  <button type="button" className="btn btn-sm btn-light-primary" onClick={() => setShowStatusModal(true)}>
-                    {t('change_status')}
+                {canApproveReject && (
+                  <>
+                    <button type="button" className="btn btn-sm btn-light-success" onClick={() => setAdminAction('approve')}>
+                      {t('approve')}
+                    </button>
+                    <button type="button" className="btn btn-sm btn-light-danger" onClick={() => setAdminAction('reject')}>
+                      {t('reject')}
+                    </button>
+                  </>
+                )}
+                {canCancel && (
+                  <button type="button" className="btn btn-sm btn-light-warning" onClick={() => setAdminAction('cancel')}>
+                    {t('cancel')}
                   </button>
                 )}
-                <button type="button" className="btn btn-sm btn-light-danger" onClick={confirmDelete}>
-                  {t('delete')}
-                </button>
+                {canManage && (
+                  <button type="button" className="btn btn-sm btn-light-danger" onClick={confirmDelete}>
+                    {t('delete')}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -277,7 +319,13 @@ const Show = ({ guarantorRequest, selects }: Props) => {
                     <h4 className="fw-bold mb-3">{t('media')}</h4>
                     <div className="d-flex flex-wrap gap-3">
                       {guarantorRequest.media.map((med) => (
-                        <a key={med.uuid} href={med.url} target="_blank" rel="noreferrer" className="btn btn-light-primary btn-sm">
+                        <a
+                          key={med.id ?? med.uuid}
+                          href={med.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-light-primary btn-sm"
+                        >
                           {t('download')}
                         </a>
                       ))}
@@ -404,50 +452,67 @@ const Show = ({ guarantorRequest, selects }: Props) => {
         </KTCard>
       </div>
 
-      <Modal show={showStatusModal} onHide={() => setShowStatusModal(false)} centered>
+      <Modal show={adminAction !== null} onHide={closeAdminModal} centered>
         <Modal.Header closeButton>
-          <Modal.Title>{t('change_status')}</Modal.Title>
+          <Modal.Title>
+            {adminAction === 'approve' && t('approve')}
+            {adminAction === 'reject' && t('reject')}
+            {adminAction === 'cancel' && t('cancel')}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="mb-4">
-            <label className="form-label required">{t('status')}</label>
-            <select
-              className="form-select form-select-solid"
-              value={statusForm.data.status}
-              onChange={(e) => statusForm.setData('status', e.target.value)}
-            >
-              {selects.statuses.map((status) => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="mb-4">
-            <label className="form-label required">{t('reason')}</label>
-            <textarea
-              className="form-control form-control-solid"
-              rows={3}
-              value={statusForm.data.reason}
-              onChange={(e) => statusForm.setData('reason', e.target.value)}
-            />
-            {statusForm.errors.reason && <div className="text-danger fs-7 mt-1">{statusForm.errors.reason}</div>}
-          </div>
-          <div className="mb-0">
-            <label className="form-label">{t('notes')}</label>
-            <textarea
-              className="form-control form-control-solid"
-              rows={3}
-              value={statusForm.data.notes}
-              onChange={(e) => statusForm.setData('notes', e.target.value)}
-            />
-          </div>
+          {adminAction === 'approve' && (
+            <div className="mb-0">
+              <label className="form-label">{t('notes')}</label>
+              <textarea
+                className="form-control form-control-solid"
+                rows={3}
+                value={approveForm.data.notes}
+                onChange={(e) => approveForm.setData('notes', e.target.value)}
+              />
+            </div>
+          )}
+          {(adminAction === 'reject' || adminAction === 'cancel') && (
+            <>
+              <div className="mb-4">
+                <label className="form-label required">{t('reason')}</label>
+                <textarea
+                  className="form-control form-control-solid"
+                  rows={3}
+                  value={adminAction === 'reject' ? rejectForm.data.reason : cancelForm.data.reason}
+                  onChange={(e) =>
+                    adminAction === 'reject'
+                      ? rejectForm.setData('reason', e.target.value)
+                      : cancelForm.setData('reason', e.target.value)
+                  }
+                />
+                {(adminAction === 'reject' ? rejectForm.errors.reason : cancelForm.errors.reason) && (
+                  <div className="text-danger fs-7 mt-1">
+                    {adminAction === 'reject' ? rejectForm.errors.reason : cancelForm.errors.reason}
+                  </div>
+                )}
+              </div>
+              <div className="mb-0">
+                <label className="form-label">{t('notes')}</label>
+                <textarea
+                  className="form-control form-control-solid"
+                  rows={3}
+                  value={adminAction === 'reject' ? rejectForm.data.notes : cancelForm.data.notes}
+                  onChange={(e) =>
+                    adminAction === 'reject'
+                      ? rejectForm.setData('notes', e.target.value)
+                      : cancelForm.setData('notes', e.target.value)
+                  }
+                />
+              </div>
+            </>
+          )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="light" onClick={() => setShowStatusModal(false)}>
-            {t('cancel')}
+          <Button variant="light" onClick={closeAdminModal}>
+            {t('close')}
           </Button>
-          <Button variant="primary" onClick={submitStatusChange} disabled={statusForm.processing}>
+          <Button variant="primary" onClick={submitAdminAction} disabled={activeForm.processing}>
             {t('confirm')}
           </Button>
         </Modal.Footer>
