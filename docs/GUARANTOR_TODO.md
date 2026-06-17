@@ -343,20 +343,14 @@ Seven payment pipeline tests added to GuarantorActionTest.
 - [ ] `Modules/Guarantor/Routes/dashboard.php`
       Admin: index, show, updateStatus, cancel, releaseInstallment (Phase 17)
 
-## Phase 17 — Dashboard (Admin)
-- [ ] `GuarantorDashboardController`
-      index (with filters: status, type, date),
-      show (full details + installments + history),
-      updateStatus (with reason — required),
-      cancel (with reason + notes),
-      releaseInstallment (manual release)
-- [ ] Dashboard resources
-- [ ] React pages:
-      Dashboard/Guarantor/Index.tsx
-      Dashboard/Guarantor/Show.tsx (tabs: overview, installments, history, chat)
-- [ ] Sidebar menu item with permission guard
-- [ ] Permissions seeder:
-      'show guarantors', 'manage guarantors'
+## Phase 17 — Dashboard (Admin) ✅
+- [x] `GuarantorController` (Dashboard) — index, show, updateStatus, releaseInstallment, destroy
+- [x] `Routes/dashboard.php` — admin routes with permissions middleware
+- [x] `GuarantorPermissionSeeder` — show/manage guarantors permissions
+- [x] Dashboard resources (Phase 12) wired in controller
+- [x] React pages: `Dashboard/Guarantor/Index.tsx`, `Show.tsx`, `GuarantorCard.tsx`
+- [x] Sidebar menu item with permission guard
+- [x] `DashboardTest.php` — 8 tests
 
 ## Phase 18 — Translations
 - [ ] `lang/{en,ar,hi,ur}/guarantor.php`

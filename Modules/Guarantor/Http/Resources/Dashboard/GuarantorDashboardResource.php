@@ -39,6 +39,7 @@ class GuarantorDashboardResource extends JsonResource
                 : null,
             'status_histories' => StatusHistoryResource::collection($this->statusHistories),
             'media' => MediaResource::collection($this->whenLoaded('media', fn () => $this->media)),
+            'installments_count' => $this->whenCounted('installments'),
             'overdue_at' => $this->overdue_at?->toIso8601String(),
             'ended_at' => $this->ended_at?->toIso8601String(),
             'cancelled_at' => $this->cancelled_at?->toIso8601String(),

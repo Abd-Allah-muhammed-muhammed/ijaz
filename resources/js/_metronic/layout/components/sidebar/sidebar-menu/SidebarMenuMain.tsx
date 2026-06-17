@@ -33,6 +33,7 @@ import ElectronicBrandController from '@/actions/Modules/Catalog/Http/Controller
 import SpecializationController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/SpecializationController';
 import InstituteAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/InstituteAdvisementController';
 import OpportunityController from '@/actions/Modules/Opportunity/Http/Controllers/Dashboard/OpportunityController';
+import GuarantorDashboardController from '@/actions/Modules/Guarantor/Http/Controllers/Dashboard/GuarantorController';
 import PropertyAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/PropertyAdvisementController';
 import CarAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/CarAdvisementController';
 import ElectronicAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/ElectronicAdvisementController';
@@ -288,6 +289,14 @@ const SidebarMenuMain = () => {
         fontIcon="bi-briefcase"
         isActive={matchComponents('dashboard.opportunities.*')}
         show={hasPermission('show opportunities')}
+      />
+      <SidebarMenuItem
+        to={GuarantorDashboardController.index().url}
+        title={t('guarantors')}
+        icon="shield-check"
+        fontIcon="bi-shield-check"
+        isActive={matchComponents('dashboard.guarantor.*')}
+        show={hasPermission('show guarantors')}
       />
       {hasAnyPermission(['show providerTypes', 'show providers']) && (
         <div className="menu-item">
