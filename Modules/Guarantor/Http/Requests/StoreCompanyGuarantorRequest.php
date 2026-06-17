@@ -27,7 +27,7 @@ class StoreCompanyGuarantorRequest extends ApiRequest
                 'string',
                 new CheckAuthenticatableId('user'),
             ],
-            'project_type' => ['nullable', 'string', 'max:255'],
+            'project_type' => ['required', 'string', 'max:255'],
             'total_amount' => ['required', 'numeric', 'min:1'],
             'installments' => ['required', 'array', 'min:1', 'max:12'],
             'installments.*.order' => ['required', 'integer', 'min:1'],

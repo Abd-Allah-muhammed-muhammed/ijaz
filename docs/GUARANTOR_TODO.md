@@ -181,61 +181,33 @@ StoreCompanyGuarantorRequest validates installment sum via withValidator().
 Validation and success message keys added to all four locales.
 FormRequestTest covers required fields, sum mismatch, status reason rules, and chat messages.
 
-## Phase 8 — Actions
-- [ ] `CreateIndividualGuarantorAction`
-      handle(GuarantorData, Model $requester, Request): GuarantorRequest
-      DB::transaction: create record, upload signature to media,
-      notify counterparty
-- [ ] `CreateCompanyGuarantorAction`
-      handle(GuarantorData, CompanyDetailData, InstallmentData[],
-      Model $requester, Request): GuarantorRequest
-      DB::transaction: create record, create company details,
-      create installments, upload all media, notify counterparty
-- [ ] `ApproveGuarantorAction`
-      handle(GuarantorRequest, Model $actor): GuarantorRequest
-      Validate: actor is counterparty, status is new
-      Update status → approved, open chat, log history,
-      notify requester
-- [ ] `RejectGuarantorAction`
-      handle(GuarantorRequest, string $reason, Model $actor): void
-      Validate: actor is counterparty, status is new
-      Update status → rejected, log history, notify requester
-- [ ] `PayIndividualGuarantorAction`
-      handle(GuarantorRequest, Model $actor): array
-      Validate: actor is counterparty, status is approved
-      Create Payment, initiate PayTabs, return gateway response
-- [ ] `PayInstallmentAction`
-      handle(GuarantorRequest, GuarantorInstallment, Model $actor): array
-      Validate: actor is counterparty, installment status is pending,
-      previous installment is paid
-      Create Payment for installment, initiate PayTabs
-- [ ] `ReleaseInstallmentAction`
-      handle(GuarantorInstallment): void
-      DB::transaction: update installment status → released,
-      release pending_credit to balance for requester wallet,
-      log history, notify requester
-- [ ] `AutoReleaseOverdueInstallmentAction`
-      handle(GuarantorInstallment): void
-      Same as ReleaseInstallmentAction but triggered by scheduler
-- [ ] `EndGuarantorAction`
-      handle(GuarantorRequest, Model $actor): void
-      Validate: actor is requester or counterparty, status is in_progress
-      Update status → ended, release last pending amounts,
-      log history, notify both parties
-- [ ] `CancelGuarantorAction`
-      handle(GuarantorRequest, string $reason, Model $actor): void
-      Validate: allowed statuses (new, approved),
-      Update status → cancelled, reverse any holds if paid,
-      log history, notify both parties
-- [ ] `AdminCancelGuarantorAction`
-      handle(GuarantorRequest, string $reason, string $notes, Admin $admin): void
-      Admin only, any status, full cancel + refund initiation
-- [ ] `OpenGuarantorChatAction`
-      handle(GuarantorRequest): Conversation
-      firstOrCreate conversation, validate status is approved+
-- [ ] `LogGuarantorStatusHistoryAction`
-      handle(GuarantorRequest, from, to, actor, reason, notes): void
-      Called from every status-changing action
+### Phase 7 fix (2026-06-17)
+- `project_type` required on StoreCompanyGuarantorRequest
+- Encrypted casts on GuarantorCompanyDetail bank fields (IBAN, account holders)
+
+## Phase 8 — Actions ✅
+- [x] `GuarantorException` + bootstrap registration
+- [x] `LogGuarantorStatusHistoryAction`
+- [x] `CreateIndividualGuarantorAction`
+- [x] `CreateCompanyGuarantorAction`
+- [x] `UpdateGuarantorAction`
+- [x] `DeleteGuarantorAction`
+- [x] `UpdateGuarantorStatusAction` (approve/reject + auto-open chat)
+- [x] `OpenGuarantorChatAction`
+- [x] `DeleteGuarantorMediaAction`
+- [x] `PayIndividualGuarantorAction`
+- [x] `PayInstallmentAction`
+- [x] `ReleaseInstallmentAction`
+- [x] `EndGuarantorAction`
+- [x] `CancelGuarantorAction`
+- [x] Feature tests: `Modules/Guarantor/tests/Feature/GuarantorActionTest.php`
+
+### Completed: 2026-06-17
+### Summary:
+Thirteen actions under Modules/Guarantor/Actions/ with DB::transaction on writes.
+GuarantorException registered in bootstrap/app.php with model not-found keys.
+Status history logged on every status change; notifications deferred to Phase 13.
+ApproveGuarantorAction/RejectGuarantorAction consolidated into UpdateGuarantorStatusAction.
 
 ## Phase 9 — Services
 - [ ] `GuarantorService` (orchestration only)
@@ -424,3 +396,9 @@ Translation keys in lang/{en,ar,hi,ur}.json
 - Added validation/success translation keys to en, ar, hi, ur
 - Added FormRequestTest.php with 9 unit tests
 - Fixed mmae/apiresponse ApiRequest trait namespace typo (Apiresponse → ApiResponse)
+
+### Phase 8 — Actions (2026-06-17)
+- Added GuarantorException and thirteen actions (create, update, delete, status, chat, payment, installment, end, cancel)
+- Registered exception handler and model not-found keys in bootstrap/app.php
+- Encrypted bank fields on GuarantorCompanyDetail; project_type required on company store request
+- Added GuarantorActionTest.php with 15 feature tests

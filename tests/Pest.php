@@ -16,7 +16,7 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(LazilyRefreshDatabase::class)
-    ->in('Feature', 'Unit', '../Modules/Classifieds/tests/Feature', '../Modules/Catalog/tests/Feature', '../Modules/Opportunity/tests/Feature', '../Modules/Opportunity/tests/Unit', '../Modules/Guarantor/tests/Unit');
+    ->in('Feature', 'Unit', '../Modules/Classifieds/tests/Feature', '../Modules/Catalog/tests/Feature', '../Modules/Opportunity/tests/Feature', '../Modules/Opportunity/tests/Unit', '../Modules/Guarantor/tests/Unit', '../Modules/Guarantor/tests/Feature');
 
 /*
 |--------------------------------------------------------------------------

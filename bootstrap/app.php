@@ -18,6 +18,9 @@ use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
 use Mcamara\LaravelLocalization\Middleware\LocaleCookieRedirect;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
+use Modules\Guarantor\Exceptions\GuarantorException;
+use Modules\Guarantor\Models\GuarantorInstallment;
+use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityComment;
 use Modules\Opportunity\Models\OpportunityOffer;
@@ -106,6 +109,8 @@ return Application::configure(basePath: dirname(__DIR__))
                     Opportunity::class => 'opportunity.not_found',
                     OpportunityOffer::class => 'opportunity.offer_not_found',
                     OpportunityComment::class => 'opportunity.comment_not_found',
+                    GuarantorRequest::class => 'guarantor.not_found',
+                    GuarantorInstallment::class => 'guarantor.installment_not_found',
                 ];
 
                 $key = $modelMap[$e->getModel()] ?? 'errors.not_found';
@@ -126,6 +131,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->renderable(function (NotFoundHttpException $e, $request) use ($renderModelNotFound) {
             if ($e->getPrevious() instanceof ModelNotFoundException) {
                 return $renderModelNotFound($e->getPrevious(), $request);
+            }
+        });
+
+        $exceptions->renderable(function (GuarantorException $e, $request) {
+            if ($request->expectsJson()) {
+                return $e->render();
             }
         });
         //    if (request()->is('api/*') && app()->isProduction()) {

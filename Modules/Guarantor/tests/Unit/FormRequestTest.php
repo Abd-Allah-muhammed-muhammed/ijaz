@@ -50,6 +50,7 @@ function companyGuarantorPayload(array $overrides = []): array
 {
     return array_merge([
         'counterparty_phone' => '0501234567',
+        'project_type' => 'Construction',
         'total_amount' => 1000,
         'installments' => [
             ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],

@@ -69,6 +69,10 @@ class GuarantorCompanyDetail extends Model implements HasMedia
     {
         return [
             'authorization_type' => AuthorizationTypeEnum::class,
+            'requester_iban' => 'encrypted',
+            'requester_account_holder' => 'encrypted',
+            'counterparty_iban' => 'encrypted',
+            'counterparty_account_holder' => 'encrypted',
         ];
     }
 }
