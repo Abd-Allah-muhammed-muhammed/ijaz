@@ -54,17 +54,26 @@ UUID PKs on all tables; uuidMorphs on requester, counterparty, and actor.
 total column uses storedAs on MySQL; plain decimal default on SQLite for tests.
 php artisan migrate ran successfully — all 4 tables verified.
 
-## Phase 3 — Enums
-- [ ] `GuarantorTypeEnum` — individual / company
+## Phase 3 — Enums ✅
+- [x] `GuarantorTypeEnum` — individual / company
       Use: Collectable, HasOperations, Stringable
-- [ ] `GuarantorStatusEnum` — new, approved, rejected, in_progress,
+- [x] `GuarantorStatusEnum` — new, approved, rejected, in_progress,
       overdue, ended, cancelled, refunded
       Include: isAllowed(old, new, actor) transition matrix
       Actors: requester / counterparty / admin
-- [ ] `InstallmentStatusEnum` — pending, paid, released, overdue, refunded
+- [x] `InstallmentStatusEnum` — pending, paid, released, overdue, refunded
       Use: Collectable, HasOperations, Stringable
-- [ ] `AuthorizationTypeEnum` — power_of_attorney / agency
+- [x] `AuthorizationTypeEnum` — power_of_attorney / agency
       Use: Collectable, HasOperations, Stringable
+- [x] Translation files: `lang/{en,ar,hi,ur}/guarantor.php`
+- [x] Unit tests: `Modules/Guarantor/tests/Unit/EnumTest.php`
+
+### Completed: 2026-06-16
+### Summary:
+Four enums in Modules/Guarantor/Enums/ with Collectable, HasOperations, Stringable.
+Custom toString() via guarantor.* translation keys; toArray() with value, label, color.
+GuarantorStatusEnum::isAllowed() covers requester, counterparty, and admin actors.
+Translations added for en, ar, hi, ur. Enum unit tests registered and passing.
 
 ## Phase 4 — Models
 - [ ] `GuarantorRequest` model
@@ -351,3 +360,8 @@ Translation keys in lang/{en,ar,hi,ur}.json
 - SQLite-safe `total` column (storedAs skipped on sqlite driver)
 - `city_id` FK references `cities` table (matches Opportunity / existing schema)
 - All migrations applied successfully via `php artisan migrate`
+
+### Phase 3 — Enums (2026-06-16)
+- Added GuarantorTypeEnum, GuarantorStatusEnum, InstallmentStatusEnum, AuthorizationTypeEnum
+- Added lang/en|ar|hi|ur/guarantor.php translation files
+- Added EnumTest.php with isAllowed() coverage; registered in phpunit.xml and Pest.php
