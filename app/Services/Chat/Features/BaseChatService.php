@@ -65,7 +65,7 @@ abstract class BaseChatService
     protected function send(HasConversation $sender, ?string $message = null, array $attachments = []): Conversation
     {
         $onlineUsers = $this->getOnlineUsers();
-        $receiver = $this->getReviver($sender);
+        $receiver = $this->getReceiver($sender);
         $read_at = $this->getReadAt($sender, $receiver, $onlineUsers);
 
         $lastMessage = DB::transaction(function () use ($message, $sender, $receiver, $read_at, $attachments) {
@@ -108,9 +108,9 @@ abstract class BaseChatService
     }
 
     /**
-     * resolve reviver object form chat
+     * resolve receiver object from chat
      */
-    abstract protected function getReviver(HasConversation $sender): HasConversation;
+    abstract protected function getReceiver(HasConversation $sender): HasConversation;
 
     protected function getReadAt(HasConversation $sender, HasConversation $receiver, Collection $onlineUsers): ?Carbon
     {

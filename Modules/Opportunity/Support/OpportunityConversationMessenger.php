@@ -44,7 +44,7 @@ class OpportunityConversationMessenger extends BaseChatService
         }
     }
 
-    protected function getReviver(HasConversation $sender): HasConversation
+    protected function getReceiver(HasConversation $sender): HasConversation
     {
         $this->chat->loadMissing(['user1', 'user2']);
 

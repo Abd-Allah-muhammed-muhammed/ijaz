@@ -44,7 +44,7 @@ class MemberChat extends BaseChatService
     /**
      * @throws ChatUerException
      */
-    protected function getReviver(HasConversation $sender): HasConversation
+    protected function getReceiver(HasConversation $sender): HasConversation
     {
         [$user_type, $user_id] = [get_class($sender), $sender->getKey()];
         if ($this->chat->user1_type == $user_type && $this->chat->user1_id == $user_id) {

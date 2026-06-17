@@ -110,9 +110,9 @@ class OrderChat extends BaseChatService
      */
 
     /**
-     * resolve reviver object form chat
+     * resolve receiver object from chat
      */
-    protected function getReviver(HasConversation $sender): HasConversation
+    protected function getReceiver(HasConversation $sender): HasConversation
     {
         if ($sender instanceof Provider) {
             return $this->chat->user2;
