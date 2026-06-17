@@ -98,6 +98,24 @@ test('counterparty cannot pay when status is not approved', function () {
     expect(Gate::forUser($counterparty)->allows('pay', $guarantorRequest))->toBeFalse();
 });
 
+test('requester cannot deleteMedia when status is not new', function () {
+    $requester = User::factory()->create();
+    $guarantorRequest = policyGuarantorRequest([
+        'requester_type' => User::class,
+        'requester_id' => $requester->getKey(),
+        'status' => GuarantorStatusEnum::Approved,
+    ]);
+
+    expect(Gate::forUser($requester)->allows('deleteMedia', $guarantorRequest))->toBeFalse();
+});
+
+test('parties cannot chat when status is new', function () {
+    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::New]);
+
+    expect(Gate::forUser($guarantorRequest->requester)->allows('chat', $guarantorRequest))->toBeFalse()
+        ->and(Gate::forUser($guarantorRequest->counterparty)->allows('chat', $guarantorRequest))->toBeFalse();
+});
+
 test('requester can end when status is in_progress', function () {
     $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::InProgress]);
     $requester = $guarantorRequest->requester;

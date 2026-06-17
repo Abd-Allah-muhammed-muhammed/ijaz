@@ -204,3 +204,20 @@ test('SendMessageRequest requires content or files', function () {
         ->and($validator->errors()->has('content'))->toBeTrue()
         ->and($validator->errors()->has('files'))->toBeTrue();
 });
+
+test('StoreCompanyGuarantorRequest fails when installment due_date is not after today', function () {
+    ['counterparty' => $counterparty] = setupGuarantorActors();
+
+    $data = companyGuarantorPayload([
+        'counterparty_phone' => (string) $counterparty->phone,
+        'installments' => [
+            ['order' => 1, 'amount' => 500, 'due_date' => now()->subDay()->toDateString()],
+            ['order' => 2, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
+        ],
+    ]);
+
+    $validator = validateCompanyGuarantorRequest($data, companyGuarantorFiles());
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->has('installments.0.due_date'))->toBeTrue();
+});

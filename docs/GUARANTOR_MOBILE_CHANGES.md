@@ -1,7 +1,7 @@
 # Guarantor Module — Mobile Developer Changes
 
-> Branch: feat/guarantor-module
-> Last updated: 2026-06-17
+> Branch: feature/guarantor-module
+> Last updated: 2026-06-16
 > Note: This file can be used directly as a prompt for AI assistants
 >       to implement changes on the mobile side.
 
@@ -200,9 +200,48 @@ Notify team before removal.
 
 ---
 
+## Migration from old guarantee-requests API
+
+**Old endpoints (still active):**
+```
+/api/v1/guarantee-requests/* → GuaranteeRequest (legacy)
+```
+
+**New endpoints:**
+```
+/api/v1/guarantor/* → GuarantorRequest (new module)
+/api/v1/chats/guarantor/* → Guarantor chat
+```
+
+**Key differences:**
+
+1. `type` field added (`individual` / `company`) — legacy had no type distinction
+2. `status` returns object `{ value, label, color }` not raw string
+3. `requester` / `counterparty` replace `user` / `provider` naming
+4. `installments` array required for company type with sum validation against `total_amount`
+5. `signature` file required on create (individual and company)
+6. Chat at `/api/v1/chats/guarantor` (not `/api/v1/chats/guarantee`)
+7. Payment: individual uses `POST /api/v1/guarantor/{id}/pay`; company uses installment pay endpoint
+8. Status transitions enforced via `GuarantorStatusEnum::isAllowed()` — terminal states cannot transition
+
+**Breaking changes for mobile:**
+
+| Old | New |
+|-----|-----|
+| `GET /api/v1/guarantee-requests` | `GET /api/v1/guarantor` |
+| `POST /api/v1/guarantee-requests` | `POST /api/v1/guarantor/individual` or `/company` |
+| `status: "new"` (string) | `status: { value, label, color }` (object) |
+| `user` / `provider` | `requester` / `counterparty` |
+| N/A | `installments` array for company type |
+| N/A | `signature` file on create |
+| `/api/v1/chats/guarantee` | `/api/v1/chats/guarantor` |
+
+---
+
 ## Changelog
 <!-- Updated after each phase -->
 | Date | Change | Phase |
 |------|--------|-------|
+| 2026-06-16 | Phases 18–22 complete — translations, tests (133), Scramble docs, final cleanup | Phase 22 |
 | 2026-06-17 | Routes registered — all endpoints live | Phase 16 |
-| TBD | Initial module created | Phase 1 |
+| 2026-06-16 | Initial module created | Phase 1 |

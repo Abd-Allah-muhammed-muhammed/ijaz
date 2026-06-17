@@ -31,7 +31,45 @@ class GuarantorController extends Controller
     ) {}
 
     /**
-     * List my guarantor requests (as requester or counterparty).
+     * List my guarantor requests.
+     *
+     * Returns a paginated list of guarantor requests where the authenticated user
+     * is the requester or counterparty.
+     *
+     * @authenticated
+     *
+     * @queryParam per_page int Results per page. Example: 10
+     * @queryParam status string Filter by status. Example: new
+     *
+     * @response 200 {
+     *   "status": true,
+     *   "data": {
+     *     "items": [
+     *       {
+     *         "id": "01234567-89ab-cdef-0123-456789abcdef",
+     *         "type": { "value": "individual", "label": "Individual", "color": "#3b82f6" },
+     *         "status": { "value": "new", "label": "New", "color": "#22c55e" },
+     *         "title": "Software development guarantee",
+     *         "description": "Guarantee for a 3-month project",
+     *         "amount": 5000.00,
+     *         "fees": 10.00,
+     *         "total": 5010.00,
+     *         "requester": { "id": "...", "name": "Ahmed Mohamed", "type": "user" },
+     *         "counterparty": { "id": "...", "name": "Ali Hassan", "type": "user" },
+     *         "installments_count": 0,
+     *         "media": [],
+     *         "created_at": "2026-06-01T10:00:00+00:00"
+     *       }
+     *     ],
+     *     "total": 25,
+     *     "count": 10,
+     *     "per_page": 10,
+     *     "current_page": 1,
+     *     "last_page": 3,
+     *     "has_more_pages": true
+     *   }
+     * }
+     * @response 401 { "success": false, "message": "Unauthenticated." }
      */
     public function index(Request $request): JsonResponse
     {
@@ -46,7 +84,33 @@ class GuarantorController extends Controller
     }
 
     /**
-     * Create individual guarantor request.
+     * Create an individual guarantor request.
+     *
+     * @authenticated
+     *
+     * @bodyParam counterparty_phone string required Counterparty phone number. Example: 0501234567
+     * @bodyParam amount number required Request amount. Example: 5000
+     * @bodyParam title string required Request title. Example: Project guarantee
+     * @bodyParam description string required Request description.
+     * @bodyParam signature file required Signature file (jpg, jpeg, png, pdf; max 5MB).
+     *
+     * @response 200 {
+     *   "status": true,
+     *   "message": "Guarantor request created successfully",
+     *   "data": {
+     *     "id": "01234567-89ab-cdef-0123-456789abcdef",
+     *     "type": { "value": "individual", "label": "Individual", "color": "#3b82f6" },
+     *     "status": { "value": "new", "label": "New", "color": "#22c55e" },
+     *     "title": "Project guarantee",
+     *     "amount": 5000.00,
+     *     "fees": 10.00,
+     *     "total": 5010.00,
+     *     "media": [{ "uuid": "...", "url": "...", "mime_type": "application/pdf" }]
+     *   }
+     * }
+     * @response 401 { "success": false, "message": "Unauthenticated." }
+     * @response 403 { "success": false, "message": "You are not authorized to perform this action" }
+     * @response 422 { "success": false, "message": "The counterparty phone number is not registered in the system" }
      */
     public function storeIndividual(StoreIndividualGuarantorRequest $request): JsonResponse
     {
@@ -64,7 +128,32 @@ class GuarantorController extends Controller
     }
 
     /**
-     * Create company guarantor request.
+     * Create a company guarantor request with installments.
+     *
+     * @authenticated
+     *
+     * @bodyParam counterparty_phone string required Counterparty phone number.
+     * @bodyParam project_type string required Project type. Example: Construction
+     * @bodyParam total_amount number required Total contract amount.
+     * @bodyParam installments array required Installment schedule.
+     * @bodyParam company_name string required Company name.
+     * @bodyParam signature file required Requester signature file.
+     *
+     * @response 200 {
+     *   "status": true,
+     *   "message": "Guarantor request created successfully",
+     *   "data": {
+     *     "id": "01234567-89ab-cdef-0123-456789abcdef",
+     *     "type": { "value": "company", "label": "Company", "color": "#8b5cf6" },
+     *     "status": { "value": "new", "label": "New", "color": "#22c55e" },
+     *     "installments": [
+     *       { "order": 1, "amount": 10000.00, "due_date": "2026-07-01", "status": { "value": "pending", "label": "Pending", "color": "#f59e0b" } }
+     *     ],
+     *     "company_detail": { "company_name": "Acme Corp" }
+     *   }
+     * }
+     * @response 401 { "success": false, "message": "Unauthenticated." }
+     * @response 422 { "success": false, "message": "The sum of installment amounts must equal the total contract amount" }
      */
     public function storeCompany(StoreCompanyGuarantorRequest $request): JsonResponse
     {
@@ -88,6 +177,26 @@ class GuarantorController extends Controller
 
     /**
      * Show guarantor request details.
+     *
+     * @authenticated
+     *
+     * @urlParam guarantorRequest string required Guarantor request UUID.
+     *
+     * @response 200 {
+     *   "status": true,
+     *   "data": {
+     *     "id": "01234567-89ab-cdef-0123-456789abcdef",
+     *     "type": { "value": "individual", "label": "Individual", "color": "#3b82f6" },
+     *     "status": { "value": "approved", "label": "Approved", "color": "#3b82f6" },
+     *     "title": "Project guarantee",
+     *     "installments": [],
+     *     "status_histories": [],
+     *     "media": []
+     *   }
+     * }
+     * @response 401 { "success": false, "message": "Unauthenticated." }
+     * @response 403 { "success": false, "message": "You are not authorized to perform this action" }
+     * @response 404 { "success": false, "message": "Guarantor request not found" }
      */
     public function show(GuarantorRequest $guarantorRequest): JsonResponse
     {
@@ -101,7 +210,18 @@ class GuarantorController extends Controller
     }
 
     /**
-     * Update guarantor request (status = New only).
+     * Update guarantor request.
+     *
+     * Only allowed when status is `new` and the authenticated user is the requester.
+     *
+     * @authenticated
+     *
+     * @urlParam guarantorRequest string required Guarantor request UUID.
+     *
+     * @response 200 { "status": true, "message": "Guarantor request updated successfully", "data": {} }
+     * @response 401 { "success": false, "message": "Unauthenticated." }
+     * @response 403 { "success": false, "message": "You are not authorized to perform this action" }
+     * @response 422 { "success": false, "message": "You can only update requests with status New" }
      */
     public function update(
         UpdateGuarantorRequest $request,
@@ -122,7 +242,18 @@ class GuarantorController extends Controller
     }
 
     /**
-     * Delete guarantor request (status = New only).
+     * Delete guarantor request.
+     *
+     * Only allowed when status is `new` and the authenticated user is the requester.
+     *
+     * @authenticated
+     *
+     * @urlParam guarantorRequest string required Guarantor request UUID.
+     *
+     * @response 200 { "status": true, "message": "Guarantor request deleted successfully" }
+     * @response 401 { "success": false, "message": "Unauthenticated." }
+     * @response 403 { "success": false, "message": "You are not authorized to perform this action" }
+     * @response 422 { "success": false, "message": "You can only delete requests with status New" }
      */
     public function destroy(GuarantorRequest $guarantorRequest): JsonResponse
     {
@@ -133,7 +264,22 @@ class GuarantorController extends Controller
     }
 
     /**
-     * Update status (approve / reject / cancel / end).
+     * Update guarantor request status.
+     *
+     * Approve, reject, cancel, or end a guarantor request. Reason is required for reject/cancel.
+     *
+     * @authenticated
+     *
+     * @urlParam guarantorRequest string required Guarantor request UUID.
+     *
+     * @bodyParam status string required New status. Example: approved
+     * @bodyParam reason string Reason (required when rejected or cancelled).
+     * @bodyParam notes string optional Additional notes.
+     *
+     * @response 200 { "status": true, "message": "Status updated successfully", "data": {} }
+     * @response 401 { "success": false, "message": "Unauthenticated." }
+     * @response 403 { "success": false, "message": "You are not authorized to perform this action" }
+     * @response 422 { "success": false, "message": "This status transition is not allowed" }
      */
     public function updateStatus(
         UpdateGuarantorStatusRequest $request,
@@ -158,7 +304,21 @@ class GuarantorController extends Controller
     }
 
     /**
-     * Pay individual guarantor request (counterparty only).
+     * Pay individual guarantor request.
+     *
+     * Initiates payment for an individual guarantor request. Counterparty only, status must be `approved`.
+     *
+     * @authenticated
+     *
+     * @urlParam guarantorRequest string required Guarantor request UUID.
+     *
+     * @response 200 {
+     *   "status": true,
+     *   "data": { "payment_url": "https://payment-gateway.example/pay/..." }
+     * }
+     * @response 401 { "success": false, "message": "Unauthenticated." }
+     * @response 403 { "success": false, "message": "You are not authorized to perform this action" }
+     * @response 422 { "success": false, "message": "This status transition is not allowed" }
      */
     public function pay(GuarantorRequest $guarantorRequest): JsonResponse
     {
@@ -173,7 +333,19 @@ class GuarantorController extends Controller
     }
 
     /**
-     * Delete media from guarantor request (status = New only).
+     * Delete media from guarantor request.
+     *
+     * Only allowed when status is `new` and the authenticated user is the requester.
+     *
+     * @authenticated
+     *
+     * @urlParam guarantorRequest string required Guarantor request UUID.
+     * @urlParam media string required Media UUID.
+     *
+     * @response 200 { "status": true, "message": "Media deleted successfully" }
+     * @response 401 { "success": false, "message": "Unauthenticated." }
+     * @response 403 { "success": false, "message": "You are not authorized to perform this action" }
+     * @response 422 { "success": false, "message": "You can only delete media when status is New" }
      */
     public function deleteMedia(
         GuarantorRequest $guarantorRequest,

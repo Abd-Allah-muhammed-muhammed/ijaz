@@ -28,6 +28,28 @@ class GuarantorChatController extends Controller
 
     /**
      * List guarantor chats for authenticated user.
+     *
+     * @authenticated
+     *
+     * @queryParam per_page int Results per page. Example: 15
+     *
+     * @response 200 {
+     *   "status": true,
+     *   "data": {
+     *     "items": [
+     *       {
+     *         "id": "01234567-89ab-cdef-0123-456789abcdef",
+     *         "guarantor_request_id": "...",
+     *         "last_message_at": "2026-06-01T10:00:00+00:00",
+     *         "unread_count": 2
+     *       }
+     *     ],
+     *     "total": 5,
+     *     "per_page": 15,
+     *     "current_page": 1
+     *   }
+     * }
+     * @response 401 { "success": false, "message": "Unauthenticated." }
      */
     public function index(Request $request): JsonResponse
     {
@@ -43,6 +65,25 @@ class GuarantorChatController extends Controller
 
     /**
      * Open or get conversation for a guarantor request.
+     *
+     * Chat is only available when guarantor status is approved, in_progress, or overdue.
+     *
+     * @authenticated
+     *
+     * @bodyParam guarantor_request_id string required Guarantor request UUID.
+     *
+     * @response 200 {
+     *   "status": true,
+     *   "data": {
+     *     "id": "01234567-89ab-cdef-0123-456789abcdef",
+     *     "guarantor_request_id": "...",
+     *     "user1": { "id": "...", "name": "Ahmed" },
+     *     "user2": { "id": "...", "name": "Ali" }
+     *   }
+     * }
+     * @response 401 { "success": false, "message": "Unauthenticated." }
+     * @response 403 { "success": false, "message": "You are not authorized to perform this action" }
+     * @response 422 { "success": false, "message": "Chat is only available after the request is approved" }
      */
     public function store(StoreChatRequest $request): JsonResponse
     {
@@ -62,7 +103,28 @@ class GuarantorChatController extends Controller
     }
 
     /**
-     * Show messages in a conversation.
+     * Show messages in a guarantor conversation.
+     *
+     * @authenticated
+     *
+     * @urlParam conversation string required Conversation UUID.
+     *
+     * @queryParam per_page int Results per page. Example: 20
+     *
+     * @response 200 {
+     *   "status": true,
+     *   "data": {
+     *     "items": [
+     *       { "id": "...", "content": "Hello", "created_at": "2026-06-01T10:00:00+00:00" }
+     *     ],
+     *     "total": 10,
+     *     "per_page": 20,
+     *     "current_page": 1
+     *   }
+     * }
+     * @response 401 { "success": false, "message": "Unauthenticated." }
+     * @response 403 { "success": false, "message": "You are not authorized to perform this action" }
+     * @response 404 { "success": false, "message": "Not found" }
      */
     public function show(
         Request $request,
@@ -81,7 +143,26 @@ class GuarantorChatController extends Controller
     }
 
     /**
-     * Send a message in a conversation.
+     * Send a message in a guarantor conversation.
+     *
+     * @authenticated
+     *
+     * @urlParam conversation string required Conversation UUID.
+     *
+     * @bodyParam content string Message text (required if no files).
+     * @bodyParam files file[] Optional file attachments.
+     *
+     * @response 200 {
+     *   "status": true,
+     *   "data": {
+     *     "id": "...",
+     *     "content": "Hello",
+     *     "created_at": "2026-06-01T10:00:00+00:00"
+     *   }
+     * }
+     * @response 401 { "success": false, "message": "Unauthenticated." }
+     * @response 403 { "success": false, "message": "You are not authorized to perform this action" }
+     * @response 422 { "success": false, "message": "Validation error" }
      */
     public function send(
         SendMessageRequest $request,
