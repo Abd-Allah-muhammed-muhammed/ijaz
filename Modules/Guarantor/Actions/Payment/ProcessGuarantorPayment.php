@@ -45,7 +45,7 @@ class ProcessGuarantorPayment
         $this->logStatusHistory->handle(
             request: $request,
             actor: $request->counterparty,
-            fromStatus: GuarantorStatusEnum::Approved->value,
+            fromStatus: GuarantorStatusEnum::Accepted->value,
             toStatus: GuarantorStatusEnum::InProgress->value,
             notes: 'Payment accepted by gateway',
         );

@@ -39,6 +39,7 @@ test('GuarantorResource returns correct fields', function () {
         'overdue_at',
         'ended_at',
         'cancelled_at',
+        'rejected_at',
         'refunded_at',
         'created_at',
     ])
@@ -87,14 +88,14 @@ test('StatusHistoryResource resolves from_status and to_status enums', function 
         'guarantor_request_id' => $guarantorRequest->id,
         'actor_type' => User::class,
         'actor_id' => $user->getKey(),
-        'from_status' => GuarantorStatusEnum::New->value,
-        'to_status' => GuarantorStatusEnum::Approved->value,
+        'from_status' => GuarantorStatusEnum::PendingAdmin->value,
+        'to_status' => GuarantorStatusEnum::ApprovedByAdmin->value,
     ]);
 
     $data = StatusHistoryResource::make($history)->toArray(resourceRequest());
 
-    expect($data['from_status']['value'])->toBe('new')
-        ->and($data['to_status']['value'])->toBe('approved');
+    expect($data['from_status']['value'])->toBe('pending_admin')
+        ->and($data['to_status']['value'])->toBe('approved_by_admin');
 });
 
 test('CompanyDetailResource returns decrypted IBAN fields', function () {

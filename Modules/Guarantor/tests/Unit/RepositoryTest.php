@@ -25,7 +25,7 @@ test('can create guarantor request via repository', function () {
         'counterparty_id' => $counterparty->getKey(),
         'amount' => 1000,
         'fees' => 10,
-        'status' => GuarantorStatusEnum::New,
+        'status' => GuarantorStatusEnum::PendingAdmin,
     ]);
 
     expect($guarantorRequest)->toBeInstanceOf(GuarantorRequest::class)
@@ -50,8 +50,8 @@ test('findById loads all relations', function () {
     app(StatusHistoryRepositoryInterface::class)->log(
         $guarantorRequest,
         $guarantorRequest->requester,
-        GuarantorStatusEnum::New->value,
-        GuarantorStatusEnum::Approved->value,
+        GuarantorStatusEnum::PendingAdmin->value,
+        GuarantorStatusEnum::Accepted->value,
     );
 
     $found = app(GuarantorRepositoryInterface::class)->findById($guarantorRequest->id);
@@ -191,17 +191,17 @@ test('status history can be logged via repository', function () {
     $history = app(StatusHistoryRepositoryInterface::class)->log(
         $guarantorRequest,
         $actor,
-        GuarantorStatusEnum::New->value,
-        GuarantorStatusEnum::Approved->value,
-        reason: 'Approved by counterparty',
+        GuarantorStatusEnum::PendingAdmin->value,
+        GuarantorStatusEnum::Accepted->value,
+        reason: 'Accepted by counterparty',
         notes: 'All good',
     );
 
     expect($history->guarantor_request_id)->toBe($guarantorRequest->id)
         ->and($history->actor_id)->toBe($actor->getKey())
         ->and($history->actor_type)->toBe(User::class)
-        ->and($history->from_status)->toBe(GuarantorStatusEnum::New->value)
-        ->and($history->to_status)->toBe(GuarantorStatusEnum::Approved->value)
-        ->and($history->reason)->toBe('Approved by counterparty')
+        ->and($history->from_status)->toBe(GuarantorStatusEnum::PendingAdmin->value)
+        ->and($history->to_status)->toBe(GuarantorStatusEnum::Accepted->value)
+        ->and($history->reason)->toBe('Accepted by counterparty')
         ->and($history->notes)->toBe('All good');
 });

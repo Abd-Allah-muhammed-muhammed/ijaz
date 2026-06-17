@@ -24,7 +24,7 @@ class UpdateGuarantorAction
     public function handle(GuarantorRequest $request, array $data, Request $httpRequest): GuarantorRequest
     {
         return DB::transaction(function () use ($request, $data, $httpRequest) {
-            if ($request->status->isNot(GuarantorStatusEnum::New)) {
+            if ($request->status->isNot(GuarantorStatusEnum::PendingAdmin)) {
                 throw new GuarantorException('guarantor.cannot_update_non_new', 422);
             }
 

@@ -2,22 +2,6 @@
 
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 
-test('requester can cancel from new', function () {
-    expect(GuarantorStatusEnum::isAllowed(
-        GuarantorStatusEnum::New,
-        GuarantorStatusEnum::Cancelled,
-        'requester'
-    ))->toBeTrue();
-});
-
-test('requester can cancel from approved', function () {
-    expect(GuarantorStatusEnum::isAllowed(
-        GuarantorStatusEnum::Approved,
-        GuarantorStatusEnum::Cancelled,
-        'requester'
-    ))->toBeTrue();
-});
-
 test('requester can end from in_progress', function () {
     expect(GuarantorStatusEnum::isAllowed(
         GuarantorStatusEnum::InProgress,
@@ -26,28 +10,60 @@ test('requester can end from in_progress', function () {
     ))->toBeTrue();
 });
 
-test('requester cannot approve', function () {
+test('requester can end from overdue', function () {
     expect(GuarantorStatusEnum::isAllowed(
-        GuarantorStatusEnum::New,
-        GuarantorStatusEnum::Approved,
+        GuarantorStatusEnum::Overdue,
+        GuarantorStatusEnum::Ended,
+        'requester'
+    ))->toBeTrue();
+});
+
+test('requester cannot accept from approved_by_admin', function () {
+    expect(GuarantorStatusEnum::isAllowed(
+        GuarantorStatusEnum::ApprovedByAdmin,
+        GuarantorStatusEnum::Accepted,
         'requester'
     ))->toBeFalse();
 });
 
-test('counterparty can approve from new', function () {
+test('requester cannot reject from approved_by_admin', function () {
     expect(GuarantorStatusEnum::isAllowed(
-        GuarantorStatusEnum::New,
-        GuarantorStatusEnum::Approved,
+        GuarantorStatusEnum::ApprovedByAdmin,
+        GuarantorStatusEnum::Rejected,
+        'requester'
+    ))->toBeFalse();
+});
+
+test('requester cannot end from pending_admin', function () {
+    expect(GuarantorStatusEnum::isAllowed(
+        GuarantorStatusEnum::PendingAdmin,
+        GuarantorStatusEnum::Ended,
+        'requester'
+    ))->toBeFalse();
+});
+
+test('counterparty can accept from approved_by_admin', function () {
+    expect(GuarantorStatusEnum::isAllowed(
+        GuarantorStatusEnum::ApprovedByAdmin,
+        GuarantorStatusEnum::Accepted,
         'counterparty'
     ))->toBeTrue();
 });
 
-test('counterparty can reject from new', function () {
+test('counterparty can reject from approved_by_admin', function () {
     expect(GuarantorStatusEnum::isAllowed(
-        GuarantorStatusEnum::New,
+        GuarantorStatusEnum::ApprovedByAdmin,
         GuarantorStatusEnum::Rejected,
         'counterparty'
     ))->toBeTrue();
+});
+
+test('counterparty cannot accept from pending_admin', function () {
+    expect(GuarantorStatusEnum::isAllowed(
+        GuarantorStatusEnum::PendingAdmin,
+        GuarantorStatusEnum::Accepted,
+        'counterparty'
+    ))->toBeFalse();
 });
 
 test('counterparty can end from in_progress', function () {
@@ -58,10 +74,10 @@ test('counterparty can end from in_progress', function () {
     ))->toBeTrue();
 });
 
-test('counterparty cannot cancel from new', function () {
+test('counterparty cannot transition from pending_admin', function () {
     expect(GuarantorStatusEnum::isAllowed(
-        GuarantorStatusEnum::New,
-        GuarantorStatusEnum::Cancelled,
+        GuarantorStatusEnum::PendingAdmin,
+        GuarantorStatusEnum::Rejected,
         'counterparty'
     ))->toBeFalse();
 });
@@ -76,14 +92,23 @@ test('admin can do any transition', function () {
 
 test('no transition from terminal status for non-admin', function () {
     $terminalStatuses = [
-        GuarantorStatusEnum::Ended,
+        GuarantorStatusEnum::RejectedByAdmin,
         GuarantorStatusEnum::Rejected,
+        GuarantorStatusEnum::Ended,
         GuarantorStatusEnum::Cancelled,
         GuarantorStatusEnum::Refunded,
     ];
 
     foreach ($terminalStatuses as $status) {
-        expect(GuarantorStatusEnum::isAllowed($status, GuarantorStatusEnum::New, 'requester'))->toBeFalse();
-        expect(GuarantorStatusEnum::isAllowed($status, GuarantorStatusEnum::Approved, 'counterparty'))->toBeFalse();
+        expect(GuarantorStatusEnum::isAllowed($status, GuarantorStatusEnum::PendingAdmin, 'requester'))->toBeFalse();
+        expect(GuarantorStatusEnum::isAllowed($status, GuarantorStatusEnum::Accepted, 'counterparty'))->toBeFalse();
     }
+});
+
+test('cannot set same status twice for non-admin', function () {
+    expect(GuarantorStatusEnum::isAllowed(
+        GuarantorStatusEnum::Accepted,
+        GuarantorStatusEnum::Accepted,
+        'counterparty'
+    ))->toBeFalse();
 });

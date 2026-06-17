@@ -58,7 +58,7 @@ class CreateCompanyGuarantorAction
                 'description' => $data->description,
                 'amount' => $data->amount,
                 'project_type' => $data->project_type,
-                'status' => GuarantorStatusEnum::New,
+                'status' => GuarantorStatusEnum::PendingAdmin,
             ]);
 
             /** @var GuarantorCompanyDetail $companyDetail */
@@ -112,7 +112,7 @@ class CreateCompanyGuarantorAction
                 $guarantorRequest,
                 $requester,
                 null,
-                GuarantorStatusEnum::New->value,
+                GuarantorStatusEnum::PendingAdmin->value,
             );
 
             $guarantorRequest->load([
@@ -123,7 +123,7 @@ class CreateCompanyGuarantorAction
                 'media',
             ]);
 
-            $guarantorRequest->counterparty->notify(
+            $guarantorRequest->requester->notify(
                 new GuarantorCreatedNotification($guarantorRequest)
             );
 

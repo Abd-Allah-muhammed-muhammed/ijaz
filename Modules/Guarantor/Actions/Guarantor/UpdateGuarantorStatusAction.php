@@ -10,9 +10,11 @@ use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
-use Modules\Guarantor\Notifications\GuarantorApprovedNotification;
+use Modules\Guarantor\Notifications\GuarantorAcceptedNotification;
+use Modules\Guarantor\Notifications\GuarantorAdminApprovedNotification;
+use Modules\Guarantor\Notifications\GuarantorAdminRejectedNotification;
+use Modules\Guarantor\Notifications\GuarantorCounterpartyRejectedNotification;
 use Modules\Guarantor\Notifications\GuarantorEndedNotification;
-use Modules\Guarantor\Notifications\GuarantorRejectedNotification;
 use Throwable;
 
 class UpdateGuarantorStatusAction
@@ -35,6 +37,10 @@ class UpdateGuarantorStatusAction
         return DB::transaction(function () use ($request, $data, $actor, $actorRole) {
             if ($request->status->is($data->status)) {
                 throw new GuarantorException('guarantor.status_already_set', 422);
+            }
+
+            if ($request->status->isTerminal() && $actorRole !== 'admin') {
+                throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }
 
             if (! GuarantorStatusEnum::isAllowed($request->status, $data->status, $actorRole)) {
@@ -60,6 +66,10 @@ class UpdateGuarantorStatusAction
                 $updateData['refunded_at'] = now();
             }
 
+            if ($data->status->isIn([GuarantorStatusEnum::RejectedByAdmin, GuarantorStatusEnum::Rejected])) {
+                $updateData['rejected_at'] = now();
+            }
+
             $guarantorRequest = $this->guarantorRepository->update($request, $updateData);
 
             $this->logStatusHistory->handle(
@@ -71,16 +81,23 @@ class UpdateGuarantorStatusAction
                 $data->notes,
             );
 
-            if ($data->status === GuarantorStatusEnum::Approved) {
+            if ($data->status->is(GuarantorStatusEnum::Accepted)) {
                 $this->openGuarantorChatAction->handle($guarantorRequest);
             }
 
             match ($data->status) {
-                GuarantorStatusEnum::Approved => $guarantorRequest->requester->notify(
-                    new GuarantorApprovedNotification($guarantorRequest)
+                GuarantorStatusEnum::ApprovedByAdmin => collect([
+                    $guarantorRequest->requester,
+                    $guarantorRequest->counterparty,
+                ])->each->notify(new GuarantorAdminApprovedNotification($guarantorRequest)),
+                GuarantorStatusEnum::RejectedByAdmin => $guarantorRequest->requester->notify(
+                    new GuarantorAdminRejectedNotification($guarantorRequest)
+                ),
+                GuarantorStatusEnum::Accepted => $guarantorRequest->requester->notify(
+                    new GuarantorAcceptedNotification($guarantorRequest)
                 ),
                 GuarantorStatusEnum::Rejected => $guarantorRequest->requester->notify(
-                    new GuarantorRejectedNotification($guarantorRequest)
+                    new GuarantorCounterpartyRejectedNotification($guarantorRequest)
                 ),
                 GuarantorStatusEnum::Ended,
                 GuarantorStatusEnum::Cancelled => collect([

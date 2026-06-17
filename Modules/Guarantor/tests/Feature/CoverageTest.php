@@ -100,8 +100,8 @@ test('updateStatus from terminal status throws exception', function () {
     );
 })->throws(GuarantorException::class);
 
-test('DeleteGuarantorMediaAction fails when status is not new', function () {
-    $guarantorRequest = GuarantorRequest::factory()->approved()->create();
+test('DeleteGuarantorMediaAction fails when status is not pending_admin', function () {
+    $guarantorRequest = GuarantorRequest::factory()->accepted()->create();
     $media = $guarantorRequest
         ->addMedia(UploadedFile::fake()->create('file.pdf', 100, 'application/pdf'))
         ->toMediaCollection('files');
@@ -109,7 +109,7 @@ test('DeleteGuarantorMediaAction fails when status is not new', function () {
     app(DeleteGuarantorMediaAction::class)->handle($guarantorRequest, $media);
 })->throws(GuarantorException::class);
 
-test('PayIndividualGuarantorAction fails when status is not approved', function () {
+test('PayIndividualGuarantorAction fails when status is not accepted', function () {
     $guarantorRequest = GuarantorRequest::factory()->inProgress()->create();
 
     app(PayIndividualGuarantorAction::class)->handle(

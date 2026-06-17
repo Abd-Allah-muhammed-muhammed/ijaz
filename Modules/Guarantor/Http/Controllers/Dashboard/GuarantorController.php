@@ -25,7 +25,7 @@ class GuarantorController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:show guarantors', only: ['index', 'show']),
-            new Middleware('permission:manage guarantors', only: ['updateStatus', 'releaseInstallment']),
+            new Middleware('permission:manage guarantors', only: ['updateStatus', 'releaseInstallment', 'approveByAdmin', 'rejectByAdmin', 'cancel']),
         ];
     }
 
@@ -56,7 +56,8 @@ class GuarantorController extends Controller implements HasMiddleware
             ],
             'stats' => fn () => [
                 'total' => GuarantorRequest::count(),
-                'new' => GuarantorRequest::where('status', GuarantorStatusEnum::New)->count(),
+                'pending_admin' => GuarantorRequest::where('status', GuarantorStatusEnum::PendingAdmin)->count(),
+                'approved_by_admin' => GuarantorRequest::where('status', GuarantorStatusEnum::ApprovedByAdmin)->count(),
                 'in_progress' => GuarantorRequest::where('status', GuarantorStatusEnum::InProgress)->count(),
                 'overdue' => GuarantorRequest::where('status', GuarantorStatusEnum::Overdue)->count(),
                 'ended' => GuarantorRequest::where('status', GuarantorStatusEnum::Ended)->count(),
@@ -104,6 +105,67 @@ class GuarantorController extends Controller implements HasMiddleware
         app(UpdateGuarantorStatusAction::class)->handle(
             $guarantorRequest,
             $data,
+            auth('admin')->user(),
+            'admin'
+        );
+
+        return back()->with('success', __('guarantor.status_updated_successfully'));
+    }
+
+    public function approveByAdmin(Request $request, GuarantorRequest $guarantorRequest): RedirectResponse
+    {
+        $request->validate([
+            'notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        app(UpdateGuarantorStatusAction::class)->handle(
+            $guarantorRequest,
+            new UpdateGuarantorStatusData(
+                status: GuarantorStatusEnum::ApprovedByAdmin,
+                notes: $request->input('notes'),
+            ),
+            auth('admin')->user(),
+            'admin'
+        );
+
+        return back()->with('success', __('guarantor.status_updated_successfully'));
+    }
+
+    public function rejectByAdmin(Request $request, GuarantorRequest $guarantorRequest): RedirectResponse
+    {
+        $request->validate([
+            'reason' => ['required', 'string', 'max:1000'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        app(UpdateGuarantorStatusAction::class)->handle(
+            $guarantorRequest,
+            new UpdateGuarantorStatusData(
+                status: GuarantorStatusEnum::RejectedByAdmin,
+                reason: $request->string('reason')->toString(),
+                notes: $request->input('notes'),
+            ),
+            auth('admin')->user(),
+            'admin'
+        );
+
+        return back()->with('success', __('guarantor.status_updated_successfully'));
+    }
+
+    public function cancel(Request $request, GuarantorRequest $guarantorRequest): RedirectResponse
+    {
+        $request->validate([
+            'reason' => ['required', 'string', 'max:1000'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        app(UpdateGuarantorStatusAction::class)->handle(
+            $guarantorRequest,
+            new UpdateGuarantorStatusData(
+                status: GuarantorStatusEnum::Cancelled,
+                reason: $request->string('reason')->toString(),
+                notes: $request->input('notes'),
+            ),
             auth('admin')->user(),
             'admin'
         );

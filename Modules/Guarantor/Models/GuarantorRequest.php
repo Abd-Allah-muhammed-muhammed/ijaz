@@ -45,11 +45,12 @@ class GuarantorRequest extends Model implements HasMedia
         'overdue_at',
         'ended_at',
         'cancelled_at',
+        'rejected_at',
         'refunded_at',
     ];
 
     protected $attributes = [
-        'status' => GuarantorStatusEnum::New,
+        'status' => GuarantorStatusEnum::PendingAdmin,
         'fees' => 10,
     ];
 
@@ -101,10 +102,11 @@ class GuarantorRequest extends Model implements HasMedia
     public function scopeActive(Builder $query): Builder
     {
         return $query->whereNotIn('status', [
+            GuarantorStatusEnum::RejectedByAdmin->value,
+            GuarantorStatusEnum::Rejected->value,
             GuarantorStatusEnum::Ended->value,
             GuarantorStatusEnum::Cancelled->value,
             GuarantorStatusEnum::Refunded->value,
-            GuarantorStatusEnum::Rejected->value,
         ]);
     }
 
@@ -149,6 +151,7 @@ class GuarantorRequest extends Model implements HasMedia
             'overdue_at' => 'datetime',
             'ended_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'rejected_at' => 'datetime',
             'refunded_at' => 'datetime',
         ];
     }

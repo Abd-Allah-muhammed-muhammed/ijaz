@@ -79,13 +79,13 @@ test('InstallmentData collectionFromRequest returns array of InstallmentData', f
 
 test('UpdateGuarantorStatusData casts status to enum', function () {
     $request = Mockery::mock(UpdateGuarantorStatusRequest::class);
-    $request->shouldReceive('validated')->with('status')->andReturn('approved');
-    $request->shouldReceive('validated')->with('reason')->andReturn('Approved by counterparty');
+    $request->shouldReceive('validated')->with('status')->andReturn('accepted');
+    $request->shouldReceive('validated')->with('reason')->andReturn('Accepted by counterparty');
     $request->shouldReceive('validated')->with('notes')->andReturn(null);
 
     $data = UpdateGuarantorStatusData::fromRequest($request);
 
-    expect($data->status)->toBe(GuarantorStatusEnum::Approved)
-        ->and($data->reason)->toBe('Approved by counterparty')
+    expect($data->status)->toBe(GuarantorStatusEnum::Accepted)
+        ->and($data->reason)->toBe('Accepted by counterparty')
         ->and($data->notes)->toBeNull();
 });

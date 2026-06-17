@@ -144,14 +144,22 @@ Old base URL: `/api/v1/guarantee-requests` (still works — not removed yet)
 ### Guarantor Status
 | Value | Label (ar) | Who triggers |
 |-------|-----------|--------------|
-| `new` | جديد | System (on create) |
-| `approved` | موافق عليه | Counterparty |
-| `rejected` | مرفوض | Counterparty |
+| `pending_admin` | بانتظار مراجعة الإدارة | System (on create) |
+| `approved_by_admin` | موافق عليه من الإدارة | Admin |
+| `rejected_by_admin` | مرفوض من الإدارة | Admin (terminal) |
+| `accepted` | مقبول | Counterparty |
+| `rejected` | مرفوض | Counterparty (terminal) |
 | `in_progress` | جاري التنفيذ | System (after payment) |
 | `overdue` | متأخر | System (scheduler) |
 | `ended` | منتهي | Requester or Counterparty |
-| `cancelled` | ملغي | Requester, Counterparty, or Admin |
+| `cancelled` | ملغي | Admin only |
 | `refunded` | مسترد | Admin |
+
+**Flow:** `pending_admin` → `approved_by_admin` → `accepted` → `in_progress` → `ended`
+
+- Chat opens on: `accepted` (not `approved_by_admin`)
+- Pay allowed on: `accepted` only
+- Parties cannot cancel — Admin only
 
 ### Installment Status
 | Value | Label (ar) |
@@ -238,10 +246,38 @@ Notify team before removal.
 
 ---
 
+## Breaking Changes — Status Flow (2026-06-17)
+
+**Old statuses (removed/changed):**
+- `approved` → split into `approved_by_admin` and `accepted`
+- `new` as initial status → replaced by `pending_admin`
+
+**New statuses:**
+- `pending_admin` — initial status after create
+- `approved_by_admin` — admin approved, waiting for counterparty
+- `rejected_by_admin` — admin rejected (terminal)
+- `accepted` — counterparty accepted, payment allowed
+- `rejected` — counterparty rejected (terminal)
+
+**New flow:**
+```
+Create → pending_admin → approved_by_admin → accepted → in_progress → ended
+                      ↓                  ↓
+               rejected_by_admin       rejected
+```
+
+- Chat opens on: `accepted` (was: `approved`)
+- Pay allowed on: `accepted` (was: `approved`)
+- Cancel/refund: Admin only
+- Response includes `rejected_at` timestamp when rejected
+
+---
+
 ## Changelog
 <!-- Updated after each phase -->
 | Date | Change | Phase |
 |------|--------|-------|
+| 2026-06-17 | Status flow refactored — admin review step + accepted state | Status Refactor |
 | 2026-06-16 | Phases 18–22 complete — translations, tests (133), Scramble docs, final cleanup | Phase 22 |
 | 2026-06-17 | Routes registered — all endpoints live | Phase 16 |
 | 2026-06-16 | Initial module created | Phase 1 |

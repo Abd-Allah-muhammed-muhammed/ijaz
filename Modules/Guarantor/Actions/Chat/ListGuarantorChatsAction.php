@@ -27,6 +27,8 @@ class ListGuarantorChatsAction
             })
             ->whereHas('operation', function ($query) {
                 $query->whereNotIn('status', [
+                    GuarantorStatusEnum::RejectedByAdmin->value,
+                    GuarantorStatusEnum::Rejected->value,
                     GuarantorStatusEnum::Ended->value,
                     GuarantorStatusEnum::Cancelled->value,
                     GuarantorStatusEnum::Refunded->value,

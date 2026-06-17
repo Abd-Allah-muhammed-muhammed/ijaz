@@ -25,9 +25,11 @@ class UpdateGuarantorStatusRequest extends ApiRequest
                 Rule::requiredIf(fn () => in_array(
                     $this->input('status'),
                     [
+                        GuarantorStatusEnum::RejectedByAdmin->value,
                         GuarantorStatusEnum::Rejected->value,
                         GuarantorStatusEnum::Cancelled->value,
-                    ]
+                    ],
+                    true
                 )),
                 'nullable',
                 'string',

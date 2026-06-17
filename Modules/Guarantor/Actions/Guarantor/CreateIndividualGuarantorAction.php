@@ -44,7 +44,7 @@ class CreateIndividualGuarantorAction
                 'title' => $data->title,
                 'description' => $data->description,
                 'amount' => $data->amount,
-                'status' => GuarantorStatusEnum::New,
+                'status' => GuarantorStatusEnum::PendingAdmin,
             ]);
 
             if ($request->hasFile('signature')) {
@@ -56,12 +56,12 @@ class CreateIndividualGuarantorAction
                 $guarantorRequest,
                 $requester,
                 null,
-                GuarantorStatusEnum::New->value,
+                GuarantorStatusEnum::PendingAdmin->value,
             );
 
             $guarantorRequest->load(['requester', 'counterparty', 'media']);
 
-            $guarantorRequest->counterparty->notify(
+            $guarantorRequest->requester->notify(
                 new GuarantorCreatedNotification($guarantorRequest)
             );
 

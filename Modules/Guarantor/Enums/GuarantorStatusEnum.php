@@ -11,7 +11,10 @@ enum GuarantorStatusEnum: string
     use Collectable, HasOperations, Stringable;
 
     case New = 'new';
-    case Approved = 'approved';
+    case PendingAdmin = 'pending_admin';
+    case ApprovedByAdmin = 'approved_by_admin';
+    case RejectedByAdmin = 'rejected_by_admin';
+    case Accepted = 'accepted';
     case Rejected = 'rejected';
     case InProgress = 'in_progress';
     case Overdue = 'overdue';
@@ -27,13 +30,16 @@ enum GuarantorStatusEnum: string
     public function color(): string
     {
         return match ($this) {
-            self::New => '#22c55e',
-            self::Approved => '#3b82f6',
+            self::New => '#6b7280',
+            self::PendingAdmin => '#f59e0b',
+            self::ApprovedByAdmin => '#3b82f6',
+            self::RejectedByAdmin => '#ef4444',
+            self::Accepted => '#8b5cf6',
             self::Rejected => '#f97316',
             self::InProgress => '#06b6d4',
-            self::Overdue => '#f59e0b',
+            self::Overdue => '#ef4444',
             self::Ended => '#10b981',
-            self::Cancelled => '#ef4444',
+            self::Cancelled => '#6b7280',
             self::Refunded => '#6b7280',
         };
     }
@@ -50,23 +56,44 @@ enum GuarantorStatusEnum: string
         ];
     }
 
+    public function isTerminal(): bool
+    {
+        return in_array($this, [
+            self::RejectedByAdmin,
+            self::Rejected,
+            self::Ended,
+            self::Cancelled,
+            self::Refunded,
+        ], true);
+    }
+
     public static function isAllowed(self $old, self $new, string $actor): bool
     {
+        if ($actor === 'admin') {
+            return true;
+        }
+
+        if ($old->isTerminal()) {
+            return false;
+        }
+
+        if ($old === $new) {
+            return false;
+        }
+
         return match ($actor) {
-            'requester' => match ($old) {
-                self::New, self::Approved => $new === self::Cancelled,
-                self::InProgress, self::Overdue => $new === self::Ended
-                    || $new === self::Cancelled,
-                default => false,
-            },
             'counterparty' => match ($old) {
-                self::New => $new === self::Approved
+                self::ApprovedByAdmin => $new === self::Accepted
                     || $new === self::Rejected,
-                self::Approved => $new === self::Cancelled,
-                self::InProgress, self::Overdue => $new === self::Ended,
+                self::InProgress,
+                self::Overdue => $new === self::Ended,
                 default => false,
             },
-            'admin' => true,
+            'requester' => match ($old) {
+                self::InProgress,
+                self::Overdue => $new === self::Ended,
+                default => false,
+            },
             default => false,
         };
     }

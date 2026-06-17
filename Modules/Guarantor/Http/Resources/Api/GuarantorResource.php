@@ -38,6 +38,7 @@ class GuarantorResource extends JsonResource
             'overdue_at' => $this->overdue_at?->toIso8601String(),
             'ended_at' => $this->ended_at?->toIso8601String(),
             'cancelled_at' => $this->cancelled_at?->toIso8601String(),
+            'rejected_at' => $this->rejected_at?->toIso8601String(),
             'refunded_at' => $this->refunded_at?->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),
         ];

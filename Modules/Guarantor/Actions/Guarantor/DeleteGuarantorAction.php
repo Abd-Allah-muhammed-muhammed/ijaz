@@ -16,7 +16,7 @@ class DeleteGuarantorAction
     public function handle(GuarantorRequest $request): void
     {
         DB::transaction(function () use ($request) {
-            if ($request->status->isNot(GuarantorStatusEnum::New)) {
+            if ($request->status->isNot(GuarantorStatusEnum::PendingAdmin)) {
                 throw new GuarantorException('guarantor.cannot_delete_non_new', 422);
             }
 

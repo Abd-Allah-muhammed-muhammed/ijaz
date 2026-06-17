@@ -22,7 +22,7 @@ class PayIndividualGuarantorAction
     public function handle(GuarantorRequest $request, Model $actor): array
     {
         return DB::transaction(function () use ($request, $actor) {
-            if ($request->status->isNot(GuarantorStatusEnum::Approved)) {
+            if ($request->status->isNot(GuarantorStatusEnum::Accepted)) {
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }
 

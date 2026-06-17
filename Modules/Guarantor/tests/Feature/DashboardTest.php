@@ -85,7 +85,7 @@ test('admin can filter by status', function () {
     withoutGuarantorDashboardLocaleMiddleware();
     $admin = createGuarantorDashboardAdmin(['show guarantors']);
 
-    GuarantorRequest::factory()->create(['status' => GuarantorStatusEnum::New]);
+    GuarantorRequest::factory()->pendingAdmin()->create();
     $inProgress = GuarantorRequest::factory()->inProgress()->create(['title' => 'Filter Status Target']);
 
     $this->actingAs($admin, 'admin')
@@ -121,19 +121,19 @@ test('admin can filter by type', function () {
 
 test('admin can change status with reason', function () {
     $admin = createGuarantorDashboardAdmin(['show guarantors', 'manage guarantors']);
-    $guarantorRequest = GuarantorRequest::factory()->create(['status' => GuarantorStatusEnum::New]);
+    $guarantorRequest = GuarantorRequest::factory()->pendingAdmin()->create();
 
     $this->actingAs($admin, 'admin')
         ->from(action([DashboardGuarantorController::class, 'show'], $guarantorRequest))
         ->post(action([DashboardGuarantorController::class, 'updateStatus'], $guarantorRequest), [
-            'status' => GuarantorStatusEnum::Approved->value,
+            'status' => GuarantorStatusEnum::ApprovedByAdmin->value,
             'reason' => 'Approved by admin review',
             'notes' => 'Verified documents',
         ])
         ->assertRedirect()
         ->assertSessionHas('success');
 
-    expect($guarantorRequest->fresh()->status)->toBe(GuarantorStatusEnum::Approved);
+    expect($guarantorRequest->fresh()->status)->toBe(GuarantorStatusEnum::ApprovedByAdmin);
 });
 
 test('admin can release installment', function () {

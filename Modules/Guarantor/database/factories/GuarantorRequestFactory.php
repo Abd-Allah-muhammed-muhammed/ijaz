@@ -30,7 +30,7 @@ class GuarantorRequestFactory extends Factory
             'counterparty_id' => User::factory(),
             'amount' => fake()->randomFloat(2, 100, 10000),
             'fees' => 10,
-            'status' => GuarantorStatusEnum::New,
+            'status' => GuarantorStatusEnum::PendingAdmin,
         ];
     }
 
@@ -39,9 +39,25 @@ class GuarantorRequestFactory extends Factory
         return $this->state(['type' => GuarantorTypeEnum::Company]);
     }
 
+    public function pendingAdmin(): static
+    {
+        return $this->state(['status' => GuarantorStatusEnum::PendingAdmin]);
+    }
+
+    public function approvedByAdmin(): static
+    {
+        return $this->state(['status' => GuarantorStatusEnum::ApprovedByAdmin]);
+    }
+
+    public function accepted(): static
+    {
+        return $this->state(['status' => GuarantorStatusEnum::Accepted]);
+    }
+
+    /** @deprecated Use accepted() */
     public function approved(): static
     {
-        return $this->state(['status' => GuarantorStatusEnum::Approved]);
+        return $this->accepted();
     }
 
     public function inProgress(): static

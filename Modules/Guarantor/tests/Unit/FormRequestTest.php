@@ -152,6 +152,21 @@ test('StoreCompanyGuarantorRequest requires at least one contract file', functio
         ->and($validator->errors()->has('contracts'))->toBeTrue();
 });
 
+test('UpdateGuarantorStatusRequest requires reason when status is rejected_by_admin', function () {
+    $request = UpdateGuarantorStatusRequest::createFrom(
+        Request::create('/', 'POST', ['status' => GuarantorStatusEnum::RejectedByAdmin->value])
+    );
+    $request->setContainer(app());
+
+    $validator = Validator::make(
+        ['status' => GuarantorStatusEnum::RejectedByAdmin->value],
+        $request->rules()
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->has('reason'))->toBeTrue();
+});
+
 test('UpdateGuarantorStatusRequest requires reason when status is rejected', function () {
     $request = UpdateGuarantorStatusRequest::createFrom(
         Request::create('/', 'POST', ['status' => GuarantorStatusEnum::Rejected->value])
@@ -182,14 +197,14 @@ test('UpdateGuarantorStatusRequest requires reason when status is cancelled', fu
         ->and($validator->errors()->has('reason'))->toBeTrue();
 });
 
-test('UpdateGuarantorStatusRequest does not require reason when status is approved', function () {
+test('UpdateGuarantorStatusRequest does not require reason when status is accepted', function () {
     $request = UpdateGuarantorStatusRequest::createFrom(
-        Request::create('/', 'POST', ['status' => GuarantorStatusEnum::Approved->value])
+        Request::create('/', 'POST', ['status' => GuarantorStatusEnum::Accepted->value])
     );
     $request->setContainer(app());
 
     $validator = Validator::make(
-        ['status' => GuarantorStatusEnum::Approved->value],
+        ['status' => GuarantorStatusEnum::Accepted->value],
         $request->rules()
     );
 

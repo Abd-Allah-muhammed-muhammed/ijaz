@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Payment\PaymentStatusEnum;
+use App\Models\Admin;
 use App\Models\Conversation;
 use App\Models\Payment;
 use App\Models\User;
@@ -36,10 +37,12 @@ use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
 use Modules\Guarantor\Jobs\ReleaseInstallmentJob;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
-use Modules\Guarantor\Notifications\GuarantorApprovedNotification;
+use Modules\Guarantor\Notifications\GuarantorAcceptedNotification;
+use Modules\Guarantor\Notifications\GuarantorAdminApprovedNotification;
+use Modules\Guarantor\Notifications\GuarantorAdminRejectedNotification;
+use Modules\Guarantor\Notifications\GuarantorCounterpartyRejectedNotification;
 use Modules\Guarantor\Notifications\GuarantorCreatedNotification;
 use Modules\Guarantor\Notifications\GuarantorEndedNotification;
-use Modules\Guarantor\Notifications\GuarantorRejectedNotification;
 use Modules\Guarantor\Notifications\InstallmentReleasedNotification;
 use Modules\Guarantor\Services\GuarantorService;
 
@@ -99,7 +102,7 @@ test('CreateIndividualGuarantorAction creates request and uploads signature', fu
     );
 
     expect($guarantorRequest->type)->toBe(GuarantorTypeEnum::Individual)
-        ->and($guarantorRequest->status)->toBe(GuarantorStatusEnum::New)
+        ->and($guarantorRequest->status)->toBe(GuarantorStatusEnum::PendingAdmin)
         ->and($guarantorRequest->counterparty_id)->toBe($counterparty->getKey())
         ->and($guarantorRequest->getMedia('signature'))->toHaveCount(1);
 });
@@ -213,30 +216,84 @@ test('CreateCompanyGuarantorAction fails if installments sum != total', function
         ->and($validator->errors()->has('installments'))->toBeTrue();
 });
 
-test('UpdateGuarantorStatusAction approves request and opens chat', function () {
-    $guarantorRequest = GuarantorRequest::factory()->create([
-        'status' => GuarantorStatusEnum::New,
+function guarantorActionAdmin(): Admin
+{
+    return Admin::query()->create([
+        'name' => 'Guarantor Action Admin',
+        'phone' => fake()->unique()->phoneNumber(),
+        'email' => fake()->unique()->safeEmail(),
+        'password' => 'password',
+        'language' => 'en',
     ]);
-    $counterparty = $guarantorRequest->counterparty;
+}
+
+test('admin can approve pending request', function () {
+    Notification::fake();
+
+    $admin = guarantorActionAdmin();
+    $guarantorRequest = GuarantorRequest::factory()->pendingAdmin()->create();
 
     $updated = app(UpdateGuarantorStatusAction::class)->handle(
         $guarantorRequest,
-        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Approved),
+        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::ApprovedByAdmin),
+        $admin,
+        'admin',
+    );
+
+    expect($updated->status)->toBe(GuarantorStatusEnum::ApprovedByAdmin);
+
+    Notification::assertSentTo($guarantorRequest->requester, GuarantorAdminApprovedNotification::class);
+    Notification::assertSentTo($guarantorRequest->counterparty, GuarantorAdminApprovedNotification::class);
+});
+
+test('admin can reject pending request', function () {
+    Notification::fake();
+
+    $admin = guarantorActionAdmin();
+    $guarantorRequest = GuarantorRequest::factory()->pendingAdmin()->create();
+    $requester = $guarantorRequest->requester;
+
+    $updated = app(UpdateGuarantorStatusAction::class)->handle(
+        $guarantorRequest,
+        new UpdateGuarantorStatusData(
+            status: GuarantorStatusEnum::RejectedByAdmin,
+            reason: 'Invalid documents',
+        ),
+        $admin,
+        'admin',
+    );
+
+    expect($updated->status)->toBe(GuarantorStatusEnum::RejectedByAdmin)
+        ->and($updated->rejected_at)->not->toBeNull();
+
+    Notification::assertSentTo($requester, GuarantorAdminRejectedNotification::class);
+});
+
+test('counterparty can accept after admin approval', function () {
+    Notification::fake();
+
+    $guarantorRequest = GuarantorRequest::factory()->approvedByAdmin()->create();
+    $counterparty = $guarantorRequest->counterparty;
+    $requester = $guarantorRequest->requester;
+
+    $updated = app(UpdateGuarantorStatusAction::class)->handle(
+        $guarantorRequest,
+        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Accepted),
         $counterparty,
         'counterparty',
     );
 
-    expect($updated->status)->toBe(GuarantorStatusEnum::Approved);
+    expect($updated->status)->toBe(GuarantorStatusEnum::Accepted);
 
-    expect(Conversation::query()
-        ->where('operation_type', GuarantorRequest::class)
-        ->where('operation_id', $guarantorRequest->id)
-        ->exists())->toBeTrue();
+    Notification::assertSentTo($requester, GuarantorAcceptedNotification::class);
 });
 
-test('UpdateGuarantorStatusAction rejects request', function () {
-    $guarantorRequest = GuarantorRequest::factory()->create(['status' => GuarantorStatusEnum::New]);
+test('counterparty can reject after admin approval', function () {
+    Notification::fake();
+
+    $guarantorRequest = GuarantorRequest::factory()->approvedByAdmin()->create();
     $counterparty = $guarantorRequest->counterparty;
+    $requester = $guarantorRequest->requester;
 
     $updated = app(UpdateGuarantorStatusAction::class)->handle(
         $guarantorRequest,
@@ -248,61 +305,107 @@ test('UpdateGuarantorStatusAction rejects request', function () {
         'counterparty',
     );
 
-    expect($updated->status)->toBe(GuarantorStatusEnum::Rejected);
+    expect($updated->status)->toBe(GuarantorStatusEnum::Rejected)
+        ->and($updated->rejected_at)->not->toBeNull();
+
+    Notification::assertSentTo($requester, GuarantorCounterpartyRejectedNotification::class);
 });
 
-test('UpdateGuarantorStatusAction fails for invalid transition', function () {
-    $guarantorRequest = GuarantorRequest::factory()->create(['status' => GuarantorStatusEnum::New]);
-
-    app(UpdateGuarantorStatusAction::class)->handle(
-        $guarantorRequest,
-        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Approved),
-        $guarantorRequest->requester,
-        'requester',
-    );
-})->throws(GuarantorException::class);
-
-test('requester cannot approve', function () {
-    $guarantorRequest = GuarantorRequest::factory()->create(['status' => GuarantorStatusEnum::New]);
+test('requester cannot accept or reject', function () {
+    $guarantorRequest = GuarantorRequest::factory()->approvedByAdmin()->create();
     $requester = $guarantorRequest->requester;
     $service = app(GuarantorService::class);
+    $actorRole = $service->resolveActorRole($guarantorRequest, $requester);
 
     $service->updateStatus(
         $guarantorRequest,
-        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Approved),
+        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Accepted),
         $requester,
-        $service->resolveActorRole($guarantorRequest, $requester),
+        $actorRole,
+    );
+})->throws(GuarantorException::class);
+
+test('chat opens on accepted not approved by admin', function () {
+    $guarantorRequest = GuarantorRequest::factory()->approvedByAdmin()->create();
+    $counterparty = $guarantorRequest->counterparty;
+
+    expect(Conversation::query()
+        ->where('operation_type', GuarantorRequest::class)
+        ->where('operation_id', $guarantorRequest->id)
+        ->exists())->toBeFalse();
+
+    app(UpdateGuarantorStatusAction::class)->handle(
+        $guarantorRequest,
+        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Accepted),
+        $counterparty,
+        'counterparty',
+    );
+
+    expect(Conversation::query()
+        ->where('operation_type', GuarantorRequest::class)
+        ->where('operation_id', $guarantorRequest->id)
+        ->exists())->toBeTrue();
+});
+
+test('pay allowed only when accepted', function () {
+    config(['app.payment.driver' => 'testing']);
+
+    $approvedByAdmin = GuarantorRequest::factory()->approvedByAdmin()->create(['amount' => 1000, 'fees' => 10]);
+
+    app(PayIndividualGuarantorAction::class)->handle($approvedByAdmin, $approvedByAdmin->counterparty);
+})->throws(GuarantorException::class);
+
+test('pay succeeds when status is accepted', function () {
+    config(['app.payment.driver' => 'testing']);
+
+    $guarantorRequest = GuarantorRequest::factory()->accepted()->create(['amount' => 1000, 'fees' => 10]);
+    $counterparty = $guarantorRequest->counterparty;
+
+    $response = app(PayIndividualGuarantorAction::class)->handle($guarantorRequest, $counterparty);
+
+    expect($response)->toHaveKey('url')
+        ->and(Payment::query()->where('product_id', $guarantorRequest->id)->exists())->toBeTrue();
+});
+
+test('cannot transition from terminal status', function () {
+    $guarantorRequest = GuarantorRequest::factory()->create(['status' => GuarantorStatusEnum::Rejected]);
+
+    app(UpdateGuarantorStatusAction::class)->handle(
+        $guarantorRequest,
+        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Accepted),
+        $guarantorRequest->counterparty,
+        'counterparty',
     );
 })->throws(GuarantorException::class);
 
 test('cannot set same status twice', function () {
-    $guarantorRequest = GuarantorRequest::factory()->approved()->create();
+    $guarantorRequest = GuarantorRequest::factory()->accepted()->create();
     $counterparty = $guarantorRequest->counterparty;
 
     app(UpdateGuarantorStatusAction::class)->handle(
         $guarantorRequest,
-        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Approved),
+        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Accepted),
         $counterparty,
         'counterparty',
     );
 })->throws(GuarantorException::class);
 
-test('DeleteGuarantorAction deletes new request', function () {
-    $guarantorRequest = GuarantorRequest::factory()->create(['status' => GuarantorStatusEnum::New]);
+test('DeleteGuarantorAction deletes pending_admin request', function () {
+    $guarantorRequest = GuarantorRequest::factory()->pendingAdmin()->create();
 
     app(DeleteGuarantorAction::class)->handle($guarantorRequest);
 
     expect(GuarantorRequest::withTrashed()->find($guarantorRequest->id)?->trashed())->toBeTrue();
 });
 
-test('DeleteGuarantorAction fails for non-new request', function () {
-    $guarantorRequest = GuarantorRequest::factory()->approved()->create();
+test('DeleteGuarantorAction fails for non pending_admin request', function () {
+    $guarantorRequest = GuarantorRequest::factory()->accepted()->create();
 
     app(DeleteGuarantorAction::class)->handle($guarantorRequest);
 })->throws(GuarantorException::class);
 
-test('OpenGuarantorChatAction creates conversation on approve', function () {
-    $guarantorRequest = GuarantorRequest::factory()->approved()->create();
+test('OpenGuarantorChatAction creates conversation when accepted', function () {
+    $guarantorRequest = GuarantorRequest::factory()->accepted()->create();
 
     $conversation = app(OpenGuarantorChatAction::class)->handle($guarantorRequest);
 
@@ -310,8 +413,14 @@ test('OpenGuarantorChatAction creates conversation on approve', function () {
         ->and($conversation->operation_id)->toBe($guarantorRequest->id);
 });
 
-test('OpenGuarantorChatAction fails when status is new', function () {
-    $guarantorRequest = GuarantorRequest::factory()->create(['status' => GuarantorStatusEnum::New]);
+test('OpenGuarantorChatAction fails when status is approved by admin', function () {
+    $guarantorRequest = GuarantorRequest::factory()->approvedByAdmin()->create();
+
+    app(OpenGuarantorChatAction::class)->handle($guarantorRequest);
+})->throws(GuarantorException::class);
+
+test('OpenGuarantorChatAction fails when status is pending_admin', function () {
+    $guarantorRequest = GuarantorRequest::factory()->pendingAdmin()->create();
 
     app(OpenGuarantorChatAction::class)->handle($guarantorRequest);
 })->throws(GuarantorException::class);
@@ -358,6 +467,7 @@ test('CancelGuarantorAction reverses wallet on cancel after payment', function (
     $guarantorRequest = GuarantorRequest::factory()->inProgress()->create(['amount' => 1000, 'fees' => 10]);
     $requester = $guarantorRequest->requester;
     $counterparty = $guarantorRequest->counterparty;
+    $admin = guarantorActionAdmin();
 
     $requester->wallet->update(['pending_credit' => 1010]);
     $counterparty->wallet->update(['pending_debit' => 1010]);
@@ -365,8 +475,8 @@ test('CancelGuarantorAction reverses wallet on cancel after payment', function (
     app(CancelGuarantorAction::class)->handle(
         $guarantorRequest,
         'Changed plans',
-        $requester,
-        'requester',
+        $admin,
+        'admin',
     );
 
     $requester->wallet->refresh();
@@ -377,10 +487,10 @@ test('CancelGuarantorAction reverses wallet on cancel after payment', function (
         ->and((float) $counterparty->wallet->pending_debit)->toBe(0.0);
 });
 
-test('creating individual guarantor notifies counterparty', function () {
+test('creating individual guarantor notifies requester', function () {
     Notification::fake();
 
-    ['requester' => $requester, 'counterparty' => $counterparty] = createGuarantorActors();
+    ['requester' => $requester] = createGuarantorActors();
     Sanctum::actingAs($requester);
 
     app(CreateIndividualGuarantorAction::class)->handle(
@@ -394,44 +504,7 @@ test('creating individual guarantor notifies counterparty', function () {
         individualGuarantorHttpRequest(),
     );
 
-    Notification::assertSentTo($counterparty, GuarantorCreatedNotification::class);
-});
-
-test('approving guarantor notifies requester', function () {
-    Notification::fake();
-
-    $guarantorRequest = GuarantorRequest::factory()->create(['status' => GuarantorStatusEnum::New]);
-    $counterparty = $guarantorRequest->counterparty;
-    $requester = $guarantorRequest->requester;
-
-    app(UpdateGuarantorStatusAction::class)->handle(
-        $guarantorRequest,
-        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Approved),
-        $counterparty,
-        'counterparty',
-    );
-
-    Notification::assertSentTo($requester, GuarantorApprovedNotification::class);
-});
-
-test('rejecting guarantor notifies requester', function () {
-    Notification::fake();
-
-    $guarantorRequest = GuarantorRequest::factory()->create(['status' => GuarantorStatusEnum::New]);
-    $counterparty = $guarantorRequest->counterparty;
-    $requester = $guarantorRequest->requester;
-
-    app(UpdateGuarantorStatusAction::class)->handle(
-        $guarantorRequest,
-        new UpdateGuarantorStatusData(
-            status: GuarantorStatusEnum::Rejected,
-            reason: 'Not acceptable',
-        ),
-        $counterparty,
-        'counterparty',
-    );
-
-    Notification::assertSentTo($requester, GuarantorRejectedNotification::class);
+    Notification::assertSentTo($requester, GuarantorCreatedNotification::class);
 });
 
 test('ending guarantor notifies both parties', function () {
@@ -509,7 +582,7 @@ function runPaymentPipelineStage(object $stage, Payment $payment): Payment
 test('PayIndividualGuarantorAction creates payment and returns gateway url', function () {
     config(['app.payment.driver' => 'testing']);
 
-    $guarantorRequest = GuarantorRequest::factory()->approved()->create(['amount' => 1000, 'fees' => 10]);
+    $guarantorRequest = GuarantorRequest::factory()->accepted()->create(['amount' => 1000, 'fees' => 10]);
     $counterparty = $guarantorRequest->counterparty;
 
     $response = app(PayIndividualGuarantorAction::class)->handle($guarantorRequest, $counterparty);
@@ -519,7 +592,7 @@ test('PayIndividualGuarantorAction creates payment and returns gateway url', fun
 });
 
 test('ProcessGuarantorPayment sets request to in_progress on payment accepted', function () {
-    $guarantorRequest = GuarantorRequest::factory()->approved()->create(['amount' => 1000, 'fees' => 10]);
+    $guarantorRequest = GuarantorRequest::factory()->accepted()->create(['amount' => 1000, 'fees' => 10]);
     $payment = acceptedGuarantorPayment($guarantorRequest, $guarantorRequest->counterparty, 1010);
 
     runPaymentPipelineStage(app(ProcessGuarantorPayment::class), $payment);
@@ -564,7 +637,7 @@ test('ProcessGuarantorPayment dispatches ReleaseInstallmentJob for previous inst
 });
 
 test('AddCounterpartyWalletTransaction increments pending_credit on requester wallet', function () {
-    $guarantorRequest = GuarantorRequest::factory()->approved()->create(['amount' => 1000, 'fees' => 10]);
+    $guarantorRequest = GuarantorRequest::factory()->accepted()->create(['amount' => 1000, 'fees' => 10]);
     $payment = acceptedGuarantorPayment($guarantorRequest, $guarantorRequest->counterparty, 1010);
     $requester = $guarantorRequest->requester;
     $requester->wallet->update(['pending_credit' => 0, 'balance' => 0]);
@@ -575,7 +648,7 @@ test('AddCounterpartyWalletTransaction increments pending_credit on requester wa
 });
 
 test('AddRequesterWalletTransaction increments pending_debit on counterparty wallet', function () {
-    $guarantorRequest = GuarantorRequest::factory()->approved()->create(['amount' => 1000, 'fees' => 10]);
+    $guarantorRequest = GuarantorRequest::factory()->accepted()->create(['amount' => 1000, 'fees' => 10]);
     $payment = acceptedGuarantorPayment($guarantorRequest, $guarantorRequest->counterparty, 1010);
     $counterparty = $guarantorRequest->counterparty;
     $counterparty->wallet->update(['pending_debit' => 0, 'balance' => 0]);

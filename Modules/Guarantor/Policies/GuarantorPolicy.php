@@ -11,19 +11,19 @@ class GuarantorPolicy
     public function update(Model $user, GuarantorRequest $request): bool
     {
         return $this->isRequester($user, $request)
-            && $request->status->is(GuarantorStatusEnum::New);
+            && $request->status->is(GuarantorStatusEnum::PendingAdmin);
     }
 
     public function delete(Model $user, GuarantorRequest $request): bool
     {
         return $this->isRequester($user, $request)
-            && $request->status->is(GuarantorStatusEnum::New);
+            && $request->status->is(GuarantorStatusEnum::PendingAdmin);
     }
 
     public function deleteMedia(Model $user, GuarantorRequest $request): bool
     {
         return $this->isRequester($user, $request)
-            && $request->status->is(GuarantorStatusEnum::New);
+            && $request->status->is(GuarantorStatusEnum::PendingAdmin);
     }
 
     public function updateStatus(Model $user, GuarantorRequest $request): bool
@@ -34,7 +34,7 @@ class GuarantorPolicy
     public function pay(Model $user, GuarantorRequest $request): bool
     {
         return $this->isCounterparty($user, $request)
-            && $request->status->is(GuarantorStatusEnum::Approved);
+            && $request->status->is(GuarantorStatusEnum::Accepted);
     }
 
     public function end(Model $user, GuarantorRequest $request): bool
@@ -46,20 +46,11 @@ class GuarantorPolicy
             ]);
     }
 
-    public function cancel(Model $user, GuarantorRequest $request): bool
-    {
-        return $this->isParty($user, $request)
-            && $request->status->isIn([
-                GuarantorStatusEnum::New,
-                GuarantorStatusEnum::Approved,
-            ]);
-    }
-
     public function chat(Model $user, GuarantorRequest $request): bool
     {
         return $this->isParty($user, $request)
             && $request->status->isIn([
-                GuarantorStatusEnum::Approved,
+                GuarantorStatusEnum::Accepted,
                 GuarantorStatusEnum::InProgress,
                 GuarantorStatusEnum::Overdue,
             ]);

@@ -14,6 +14,9 @@ Route::middleware([
         Route::get('/', [GuarantorController::class, 'index'])->name('index');
         Route::get('/{guarantorRequest}', [GuarantorController::class, 'show'])->name('show');
         Route::post('/{guarantorRequest}/status', [GuarantorController::class, 'updateStatus'])->name('updateStatus');
+        Route::post('/{guarantorRequest}/approve', [GuarantorController::class, 'approveByAdmin'])->name('approveByAdmin');
+        Route::post('/{guarantorRequest}/reject', [GuarantorController::class, 'rejectByAdmin'])->name('rejectByAdmin');
+        Route::post('/{guarantorRequest}/cancel', [GuarantorController::class, 'cancel'])->name('cancel');
         Route::post('/{guarantorRequest}/installments/{installment}/release', [GuarantorController::class, 'releaseInstallment'])->name('releaseInstallment');
         Route::delete('/{guarantorRequest}', [GuarantorController::class, 'destroy'])->name('destroy');
     });
