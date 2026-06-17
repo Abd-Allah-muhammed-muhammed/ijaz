@@ -209,13 +209,24 @@ GuarantorException registered in bootstrap/app.php with model not-found keys.
 Status history logged on every status change; notifications deferred to Phase 13.
 ApproveGuarantorAction/RejectGuarantorAction consolidated into UpdateGuarantorStatusAction.
 
-## Phase 9 — Services
-- [ ] `GuarantorService` (orchestration only)
-      Methods: createIndividual, createCompany,
-      approve, reject, payIndividual, payInstallment,
-      end, cancel, loadForShow
-- [ ] `GuarantorInstallmentService`
-      Methods: releaseInstallment, checkOverdue
+## Phase 9 — Services ✅
+- [x] `GuarantorService` (orchestration only)
+      Methods: createIndividual, createCompany, update, delete,
+      updateStatus, deleteMedia, payIndividual, end, cancel,
+      loadForShow, listForActor, listAll, resolveActorRole
+- [x] `GuarantorInstallmentService`
+      Methods: pay, release, getNextPending, listForRequest
+- [x] `GuarantorChatService`
+      Methods: open, listForActor, listMessages, send
+- [x] Chat action stubs: ListGuarantorChatsAction,
+      ListGuarantorChatMessagesAction, SendGuarantorChatMessageAction
+- [x] `GuarantorConversationMessenger` support class
+
+### Completed: 2026-06-17
+### Summary:
+Three orchestration services delegate to Actions with zero business logic.
+Chat list/send actions stubbed for Phase 14 full integration.
+GuarantorService includes resolveActorRole() helper for controllers/policies.
 
 ## Phase 10 — Policies
 - [ ] `GuarantorPolicy`
@@ -402,3 +413,7 @@ Translation keys in lang/{en,ar,hi,ur}.json
 - Registered exception handler and model not-found keys in bootstrap/app.php
 - Encrypted bank fields on GuarantorCompanyDetail; project_type required on company store request
 - Added GuarantorActionTest.php with 15 feature tests
+
+### Phase 9 — Services (2026-06-17)
+- Added GuarantorService, GuarantorInstallmentService, GuarantorChatService
+- Added chat action stubs and GuarantorConversationMessenger support class

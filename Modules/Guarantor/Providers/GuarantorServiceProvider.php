@@ -38,6 +38,9 @@ class GuarantorServiceProvider extends ModuleServiceProvider
             StatusHistoryRepositoryInterface::class,
             StatusHistoryRepository::class,
         );
+
+        // Services are resolved via constructor injection:
+        // GuarantorService, GuarantorInstallmentService, GuarantorChatService
     }
 
     public function boot(): void
