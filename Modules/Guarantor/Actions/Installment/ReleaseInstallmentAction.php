@@ -9,6 +9,7 @@ use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Notifications\InstallmentReleasedNotification;
 use Throwable;
 
 class ReleaseInstallmentAction
@@ -75,7 +76,9 @@ class ReleaseInstallmentAction
                 notes: "Installment {$installment->order} released via {$trigger}",
             );
 
-            // TODO: notify requester (Phase 13)
+            $installment->refresh();
+
+            $requester->notify(new InstallmentReleasedNotification($installment));
         });
     }
 }

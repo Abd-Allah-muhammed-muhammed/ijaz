@@ -284,18 +284,25 @@ API resources use whenLoaded for relations; enums expose toArray() with label an
 Dashboard resources include admin_notes and eager relation output for Phase 17.
 ResourceTest covers field shape, enum serialization, is_past_due, and encrypted IBAN access.
 
-## Phase 13 — Notifications
-- [ ] `GuarantorCreatedNotification` → notify counterparty
-- [ ] `GuarantorApprovedNotification` → notify requester
-- [ ] `GuarantorRejectedNotification` → notify requester
-- [ ] `InstallmentDueNotification` → notify counterparty (day 1)
-- [ ] `InstallmentOverdueNotification` → notify both (day 3)
-- [ ] `InstallmentReleasedNotification` → notify requester
-- [ ] `GuarantorEndedNotification` → notify both
-- [ ] `GuarantorCancelledNotification` → notify both
+## Phase 13 — Notifications ✅
+- [x] `GuarantorCreatedNotification` → notify counterparty
+- [x] `GuarantorApprovedNotification` → notify requester
+- [x] `GuarantorRejectedNotification` → notify requester
+- [x] `InstallmentDueNotification` → notify counterparty (day 1)
+- [x] `InstallmentOverdueNotification` → notify both (day 3)
+- [x] `InstallmentReleasedNotification` → notify requester
+- [x] `GuarantorEndedNotification` → notify both (end + cancel)
 All follow Opportunity notification pattern:
 database + broadcast + firebase (firebase for User only)
 Translation keys in lang/{en,ar,hi,ur}.json
+Wired into create, updateStatus, end, cancel, and release actions.
+
+### Completed: 2026-06-17
+### Summary:
+Seven notifications implement ShouldBroadcastNow, ShouldDispatchAfterCommit, ShouldQueue.
+toArray stores translation keys; toBroadcast/toFirebase resolve at send time.
+InstallmentDue/Overdue classes ready for Phase 15 scheduled jobs.
+GuarantorActionTest extended with five notification assertions.
 
 ## Phase 14 — Payment Pipeline
 - [ ] Move + fix `ProcessGuarantorPayment` action
@@ -455,3 +462,8 @@ Translation keys in lang/{en,ar,hi,ur}.json
 - Completed GuarantorResource, InstallmentResource, CompanyDetailResource, StatusHistoryResource,
   GuarantorParticipantResource; added GuarantorDashboardResource + Collection
 - ResourceTest.php with 7 unit tests for serialization and encrypted fields
+
+### Phase 13 — Notifications (2026-06-17)
+- Added seven notifications in Modules/Guarantor/Notifications/
+- Wired into create, updateStatus, end, cancel, and release installment actions
+- Translation keys in en, ar, hi, ur JSON files; five notification tests in GuarantorActionTest

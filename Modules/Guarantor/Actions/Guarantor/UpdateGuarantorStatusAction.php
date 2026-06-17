@@ -10,6 +10,9 @@ use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Notifications\GuarantorApprovedNotification;
+use Modules\Guarantor\Notifications\GuarantorEndedNotification;
+use Modules\Guarantor\Notifications\GuarantorRejectedNotification;
 use Throwable;
 
 class UpdateGuarantorStatusAction
@@ -68,7 +71,20 @@ class UpdateGuarantorStatusAction
                 $this->openGuarantorChatAction->handle($guarantorRequest);
             }
 
-            // TODO: notifications (Phase 13)
+            match ($data->status) {
+                GuarantorStatusEnum::Approved => $guarantorRequest->requester->notify(
+                    new GuarantorApprovedNotification($guarantorRequest)
+                ),
+                GuarantorStatusEnum::Rejected => $guarantorRequest->requester->notify(
+                    new GuarantorRejectedNotification($guarantorRequest)
+                ),
+                GuarantorStatusEnum::Ended,
+                GuarantorStatusEnum::Cancelled => collect([
+                    $guarantorRequest->requester,
+                    $guarantorRequest->counterparty,
+                ])->each->notify(new GuarantorEndedNotification($guarantorRequest)),
+                default => null,
+            };
 
             return $guarantorRequest->load(['requester', 'counterparty', 'installments', 'companyDetail', 'media']);
         });

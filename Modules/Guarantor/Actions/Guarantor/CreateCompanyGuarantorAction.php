@@ -18,6 +18,7 @@ use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorCompanyDetail;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Notifications\GuarantorCreatedNotification;
 use Throwable;
 
 class CreateCompanyGuarantorAction
@@ -114,15 +115,19 @@ class CreateCompanyGuarantorAction
                 GuarantorStatusEnum::New->value,
             );
 
-            // TODO: notify counterparty (Phase 13)
-
-            return $guarantorRequest->load([
+            $guarantorRequest->load([
                 'requester',
                 'counterparty',
                 'installments',
                 'companyDetail.media',
                 'media',
             ]);
+
+            $guarantorRequest->counterparty->notify(
+                new GuarantorCreatedNotification($guarantorRequest)
+            );
+
+            return $guarantorRequest;
         });
     }
 

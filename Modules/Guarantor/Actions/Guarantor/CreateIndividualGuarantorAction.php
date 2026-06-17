@@ -13,6 +13,7 @@ use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Notifications\GuarantorCreatedNotification;
 use Throwable;
 
 class CreateIndividualGuarantorAction
@@ -58,9 +59,13 @@ class CreateIndividualGuarantorAction
                 GuarantorStatusEnum::New->value,
             );
 
-            // TODO: notify counterparty (Phase 13)
+            $guarantorRequest->load(['requester', 'counterparty', 'media']);
 
-            return $guarantorRequest->load(['requester', 'counterparty', 'media']);
+            $guarantorRequest->counterparty->notify(
+                new GuarantorCreatedNotification($guarantorRequest)
+            );
+
+            return $guarantorRequest;
         });
     }
 

@@ -5,6 +5,7 @@ use App\Models\User;
 use App\Services\Sms\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\Sanctum;
 use Modules\Guarantor\Actions\Chat\OpenGuarantorChatAction;
@@ -12,6 +13,7 @@ use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateCompanyGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateIndividualGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\DeleteGuarantorAction;
+use Modules\Guarantor\Actions\Guarantor\EndGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorStatusAction;
 use Modules\Guarantor\Actions\Installment\PayInstallmentAction;
 use Modules\Guarantor\Actions\Installment\ReleaseInstallmentAction;
@@ -26,8 +28,17 @@ use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Notifications\GuarantorApprovedNotification;
+use Modules\Guarantor\Notifications\GuarantorCreatedNotification;
+use Modules\Guarantor\Notifications\GuarantorEndedNotification;
+use Modules\Guarantor\Notifications\GuarantorRejectedNotification;
+use Modules\Guarantor\Notifications\InstallmentReleasedNotification;
 
 const TEST_COUNTERPARTY_PHONE = '0501234567';
+
+beforeEach(function () {
+    Notification::fake();
+});
 
 function normalizedCounterpartyPhone(): string
 {
@@ -330,4 +341,98 @@ test('CancelGuarantorAction reverses wallet on cancel after payment', function (
     expect($guarantorRequest->fresh()->status)->toBe(GuarantorStatusEnum::Cancelled)
         ->and((float) $requester->wallet->pending_credit)->toBe(0.0)
         ->and((float) $counterparty->wallet->pending_debit)->toBe(0.0);
+});
+
+test('creating individual guarantor notifies counterparty', function () {
+    Notification::fake();
+
+    ['requester' => $requester, 'counterparty' => $counterparty] = createGuarantorActors();
+    Sanctum::actingAs($requester);
+
+    app(CreateIndividualGuarantorAction::class)->handle(
+        new GuarantorData(
+            title: 'Test title',
+            description: 'Test description',
+            amount: 1000,
+            counterparty_phone: TEST_COUNTERPARTY_PHONE,
+        ),
+        $requester,
+        individualGuarantorHttpRequest(),
+    );
+
+    Notification::assertSentTo($counterparty, GuarantorCreatedNotification::class);
+});
+
+test('approving guarantor notifies requester', function () {
+    Notification::fake();
+
+    $guarantorRequest = GuarantorRequest::factory()->create(['status' => GuarantorStatusEnum::New]);
+    $counterparty = $guarantorRequest->counterparty;
+    $requester = $guarantorRequest->requester;
+
+    app(UpdateGuarantorStatusAction::class)->handle(
+        $guarantorRequest,
+        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Approved),
+        $counterparty,
+        'counterparty',
+    );
+
+    Notification::assertSentTo($requester, GuarantorApprovedNotification::class);
+});
+
+test('rejecting guarantor notifies requester', function () {
+    Notification::fake();
+
+    $guarantorRequest = GuarantorRequest::factory()->create(['status' => GuarantorStatusEnum::New]);
+    $counterparty = $guarantorRequest->counterparty;
+    $requester = $guarantorRequest->requester;
+
+    app(UpdateGuarantorStatusAction::class)->handle(
+        $guarantorRequest,
+        new UpdateGuarantorStatusData(
+            status: GuarantorStatusEnum::Rejected,
+            reason: 'Not acceptable',
+        ),
+        $counterparty,
+        'counterparty',
+    );
+
+    Notification::assertSentTo($requester, GuarantorRejectedNotification::class);
+});
+
+test('ending guarantor notifies both parties', function () {
+    Notification::fake();
+
+    $guarantorRequest = GuarantorRequest::factory()->inProgress()->create(['amount' => 1000, 'fees' => 10]);
+    $requester = $guarantorRequest->requester;
+    $counterparty = $guarantorRequest->counterparty;
+
+    $requester->wallet->update(['pending_credit' => 1010]);
+    $counterparty->wallet->update(['pending_debit' => 1010]);
+
+    app(EndGuarantorAction::class)->handle(
+        $guarantorRequest,
+        $requester,
+        'requester',
+    );
+
+    Notification::assertSentTo($requester, GuarantorEndedNotification::class);
+    Notification::assertSentTo($counterparty, GuarantorEndedNotification::class);
+});
+
+test('releasing installment notifies requester', function () {
+    Notification::fake();
+
+    $guarantorRequest = GuarantorRequest::factory()->company()->inProgress()->create(['amount' => 1000, 'fees' => 10]);
+    $installment = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->paid()->create([
+        'order' => 1,
+        'amount' => 500,
+    ]);
+
+    $requester = $guarantorRequest->requester;
+    $requester->wallet->update(['pending_credit' => 500, 'balance' => 0]);
+
+    app(ReleaseInstallmentAction::class)->handle($installment);
+
+    Notification::assertSentTo($requester, InstallmentReleasedNotification::class);
 });

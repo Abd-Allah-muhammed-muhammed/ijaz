@@ -11,6 +11,7 @@ use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Notifications\GuarantorEndedNotification;
 use Throwable;
 
 class EndGuarantorAction
@@ -52,7 +53,10 @@ class EndGuarantorAction
                 reason: "{$actorRole} ended the guarantor request",
             );
 
-            // TODO: notify both parties (Phase 13)
+            $guarantorRequest->load(['requester', 'counterparty']);
+
+            collect([$guarantorRequest->requester, $guarantorRequest->counterparty])
+                ->each->notify(new GuarantorEndedNotification($guarantorRequest));
         });
     }
 

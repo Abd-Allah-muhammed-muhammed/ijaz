@@ -8,6 +8,7 @@ use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Notifications\GuarantorEndedNotification;
 use Throwable;
 
 class CancelGuarantorAction
@@ -51,7 +52,10 @@ class CancelGuarantorAction
                 $reason,
             );
 
-            // TODO: notify both parties (Phase 13)
+            $guarantorRequest->load(['requester', 'counterparty']);
+
+            collect([$guarantorRequest->requester, $guarantorRequest->counterparty])
+                ->each->notify(new GuarantorEndedNotification($guarantorRequest));
         });
     }
 
