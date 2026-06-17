@@ -2,9 +2,6 @@
 
 namespace Modules\Guarantor\Http\Resources\Api;
 
-use App\Http\Resources\Api\V1\ProviderResource;
-use App\Http\Resources\Api\V1\User\UserResource;
-use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -16,10 +13,15 @@ class GuarantorParticipantResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return match ($this->resource::class) {
-            User::class => UserResource::make($this->resource)->toArray($request),
-            Provider::class => ProviderResource::make($this->resource)->toArray($request),
-            default => [],
-        };
+        return [
+            'id' => $this->getKey(),
+            'name' => $this->name ?? trim(($this->f_name ?? '').' '.($this->l_name ?? '')),
+            'type' => $this->when(
+                true,
+                fn () => $this->resource instanceof User ? 'user' : 'provider'
+            ),
+            'image' => $this->image_url ?? null,
+            'phone' => $this->phone,
+        ];
     }
 }

@@ -17,13 +17,13 @@ class StatusHistoryResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'from_status' => $this->from_status !== null
+            'from_status' => $this->from_status
                 ? GuarantorStatusEnum::from($this->from_status)->toArray()
                 : null,
             'to_status' => GuarantorStatusEnum::from($this->to_status)->toArray(),
-            'actor' => GuarantorParticipantResource::make($this->whenLoaded('actor')),
             'reason' => $this->reason,
             'notes' => $this->notes,
+            'actor' => $this->whenLoaded('actor', fn () => GuarantorParticipantResource::make($this->actor)),
             'created_at' => $this->created_at->toIso8601String(),
         ];
     }

@@ -264,18 +264,25 @@ Thin V1 controllers delegate to GuarantorService, GuarantorInstallmentService, a
 Validate → DTO → authorize → service → JsonResponse via HasApiResponse.
 GuarantorConversationResource + API resources created alongside controllers (Phase 12 overlap).
 
-## Phase 12 — Resources
+## Phase 12 — Resources ✅
 - [x] `GuarantorResource` — all fields, status→toArray(),
       installments whenLoaded, companyDetail whenLoaded,
       statusHistories whenLoaded, media whenLoaded
 - [x] `GuarantorCollection` extends BaseCollection
 - [x] `InstallmentResource` — id, order, amount, due_date,
-      paid_at, released_at, status→toArray()
-- [ ] `InstallmentCollection` extends BaseCollection
+      paid_at, released_at, status→toArray(), is_past_due
 - [x] `CompanyDetailResource`
 - [x] `StatusHistoryResource`
 - [x] `GuarantorConversationResource` + `GuarantorConversationCollection`
 - [x] `GuarantorParticipantResource`
+- [x] `GuarantorDashboardResource` + `GuarantorDashboardCollection`
+- [x] Unit tests: `Modules/Guarantor/tests/Unit/ResourceTest.php`
+
+### Completed: 2026-06-17
+### Summary:
+API resources use whenLoaded for relations; enums expose toArray() with label and color.
+Dashboard resources include admin_notes and eager relation output for Phase 17.
+ResourceTest covers field shape, enum serialization, is_past_due, and encrypted IBAN access.
 
 ## Phase 13 — Notifications
 - [ ] `GuarantorCreatedNotification` → notify counterparty
@@ -443,3 +450,8 @@ Translation keys in lang/{en,ar,hi,ur}.json
 - Added API resources: GuarantorResource, GuarantorCollection, InstallmentResource,
   CompanyDetailResource, StatusHistoryResource, GuarantorConversationResource
 - Controllers use HasApiResponse, DTOs, and $this->authorize() — zero business logic
+
+### Phase 12 — Resources (2026-06-17)
+- Completed GuarantorResource, InstallmentResource, CompanyDetailResource, StatusHistoryResource,
+  GuarantorParticipantResource; added GuarantorDashboardResource + Collection
+- ResourceTest.php with 7 unit tests for serialization and encrypted fields

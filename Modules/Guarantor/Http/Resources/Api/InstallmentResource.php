@@ -19,9 +19,12 @@ class InstallmentResource extends JsonResource
             'order' => $this->order,
             'amount' => $this->amount,
             'due_date' => $this->due_date->toDateString(),
+            'status' => $this->status->toArray(),
             'paid_at' => $this->paid_at?->toIso8601String(),
             'released_at' => $this->released_at?->toIso8601String(),
-            'status' => $this->status->toArray(),
+            'overdue_notified_at' => $this->overdue_notified_at?->toIso8601String(),
+            'is_past_due' => $this->isPastDue(),
+            'created_at' => $this->created_at->toIso8601String(),
         ];
     }
 }
