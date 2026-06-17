@@ -21,6 +21,7 @@ type Participant = {
   name: string;
   phone?: string;
   type?: string;
+  image?: string;
 };
 
 type InstallmentItem = {
@@ -111,8 +112,17 @@ const statusBadgeClass: Record<string, string> = {
   refunded: 'badge-light-secondary',
 };
 
+const timelineStyles = `
+  .timeline { display: flex; flex-direction: column; }
+  .timeline-item { display: flex; gap: 12px; }
+  .timeline-line { display: flex; flex-direction: column; align-items: center; min-width: 20px; }
+  .timeline-badge { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+  .timeline-connector { flex: 1; width: 2px; background: #e4e6ef; margin: 4px 0; min-height: 16px; }
+  .timeline-content { flex: 1; }
+`;
+
 const Show = ({ guarantorRequest }: Props) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { hasPermission } = usePermissions();
   const [activeTab, setActiveTab] = useState('overview');
   const [adminAction, setAdminAction] = useState<AdminAction>(null);
@@ -128,6 +138,8 @@ const Show = ({ guarantorRequest }: Props) => {
 
   const badgeClass = statusBadgeClass[currentStatus] ?? 'badge-light-secondary';
   const isCompany = guarantorRequest.type?.value === 'company';
+  const isRTL = i18n.dir() === 'rtl';
+  const statusHistories = guarantorRequest.status_histories ?? [];
 
   const closeAdminModal = () => {
     setAdminAction(null);
@@ -181,6 +193,7 @@ const Show = ({ guarantorRequest }: Props) => {
 
   return (
     <Content>
+      <style>{timelineStyles}</style>
       <Head title={`${t('guarantor.module_title_show')} #${guarantorRequest.id}`} />
       <PageTitle
         breadcrumbs={[
@@ -242,10 +255,12 @@ const Show = ({ guarantorRequest }: Props) => {
                 </div>
                 <div className="fw-bold fs-6 text-gray-500">{t('guarantor.total_amount')}</div>
               </div>
-              <div className="min-w-100px rounded border border-dashed border-gray-300 px-4 py-3">
-                <div className="fs-2 fw-bolder text-gray-900">{guarantorRequest.installments?.length ?? 0}</div>
-                <div className="fw-bold fs-6 text-gray-500">{t('guarantor.installments')}</div>
-              </div>
+              {isCompany && (
+                <div className="min-w-100px rounded border border-dashed border-gray-300 px-4 py-3">
+                  <div className="fs-2 fw-bolder text-gray-900">{guarantorRequest.installments?.length ?? 0}</div>
+                  <div className="fw-bold fs-6 text-gray-500">{t('guarantor.installments')}</div>
+                </div>
+              )}
             </div>
           </KTCardBody>
         </KTCard>
@@ -255,9 +270,9 @@ const Show = ({ guarantorRequest }: Props) => {
             <ul className="nav nav-stretch nav-line-tabs nav-line-tabs-2x border-transparent fs-5 fw-bold">
               {[
                 { key: 'overview', label: t('guarantor.overview'), icon: 'element-11' },
-                { key: 'installments', label: t('guarantor.installments'), icon: 'wallet' },
+                ...(isCompany ? [{ key: 'installments', label: t('guarantor.installments'), icon: 'wallet' }] : []),
                 { key: 'history', label: t('guarantor.status_history'), icon: 'time' },
-                ...(isCompany ? [{ key: 'company', label: t('guarantor.company_details'), icon: 'office-bag' }] : []),
+                ...(isCompany ? [{ key: 'company_details', label: t('guarantor.company_details'), icon: 'office-bag' }] : []),
               ].map((tab) => (
                 <li className="nav-item" key={tab.key}>
                   <a
@@ -335,7 +350,7 @@ const Show = ({ guarantorRequest }: Props) => {
               </div>
             )}
 
-            {activeTab === 'installments' && (
+            {activeTab === 'installments' && isCompany && (
               <>
                 {!guarantorRequest.installments?.length ? (
                   <p className="text-muted fst-italic mb-0">{t('guarantor.no_installments')}</p>
@@ -388,31 +403,79 @@ const Show = ({ guarantorRequest }: Props) => {
 
             {activeTab === 'history' && (
               <>
-                {!guarantorRequest.status_histories?.length ? (
+                {!statusHistories.length ? (
                   <p className="text-muted fst-italic mb-0">{t('guarantor.no_history')}</p>
                 ) : (
-                  <div className="d-flex flex-column gap-4">
-                    {guarantorRequest.status_histories.map((history) => (
-                      <div key={history.id} className="border border-dashed border-gray-300 rounded p-4">
-                        <div className="d-flex justify-content-between flex-wrap gap-2 mb-2">
-                          <div className="fw-bold">
-                            {history.from_status?.label ?? '—'} → {history.to_status?.label}
-                          </div>
-                          <span className="text-muted fs-7">{new Date(history.created_at).toLocaleString()}</span>
+                  <div className="timeline">
+                    {statusHistories.map((history, index) => (
+                      <div key={history.id} className="timeline-item">
+                        <div className="timeline-line">
+                          <div
+                            className="timeline-badge"
+                            style={{ backgroundColor: history.to_status.color }}
+                          />
+                          {index < statusHistories.length - 1 && <div className="timeline-connector" />}
                         </div>
-                        {history.actor && (
-                          <div className="text-muted fs-7 mb-2">{history.actor.name}</div>
-                        )}
-                        {history.reason && (
-                          <div className="mb-1">
-                            <span className="fw-semibold">{t('guarantor.reason')}:</span> {history.reason}
+
+                        <div className="timeline-content card card-bordered mb-3">
+                          <div className="card-body py-3 px-4">
+                            <div className="d-flex align-items-center gap-2 flex-wrap mb-2">
+                              {history.from_status ? (
+                                <span
+                                  className="badge"
+                                  style={{ backgroundColor: history.from_status.color }}
+                                >
+                                  {history.from_status.label}
+                                </span>
+                              ) : (
+                                <span className="badge badge-light">{t('guarantor.created')}</span>
+                              )}
+
+                              <i className={`bi ${isRTL ? 'bi-arrow-left' : 'bi-arrow-right'} text-muted`} />
+
+                              <span
+                                className="badge"
+                                style={{ backgroundColor: history.to_status.color }}
+                              >
+                                {history.to_status.label}
+                              </span>
+                            </div>
+
+                            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                              <div className="d-flex align-items-center gap-2">
+                                <div className="symbol symbol-30px">
+                                  {history.actor?.image ? (
+                                    <img src={history.actor.image} className="rounded-circle" alt="" />
+                                  ) : (
+                                    <div className="symbol-label bg-light-primary text-primary fw-bold fs-7">
+                                      {history.actor?.name?.charAt(0)?.toUpperCase() ?? '?'}
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="text-muted fs-7">
+                                  {history.actor?.name ?? t('guarantor.system')}
+                                </span>
+                              </div>
+                              <span className="text-muted fs-8">
+                                {new Date(history.created_at).toLocaleString()}
+                              </span>
+                            </div>
+
+                            {history.reason && (
+                              <div className="mt-2 text-muted fs-7">
+                                <span className="fw-bold">{t('guarantor.reason')}: </span>
+                                {history.reason}
+                              </div>
+                            )}
+
+                            {history.notes && (
+                              <div className="mt-1 text-muted fs-7">
+                                <span className="fw-bold">{t('guarantor.notes')}: </span>
+                                {history.notes}
+                              </div>
+                            )}
                           </div>
-                        )}
-                        {history.notes && (
-                          <div>
-                            <span className="fw-semibold">{t('guarantor.notes')}:</span> {history.notes}
-                          </div>
-                        )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -420,7 +483,7 @@ const Show = ({ guarantorRequest }: Props) => {
               </>
             )}
 
-            {activeTab === 'company' && guarantorRequest.company_detail && (
+            {activeTab === 'company_details' && isCompany && guarantorRequest.company_detail && (
               <div className="row g-4">
                 <div className="col-md-6">
                   <span className="text-muted d-block">{t('guarantor.company_name')}</span>

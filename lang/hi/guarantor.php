@@ -115,4 +115,6 @@ return [
     'total_amount' => 'कुल राशि',
     'due_date' => 'नियत तिथि',
     'details' => 'विवरण',
+    'created' => 'बनाया गया',
+    'system' => 'सिस्टम',
 ];

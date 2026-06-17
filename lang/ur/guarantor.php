@@ -115,4 +115,6 @@ return [
     'total_amount' => 'کل رقم',
     'due_date' => 'ادائیگی کی تاریخ',
     'details' => 'تفصیلات',
+    'created' => 'بنایا گیا',
+    'system' => 'سسٹم',
 ];

@@ -115,4 +115,6 @@ return [
     'total_amount' => 'Total Amount',
     'due_date' => 'Due Date',
     'details' => 'Details',
+    'created' => 'Created',
+    'system' => 'System',
 ];
