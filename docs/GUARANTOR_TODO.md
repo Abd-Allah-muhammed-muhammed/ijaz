@@ -124,15 +124,25 @@ Four readonly DTOs in Modules/Guarantor/DTOs/ with fromRequest() factories.
 Minimal FormRequest stubs added for compile-time type hints (validation rules in Phase 7).
 DTOTest covers construction, fromArray, collectionFromRequest, and enum casting.
 
-## Phase 6 — Repositories
-- [ ] `GuarantorRepositoryInterface`
+## Phase 6 — Repositories ✅
+- [x] `GuarantorRepositoryInterface`
       Methods: create, update, findById,
-      listByRequester, listByCounterparty, listAll
-- [ ] `GuarantorRepository` (implements interface)
-- [ ] `InstallmentRepositoryInterface`
-      Methods: create, updateStatus, getOverdue, getPendingForRequest
-- [ ] `InstallmentRepository`
-- [ ] Bind all in `GuarantorServiceProvider::register()`
+      listByRequester, listByCounterparty, listForActor, listAll
+- [x] `GuarantorRepository` (implements interface)
+- [x] `InstallmentRepositoryInterface`
+      Methods: create, update, findById,
+      getPendingForRequest, getNextPendingForRequest, getOverdue
+- [x] `InstallmentRepository`
+- [x] `StatusHistoryRepositoryInterface` + `StatusHistoryRepository`
+- [x] Bind all in `GuarantorServiceProvider::register()`
+- [x] Unit tests: `Modules/Guarantor/tests/Unit/RepositoryTest.php`
+
+### Completed: 2026-06-16
+### Summary:
+Three repository pairs (Guarantor, Installment, StatusHistory) with interfaces.
+GuarantorRepository eager-loads relations in findById and list methods.
+InstallmentRepository uses lazyById for getOverdue().
+All interfaces bound in GuarantorServiceProvider. RepositoryTest covers CRUD, scoping, and status logging.
 
 ## Phase 7 — FormRequests
 All extend `MMAE\ApiResponse\Request\ApiRequest`
@@ -390,3 +400,8 @@ Translation keys in lang/{en,ar,hi,ur}.json
 - Added GuarantorData, CompanyDetailData, InstallmentData, UpdateGuarantorStatusData readonly DTOs
 - Added minimal FormRequest stubs for DTO type hints (full validation in Phase 7)
 - Added DTOTest.php with 5 unit tests
+
+### Phase 6 — Repositories (2026-06-16)
+- Added GuarantorRepository, InstallmentRepository, StatusHistoryRepository with interfaces
+- Bound all repositories in GuarantorServiceProvider
+- Added RepositoryTest.php with 9 unit tests

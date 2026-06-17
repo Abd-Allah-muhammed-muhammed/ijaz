@@ -2,6 +2,12 @@
 
 namespace Modules\Guarantor\Providers;
 
+use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
+use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
+use Modules\Guarantor\Contracts\Repositories\StatusHistoryRepositoryInterface;
+use Modules\Guarantor\Repositories\GuarantorRepository;
+use Modules\Guarantor\Repositories\InstallmentRepository;
+use Modules\Guarantor\Repositories\StatusHistoryRepository;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class GuarantorServiceProvider extends ModuleServiceProvider
@@ -17,7 +23,21 @@ class GuarantorServiceProvider extends ModuleServiceProvider
     public function register(): void
     {
         parent::register();
-        // Repository bindings will be added in Phase 6
+
+        $this->app->bind(
+            GuarantorRepositoryInterface::class,
+            GuarantorRepository::class,
+        );
+
+        $this->app->bind(
+            InstallmentRepositoryInterface::class,
+            InstallmentRepository::class,
+        );
+
+        $this->app->bind(
+            StatusHistoryRepositoryInterface::class,
+            StatusHistoryRepository::class,
+        );
     }
 
     public function boot(): void
