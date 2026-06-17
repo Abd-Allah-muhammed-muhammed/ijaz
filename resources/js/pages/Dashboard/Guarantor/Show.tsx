@@ -422,7 +422,7 @@ const Show = ({ guarantorRequest }: Props) => {
                             <div className="d-flex align-items-center gap-2 flex-wrap mb-2">
                               {history.from_status ? (
                                 <span
-                                  className="badge"
+                                  className="badge text-white"
                                   style={{ backgroundColor: history.from_status.color }}
                                 >
                                   {history.from_status.label}
@@ -434,7 +434,7 @@ const Show = ({ guarantorRequest }: Props) => {
                               <i className={`bi ${isRTL ? 'bi-arrow-left' : 'bi-arrow-right'} text-muted`} />
 
                               <span
-                                className="badge"
+                                className="badge text-white"
                                 style={{ backgroundColor: history.to_status.color }}
                               >
                                 {history.to_status.label}
