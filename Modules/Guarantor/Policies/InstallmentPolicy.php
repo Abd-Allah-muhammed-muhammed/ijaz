@@ -3,6 +3,7 @@
 namespace Modules\Guarantor\Policies;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Models\GuarantorInstallment;
 
 class InstallmentPolicy
@@ -13,6 +14,11 @@ class InstallmentPolicy
         $request = $installment->guarantorRequest;
 
         return $request->counterparty_type === $user::class
-            && (string) $request->counterparty_id === (string) $user->getKey();
+            && (string) $request->counterparty_id === (string) $user->getKey()
+            && $request->status->isIn([
+                GuarantorStatusEnum::Accepted,
+                GuarantorStatusEnum::InProgress,
+                GuarantorStatusEnum::Overdue,
+            ]);
     }
 }

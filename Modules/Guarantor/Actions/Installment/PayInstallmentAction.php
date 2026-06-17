@@ -24,7 +24,11 @@ class PayInstallmentAction
     public function handle(GuarantorRequest $request, GuarantorInstallment $installment, Model $actor): array
     {
         return DB::transaction(function () use ($request, $installment, $actor) {
-            if (! in_array($request->status, [GuarantorStatusEnum::InProgress, GuarantorStatusEnum::Overdue], true)) {
+            if (! in_array($request->status, [
+                GuarantorStatusEnum::Accepted,
+                GuarantorStatusEnum::InProgress,
+                GuarantorStatusEnum::Overdue,
+            ], true)) {
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }
 

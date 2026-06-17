@@ -445,6 +445,25 @@ test('ReleaseInstallmentAction releases installment and updates wallet', functio
         ->and((float) $requester->wallet->balance)->toBeGreaterThan(0);
 });
 
+test('PayInstallmentAction succeeds when status is accepted', function () {
+    config(['app.payment.driver' => 'testing']);
+
+    $guarantorRequest = GuarantorRequest::factory()->company()->accepted()->create(['amount' => 1000, 'fees' => 10]);
+    $installment = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create([
+        'order' => 1,
+        'amount' => 500,
+    ]);
+
+    $response = app(PayInstallmentAction::class)->handle(
+        $guarantorRequest,
+        $installment,
+        $guarantorRequest->counterparty,
+    );
+
+    expect($response)->toHaveKey('url')
+        ->and(Payment::query()->where('product_id', $installment->id)->exists())->toBeTrue();
+});
+
 test('PayInstallmentAction fails if previous installment not paid', function () {
     $guarantorRequest = GuarantorRequest::factory()->company()->inProgress()->create();
     $first = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create([

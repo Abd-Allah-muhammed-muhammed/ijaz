@@ -171,6 +171,36 @@ test('stranger cannot view request', function () {
     expect(Gate::forUser($stranger)->allows('view', $guarantorRequest))->toBeFalse();
 });
 
+test('counterparty can pay installment when status is accepted', function () {
+    $counterparty = User::factory()->create();
+    $requester = User::factory()->create();
+    $guarantorRequest = policyGuarantorRequest([
+        'requester_type' => User::class,
+        'requester_id' => $requester->getKey(),
+        'counterparty_type' => User::class,
+        'counterparty_id' => $counterparty->getKey(),
+        'status' => GuarantorStatusEnum::Accepted,
+    ]);
+    $installment = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create();
+
+    expect(Gate::forUser($counterparty)->allows('pay', $installment))->toBeTrue();
+});
+
+test('counterparty cannot pay installment when status is pending_admin', function () {
+    $counterparty = User::factory()->create();
+    $requester = User::factory()->create();
+    $guarantorRequest = policyGuarantorRequest([
+        'requester_type' => User::class,
+        'requester_id' => $requester->getKey(),
+        'counterparty_type' => User::class,
+        'counterparty_id' => $counterparty->getKey(),
+        'status' => GuarantorStatusEnum::PendingAdmin,
+    ]);
+    $installment = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create();
+
+    expect(Gate::forUser($counterparty)->allows('pay', $installment))->toBeFalse();
+});
+
 test('counterparty can pay installment', function () {
     $counterparty = User::factory()->create();
     $requester = User::factory()->create();
@@ -179,6 +209,7 @@ test('counterparty can pay installment', function () {
         'requester_id' => $requester->getKey(),
         'counterparty_type' => User::class,
         'counterparty_id' => $counterparty->getKey(),
+        'status' => GuarantorStatusEnum::InProgress,
     ]);
     $installment = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create();
 
