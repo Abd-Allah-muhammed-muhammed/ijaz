@@ -207,23 +207,21 @@
 ---
 
 ## Phase 8 — API Controllers
-- [ ] Create `Modules/Chat/Http/Controllers/V1/ChatController.php`
-      (replaces App\Http\Controllers\Api\V1\ChatController — member chat)
-- [ ] Create `Modules/Chat/Http/Controllers/V1/OrderChatController.php`
+- [x] Create `Modules/Chat/Http/Controllers/V1/MemberChatController.php`
+      (replaces App\Http\Controllers\Api\V1\ChatController — member chat methods only)
+- [x] Create `Modules/Chat/Http/Controllers/V1/OrderChatController.php`
       (replaces App\Http\Controllers\Api\V1\OrderChatController)
-- [ ] Create `Modules/Chat/Http/Controllers/V1/TicketSupportChatController.php`
+- [x] Create `Modules/Chat/Http/Controllers/V1/TicketSupportChatController.php`
       (replaces App\Http\Controllers\Api\V1\TicketSupportChatController)
-- [ ] Move `OpportunityChatController` → `Modules/Chat/Http/Controllers/V1/OpportunityChatController.php`
-      OR keep in Opportunity module (decide in phase)
-- [ ] Move `GuarantorChatController` → `Modules/Chat/Http/Controllers/V1/GuarantorChatController.php`
-      OR keep in Guarantor module (decide in phase)
-- [ ] All controllers: thin pattern — validate → authorize → action → response
-- [ ] Remove dead methods: `sendToProvider`, `sendToUser`, `sendToSupport`, `supportMessages`
-- [ ] Fix `ChatController::index()` wrong guard (`auth('provider')` on sanctum route)
-- [ ] Run tests — all must pass
+- [x] **Decision:** Keep `OpportunityChatController` in `Modules/Opportunity/` and `GuarantorChatController` in `Modules/Guarantor/` — domain-specific policies, resources, and services; moving adds no value
+- [x] All controllers: thin pattern — validate → authorize → action → response
+- [x] Dead methods excluded from new controllers: `sendToProvider`, `sendToUser`, `sendToSupport`, `supportMessages`
+- [x] `MemberChatController::index()` uses `auth()->user()` (fixes old `auth('provider')` bug on sanctum route)
+- [x] Create `StoreOrderChatRequest` for order chat store validation
+- [x] Run tests — all must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-19
+### Summary: Created thin V1 controllers (Member, Order, TicketSupport) delegating to Chat actions via `ChatTypeRegistry`. Member store preserves `socket_id` receiver resolution. Old `app/` controllers untouched; routes still point to them (Phase 11). Opportunity and Guarantor controllers remain in their modules. Opportunity (81) and Guarantor (147) tests pass.
 
 ---
 
