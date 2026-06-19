@@ -2,7 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "php artisan wayfinder:generate --no-interaction && vite build",
     "build:ssr": "vite build && vite build --ssr",
     "dev": "vite",
     "format": "prettier --write resources/",
