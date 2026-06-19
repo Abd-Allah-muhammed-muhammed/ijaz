@@ -226,26 +226,30 @@
 ---
 
 ## Phase 9 — Provider Dashboard Controllers
-- [ ] Move `App\Http\Controllers\Provider\ChatController`
-      → `Modules/Chat/Http/Controllers/Provider/ChatController.php`
-- [ ] Move `App\Http\Controllers\Provider\OrderChatController`
-      → `Modules/Chat/Http/Controllers/Provider/OrderChatController.php`
-- [ ] Update provider routes
-- [ ] Run tests — all must pass
+- [x] Create `Modules/Chat/Http/Controllers/Provider/MemberChatController.php`
+      (replaces Provider ChatController chat API methods)
+- [x] Create `Modules/Chat/Http/Controllers/Provider/OrderChatController.php`
+      (replaces Provider OrderChatController)
+- [x] Provider controllers use `auth('provider')->user()` throughout
+- [x] Old `app/` Provider controllers untouched — routes unchanged until Phase 11
+- [x] Run tests — all must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-19
+### Summary: Created thin Provider `MemberChatController` and `OrderChatController` delegating to Chat actions via `ChatTypeRegistry`. Fixes old bugs (`auth()->user()` on provider routes, ChatController listing orders instead of member chats). Old Inertia-based Provider controllers remain until Phase 11.
 
 ---
 
 ## Phase 10 — Admin Dashboard Controllers
-- [ ] Extract chat methods from `App\Http\Controllers\Dashboard\SupportController`
-      → `Modules/Chat/Http/Controllers/Dashboard/SupportChatController.php`
-- [ ] Update dashboard routes
-- [ ] Run tests — all must pass
+- [x] Extract chat methods → `Modules/Chat/Http/Controllers/Dashboard/SupportChatController.php`
+      (`show`, `send` for ticket support chat)
+- [x] Non-chat methods remain in `app/Http/Controllers/Dashboard/SupportController.php`
+      (`index`, `show`, `updateStatus`, `openChat`)
+- [x] Dashboard controller uses `auth('admin')->user()`
+- [x] Old SupportController untouched — routes unchanged until Phase 11
+- [x] Run tests — all must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-19
+### Summary: Created `SupportChatController` with `show` and `send` for admin ticket chat. `openChat` welcome message and ticket CRUD stay in `SupportController`. Opportunity (81) and Guarantor (147) tests pass.
 
 ---
 
