@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources\Dashboard;
 
-use App\Http\Resources\Api\V1\GuaranteeRequestUserResource;
 use App\Models\TopUpRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -14,7 +13,7 @@ class TopUpResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user' => GuaranteeRequestUserResource::make($this->whenLoaded('user')),
+            'user' => OperationUserResource::make($this->whenLoaded('user')),
             'amount' => $this->amount,
             'status' => $this->status->toArray(),
             'payment_method' => $this->payment_method->toArray(),

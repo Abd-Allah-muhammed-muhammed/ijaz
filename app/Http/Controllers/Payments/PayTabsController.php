@@ -3,11 +3,6 @@
 namespace App\Http\Controllers\Payments;
 
 use App\Actions\Payment\AddModelTransaction;
-use App\Actions\Payment\GuaranteeRequest\AddProviderTransactionForGuaranteeRequest;
-use App\Actions\Payment\GuaranteeRequest\AddUserTransactionForGuaranteeRequest;
-use App\Actions\Payment\GuaranteeRequest\NotifyProviderForGuaranteeRequest;
-use App\Actions\Payment\GuaranteeRequest\NotifyUserForGuaranteeRequest;
-use App\Actions\Payment\GuaranteeRequest\ProcessGuaranteeRequest;
 use App\Actions\Payment\NotifyModelForOp;
 use App\Actions\Payment\Order\AddProviderTransaction;
 use App\Actions\Payment\Order\AddUserTransaction;
@@ -18,7 +13,6 @@ use App\Actions\Payment\PayTabs\UpdatePaymentStatus;
 use App\Actions\Payment\TopUp\ProcessToUpRequest;
 use App\Enums\Payment\PaymentStatusEnum;
 use App\Http\Controllers\Controller;
-use App\Models\GuaranteeRequest;
 use App\Models\OrderOffer;
 use App\Models\Payment;
 use App\Models\TopUpRequest;
@@ -46,7 +40,6 @@ class PayTabsController extends Controller
         return match ($payment->product_type) {
             OrderOffer::class => $this->offerRequestPayment($request, $payment),
             TopUpRequest::class => $this->TopUpPayment($request, $payment),
-            GuaranteeRequest::class => $this->GuaranteeRequestPayment($request, $payment),
             GuarantorRequest::class, GuarantorInstallment::class => $this->guarantorPayment($payment, $request),
             default => throw new RuntimeException('Unknown product type: '.$payment->product_type),
         };
@@ -90,34 +83,6 @@ class PayTabsController extends Controller
                     ProcessToUpRequest::class,
                     AddModelTransaction::class,
                     NotifyModelForOp::class,
-                ])
-                ->thenReturn();
-
-            return match ($payment->status) {
-                PaymentStatusEnum::Accepted => redirect()->route('payment.paytabs.success', ['payment' => $payment->id]),
-                PaymentStatusEnum::Rejected, PaymentStatusEnum::Canceled->value => redirect()->route('payment.paytabs.failed', ['payment' => $payment->id]),
-                default => throw new RuntimeException('Unsupported payment status: '.$payment->status, 500),
-            };
-
-        } catch (Throwable $e) {
-            report($e);
-
-            return redirect()->route('payment.paytabs.failed', ['payment' => $payment->id]);
-        }
-    }
-
-    public function GuaranteeRequestPayment(Request $request, Payment $payment): RedirectResponse
-    {
-        try {
-            $payment = Pipeline::send($payment)
-                ->withinTransaction()
-                ->through([
-                    new UpdatePaymentStatus($request),
-                    ProcessGuaranteeRequest::class,
-                    AddProviderTransactionForGuaranteeRequest::class,
-                    AddUserTransactionForGuaranteeRequest::class,
-                    NotifyProviderForGuaranteeRequest::class,
-                    NotifyUserForGuaranteeRequest::class,
                 ])
                 ->thenReturn();
 

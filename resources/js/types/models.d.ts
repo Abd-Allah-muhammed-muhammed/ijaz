@@ -4,7 +4,6 @@ import { OfferStatusEnum, OrderStatusEnum } from "@/Enums/Order";
 import { PaymentMethodEnum, PaymentStatusEnum } from "@/Enums/Payment";
 import { UserStatusEnum } from '@/Enums/Users';
 import { TicketSupportStatusEnum } from "@/Enums/SupportTickets";
-import { GuaranteeRequestStatusEnum } from "@/Enums/GuaranteeRequest";
 import { AdvisementStatusEnum, ElectronicConditionEnum, InstituteTypeEnum, StudyLevelEnum, StudyTypeEnum } from "@/Enums/Advisements";
 
 export interface Model {
@@ -543,7 +542,6 @@ export interface Reviewer {
 export type TopUpRequestStatus = typeof OperationStatusEnum[keyof typeof OperationStatusEnum];
 export type PaymentStatus = typeof PaymentStatusEnum[keyof typeof PaymentStatusEnum];
 export type PaymentMethod = typeof PaymentMethodEnum[keyof typeof PaymentMethodEnum];
-export type GuaranteeRequestStatus = typeof GuaranteeRequestStatusEnum[keyof typeof GuaranteeRequestStatusEnum];
 
 export interface TopUpRequest extends Model {
   id: string;
@@ -630,20 +628,6 @@ export interface Operation<T extends Model> {
   type: string
   show_url: string
   data: T
-}
-
-export interface GuaranteeRequest extends Model {
-  id: string,
-  title: string,
-  user: User,
-  provider: User,
-  description: string,
-  amount: number,
-  fees: number,
-  total: number,
-  status: EnumWithColors<GuaranteeRequestStatus>,
-  media?: Media[],
-  created_at: Date,
 }
 
 export type AdvisementStatus = typeof AdvisementStatusEnum[keyof typeof AdvisementStatusEnum];

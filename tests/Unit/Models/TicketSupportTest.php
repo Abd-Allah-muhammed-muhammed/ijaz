@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\SupportTickets\TicketSupportStatusEnum;
-use App\Models\GuaranteeRequest;
 use App\Models\Order;
 use App\Models\TicketSupport;
 use App\Models\User;
@@ -74,27 +73,6 @@ it('belongs to an operation polymorphically', function () {
 
     expect($ticket->operation)->toBeInstanceOf(Order::class)
         ->and($ticket->operation->is($order))->toBeTrue();
-});
-
-it('can have guarantee request as operation', function () {
-    $user = User::factory()->create();
-    $guaranteeRequest = GuaranteeRequest::factory()->create([
-        'user_type' => User::class,
-        'user_id' => $user->id,
-    ]);
-
-    $ticket = TicketSupport::create([
-        'user_type' => User::class,
-        'user_id' => $user->id,
-        'operation_type' => GuaranteeRequest::class,
-        'operation_id' => $guaranteeRequest->id,
-        'title' => 'Test Ticket',
-        'message' => 'Test message',
-        'status' => TicketSupportStatusEnum::Pending,
-    ]);
-
-    expect($ticket->operation)->toBeInstanceOf(GuaranteeRequest::class)
-        ->and($ticket->operation->is($guaranteeRequest))->toBeTrue();
 });
 
 it('has timestamps', function () {

@@ -7,13 +7,13 @@ import {Head, Link, router} from "@inertiajs/react";
 import {KTCard} from "@/_metronic/helpers";
 import Table, {LinkAction} from "@/components/Table";
 import {PaginationResource} from "@/types";
-import {GuaranteeRequest, Order, TicketSupport} from "@/types/models";
+import {Order, TicketSupport} from "@/types/models";
 import {ReactElement} from "react";
 import SupportController from "@/actions/App/Http/Controllers/Dashboard/SupportController";
 
 
 type Props = {
-  rows: PaginationResource<TicketSupport<Order | GuaranteeRequest>>,
+  rows: PaginationResource<TicketSupport<Order>>,
   prams: SearchPrams | null;
 };
 
@@ -69,7 +69,7 @@ const Index = (
       <Content>
         <KTCard>
           <Table
-            <TicketSupport<Order | GuaranteeRequest>>
+            <TicketSupport<Order>>
             name='tickets'
             only={['rows']}
             rows={rows}

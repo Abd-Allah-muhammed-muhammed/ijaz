@@ -90,8 +90,6 @@ Notes:
 | POST | /api/v1/chats/send/{conversation} | `Api\V1\ChatController@send` | Yes | `SendMessageRequest` | `ConversationMessageResource` | Sends a direct chat message. |
 | GET | /api/v1/chats/{conversation} | `Api\V1\ChatController@show` | Yes | none | `ConversationMessageCollection` | Lists messages in a conversation. |
 | GET | /api/v1/chats/{conversation}/show | `Api\V1\ChatController@chat` | Yes | none | `ConversationResource` | Returns conversation detail variant. |
-| GET | /api/v1/chats/guarantee | `Api\V1\ChatController@guaranteeChatIndex` | Yes | none | `ConversationCollection` | Lists guarantee chats. |
-| POST | /api/v1/chats/guarantee | `Api\V1\ChatController@guaranteeChatStore` | Yes | raw `Request` | `ConversationResource` | Creates guarantee conversation. |
 | GET | /api/v1/chats/orders | `Api\V1\OrderChatController@index` | Yes | none | `ConversationCollection` | Lists order chats. |
 | POST | /api/v1/chats/orders | `Api\V1\OrderChatController@store` | Yes | inline validation | `ConversationResource` | Creates order conversation. ⚠️ Needs dedicated FormRequest |
 | POST | /api/v1/chats/orders/send/{conversation} | `Api\V1\OrderChatController@send` | Yes | `SendMessageRequest` | `ConversationMessageResource` | Sends order message. |
@@ -114,24 +112,6 @@ Notes:
 
 ### Request body fields:
 - create/update: `JobRequest` (title, description, expected_salary, expired_at, contact_number, city_id, region_id, nationality_id, type enum, files nullable, skills nullable)
-
-## Guarantee Requests
-
-| Method | Endpoint | Controller | Auth | Request | Resource | Description |
-|---|---|---|---|---|---|---|
-| GET | /api/v1/guarantee-requests | `Api\V1\GuaranteeRequestController@index` | Yes (`auth:sanctum`) | none | `GuaranteeRequestCollection` | Lists guarantee requests. |
-| GET | /api/v1/guarantee-requests/assigned | `Api\V1\GuaranteeRequestController@assigned` | Yes | none | `GuaranteeRequestCollection` | Lists assigned guarantee requests. |
-| POST | /api/v1/guarantee-requests | `Api\V1\GuaranteeRequestController@store` | Yes | `GuaranteeRequestRequest` | `GuaranteeRequestResource` | Creates guarantee request. |
-| GET | /api/v1/guarantee-requests/{guaranteeRequest} | `Api\V1\GuaranteeRequestController@show` | Yes | none | `GuaranteeRequestResource` | Returns guarantee detail. |
-| POST | /api/v1/guarantee-requests/{guaranteeRequest}/edit | `Api\V1\GuaranteeRequestController@edit` | Yes | `GuaranteeRequestRequest` | `GuaranteeRequestResource` | Updates guarantee request. |
-| POST | /api/v1/guarantee-requests/{guaranteeRequest}/update-status | `Api\V1\GuaranteeRequestController@updateStatus` | Yes | `UpdateGuaranteeRequestStatusRequest` | helper response | Updates guarantee status. ⚠️ Status transition logic embedded in controller |
-| POST | /api/v1/guarantee-requests/{guaranteeRequest}/pay | `Api\V1\GuaranteeRequestController@pay` | Yes | none | payment array | Initiates payment for guarantee. |
-| DELETE | /api/v1/guarantee-requests/{guaranteeRequest}/media/{media:uuid} | `Api\V1\GuaranteeRequestController@deleteMedia` | Yes | none | helper response | Deletes guarantee media. |
-| DELETE | /api/v1/guarantee-requests/{guaranteeRequest} | `Api\V1\GuaranteeRequestController@destroy` | Yes | none | helper response | Deletes guarantee request. |
-
-### Request body fields:
-- create/edit: `GuaranteeRequestRequest` (title, provider_type, phone, description, amount, files nullable)
-- update-status: `UpdateGuaranteeRequestStatusRequest` (status enum)
 
 ## Advisements
 

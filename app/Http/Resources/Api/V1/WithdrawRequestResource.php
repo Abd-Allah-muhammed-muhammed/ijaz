@@ -2,7 +2,9 @@
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Models\Provider;
 use App\Models\TopUpRequest;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,7 +15,11 @@ class WithdrawRequestResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user' => GuaranteeRequestUserResource::make($this->whenLoaded('user')),
+            'user' => $this->whenLoaded('user', fn () => match (get_class($this->user)) {
+                User::class => UserResource::make($this->user),
+                Provider::class => ProviderResource::make($this->user),
+                default => null,
+            }),
             'amount' => $this->amount,
             'status' => $this->status,
             'admin_notes' => $this->admin_notes,

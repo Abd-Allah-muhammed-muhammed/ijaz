@@ -600,38 +600,6 @@ Last verified from source: 2026-04-16
 
 ---
 
-# Model: GuaranteeRequest
-
-**Table:** `guarantee_requests`  
-**File:** `app/Models/GuaranteeRequest.php`
-
-## Fields
-| Field | Type | Notes |
-|---|---|---|
-| `user_id` | `Unknown` | foreign key candidate |
-| `user_type` | `Unknown` | - |
-| `provider_id` | `Unknown` | foreign key candidate |
-| `provider_type` | `Unknown` | - |
-| `description` | `Unknown` | - |
-| `status` | `GuaranteeRequestStatusEnum::class` | cast |
-| `amount` | `Unknown` | - |
-| `fees` | `Unknown` | - |
-| `title` | `Unknown` | - |
-
-## Relationships
-| Method | Type | Related Model |
-|---|---|---|
-| `user` | `MorphTo` | `App\Models\Conversation` |
-| `provider` | `MorphTo` | `Unknown` |
-
-## Traits
-- None detected
-
-## Enums Used
-- `status` => `GuaranteeRequestStatusEnum::class`
-
----
-
 # Model: JobOffer
 
 **Table:** `job_offers`  
@@ -1655,8 +1623,6 @@ Last verified from source: 2026-04-16
 |---|---|---|
 | `nationality` | `BelongsTo` | `Nationality` |
 | `orders` | `HasMany` | `Order` |
-| `guaranteeRequests` | `MorphMany` | `GuaranteeRequest` |
-| `assignedGuaranteeRequests` | `MorphMany` | `GuaranteeRequest` |
 | `propertyAdvisements` | `MorphMany` | `PropertyAdvisement` |
 | `carAdvisements` | `MorphMany` | `CarAdvisement` |
 | `receivedMessages` | `MorphMany` | `ConversationMessage` |

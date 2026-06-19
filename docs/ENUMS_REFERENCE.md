@@ -61,23 +61,6 @@ Extracted from `app/Enums/` directory. All enums are backed enums unless otherwi
 
 ---
 
-## `App\Enums\GuaranteeRequest\GuaranteeRequestStatusEnum`
-**File:** `app/Enums/GuaranteeRequest/GuaranteeRequestStatusEnum.php`
-
-| Case | Value | Description |
-|---|---|---|
-| `New` | `new` | Newly created guarantee |
-| `Approved` | `approved` | Approved by provider |
-| `Rejected` | `rejected` | Rejected by provider |
-| `InProgress` | `in_progress` | Work in progress |
-| `CancelledByProvider` | `cancelled_by_provider` | Cancelled by provider |
-| `CancelledByClient` | `cancelled_by_client` | Cancelled by client |
-| `EndedByProvider` | `ended_by_provider` | Ended by provider |
-| `EndedByClient` | `ended_by_client` | Ended by client |
-| `Refunded` | `refunded` | Payment refunded |
-
----
-
 ## `App\Enums\Jobs\JobTypeEnum`
 **File:** `app/Enums/Jobs/JobTypeEnum.php`
 

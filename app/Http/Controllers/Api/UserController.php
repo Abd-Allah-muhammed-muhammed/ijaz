@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\GuaranteeRequest\GuaranteeRequestStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\UpdateSettingsRequest;
 use App\Http\Resources\Api\V1\NotificationCollection;
 use App\Models\ConversationMessage;
-use App\Models\GuaranteeRequest;
 use App\Models\Provider;
 use App\Models\User;
 use Dedoc\Scramble\Attributes\Group;
@@ -22,7 +20,7 @@ class UserController extends Controller
     use HasApiResponse;
 
     /**
-     * Get counts of unread notifications, unread messages, and guarantee requests for the authenticated user.
+     * Get counts of unread notifications and unread messages for the authenticated user.
      */
     public function counts(): JsonResponse
     {
@@ -36,14 +34,6 @@ class UserController extends Controller
             'unread_messages_count' => ConversationMessage::query()
                 ->whereMorphedTo('sender', $user)
                 ->whereNull('read_at')
-                ->count(),
-            'guarantee_requests_count' => GuaranteeRequest::whereMorphedTo('provider', $user)
-                ->whereIn('status', [
-                    GuaranteeRequestStatusEnum::New,
-                    GuaranteeRequestStatusEnum::Approved,
-                    GuaranteeRequestStatusEnum::InProgress,
-                    GuaranteeRequestStatusEnum::EndedByProvider,
-                ])
                 ->count(),
         ]);
     }

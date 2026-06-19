@@ -8,7 +8,6 @@ import {
   Conversation,
   ConversationMessage,
   ConversationUser,
-  GuaranteeRequest,
   Order,
   TicketSupport
 } from "@/types/models";
@@ -26,7 +25,7 @@ import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 
 
 type Props = {
-  row: TicketSupport<Order | GuaranteeRequest>,
+  row: TicketSupport<Order>,
   chat?: Conversation
   chatMessages?: ConversationMessage[]
 };
@@ -234,7 +233,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
                   {/* Display operation-specific data */}
                   {row.operation.data && (
                     <>
-                      {/* Common fields for both Order and GuaranteeRequest */}
+                      {/* Common operation fields */}
                       {row.operation.data.title && (
                         <div className="mt-7">
                           <label className="fw-semibold text-muted d-block mb-2">{t('title')}</label>
@@ -273,28 +272,6 @@ const Show = ({row, chat, chatMessages}: Props) => {
                         <div className="mt-7">
                           <label className="fw-semibold text-muted d-block mb-2">{t('price')}</label>
                           <span className="fw-bold fs-6 text-gray-800">{row.operation.data.price as string}</span>
-                        </div>
-                      )}
-
-                      {/* GuaranteeRequest-specific fields */}
-                      {'amount' in row.operation.data && row.operation.data.amount && (
-                        <div className="mt-7">
-                          <label className="fw-semibold text-muted d-block mb-2">{t('amount')}</label>
-                          <span className="fw-bold fs-6 text-gray-800">{row.operation.data.amount as string}</span>
-                        </div>
-                      )}
-
-                      {'fees' in row.operation.data && row.operation.data.fees && (
-                        <div className="mt-7">
-                          <label className="fw-semibold text-muted d-block mb-2">{t('fees')}</label>
-                          <span className="fw-normal fs-6 text-gray-700">{row.operation.data.fees as string}</span>
-                        </div>
-                      )}
-
-                      {'total' in row.operation.data && row.operation.data.total && (
-                        <div className="mt-7">
-                          <label className="fw-semibold text-muted d-block mb-2">{t('total')}</label>
-                          <span className="fw-bold fs-6 text-gray-800">{row.operation.data.total as string}</span>
                         </div>
                       )}
 

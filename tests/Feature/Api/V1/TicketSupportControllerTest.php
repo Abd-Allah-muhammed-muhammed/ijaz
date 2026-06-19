@@ -2,7 +2,6 @@
 
 use App\Enums\SupportTickets\TicketSupportStatusEnum;
 use App\Http\Controllers\Api\V1\TicketSupportController;
-use App\Models\GuaranteeRequest;
 use App\Models\Order;
 use App\Models\TicketSupport;
 use App\Models\User;
@@ -113,39 +112,6 @@ it('allows authenticated user to create ticket for order', function () {
     ]);
 });
 
-it('allows authenticated user to create ticket for guarantee request', function () {
-    Sanctum::actingAs($this->user);
-
-    $guaranteeRequest = GuaranteeRequest::factory()->create([
-        'user_type' => User::class,
-        'user_id' => $this->user->id,
-    ]);
-
-    $ticketData = [
-        'operation_type' => 'guarantee_request',
-        'operation_id' => $guaranteeRequest->id,
-        'title' => 'Guarantee Issue',
-        'message' => 'I need help with my guarantee request',
-    ];
-
-    $this->postJson(action([TicketSupportController::class, 'store']), $ticketData)
-        ->assertOk()
-        ->assertJson([
-            'data' => [
-                'title' => 'Guarantee Issue',
-                'message' => 'I need help with my guarantee request',
-            ],
-        ]);
-
-    $this->assertDatabaseHas('ticket_supports', [
-        'user_type' => User::class,
-        'user_id' => $this->user->id,
-        'operation_type' => GuaranteeRequest::class,
-        'operation_id' => $guaranteeRequest->id,
-        'title' => 'Guarantee Issue',
-    ]);
-});
-
 it('requires valid operation type for ticket creation', function () {
     Sanctum::actingAs($this->user);
 
@@ -167,8 +133,6 @@ it('requires all fields for ticket creation', function () {
     $this->postJson(action([TicketSupportController::class, 'store']), [])
         ->assertUnprocessable()
         ->assertJsonValidationErrors([
-            'operation_type',
-            'operation_id',
             'title',
             'message',
         ]);

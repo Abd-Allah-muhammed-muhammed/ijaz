@@ -2,6 +2,7 @@
 
 use App\Http\Requests\Api\V1\TicketSupportRequest;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 it('authorizes the request', function () {
     $request = new TicketSupportRequest;
@@ -20,12 +21,14 @@ it('has correct validation rules', function () {
         ->toHaveKey('message');
 });
 
-it('validates operation_type is required', function () {
+it('allows ticket without operation fields', function () {
     $request = new TicketSupportRequest;
-    $validator = Validator::make([], $request->rules());
+    $validator = Validator::make([
+        'title' => 'Test',
+        'message' => 'Test message',
+    ], $request->rules());
 
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('operation_type'))->toBeTrue();
+    expect($validator->fails())->toBeFalse();
 });
 
 it('validates operation_type must be valid', function () {
@@ -33,7 +36,7 @@ it('validates operation_type must be valid', function () {
 
     $validator = Validator::make([
         'operation_type' => 'invalid_type',
-        'operation_id' => 1,
+        'operation_id' => Str::uuid()->toString(),
         'title' => 'Test',
         'message' => 'Test message',
     ], $request->rules());
@@ -47,7 +50,7 @@ it('validates operation_type accepts order', function () {
 
     $validator = Validator::make([
         'operation_type' => 'order',
-        'operation_id' => 1,
+        'operation_id' => Str::uuid()->toString(),
         'title' => 'Test',
         'message' => 'Test message',
     ], $request->rules());
@@ -55,38 +58,12 @@ it('validates operation_type accepts order', function () {
     expect($validator->fails())->toBeFalse();
 });
 
-it('validates operation_type accepts guarantee_request', function () {
-    $request = new TicketSupportRequest;
-
-    $validator = Validator::make([
-        'operation_type' => 'guarantee_request',
-        'operation_id' => 1,
-        'title' => 'Test',
-        'message' => 'Test message',
-    ], $request->rules());
-
-    expect($validator->fails())->toBeFalse();
-});
-
-it('validates operation_id is required', function () {
+it('validates operation_id minimum length', function () {
     $request = new TicketSupportRequest;
 
     $validator = Validator::make([
         'operation_type' => 'order',
-        'title' => 'Test',
-        'message' => 'Test message',
-    ], $request->rules());
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('operation_id'))->toBeTrue();
-});
-
-it('validates operation_id must be integer', function () {
-    $request = new TicketSupportRequest;
-
-    $validator = Validator::make([
-        'operation_type' => 'order',
-        'operation_id' => 'not_an_integer',
+        'operation_id' => 'short-id',
         'title' => 'Test',
         'message' => 'Test message',
     ], $request->rules());
@@ -100,7 +77,7 @@ it('validates title is required', function () {
 
     $validator = Validator::make([
         'operation_type' => 'order',
-        'operation_id' => 1,
+        'operation_id' => Str::uuid()->toString(),
         'message' => 'Test message',
     ], $request->rules());
 
@@ -113,7 +90,7 @@ it('validates title max length', function () {
 
     $validator = Validator::make([
         'operation_type' => 'order',
-        'operation_id' => 1,
+        'operation_id' => Str::uuid()->toString(),
         'title' => str_repeat('a', 256),
         'message' => 'Test message',
     ], $request->rules());
@@ -127,7 +104,7 @@ it('validates message is required', function () {
 
     $validator = Validator::make([
         'operation_type' => 'order',
-        'operation_id' => 1,
+        'operation_id' => Str::uuid()->toString(),
         'title' => 'Test',
     ], $request->rules());
 
@@ -140,7 +117,7 @@ it('passes validation with valid data', function () {
 
     $validator = Validator::make([
         'operation_type' => 'order',
-        'operation_id' => 1,
+        'operation_id' => Str::uuid()->toString(),
         'title' => 'Test Ticket',
         'message' => 'This is a test message',
     ], $request->rules());

@@ -17,7 +17,7 @@ This file is the entry point for understanding the project architecture and patt
 
 ## Section 2 — Project Overview
 
-This application is a multi-actor marketplace/platform built around service orders, offers, payments, wallets, guarantee requests, support tickets, jobs, and classified advisements for properties and cars. The route and model layers show these product areas clearly: users create and manage orders, providers receive offers and notifications, both actors can chat, the platform exposes catalog/look-up data, and there are payment flows for order settlement, guarantee requests, and wallet top-ups/withdrawals.
+This application is a multi-actor marketplace/platform built around service orders, offers, payments, wallets, guarantor requests, support tickets, jobs, and classified advisements for properties and cars. The route and model layers show these product areas clearly: users create and manage orders, providers receive offers and notifications, both actors can chat, the platform exposes catalog/look-up data, and there are payment flows for order settlement, guarantor requests, and wallet top-ups/withdrawals.
 
 **Main actors:**
 - **User:** `App\Models\User`, authenticated in the API by the `user-api` Sanctum guard.
@@ -57,7 +57,7 @@ This application is a multi-actor marketplace/platform built around service orde
 | `employee` | `Employee` | `session` | Not visibly mounted in analyzed routes | Session auth |
 | `provider` | `Provider` | `session` | Provider dashboard routes in `routes/provider.php` | Browser session |
 | `user-api` | `User` | `sanctum` | `/api/v1/user/*` routes for login/register/profile/orders | Short-lived Sanctum tokens + ability checks |
-| `sanctum` | Generic | `sanctum` | Chats, jobs, guarantee requests, tickets, wallet, OTP, notifications, advisements | Generic Sanctum tokens; controller code branches on model type |
+| `sanctum` | Generic | `sanctum` | Chats, jobs, guarantor, tickets, wallet, OTP, notifications, advisements | Generic Sanctum tokens; controller code branches on model type |
 
 **Broadcast authentication:**
 - `bootstrap/app.php` registers broadcasting auth middleware as `web` + `auth:admin,provider`
@@ -72,7 +72,7 @@ This application is a multi-actor marketplace/platform built around service orde
 
 ```
 app/
-├── Actions/Payment/          — Payment pipeline actions (orders, guarantees, top-ups, gateway updates)
+├── Actions/Payment/          — Payment pipeline actions (orders, guarantor, top-ups, gateway updates)
 ├── Console/Commands/         — CLI commands including JS enum generation
 ├── Contracts/                — Interfaces (OTPs, Selects)
 ├── Enums/                    — Status/lookup enums with utility traits
@@ -148,7 +148,7 @@ routes/
 - Jobs: `NotifyChatMessageReceiver` queued for async notification delivery
 
 ### File Uploads
-- Spatie MediaLibrary used on: orders, jobs, advisements, guarantee requests
+- Spatie MediaLibrary used on: orders, jobs, advisements, guarantor requests
 - Manual storage via `store('...')` for other uploads; path persisted in models
 - Media routes protected: `/media/file/{media}`, `/media/{media}`, `/media/chat/{media}`
 
@@ -178,7 +178,6 @@ routes/
 | `UpdatePaymentStatus` | `app/Actions/Payment/PayTabs/UpdatePaymentStatus.php` | Maps PayTabs responses to payment updates | Payment model, payment status |
 | `ProcessOrder` | `app/Actions/Payment/Order/ProcessOrder.php` | Finalizes order/offer state after payment | Order, OrderOffer models |
 | `AddUserTransaction` | `app/Actions/Payment/Order/AddUserTransaction.php` | Records wallet transaction for user | WalletTransaction model |
-| `ProcessGuaranteeRequest` | `app/Actions/Payment/GuaranteeRequest/ProcessGuaranteeRequest.php` | Finalizes guarantee request after payment | GuaranteeRequest model |
 | `ProcessTopUpRequest` | `app/Actions/Payment/TopUp/ProcessToUpRequest.php` | Finalizes top-up request after payment | TopUpRequest, Wallet models |
 
 ---
@@ -263,7 +262,7 @@ Full issue list is in [docs/REFACTOR_NOTES.md](docs/REFACTOR_NOTES.md).
 ### Core Models
 - `User`, `Provider`, `Admin`, `Employee` — Actor models
 - `Order`, `OrderOffer`, `OrderStatusHistory` — Order workflow
-- `GuaranteeRequest` — Guarantee/deposit requests
+- `GuarantorRequest` (Modules/Guarantor) — Escrow/guarantor requests
 - `Payment`, `Wallet`, `WalletTransaction`, `TopUpRequest`, `WithdrawRequest` — Financial tracking
 - `Conversation`, `ConversationMessage`, `ConversationAttachment` — Chat
 - `TicketSupport` — Support tickets

@@ -58,8 +58,6 @@ use Modules\Guarantor\Models\GuarantorRequest;
  * @property Carbon|null $updated_at
  * @property-read Collection<int, ConversationMessage> $receivedMessages
  * @property-read Collection<int, ConversationMessage> $sentMessages
- * @property-read Collection<int, GuaranteeRequest> $assignedGuaranteeRequests
- * @property-read Collection<int , GuaranteeRequest> $guaranteeRequests
  * @property-read Collection<int, GuarantorRequest> $assignedGuarantorRequests
  * @property-read Collection<int, GuarantorRequest> $guarantorRequests
  * @property-read Collection<int, Order> $orders
@@ -157,16 +155,6 @@ class User extends Authenticatable implements HasConversation, HasOTPsContract, 
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class, 'user_id');
-    }
-
-    public function guaranteeRequests(): MorphMany
-    {
-        return $this->morphMany(GuaranteeRequest::class, 'user');
-    }
-
-    public function assignedGuaranteeRequests(): MorphMany
-    {
-        return $this->morphMany(GuaranteeRequest::class, 'provider');
     }
 
     public function guarantorRequests(): MorphMany

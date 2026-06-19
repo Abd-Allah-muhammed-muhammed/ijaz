@@ -23,7 +23,7 @@ class TicketSupportRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'operation_type' => 'nullable|string|in:order,guarantee_request',
+            'operation_type' => 'nullable|string|in:order',
             'operation_id' => 'nullable|string|min:36',
             'title' => 'required|string|max:255',
             'message' => 'required|string',

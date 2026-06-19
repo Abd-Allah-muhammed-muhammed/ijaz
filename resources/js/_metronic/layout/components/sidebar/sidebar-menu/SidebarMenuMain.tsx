@@ -5,7 +5,6 @@ import CarCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Da
 import CarTypeController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarTypeController';
 import CategoryController from '@/actions/App/Http/Controllers/Dashboard/CategoryController';
 import CityController from '@/actions/App/Http/Controllers/Dashboard/CityController';
-import GuaranteeRequestController from '@/actions/App/Http/Controllers/Dashboard/GuaranteeRequestController';
 import HomeController from '@/actions/App/Http/Controllers/Dashboard/HomeController';
 import MessageController from '@/actions/App/Http/Controllers/Dashboard/MessageController';
 import NationalityController from '@/actions/App/Http/Controllers/Dashboard/NationalityController';
@@ -65,14 +64,6 @@ const SidebarMenuMain = () => {
             title={t('orders')}
             fontIcon="bi-cart"
             show={hasPermission('show orders')}
-          />
-          <SidebarMenuItem
-            isActive={matchComponents('dashboard.guarantee-request.*')}
-            to={GuaranteeRequestController.index().url}
-            icon="shield-tick"
-            title={t('guarantee_requests')}
-            fontIcon="bi-shield-check"
-            show={hasPermission('show guarantee_requests')}
           />
         </>
       )}

@@ -5,7 +5,6 @@ use App\Http\Controllers\Dashboard\AuthController;
 use App\Http\Controllers\Dashboard\BannerController;
 use App\Http\Controllers\Dashboard\CategoryController;
 use App\Http\Controllers\Dashboard\CityController;
-use App\Http\Controllers\Dashboard\GuaranteeRequestController;
 use App\Http\Controllers\Dashboard\HomeController;
 use App\Http\Controllers\Dashboard\MessageController;
 use App\Http\Controllers\Dashboard\NationalityController;
@@ -75,11 +74,6 @@ Route::group(
                     Route::get('/', 'index')->name('index');
                     Route::get('/{order}', 'show')->name('show');
                     Route::get('/{order}/conversation-messages', 'conversationMessages')->name('conversation-messages');
-                });
-                Route::controller(GuaranteeRequestController::class)->prefix('guarantee-requests')->as('guarantee-requests.')->group(static function () {
-                    Route::get('/', 'index')->name('index');
-                    Route::get('/{guaranteeRequest}', 'show')->name('show');
-                    Route::get('/{guaranteeRequest}/conversation-messages', 'conversationMessages')->name('conversation-messages');
                 });
                 Route::controller(SupportController::class)->prefix('support')->as('support.')->group(function () {
                     Route::get('/tickets', 'index')->name('tickets.index');

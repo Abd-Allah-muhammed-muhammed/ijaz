@@ -3,7 +3,6 @@
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\ChatController;
-use App\Http\Controllers\Api\V1\GuaranteeRequestController;
 use App\Http\Controllers\Api\V1\JobController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\OrderChatController;
@@ -52,8 +51,6 @@ Route::middleware('auth:sanctum')->group(static function () {
         });
         Route::get('/', 'index');
         Route::post('/', 'store');
-        Route::post('/guarantee', 'guaranteeChatStore');
-        Route::get('/guarantee', 'guaranteeChatIndex');
 
         require base_path('Modules/Opportunity/Routes/V1/chat.php');
         require base_path('Modules/Guarantor/Routes/V1/chat.php');
@@ -80,17 +77,6 @@ Route::middleware('auth:sanctum')->group(static function () {
     Route::delete('jobs/{job}/media/{media}', [JobController::class, 'deleteMedia']);
     Route::apiResource('jobs', JobController::class)->except('show');
 
-    Route::controller(GuaranteeRequestController::class)->prefix('guarantee-requests')->group(static function () {
-        Route::get('/', 'index');
-        Route::get('/assigned', 'assigned');
-        Route::post('/', 'store');
-        Route::get('/{guaranteeRequest}', 'show');
-        Route::post('/{guaranteeRequest}/edit', 'edit');
-        Route::delete('/{guaranteeRequest}/media/{media:uuid}', 'deleteMedia');
-        Route::post('/{guaranteeRequest}/update-status', 'updateStatus');
-        Route::delete('/{guaranteeRequest}', 'destroy');
-        Route::post('/{guaranteeRequest}/pay', 'pay');
-    });
     Route::controller(MessageController::class)->prefix('messages')->group(static function () {
         Route::post('/', 'store');
     });
