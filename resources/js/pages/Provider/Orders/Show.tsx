@@ -17,8 +17,8 @@ import ActionButton from "@/components/action-button";
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faStar} from '@fortawesome/free-solid-svg-icons';
 import axios from '@/helpers/axios';
-import ChatController from '@/actions/App/Http/Controllers/Provider/ChatController';
-import OrderChatController from '@/actions/App/Http/Controllers/Provider/OrderChatController';
+import ProviderChatIndexController from '@/actions/Modules/Chat/Http/Controllers/Provider/ProviderChatIndexController';
+import ProviderOrderChatController from '@/actions/Modules/Chat/Http/Controllers/Provider/OrderChatController';
 
 type Props = {
   order: Order
@@ -128,16 +128,16 @@ const Show = ({order}: Props) => {
   };
 
   const StartChat = () => {
-    axios.post(OrderChatController.store().url, {
+    axios.post(ProviderOrderChatController.store().url, {
       order_id: order.id,
     }).then(function (res) {
       const response = res.data;
       if (response.success) {
-        router.visit(ChatController.index({
+        router.visit(ProviderChatIndexController.url({
           query: {
-            conversation: response.data.id
+            conversation: response.data.id,
           },
-        }).url);
+        }));
       }
     });
   };

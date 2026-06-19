@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useConversations } from "@/store/use-chat";
 import { ConversationMessage, ConversationUser } from "@/types/models";
 import axios from "@/helpers/axios";
-import ChatController from "@/actions/App/Http/Controllers/Provider/ChatController";
+import ProviderMemberChatController from "@/actions/Modules/Chat/Http/Controllers/Provider/MemberChatController";
 import { ChatEventEnum } from "@/Enums/Chat";
 import MessageIn from "@/components/chat/components/message-in";
 import MessageOut from "@/components/chat/components/message-out";
@@ -53,7 +53,7 @@ const ConversationContent = ({ }: Props) => {
       message.files.forEach(file => {
         formData.append('files[]', file);
       });
-      axios.post(ChatController.send(currentConversation.id).url, formData, {
+      axios.post(ProviderMemberChatController.send(currentConversation.id).url, formData, {
         headers: {
           'X-Socket-Id': window.Echo.socketId(),
           'Content-Type': 'multipart/form-data',
@@ -133,7 +133,7 @@ const ConversationContent = ({ }: Props) => {
           }
         });
 
-        axios.get(ChatController.show(currentConversation.id).url)
+        axios.get(ProviderMemberChatController.show(currentConversation.id).url)
           .then(response => {
             setLoading(false)
             setMessages(response.data);

@@ -3,8 +3,9 @@
 namespace App\Guards;
 
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Guard;
 
-class AdminGuard implements \Illuminate\Contracts\Auth\Guard
+class AdminGuard implements Guard
 {
     public function check()
     {

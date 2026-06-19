@@ -1,9 +1,15 @@
 <?php
 
+use App\Providers\AdminServiceProvider;
+use App\Providers\AppServiceProvider;
+use App\Providers\BladeServiceProvider;
+use App\Providers\RepositoryServiceProvider;
+use Paytabscom\Laravel_paytabs\PaypageServiceProvider;
+
 return [
-    App\Providers\AdminServiceProvider::class,
-    App\Providers\AppServiceProvider::class,
-    App\Providers\BladeServiceProvider::class,
-    App\Providers\RepositoryServiceProvider::class,
-    Paytabscom\Laravel_paytabs\PaypageServiceProvider::class,
+    AdminServiceProvider::class,
+    AppServiceProvider::class,
+    BladeServiceProvider::class,
+    RepositoryServiceProvider::class,
+    PaypageServiceProvider::class,
 ];

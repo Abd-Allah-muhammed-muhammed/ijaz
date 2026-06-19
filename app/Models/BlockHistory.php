@@ -18,7 +18,7 @@ class BlockHistory extends Model
         'blocked_until' => 'datetime',
     ];
 
-    public function authenticatable(): morphTo
+    public function authenticatable(): MorphTo
     {
         return $this->morphTo();
     }

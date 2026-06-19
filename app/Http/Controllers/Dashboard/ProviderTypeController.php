@@ -9,6 +9,7 @@ use App\Http\Resources\Dashboard\ProviderTypeCollection;
 use App\Http\Resources\Dashboard\ProviderTypeResource;
 use App\Models\Category;
 use App\Models\ProviderType;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -64,7 +65,7 @@ class ProviderTypeController extends Controller implements HasMiddleware
      *
      * @throws Throwable
      */
-    public function update(ProviderTypeRequest $request, ProviderType $providerType): \Illuminate\Http\RedirectResponse
+    public function update(ProviderTypeRequest $request, ProviderType $providerType): RedirectResponse
     {
         $data = $request->validated();
 

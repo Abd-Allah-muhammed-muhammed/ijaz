@@ -1,5 +1,6 @@
 <?php
 
+use App\Logging\SMSLogger;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -130,7 +131,7 @@ return [
         ],
         'sms' => [
             'driver' => 'custom',
-            'via' => App\Logging\SMSLogger::class,
+            'via' => SMSLogger::class,
         ],
     ],
 

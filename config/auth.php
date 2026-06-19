@@ -1,5 +1,10 @@
 <?php
 
+use App\Models\Admin;
+use App\Models\Employee;
+use App\Models\Provider;
+use App\Models\User;
+
 return [
 
     /*
@@ -78,30 +83,30 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\User::class),
+            'model' => env('AUTH_MODEL', User::class),
         ],
 
         'admins' => [
             'driver' => 'adminEloquent',
-            'model' => App\Models\Admin::class,
+            'model' => Admin::class,
         ],
         'employee' => [
             'driver' => 'eloquent',
-            'model' => App\Models\Employee::class,
+            'model' => Employee::class,
         ],
         'provider' => [
             'driver' => 'eloquent',
-            'model' => App\Models\Provider::class,
+            'model' => Provider::class,
         ],
 
         'provider-api' => [
             'driver' => 'eloquent',
-            'model' => App\Models\Provider::class,
+            'model' => Provider::class,
         ],
 
         'user-api' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model' => User::class,
         ],
 
         // 'users' => [

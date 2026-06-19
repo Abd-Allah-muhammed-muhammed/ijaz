@@ -5,12 +5,13 @@ namespace Database\Factories;
 use App\Enums\Order\OrderStatusEnum;
 use App\Models\Category;
 use App\Models\City;
+use App\Models\Order;
 use App\Models\Region;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Order>
+ * @extends Factory<Order>
  */
 class OrderFactory extends Factory
 {

@@ -87,6 +87,7 @@ class InstituteAdvisementController extends Controller
      * Create a new institute advisement
      *
      * @authenticated
+     *
      * @throws Throwable
      */
     public function store(InstituteAdvisementRequest $request): JsonResponse
@@ -110,6 +111,7 @@ class InstituteAdvisementController extends Controller
      * Get an institute advisement
      *
      * @authenticated
+     *
      * @throws Throwable
      */
     public function show(InstituteAdvisement $instituteAdvisement): JsonResponse
@@ -123,6 +125,7 @@ class InstituteAdvisementController extends Controller
      * Update an existing institute advisement
      *
      * @authenticated
+     *
      * @throws Throwable
      */
     public function update(InstituteAdvisementRequest $request, InstituteAdvisement $instituteAdvisement): JsonResponse
@@ -148,6 +151,7 @@ class InstituteAdvisementController extends Controller
      * Delete a media from an institute advisement
      *
      * @authenticated
+     *
      * @throws Throwable
      */
     public function deleteMedia(InstituteAdvisement $instituteAdvisement, Media $media): JsonResponse
@@ -172,6 +176,7 @@ class InstituteAdvisementController extends Controller
      * Delete an institute advisement
      *
      * @authenticated
+     *
      * @throws Throwable
      */
     public function destroy(InstituteAdvisement $instituteAdvisement): JsonResponse

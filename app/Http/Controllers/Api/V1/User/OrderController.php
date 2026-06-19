@@ -240,7 +240,7 @@ class OrderController extends Controller
                 case OfferStatusEnum::Accepted:
                     if ($order->status->is(OrderStatusEnum::New)) {
                         $categoryFees = $order->category->getFees($offer->price);
-                        $paymentGatewayFees = app('settings')->get(Payment::getDefaultDriver() . '_fees');
+                        $paymentGatewayFees = app('settings')->get(Payment::getDefaultDriver().'_fees');
                         $fees = (float) $paymentGatewayFees + $categoryFees + (15 / 100 * $categoryFees);
                         $order->update([
                             'provider_id' => $offer->provider_id,

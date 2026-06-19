@@ -2,9 +2,9 @@
 
 namespace Modules\Catalog\Http\Resources\Dashboard;
 
-use Modules\Catalog\Models\PropertyType;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Catalog\Models\PropertyType;
 
 /**
  * @mixin PropertyType

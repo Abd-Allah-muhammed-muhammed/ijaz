@@ -29,8 +29,8 @@ class JobController extends Controller
             JobOffer::query()
                 ->latest()
                 ->when($request->filled('search'), function ($q) use ($request) {
-                    $q->where('title', 'like', '%' . $request->string('search') . '%')
-                        ->orWhere('description', 'like', '%' . $request->string('search') . '%');
+                    $q->where('title', 'like', '%'.$request->string('search').'%')
+                        ->orWhere('description', 'like', '%'.$request->string('search').'%');
                 })
                 ->with(['city.translation', 'region.translation', 'nationality.translation', 'skills.translation', 'user', 'media'])
                 ->active()

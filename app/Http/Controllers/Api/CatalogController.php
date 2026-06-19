@@ -7,6 +7,7 @@ use App\Http\Resources\Api\V1\CategoryCollection;
 use App\Http\Resources\Api\V1\SkillCollection;
 use App\Models\Category;
 use App\Models\Skill;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 
@@ -14,7 +15,7 @@ class CatalogController extends Controller
 {
     use HasApiResponse;
 
-    public function categories(Request $request): \Illuminate\Http\JsonResponse
+    public function categories(Request $request): JsonResponse
     {
         return $this->successResponse(
             CategoryCollection::make(
@@ -35,7 +36,7 @@ class CatalogController extends Controller
         );
     }
 
-    public function skills(Request $request): \Illuminate\Http\JsonResponse
+    public function skills(Request $request): JsonResponse
     {
         return $this->successResponse(SkillCollection::make(
             Skill::query()

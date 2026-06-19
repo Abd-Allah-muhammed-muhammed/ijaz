@@ -127,7 +127,7 @@ class WalletController extends Controller
                 'balance_before' => $wallet->balance,
                 'operation_type' => get_class($withdrawRequest),
                 'operation_id' => $withdrawRequest->id,
-                'description' => 'Withdraw Request Created #' . $withdrawRequest->id,
+                'description' => 'Withdraw Request Created #'.$withdrawRequest->id,
                 'pending_debit' => $withdrawRequest->amount,
                 'pending_credit' => 0,
             ]);

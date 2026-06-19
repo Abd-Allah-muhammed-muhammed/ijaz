@@ -13,6 +13,7 @@ use App\Models\OrderOffer;
 use App\Models\Provider;
 use App\Models\Region;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -282,7 +283,7 @@ class TestOrdersAndConversationsSeeder extends Seeder
     private function createMessages(Conversation $conversation, User $user, Provider $provider): void
     {
         $conversationTemplate = $this->sampleConversations[array_rand($this->sampleConversations)];
-        $messageTime = \Carbon\Carbon::parse($conversation->created_at);
+        $messageTime = Carbon::parse($conversation->created_at);
         $lastMessage = null;
 
         foreach ($conversationTemplate as $messageData) {

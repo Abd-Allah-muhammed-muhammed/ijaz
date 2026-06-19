@@ -15,7 +15,7 @@ import {useRecommendedOrdersContext} from "@/store/recommend-orders-context";
 import {useTranslation} from "react-i18next";
 import {useConversations} from "@/store/use-chat";
 import {ChatEventEnum} from "@/Enums/Chat";
-import ChatController from "@/actions/App/Http/Controllers/Provider/ChatController";
+import ProviderChatIndexController from "@/actions/Modules/Chat/Http/Controllers/Provider/ProviderChatIndexController";
 import {Button} from "react-bootstrap";
 
 type Props = {
@@ -79,7 +79,7 @@ export default function ProviderLayout({children, head}: Props) {
       })
       .listen(`.${ChatEventEnum.Chat_Updated}`, (chat: Conversation) => {
         const cleanUrl = url.split('?')[0];
-        if (cleanUrl === `/${locale}${ChatController.index().url}`) {
+        if (cleanUrl === `/${locale}${ProviderChatIndexController.url()}`) {
           if (chat.last_message?.sender?.socket_id === user.socket_id) {
             chat.unread_count = 0;
           }
@@ -97,10 +97,11 @@ export default function ProviderLayout({children, head}: Props) {
               title={t('view')}
               size='sm'
               onClick={() => {
-                router.visit(ChatController.index().url, {
+                router.visit(ProviderChatIndexController.url({
+                  query: {conversation: chat.id},
+                }), {
                   preserveScroll: true,
                   replace: true,
-                  data: {conversation: chat.id}
                 })
               }}
             >

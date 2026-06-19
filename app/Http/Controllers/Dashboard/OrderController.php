@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Dashboard;
 use App\Enums\Order\OfferStatusEnum;
 use App\Enums\Order\OrderStatusEnum;
 use App\Http\Controllers\Controller;
-use Modules\Chat\Http\Resources\Dashboard\ConversationMessageCollection;
 use App\Http\Resources\Dashboard\OrderCollection;
 use App\Http\Resources\Dashboard\OrderResource;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Chat\Http\Resources\Dashboard\ConversationMessageCollection;
 
 class OrderController extends Controller
 {

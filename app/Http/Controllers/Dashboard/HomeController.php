@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Enums\Order\OrderStatusEnum;
+use App\Enums\Payment\PaymentStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Dashboard\OrderResource;
 use App\Http\Resources\Dashboard\ProviderResource;
 use App\Http\Resources\Dashboard\UserResource;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Provider;
 use App\Models\User;
 use Carbon\CarbonPeriod;
@@ -38,7 +40,7 @@ class HomeController extends Controller
             'totalUsers' => User::count('id'),
             'totalProviders' => Provider::count('id'),
             'totalOrders' => Order::count('id'),
-            'totalRevenue' => \App\Models\Payment::query()->where('status', '=', \App\Enums\Payment\PaymentStatusEnum::Accepted)->sum('amount'),
+            'totalRevenue' => Payment::query()->where('status', '=', PaymentStatusEnum::Accepted)->sum('amount'),
         ];
 
         // Registration Stats (Last 30 days)
@@ -57,7 +59,7 @@ class HomeController extends Controller
             ->get()
             ->pluck('count', 'date');
 
-        $revenueDaily = \App\Models\Payment::query()->where('status', '=', \App\Enums\Payment\PaymentStatusEnum::Accepted)
+        $revenueDaily = Payment::query()->where('status', '=', PaymentStatusEnum::Accepted)
             ->where('created_at', '>=', $last30Days)
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('sum(amount) as total'))
             ->groupBy('date')

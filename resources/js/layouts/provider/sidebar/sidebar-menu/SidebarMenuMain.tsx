@@ -2,7 +2,7 @@ import {useIntl} from 'react-intl'
 import {SidebarMenuItem} from './SidebarMenuItem'
 import useActiveRoute from "@/hooks/use-active-route";
 import HomeController from "@/actions/App/Http/Controllers/Provider/HomeController";
-import ChatController from "@/actions/App/Http/Controllers/Provider/ChatController";
+import ProviderChatIndexController from "@/actions/Modules/Chat/Http/Controllers/Provider/ProviderChatIndexController";
 import {SidebarMenuItemWithSub} from "@/_metronic/layout/components/sidebar/sidebar-menu/SidebarMenuItemWithSub";
 import OrderController from "@/actions/App/Http/Controllers/Provider/OrderController";
 import TopUpController from "@/actions/App/Http/Controllers/Provider/TopUpController";
@@ -82,8 +82,8 @@ const SidebarMenuMain = () => {
         </div>
       </div>
       <SidebarMenuItem
-        isActive={matchUrl(ChatController.index().url)}
-        to={ChatController.index().url}
+        isActive={matchUrl(ProviderChatIndexController.url())}
+        to={ProviderChatIndexController.url()}
         title={t('chat')}
         fontIcon='bi-chat-left'
         icon='message-text-2'

@@ -263,14 +263,14 @@ class FirebaseService
         $error = curl_error($ch);
         curl_close($ch);
         if ($error) {
-            throw new \RuntimeException($error);
+            throw new RuntimeException($error);
         }
         $response = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException(json_last_error_msg());
+            throw new RuntimeException(json_last_error_msg());
         }
         if (array_key_exists('error', $response)) {
-            throw new \RuntimeException($response['error']['message']);
+            throw new RuntimeException($response['error']['message']);
         }
 
         return $response;
