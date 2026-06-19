@@ -325,7 +325,7 @@ test('requester cannot accept or reject', function () {
     );
 })->throws(GuarantorException::class);
 
-test('chat opens on accepted not approved by admin', function () {
+test('chat opens on in_progress after payment not on accepted', function () {
     $guarantorRequest = GuarantorRequest::factory()->approvedByAdmin()->create();
     $counterparty = $guarantorRequest->counterparty;
 
@@ -344,6 +344,18 @@ test('chat opens on accepted not approved by admin', function () {
     expect(Conversation::query()
         ->where('operation_type', GuarantorRequest::class)
         ->where('operation_id', $guarantorRequest->id)
+        ->exists())->toBeFalse();
+
+    config(['app.payment.driver' => 'testing']);
+
+    $acceptedRequest = GuarantorRequest::factory()->accepted()->create(['amount' => 1000, 'fees' => 10]);
+    $payment = acceptedGuarantorPayment($acceptedRequest, $acceptedRequest->counterparty, 1010);
+
+    runPaymentPipelineStage(app(ProcessGuarantorPayment::class), $payment);
+
+    expect(Conversation::query()
+        ->where('operation_type', GuarantorRequest::class)
+        ->where('operation_id', $acceptedRequest->id)
         ->exists())->toBeTrue();
 });
 
@@ -404,14 +416,20 @@ test('DeleteGuarantorAction fails for non pending_admin request', function () {
     app(DeleteGuarantorAction::class)->handle($guarantorRequest);
 })->throws(GuarantorException::class);
 
-test('OpenGuarantorChatAction creates conversation when accepted', function () {
-    $guarantorRequest = GuarantorRequest::factory()->accepted()->create();
+test('OpenGuarantorChatAction creates conversation when in_progress', function () {
+    $guarantorRequest = GuarantorRequest::factory()->inProgress()->create();
 
     $conversation = app(OpenGuarantorChatAction::class)->handle($guarantorRequest);
 
     expect($conversation)->toBeInstanceOf(Conversation::class)
         ->and($conversation->operation_id)->toBe($guarantorRequest->id);
 });
+
+test('OpenGuarantorChatAction fails when status is accepted', function () {
+    $guarantorRequest = GuarantorRequest::factory()->accepted()->create();
+
+    app(OpenGuarantorChatAction::class)->handle($guarantorRequest);
+})->throws(GuarantorException::class);
 
 test('OpenGuarantorChatAction fails when status is approved by admin', function () {
     $guarantorRequest = GuarantorRequest::factory()->approvedByAdmin()->create();
@@ -616,7 +634,11 @@ test('ProcessGuarantorPayment sets request to in_progress on payment accepted', 
 
     runPaymentPipelineStage(app(ProcessGuarantorPayment::class), $payment);
 
-    expect($guarantorRequest->fresh()->status)->toBe(GuarantorStatusEnum::InProgress);
+    expect($guarantorRequest->fresh()->status)->toBe(GuarantorStatusEnum::InProgress)
+        ->and(Conversation::query()
+            ->where('operation_type', GuarantorRequest::class)
+            ->where('operation_id', $guarantorRequest->id)
+            ->exists())->toBeTrue();
 });
 
 test('ProcessGuarantorPayment sets installment to paid on installment payment', function () {

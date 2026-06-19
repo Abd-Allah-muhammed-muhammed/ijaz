@@ -20,7 +20,6 @@ class OpenGuarantorChatAction
             $request->loadMissing(['requester', 'counterparty']);
 
             if (! in_array($request->status, [
-                GuarantorStatusEnum::Accepted,
                 GuarantorStatusEnum::InProgress,
                 GuarantorStatusEnum::Overdue,
             ], true)) {

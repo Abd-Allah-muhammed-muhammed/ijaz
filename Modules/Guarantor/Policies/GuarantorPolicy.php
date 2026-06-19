@@ -50,7 +50,6 @@ class GuarantorPolicy
     {
         return $this->isParty($user, $request)
             && $request->status->isIn([
-                GuarantorStatusEnum::Accepted,
                 GuarantorStatusEnum::InProgress,
                 GuarantorStatusEnum::Overdue,
             ]);
