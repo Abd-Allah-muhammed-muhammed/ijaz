@@ -63,7 +63,7 @@ class OpportunityChatController extends Controller
 
             return $this->successResponse(
                 OpportunityConversationResource::make(
-                    $conversation->load(['user1', 'user2', 'lastMassage', 'operation'])
+                    $conversation->load(['user1', 'user2', 'lastMessage', 'operation'])
                 )
             );
         } catch (OpportunityException $e) {

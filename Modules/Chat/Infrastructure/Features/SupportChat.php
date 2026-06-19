@@ -56,7 +56,7 @@ class SupportChat extends BaseChatService
      * @throws ChatException
      * @throws ChatMessageException|ApiErrorException
      */
-    public function replayAsAdmin(Admin $admin, ?string $message = null, array $attachments = []): Conversation
+    public function replyAsAdmin(Admin $admin, ?string $message = null, array $attachments = []): Conversation
     {
         $this->validate($message, $attachments, ['admin']);
 
@@ -72,7 +72,7 @@ class SupportChat extends BaseChatService
      * @throws ChatException /
      * @throws ChatMessageException /
      */
-    public function replayAsSupportable(?string $message = null, array $attachments = []): Conversation
+    public function replyAsSupportable(?string $message = null, array $attachments = []): Conversation
     {
         $this->validate($message, $attachments, ['supportable']);
 

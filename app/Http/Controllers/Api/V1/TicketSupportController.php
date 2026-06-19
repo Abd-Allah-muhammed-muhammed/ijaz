@@ -157,11 +157,11 @@ class TicketSupportController extends Controller
         }
 
         $chat = Chat::support($ticketSupport)
-            ->replayAsSupportable(
+            ->replyAsSupportable(
                 message: $data['content'],
                 attachments: $data['files'] ?? [],
             );
 
-        return $this->successResponse(ConversationMessageResource::make($chat->lastMassage));
+        return $this->successResponse(ConversationMessageResource::make($chat->lastMessage));
     }
 }

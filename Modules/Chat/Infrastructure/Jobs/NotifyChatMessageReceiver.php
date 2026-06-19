@@ -6,10 +6,10 @@ use App\Models\ConversationMessage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Auth\User;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Modules\Chat\Contracts\HasConversation;
 use Modules\Chat\Infrastructure\Notifications\NewMessageSentNotification;
 
 class NotifyChatMessageReceiver implements ShouldDispatchAfterCommit, ShouldQueue
@@ -19,7 +19,12 @@ class NotifyChatMessageReceiver implements ShouldDispatchAfterCommit, ShouldQueu
     /**
      * Create a new job instance.
      */
-    public function __construct(public ConversationMessage $message, public User $sender, public User $receiver, public $route = '/chatRoom') {}
+    public function __construct(
+        public ConversationMessage $message,
+        public HasConversation $sender,
+        public HasConversation $receiver,
+        public string $route = '/chatRoom',
+    ) {}
 
     /**
      * Execute the job.

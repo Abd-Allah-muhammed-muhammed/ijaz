@@ -20,9 +20,9 @@ class GuarantorConversationResource extends JsonResource
             'id' => $this->id,
             'requester' => $this->buildParticipant($this->relationLoaded('user1') ? $this->user1 : null),
             'counterparty' => $this->buildParticipant($this->relationLoaded('user2') ? $this->user2 : null),
-            'last_message' => $this->whenLoaded('lastMassage', fn () => [
-                'content' => $this->lastMassage?->content,
-                'created_at' => $this->lastMassage?->created_at?->toIso8601String(),
+            'last_message' => $this->whenLoaded('lastMessage', fn () => [
+                'content' => $this->lastMessage?->content,
+                'created_at' => $this->lastMessage?->created_at?->toIso8601String(),
             ]),
             'last_message_at' => $this->last_message_at?->toIso8601String(),
             'guarantor_request' => $this->whenLoaded('operation', fn () => [

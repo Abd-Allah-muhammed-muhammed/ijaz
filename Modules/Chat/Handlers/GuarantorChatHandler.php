@@ -57,7 +57,7 @@ class GuarantorChatHandler implements ChatTypeHandlerInterface
                     GuarantorStatusEnum::Refunded->value,
                 ]);
             })
-            ->with(['user1', 'user2', 'lastMassage', 'operation'])
+            ->with(['user1', 'user2', 'lastMessage', 'operation'])
             ->latest('last_message_at');
     }
 

@@ -299,24 +299,22 @@
 ---
 
 ## Phase 13 — Fix Bugs & Typos
-- [ ] `lastMassage` → `lastMessage` in Conversation model and ALL references
-- [ ] `last_massage_at` → `last_message_at` in resources and events
-- [ ] `ChatUerException` → `ChatUserException` (rename file + class)
-- [ ] `reseriverDoesNotExist` → `receiverDoesNotExist` in exceptions
-- [ ] `replay` → `reply` in MemberChat and SupportChat
-- [ ] Fix `ConversationAttachment::chat()` wrong FK
-      (`belongsTo(Conversation::class)` but FK is `conversation_message_id`)
-- [ ] Fix `ConversationMessage` missing `SoftDeletes` trait
-      (migration has `softDeletes()` but model lacks trait)
-- [ ] Fix `NotifyChatMessageReceiver` type hint `User` → `HasConversation`
-- [ ] Fix `OrderChat::getReceiver()` hardcoded user1/user2 assumption
-- [ ] Fix `UserController` unread count using `sender` instead of `receiver`
-- [ ] Delete `SupportChatUpdatedEvent` (references non-existent App\Models\Chat)
-- [ ] Remove `Supportable` contract (unused)
-- [ ] Run tests — all must pass
+- [x] `lastMassage` → `lastMessage` in Conversation model and ALL references
+- [x] `last_massage_at` → `last_message_at` in resources and events (backward-compat `last_massage_at` kept)
+- [x] `ChatUerException` → `ChatUserException` (rename file + class)
+- [x] `reseriverDoesNotExist` → `receiverDoesNotExist` in exceptions
+- [x] `replay` → `reply` in MemberChat; `replayAsAdmin`/`replayAsSupportable` → `replyAs*` in SupportChat
+- [x] Fix `ConversationAttachment::chat()` wrong FK — added `message()` with correct FK
+- [x] Fix `ConversationMessage` missing `SoftDeletes` trait
+- [x] Fix `NotifyChatMessageReceiver` type hint `User` → `HasConversation`
+- [x] Fix `OrderChat::getReceiver()` hardcoded user1/user2 assumption
+- [x] Fix `UserController` unread count using `sender` instead of `receiver`
+- [x] Delete `SupportChatUpdatedEvent` — already removed in Phase 2
+- [x] Remove `Supportable` contract — already removed in Phase 2
+- [x] Run tests — Opportunity (81) + Guarantor (147) pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-19
+### Summary: Fixed relation typo (`lastMessage`), API field backward compat for `last_massage_at`, exception renames, reply method names, attachment FK, SoftDeletes trait, job type hints, OrderChat receiver logic, and UserController unread count.
 
 ---
 

@@ -32,7 +32,7 @@ class UserController extends Controller
         return $this->successResponse([
             'unread_notifications_count' => $user->unreadNotifications()->count(),
             'unread_messages_count' => ConversationMessage::query()
-                ->whereMorphedTo('sender', $user)
+                ->whereMorphedTo('receiver', $user)
                 ->whereNull('read_at')
                 ->count(),
         ]);

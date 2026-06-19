@@ -34,7 +34,7 @@ use Illuminate\Support\Carbon;
  * @property-read ?T $operation
  * @property-read Collection<int, ConversationMessage> $messages
  * @property-read int|null $messages_count
- * @property-read ConversationMessage|null $lastMassage
+ * @property-read ConversationMessage|null $lastMessage
  * @property-read Model|Eloquent $user1
  * @property-read Model|Eloquent $user2
  *
@@ -69,7 +69,7 @@ class Conversation extends Model
         return $this->hasMany(ConversationMessage::class);
     }
 
-    public function lastMassage(): BelongsTo
+    public function lastMessage(): BelongsTo
     {
         return $this->belongsTo(ConversationMessage::class, 'last_message_id');
     }

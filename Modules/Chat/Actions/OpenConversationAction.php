@@ -40,7 +40,7 @@ class OpenConversationAction
                 ],
             );
 
-            return $conversation->load(['user1', 'user2', 'lastMassage']);
+            return $conversation->load(['user1', 'user2', 'lastMessage']);
         });
     }
 
@@ -76,7 +76,7 @@ class OpenConversationAction
                 ]);
             }
 
-            return $conversation->load(['user1', 'user2', 'lastMassage']);
+            return $conversation->load(['user1', 'user2', 'lastMessage']);
         });
     }
 }

@@ -97,7 +97,7 @@ class GuarantorChatController extends Controller
 
         return $this->successResponse(
             GuarantorConversationResource::make(
-                $conversation->load(['user1', 'user2', 'lastMassage', 'operation'])
+                $conversation->load(['user1', 'user2', 'lastMessage', 'operation'])
             )
         );
     }

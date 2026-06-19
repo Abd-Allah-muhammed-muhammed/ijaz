@@ -43,7 +43,7 @@ class TicketSupportChatHandler implements ChatTypeHandlerInterface
                         ->where('user2_id', $actor->getKey());
                 });
             })
-            ->with(['user1', 'user2', 'lastMassage', 'operation'])
+            ->with(['user1', 'user2', 'lastMessage', 'operation'])
             ->latest('last_message_at');
     }
 

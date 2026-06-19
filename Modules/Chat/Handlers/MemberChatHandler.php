@@ -38,7 +38,7 @@ class MemberChatHandler implements ChatTypeHandlerInterface
                         ->where('user2_id', $actor->getKey());
                 });
             })
-            ->with(['user1', 'user2', 'lastMassage'])
+            ->with(['user1', 'user2', 'lastMessage'])
             ->latest('last_message_at');
     }
 

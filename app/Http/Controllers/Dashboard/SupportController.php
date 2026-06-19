@@ -47,8 +47,8 @@ class SupportController extends Controller
                 }
 
                 return ConversationResource::make($ticket->chat->load([
-                    'lastMassage.sender',
-                    'lastMassage.lastAttachment',
+                    'lastMessage.sender',
+                    'lastMessage.lastAttachment',
                     'user2',
                 ]));
             },
@@ -85,7 +85,7 @@ class SupportController extends Controller
     public function openChat(TicketSupport $ticket): RedirectResponse
     {
         $admin = auth('admin')->user();
-        Chat::support($ticket)->replayAsAdmin(
+        Chat::support($ticket)->replyAsAdmin(
             $admin,
             'مرحبا بك! معك '.$admin->name.' كيف يمكنني مساعدتك اليوم؟',
             [],

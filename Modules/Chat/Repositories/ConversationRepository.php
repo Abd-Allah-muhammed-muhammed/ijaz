@@ -32,7 +32,7 @@ class ConversationRepository implements ConversationRepositoryInterface
     public function findById(string $id): Conversation
     {
         return Conversation::with([
-            'user1', 'user2', 'lastMassage', 'operation',
+            'user1', 'user2', 'lastMessage', 'operation',
         ])->findOrFail($id);
     }
 
@@ -56,7 +56,7 @@ class ConversationRepository implements ConversationRepositoryInterface
                         ->where('user2_id', $actor->getKey());
                 });
             })
-            ->with(['user1', 'user2', 'lastMassage', 'operation'])
+            ->with(['user1', 'user2', 'lastMessage', 'operation'])
             ->latest('last_message_at')
             ->paginate($perPage);
     }

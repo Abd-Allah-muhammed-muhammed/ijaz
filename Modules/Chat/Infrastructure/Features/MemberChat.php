@@ -7,7 +7,7 @@ use Illuminate\Http\UploadedFile;
 use Modules\Chat\Contracts\HasConversation;
 use Modules\Chat\Exceptions\ChatException;
 use Modules\Chat\Exceptions\ChatMessageException;
-use Modules\Chat\Exceptions\ChatUerException;
+use Modules\Chat\Exceptions\ChatUserException;
 use Modules\Chat\Infrastructure\BaseChatService;
 use Pusher\ApiErrorException;
 
@@ -25,7 +25,7 @@ class MemberChat extends BaseChatService
      *
      * @throws ApiErrorException|ChatMessageException|ChatMessageException|ChatException
      */
-    public function replay(?string $message = null, array $attachments = []): Conversation
+    public function reply(?string $message = null, array $attachments = []): Conversation
     {
         $this->validate($message, $attachments);
 
@@ -43,7 +43,7 @@ class MemberChat extends BaseChatService
     }
 
     /**
-     * @throws ChatUerException
+     * @throws ChatUserException
      */
     protected function getReceiver(HasConversation $sender): HasConversation
     {
@@ -53,7 +53,7 @@ class MemberChat extends BaseChatService
         } elseif ($this->chat->user2_type == $user_type && $this->chat->user2_id == $user_id) {
             $receiver = $this->chat->user1;
         } else {
-            throw ChatUerException::senderDoesNotBelongToChat();
+            throw ChatUserException::senderDoesNotBelongToChat();
         }
 
         return $receiver;

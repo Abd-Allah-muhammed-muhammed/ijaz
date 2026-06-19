@@ -91,17 +91,18 @@ class ChatUpdatedEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterCom
                 ->whereMorphedTo('receiver', $this->sender)
                 ->count(),
             'last_message' => [
-                'content' => $this->chat?->lastMassage?->content,
-                'attachments_count' => $this->chat?->lastMassage?->attachments_count ?: $this->chat?->lastMassage?->attachments()?->count(),
+                'content' => $this->chat?->lastMessage?->content,
+                'attachments_count' => $this->chat?->lastMessage?->attachments_count ?: $this->chat?->lastMessage?->attachments()?->count(),
                 'sender' => [
-                    'id' => $this->chat?->lastMassage?->sender?->id,
-                    'name' => $this->chat?->lastMassage?->sender?->name,
-                    'image' => $this->chat?->lastMassage?->sender?->getImageUrl(),
-                    'socket_id' => $this->chat?->lastMassage?->sender?->getAuthIdentifierForBroadcasting(),
+                    'id' => $this->chat?->lastMessage?->sender?->id,
+                    'name' => $this->chat?->lastMessage?->sender?->name,
+                    'image' => $this->chat?->lastMessage?->sender?->getImageUrl(),
+                    'socket_id' => $this->chat?->lastMessage?->sender?->getAuthIdentifierForBroadcasting(),
                 ],
-                'read_at' => $this->chat?->lastMassage?->read_at,
+                'read_at' => $this->chat?->lastMessage?->read_at,
             ],
-            'last_massage_at' => $this->chat->last_message_at?->shortAbsoluteDiffForHumans(),
+            'last_message_at' => $this->chat->last_message_at?->shortAbsoluteDiffForHumans(),
+            'last_massage_at' => $this->chat->last_message_at?->shortAbsoluteDiffForHumans(), // @deprecated typo — use last_message_at
         ];
     }
 }

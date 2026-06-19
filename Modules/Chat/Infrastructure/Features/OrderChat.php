@@ -115,7 +115,10 @@ class OrderChat extends BaseChatService
      */
     protected function getReceiver(HasConversation $sender): HasConversation
     {
-        if ($sender instanceof Provider) {
+        if (
+            $this->chat->user1_type === $sender::class
+            && (string) $this->chat->user1_id === (string) $sender->getKey()
+        ) {
             return $this->chat->user2;
         }
 

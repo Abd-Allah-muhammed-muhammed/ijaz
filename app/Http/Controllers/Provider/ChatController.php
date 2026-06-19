@@ -31,7 +31,7 @@ class ChatController extends Controller
                     ->on('orders.id', 'conversations.operation_id')
                     ->where('orders.status', '!=', OrderStatusEnum::EndedByClient);
             })
-            ->with(['lastMassage.sender', 'lastMassage.lastAttachment', 'user2', 'user1'])
+            ->with(['lastMessage.sender', 'lastMessage.lastAttachment', 'user2', 'user1'])
             ->withCountUnreadMessagesFor($provider)
             ->where(function (Builder $query) use ($provider) {
                 $query->whereMorphedTo('user1', $provider)->orWhereMorphedTo('user2', $provider);

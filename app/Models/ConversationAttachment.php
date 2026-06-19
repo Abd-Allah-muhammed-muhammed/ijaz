@@ -36,14 +36,25 @@ class ConversationAttachment extends Model
         });
     }
 
-    public function chat(): BelongsTo
+    public function message(): BelongsTo
     {
-        return $this->belongsTo(Conversation::class);
+        return $this->belongsTo(ConversationMessage::class, 'conversation_message_id');
     }
 
+    /**
+     * @deprecated Use message()
+     */
+    public function chat(): BelongsTo
+    {
+        return $this->message();
+    }
+
+    /**
+     * @deprecated Use message()
+     */
     public function chatMessage(): BelongsTo
     {
-        return $this->belongsTo(ConversationMessage::class);
+        return $this->message();
     }
 
     protected function url(): Attribute

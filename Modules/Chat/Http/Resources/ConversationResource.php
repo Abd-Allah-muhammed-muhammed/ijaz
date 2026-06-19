@@ -21,8 +21,9 @@ class ConversationResource extends JsonResource
             'user1' => ChatUserResource::make($this->whenLoaded('user1')),
             'user2' => ChatUserResource::make($this->whenLoaded('user2')),
             'user' => ChatUserResource::make($this->whenLoaded('user')),
-            'last_message' => ConversationMessageResource::make($this->whenLoaded('lastMassage')),
-            'last_massage_at' => $this->last_message_at?->shortAbsoluteDiffForHumans(),
+            'last_message' => ConversationMessageResource::make($this->whenLoaded('lastMessage')),
+            'last_message_at' => $this->last_message_at?->shortAbsoluteDiffForHumans(),
+            'last_massage_at' => $this->last_message_at?->shortAbsoluteDiffForHumans(), // @deprecated typo — use last_message_at
             'unread_count' => $this->when(isset($this->unread_messages_count), (int) $this->unread_messages_count),
         ];
     }

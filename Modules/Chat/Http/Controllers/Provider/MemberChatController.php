@@ -63,7 +63,7 @@ class MemberChatController extends Controller
 
         return $this->successResponse(
             ConversationResource::make(
-                $conversation->load(['lastMassage.sender', 'lastMassage.lastAttachment', 'user2', 'user1'])
+                $conversation->load(['lastMessage.sender', 'lastMessage.lastAttachment', 'user2', 'user1'])
             )
         );
     }

@@ -168,7 +168,7 @@ abstract class BaseChatService
             'last_message_at' => $lastMessage->created_at,
             'last_message_id' => $lastMessage->id,
         ]);
-        $this->chat->setRelation('lastMassage', $lastMessage);
+        $this->chat->setRelation('lastMessage', $lastMessage);
     }
 
     /**
