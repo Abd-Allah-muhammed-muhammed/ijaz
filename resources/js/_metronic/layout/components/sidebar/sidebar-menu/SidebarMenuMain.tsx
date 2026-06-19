@@ -284,7 +284,7 @@ const SidebarMenuMain = () => {
       <SidebarMenuItem
         to={GuarantorDashboardController.index().url}
         title={t('guarantor.module_title')}
-        icon="shield-check"
+        icon="shield-tick"
         fontIcon="bi-shield-check"
         isActive={matchComponents('dashboard.guarantor.*')}
         show={hasPermission('show guarantors')}
