@@ -116,8 +116,8 @@ const timelineStyles = `
   .timeline { display: flex; flex-direction: column; }
   .timeline-item { display: flex; gap: 12px; }
   .timeline-line { display: flex; flex-direction: column; align-items: center; min-width: 20px; }
-  .timeline-badge { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
-  .timeline-connector { flex: 1; width: 2px; background: #e4e6ef; margin: 4px 0; min-height: 16px; }
+  .timeline-badge { border-radius: 50%; flex-shrink: 0; }
+  .timeline-connector { flex: 1; width: 2px; background: #e4e6ef; margin: 4px 0; min-height: 24px; }
   .timeline-content { flex: 1; }
 `;
 
@@ -408,11 +408,18 @@ const Show = ({ guarantorRequest }: Props) => {
                 ) : (
                   <div className="timeline">
                     {statusHistories.map((history, index) => (
-                      <div key={history.id} className="timeline-item">
+                      <div key={history.id} className="timeline-item mb-4">
                         <div className="timeline-line">
                           <div
                             className="timeline-badge"
-                            style={{ backgroundColor: history.to_status.color }}
+                            style={{
+                              backgroundColor: history.to_status.color,
+                              width: '14px',
+                              height: '14px',
+                              marginTop: '8px',
+                              border: '2px solid white',
+                              boxShadow: `0 0 0 2px ${history.to_status.color}`,
+                            }}
                           />
                           {index < statusHistories.length - 1 && <div className="timeline-connector" />}
                         </div>
@@ -422,16 +429,20 @@ const Show = ({ guarantorRequest }: Props) => {
                             <div className="d-flex align-items-center gap-2 flex-wrap mb-2">
                               {history.from_status ? (
                                 <span
-                                  className="badge text-white"
-                                  style={{ backgroundColor: history.from_status.color }}
+                                  className="badge badge-outline"
+                                  style={{
+                                    color: history.from_status.color,
+                                    border: `1px solid ${history.from_status.color}`,
+                                    backgroundColor: `${history.from_status.color}20`,
+                                  }}
                                 >
                                   {history.from_status.label}
                                 </span>
                               ) : (
-                                <span className="badge badge-light">{t('guarantor.created')}</span>
+                                <span className="badge badge-light-secondary">{t('guarantor.created')}</span>
                               )}
 
-                              <i className={`bi ${isRTL ? 'bi-arrow-left' : 'bi-arrow-right'} text-muted`} />
+                              <i className={`bi ${isRTL ? 'bi-arrow-left' : 'bi-arrow-right'} text-muted fs-7`} />
 
                               <span
                                 className="badge text-white"
