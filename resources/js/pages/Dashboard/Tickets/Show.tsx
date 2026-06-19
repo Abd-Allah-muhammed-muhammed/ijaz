@@ -3,7 +3,7 @@ import MasterLayout from "@/_metronic/layout/MasterLayout";
 import {PageTitle} from "@/_metronic/layout/core";
 import {ToolbarWrapper} from "@/_metronic/layout/components/toolbar";
 import {Content} from "@/_metronic/layout/components/content";
-import {Head, Link, router, useForm} from "@inertiajs/react";
+import {Head, Link, router, useForm, usePage} from "@inertiajs/react";
 import {
   Conversation,
   ConversationMessage,
@@ -13,6 +13,7 @@ import {
 } from "@/types/models";
 import {KTCard} from "@/_metronic/helpers";
 import React, {ReactNode, useEffect, useRef, useState} from "react";
+import SupportController from "@/actions/App/Http/Controllers/Dashboard/SupportController";
 import SupportChatController from "@/actions/Modules/Chat/Http/Controllers/Dashboard/SupportChatController";
 import MessageIn from "@/components/chat/components/message-in";
 import MessageOut from "@/components/chat/components/message-out";
@@ -51,9 +52,16 @@ const Show = ({row, chat, chatMessages}: Props) => {
     content: '',
     files: []
   })
-  const {currentSocketId} = useConversations();
+  const {currentSocketId, setCurrentSocketId} = useConversations();
+  const {auth} = usePage<{ auth: { user?: { socket_id?: string } } }>().props;
   const messagesBox = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<ConversationMessage[]>(chatMessages || []);
+
+  useEffect(() => {
+    if (auth.user?.socket_id) {
+      setCurrentSocketId(auth.user.socket_id);
+    }
+  }, [auth.user?.socket_id, setCurrentSocketId]);
 
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollToMessageEnd = () => {
@@ -304,13 +312,13 @@ const Show = ({row, chat, chatMessages}: Props) => {
                    }}>
                 {messages && messages.length > 0 ? (
                   messages.map((message, index) => {
-                    const sender = message.sender as ConversationUser;
+                    const sender = message.sender as ConversationUser | undefined;
 
                     if (!message.read_at) {
                       unreadMessageIndex.push(index);
                     }
 
-                    if (sender.socket_id !== currentSocketId) {
+                    if (!sender?.socket_id || sender.socket_id !== currentSocketId) {
                       return <MessageIn conversationMessage={message} key={message.id}/>;
                     }
                     return <MessageOut conversationMessage={message} key={message.id}/>;
@@ -481,7 +489,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
                   </div>
                   <div className="d-flex flex-column">
                     <span className="text-gray-800 fw-bold fs-7">{t('messages_count')}</span>
-                    <span className="text-muted fw-semibold fs-8">0 {t('messages')}</span>
+                    <span className="text-muted fw-semibold fs-8">{messages.length} {t('messages')}</span>
                   </div>
                 </div>
               </div>

@@ -39,29 +39,31 @@ class SupportController extends Controller
 
     public function show(TicketSupport $ticket)
     {
+        $ticket->load([
+            'operation',
+            'user',
+            'chat.lastMessage.sender',
+            'chat.lastMessage.lastAttachment',
+            'chat.user2',
+        ]);
+
+        $messages = $ticket->chat
+            ? $ticket->chat->messages()
+                ->with(['attachments', 'sender'])
+                ->latest()
+                ->take(20)
+                ->get()
+                ->reverse()
+            : collect();
+
         return inertia('Dashboard/Tickets/Show', [
-            'row' => function () use ($ticket) {
-                return TicketSupportResource::make($ticket->load(['operation', 'user']));
-            },
-            'chat' => function () use ($ticket) {
-                if (! $ticket->chat) {
-                    return null;
-                }
-
-                return ConversationResource::make($ticket->chat->load([
-                    'lastMessage.sender',
-                    'lastMessage.lastAttachment',
-                    'user2',
-                ]));
-            },
-            'chatMessages' => function () use ($ticket) {
-                if (! $ticket->chat) {
-                    return null;
-                }
-                $messages = $ticket->chat->messages()->with(['attachments', 'sender'])->latest()->take(20)->get()->reverse();
-
-                return ConversationMessageResource::collection($messages);
-            },
+            'row' => fn () => TicketSupportResource::make($ticket),
+            'chat' => fn () => $ticket->chat
+                ? ConversationResource::make($ticket->chat)
+                : null,
+            'chatMessages' => fn () => $ticket->chat
+                ? ConversationMessageResource::collection($messages)->resolve()
+                : [],
         ]);
     }
 
