@@ -5,6 +5,7 @@ namespace Modules\Chat\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use App\Models\TicketSupport;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Chat\Actions\ListMessagesAction;
@@ -47,12 +48,16 @@ class SupportChatController extends Controller
 
     public function send(
         SendSupportMessageRequest $request,
-        TicketSupport $ticketSupport,
-    ): JsonResponse {
-        $conversation = $ticketSupport->chat;
+        TicketSupport $ticket,
+    ): JsonResponse|RedirectResponse {
+        $conversation = $ticket->chat;
 
         if (! $conversation) {
-            return $this->failedMessageResponse('No conversation found for this ticket');
+            if ($request->expectsJson()) {
+                return $this->failedMessageResponse('No conversation found for this ticket');
+            }
+
+            return redirect()->route('dashboard.support.tickets.show', $ticket);
         }
 
         $handler = $this->registry->get(ChatTypeEnum::TicketSupport);
@@ -63,8 +68,12 @@ class SupportChatController extends Controller
             $handler,
         );
 
-        return $this->successResponse(
-            ConversationMessageResource::make($message->loadMissing(['sender', 'attachments']))
-        );
+        if ($request->expectsJson()) {
+            return $this->successResponse(
+                ConversationMessageResource::make($message->loadMissing(['sender', 'attachments']))
+            );
+        }
+
+        return redirect()->route('dashboard.support.tickets.show', $ticket);
     }
 }

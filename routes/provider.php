@@ -3,7 +3,6 @@
 use App\Http\Controllers\Provider\AuthController;
 use App\Http\Controllers\Provider\ChatController;
 use App\Http\Controllers\Provider\HomeController;
-use App\Http\Controllers\Provider\OrderChatController;
 use App\Http\Controllers\Provider\OrderController;
 use App\Http\Controllers\Provider\TopUpController;
 use App\Http\Controllers\Provider\WithdrawController;
@@ -36,16 +35,7 @@ Route::group(
                 Route::prefix('dashboard')->group(static function () {
                     Route::get('/', HomeController::class)->name('home');
                     Route::prefix('chat')->as('chat.')->controller(ChatController::class)->group(static function () {
-                        Route::controller(OrderChatController::class)->prefix('orders')->group(static function () {
-                            Route::get('/', 'index');
-                            Route::post('/', 'store');
-                            Route::post('/send/{conversation}', 'send');
-                            Route::get('/{conversation}', 'show');
-                        });
                         Route::get('/', 'index')->name('index');
-                        Route::post('/', 'store')->name('store');
-                        Route::get('/{conversation}', 'show')->name('show');
-                        Route::post('/{conversation}/send', 'send')->name('send');
                     });
                     Route::prefix('/orders')->controller(OrderController::class)->as('orders.')->group(static function () {
                         Route::get('/', 'index')->name('index');

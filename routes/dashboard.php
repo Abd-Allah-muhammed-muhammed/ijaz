@@ -79,7 +79,6 @@ Route::group(
                     Route::get('/tickets', 'index')->name('tickets.index');
                     Route::get('/tickets/{ticket}', 'show')->name('tickets.show');
                     Route::post('/tickets/{ticket}', 'openChat')->name('tickets.open-chat');
-                    Route::post('/tickets/{ticket}/send', 'send')->name('tickets.send');
                     Route::put('/tickets/{ticket}/status', 'updateStatus')->name('tickets.update-status');
                 });
                 Route::controller(PanAnalyticsController::class)->prefix('pan-analytics')->as('pan-analytics.')->group(function () {

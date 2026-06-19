@@ -4,6 +4,7 @@ namespace Modules\Chat\Providers;
 
 use App\Providers\BaseModuleRouteServiceProvider;
 use Illuminate\Support\Facades\Route;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class RouteServiceProvider extends BaseModuleRouteServiceProvider
 {
@@ -24,7 +25,6 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
         if (file_exists($path)) {
             Route::middleware('api')
                 ->prefix('api/v1')
-                ->name('api.v1.')
                 ->group($path);
         }
     }
@@ -33,19 +33,35 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
     {
         $path = module_path('Chat', 'Routes/provider.php');
 
-        if (file_exists($path)) {
-            Route::middleware(['web', 'auth:provider'])
-                ->group($path);
+        if (! file_exists($path)) {
+            return;
         }
+
+        Route::group([
+            'prefix' => LaravelLocalization::setLocale(),
+            'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
+        ], function () use ($path) {
+            Route::group(['prefix' => 'provider', 'as' => 'provider.'], function () use ($path) {
+                Route::middleware('auth:provider')->group(function () use ($path) {
+                    Route::prefix('dashboard')->group($path);
+                });
+            });
+        });
     }
 
     protected function mapDashboardRoutes(): void
     {
         $path = module_path('Chat', 'Routes/dashboard.php');
 
-        if (file_exists($path)) {
-            Route::middleware(['web', 'auth:admin'])
-                ->group($path);
+        if (! file_exists($path)) {
+            return;
         }
+
+        Route::middleware('web')
+            ->prefix(LaravelLocalization::setLocale().'/dashboard')
+            ->name('dashboard.')
+            ->group(function () use ($path) {
+                Route::middleware('auth:admin')->group($path);
+            });
     }
 }

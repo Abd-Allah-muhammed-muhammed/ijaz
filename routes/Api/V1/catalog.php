@@ -2,12 +2,9 @@
 
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\V1\CatalogController;
-use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\JobController;
 use App\Http\Controllers\Api\V1\MessageController;
-use App\Http\Controllers\Api\V1\OrderChatController;
 use App\Http\Controllers\Api\V1\OtpController;
-use App\Http\Controllers\Api\V1\TicketSupportChatController;
 use App\Http\Controllers\Api\V1\TicketSupportController;
 use App\Http\Controllers\Api\V1\WalletController;
 use Illuminate\Support\Facades\Route;
@@ -37,27 +34,9 @@ Route::prefix('catalog')->group(static function () {
 });
 
 Route::middleware('auth:sanctum')->group(static function () {
-    Route::controller(ChatController::class)->prefix('chats')->group(static function () {
-        Route::controller(OrderChatController::class)->prefix('orders')->group(static function () {
-            Route::get('/', 'index');
-            Route::post('/', 'store');
-            Route::post('/send/{conversation}', 'send');
-            Route::get('/{conversation}', 'show');
-        });
-        Route::controller(TicketSupportChatController::class)->prefix('tickets')->group(static function () {
-            Route::get('/', 'index');
-            Route::post('/send/{conversation}', 'send');
-            Route::get('/{conversation}', 'show');
-        });
-        Route::get('/', 'index');
-        Route::post('/', 'store');
-
+    Route::prefix('chats')->group(static function () {
         require base_path('Modules/Opportunity/Routes/V1/chat.php');
         require base_path('Modules/Guarantor/Routes/V1/chat.php');
-
-        Route::post('/send/{conversation}', 'send');
-        Route::get('/{conversation}/show', 'chat');
-        Route::get('/{conversation}', 'show');
     });
 
     Route::controller(WalletController::class)->prefix('wallet')->group(static function () {

@@ -254,19 +254,22 @@
 ---
 
 ## Phase 11 — Routes
-- [ ] Create `Modules/Chat/Routes/V1/chat.php`
+- [x] Create `Modules/Chat/Routes/V1/chat.php`
       (all api/v1/chats/* routes in one place)
-- [ ] Create `Modules/Chat/Routes/provider.php`
-- [ ] Create `Modules/Chat/Routes/dashboard.php`
-- [ ] Register all routes in `ChatServiceProvider`
-- [ ] Remove old chat routes from `routes/Api/V1/catalog.php`
-- [ ] Remove old chat routes from `routes/dashboard.php`
-- [ ] Remove old chat routes from `routes/provider.php`
-- [ ] Verify `php artisan route:list` shows all routes intact
-- [ ] Run tests — all must pass
+- [x] Create `Modules/Chat/Routes/provider.php`
+- [x] Create `Modules/Chat/Routes/dashboard.php`
+- [x] Register all routes in `RouteServiceProvider` (locale + dashboard/provider prefixes)
+- [x] Remove old chat routes from `routes/Api/V1/catalog.php`
+      (kept opportunity + guarantor requires)
+- [x] Remove old chat routes from `routes/dashboard.php`
+      (kept index, show, openChat, updateStatus on SupportController)
+- [x] Remove old provider chat routes from `routes/provider.php`
+      (kept Inertia `provider.chat.index` on old ChatController until Phase 12)
+- [x] Verify `php artisan route:list` shows all routes intact (20 api/v1/chats/* routes)
+- [x] Run tests — Opportunity (81) and Guarantor (147) pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-19
+### Summary: Wired member/order/ticket API routes to `Modules/Chat` V1 controllers. Provider JSON routes (store/show/send + orders/*) point to module controllers; Inertia chat index stays on `Provider\ChatController`. Dashboard `support.tickets.send` points to `SupportChatController` with Inertia redirect preserved. Opportunity/guarantor routes unchanged in `catalog.php`.
 
 ---
 
