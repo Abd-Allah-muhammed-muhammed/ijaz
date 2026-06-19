@@ -19,6 +19,7 @@ use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Chat\Repositories\ConversationMessageRepository;
 use Modules\Chat\Repositories\ConversationRepository;
 use Modules\Chat\Services\ChatService;
+use Modules\Chat\Services\ConversationService;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class ChatServiceProvider extends ModuleServiceProvider
@@ -35,12 +36,17 @@ class ChatServiceProvider extends ModuleServiceProvider
     {
         parent::register();
 
+        // TODO: Remove this alias after confirming no in-flight jobs
+        // with old namespace App\Services\Chat\Jobs\NotifyChatMessageReceiver.
+        // Check queue: php artisan queue:monitor
         if (! class_exists('App\Services\Chat\Jobs\NotifyChatMessageReceiver', false)) {
             class_alias(
                 NotifyChatMessageReceiver::class,
                 'App\Services\Chat\Jobs\NotifyChatMessageReceiver'
             );
         }
+
+        $this->app->singleton(ConversationService::class);
 
         $this->app->bind(
             IChatService::class,

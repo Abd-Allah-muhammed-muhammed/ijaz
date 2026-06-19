@@ -9,10 +9,6 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
-use Modules\Chat\Actions\ListConversationsAction;
-use Modules\Chat\Actions\ListMessagesAction;
-use Modules\Chat\Actions\OpenConversationAction;
-use Modules\Chat\Actions\SendMessageAction;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Exceptions\ChatException;
@@ -22,7 +18,7 @@ use Modules\Chat\Http\Resources\ConversationCollection;
 use Modules\Chat\Http\Resources\ConversationMessageCollection;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\ConversationResource;
-use Modules\Chat\Registry\ChatTypeRegistry;
+use Modules\Chat\Services\ConversationService;
 
 #[Group('Order Chat')]
 class OrderChatController extends Controller
@@ -30,22 +26,16 @@ class OrderChatController extends Controller
     use HasApiResponse;
 
     public function __construct(
-        private readonly OpenConversationAction $openAction,
-        private readonly ListConversationsAction $listAction,
-        private readonly ListMessagesAction $listMessagesAction,
-        private readonly SendMessageAction $sendAction,
-        private readonly ChatTypeRegistry $registry,
+        private readonly ConversationService $service,
     ) {}
 
     public function index(Request $request): JsonResponse
     {
-        $handler = $this->registry->get(ChatTypeEnum::Order);
-
         return $this->successResponse(
             ConversationCollection::make(
-                $this->listAction->handle(
+                $this->service->list(
                     auth()->user(),
-                    $handler,
+                    ChatTypeEnum::Order,
                     $request->integer('per_page', 15),
                 )
             )
@@ -55,10 +45,9 @@ class OrderChatController extends Controller
     public function store(StoreOrderChatRequest $request): JsonResponse
     {
         $order = Order::query()->findOrFail($request->validated('order_id'));
-        $handler = $this->registry->get(ChatTypeEnum::Order);
 
         try {
-            $conversation = $this->openAction->handle(auth()->user(), $order, $handler);
+            $conversation = $this->service->open(auth()->user(), $order, ChatTypeEnum::Order);
         } catch (ChatException) {
             return $this->failedResponse(
                 errors: [],
@@ -80,7 +69,7 @@ class OrderChatController extends Controller
 
         return $this->successResponse(
             ConversationMessageCollection::make(
-                $this->listMessagesAction->handle(
+                $this->service->messages(
                     $conversation,
                     auth()->user(),
                     $request->integer('per_page', 15),
@@ -93,12 +82,11 @@ class OrderChatController extends Controller
     {
         $this->authorize('send', $conversation);
 
-        $handler = $this->registry->get(ChatTypeEnum::Order);
-        $message = $this->sendAction->handle(
+        $message = $this->service->send(
             $conversation,
             auth()->user(),
             ChatMessageData::fromRequest($request),
-            $handler,
+            ChatTypeEnum::Order,
         );
 
         return $this->successResponse(

@@ -10,15 +10,17 @@ use App\Models\TicketSupport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
-use Modules\Chat\Exceptions\ChatException;
-use Modules\Chat\Exceptions\ChatMessageException;
+use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\ConversationResource;
-use Modules\Chat\Services\Facades\Chat;
-use Pusher\ApiErrorException;
+use Modules\Chat\Services\ConversationService;
 
 class SupportController extends Controller
 {
+    public function __construct(
+        private readonly ConversationService $service,
+    ) {}
+
     public function index(Request $request)
     {
         return inertia('Dashboard/Tickets/Index', [
@@ -77,18 +79,16 @@ class SupportController extends Controller
 
     }
 
-    /**
-     * @throws ChatMessageException
-     * @throws ChatException
-     * @throws ApiErrorException
-     */
     public function openChat(TicketSupport $ticket): RedirectResponse
     {
         $admin = auth('admin')->user();
-        Chat::support($ticket)->replyAsAdmin(
+
+        $this->service->sendTicketSupportAsAdmin(
+            $ticket,
             $admin,
-            'مرحبا بك! معك '.$admin->name.' كيف يمكنني مساعدتك اليوم؟',
-            [],
+            new ChatMessageData(
+                content: 'مرحبا بك! معك '.$admin->name.' كيف يمكنني مساعدتك اليوم؟',
+            ),
         );
 
         return redirect()->route('dashboard.support.tickets.show', $ticket);

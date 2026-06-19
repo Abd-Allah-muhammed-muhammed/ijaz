@@ -11,10 +11,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
-use Modules\Chat\Actions\ListConversationsAction;
-use Modules\Chat\Actions\ListMessagesAction;
-use Modules\Chat\Actions\OpenConversationAction;
-use Modules\Chat\Actions\SendMessageAction;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Http\Requests\SendMessageRequest;
@@ -23,7 +19,7 @@ use Modules\Chat\Http\Resources\ConversationCollection;
 use Modules\Chat\Http\Resources\ConversationMessageCollection;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\ConversationResource;
-use Modules\Chat\Registry\ChatTypeRegistry;
+use Modules\Chat\Services\ConversationService;
 
 #[Group('Member Chat')]
 class MemberChatController extends Controller
@@ -31,22 +27,16 @@ class MemberChatController extends Controller
     use HasApiResponse;
 
     public function __construct(
-        private readonly OpenConversationAction $openAction,
-        private readonly ListConversationsAction $listAction,
-        private readonly ListMessagesAction $listMessagesAction,
-        private readonly SendMessageAction $sendAction,
-        private readonly ChatTypeRegistry $registry,
+        private readonly ConversationService $service,
     ) {}
 
     public function index(Request $request): JsonResponse
     {
-        $handler = $this->registry->get(ChatTypeEnum::Member);
-
         return $this->successResponse(
             ConversationCollection::make(
-                $this->listAction->handle(
+                $this->service->list(
                     auth()->user(),
-                    $handler,
+                    ChatTypeEnum::Member,
                     $request->integer('per_page', 15),
                 )
             )
@@ -61,7 +51,7 @@ class MemberChatController extends Controller
             return $this->failedMessageResponse(trans('User Not Found'));
         }
 
-        $conversation = $this->openAction->handleMemberChat(auth()->user(), $receiver);
+        $conversation = $this->service->openMemberChat(auth()->user(), $receiver);
 
         return $this->successResponse(
             ConversationResource::make(
@@ -76,7 +66,7 @@ class MemberChatController extends Controller
 
         return $this->successResponse(
             ConversationMessageCollection::make(
-                $this->listMessagesAction->handle(
+                $this->service->messages(
                     $conversation,
                     auth()->user(),
                     $request->integer('per_page', 15),
@@ -89,12 +79,11 @@ class MemberChatController extends Controller
     {
         $this->authorize('send', $conversation);
 
-        $handler = $this->registry->get(ChatTypeEnum::Member);
-        $message = $this->sendAction->handle(
+        $message = $this->service->send(
             $conversation,
             auth()->user(),
             ChatMessageData::fromRequest($request),
-            $handler,
+            ChatTypeEnum::Member,
         );
 
         return $this->successResponse(

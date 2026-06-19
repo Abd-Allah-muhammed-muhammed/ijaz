@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Provider;
+namespace Modules\Chat\Http\Controllers\Provider;
 
 use App\Enums\Order\OrderStatusEnum;
 use App\Http\Controllers\Controller;
@@ -12,29 +12,25 @@ use Illuminate\Http\Request;
 use Inertia\Response;
 use Modules\Chat\Http\Resources\Dashboard\ConversationCollection;
 
-class ChatController extends Controller
+class ProviderChatIndexController extends Controller
 {
-    /**
-     * Display the chat page.
-     */
-    public function index(Request $request): Response
+    public function __invoke(Request $request): Response
     {
-        /**
-         * @var Provider $provider
-         */
+        /** @var Provider $provider */
         $provider = auth('provider')->user();
+
         $rows = Conversation::query()
             ->select('conversations.*')
             ->where('operation_type', Order::class)
             ->join('orders', function ($join) {
-                $join
-                    ->on('orders.id', 'conversations.operation_id')
+                $join->on('orders.id', 'conversations.operation_id')
                     ->where('orders.status', '!=', OrderStatusEnum::EndedByClient);
             })
             ->with(['lastMessage.sender', 'lastMessage.lastAttachment', 'user2', 'user1'])
             ->withCountUnreadMessagesFor($provider)
             ->where(function (Builder $query) use ($provider) {
-                $query->whereMorphedTo('user1', $provider)->orWhereMorphedTo('user2', $provider);
+                $query->whereMorphedTo('user1', $provider)
+                    ->orWhereMorphedTo('user2', $provider);
             })
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();
@@ -42,7 +38,9 @@ class ChatController extends Controller
         return inertia('Provider/Chat/Index', [
             'prams' => $request->all() ?: [],
             'rows' => ConversationCollection::make($rows),
-            'current_conversation' => $request->filled('conversation') ? $rows->firstWhere('id', $request->get('conversation')) : null,
+            'current_conversation' => $request->filled('conversation')
+                ? $rows->firstWhere('id', $request->get('conversation'))
+                : null,
         ]);
     }
 }

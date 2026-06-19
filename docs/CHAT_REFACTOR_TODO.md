@@ -346,7 +346,21 @@
 
 ---
 
-## Completed Steps Log
+## Post-Phase-14 Refactor ✅
+- [x] ConversationService created — controller → service → action
+- [x] All V1 controllers use ConversationService
+- [x] All Provider controllers use ConversationService
+- [x] Dashboard/SupportChatController uses ConversationService
+- [x] Provider Inertia index moved to `Modules/Chat/Http/Controllers/Provider/ProviderChatIndexController`
+- [x] TicketSupportController uses ConversationService (no Chat facade in `app/`)
+- [x] SupportController::openChat() uses ConversationService
+- [x] Deprecated ConversationAttachment aliases removed
+- [x] Chat facade usage audited — `Modules/Chat/Services/Facades/Chat` + `ChatService` remain for internal ticket-support messaging via `ConversationService::sendTicketSupportAs*()`
+
+### Completed: 2026-06-19
+### Summary: Introduced `ConversationService` as the controller entry point. Ticket support admin/user sends delegate to `ChatService\SupportChat` internally until handler messenger supports Admin actors. Queue `class_alias` retained with TODO.
+
+---
 <!-- Each completed phase gets moved here with summary -->
 
 ### Phase 1 — Module Scaffold (2026-06-19)

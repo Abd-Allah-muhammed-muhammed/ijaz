@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Provider\AuthController;
-use App\Http\Controllers\Provider\ChatController;
 use App\Http\Controllers\Provider\HomeController;
 use App\Http\Controllers\Provider\OrderController;
 use App\Http\Controllers\Provider\TopUpController;
@@ -34,9 +33,6 @@ Route::group(
                 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
                 Route::prefix('dashboard')->group(static function () {
                     Route::get('/', HomeController::class)->name('home');
-                    Route::prefix('chat')->as('chat.')->controller(ChatController::class)->group(static function () {
-                        Route::get('/', 'index')->name('index');
-                    });
                     Route::prefix('/orders')->controller(OrderController::class)->as('orders.')->group(static function () {
                         Route::get('/', 'index')->name('index');
                         Route::get('/offers', 'offers')->name('offers');

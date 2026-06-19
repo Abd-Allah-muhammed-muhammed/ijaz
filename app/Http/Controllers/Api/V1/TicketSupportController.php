@@ -14,10 +14,11 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Http\Requests\SendSupportMessageRequest;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\Dashboard\ConversationMessageCollection;
-use Modules\Chat\Services\Facades\Chat;
+use Modules\Chat\Services\ConversationService;
 use RuntimeException;
 use Throwable;
 
@@ -25,6 +26,10 @@ use Throwable;
 class TicketSupportController extends Controller
 {
     use HasApiResponse;
+
+    public function __construct(
+        private readonly ConversationService $service,
+    ) {}
 
     /**
      * Display a listing of the resource.
@@ -132,16 +137,18 @@ class TicketSupportController extends Controller
         if (! $ticketSupport->user()->is($user)) {
             return $this->failedMessageResponse(trans('forbidden !!'), 403);
         }
-        $chat = $ticketSupport->chat;
+
+        $conversation = $ticketSupport->chat ?? $this->service->ensureTicketSupportConversation($ticketSupport);
 
         return $this->successResponse(
             [
-                'chat_id' => $chat->id,
+                'chat_id' => $conversation->id,
                 'messages' => ConversationMessageCollection::make(
-                    $chat->messages()
-                        ->latest()
-                        ->with(['sender', 'attachments'])
-                        ->paginate(15)
+                    $this->service->messages(
+                        $conversation,
+                        $user,
+                        $request->integer('per_page', 15),
+                    )
                 ),
             ]
         );
@@ -150,18 +157,16 @@ class TicketSupportController extends Controller
     public function conversationStore(SendSupportMessageRequest $request, TicketSupport $ticketSupport): JsonResponse
     {
         $user = auth()->user();
-        $data = $request->validated();
 
         if (! $ticketSupport->user()->is($user)) {
             return $this->failedMessageResponse(trans('forbidden !!'), 403);
         }
 
-        $chat = Chat::support($ticketSupport)
-            ->replyAsSupportable(
-                message: $data['content'],
-                attachments: $data['files'] ?? [],
-            );
+        $message = $this->service->sendTicketSupportAsUser(
+            $ticketSupport,
+            ChatMessageData::fromRequest($request),
+        );
 
-        return $this->successResponse(ConversationMessageResource::make($chat->lastMessage));
+        return $this->successResponse(ConversationMessageResource::make($message));
     }
 }
