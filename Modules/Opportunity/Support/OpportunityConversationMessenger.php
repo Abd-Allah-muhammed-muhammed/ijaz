@@ -3,11 +3,11 @@
 namespace Modules\Opportunity\Support;
 
 use App\Models\Conversation;
-use App\Services\Chat\Contracts\HasConversation;
-use App\Services\Chat\Features\BaseChatService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
+use Modules\Chat\Contracts\HasConversation;
+use Modules\Chat\Infrastructure\BaseChatService;
 use RuntimeException;
 
 class OpportunityConversationMessenger extends BaseChatService

@@ -2,6 +2,9 @@
 
 namespace Modules\Chat\Providers;
 
+use Modules\Chat\Contracts\IChatService;
+use Modules\Chat\Infrastructure\Jobs\NotifyChatMessageReceiver;
+use Modules\Chat\Services\ChatService;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class ChatServiceProvider extends ModuleServiceProvider
@@ -18,8 +21,26 @@ class ChatServiceProvider extends ModuleServiceProvider
     {
         parent::register();
 
+        $this->app->bind(
+            IChatService::class,
+            ChatService::class,
+        );
+
+        // Backward compat
+        $this->app->bind(
+            'App\Services\Chat\Contracts\IChatService',
+            ChatService::class,
+        );
+
+        // Queue safety: jobs in flight use old namespace
+        if (! class_exists('App\Services\Chat\Jobs\NotifyChatMessageReceiver', false)) {
+            class_alias(
+                NotifyChatMessageReceiver::class,
+                'App\Services\Chat\Jobs\NotifyChatMessageReceiver'
+            );
+        }
+
         // Repository bindings — Phase 5.6
-        // Class aliases — Phase 2
     }
 
     public function boot(): void

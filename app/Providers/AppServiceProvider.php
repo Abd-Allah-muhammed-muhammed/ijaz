@@ -5,8 +5,6 @@ namespace App\Providers;
 use App\Models\Setting;
 use App\NotificationChannel\EventChannel;
 use App\NotificationChannel\FirebaseChannel;
-use App\Services\Chat\ChatService;
-use App\Services\Chat\Contracts\IChatService;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
@@ -54,7 +52,6 @@ class AppServiceProvider extends ServiceProvider
             return (bool) ($admin?->root);
         });
 
-        $this->app->bind(IChatService::class, ChatService::class);
         $this->app->singleton('settings', fn () => cache()->rememberForever('settings', fn () => Setting::pluck('content', 'key')));
         JsonResource::withoutWrapping();
         Schema::defaultStringLength(191);

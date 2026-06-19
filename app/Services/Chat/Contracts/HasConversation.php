@@ -2,13 +2,7 @@
 
 namespace App\Services\Chat\Contracts;
 
-interface HasConversation
-{
-    public function getKey();
-
-    public function getType();
-
-    public function getAuthIdentifierForBroadcasting();
-
-    public function getImageUrl(): string;
-}
+/**
+ * @deprecated Use Modules\Chat\Contracts\HasConversation
+ */
+interface HasConversation extends \Modules\Chat\Contracts\HasConversation {}

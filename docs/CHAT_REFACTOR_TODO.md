@@ -55,32 +55,32 @@
 ---
 
 ## Phase 2 — Infrastructure (BaseChatService + Events + Jobs + Notifications)
-- [ ] Move `BaseChatService` → `Modules/Chat/Infrastructure/BaseChatService.php`
-- [ ] Move `MemberChat` → `Modules/Chat/Infrastructure/Features/MemberChat.php`
-- [ ] Move `OrderChat` → `Modules/Chat/Infrastructure/Features/OrderChat.php`
-- [ ] Move `SupportChat` → `Modules/Chat/Infrastructure/Features/SupportChat.php`
-- [ ] Move `NewMessageEvent` → `Modules/Chat/Infrastructure/Events/NewMessageEvent.php`
-- [ ] Move `ChatUpdatedEvent` → `Modules/Chat/Infrastructure/Events/ChatUpdatedEvent.php`
-- [ ] DELETE `SupportChatUpdatedEvent` (dead/broken — references non-existent App\Models\Chat)
-- [ ] Move `NotifyChatMessageReceiver` → `Modules/Chat/Infrastructure/Jobs/NotifyChatMessageReceiver.php`
-- [ ] Move `NewMessageSentNotification` → `Modules/Chat/Infrastructure/Notifications/NewMessageSentNotification.php`
-- [ ] Move `ChatService` + `IChatService` + `Chat` facade → `Modules/Chat/Services/`
-- [ ] Add class aliases in `ChatServiceProvider` for old namespaces (queue safety):
+- [x] Move `BaseChatService` → `Modules/Chat/Infrastructure/BaseChatService.php`
+- [x] Move `MemberChat` → `Modules/Chat/Infrastructure/Features/MemberChat.php`
+- [x] Move `OrderChat` → `Modules/Chat/Infrastructure/Features/OrderChat.php`
+- [x] Move `SupportChat` → `Modules/Chat/Infrastructure/Features/SupportChat.php`
+- [x] Move `NewMessageEvent` → `Modules/Chat/Infrastructure/Events/NewMessageEvent.php`
+- [x] Move `ChatUpdatedEvent` → `Modules/Chat/Infrastructure/Events/ChatUpdatedEvent.php`
+- [x] DELETE `SupportChatUpdatedEvent` (dead/broken — references non-existent App\Models\Chat)
+- [x] Move `NotifyChatMessageReceiver` → `Modules/Chat/Infrastructure/Jobs/NotifyChatMessageReceiver.php`
+- [x] Move `NewMessageSentNotification` → `Modules/Chat/Infrastructure/Notifications/NewMessageSentNotification.php`
+- [x] Move `ChatService` + `IChatService` + `Chat` facade → `Modules/Chat/Services/`
+- [x] Add class aliases in `ChatServiceProvider` for old namespaces (queue safety):
       ```php
       class_alias(
           \Modules\Chat\Infrastructure\Jobs\NotifyChatMessageReceiver::class,
           'App\Services\Chat\Jobs\NotifyChatMessageReceiver'
       );
       ```
-- [ ] Move `ChatEventEnum` → `Modules/Chat/Enums/ChatEventEnum.php`
-- [ ] Move `HasConversation` contract → `Modules/Chat/Contracts/HasConversation.php`
-- [ ] Move `IChatService` → `Modules/Chat/Contracts/IChatService.php`
-- [ ] DELETE `Supportable` contract (unused)
-- [ ] Update all imports across codebase
-- [ ] Run tests — all must pass
+- [x] Move `ChatEventEnum` → `Modules/Chat/Enums/ChatEventEnum.php`
+- [x] Move `HasConversation` contract → `Modules/Chat/Contracts/HasConversation.php`
+- [x] Move `IChatService` → `Modules/Chat/Contracts/IChatService.php`
+- [x] DELETE `Supportable` contract (unused)
+- [x] Update all imports across codebase
+- [x] Run tests — all must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-19
+### Summary: Moved core chat infrastructure from `app/Services/Chat/` into `Modules/Chat/` (BaseChatService, feature classes, events, jobs, notifications, ChatService, contracts, enum, facade). Left `@deprecated` backward-compat aliases in old `app/` paths. Bound `IChatService` in `ChatServiceProvider` with queue-safe `class_alias` for `NotifyChatMessageReceiver`. Removed binding from `AppServiceProvider`. Updated Opportunity/Guarantor messengers to import from module namespace. Deleted dead `SupportChatUpdatedEvent` and unused `Supportable`. Opportunity (81) and Guarantor (147) tests pass.
 
 ---
 

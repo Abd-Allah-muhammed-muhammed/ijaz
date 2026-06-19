@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Enums\Chat;
+namespace Modules\Chat\Enums;
 
 use App\Enums\Utilities\HasOperations;
 
-/** @deprecated Use Modules\Chat\Enums\ChatEventEnum */
 enum ChatEventEnum: string
 {
     use HasOperations;
