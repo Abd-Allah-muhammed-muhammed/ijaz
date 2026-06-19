@@ -99,21 +99,21 @@
 ---
 
 ## Phase 4 — Chat Type Handlers
-- [ ] Create `ChatTypeHandlerInterface` → `Modules/Chat/Contracts/ChatTypeHandlerInterface.php`
+- [x] Create `ChatTypeHandlerInterface` → `Modules/Chat/Contracts/ChatTypeHandlerInterface.php`
       Methods: `operationType()`, `canOpen()`, `participants()`, `listQuery()`, `messenger()`
-- [ ] Create `ChatTypeEnum` → `Modules/Chat/Enums/ChatTypeEnum.php`
+- [x] Create `ChatTypeEnum` → `Modules/Chat/Enums/ChatTypeEnum.php`
       Cases: Member, Order, TicketSupport, Opportunity, Guarantor
-- [ ] Create `ChatTypeRegistry` → `Modules/Chat/Registry/ChatTypeRegistry.php`
-- [ ] Create `MemberChatHandler` → `Modules/Chat/Handlers/MemberChatHandler.php`
-- [ ] Create `OrderChatHandler` → `Modules/Chat/Handlers/OrderChatHandler.php`
-- [ ] Create `TicketSupportChatHandler` → `Modules/Chat/Handlers/TicketSupportChatHandler.php`
-- [ ] Create `OpportunityChatHandler` → `Modules/Chat/Handlers/OpportunityChatHandler.php`
-- [ ] Create `GuarantorChatHandler` → `Modules/Chat/Handlers/GuarantorChatHandler.php`
-- [ ] Register all handlers in `ChatServiceProvider::boot()`
-- [ ] Run tests — all must pass
+- [x] Create `ChatTypeRegistry` → `Modules/Chat/Registry/ChatTypeRegistry.php`
+- [x] Create `MemberChatHandler` → `Modules/Chat/Handlers/MemberChatHandler.php`
+- [x] Create `OrderChatHandler` → `Modules/Chat/Handlers/OrderChatHandler.php`
+- [x] Create `TicketSupportChatHandler` → `Modules/Chat/Handlers/TicketSupportChatHandler.php`
+- [x] Create `OpportunityChatHandler` → `Modules/Chat/Handlers/OpportunityChatHandler.php`
+- [x] Create `GuarantorChatHandler` → `Modules/Chat/Handlers/GuarantorChatHandler.php`
+- [x] Register all handlers in `ChatServiceProvider::boot()`
+- [x] Run tests — all must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-19
+### Summary: Added `ChatTypeHandlerInterface`, `ChatTypeEnum`, singleton `ChatTypeRegistry`, and five thin handlers (Member, Order, TicketSupport, Opportunity, Guarantor) registered in `ChatServiceProvider::boot()`. Handlers define operation_type, list queries, participants, and delegate messaging to `ParticipantConversationMessenger`. Opportunity handler uses `author`/`acceptedOffer.author` to match domain model. No controller/route changes yet. Opportunity (81) and Guarantor (147) tests pass.
 
 ---
 
