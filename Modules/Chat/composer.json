@@ -1,0 +1,28 @@
+{
+    "name": "nwidart/chat",
+    "description": "Chat module — handles all conversation types (member, order, ticket, opportunity, guarantor)",
+    "authors": [
+        {
+            "name": "Ijaz",
+            "email": "dev@ijaz.test"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Chat\\": "./",
+            "Modules\\Chat\\Database\\Factories\\": "database/factories/",
+            "Modules\\Chat\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Chat\\Tests\\": "tests/"
+        }
+    }
+}

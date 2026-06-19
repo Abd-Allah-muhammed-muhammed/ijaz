@@ -1,0 +1,12 @@
+{
+    "name": "Chat",
+    "alias": "chat",
+    "description": "Chat module — handles all conversation types (member, order, ticket, opportunity, guarantor)",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Chat\\Providers\\ChatServiceProvider"
+    ],
+    "aliases": {},
+    "files": []
+}
