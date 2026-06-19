@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\OperationStatusEnum;
 use App\Enums\SupportTickets\TicketSupportStatusEnum;
+use Database\Factories\TicketSupportFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -23,6 +25,9 @@ use Illuminate\Support\Carbon;
  */
 class TicketSupport extends Model
 {
+    /** @use HasFactory<TicketSupportFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'user_type',
         'user_id',

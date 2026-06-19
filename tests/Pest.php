@@ -16,7 +16,9 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(LazilyRefreshDatabase::class)
-    ->in('Feature', 'Unit', '../Modules/Classifieds/tests/Feature', '../Modules/Catalog/tests/Feature', '../Modules/Opportunity/tests/Feature', '../Modules/Opportunity/tests/Unit', '../Modules/Guarantor/tests/Unit', '../Modules/Guarantor/tests/Feature');
+    ->in('Feature', 'Unit', '../Modules/Classifieds/tests/Feature', '../Modules/Catalog/tests/Feature', '../Modules/Opportunity/tests/Feature', '../Modules/Opportunity/tests/Unit', '../Modules/Guarantor/tests/Unit', '../Modules/Guarantor/tests/Feature', '../Modules/Chat/tests/Unit', '../Modules/Chat/tests/Feature');
+
+require_once __DIR__.'/../Modules/Chat/tests/helpers.php';
 
 /*
 |--------------------------------------------------------------------------

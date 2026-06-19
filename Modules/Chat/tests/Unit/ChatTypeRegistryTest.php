@@ -1,0 +1,73 @@
+<?php
+
+use App\Models\Order;
+use App\Models\TicketSupport;
+use Modules\Chat\Enums\ChatTypeEnum;
+use Modules\Chat\Handlers\GuarantorChatHandler;
+use Modules\Chat\Handlers\MemberChatHandler;
+use Modules\Chat\Handlers\OpportunityChatHandler;
+use Modules\Chat\Handlers\OrderChatHandler;
+use Modules\Chat\Handlers\TicketSupportChatHandler;
+use Modules\Chat\Registry\ChatTypeRegistry;
+use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Opportunity\Models\Opportunity;
+
+test('registry can register and retrieve handler by type', function () {
+    $registry = new ChatTypeRegistry;
+    $handler = new MemberChatHandler;
+    $registry->register(ChatTypeEnum::Member, $handler);
+
+    expect($registry->get(ChatTypeEnum::Member))->toBe($handler);
+});
+
+test('registry throws exception for unregistered type', function () {
+    $registry = new ChatTypeRegistry;
+
+    $registry->get(ChatTypeEnum::Member);
+})->throws(RuntimeException::class);
+
+test('registry can get handler by operation type', function () {
+    $registry = app(ChatTypeRegistry::class);
+
+    expect($registry->getByOperationType(Order::class))
+        ->toBeInstanceOf(OrderChatHandler::class);
+});
+
+test('registry returns null for unknown operation type', function () {
+    $registry = app(ChatTypeRegistry::class);
+
+    expect($registry->getByOperationType('App\\Models\\Unknown'))->toBeNull();
+});
+
+test('registry returns all handlers', function () {
+    $registry = app(ChatTypeRegistry::class);
+
+    expect($registry->all())->toHaveCount(5)
+        ->and($registry->all())->toHaveKeys([
+            ChatTypeEnum::Member->value,
+            ChatTypeEnum::Order->value,
+            ChatTypeEnum::TicketSupport->value,
+            ChatTypeEnum::Opportunity->value,
+            ChatTypeEnum::Guarantor->value,
+        ]);
+});
+
+test('MemberChatHandler has null operationType', function () {
+    expect((new MemberChatHandler)->operationType())->toBeNull();
+});
+
+test('OrderChatHandler operationType is Order::class', function () {
+    expect((new OrderChatHandler)->operationType())->toBe(Order::class);
+});
+
+test('TicketSupportChatHandler operationType is TicketSupport::class', function () {
+    expect((new TicketSupportChatHandler)->operationType())->toBe(TicketSupport::class);
+});
+
+test('OpportunityChatHandler operationType is Opportunity::class', function () {
+    expect((new OpportunityChatHandler)->operationType())->toBe(Opportunity::class);
+});
+
+test('GuarantorChatHandler operationType is GuarantorRequest::class', function () {
+    expect((new GuarantorChatHandler)->operationType())->toBe(GuarantorRequest::class);
+});

@@ -17,6 +17,9 @@
             <directory>Modules/Guarantor/tests/Unit</directory>
             <directory>Modules/Guarantor/tests/Feature</directory>
         </testsuite>
+        <testsuite name="Chat">
+            <directory suffix="Test.php">./Modules/Chat/tests</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
@@ -25,6 +28,7 @@
             <directory>Modules/Catalog</directory>
             <directory>Modules/Opportunity</directory>
             <directory>Modules/Guarantor</directory>
+            <directory>Modules/Chat</directory>
         </include>
     </source>
     <php>
