@@ -2,6 +2,8 @@
 
 namespace Modules\Chat\Providers;
 
+use App\Models\Conversation;
+use Illuminate\Support\Facades\Gate;
 use Modules\Chat\Contracts\IChatService;
 use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
 use Modules\Chat\Contracts\Repositories\ConversationRepositoryInterface;
@@ -12,6 +14,7 @@ use Modules\Chat\Handlers\OpportunityChatHandler;
 use Modules\Chat\Handlers\OrderChatHandler;
 use Modules\Chat\Handlers\TicketSupportChatHandler;
 use Modules\Chat\Infrastructure\Jobs\NotifyChatMessageReceiver;
+use Modules\Chat\Policies\ConversationPolicy;
 use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Chat\Repositories\ConversationMessageRepository;
 use Modules\Chat\Repositories\ConversationRepository;
@@ -69,6 +72,10 @@ class ChatServiceProvider extends ModuleServiceProvider
     {
         parent::boot();
 
+        $this->app->booted(function (): void {
+            Gate::policy(Conversation::class, ConversationPolicy::class);
+        });
+
         $registry = $this->app->make(ChatTypeRegistry::class);
 
         $registry->register(ChatTypeEnum::Member, new MemberChatHandler);
@@ -76,7 +83,5 @@ class ChatServiceProvider extends ModuleServiceProvider
         $registry->register(ChatTypeEnum::TicketSupport, new TicketSupportChatHandler);
         $registry->register(ChatTypeEnum::Opportunity, new OpportunityChatHandler);
         $registry->register(ChatTypeEnum::Guarantor, new GuarantorChatHandler);
-
-        // Policies — Phase 7
     }
 }

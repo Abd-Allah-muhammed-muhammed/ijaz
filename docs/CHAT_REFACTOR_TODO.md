@@ -192,17 +192,17 @@
 ---
 
 ## Phase 7 — Unified ConversationPolicy
-- [ ] Create unified `ConversationPolicy` → `Modules/Chat/Policies/ConversationPolicy.php`
+- [x] Create unified `ConversationPolicy` → `Modules/Chat/Policies/ConversationPolicy.php`
       Type-aware: delegates to handler for authorization
-- [ ] Remove `ConversationPolicy` from `Modules/Opportunity/Policies/`
-- [ ] Remove `ConversationPolicy` from `Modules/Guarantor/Policies/`
-- [ ] Update `OpportunityServiceProvider` — remove Gate::policy for Conversation
-- [ ] Update `GuarantorServiceProvider` — remove Gate::policy for Conversation
-- [ ] Register unified policy in `ChatServiceProvider::boot()`
-- [ ] Run tests — all must pass
+- [x] Remove `ConversationPolicy` from `Modules/Opportunity/Policies/`
+- [x] Remove `ConversationPolicy` from `Modules/Guarantor/Policies/`
+- [x] Update `OpportunityServiceProvider` — remove Gate::policy for Conversation
+- [x] Update `GuarantorServiceProvider` — remove Gate::policy for Conversation
+- [x] Register unified policy in `ChatServiceProvider::boot()`
+- [x] Run tests — all must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-19
+### Summary: Created unified `Modules/Chat\Policies\ConversationPolicy` (participant-only: view, send, open with UUID string-cast). Registered via `$this->app->booted()` in `ChatServiceProvider` so it wins over module providers. Removed duplicate Gate registrations from Opportunity and Guarantor. Module policies replaced with deprecated aliases. Fixes production bug where last module registration broke the other chat type. Opportunity (81) and Guarantor (147) tests pass.
 
 ---
 
