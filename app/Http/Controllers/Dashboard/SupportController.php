@@ -7,14 +7,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Dashboard\TicketSupportCollection;
 use App\Http\Resources\Dashboard\TicketSupportResource;
 use App\Models\TicketSupport;
-use App\Services\Chat\Exceptions\ChatException;
-use App\Services\Chat\Exceptions\ChatMessageException;
-use App\Services\Chat\Facades\Chat;
-use Modules\Chat\Http\Resources\ConversationMessageResource;
-use Modules\Chat\Http\Resources\ConversationResource;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
+use Modules\Chat\Exceptions\ChatException;
+use Modules\Chat\Exceptions\ChatMessageException;
+use Modules\Chat\Http\Resources\ConversationMessageResource;
+use Modules\Chat\Http\Resources\ConversationResource;
+use Modules\Chat\Services\Facades\Chat;
 use Pusher\ApiErrorException;
 
 class SupportController extends Controller
@@ -89,26 +89,6 @@ class SupportController extends Controller
             $admin,
             'مرحبا بك! معك '.$admin->name.' كيف يمكنني مساعدتك اليوم؟',
             [],
-        );
-
-        return redirect()->route('dashboard.support.tickets.show', $ticket);
-    }
-
-    /**
-     * @throws ApiErrorException
-     * @throws ChatMessageException
-     * @throws ChatException
-     */
-    public function send(TicketSupport $ticket, Request $request): RedirectResponse
-    {
-        $request->validate([
-            'content' => ['nullable', 'string', 'max:5000'],
-            'files.*' => ['sometimes', 'nullable', 'file', 'max:10240'],
-        ]);
-        Chat::support($ticket)->replayAsAdmin(
-            auth('admin')->user(),
-            $request->input('content'),
-            $request->file('files', [])
         );
 
         return redirect()->route('dashboard.support.tickets.show', $ticket);

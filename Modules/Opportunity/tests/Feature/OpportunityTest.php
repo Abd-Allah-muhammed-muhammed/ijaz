@@ -2,8 +2,6 @@
 
 use App\Models\Conversation;
 use App\Models\User;
-use App\Services\Chat\Events\ChatUpdatedEvent;
-use App\Services\Chat\Events\NewMessageEvent;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Bus;
@@ -12,6 +10,8 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
+use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
+use Modules\Chat\Infrastructure\Events\NewMessageEvent;
 use Modules\Opportunity\Actions\Opportunity\ExpireOpportunityAction;
 use Modules\Opportunity\Enums\OfferStatusEnum;
 use Modules\Opportunity\Enums\OpportunityStatusEnum;

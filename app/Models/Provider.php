@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\Providers\ProviderStatusEnum;
-use App\Services\Chat\Contracts\HasConversation;
 use App\Services\Firebase\Contract\InteractWithFirebase;
 use App\Services\Firebase\DTO\Target;
 use App\Traits\Blockable;
@@ -18,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Modules\Chat\Contracts\HasConversation;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Permission\Traits\HasRoles;

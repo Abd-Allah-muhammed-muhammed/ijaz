@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Services\Chat\Contracts\HasConversation;
 use App\Traits\HasBroadcastChanel;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Modules\Chat\Contracts\HasConversation;
 use Spatie\Permission\Traits\HasRoles;
 use Storage;
 

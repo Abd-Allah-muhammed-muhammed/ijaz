@@ -5,9 +5,9 @@ namespace Modules\Chat\Infrastructure\Features;
 use App\Models\Conversation;
 use App\Models\Order;
 use App\Models\Provider;
-use App\Services\Chat\Exceptions\ChatException;
 use Illuminate\Http\UploadedFile;
 use Modules\Chat\Contracts\HasConversation;
+use Modules\Chat\Exceptions\ChatException;
 use Modules\Chat\Infrastructure\BaseChatService;
 use Pusher\ApiErrorException;
 

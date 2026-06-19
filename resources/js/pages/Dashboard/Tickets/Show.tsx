@@ -13,7 +13,7 @@ import {
 } from "@/types/models";
 import {KTCard} from "@/_metronic/helpers";
 import React, {ReactNode, useEffect, useRef, useState} from "react";
-import SupportController from "@/actions/App/Http/Controllers/Dashboard/SupportController";
+import SupportChatController from "@/actions/Modules/Chat/Http/Controllers/Dashboard/SupportChatController";
 import MessageIn from "@/components/chat/components/message-in";
 import MessageOut from "@/components/chat/components/message-out";
 import ActionButton from "@/components/action-button";
@@ -100,7 +100,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
   }, [chat])
   const sendMessage = () => {
     if (chat && (messageForm.data.content.trim() !== '' || Boolean(messageForm.data.files.length))) {
-      messageForm.submit(SupportController.send(row.id as number), {
+      messageForm.submit(SupportChatController.send(row.id as number), {
         onSuccess: (response) => {
           messageForm.setData('content', '');
           messageForm.setData('files', []);

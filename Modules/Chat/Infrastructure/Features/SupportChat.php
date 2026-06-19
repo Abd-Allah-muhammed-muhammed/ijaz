@@ -6,13 +6,13 @@ use App\Models\Admin;
 use App\Models\Conversation;
 use App\Models\System;
 use App\Models\TicketSupport;
-use App\Services\Chat\Exceptions\ChatException;
-use App\Services\Chat\Exceptions\ChatMessageException;
 use http\Exception\RuntimeException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Modules\Chat\Contracts\HasConversation;
+use Modules\Chat\Exceptions\ChatException;
+use Modules\Chat\Exceptions\ChatMessageException;
 use Modules\Chat\Infrastructure\BaseChatService;
 use Pusher\ApiErrorException;
 

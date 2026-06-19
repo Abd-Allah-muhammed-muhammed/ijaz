@@ -47,11 +47,6 @@ class ChatServiceProvider extends ModuleServiceProvider
             ChatService::class,
         );
 
-        $this->app->bind(
-            'App\Services\Chat\Contracts\IChatService',
-            ChatService::class,
-        );
-
         $this->app->singleton(
             ChatTypeRegistry::class,
             fn () => new ChatTypeRegistry,

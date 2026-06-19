@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Chat\Exceptions;
+namespace Modules\Chat\Exceptions;
 
 use Exception;
 

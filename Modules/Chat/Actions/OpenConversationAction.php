@@ -3,11 +3,11 @@
 namespace Modules\Chat\Actions;
 
 use App\Models\Conversation;
-use App\Services\Chat\Exceptions\ChatException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Modules\Chat\Contracts\ChatTypeHandlerInterface;
+use Modules\Chat\Exceptions\ChatException;
 use Throwable;
 
 class OpenConversationAction

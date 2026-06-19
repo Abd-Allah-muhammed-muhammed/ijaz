@@ -3,11 +3,11 @@
 namespace Modules\Chat\Infrastructure\Features;
 
 use App\Models\Conversation;
-use App\Services\Chat\Exceptions\ChatException;
-use App\Services\Chat\Exceptions\ChatMessageException;
-use App\Services\Chat\Exceptions\ChatUerException;
 use Illuminate\Http\UploadedFile;
 use Modules\Chat\Contracts\HasConversation;
+use Modules\Chat\Exceptions\ChatException;
+use Modules\Chat\Exceptions\ChatMessageException;
+use Modules\Chat\Exceptions\ChatUerException;
 use Modules\Chat\Infrastructure\BaseChatService;
 use Pusher\ApiErrorException;
 
