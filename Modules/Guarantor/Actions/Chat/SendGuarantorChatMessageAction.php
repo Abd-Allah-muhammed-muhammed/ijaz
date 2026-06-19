@@ -5,34 +5,42 @@ namespace Modules\Guarantor\Actions\Chat;
 use App\Models\Conversation;
 use App\Models\ConversationMessage;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Chat\Actions\SendMessageAction;
+use Modules\Chat\DTOs\ChatMessageData;
+use Modules\Chat\Enums\ChatTypeEnum;
+use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Guarantor\Exceptions\GuarantorException;
-use Modules\Guarantor\Http\Requests\SendMessageRequest;
 use Modules\Guarantor\Models\GuarantorRequest;
-use Modules\Guarantor\Support\GuarantorConversationMessenger;
 use Throwable;
 
 class SendGuarantorChatMessageAction
 {
+    public function __construct(
+        private readonly SendMessageAction $sendMessageAction,
+        private readonly ChatTypeRegistry $chatTypeRegistry,
+    ) {}
+
     /**
      * @throws Throwable
      */
     public function handle(
         Conversation $conversation,
         Model $sender,
-        SendMessageRequest $request,
+        ChatMessageData $data,
     ): ConversationMessage {
         if ($conversation->operation_type !== GuarantorRequest::class) {
             throw new GuarantorException('guarantor.not_found', 404);
         }
 
-        $messenger = new GuarantorConversationMessenger($conversation);
-        $updatedConversation = $messenger->sendAs(
+        $message = $this->sendMessageAction->handle(
+            $conversation,
             $sender,
-            $request->input('content'),
-            $request->file('files', []),
+            $data,
+            $this->chatTypeRegistry->get(ChatTypeEnum::Guarantor),
         );
-        $updatedConversation->loadMissing(['lastMassage.sender', 'lastMassage.attachments']);
 
-        return $updatedConversation->lastMassage;
+        $message->loadMissing(['sender', 'attachments']);
+
+        return $message;
     }
 }

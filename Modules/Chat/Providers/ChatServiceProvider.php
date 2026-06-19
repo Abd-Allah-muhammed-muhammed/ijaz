@@ -3,6 +3,8 @@
 namespace Modules\Chat\Providers;
 
 use Modules\Chat\Contracts\IChatService;
+use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
+use Modules\Chat\Contracts\Repositories\ConversationRepositoryInterface;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Handlers\GuarantorChatHandler;
 use Modules\Chat\Handlers\MemberChatHandler;
@@ -11,6 +13,8 @@ use Modules\Chat\Handlers\OrderChatHandler;
 use Modules\Chat\Handlers\TicketSupportChatHandler;
 use Modules\Chat\Infrastructure\Jobs\NotifyChatMessageReceiver;
 use Modules\Chat\Registry\ChatTypeRegistry;
+use Modules\Chat\Repositories\ConversationMessageRepository;
+use Modules\Chat\Repositories\ConversationRepository;
 use Modules\Chat\Services\ChatService;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
@@ -50,7 +54,15 @@ class ChatServiceProvider extends ModuleServiceProvider
             fn () => new ChatTypeRegistry,
         );
 
-        // Repository bindings — Phase 5.6
+        $this->app->bind(
+            ConversationRepositoryInterface::class,
+            ConversationRepository::class,
+        );
+
+        $this->app->bind(
+            ConversationMessageRepositoryInterface::class,
+            ConversationMessageRepository::class,
+        );
     }
 
     public function boot(): void

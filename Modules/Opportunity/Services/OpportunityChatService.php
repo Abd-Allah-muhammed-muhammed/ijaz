@@ -6,6 +6,7 @@ use App\Models\Conversation;
 use App\Models\ConversationMessage;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Opportunity\Actions\Chat\ListOpportunityChatMessagesAction;
 use Modules\Opportunity\Actions\Chat\ListOpportunityChatsAction;
 use Modules\Opportunity\Actions\Chat\OpenOpportunityChatAction;
@@ -33,9 +34,9 @@ class OpportunityChatService
     /**
      * @throws Throwable
      */
-    public function open(Opportunity $opportunity): Conversation
+    public function open(Opportunity $opportunity, Model $actor): Conversation
     {
-        return $this->openAction->handle($opportunity);
+        return $this->openAction->handle($opportunity, $actor);
     }
 
     public function listForActor(Model $actor, int $perPage = 15): LengthAwarePaginator
@@ -56,8 +57,7 @@ class OpportunityChatService
         return $this->sendAction->handle(
             $conversation,
             $sender,
-            $request->input('content'),
-            $request->file('files', []),
+            ChatMessageData::fromRequest($request),
         );
     }
 }

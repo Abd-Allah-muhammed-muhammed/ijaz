@@ -52,7 +52,7 @@ class ProcessGuarantorPayment
             notes: 'Payment accepted by gateway',
         );
 
-        $this->openGuarantorChatAction->handle($request->fresh());
+        $this->openGuarantorChatAction->handle($request->fresh(), $request->counterparty);
     }
 
     private function processInstallmentPayment(Payment $payment): void
@@ -75,7 +75,7 @@ class ProcessGuarantorPayment
                 'overdue_at' => null,
             ]);
 
-            $this->openGuarantorChatAction->handle($request->fresh());
+            $this->openGuarantorChatAction->handle($request->fresh(), $request->requester);
         }
 
         if ($installment->order <= 1) {

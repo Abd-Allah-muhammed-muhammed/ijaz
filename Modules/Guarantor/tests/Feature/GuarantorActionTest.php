@@ -419,7 +419,7 @@ test('DeleteGuarantorAction fails for non pending_admin request', function () {
 test('OpenGuarantorChatAction creates conversation when in_progress', function () {
     $guarantorRequest = GuarantorRequest::factory()->inProgress()->create();
 
-    $conversation = app(OpenGuarantorChatAction::class)->handle($guarantorRequest);
+    $conversation = app(OpenGuarantorChatAction::class)->handle($guarantorRequest, $guarantorRequest->requester);
 
     expect($conversation)->toBeInstanceOf(Conversation::class)
         ->and($conversation->operation_id)->toBe($guarantorRequest->id);
@@ -428,19 +428,19 @@ test('OpenGuarantorChatAction creates conversation when in_progress', function (
 test('OpenGuarantorChatAction fails when status is accepted', function () {
     $guarantorRequest = GuarantorRequest::factory()->accepted()->create();
 
-    app(OpenGuarantorChatAction::class)->handle($guarantorRequest);
+    app(OpenGuarantorChatAction::class)->handle($guarantorRequest, $guarantorRequest->requester);
 })->throws(GuarantorException::class);
 
 test('OpenGuarantorChatAction fails when status is approved by admin', function () {
     $guarantorRequest = GuarantorRequest::factory()->approvedByAdmin()->create();
 
-    app(OpenGuarantorChatAction::class)->handle($guarantorRequest);
+    app(OpenGuarantorChatAction::class)->handle($guarantorRequest, $guarantorRequest->requester);
 })->throws(GuarantorException::class);
 
 test('OpenGuarantorChatAction fails when status is pending_admin', function () {
     $guarantorRequest = GuarantorRequest::factory()->pendingAdmin()->create();
 
-    app(OpenGuarantorChatAction::class)->handle($guarantorRequest);
+    app(OpenGuarantorChatAction::class)->handle($guarantorRequest, $guarantorRequest->requester);
 })->throws(GuarantorException::class);
 
 test('ReleaseInstallmentAction releases installment and updates wallet', function () {

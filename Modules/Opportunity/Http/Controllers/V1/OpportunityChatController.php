@@ -59,7 +59,7 @@ class OpportunityChatController extends Controller
 
             $this->authorizeOrFail('chat', $opportunity, 'opportunity.chat_unauthorized');
 
-            $conversation = $this->chatService->open($opportunity);
+            $conversation = $this->chatService->open($opportunity, auth()->user());
 
             return $this->successResponse(
                 OpportunityConversationResource::make(

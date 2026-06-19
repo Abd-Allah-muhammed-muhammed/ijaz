@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Contracts\ChatTypeHandlerInterface;
 use Modules\Chat\Support\ParticipantConversationMessenger;
+use Modules\Opportunity\Enums\OpportunityStatusEnum;
 use Modules\Opportunity\Models\Opportunity;
 
 class OpportunityChatHandler implements ChatTypeHandlerInterface
@@ -51,6 +52,12 @@ class OpportunityChatHandler implements ChatTypeHandlerInterface
                     $q->where('user2_type', $actor::class)
                         ->where('user2_id', $actor->getKey());
                 });
+            })
+            ->whereHas('operation', function ($query) {
+                $query->whereNotIn('status', [
+                    OpportunityStatusEnum::Ended->value,
+                    OpportunityStatusEnum::Cancelled->value,
+                ]);
             })
             ->with(['user1', 'user2', 'lastMassage', 'operation'])
             ->latest('last_message_at');

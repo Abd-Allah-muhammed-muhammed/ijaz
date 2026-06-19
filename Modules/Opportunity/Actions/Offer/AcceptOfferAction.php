@@ -46,7 +46,7 @@ class AcceptOfferAction
 
             $opportunity->load(['author', 'acceptedOffer.author']);
 
-            $this->openOpportunityChatAction->handle($opportunity);
+            $this->openOpportunityChatAction->handle($opportunity, $opportunity->author);
 
             $offer->refresh()->load('author');
             $offer->author->notify(new OpportunityOfferAcceptedNotification($offer));

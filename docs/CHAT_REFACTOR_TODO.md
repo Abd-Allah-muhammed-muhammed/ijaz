@@ -118,58 +118,58 @@
 ---
 
 ## Phase 5 — Actions
-- [ ] Create `OpenConversationAction` → `Modules/Chat/Actions/OpenConversationAction.php`
-- [ ] Create `ListConversationsAction` → `Modules/Chat/Actions/ListConversationsAction.php`
-- [ ] Create `ListMessagesAction` → `Modules/Chat/Actions/ListMessagesAction.php`
-- [ ] Create `SendMessageAction` → `Modules/Chat/Actions/SendMessageAction.php`
+- [x] Create `OpenConversationAction` → `Modules/Chat/Actions/OpenConversationAction.php`
+- [x] Create `ListConversationsAction` → `Modules/Chat/Actions/ListConversationsAction.php`
+- [x] Create `ListMessagesAction` → `Modules/Chat/Actions/ListMessagesAction.php`
+- [x] Create `SendMessageAction` → `Modules/Chat/Actions/SendMessageAction.php`
       (marks messages as read, handles attachments, delegates to messenger)
-- [ ] Update Opportunity chat actions to use shared actions where possible
-- [ ] Update Guarantor chat actions to use shared actions where possible
-- [ ] Run tests — all must pass
+- [x] Update Opportunity chat actions to use shared actions where possible
+- [x] Update Guarantor chat actions to use shared actions where possible
+- [x] Run tests — all must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-19
+### Summary: Created four shared Chat actions (open, list conversations, list messages, send message). Opportunity and Guarantor module actions now delegate to shared actions via `ChatTypeRegistry`. Added `handleMemberChat()` for direct P2P conversations. Opportunity (81) and Guarantor (147) tests pass.
 
 ---
 
 ## Phase 5.5 — DTOs
-- [ ] Create `ChatMessageData` → `Modules/Chat/DTOs/ChatMessageData.php`
+- [x] Create `ChatMessageData` → `Modules/Chat/DTOs/ChatMessageData.php`
       Fields: content (nullable string), files (nullable array)
       fromRequest(SendMessageRequest): self
-- [ ] Create `StoreConversationData` → `Modules/Chat/DTOs/StoreConversationData.php`  
+- [x] Create `StoreConversationData` → `Modules/Chat/DTOs/StoreConversationData.php`  
       Fields: operation_id (string), operation_type (string)
       fromRequest(StoreConversationRequest): self
-- [ ] Update all Actions to accept DTOs instead of raw Request objects
-- [ ] Run tests — all must pass
+- [x] Update all Actions to accept DTOs instead of raw Request objects
+- [x] Run tests — all must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-19
+### Summary: Added `ChatMessageData` and `StoreConversationData` readonly DTOs with `fromRequest()` factories. Module send actions convert requests to DTOs at the service layer.
 
 ---
 
 ## Phase 5.6 — Repositories
-- [ ] Create `ConversationRepositoryInterface` → `Modules/Chat/Contracts/Repositories/ConversationRepositoryInterface.php`
+- [x] Create `ConversationRepositoryInterface` → `Modules/Chat/Contracts/Repositories/ConversationRepositoryInterface.php`
       Methods:
       - findOrCreate(Model $operation, Model $user1, Model $user2): Conversation
       - findById(string $id): Conversation
       - listForActor(Model $actor, string $operationType, int $perPage): LengthAwarePaginator
       - listAllForActor(Model $actor, int $perPage): LengthAwarePaginator
-- [ ] Create `ConversationRepository` → `Modules/Chat/Repositories/ConversationRepository.php`
+- [x] Create `ConversationRepository` → `Modules/Chat/Repositories/ConversationRepository.php`
       (absorbs Opportunity's ConversationRepository — same logic, generalized)
-- [ ] Create `ConversationMessageRepositoryInterface` → `Modules/Chat/Contracts/Repositories/ConversationMessageRepositoryInterface.php`
+- [x] Create `ConversationMessageRepositoryInterface` → `Modules/Chat/Contracts/Repositories/ConversationMessageRepositoryInterface.php`
       Methods:
       - create(Conversation $conversation, Model $sender, Model $receiver, ChatMessageData $data): ConversationMessage
       - listForConversation(Conversation $conversation, int $perPage): LengthAwarePaginator
       - markAsRead(Conversation $conversation, Model $reader): void
-- [ ] Create `ConversationMessageRepository` → `Modules/Chat/Repositories/ConversationMessageRepository.php`
-- [ ] Bind both interfaces in `ChatServiceProvider::register()`
-- [ ] Remove `Modules/Opportunity/Repositories/ConversationRepository.php` (replaced)
-- [ ] Remove `Modules/Opportunity/Contracts/Repositories/ConversationRepositoryInterface.php` (replaced)
-- [ ] Update Opportunity chat actions to use `Modules/Chat/Contracts/Repositories/ConversationRepositoryInterface.php`
-- [ ] Run tests — all must pass
+- [x] Create `ConversationMessageRepository` → `Modules/Chat/Repositories/ConversationMessageRepository.php`
+- [x] Bind both interfaces in `ChatServiceProvider::register()`
+- [x] Remove `Modules/Opportunity/Repositories/ConversationRepository.php` (replaced)
+- [x] Remove `Modules/Opportunity/Contracts/Repositories/ConversationRepositoryInterface.php` (replaced)
+- [x] Update Opportunity chat actions to use `Modules/Chat/Contracts/Repositories/ConversationRepositoryInterface.php`
+- [x] Run tests — all must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-19
+### Summary: Added `ConversationRepository` and `ConversationMessageRepository` with interface bindings in `ChatServiceProvider`. Removed Opportunity-specific conversation repository. `ListMessagesAction` uses message repository for mark-as-read and pagination. Added status filters to Opportunity/Guarantor handler `listQuery()` to preserve existing list behavior.
 
 ---
 

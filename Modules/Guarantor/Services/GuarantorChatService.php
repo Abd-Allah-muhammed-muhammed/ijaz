@@ -6,6 +6,7 @@ use App\Models\Conversation;
 use App\Models\ConversationMessage;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Guarantor\Actions\Chat\ListGuarantorChatMessagesAction;
 use Modules\Guarantor\Actions\Chat\ListGuarantorChatsAction;
 use Modules\Guarantor\Actions\Chat\OpenGuarantorChatAction;
@@ -26,9 +27,9 @@ class GuarantorChatService
     /**
      * @throws Throwable
      */
-    public function open(GuarantorRequest $request): Conversation
+    public function open(GuarantorRequest $request, Model $actor): Conversation
     {
-        return $this->openChatAction->handle($request);
+        return $this->openChatAction->handle($request, $actor);
     }
 
     public function listForActor(Model $actor, int $perPage = 15): LengthAwarePaginator
@@ -38,9 +39,10 @@ class GuarantorChatService
 
     public function listMessages(
         Conversation $conversation,
+        Model $actor,
         int $perPage = 20,
     ): LengthAwarePaginator {
-        return $this->listMessagesAction->handle($conversation, $perPage);
+        return $this->listMessagesAction->handle($conversation, $actor, $perPage);
     }
 
     /**
@@ -51,6 +53,10 @@ class GuarantorChatService
         Model $sender,
         SendMessageRequest $request,
     ): ConversationMessage {
-        return $this->sendMessageAction->handle($conversation, $sender, $request);
+        return $this->sendMessageAction->handle(
+            $conversation,
+            $sender,
+            ChatMessageData::fromRequest($request),
+        );
     }
 }

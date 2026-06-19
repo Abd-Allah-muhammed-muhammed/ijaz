@@ -30,4 +30,9 @@ class ChatException extends Exception
     {
         return new self('order users are not valid for chat');
     }
+
+    public static function notAllowed(): ChatException
+    {
+        return new self('chat not allowed');
+    }
 }

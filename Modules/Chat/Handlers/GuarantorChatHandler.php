@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Contracts\ChatTypeHandlerInterface;
 use Modules\Chat\Support\ParticipantConversationMessenger;
+use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Models\GuarantorRequest;
 
 class GuarantorChatHandler implements ChatTypeHandlerInterface
@@ -46,6 +47,15 @@ class GuarantorChatHandler implements ChatTypeHandlerInterface
                     $q->where('user2_type', $actor::class)
                         ->where('user2_id', $actor->getKey());
                 });
+            })
+            ->whereHas('operation', function ($query) {
+                $query->whereNotIn('status', [
+                    GuarantorStatusEnum::RejectedByAdmin->value,
+                    GuarantorStatusEnum::Rejected->value,
+                    GuarantorStatusEnum::Ended->value,
+                    GuarantorStatusEnum::Cancelled->value,
+                    GuarantorStatusEnum::Refunded->value,
+                ]);
             })
             ->with(['user1', 'user2', 'lastMassage', 'operation'])
             ->latest('last_message_at');

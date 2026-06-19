@@ -82,7 +82,7 @@ class UpdateGuarantorStatusAction
             );
 
             if ($data->status->is(GuarantorStatusEnum::InProgress)) {
-                $this->openGuarantorChatAction->handle($guarantorRequest);
+                $this->openGuarantorChatAction->handle($guarantorRequest, $actor);
             }
 
             match ($data->status) {

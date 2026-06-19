@@ -3,7 +3,11 @@
 namespace Modules\Guarantor\Actions\Chat;
 
 use App\Models\Conversation;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Modules\Chat\Actions\OpenConversationAction;
+use Modules\Chat\Enums\ChatTypeEnum;
+use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
@@ -11,12 +15,17 @@ use Throwable;
 
 class OpenGuarantorChatAction
 {
+    public function __construct(
+        private readonly OpenConversationAction $openConversationAction,
+        private readonly ChatTypeRegistry $chatTypeRegistry,
+    ) {}
+
     /**
      * @throws Throwable
      */
-    public function handle(GuarantorRequest $request): Conversation
+    public function handle(GuarantorRequest $request, Model $actor): Conversation
     {
-        return DB::transaction(function () use ($request) {
+        return DB::transaction(function () use ($request, $actor) {
             $request->loadMissing(['requester', 'counterparty']);
 
             if (! in_array($request->status, [
@@ -26,17 +35,10 @@ class OpenGuarantorChatAction
                 throw new GuarantorException('guarantor.chat_not_allowed', 422);
             }
 
-            return Conversation::query()->firstOrCreate(
-                [
-                    'operation_type' => GuarantorRequest::class,
-                    'operation_id' => $request->id,
-                ],
-                [
-                    'user1_id' => $request->requester->getKey(),
-                    'user1_type' => $request->requester::class,
-                    'user2_id' => $request->counterparty->getKey(),
-                    'user2_type' => $request->counterparty::class,
-                ],
+            return $this->openConversationAction->handle(
+                $actor,
+                $request,
+                $this->chatTypeRegistry->get(ChatTypeEnum::Guarantor),
             );
         });
     }

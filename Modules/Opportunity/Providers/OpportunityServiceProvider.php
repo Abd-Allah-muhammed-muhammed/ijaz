@@ -5,7 +5,6 @@ namespace Modules\Opportunity\Providers;
 use App\Models\Conversation;
 use Illuminate\Support\Facades\Gate;
 use Modules\Opportunity\Console\Commands\ExpireOpportunitiesCommand;
-use Modules\Opportunity\Contracts\Repositories\ConversationRepositoryInterface;
 use Modules\Opportunity\Contracts\Repositories\OpportunityCommentRepositoryInterface;
 use Modules\Opportunity\Contracts\Repositories\OpportunityOfferRepositoryInterface;
 use Modules\Opportunity\Contracts\Repositories\OpportunityRepositoryInterface;
@@ -16,7 +15,6 @@ use Modules\Opportunity\Policies\ConversationPolicy;
 use Modules\Opportunity\Policies\OpportunityCommentPolicy;
 use Modules\Opportunity\Policies\OpportunityOfferPolicy;
 use Modules\Opportunity\Policies\OpportunityPolicy;
-use Modules\Opportunity\Repositories\ConversationRepository;
 use Modules\Opportunity\Repositories\OpportunityCommentRepository;
 use Modules\Opportunity\Repositories\OpportunityOfferRepository;
 use Modules\Opportunity\Repositories\OpportunityRepository;
@@ -55,6 +53,5 @@ class OpportunityServiceProvider extends ModuleServiceProvider
         $this->app->bind(OpportunityRepositoryInterface::class, OpportunityRepository::class);
         $this->app->bind(OpportunityOfferRepositoryInterface::class, OpportunityOfferRepository::class);
         $this->app->bind(OpportunityCommentRepositoryInterface::class, OpportunityCommentRepository::class);
-        $this->app->bind(ConversationRepositoryInterface::class, ConversationRepository::class);
     }
 }

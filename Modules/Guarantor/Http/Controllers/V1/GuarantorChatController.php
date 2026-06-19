@@ -93,7 +93,7 @@ class GuarantorChatController extends Controller
 
         $this->authorize('chat', $guarantorRequest);
 
-        $conversation = $this->chatService->open($guarantorRequest);
+        $conversation = $this->chatService->open($guarantorRequest, auth()->user());
 
         return $this->successResponse(
             GuarantorConversationResource::make(
@@ -136,6 +136,7 @@ class GuarantorChatController extends Controller
             ConversationMessageCollection::make(
                 $this->chatService->listMessages(
                     $conversation,
+                    auth()->user(),
                     $request->integer('per_page', 20)
                 )
             )
