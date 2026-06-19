@@ -85,16 +85,16 @@
 ---
 
 ## Phase 3 — Shared Messenger
-- [ ] Create `ParticipantConversationMessenger` → `Modules/Chat/Support/ParticipantConversationMessenger.php`
+- [x] Create `ParticipantConversationMessenger` → `Modules/Chat/Support/ParticipantConversationMessenger.php`
       (replaces both OpportunityConversationMessenger and GuarantorConversationMessenger — identical code)
-- [ ] Update `Modules/Opportunity/Support/OpportunityConversationMessenger.php`
+- [x] Update `Modules/Opportunity/Support/OpportunityConversationMessenger.php`
       to extend `ParticipantConversationMessenger` (or replace entirely)
-- [ ] Update `Modules/Guarantor/Support/GuarantorConversationMessenger.php`
+- [x] Update `Modules/Guarantor/Support/GuarantorConversationMessenger.php`
       to extend `ParticipantConversationMessenger` (or replace entirely)
-- [ ] Run tests — all must pass
+- [x] Run tests — all must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-19
+### Summary: Extracted identical messenger logic into `Modules/Chat/Support/ParticipantConversationMessenger` (sendAs, getOnlineUsers, getReceiver with UUID string-cast comparison). Opportunity and Guarantor messengers are now thin wrappers extending the shared class. Opportunity (81) and Guarantor (147) tests pass.
 
 ---
 
