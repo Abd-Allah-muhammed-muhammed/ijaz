@@ -20,6 +20,7 @@
       Modules/Chat/
       ├── Actions/
       ├── Contracts/
+      ├── DTOs/
       ├── Enums/
       ├── Exceptions/
       ├── Http/
@@ -36,6 +37,7 @@
       ├── Handlers/
       ├── Policies/
       ├── Registry/
+      ├── Repositories/
       ├── Routes/
       │   ├── V1/
       │   ├── provider.php
@@ -43,6 +45,8 @@
       ├── Services/
       └── Support/
       ```
+- [ ] Create `DTOs/` directory
+- [ ] Create `Repositories/` directory
 - [ ] Run `composer dump-autoload`
 
 ### Completed: —
@@ -121,6 +125,47 @@
       (marks messages as read, handles attachments, delegates to messenger)
 - [ ] Update Opportunity chat actions to use shared actions where possible
 - [ ] Update Guarantor chat actions to use shared actions where possible
+- [ ] Run tests — all must pass
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 5.5 — DTOs
+- [ ] Create `ChatMessageData` → `Modules/Chat/DTOs/ChatMessageData.php`
+      Fields: content (nullable string), files (nullable array)
+      fromRequest(SendMessageRequest): self
+- [ ] Create `StoreConversationData` → `Modules/Chat/DTOs/StoreConversationData.php`  
+      Fields: operation_id (string), operation_type (string)
+      fromRequest(StoreConversationRequest): self
+- [ ] Update all Actions to accept DTOs instead of raw Request objects
+- [ ] Run tests — all must pass
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 5.6 — Repositories
+- [ ] Create `ConversationRepositoryInterface` → `Modules/Chat/Contracts/Repositories/ConversationRepositoryInterface.php`
+      Methods:
+      - findOrCreate(Model $operation, Model $user1, Model $user2): Conversation
+      - findById(string $id): Conversation
+      - listForActor(Model $actor, string $operationType, int $perPage): LengthAwarePaginator
+      - listAllForActor(Model $actor, int $perPage): LengthAwarePaginator
+- [ ] Create `ConversationRepository` → `Modules/Chat/Repositories/ConversationRepository.php`
+      (absorbs Opportunity's ConversationRepository — same logic, generalized)
+- [ ] Create `ConversationMessageRepositoryInterface` → `Modules/Chat/Contracts/Repositories/ConversationMessageRepositoryInterface.php`
+      Methods:
+      - create(Conversation $conversation, Model $sender, Model $receiver, ChatMessageData $data): ConversationMessage
+      - listForConversation(Conversation $conversation, int $perPage): LengthAwarePaginator
+      - markAsRead(Conversation $conversation, Model $reader): void
+- [ ] Create `ConversationMessageRepository` → `Modules/Chat/Repositories/ConversationMessageRepository.php`
+- [ ] Bind both interfaces in `ChatServiceProvider::register()`
+- [ ] Remove `Modules/Opportunity/Repositories/ConversationRepository.php` (replaced)
+- [ ] Remove `Modules/Opportunity/Contracts/Repositories/ConversationRepositoryInterface.php` (replaced)
+- [ ] Update Opportunity chat actions to use `Modules/Chat/Contracts/Repositories/ConversationRepositoryInterface.php`
 - [ ] Run tests — all must pass
 
 ### Completed: —
