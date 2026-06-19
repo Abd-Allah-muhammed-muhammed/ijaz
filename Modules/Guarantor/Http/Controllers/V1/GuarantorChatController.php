@@ -4,13 +4,13 @@ namespace Modules\Guarantor\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
-use App\Services\Chat\Resources\ConversationMessageCollection;
-use App\Services\Chat\Resources\ConversationMessageResource;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
-use Modules\Guarantor\Http\Requests\SendMessageRequest;
+use Modules\Chat\Http\Resources\ConversationMessageCollection;
+use Modules\Chat\Http\Resources\ConversationMessageResource;
+use Modules\Guarantor\Http\Requests\SendGuarantorMessageRequest;
 use Modules\Guarantor\Http\Requests\StoreChatRequest;
 use Modules\Guarantor\Http\Resources\Api\GuarantorConversationCollection;
 use Modules\Guarantor\Http\Resources\Api\GuarantorConversationResource;
@@ -166,7 +166,7 @@ class GuarantorChatController extends Controller
      * @response 422 { "success": false, "message": "Validation error" }
      */
     public function send(
-        SendMessageRequest $request,
+        SendGuarantorMessageRequest $request,
         Conversation $conversation,
     ): JsonResponse {
         $this->authorize('send', $conversation);

@@ -174,20 +174,20 @@
 ---
 
 ## Phase 6 — Resources & Requests
-- [ ] Move `ConversationResource` → `Modules/Chat/Http/Resources/ConversationResource.php`
-- [ ] Move `ConversationCollection` → `Modules/Chat/Http/Resources/ConversationCollection.php`
-- [ ] Move `ConversationMessageResource` → `Modules/Chat/Http/Resources/ConversationMessageResource.php`
-- [ ] Move `ConversationMessageCollection` → `Modules/Chat/Http/Resources/ConversationMessageCollection.php`
-- [ ] Move `ConversationAttachmentResource` → `Modules/Chat/Http/Resources/ConversationAttachmentResource.php`
-- [ ] Move `SendMessageRequest` → `Modules/Chat/Http/Requests/SendMessageRequest.php`
+- [x] Move `ConversationResource` → `Modules/Chat/Http/Resources/ConversationResource.php`
+- [x] Move `ConversationCollection` → `Modules/Chat/Http/Resources/ConversationCollection.php`
+- [x] Move `ConversationMessageResource` → `Modules/Chat/Http/Resources/ConversationMessageResource.php`
+- [x] Move `ConversationMessageCollection` → `Modules/Chat/Http/Resources/ConversationMessageCollection.php`
+- [x] Move `ConversationAttachmentResource` → `Modules/Chat/Http/Resources/ConversationAttachmentResource.php`
+- [x] Move `SendMessageRequest` → `Modules/Chat/Http/Requests/SendMessageRequest.php`
       (resolve name collision with Guarantor's SendMessageRequest)
-- [ ] Move `StoreConversationRequest` → `Modules/Chat/Http/Requests/StoreConversationRequest.php`
-- [ ] Move `SendSupportMessageRequest` → `Modules/Chat/Http/Requests/SendSupportMessageRequest.php`
-- [ ] Update all imports
-- [ ] Run tests — all must pass
+- [x] Move `StoreConversationRequest` → `Modules/Chat/Http/Requests/StoreConversationRequest.php`
+- [x] Move `SendSupportMessageRequest` → `Modules/Chat/Http/Requests/SendSupportMessageRequest.php`
+- [x] Update all imports
+- [x] Run tests — all must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-19
+### Summary: Moved base chat resources, requests, and dashboard collections to `Modules/Chat/Http/`. Renamed `UserResource` → `ChatUserResource`. Left `@deprecated` aliases in all old `app/` paths. Renamed Guarantor request to `SendGuarantorMessageRequest` (alias kept). Opportunity/Guarantor conversation resources stay in modules — different response shapes from base. Updated all controller imports. Opportunity (81) and Guarantor (147) tests pass.
 
 ---
 

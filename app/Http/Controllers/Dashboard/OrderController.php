@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Dashboard;
 use App\Enums\Order\OfferStatusEnum;
 use App\Enums\Order\OrderStatusEnum;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Dashboard\Chat\ConversationMessageCollection;
+use Modules\Chat\Http\Resources\Dashboard\ConversationMessageCollection;
 use App\Http\Resources\Dashboard\OrderCollection;
 use App\Http\Resources\Dashboard\OrderResource;
 use App\Models\Order;
