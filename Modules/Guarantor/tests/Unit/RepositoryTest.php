@@ -4,6 +4,7 @@ use App\Models\User;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\StatusHistoryRepositoryInterface;
+use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
@@ -86,7 +87,7 @@ test('listForActor returns only actor requests', function () {
     ]);
 
     $results = app(GuarantorRepositoryInterface::class)
-        ->listForActor($actor, perPage: 50);
+        ->listForActor($actor, new GuarantorFiltersData(per_page: 50));
 
     expect($results->total())->toBe(2)
         ->and($results->pluck('id')->all())->toContain($asRequester->id, $asCounterparty->id);

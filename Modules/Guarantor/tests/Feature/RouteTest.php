@@ -3,6 +3,8 @@
 use App\Models\Conversation;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
+use Modules\Guarantor\Enums\GuarantorStatusEnum;
+use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 
@@ -99,4 +101,165 @@ test('chat show route resolves correctly', function () {
     expect(Route::has('chats.guarantor.show'))->toBeTrue()
         ->and(route('chats.guarantor.show', $conversation))
         ->toBe(url('api/v1/chats/guarantor/'.$conversation->getKey()));
+});
+
+test('guarantor index filters by status', function () {
+    $user = User::factory()->create();
+
+    $accepted = GuarantorRequest::factory()->accepted()->create([
+        'requester_type' => User::class,
+        'requester_id' => $user->getKey(),
+        'title' => 'Accepted guarantee',
+    ]);
+
+    GuarantorRequest::factory()->pendingAdmin()->create([
+        'requester_type' => User::class,
+        'requester_id' => $user->getKey(),
+        'title' => 'Pending guarantee',
+    ]);
+
+    $ids = collect($this->actingAs($user, 'sanctum')
+        ->getJson(route('api.v1.guarantor.guarantor.index', ['status' => GuarantorStatusEnum::Accepted->value]))
+        ->assertSuccessful()
+        ->json('data.items'))
+        ->pluck('id');
+
+    expect($ids)->toContain($accepted->id)
+        ->and($ids)->toHaveCount(1);
+});
+
+test('guarantor index filters by type individual', function () {
+    $user = User::factory()->create();
+
+    $individual = GuarantorRequest::factory()->create([
+        'type' => GuarantorTypeEnum::Individual,
+        'requester_type' => User::class,
+        'requester_id' => $user->getKey(),
+    ]);
+
+    GuarantorRequest::factory()->company()->create([
+        'requester_type' => User::class,
+        'requester_id' => $user->getKey(),
+    ]);
+
+    $ids = collect($this->actingAs($user, 'sanctum')
+        ->getJson(route('api.v1.guarantor.guarantor.index', ['type' => GuarantorTypeEnum::Individual->value]))
+        ->assertSuccessful()
+        ->json('data.items'))
+        ->pluck('id');
+
+    expect($ids)->toContain($individual->id)
+        ->and($ids)->toHaveCount(1);
+});
+
+test('guarantor index filters by role requester', function () {
+    $user = User::factory()->create();
+    $other = User::factory()->create();
+
+    $asRequester = GuarantorRequest::factory()->create([
+        'requester_type' => User::class,
+        'requester_id' => $user->getKey(),
+        'counterparty_type' => User::class,
+        'counterparty_id' => $other->getKey(),
+    ]);
+
+    GuarantorRequest::factory()->create([
+        'requester_type' => User::class,
+        'requester_id' => $other->getKey(),
+        'counterparty_type' => User::class,
+        'counterparty_id' => $user->getKey(),
+    ]);
+
+    $ids = collect($this->actingAs($user, 'sanctum')
+        ->getJson(route('api.v1.guarantor.guarantor.index', ['role' => 'requester']))
+        ->assertSuccessful()
+        ->json('data.items'))
+        ->pluck('id');
+
+    expect($ids)->toContain($asRequester->id)
+        ->and($ids)->toHaveCount(1);
+});
+
+test('guarantor index filters by role counterparty', function () {
+    $user = User::factory()->create();
+    $other = User::factory()->create();
+
+    $asCounterparty = GuarantorRequest::factory()->create([
+        'requester_type' => User::class,
+        'requester_id' => $other->getKey(),
+        'counterparty_type' => User::class,
+        'counterparty_id' => $user->getKey(),
+    ]);
+
+    GuarantorRequest::factory()->create([
+        'requester_type' => User::class,
+        'requester_id' => $user->getKey(),
+        'counterparty_type' => User::class,
+        'counterparty_id' => $other->getKey(),
+    ]);
+
+    $ids = collect($this->actingAs($user, 'sanctum')
+        ->getJson(route('api.v1.guarantor.guarantor.index', ['role' => 'counterparty']))
+        ->assertSuccessful()
+        ->json('data.items'))
+        ->pluck('id');
+
+    expect($ids)->toContain($asCounterparty->id)
+        ->and($ids)->toHaveCount(1);
+});
+
+test('guarantor index filters by search title', function () {
+    $user = User::factory()->create();
+
+    $matching = GuarantorRequest::factory()->create([
+        'requester_type' => User::class,
+        'requester_id' => $user->getKey(),
+        'title' => 'Unique Postman Keyword guarantee',
+    ]);
+
+    GuarantorRequest::factory()->create([
+        'requester_type' => User::class,
+        'requester_id' => $user->getKey(),
+        'title' => 'Unrelated title',
+    ]);
+
+    $ids = collect($this->actingAs($user, 'sanctum')
+        ->getJson(route('api.v1.guarantor.guarantor.index', ['search' => 'Postman Keyword']))
+        ->assertSuccessful()
+        ->json('data.items'))
+        ->pluck('id');
+
+    expect($ids)->toContain($matching->id)
+        ->and($ids)->toHaveCount(1);
+});
+
+test('guarantor index returns all when no filters', function () {
+    $user = User::factory()->create();
+    $other = User::factory()->create();
+
+    $asRequester = GuarantorRequest::factory()->create([
+        'requester_type' => User::class,
+        'requester_id' => $user->getKey(),
+    ]);
+
+    $asCounterparty = GuarantorRequest::factory()->create([
+        'requester_type' => User::class,
+        'requester_id' => $other->getKey(),
+        'counterparty_type' => User::class,
+        'counterparty_id' => $user->getKey(),
+    ]);
+
+    GuarantorRequest::factory()->create([
+        'requester_type' => User::class,
+        'requester_id' => $other->getKey(),
+    ]);
+
+    $ids = collect($this->actingAs($user, 'sanctum')
+        ->getJson(route('api.v1.guarantor.guarantor.index'))
+        ->assertSuccessful()
+        ->json('data.items'))
+        ->pluck('id');
+
+    expect($ids)->toContain($asRequester->id, $asCounterparty->id)
+        ->and($ids)->toHaveCount(2);
 });
