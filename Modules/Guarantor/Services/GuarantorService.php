@@ -17,6 +17,7 @@ use Modules\Guarantor\Actions\Payment\PayIndividualGuarantorAction;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\DTOs\CompanyDetailData;
 use Modules\Guarantor\DTOs\GuarantorData;
+use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Exceptions\GuarantorException;
@@ -162,9 +163,9 @@ class GuarantorService
         ]);
     }
 
-    public function listForActor(Model $actor, int $perPage = 10): LengthAwarePaginator
+    public function listForActor(Model $actor, GuarantorFiltersData $filters): LengthAwarePaginator
     {
-        return $this->repository->listForActor($actor, $perPage);
+        return $this->repository->listForActor($actor, $filters);
     }
 
     public function listAll(int $perPage = 10): LengthAwarePaginator

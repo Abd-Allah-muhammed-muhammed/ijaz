@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Guarantor\DTOs\CompanyDetailData;
 use Modules\Guarantor\DTOs\GuarantorData;
+use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
@@ -77,7 +78,7 @@ class GuarantorController extends Controller
             GuarantorCollection::make(
                 $this->service->listForActor(
                     auth()->user(),
-                    $request->integer('per_page', 10)
+                    GuarantorFiltersData::fromRequest($request)
                 )
             )
         );

@@ -5,6 +5,7 @@ namespace Modules\Guarantor\Repositories;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
+use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\Models\GuarantorRequest;
 
 class GuarantorRepository implements GuarantorRepositoryInterface
@@ -64,14 +65,31 @@ class GuarantorRepository implements GuarantorRepositoryInterface
             ->paginate($perPage);
     }
 
-    public function listForActor(Model $actor, int $perPage = 10): LengthAwarePaginator
+    public function listForActor(Model $actor, GuarantorFiltersData $filters): LengthAwarePaginator
     {
         return GuarantorRequest::query()
-            ->forActor($actor)
+            ->when(true, function ($q) use ($actor, $filters) {
+                if ($filters->role === 'requester') {
+                    return $q->where('requester_type', $actor::class)
+                        ->where('requester_id', $actor->getKey());
+                }
+
+                if ($filters->role === 'counterparty') {
+                    return $q->where('counterparty_type', $actor::class)
+                        ->where('counterparty_id', $actor->getKey());
+                }
+
+                return $q->forActor($actor);
+            })
+            ->when($filters->status, fn ($q, $v) => $q->where('status', $v))
+            ->when($filters->type, fn ($q, $v) => $q->where('type', $v))
+            ->when($filters->search, fn ($q, $v) => $q->where('title', 'like', "%{$v}%"))
+            ->when($filters->date_from, fn ($q, $v) => $q->whereDate('created_at', '>=', $v))
+            ->when($filters->date_to, fn ($q, $v) => $q->whereDate('created_at', '<=', $v))
             ->with(['requester', 'counterparty', 'installments', 'media'])
             ->withCount(['installments'])
             ->latest()
-            ->paginate($perPage);
+            ->paginate($filters->per_page);
     }
 
     public function listAll(int $perPage = 10): LengthAwarePaginator

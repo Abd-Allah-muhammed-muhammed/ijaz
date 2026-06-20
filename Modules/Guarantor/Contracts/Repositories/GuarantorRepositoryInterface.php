@@ -4,6 +4,7 @@ namespace Modules\Guarantor\Contracts\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\Models\GuarantorRequest;
 
 interface GuarantorRepositoryInterface
@@ -24,7 +25,7 @@ interface GuarantorRepositoryInterface
 
     public function listByCounterparty(Model $counterparty, int $perPage = 10): LengthAwarePaginator;
 
-    public function listForActor(Model $actor, int $perPage = 10): LengthAwarePaginator;
+    public function listForActor(Model $actor, GuarantorFiltersData $filters): LengthAwarePaginator;
 
     public function listAll(int $perPage = 10): LengthAwarePaginator;
 }
