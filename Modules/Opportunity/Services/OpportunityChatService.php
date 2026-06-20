@@ -12,7 +12,6 @@ use Modules\Opportunity\Actions\Chat\ListOpportunityChatsAction;
 use Modules\Opportunity\Actions\Chat\OpenOpportunityChatAction;
 use Modules\Opportunity\Actions\Chat\SendOpportunityChatMessageAction;
 use Modules\Opportunity\Contracts\Repositories\OpportunityRepositoryInterface;
-use Modules\Opportunity\Http\Requests\SendOpportunityChatMessageRequest;
 use Modules\Opportunity\Models\Opportunity;
 use Throwable;
 
@@ -52,12 +51,12 @@ class OpportunityChatService
     /**
      * @throws Throwable
      */
-    public function sendMessage(Conversation $conversation, Model $sender, SendOpportunityChatMessageRequest $request): ConversationMessage
+    public function sendMessage(Conversation $conversation, Model $sender, ChatMessageData $data): ConversationMessage
     {
         return $this->sendAction->handle(
             $conversation,
             $sender,
-            ChatMessageData::fromRequest($request),
+            $data,
         );
     }
 }
