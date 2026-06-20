@@ -8,6 +8,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Http\Resources\ConversationMessageCollection;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Opportunity\DTOs\ChatData;
@@ -107,7 +108,11 @@ class OpportunityChatController extends Controller
         try {
             $this->authorizeOrFail('send', $conversation, 'opportunity.chat_unauthorized');
 
-            $message = $this->chatService->sendMessage($conversation, auth()->user(), $request);
+            $message = $this->chatService->sendMessage(
+                $conversation,
+                auth()->user(),
+                ChatMessageData::fromRequest($request),
+            );
 
             return $this->successResponse(ConversationMessageResource::make($message));
         } catch (OpportunityException $e) {

@@ -8,6 +8,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Http\Resources\ConversationMessageCollection;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Guarantor\Http\Requests\SendGuarantorMessageRequest;
@@ -174,7 +175,7 @@ class GuarantorChatController extends Controller
         $message = $this->chatService->send(
             $conversation,
             auth()->user(),
-            $request
+            ChatMessageData::fromRequest($request),
         );
 
         return $this->successResponse(

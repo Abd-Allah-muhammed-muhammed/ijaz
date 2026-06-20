@@ -11,7 +11,6 @@ use Modules\Guarantor\Actions\Chat\ListGuarantorChatMessagesAction;
 use Modules\Guarantor\Actions\Chat\ListGuarantorChatsAction;
 use Modules\Guarantor\Actions\Chat\OpenGuarantorChatAction;
 use Modules\Guarantor\Actions\Chat\SendGuarantorChatMessageAction;
-use Modules\Guarantor\Http\Requests\SendGuarantorMessageRequest;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Throwable;
 
@@ -51,12 +50,12 @@ class GuarantorChatService
     public function send(
         Conversation $conversation,
         Model $sender,
-        SendGuarantorMessageRequest $request,
+        ChatMessageData $data,
     ): ConversationMessage {
         return $this->sendMessageAction->handle(
             $conversation,
             $sender,
-            ChatMessageData::fromRequest($request),
+            $data,
         );
     }
 }
