@@ -330,8 +330,8 @@ class PaymentFailed
 }
 ```
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Added `PaymentHandlerRegistry` (register/get/has by product type) registered as singleton in `PaymentServiceProvider`. Added `PaymentCompleted` and `PaymentFailed` events carrying the `Payment` model. All 386 regression tests pass.
 
 ---
 
