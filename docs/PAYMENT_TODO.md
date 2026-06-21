@@ -606,12 +606,8 @@ public function boot(): void
 }
 ```
 
-### Completed: —
-### Summary: —
-
----
-
-## Phase 11 — Routes
+### Completed: 2026-06-21
+### Summary: Added `OrderPaymentHandler`, `TopUpPaymentHandler`, and empty `GuarantorPaymentHandler` (Guarantor logic via events in Phase 13). All four product types registered in `PaymentHandlerRegistry` from `PaymentServiceProvider::boot()`. Removed redundant `PaymentService` container binding. All 386 regression tests pass.
 
 File: `Modules/Payment/Routes/api.php`:
 ```php
