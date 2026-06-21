@@ -249,8 +249,8 @@ readonly class PaymentVerifyResult
 }
 ```
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Added `PaymentGatewayInterface` and `PaymentHandlerInterface` contracts, plus `PaymentInitResult` and `PaymentVerifyResult` readonly DTOs following the Guarantor DTO pattern. All 386 regression tests pass.
 
 ---
 
