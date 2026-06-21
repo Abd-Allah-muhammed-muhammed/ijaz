@@ -147,6 +147,8 @@ $this->loadMigrationsFrom(module_path('Payment', 'Database/Migrations'));
 ### Completed: 2026-06-21
 ### Summary: Moved `2025_08_21_193400_create_payments_table.php` to `Modules/Payment/Database/Migrations/` unchanged. Migration path already registered in `PaymentServiceProvider`. `migrate:status` shows Ran; all 386 regression tests pass.
 
+**Phase 3.5:** Added indexes migration (`2026_06_21_000001_add_indexes_to_payments_table.php`) — `status`, `created_at`, and `(user_type, user_id, created_at)` composite.
+
 ---
 
 ## Phase 4 — Move Model + Trait + Enums
