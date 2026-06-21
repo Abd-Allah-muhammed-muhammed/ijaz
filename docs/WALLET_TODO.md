@@ -360,19 +360,19 @@ Move requests → `Modules/Wallet/Http/Requests/`:
 
 ## Phase 15 — Dashboard Controllers
 
-- [ ] Create `Modules\Wallet\Http\Controllers\Dashboard\TopUpRequestController`
+- [x] Create `Modules\Wallet\Http\Controllers\Dashboard\TopUpRequestController`
       Replaces: `App\Http\Controllers\Dashboard\TopUpRequestController`
       Fix: remove orphaned `DB::commit()` without `beginTransaction()`
       Uses: `WalletService::credit()` instead of inline wallet mutation
-- [ ] Create `Modules\Wallet\Http\Controllers\Dashboard\WithdrawRequestController`
+- [x] Create `Modules\Wallet\Http\Controllers\Dashboard\WithdrawRequestController`
       Replaces: `App\Http\Controllers\Dashboard\WithdrawRequestController`
       Uses: `WalletService::finalizeWithdraw()`
-- [ ] Create `Modules/Wallet/Routes/dashboard.php` — same URLs, same names
-- [ ] Remove old routes from `routes/dashboard.php`
-- [ ] Run tests
+- [x] Create `Modules/Wallet/Routes/dashboard.php` — same URLs, same names
+- [x] Remove old routes from `routes/dashboard.php`
+- [x] Run tests
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Moved dashboard TopUp/Withdraw controllers to module. Fixed orphaned `DB::commit()` bug with proper `DB::transaction()`. Offline approved top-ups use `WalletService::credit()`; withdraw status updates use `WalletService::finalizeWithdraw()`. Dashboard routes registered via localization wrapper in `RouteServiceProvider`. All 323 tests pass.
 
 ---
 

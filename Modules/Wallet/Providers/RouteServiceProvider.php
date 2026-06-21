@@ -58,7 +58,13 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
             return;
         }
 
-        Route::middleware(['web', 'auth:admin'])
-            ->group($path);
+        Route::group([
+            'prefix' => LaravelLocalization::setLocale(),
+            'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
+        ], function () use ($path) {
+            Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () use ($path) {
+                Route::middleware('auth:admin')->group($path);
+            });
+        });
     }
 }

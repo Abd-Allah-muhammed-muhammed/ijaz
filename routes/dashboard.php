@@ -18,9 +18,7 @@ use App\Http\Controllers\Dashboard\RegionController;
 use App\Http\Controllers\Dashboard\RoleController;
 use App\Http\Controllers\Dashboard\SkillController;
 use App\Http\Controllers\Dashboard\SupportController;
-use App\Http\Controllers\Dashboard\TopUpRequestController;
 use App\Http\Controllers\Dashboard\UserController;
-use App\Http\Controllers\Dashboard\WithdrawRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(
@@ -59,16 +57,6 @@ Route::group(
                 Route::controller(MessageController::class)->prefix('messages')->as('messages.')->group(function () {
                     Route::get('/', 'index')->name('index');
                     Route::delete('/{message}', 'destroy')->name('destroy');
-                });
-                Route::controller(TopUpRequestController::class)->prefix('top-up-requests')->as('top-up-requests.')->group(static function () {
-                    Route::get('/', 'index')->name('index');
-                    Route::get('/{topUpRequest}', 'show')->name('show');
-                    Route::put('/{topUpRequest}/update-status', 'updateStatus')->name('updateStatus');
-                });
-                Route::controller(WithdrawRequestController::class)->prefix('withdraw-requests')->as('withdraw-requests.')->group(static function () {
-                    Route::get('/', 'index')->name('index');
-                    Route::get('/{withdrawRequest}', 'show')->name('show');
-                    Route::put('/{withdrawRequest}/update-status', 'updateStatus')->name('updateStatus');
                 });
                 Route::prefix('/orders')->controller(OrderController::class)->as('orders.')->group(static function () {
                     Route::get('/', 'index')->name('index');
