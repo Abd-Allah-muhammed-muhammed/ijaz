@@ -4,6 +4,7 @@ namespace Modules\Wallet\Providers;
 
 use App\Providers\BaseModuleRouteServiceProvider;
 use Illuminate\Support\Facades\Route;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class RouteServiceProvider extends BaseModuleRouteServiceProvider
 {
@@ -37,8 +38,16 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
             return;
         }
 
-        Route::middleware(['web', 'auth:provider'])
-            ->group($path);
+        Route::group([
+            'prefix' => LaravelLocalization::setLocale(),
+            'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
+        ], function () use ($path) {
+            Route::group(['prefix' => 'provider', 'as' => 'provider.'], function () use ($path) {
+                Route::middleware('auth:provider')->group(function () use ($path) {
+                    Route::prefix('dashboard')->group($path);
+                });
+            });
+        });
     }
 
     protected function mapDashboardRoutes(): void

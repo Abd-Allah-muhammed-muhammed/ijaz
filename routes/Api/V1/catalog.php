@@ -6,7 +6,6 @@ use App\Http\Controllers\Api\V1\JobController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\OtpController;
 use App\Http\Controllers\Api\V1\TicketSupportController;
-use App\Http\Controllers\Api\V1\WalletController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('catalog')->group(static function () {
@@ -37,13 +36,6 @@ Route::middleware('auth:sanctum')->group(static function () {
     Route::prefix('chats')->group(static function () {
         require base_path('Modules/Opportunity/Routes/V1/chat.php');
         require base_path('Modules/Guarantor/Routes/V1/chat.php');
-    });
-
-    Route::controller(WalletController::class)->prefix('wallet')->group(static function () {
-        Route::get('balance', 'walletBalance');
-        Route::post('add-balance', 'walletAddBalance');
-        Route::post('withdraw', 'walletWithdraw');
-        Route::get('transaction', 'walletTransactions');
     });
 
     Route::controller(OtpController::class)->prefix('otp')->group(static function () {

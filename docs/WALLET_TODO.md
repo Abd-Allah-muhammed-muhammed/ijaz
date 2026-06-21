@@ -324,37 +324,37 @@ Move requests → `Modules/Wallet/Http/Requests/`:
 
 ## Phase 13 — V1 API Controller
 
-- [ ] Create `Modules\Wallet\Http\Controllers\V1\WalletController`
+- [x] Create `Modules\Wallet\Http\Controllers\V1\WalletController`
       Replaces: `App\Http\Controllers\Api\V1\WalletController`
       Methods: `balance`, `addBalance`, `withdraw`, `transactions`
       Fix: balance check uses `WalletService::canWithdraw()` with lock
       Fix: set `wallet_id` on TopUpRequest create
       Uses: WalletService only — no direct model mutations
-- [ ] Create `Modules/Wallet/Routes/V1/wallet.php` — same URLs, same names
-- [ ] Remove old routes from `routes/Api/V1/catalog.php`
-- [ ] Run tests
+- [x] Create `Modules/Wallet/Routes/V1/wallet.php` — same URLs, same names
+- [x] Remove old routes from `routes/Api/V1/catalog.php`
+- [x] Run tests
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Created module V1 `WalletController` with `WalletService` + `WalletTransactionRepository`. Fixed `wallet_id` on top-up create, `canWithdraw()` + `addPendingDebit()` on withdraw. Routes moved to `Modules/Wallet/Routes/V1/wallet.php`. Extended `listForOwner()` with date filters.
 
 ---
 
 ## Phase 14 — Provider Controllers
 
-- [ ] Create `Modules\Wallet\Http\Controllers\Provider\TopUpController`
+- [x] Create `Modules\Wallet\Http\Controllers\Provider\TopUpController`
       Replaces: `App\Http\Controllers\Provider\TopUpController`
       Uses: WalletService
-- [ ] Create `Modules\Wallet\Http\Controllers\Provider\WithdrawController`
+- [x] Create `Modules\Wallet\Http\Controllers\Provider\WithdrawController`
       Replaces: `App\Http\Controllers\Provider\WithdrawController`
       Fix: remove references to non-existent `transaction_id`/`payment_driver` on WithdrawRequest
       Fix: unreachable catch pattern
       Uses: WalletService
-- [ ] Create `Modules/Wallet/Routes/provider.php` — same URLs, same names
-- [ ] Remove old routes from `routes/provider.php`
-- [ ] Run tests
+- [x] Create `Modules/Wallet/Routes/provider.php` — same URLs, same names
+- [x] Remove old routes from `routes/provider.php`
+- [x] Run tests
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Moved provider TopUp/Withdraw controllers to module. Fixed unreachable catch blocks, `wallet_id` on top-up create, withdraw show no longer queries payment gateway. Withdraw uses `canWithdraw()`, `addPendingDebit()`, and `reversePendingDebit()`. Provider routes use Chat-style localization wrapper in `RouteServiceProvider`. All 323 tests pass.
 
 ---
 

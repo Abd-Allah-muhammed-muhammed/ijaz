@@ -28,9 +28,15 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
         ]);
     }
 
-    public function listForOwner(Model $owner, int $perPage = 15): LengthAwarePaginator
-    {
+    public function listForOwner(
+        Model $owner,
+        int $perPage = 15,
+        ?string $dateFrom = null,
+        ?string $dateTo = null,
+    ): LengthAwarePaginator {
         return $owner->walletTransactions()
+            ->when($dateFrom, fn ($query, $value) => $query->where('created_at', '>=', $value))
+            ->when($dateTo, fn ($query, $value) => $query->where('created_at', '<=', $value))
             ->with(['operation'])
             ->latest()
             ->paginate($perPage);

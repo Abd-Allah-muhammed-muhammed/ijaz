@@ -12,5 +12,10 @@ interface WalletTransactionRepositoryInterface
 {
     public function create(Wallet $wallet, Model $owner, WalletTransactionData $data): WalletTransaction;
 
-    public function listForOwner(Model $owner, int $perPage = 15): LengthAwarePaginator;
+    public function listForOwner(
+        Model $owner,
+        int $perPage = 15,
+        ?string $dateFrom = null,
+        ?string $dateTo = null,
+    ): LengthAwarePaginator;
 }

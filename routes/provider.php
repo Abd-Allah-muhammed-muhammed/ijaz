@@ -3,8 +3,6 @@
 use App\Http\Controllers\Provider\AuthController;
 use App\Http\Controllers\Provider\HomeController;
 use App\Http\Controllers\Provider\OrderController;
-use App\Http\Controllers\Provider\TopUpController;
-use App\Http\Controllers\Provider\WithdrawController;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
@@ -46,8 +44,6 @@ Route::group(
                         Route::post('/{order}/review', 'updateReview')->name('review.update');
                         Route::get('/{order}', 'show')->name('show');
                     });
-                    Route::resource('top-up-requests', TopUpController::class);
-                    Route::resource('withdraw-requests', WithdrawController::class);
                 });
             });
         });
