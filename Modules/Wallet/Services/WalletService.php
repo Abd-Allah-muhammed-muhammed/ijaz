@@ -10,6 +10,7 @@ use Modules\Wallet\Actions\CreditWalletAction;
 use Modules\Wallet\Actions\DebitWalletAction;
 use Modules\Wallet\Actions\FinalizeWithdrawAction;
 use Modules\Wallet\Actions\ReleasePendingCreditToBalanceAction;
+use Modules\Wallet\Actions\ReversePendingCreditAction;
 use Modules\Wallet\Actions\ReversePendingDebitAction;
 use Modules\Wallet\Contracts\Repositories\WalletRepositoryInterface;
 use Modules\Wallet\DTOs\WalletBalanceData;
@@ -25,6 +26,7 @@ class WalletService
         private readonly AddPendingDebitAction $addPendingDebitAction,
         private readonly ReleasePendingCreditToBalanceAction $releasePendingCreditAction,
         private readonly ReversePendingDebitAction $reversePendingDebitAction,
+        private readonly ReversePendingCreditAction $reversePendingCreditAction,
         private readonly AdjustPendingAction $adjustPendingAction,
         private readonly FinalizeWithdrawAction $finalizeWithdrawAction,
     ) {}
@@ -57,6 +59,11 @@ class WalletService
     public function reversePendingDebit(Model $owner, float $amount, Model $operation, string $description = ''): void
     {
         $this->reversePendingDebitAction->handle($owner, $amount, $operation, $description);
+    }
+
+    public function reversePendingCredit(Model $owner, float $amount, Model $operation, string $description = ''): void
+    {
+        $this->reversePendingCreditAction->handle($owner, $amount, $operation, $description);
     }
 
     public function adjustPending(Model $owner, float $creditDelta, float $debitDelta, Model $operation, string $description = ''): void

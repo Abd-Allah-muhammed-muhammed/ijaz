@@ -9,12 +9,14 @@ use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Wallet\Services\WalletService;
 use Throwable;
 
 class AdminCancelGuarantorAction
 {
     public function __construct(
         private readonly UpdateGuarantorStatusAction $updateStatusAction,
+        private readonly WalletService $walletService,
     ) {}
 
     /**
@@ -64,14 +66,23 @@ class AdminCancelGuarantorAction
         $total = (float) $request->amount + (float) $request->fees;
 
         $counterpartyWallet = $request->counterparty->wallet()->lockForUpdate()->firstOrCreate();
-        $requesterWallet = $request->requester->wallet()->lockForUpdate()->firstOrCreate();
-
         if ((float) $counterpartyWallet->pending_debit >= $total) {
-            $counterpartyWallet->decrement('pending_debit', $total);
+            $this->walletService->reversePendingDebit(
+                $request->counterparty,
+                $total,
+                $request,
+                "Guarantor#{$request->id} cancelled",
+            );
         }
 
+        $requesterWallet = $request->requester->wallet()->lockForUpdate()->firstOrCreate();
         if ((float) $requesterWallet->pending_credit >= $total) {
-            $requesterWallet->decrement('pending_credit', $total);
+            $this->walletService->reversePendingCredit(
+                $request->requester,
+                $total,
+                $request,
+                "Guarantor#{$request->id} cancelled",
+            );
         }
     }
 }

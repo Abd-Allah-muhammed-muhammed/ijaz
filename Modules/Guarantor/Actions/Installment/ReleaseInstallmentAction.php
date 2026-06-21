@@ -10,6 +10,7 @@ use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Guarantor\Notifications\InstallmentReleasedNotification;
+use Modules\Wallet\Services\WalletService;
 use Throwable;
 
 class ReleaseInstallmentAction
@@ -17,6 +18,7 @@ class ReleaseInstallmentAction
     public function __construct(
         private readonly InstallmentRepositoryInterface $installmentRepository,
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
+        private readonly WalletService $walletService,
     ) {}
 
     /**
@@ -39,29 +41,18 @@ class ReleaseInstallmentAction
             $guarantorRequest = $installment->guarantorRequest;
             $requester = $guarantorRequest->requester;
 
-            $wallet = $requester->wallet()->lockForUpdate()->firstOrCreate();
             $feesPortion = (float) $guarantorRequest->amount > 0
                 ? round((float) $installment->amount / (float) $guarantorRequest->amount * (float) $guarantorRequest->fees, 2)
                 : 0.0;
             $releaseAmount = (float) $installment->amount - $feesPortion;
 
-            $balanceBefore = (float) $wallet->balance;
-            $wallet->decrement('pending_credit', (float) $installment->amount);
-            $wallet->increment('balance', $releaseAmount);
-            $balanceAfter = (float) $wallet->fresh()->balance;
-
-            $requester->walletTransactions()->create([
-                'wallet_id' => $wallet->id,
-                'debit' => 0,
-                'credit' => $releaseAmount,
-                'balance_before' => $balanceBefore,
-                'balance_after' => $balanceAfter,
-                'operation_type' => GuarantorInstallment::class,
-                'operation_id' => $installment->id,
-                'pending_credit' => (float) $installment->amount,
-                'pending_debit' => 0,
-                'description' => "Installment {$installment->order} released via {$trigger}",
-            ]);
+            $this->walletService->releasePendingCreditToBalance(
+                $requester,
+                (float) $installment->amount,
+                $releaseAmount,
+                $installment,
+                "Installment {$installment->order} released via {$trigger}",
+            );
 
             $this->installmentRepository->update($installment, [
                 'status' => InstallmentStatusEnum::Released,

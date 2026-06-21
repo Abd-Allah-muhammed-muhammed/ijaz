@@ -12,6 +12,7 @@ use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Guarantor\Notifications\GuarantorEndedNotification;
+use Modules\Wallet\Services\WalletService;
 use Throwable;
 
 class EndGuarantorAction
@@ -20,6 +21,7 @@ class EndGuarantorAction
         private readonly GuarantorRepositoryInterface $guarantorRepository,
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
         private readonly ReleaseInstallmentAction $releaseInstallmentAction,
+        private readonly WalletService $walletService,
     ) {}
 
     /**
@@ -64,18 +66,28 @@ class EndGuarantorAction
     {
         $request->loadMissing(['requester', 'counterparty']);
 
-        $requesterWallet = $request->requester->wallet()->lockForUpdate()->firstOrCreate();
-        $counterpartyWallet = $request->counterparty->wallet()->lockForUpdate()->firstOrCreate();
+        $grossAmount = (float) $request->amount + (float) $request->fees;
+        $netAmount = (float) $request->amount;
 
-        $pendingCredit = (float) $requesterWallet->pending_credit;
-        if ($pendingCredit > 0) {
-            $requesterWallet->decrement('pending_credit', $pendingCredit);
-            $requesterWallet->increment('balance', $pendingCredit);
+        $requesterWallet = $request->requester->wallet()->lockForUpdate()->firstOrCreate();
+        if ((float) $requesterWallet->pending_credit > 0) {
+            $this->walletService->releasePendingCreditToBalance(
+                $request->requester,
+                $grossAmount,
+                $netAmount,
+                $request,
+                "Guarantor#{$request->id} ended — funds released",
+            );
         }
 
-        $pendingDebit = (float) $counterpartyWallet->pending_debit;
-        if ($pendingDebit > 0) {
-            $counterpartyWallet->decrement('pending_debit', $pendingDebit);
+        $counterpartyWallet = $request->counterparty->wallet()->lockForUpdate()->firstOrCreate();
+        if ((float) $counterpartyWallet->pending_debit > 0) {
+            $this->walletService->reversePendingDebit(
+                $request->counterparty,
+                $grossAmount,
+                $request,
+                "Guarantor#{$request->id} ended — pending released",
+            );
         }
     }
 

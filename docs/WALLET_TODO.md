@@ -379,19 +379,20 @@ Move requests → `Modules/Wallet/Http/Requests/`:
 ## Phase 16 — Update Payment Pipeline (use WalletService)
 
 Replace ALL inline wallet mutations in payment actions with WalletService:
-- [ ] `app/Actions/Payment/AddModelTransaction` → `WalletService::credit()` or `WalletService::addPendingDebit()`
-- [ ] `app/Actions/Payment/Order/AddUserTransaction` → `WalletService::addPendingDebit()`
-- [ ] `app/Actions/Payment/Order/AddProviderTransaction` → `WalletService::adjustPending()`
-- [ ] `Modules/Guarantor/Actions/Payment/AddCounterpartyWalletTransaction` → `WalletService::addPendingCredit()`
-- [ ] `Modules/Guarantor/Actions/Payment/AddRequesterWalletTransaction` → `WalletService::addPendingDebit()`
-- [ ] `Modules/Guarantor/Actions/Installment/ReleaseInstallmentAction` → `WalletService::releasePendingCreditToBalance()`
-- [ ] `Modules/Guarantor/Actions/Guarantor/EndGuarantorAction` → `WalletService::releasePendingCreditToBalance()`
+- [x] `app/Actions/Payment/AddModelTransaction` → `WalletService::credit()` or `WalletService::debit()`
+- [x] `app/Actions/Payment/Order/AddUserTransaction` → `WalletService::addPendingDebit()`
+- [x] `app/Actions/Payment/Order/AddProviderTransaction` → `WalletService::adjustPending()`
+- [x] `Modules/Guarantor/Actions/Payment/AddCounterpartyWalletTransaction` → `WalletService::addPendingCredit()`
+- [x] `Modules/Guarantor/Actions/Payment/AddRequesterWalletTransaction` → `WalletService::addPendingDebit()`
+- [x] `Modules/Guarantor/Actions/Installment/ReleaseInstallmentAction` → `WalletService::releasePendingCreditToBalance()`
+- [x] `Modules/Guarantor/Actions/Guarantor/EndGuarantorAction` → `WalletService::releasePendingCreditToBalance()`
       Fix bug: was releasing full pending_credit without deducting fees
-- [ ] `Modules/Guarantor/Actions/Guarantor/CancelGuarantorAction` → `WalletService::reversePendingDebit()` + `WalletService::reversePendingCredit()` (if exists)
-- [ ] Run ALL tests — 315 must pass
+- [x] `Modules/Guarantor/Actions/Guarantor/CancelGuarantorAction` → `WalletService::reversePendingDebit()` + `WalletService::reversePendingCredit()`
+- [x] `Modules/Guarantor/Actions/Dashboard/AdminCancelGuarantorAction` → `WalletService::reversePendingDebit()` + `WalletService::reversePendingCredit()`
+- [x] Run ALL tests — 315 must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Wired all payment pipeline actions to `WalletService`. Added `ReversePendingCreditAction` + `WalletService::reversePendingCredit()`. Removed dead `OrderOffer` case from `AddModelTransaction`. Fixed `EndGuarantorAction` to release gross/net correctly (deducts fees). Cancel actions use guarded reverse calls. All 323 tests pass.
 
 ---
 

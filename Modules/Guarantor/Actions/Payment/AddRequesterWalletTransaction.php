@@ -4,15 +4,19 @@ namespace Modules\Guarantor\Actions\Payment;
 
 use App\Enums\Payment\PaymentStatusEnum;
 use App\Models\Payment;
-use Modules\Wallet\Models\Wallet;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Wallet\Services\WalletService;
 use RuntimeException;
 
 class AddRequesterWalletTransaction
 {
+    public function __construct(
+        private readonly WalletService $walletService,
+    ) {}
+
     public function __invoke(Payment $payment, Closure $next): mixed
     {
         if ($payment->status->isNot(PaymentStatusEnum::Accepted)) {
@@ -21,24 +25,12 @@ class AddRequesterWalletTransaction
 
         [$payer, $operation] = $this->resolvePayer($payment);
 
-        /** @var Wallet $wallet */
-        $wallet = $payer->wallet()->lockForUpdate()->firstOrCreate();
-        $balanceBefore = (float) $wallet->balance;
-
-        $wallet->increment('pending_debit', $payment->amount);
-
-        $payer->walletTransactions()->create([
-            'wallet_id' => $wallet->id,
-            'debit' => 0,
-            'credit' => 0,
-            'balance_before' => $balanceBefore,
-            'balance_after' => $balanceBefore,
-            'operation_type' => $operation::class,
-            'operation_id' => $operation->getKey(),
-            'pending_credit' => 0,
-            'pending_debit' => $payment->amount,
-            'description' => 'Guarantor payment sent — pending release',
-        ]);
+        $this->walletService->addPendingDebit(
+            $payer,
+            (float) $payment->amount,
+            $operation,
+            'Guarantor payment sent — pending release',
+        );
 
         return $next($payment);
     }
