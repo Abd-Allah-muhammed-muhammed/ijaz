@@ -1,8 +1,8 @@
 <?php
 
 use App\Enums\OperationStatusEnum;
-use App\Enums\Payment\PaymentDriverEnum;
-use App\Enums\Payment\PaymentMethodEnum;
+use Modules\Payment\Enums\PaymentDriverEnum;
+use Modules\Payment\Enums\PaymentMethodEnum;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Modules\Wallet\Http\Controllers\Dashboard\TopUpRequestController as DashboardTopUpRequestController;

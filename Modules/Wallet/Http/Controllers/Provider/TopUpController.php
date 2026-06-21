@@ -3,9 +3,9 @@
 namespace Modules\Wallet\Http\Controllers\Provider;
 
 use App\Enums\OperationStatusEnum;
-use App\Enums\Payment\PaymentDriverEnum;
-use App\Enums\Payment\PaymentMethodEnum;
-use App\Enums\Payment\PaymentStatusEnum;
+use Modules\Payment\Enums\PaymentDriverEnum;
+use Modules\Payment\Enums\PaymentMethodEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PayTapResponseResource;
 use Illuminate\Http\JsonResponse;

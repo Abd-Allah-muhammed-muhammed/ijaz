@@ -2,8 +2,8 @@
 
 namespace App\Actions\Payment\Test;
 
-use App\Enums\Payment\PaymentStatusEnum;
-use App\Models\Payment;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Models\Payment;
 use Closure;
 use http\Exception\RuntimeException;
 use Illuminate\Http\Request;

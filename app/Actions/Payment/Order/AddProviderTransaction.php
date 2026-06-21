@@ -2,9 +2,9 @@
 
 namespace App\Actions\Payment\Order;
 
-use App\Enums\Payment\PaymentStatusEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Models\OrderOffer;
-use App\Models\Payment;
+use Modules\Payment\Models\Payment;
 use App\Models\User;
 use Closure;
 use Modules\Wallet\Services\WalletService;

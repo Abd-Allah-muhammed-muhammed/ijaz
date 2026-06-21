@@ -2,8 +2,8 @@
 
 namespace Modules\Wallet\Http\Requests\Provider;
 
-use App\Enums\Payment\PaymentDriverEnum;
-use App\Enums\Payment\PaymentMethodEnum;
+use Modules\Payment\Enums\PaymentDriverEnum;
+use Modules\Payment\Enums\PaymentMethodEnum;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Enum;
 use MMAE\ApiResponse\Request\ApiRequest;

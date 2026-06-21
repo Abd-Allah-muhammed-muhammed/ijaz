@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use App\Console\Commands\JsEnums\Attributes\JsClass;
 use App\Console\Commands\JsEnums\Attributes\JsFunction;
 use App\Console\Commands\JsEnums\Attributes\JsIgnore;
-use App\Enums\Payment\PaymentDriverEnum;
+use Modules\Payment\Enums\PaymentDriverEnum;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 use JsonException;

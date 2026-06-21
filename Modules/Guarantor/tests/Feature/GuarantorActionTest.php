@@ -1,9 +1,9 @@
 <?php
 
-use App\Enums\Payment\PaymentStatusEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Models\Admin;
 use App\Models\Conversation;
-use App\Models\Payment;
+use Modules\Payment\Models\Payment;
 use App\Models\User;
 use App\Services\Sms\Phone;
 use Illuminate\Http\Request;

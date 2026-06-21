@@ -1,8 +1,8 @@
 <?php
 
 use App\Enums\OperationStatusEnum;
-use App\Enums\Payment\PaymentMethodEnum;
-use App\Enums\Payment\PaymentStatusEnum;
+use Modules\Payment\Enums\PaymentMethodEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Models\Admin;
 use App\Models\City;

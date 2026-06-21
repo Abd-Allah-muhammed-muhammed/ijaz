@@ -186,8 +186,8 @@ grep -rn "App\\\\Enums\\\\Payment\\" app/ Modules/ --include="*.php" | grep -v v
 
 Run tests after — 386 must pass.
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Moved `Payment` model, `HasPayments` trait, and `PaymentDriverEnum` / `PaymentStatusEnum` / `PaymentMethodEnum` to `Modules/Payment/` with namespace updates across app, Modules, and lib. Backward-compat aliases retained in `app/Models`, `app/Traits`, and `app/Enums/Payment/` (enum aliases via `class_alias`). Updated `User` and `Provider` to import module trait. All 386 regression tests pass.
 
 ---
 

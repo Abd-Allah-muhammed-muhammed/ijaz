@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1\User;
 
 use App\Enums\Order\OfferStatusEnum;
 use App\Enums\Order\OrderStatusEnum;
-use App\Enums\Payment\PaymentStatusEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Events\User\NewOrderCreated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Api\User\EndAndReviewRequest;

@@ -2,8 +2,8 @@
 
 namespace Modules\Guarantor\Actions\Payment;
 
-use App\Enums\Payment\PaymentStatusEnum;
-use App\Models\Payment;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Models\Payment;
 use Closure;
 use Illuminate\Support\Facades\Log;
 

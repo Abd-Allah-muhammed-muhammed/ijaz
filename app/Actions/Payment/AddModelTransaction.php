@@ -2,8 +2,8 @@
 
 namespace App\Actions\Payment;
 
-use App\Enums\Payment\PaymentStatusEnum;
-use App\Models\Payment;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Models\Payment;
 use Closure;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Models\WithdrawRequest;

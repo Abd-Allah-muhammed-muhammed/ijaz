@@ -2,7 +2,7 @@
 
 namespace Lib\Payment\Contracts;
 
-use App\Models\Payment;
+use Modules\Payment\Models\Payment;
 use Lib\Payment\DTOs\PaymentResponse;
 
 interface IPaymentGate

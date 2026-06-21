@@ -1,7 +1,7 @@
 <?php
 
-use App\Enums\Payment\PaymentMethodEnum;
-use App\Models\Payment;
+use Modules\Payment\Enums\PaymentMethodEnum;
+use Modules\Payment\Models\Payment;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;

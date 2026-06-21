@@ -3,10 +3,10 @@
 namespace Modules\Wallet\Models;
 
 use App\Enums\OperationStatusEnum;
-use App\Enums\Payment\PaymentMethodEnum;
-use App\Enums\Payment\PaymentStatusEnum;
+use Modules\Payment\Enums\PaymentMethodEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Models\Admin;
-use App\Models\Payment;
+use Modules\Payment\Models\Payment;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

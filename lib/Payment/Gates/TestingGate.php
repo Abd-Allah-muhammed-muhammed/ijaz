@@ -2,7 +2,7 @@
 
 namespace Lib\Payment\Gates;
 
-use App\Models\Payment;
+use Modules\Payment\Models\Payment;
 use http\Exception\RuntimeException;
 use Lib\Payment\Contracts\IPaymentGate;
 use Lib\Payment\DTOs\PaymentResponse;

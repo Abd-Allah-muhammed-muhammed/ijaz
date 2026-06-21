@@ -3,8 +3,8 @@
 namespace Modules\Wallet\Http\Controllers\V1;
 
 use App\Enums\OperationStatusEnum;
-use App\Enums\Payment\PaymentMethodEnum;
-use App\Enums\Payment\PaymentStatusEnum;
+use Modules\Payment\Enums\PaymentMethodEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Traits\HasPayments;
 use Dedoc\Scramble\Attributes\Group;

@@ -15,7 +15,7 @@ use Lib\Payment\PaymentManager;
  *
  * @method static IPaymentGate driver(string $driver = null)
  * @method static PaymentResponse get(string $transactionId)
- * @method static PaymentResponse pay(\App\Models\Payment $payment) :
+ * @method static PaymentResponse pay(\Modules\Payment\Models\Payment $payment) :
  * @method static PaymentResponse refund(string $transactionId)
  *
  * @see PaymentManager

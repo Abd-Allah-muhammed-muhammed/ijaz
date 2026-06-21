@@ -2,7 +2,7 @@
 
 namespace App\Actions\Payment\Order;
 
-use App\Models\Payment;
+use Modules\Payment\Models\Payment;
 use Closure;
 
 class NotifyUserForOrder

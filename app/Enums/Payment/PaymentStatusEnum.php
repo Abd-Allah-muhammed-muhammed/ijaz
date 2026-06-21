@@ -2,35 +2,7 @@
 
 namespace App\Enums\Payment;
 
-use App\Enums\Utilities\Collectable;
-use App\Enums\Utilities\HasOperations;
-use App\Enums\Utilities\Stringable;
+use Modules\Payment\Enums\PaymentStatusEnum;
 
-enum PaymentStatusEnum: string
-{
-    use Collectable,HasOperations , Stringable;
-
-    case Pending = 'pending';
-    case Accepted = 'accepted';
-
-    case Canceled = 'canceled';
-    case Rejected = 'rejected';
-
-    public function toArray(): array
-    {
-        return [
-            'label' => $this->toString(),
-            'color' => $this->color(),
-            'value' => $this->value,
-        ];
-    }
-
-    public function color(): string
-    {
-        return match ($this) {
-            self::Pending => 'primary',
-            self::Accepted => 'success',
-            self::Canceled, self::Rejected => 'danger'
-        };
-    }
-}
+/** @deprecated Use Modules\Payment\Enums\PaymentStatusEnum */
+class_alias(PaymentStatusEnum::class, \App\Enums\Payment\PaymentStatusEnum::class);

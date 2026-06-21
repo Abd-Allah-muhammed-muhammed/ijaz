@@ -4,9 +4,9 @@ namespace App\Actions\Payment\Order;
 
 use App\Enums\Order\OfferStatusEnum;
 use App\Enums\Order\OrderStatusEnum;
-use App\Enums\Payment\PaymentStatusEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Models\OrderOffer;
-use App\Models\Payment;
+use Modules\Payment\Models\Payment;
 use Closure;
 
 class ProcessOrder

@@ -3,9 +3,9 @@
 namespace App\Actions\Payment\TopUp;
 
 use App\Enums\OperationStatusEnum;
-use App\Enums\Payment\PaymentMethodEnum;
-use App\Enums\Payment\PaymentStatusEnum;
-use App\Models\Payment;
+use Modules\Payment\Enums\PaymentMethodEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Models\Payment;
 use Closure;
 use Modules\Wallet\Models\TopUpRequest;
 
