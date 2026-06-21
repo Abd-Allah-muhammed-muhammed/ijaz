@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Enums\OperationStatusEnum;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Dashboard\UpdateTopUpRequestStatusRequest;
+use Modules\Wallet\Http\Requests\Dashboard\UpdateTopUpStatusRequest;
 use App\Http\Resources\Dashboard\TopUpCollection;
-use App\Http\Resources\Dashboard\TopUpResource;
+use Modules\Wallet\Http\Resources\Dashboard\TopUpResource;
 use App\Http\Resources\PayTapResponseResource;
 use Modules\Wallet\Models\TopUpRequest;
 use Illuminate\Http\Request;
@@ -57,7 +57,7 @@ class TopUpRequestController extends Controller
         ]);
     }
 
-    public function updateStatus(TopUpRequest $topUpRequest, UpdateTopUpRequestStatusRequest $request)
+    public function updateStatus(TopUpRequest $topUpRequest, UpdateTopUpStatusRequest $request)
     {
         $data = $request->validated();
         if ($topUpRequest->status !== OperationStatusEnum::Pending) {

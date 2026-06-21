@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Provider;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\WithdrawRequestRequest;
 use App\Http\Resources\Dashboard\WithdrawCollection;
-use App\Http\Resources\Dashboard\WithdrawResource;
+use Modules\Wallet\Http\Resources\Dashboard\WithdrawResource;
 use App\Http\Resources\PayTapResponseResource;
 use Modules\Wallet\Models\WithdrawRequest;
 use DB;

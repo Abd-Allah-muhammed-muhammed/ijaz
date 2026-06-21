@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\Dashboard;
 
-use Modules\Wallet\Models\WalletTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
+use Modules\Wallet\Models\WalletTransaction;
 
 /** @see WalletTransaction
  * @mixin WalletTransaction

@@ -6,12 +6,12 @@ use App\Enums\OperationStatusEnum;
 use App\Enums\Payment\PaymentMethodEnum;
 use App\Enums\Payment\PaymentStatusEnum;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\V1\StoreTopUpRequest;
-use App\Http\Requests\Api\V1\StoreWithdrawRequestRequest;
-use App\Http\Resources\Api\V1\TopUpResource;
+use Modules\Wallet\Http\Requests\StoreTopUpRequest;
+use Modules\Wallet\Http\Requests\StoreWithdrawRequest;
 use App\Http\Resources\Api\V1\WalletResource;
 use App\Http\Resources\Api\V1\WalletTransactionCollection;
-use App\Http\Resources\Api\V1\WithdrawRequestResource;
+use Modules\Wallet\Http\Resources\TopUpResource;
+use Modules\Wallet\Http\Resources\WithdrawRequestResource;
 use App\Traits\HasPayments;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Traits\HasWallet;
@@ -105,7 +105,7 @@ class WalletController extends Controller
         }
     }
 
-    public function walletWithdraw(StoreWithdrawRequestRequest $request): JsonResponse
+    public function walletWithdraw(StoreWithdrawRequest $request): JsonResponse
     {
         /**
          * @var Model<HasWallet, HasPayments> $user

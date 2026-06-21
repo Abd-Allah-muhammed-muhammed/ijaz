@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Enums\OperationStatusEnum;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Dashboard\UpdateWithdrawRequestStatusRequest;
+use Modules\Wallet\Http\Requests\Dashboard\UpdateWithdrawStatusRequest;
 use App\Http\Resources\Dashboard\WithdrawCollection;
-use App\Http\Resources\Dashboard\WithdrawResource;
+use Modules\Wallet\Http\Resources\Dashboard\WithdrawResource;
 use Modules\Wallet\Models\WithdrawRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -46,7 +46,7 @@ class WithdrawRequestController extends Controller
         ]);
     }
 
-    public function updateStatus(WithdrawRequest $withdrawRequest, UpdateWithdrawRequestStatusRequest $request)
+    public function updateStatus(WithdrawRequest $withdrawRequest, UpdateWithdrawStatusRequest $request)
     {
         $data = $request->validated();
         $admin = auth('admin')->user();

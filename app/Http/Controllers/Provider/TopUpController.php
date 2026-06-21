@@ -9,7 +9,7 @@ use App\Enums\Payment\PaymentStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\TopUpRequestRequest;
 use App\Http\Resources\Dashboard\TopUpCollection;
-use App\Http\Resources\Dashboard\TopUpResource;
+use Modules\Wallet\Http\Resources\Dashboard\TopUpResource;
 use App\Http\Resources\PayTapResponseResource;
 use Modules\Wallet\Models\TopUpRequest;
 use DB;

@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\Api\V1;
 
-use Modules\Wallet\Models\WalletTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Wallet\Models\WalletTransaction;
 
 /** @mixin WalletTransaction */
 class WalletTransactionResource extends JsonResource

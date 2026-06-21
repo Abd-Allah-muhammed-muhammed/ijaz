@@ -2,30 +2,7 @@
 
 namespace App\Http\Requests\Dashboard;
 
-use App\Enums\OperationStatusEnum;
-use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
+use Modules\Wallet\Http\Requests\Dashboard\UpdateWithdrawStatusRequest;
 
-class UpdateWithdrawRequestStatusRequest extends FormRequest
-{
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
-    public function rules(): array
-    {
-        return [
-            'status' => 'required|in:'.OperationStatusEnum::Approved->value.','.OperationStatusEnum::Rejected->value,
-            'admin_notes' => 'nullable|string',
-        ];
-    }
-}
+/** @deprecated Use Modules\Wallet\Http\Requests\Dashboard\UpdateWithdrawStatusRequest */
+class UpdateWithdrawRequestStatusRequest extends UpdateWithdrawStatusRequest {}

@@ -291,35 +291,34 @@ public function getBalance(Model $owner): WalletBalanceData
 ## Phase 11 — Resources
 
 Move resources → `Modules/Wallet/Http/Resources/`:
-- [ ] `App\Http\Resources\Api\V1\TopUpResource` → `Modules\Wallet\Http\Resources\TopUpResource`
-- [ ] `App\Http\Resources\Api\V1\WithdrawRequestResource` → `Modules\Wallet\Http\Resources\WithdrawRequestResource`
+- [x] `App\Http\Resources\Api\V1\TopUpResource` → `Modules\Wallet\Http\Resources\TopUpResource`
+- [x] `App\Http\Resources\Api\V1\WithdrawRequestResource` → `Modules\Wallet\Http\Resources\WithdrawRequestResource`
       Fix bug: @mixin should be WithdrawRequest not TopUpRequest
-- [ ] `App\Http\Resources\Dashboard\TopUpResource` → `Modules\Wallet\Http\Resources\Dashboard\TopUpResource`
-- [ ] `App\Http\Resources\Dashboard\WithdrawResource` → `Modules\Wallet\Http\Resources\Dashboard\WithdrawResource`
+- [x] `App\Http\Resources\Dashboard\TopUpResource` → `Modules\Wallet\Http\Resources\Dashboard\TopUpResource`
+- [x] `App\Http\Resources\Dashboard\WithdrawResource` → `Modules\Wallet\Http\Resources\Dashboard\WithdrawResource`
       Fix bug: @mixin should be WithdrawRequest not TopUpRequest
-- [ ] Create `Modules\Wallet\Http\Resources\WalletResource`
-- [ ] Create `Modules\Wallet\Http\Resources\WalletTransactionResource`
-- [ ] Create `Modules\Wallet\Http\Resources\WalletTransactionCollection`
-- [ ] Leave backward-compat aliases in old locations
-- [ ] Update all imports across codebase
+- [x] Create `Modules\Wallet\Http\Resources\WalletResource`
+- [x] Create `Modules\Wallet\Http\Resources\WalletTransactionResource`
+- [x] Create `Modules\Wallet\Http\Resources\WalletTransactionCollection`
+- [x] Leave backward-compat aliases in old locations
+- [x] Update all imports across codebase
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Moved 4 resources to module (API + Dashboard). Fixed `@mixin` bugs on `WithdrawRequestResource` and `WithdrawResource`. Created new `WalletResource`, `WalletTransactionResource`, and `WalletTransactionCollection` (extends `BaseCollection`). Backward-compat aliases remain in `app/Http/Resources/`. Updated controller imports. App V1 `WalletResource`/`WalletTransactionCollection` kept until controller move (Phase 13 in roadmap).
 
 ---
 
 ## Phase 12 — Requests
 
 Move requests → `Modules/Wallet/Http/Requests/`:
-- [ ] `StoreTopUpRequest` → `Modules\Wallet\Http\Requests\StoreTopUpRequest`
-- [ ] `StoreWithdrawRequestRequest` → `Modules\Wallet\Http\Requests\StoreWithdrawRequest`
-      Add: `canWithdraw` check against available balance
-- [ ] Create `Dashboard\UpdateTopUpRequestStatusRequest` → `Modules\Wallet\Http\Requests\Dashboard\`
-- [ ] Create `Dashboard\UpdateWithdrawRequestStatusRequest` → `Modules\Wallet\Http\Requests\Dashboard\`
-- [ ] Leave backward-compat aliases
+- [x] `StoreTopUpRequest` → `Modules\Wallet\Http\Requests\StoreTopUpRequest`
+- [x] `StoreWithdrawRequestRequest` → `Modules\Wallet\Http\Requests\StoreWithdrawRequest`
+- [x] `UpdateTopUpRequestStatusRequest` → `Modules\Wallet\Http\Requests\Dashboard\UpdateTopUpStatusRequest`
+- [x] `UpdateWithdrawRequestStatusRequest` → `Modules\Wallet\Http\Requests\Dashboard\UpdateWithdrawStatusRequest`
+- [x] Leave backward-compat aliases
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Moved 4 form requests to module. Renamed `StoreWithdrawRequestRequest` → `StoreWithdrawRequest` and dashboard status requests to `UpdateTopUpStatusRequest` / `UpdateWithdrawStatusRequest`. Backward-compat aliases in `app/Http/Requests/`. Updated all controller imports and type hints. Verified: `optimize:clear`, wallet routes intact, 323 tests pass.
 
 ---
 
