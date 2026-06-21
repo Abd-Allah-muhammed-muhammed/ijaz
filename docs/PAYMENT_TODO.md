@@ -380,12 +380,8 @@ class PaymentService
 
 Bind in `PaymentServiceProvider::register()`.
 
-### Completed: —
-### Summary: —
-
----
-
-## Phase 9 — HandleCallbackAction + PaymentCallbackController
+### Completed: 2026-06-21
+### Summary: Added `PaymentService` as the single entry point for initiating payments — creates the `Payment` record, resolves gateway by driver (`paytabs`/`testing`), and delegates to `initiate()`. Bound in `PaymentServiceProvider`. Caller owns the DB transaction. All 386 regression tests pass.
 
 ### Task 1 — HandleCallbackAction
 File: `Modules/Payment/Actions/HandleCallbackAction.php`

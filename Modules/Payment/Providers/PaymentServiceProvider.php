@@ -3,6 +3,7 @@
 namespace Modules\Payment\Providers;
 
 use Modules\Payment\Registry\PaymentHandlerRegistry;
+use Modules\Payment\Services\PaymentService;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class PaymentServiceProvider extends ModuleServiceProvider
@@ -22,6 +23,11 @@ class PaymentServiceProvider extends ModuleServiceProvider
         $this->mergeConfigFrom(module_path('Payment', 'config/payment.php'), 'payment');
 
         $this->app->singleton(PaymentHandlerRegistry::class);
+
+        $this->app->bind(
+            PaymentService::class,
+            PaymentService::class,
+        );
     }
 
     public function boot(): void
