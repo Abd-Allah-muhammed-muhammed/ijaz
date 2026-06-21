@@ -147,7 +147,7 @@ Create new migrations in `Modules/Wallet/Database/Migrations/`:
 
 ## Phase 5 — Enums
 
-- [ ] Create `Modules\Wallet\Enums\TransactionTypeEnum`
+- [x] Create `Modules\Wallet\Enums\TransactionTypeEnum`
 ```php
 enum TransactionTypeEnum: string {
     case Credit        = 'credit';
@@ -158,14 +158,14 @@ enum TransactionTypeEnum: string {
 ```
 Note: `OperationStatusEnum` stays in `app/Enums/` — used by TicketSupport too.
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Created `TransactionTypeEnum` with four cases and a `label()` helper.
 
 ---
 
 ## Phase 6 — DTOs
 
-- [ ] Create `Modules\Wallet\DTOs\WalletBalanceData`
+- [x] Create `Modules\Wallet\DTOs\WalletBalanceData`
 ```php
 readonly class WalletBalanceData {
     public function __construct(
@@ -177,7 +177,7 @@ readonly class WalletBalanceData {
 }
 ```
 
-- [ ] Create `Modules\Wallet\DTOs\WalletTransactionData`
+- [x] Create `Modules\Wallet\DTOs\WalletTransactionData`
 ```php
 readonly class WalletTransactionData {
     public function __construct(
@@ -195,18 +195,18 @@ readonly class WalletTransactionData {
 }
 ```
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Created `WalletBalanceData` with `fromWallet()` factory and `WalletTransactionData` with typed properties including `balance_before`, `balance_after`, and optional `payment_id`.
 
 ---
 
 ## Phase 7 — Exceptions
 
-- [ ] Create `Modules\Wallet\Exceptions\WalletException`
-- [ ] Create `Modules\Wallet\Exceptions\InsufficientBalanceException extends WalletException`
+- [x] Create `Modules\Wallet\Exceptions\WalletException`
+- [x] Create `Modules\Wallet\Exceptions\InsufficientBalanceException extends WalletException`
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Created base `WalletException` (422 default) and `InsufficientBalanceException` with available/requested amounts in the message. All 323 module tests pass.
 
 ---
 
