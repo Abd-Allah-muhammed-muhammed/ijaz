@@ -33,11 +33,11 @@ Modules/Payment/
 ---
 
 ## Phase 1 — Module Scaffold
-- [ ] Create module: `php artisan module:make Payment`
-- [ ] Configure `module.json` and `composer.json`
-- [ ] Create `PaymentServiceProvider` + `RouteServiceProvider`
-- [ ] Register in `modules_statuses.json`
-- [ ] Create full directory structure with .gitkeep:
+- [x] Create module: `php artisan module:make Payment`
+- [x] Configure `module.json` and `composer.json`
+- [x] Create `PaymentServiceProvider` + `RouteServiceProvider`
+- [x] Register in `modules_statuses.json`
+- [x] Create full directory structure with .gitkeep:
 ```
 Modules/Payment/
 ├── Actions/
@@ -50,21 +50,25 @@ Modules/Payment/
 ├── Enums/
 ├── Events/
 ├── Gateways/
+├── Handlers/
 ├── Http/
 │   ├── Controllers/
 │   └── Resources/
 ├── Models/
 ├── Registry/
+├── Resources/
+│   └── views/
+│       └── payment/
 ├── Routes/
 ├── Services/
 └── Traits/
 ```
-- [ ] Remove scaffold artifacts
-- [ ] `composer dump-autoload`
-- [ ] Verify: `php artisan module:list` shows Payment enabled
+- [x] Remove scaffold artifacts
+- [x] `composer dump-autoload`
+- [x] Verify: `php artisan module:list` shows Payment enabled
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Created `Modules/Payment/` skeleton mirroring Wallet/Guarantor patterns — `PaymentServiceProvider` (config merge, migrations, views), `RouteServiceProvider` (api/web route stubs with `web` middleware for bindings), empty directory tree with `.gitkeep`, minimal `config/payment.php`, route stubs for Phase 11. Registered as enabled in `modules_statuses.json`. All 386 regression tests pass.
 
 ---
 

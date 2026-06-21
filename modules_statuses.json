@@ -4,5 +4,6 @@
     "Opportunity": true,
     "Guarantor": true,
     "Chat": true,
-    "Wallet": true
+    "Wallet": true,
+    "Payment": true
 }

@@ -1,0 +1,12 @@
+{
+    "name": "Payment",
+    "alias": "payment",
+    "description": "Payment module — handles all payment gateways, callbacks, and post-payment handlers.",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Payment\\Providers\\PaymentServiceProvider"
+    ],
+    "aliases": {},
+    "files": []
+}
