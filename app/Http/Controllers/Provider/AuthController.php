@@ -10,7 +10,6 @@ use App\Http\Resources\Dashboard\CityResource;
 use App\Http\Resources\Dashboard\ProviderResource;
 use App\Http\Resources\Dashboard\ProviderTypeResource;
 use App\Http\Resources\Dashboard\RegionResource;
-use App\Http\Resources\Dashboard\WalletTransactionCollection;
 use App\Models\CategorySkill;
 use App\Models\City;
 use App\Models\ProviderCategory;
@@ -23,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
 use Throwable;
 
 class AuthController extends Controller

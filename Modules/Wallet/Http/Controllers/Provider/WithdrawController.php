@@ -3,12 +3,12 @@
 namespace Modules\Wallet\Http\Controllers\Provider;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\V1\WithdrawRequestRequest;
-use App\Http\Resources\Dashboard\WithdrawCollection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Wallet\Http\Requests\Provider\WithdrawRequestRequest;
+use Modules\Wallet\Http\Resources\Dashboard\WithdrawCollection;
 use Modules\Wallet\Http\Resources\Dashboard\WithdrawResource;
 use Modules\Wallet\Models\WithdrawRequest;
 use Modules\Wallet\Services\WalletService;

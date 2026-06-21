@@ -4,7 +4,6 @@ namespace Modules\Wallet\Http\Controllers\Dashboard;
 
 use App\Enums\OperationStatusEnum;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Dashboard\TopUpCollection;
 use App\Http\Resources\PayTapResponseResource;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Lib\Payment\Facade\Payment;
 use Modules\Wallet\Http\Requests\Dashboard\UpdateTopUpStatusRequest;
+use Modules\Wallet\Http\Resources\Dashboard\TopUpCollection;
 use Modules\Wallet\Http\Resources\Dashboard\TopUpResource;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Services\WalletService;

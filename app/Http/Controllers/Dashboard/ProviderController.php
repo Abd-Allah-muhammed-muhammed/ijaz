@@ -11,7 +11,6 @@ use App\Http\Resources\Dashboard\ProviderCollection;
 use App\Http\Resources\Dashboard\ProviderResource;
 use App\Http\Resources\Dashboard\ProviderTypeResource;
 use App\Http\Resources\Dashboard\RegionResource;
-use App\Http\Resources\Dashboard\WalletTransactionCollection;
 use App\Models\CategorySkill;
 use App\Models\City;
 use App\Models\Provider;
@@ -28,6 +27,7 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Validation\Rules\Enum;
 use Inertia\Response;
+use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
 use Throwable;
 
 class ProviderController extends Controller implements HasMiddleware

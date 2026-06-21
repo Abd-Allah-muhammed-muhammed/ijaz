@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Api\V1;
+namespace Modules\Wallet\Http\Requests\Provider;
 
 use App\Enums\Payment\PaymentDriverEnum;
 use App\Enums\Payment\PaymentMethodEnum;
@@ -10,17 +10,12 @@ use MMAE\ApiResponse\Request\ApiRequest;
 
 class TopUpRequestRequest extends ApiRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
@@ -50,7 +45,7 @@ class TopUpRequestRequest extends ApiRequest
             'transaction_image' => [
                 'required_if:payment_method,'.PaymentMethodEnum::Offline->value,
                 'image',
-                'max:'.(2 * 1024), // 2MB
+                'max:'.(2 * 1024),
             ],
         ];
     }
