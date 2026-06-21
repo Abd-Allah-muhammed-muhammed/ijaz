@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\V1\User;
 
 use App\Enums\Order\OfferStatusEnum;
 use App\Enums\Order\OrderStatusEnum;
-use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Events\User\NewOrderCreated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Api\User\EndAndReviewRequest;
@@ -30,8 +29,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Lib\Payment\Facade\Payment;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Payment\Services\PaymentService;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -40,6 +39,10 @@ use Throwable;
 class OrderController extends Controller
 {
     use HasApiResponse;
+
+    public function __construct(
+        private readonly PaymentService $paymentService,
+    ) {}
 
     /**
      * Display a listing of the resource.
@@ -240,7 +243,7 @@ class OrderController extends Controller
                 case OfferStatusEnum::Accepted:
                     if ($order->status->is(OrderStatusEnum::New)) {
                         $categoryFees = $order->category->getFees($offer->price);
-                        $paymentGatewayFees = app('settings')->get(Payment::getDefaultDriver().'_fees');
+                        $paymentGatewayFees = app('settings')->get($this->paymentService->getDefaultDriver().'_fees');
                         $fees = (float) $paymentGatewayFees + $categoryFees + (15 / 100 * $categoryFees);
                         $order->update([
                             'provider_id' => $offer->provider_id,
@@ -299,25 +302,19 @@ class OrderController extends Controller
             return $this->failedMessageResponse(__('you can not pay for this order'));
         }
 
-        DB::beginTransaction();
         try {
-            $payment = $user->payments()->create([
-                'amount' => $order->user_total,
-                'status' => PaymentStatusEnum::Pending,
-                'product_type' => OrderOffer::class,
-                'product_id' => $offer->id,
-                'driver' => Payment::getDefaultDriver(),
-            ]);
-            DB::commit();
-            $paymentObject = Payment::pay($payment);
-            if (! $paymentObject->getStatus()) {
-                return $this->failedMessageResponse($paymentObject->getMessage());
+            $result = $this->paymentService->initiate(
+                owner: $user,
+                product: $offer,
+                amount: $order->user_total,
+            );
+
+            if (! $result->isSuccessful()) {
+                return $this->failedMessageResponse($result->message);
             }
 
-            return $this->successResponse($paymentObject->toArray());
+            return $this->successResponse($result->toArray());
         } catch (Throwable $throwable) {
-
-            DB::rollBack();
 
             report($throwable);
 

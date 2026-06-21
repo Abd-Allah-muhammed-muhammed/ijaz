@@ -2,20 +2,22 @@
 
 namespace Modules\Guarantor\Actions\Installment;
 
-use Modules\Payment\Enums\PaymentStatusEnum;
-use Modules\Payment\Models\Payment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Lib\Payment\Facade\Payment as PaymentFacade;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Payment\Services\PaymentService;
 use Throwable;
 
 class PayInstallmentAction
 {
+    public function __construct(
+        private readonly PaymentService $paymentService,
+    ) {}
+
     /**
      * @return array<string, mixed>
      *
@@ -49,19 +51,13 @@ class PayInstallmentAction
                 }
             }
 
-            $payment = Payment::query()->create([
-                'user_id' => $actor->getKey(),
-                'user_type' => $actor::class,
-                'product_id' => $installment->id,
-                'product_type' => GuarantorInstallment::class,
-                'amount' => $installment->amount,
-                'status' => PaymentStatusEnum::Pending,
-                'driver' => PaymentFacade::getDefaultDriver(),
-            ]);
+            $result = $this->paymentService->initiate(
+                owner: $actor,
+                product: $installment,
+                amount: $installment->amount,
+            );
 
-            $paymentResponse = PaymentFacade::pay($payment);
-
-            return $paymentResponse->toArray();
+            return $result->toArray();
         });
     }
 }

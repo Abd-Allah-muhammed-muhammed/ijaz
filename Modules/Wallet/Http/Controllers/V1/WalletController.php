@@ -3,16 +3,16 @@
 namespace Modules\Wallet\Http\Controllers\V1;
 
 use App\Enums\OperationStatusEnum;
-use Modules\Payment\Enums\PaymentMethodEnum;
-use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Traits\HasPayments;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Lib\Payment\Facade\Payment;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Payment\Enums\PaymentMethodEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Services\PaymentService;
 use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
 use Modules\Wallet\Http\Requests\StoreTopUpRequest;
 use Modules\Wallet\Http\Requests\StoreWithdrawRequest;
@@ -33,6 +33,7 @@ class WalletController extends Controller
     public function __construct(
         private readonly WalletService $walletService,
         private readonly WalletTransactionRepositoryInterface $transactionRepository,
+        private readonly PaymentService $paymentService,
     ) {}
 
     public function balance(Request $request): JsonResponse
@@ -69,23 +70,22 @@ class WalletController extends Controller
             ]);
 
             if ($topRequest->payment_method->isOnline()) {
-                $payment = $user->payments()->create([
-                    'product_type' => get_class($topRequest),
-                    'product_id' => $topRequest->id,
-                    'amount' => $topRequest->amount,
-                    'status' => PaymentStatusEnum::Pending,
-                    'driver' => Payment::getDefaultDriver(),
-                ]);
-                $paymentResponse = Payment::pay($payment);
-                if ($paymentResponse->getStatus() !== 'success') {
+                $result = $this->paymentService->initiate(
+                    owner: $user,
+                    product: $topRequest,
+                    amount: $topRequest->amount,
+                );
+
+                if (! $result->isSuccessful()) {
                     DB::rollBack();
 
-                    return $this->failedMessageResponse($paymentResponse->getMessage());
+                    return $this->failedMessageResponse($result->message);
                 }
+
                 DB::commit();
 
                 return $this->successResponse([
-                    ...$paymentResponse->toArray(),
+                    ...$result->toArray(),
                     'data' => TopUpResource::make($topRequest),
                 ]);
             }

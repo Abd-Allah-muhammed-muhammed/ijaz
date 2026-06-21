@@ -640,48 +640,19 @@ Route::get('/payments/{payment}/failed',  fn() => view('payment::failed'))->name
 
 Replace ALL `Payment::create() + PaymentFacade::pay()` with `PaymentService::initiate()`:
 
-- [ ] `app/Http/Controllers/Api/V1/User/OrderController::pay()`
-      ```php
-      // BEFORE
-      $payment = $user->payments()->create([...]);
-      $paymentObject = Payment::pay($payment);
-
-      // AFTER
-      $result = $this->paymentService->initiate(
-          owner:   $user,
-          product: $offer,
-          amount:  $order->user_total,
-      );
-      return $this->successResponse($result->toArray());
-      ```
-
-- [ ] `Modules/Wallet/Http/Controllers/V1/WalletController::addBalance()`
-      Replace inline payment creation with `PaymentService::initiate()`
-
-- [ ] `Modules/Wallet/Http/Controllers/Provider/TopUpController::store()`
-      Same — replace with `PaymentService::initiate(driver: $request->driver)`
-
-- [ ] `Modules/Guarantor/Actions/Payment/PayIndividualGuarantorAction`
-      Replace with `PaymentService::initiate()`
-
-- [ ] `Modules/Guarantor/Actions/Installment/PayInstallmentAction`
-      Replace with `PaymentService::initiate()`
-
-- [ ] Remove `app/Actions/Payment/PayTabs/UpdatePaymentStatus.php` (replaced by gateway verify)
-- [ ] Remove `app/Actions/Payment/Test/UpdatePaymentStatus.php`
-- [ ] Remove `app/Actions/Payment/Order/ProcessOrder.php` (moved to OrderPaymentHandler)
-- [ ] Remove `app/Actions/Payment/Order/AddProviderTransaction.php` (moved to handler)
-- [ ] Remove `app/Actions/Payment/Order/AddUserTransaction.php` (moved to handler)
-- [ ] Remove `app/Actions/Payment/TopUp/ProcessToUpRequest.php` (moved to handler)
-- [ ] Remove `app/Actions/Payment/AddModelTransaction.php` (moved to handler)
-- [ ] Remove `app/Actions/Payment/NotifyModelForOp.php` (no-op)
-- [ ] Remove `app/Actions/Payment/Order/NotifyProviderForOrder.php` (no-op)
-- [ ] Remove `app/Actions/Payment/Order/NotifyUserForOrder.php` (no-op)
+- [x] `app/Http/Controllers/Api/V1/User/OrderController::pay()`
+- [x] `Modules/Wallet/Http/Controllers/V1/WalletController::addBalance()`
+- [x] `Modules/Wallet/Http/Controllers/Provider/TopUpController::store()`
+- [x] `Modules/Guarantor/Actions/Payment/PayIndividualGuarantorAction`
+- [x] `Modules/Guarantor/Actions/Installment/PayInstallmentAction`
+- [x] Removed all `app/Actions/Payment/` files (replaced by handlers + HandleCallbackAction)
+- [x] Updated `GeneralController` test payment flow to use `HandleCallbackAction`
+- [x] Updated dashboard/provider TopUp controllers to use `PaymentService` for deferred payment response
 
 Run tests after — 386 must pass.
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: All payment initiation callers now use `PaymentService::initiate()`. Deleted legacy `app/Actions/Payment/` pipeline and `PayTabsController`. Fixed `isSuccessful()` check in OrderController. Dashboard/provider top-up show pages resolve payment via stored response or gateway verify. All 386 regression tests pass.
 
 ---
 

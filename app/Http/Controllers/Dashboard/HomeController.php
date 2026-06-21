@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Enums\Order\OrderStatusEnum;
-use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Dashboard\OrderResource;
 use App\Http\Resources\Dashboard\ProviderResource;
 use App\Http\Resources\Dashboard\UserResource;
 use App\Models\Order;
-use Modules\Payment\Models\Payment;
 use App\Models\Provider;
 use App\Models\User;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\DB;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Models\Payment;
 
 class HomeController extends Controller
 {

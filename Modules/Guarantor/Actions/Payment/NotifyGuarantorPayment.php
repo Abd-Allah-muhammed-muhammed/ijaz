@@ -2,10 +2,10 @@
 
 namespace Modules\Guarantor\Actions\Payment;
 
-use Modules\Payment\Enums\PaymentStatusEnum;
-use Modules\Payment\Models\Payment;
 use Closure;
 use Illuminate\Support\Facades\Log;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Models\Payment;
 
 class NotifyGuarantorPayment
 {

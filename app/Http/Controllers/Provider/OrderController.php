@@ -20,7 +20,6 @@ use App\Notifications\User\OrderOfferCreatedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Lib\Payment\Facade\Payment;
 use Throwable;
 
 class OrderController extends Controller
@@ -145,7 +144,7 @@ class OrderController extends Controller
             $offer->update();
             if ($offer->status->is(OfferStatusEnum::Accepted) && $order->acceptedOffer()->is($offer)) {
                 $categoryFees = $order->category->getFees($offer->price);
-                $paymentGatewayFees = app('settings')->get(Payment::getDefaultDriver().'_fees');
+                $paymentGatewayFees = app('settings')->get(config('payment.default').'_fees');
                 $providerFees = floatval($paymentGatewayFees) + $categoryFees + (15 / 100 * $categoryFees);
                 $order->update([
                     'price' => $offer->price,

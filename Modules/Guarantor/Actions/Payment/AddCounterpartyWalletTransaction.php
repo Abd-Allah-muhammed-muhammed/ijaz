@@ -2,12 +2,12 @@
 
 namespace Modules\Guarantor\Actions\Payment;
 
-use Modules\Payment\Enums\PaymentStatusEnum;
-use Modules\Payment\Models\Payment;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Models\Payment;
 use Modules\Wallet\Services\WalletService;
 use RuntimeException;
 

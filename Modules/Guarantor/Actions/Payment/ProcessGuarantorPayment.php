@@ -2,8 +2,6 @@
 
 namespace Modules\Guarantor\Actions\Payment;
 
-use Modules\Payment\Enums\PaymentStatusEnum;
-use Modules\Payment\Models\Payment;
 use Closure;
 use Modules\Guarantor\Actions\Chat\OpenGuarantorChatAction;
 use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction;
@@ -12,6 +10,8 @@ use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Jobs\ReleaseInstallmentJob;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Models\Payment;
 use RuntimeException;
 
 class ProcessGuarantorPayment

@@ -9,7 +9,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-use Lib\Payment\Facade\Payment;
+use Lib\Payment\DTOs\PaymentResponse;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Services\PaymentService;
 use Modules\Wallet\Http\Requests\Dashboard\UpdateTopUpStatusRequest;
 use Modules\Wallet\Http\Resources\Dashboard\TopUpCollection;
 use Modules\Wallet\Http\Resources\Dashboard\TopUpResource;
@@ -21,6 +23,7 @@ class TopUpRequestController extends Controller
 {
     public function __construct(
         private readonly WalletService $walletService,
+        private readonly PaymentService $paymentService,
     ) {}
 
     /**
@@ -49,15 +52,40 @@ class TopUpRequestController extends Controller
 
         return inertia('Dashboard/TopUpRequests/Show', [
             'row' => TopUpResource::make($topUpRequest),
-            'paymentResponse' => Inertia::defer(static function () use ($topUpRequest) {
-                if (! $topUpRequest->transaction_id || ! $topUpRequest->payment_driver) {
-                    return null;
-                }
-                $response = Payment::driver($topUpRequest->payment_driver)->get($topUpRequest->transaction_id);
-
-                return PayTapResponseResource::make($response);
-            }),
+            'paymentResponse' => Inertia::defer(fn () => $this->resolvePaymentResponse($topUpRequest)),
         ]);
+    }
+
+    private function resolvePaymentResponse(TopUpRequest $topUpRequest): ?PayTapResponseResource
+    {
+        if (! $topUpRequest->transaction_id || ! $topUpRequest->payment_driver) {
+            return null;
+        }
+
+        $payment = $topUpRequest->payment;
+
+        if ($payment === null) {
+            return null;
+        }
+
+        $rawResponse = $payment->response ?? [];
+
+        if ($rawResponse === []) {
+            $verifyResult = $this->paymentService
+                ->resolveGateway($topUpRequest->payment_driver)
+                ->verify($payment, ['tranRef' => $topUpRequest->transaction_id]);
+            $rawResponse = $verifyResult->rawResponse;
+        }
+
+        return PayTapResponseResource::make(new PaymentResponse(
+            status: $payment->status === PaymentStatusEnum::Accepted ? 'success' : $payment->status->value,
+            transactionId: $topUpRequest->transaction_id,
+            driver: $topUpRequest->payment_driver,
+            url: '',
+            payable: false,
+            data: $rawResponse,
+            message: $payment->message,
+        ));
     }
 
     public function updateStatus(TopUpRequest $topUpRequest, UpdateTopUpStatusRequest $request): RedirectResponse

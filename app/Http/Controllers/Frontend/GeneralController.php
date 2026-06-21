@@ -2,24 +2,21 @@
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Actions\Payment\Order\AddProviderTransaction;
-use App\Actions\Payment\Order\AddUserTransaction;
-use App\Actions\Payment\Order\NotifyProviderForOrder;
-use App\Actions\Payment\Order\NotifyUserForOrder;
-use App\Actions\Payment\Order\ProcessOrder;
-use App\Actions\Payment\Test\UpdatePaymentStatus;
 use App\Http\Controllers\Controller;
-use App\Models\OrderOffer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Pipeline;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Modules\Payment\Actions\HandleCallbackAction;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Models\Payment;
 use RuntimeException;
 
 class GeneralController extends Controller
 {
+    public function __construct(
+        private readonly HandleCallbackAction $handleCallbackAction,
+    ) {}
+
     public function index()
     {
         return inertia('Frontend/LandingPage', []);
@@ -89,32 +86,14 @@ class GeneralController extends Controller
 
     public function paymentTestCallback(Request $request, Payment $payment): RedirectResponse
     {
+        $this->handleCallbackAction->handle($payment, $request->all());
 
-        return match ($payment->product_type) {
-            OrderOffer::class => $this->offerRequestPayment($request, $payment),
-            default => throw new RuntimeException('Unknown product type: '.$payment->product_type),
-        };
-
-    }
-
-    public function offerRequestPayment(Request $request, Payment $payment): RedirectResponse
-    {
-        $payment = Pipeline::send($payment)
-            ->withinTransaction()
-            ->through([
-                new UpdatePaymentStatus($request),
-                ProcessOrder::class,
-                AddProviderTransaction::class,
-                AddUserTransaction::class,
-                NotifyProviderForOrder::class,
-                NotifyUserForOrder::class,
-            ])
-            ->thenReturn();
+        $payment->refresh();
 
         return match ($payment->status) {
             PaymentStatusEnum::Accepted => redirect()->route('payment.test.success', ['payment' => $payment->id]),
-            PaymentStatusEnum::Rejected, PaymentStatusEnum::Canceled->value => redirect()->route('payment.test.failed', ['payment' => $payment->id]),
-            default => throw new RuntimeException('Unsupported payment status: '.$payment->status, 500),
+            PaymentStatusEnum::Rejected, PaymentStatusEnum::Canceled => redirect()->route('payment.test.failed', ['payment' => $payment->id]),
+            default => throw new RuntimeException('Unsupported payment status: '.$payment->status->value, 500),
         };
     }
 
@@ -139,11 +118,4 @@ class GeneralController extends Controller
 
         return redirect()->back();
     }
-
-    public function help()
-    {
-        return inertia('Frontend/Help', []);
-    }
-
-    public function submitMessage(Request $request) {}
 }
