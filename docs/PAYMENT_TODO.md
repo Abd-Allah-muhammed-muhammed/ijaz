@@ -74,7 +74,7 @@ Modules/Payment/
 
 ## Phase 2 — Config
 
-- [ ] Create `Modules/Payment/config/payment.php`:
+- [x] Create `Modules/Payment/config/payment.php`:
 ```php
 return [
     'default' => env('PAYMENT_DRIVER', 'paytabs'),
@@ -120,16 +120,16 @@ return [
     ],
 ];
 ```
-- [ ] Register config in `PaymentServiceProvider::register()`:
+- [x] Register config in `PaymentServiceProvider::register()`:
 ```php
 $this->mergeConfigFrom(module_path('Payment', 'config/payment.php'), 'payment');
 ```
-- [ ] Remove payment section from `config/app.php`
-- [ ] Update `.env.example` with new payment keys
-- [ ] Verify: `config('payment.default')` works
+- [x] Remove payment section from `config/app.php`
+- [x] Update `.env.example` with new payment keys
+- [x] Verify: `config('payment.default')` works
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Centralized payment config in `Modules/Payment/config/payment.php` with PayTabs and Rajhi drivers (test/live mode structure). Removed legacy `payment` block from `config/app.php`. Updated `.env.example` with structured env keys. Verified via tinker; all 386 regression tests pass.
 
 ---
 

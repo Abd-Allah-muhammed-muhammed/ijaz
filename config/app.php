@@ -123,9 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'payment' => [
-        'driver' => env('PAYMENT_DRIVER', 'testing'),
-    ],
     'sms' => [
         'driver' => env('SMS_DRIVER', 'testing'),
     ],
