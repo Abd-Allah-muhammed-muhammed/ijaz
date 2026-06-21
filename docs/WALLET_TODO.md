@@ -1,0 +1,467 @@
+# Wallet Module — Todo List
+
+> Branch: feature/wallet-module
+> Last updated: 2026-06-21
+> Goal: Move ALL wallet-related code into Modules/Wallet/ — completely self-contained.
+>       If someone deletes Modules/Wallet/, no wallet code should remain anywhere else.
+>
+> Pattern: Controller → Service → Action → Repository
+> Golden Rule: API response shapes do NOT change — only backend moves.
+
+---
+
+## Dependency Map
+
+```
+app/Enums/OperationStatusEnum     ← stays in app/ (used by TicketSupport too)
+app/Models/User                   → uses Modules\Wallet\Traits\HasWallet
+app/Models/Provider               → uses Modules\Wallet\Traits\HasWallet
+
+Modules/Wallet/
+  ├── Models/Wallet
+  ├── Models/WalletTransaction
+  ├── Models/TopUpRequest         → uses App\Enums\OperationStatusEnum ✅
+  ├── Models/WithdrawRequest      → uses App\Enums\OperationStatusEnum ✅
+  ├── Traits/HasWallet
+  └── Services/WalletService      ← ONLY place that mutates wallet balance
+
+Modules/Payment/  → uses Modules\Wallet\Services\WalletService
+Modules/Guarantor/ → uses Modules\Wallet\Services\WalletService
+```
+
+---
+
+## Phase 1 — Module Scaffold
+- [ ] Create module: `php artisan module:make Wallet`
+- [ ] Configure `module.json` and `composer.json`
+- [ ] Create `WalletServiceProvider` + `RouteServiceProvider`
+- [ ] Register in `modules_statuses.json`
+- [ ] Create full directory structure with .gitkeep:
+```
+Modules/Wallet/
+├── Actions/
+├── Contracts/
+│   └── Repositories/
+├── Database/
+│   └── Migrations/
+├── DTOs/
+├── Enums/
+├── Exceptions/
+├── Http/
+│   ├── Controllers/
+│   │   ├── V1/
+│   │   ├── Provider/
+│   │   └── Dashboard/
+│   ├── Requests/
+│   └── Resources/
+│       └── Dashboard/
+├── Models/
+├── Policies/
+├── Repositories/
+├── Routes/
+│   ├── V1/
+│   ├── provider.php
+│   └── dashboard.php
+├── Services/
+└── Traits/
+```
+- [ ] Remove scaffold artifacts (app/, config/, resources/, etc.)
+- [ ] `composer dump-autoload`
+- [ ] Verify: `php artisan module:list` shows Wallet enabled
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 2 — Move Models
+
+Move from `app/Models/` → `Modules/Wallet/Models/`:
+- [ ] `Wallet.php` → `Modules/Wallet/Models/Wallet.php`
+- [ ] `WalletTransaction.php` → `Modules/Wallet/Models/WalletTransaction.php`
+- [ ] `TopUpRequest.php` → `Modules/Wallet/Models/TopUpRequest.php`
+- [ ] `WithdrawRequest.php` → `Modules/Wallet/Models/WithdrawRequest.php`
+
+For each model:
+- Update namespace to `Modules\Wallet\Models`
+- Update all imports across codebase
+- Leave backward-compat alias in old location:
+```php
+// app/Models/Wallet.php
+namespace App\Models;
+/** @deprecated Use Modules\Wallet\Models\Wallet */
+class Wallet extends \Modules\Wallet\Models\Wallet {}
+```
+
+Move `HasWallet` trait:
+- [ ] `app/Traits/HasWallet.php` → `Modules/Wallet/Traits/HasWallet.php`
+- [ ] Fix typo: `walletTTransactions()` → `walletTransactions()`
+- [ ] Update namespace to `Modules\Wallet\Traits`
+- [ ] Update imports in `User.php` and `Provider.php`
+- [ ] Leave backward-compat alias in `app/Traits/HasWallet.php`
+
+Run tests after — 315 must pass.
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 3 — Move Migrations
+
+- [ ] Move all wallet migrations to `Modules/Wallet/Database/Migrations/`:
+  - `2025_05_23_220424_create_wallets_table.php`
+  - `2025_07_01_175711_create_top_up_requests_table.php`
+  - `2025_08_21_193400_create_payments_table.php` ← stays in app/ (Payment module will own it)
+  - `2025_08_27_210054_add_cols_to_wallet_transactions.php`
+  - `2025_08_28_202050_add_cols_to_wallets.php`
+  - `2025_09_12_224428_add_payment_driver_to_top_up_requests.php`
+  - `2025_09_23_174450_create_withdraw_requests_table.php`
+- [ ] Register migrations path in `WalletServiceProvider::boot()`
+- [ ] Verify `php artisan migrate:status` shows all migrations
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 4 — Fix Schema (New Migrations)
+
+Create new migrations in `Modules/Wallet/Database/Migrations/`:
+
+- [ ] Add `wallets.credit` column (in fillable but missing from DB)
+- [ ] Add unique index on `wallets(user_id, user_type)` — prevent duplicate wallets
+- [ ] Add index on `top_up_requests.status`
+- [ ] Add index on `withdraw_requests.status`
+- [ ] Add index on `wallet_transactions(wallet_id, created_at)`
+- [ ] Add `wallet_transactions.payment_id` nullable string (audit trail to Payment)
+- [ ] Add defaults (0) on `wallet_transactions.pending_credit` and `pending_debit`
+- [ ] Add `withdraw_requests.payment_driver` nullable string (referenced in WithdrawController)
+- [ ] Fix `down()` methods on broken alter migrations
+- [ ] Run `php artisan migrate` locally and verify
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 5 — Enums
+
+- [ ] Create `Modules\Wallet\Enums\TransactionTypeEnum`
+```php
+enum TransactionTypeEnum: string {
+    case Credit        = 'credit';
+    case Debit         = 'debit';
+    case PendingCredit = 'pending_credit';
+    case PendingDebit  = 'pending_debit';
+}
+```
+Note: `OperationStatusEnum` stays in `app/Enums/` — used by TicketSupport too.
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 6 — DTOs
+
+- [ ] Create `Modules\Wallet\DTOs\WalletBalanceData`
+```php
+readonly class WalletBalanceData {
+    public function __construct(
+        public float $balance,
+        public float $pending_credit,
+        public float $pending_debit,
+        public float $available,  // balance - pending_debit
+    ) {}
+}
+```
+
+- [ ] Create `Modules\Wallet\DTOs\WalletTransactionData`
+```php
+readonly class WalletTransactionData {
+    public function __construct(
+        public float  $amount,
+        public string $description,
+        public string $operation_type,
+        public string $operation_id,
+        public TransactionTypeEnum $type,
+        public float  $credit      = 0,
+        public float  $debit       = 0,
+        public float  $pending_credit = 0,
+        public float  $pending_debit  = 0,
+        public ?string $payment_id = null,
+    ) {}
+}
+```
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 7 — Exceptions
+
+- [ ] Create `Modules\Wallet\Exceptions\WalletException`
+- [ ] Create `Modules\Wallet\Exceptions\InsufficientBalanceException extends WalletException`
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 8 — Repositories
+
+- [ ] Create `WalletRepositoryInterface` → `Modules/Wallet/Contracts/Repositories/`
+```php
+interface WalletRepositoryInterface {
+    public function findOrCreate(Model $owner): Wallet;
+    public function lockForUpdate(Model $owner): Wallet;
+}
+```
+
+- [ ] Create `WalletTransactionRepositoryInterface`
+```php
+interface WalletTransactionRepositoryInterface {
+    public function create(Wallet $wallet, WalletTransactionData $data): WalletTransaction;
+    public function listForOwner(Model $owner, int $perPage = 15): LengthAwarePaginator;
+}
+```
+
+- [ ] Create `WalletRepository` → `Modules/Wallet/Repositories/`
+- [ ] Create `WalletTransactionRepository`
+- [ ] Bind both in `WalletServiceProvider::register()`
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 9 — Actions
+
+Each action:
+- Uses repositories (no direct model mutations)
+- Does NOT start its own DB transaction (runs inside caller's transaction)
+- Creates a `WalletTransaction` ledger row via repository
+
+- [ ] `CreditWalletAction` — `balance += amount`
+- [ ] `DebitWalletAction` — `balance -= amount` (throws InsufficientBalanceException if insufficient)
+- [ ] `AddPendingCreditAction` — `pending_credit += amount`
+- [ ] `AddPendingDebitAction` — `pending_debit += amount`
+- [ ] `ReleasePendingCreditToBalanceAction` — `pending_credit -= gross`, `balance += net` (gross - fees)
+- [ ] `ReversePendingDebitAction` — `pending_debit -= amount`
+- [ ] `AdjustPendingAction` — `pending_credit += X`, `pending_debit -= Y` (single SQL — replaces AddProviderTransaction)
+- [ ] `FinalizeWithdrawAction` — reverse pending + optional debit (replaces WithdrawRequestController logic)
+
+Run tests after — 315 must pass.
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 10 — WalletService
+
+THE only place that touches wallet balance. All other code uses this service.
+
+- [ ] Create `Modules\Wallet\Services\WalletService`
+
+Methods (all run inside caller's DB transaction):
+```php
+public function credit(Model $owner, float $amount, Model $operation, string $description = ''): void
+public function debit(Model $owner, float $amount, Model $operation, string $description = ''): void
+public function addPendingCredit(Model $owner, float $amount, Model $operation, string $description = ''): void
+public function addPendingDebit(Model $owner, float $amount, Model $operation, string $description = ''): void
+public function releasePendingCreditToBalance(Model $owner, float $gross, float $net, Model $operation, string $description = ''): void
+public function reversePendingDebit(Model $owner, float $amount, Model $operation, string $description = ''): void
+public function adjustPending(Model $owner, float $creditDelta, float $debitDelta, Model $operation, string $description = ''): void
+public function finalizeWithdraw(Model $owner, WithdrawRequest $request, bool $approved): void
+public function canWithdraw(Model $owner, float $amount): bool
+public function getBalance(Model $owner): WalletBalanceData
+```
+
+- [ ] Bind `WalletService` in `WalletServiceProvider::register()`
+- [ ] Run ALL tests — 315 must pass
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 11 — Resources
+
+Move resources → `Modules/Wallet/Http/Resources/`:
+- [ ] `App\Http\Resources\Api\V1\TopUpResource` → `Modules\Wallet\Http\Resources\TopUpResource`
+- [ ] `App\Http\Resources\Api\V1\WithdrawRequestResource` → `Modules\Wallet\Http\Resources\WithdrawRequestResource`
+      Fix bug: @mixin should be WithdrawRequest not TopUpRequest
+- [ ] `App\Http\Resources\Dashboard\TopUpResource` → `Modules\Wallet\Http\Resources\Dashboard\TopUpResource`
+- [ ] `App\Http\Resources\Dashboard\WithdrawResource` → `Modules\Wallet\Http\Resources\Dashboard\WithdrawResource`
+      Fix bug: @mixin should be WithdrawRequest not TopUpRequest
+- [ ] Create `Modules\Wallet\Http\Resources\WalletResource`
+- [ ] Create `Modules\Wallet\Http\Resources\WalletTransactionResource`
+- [ ] Create `Modules\Wallet\Http\Resources\WalletTransactionCollection`
+- [ ] Leave backward-compat aliases in old locations
+- [ ] Update all imports across codebase
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 12 — Requests
+
+Move requests → `Modules/Wallet/Http/Requests/`:
+- [ ] `StoreTopUpRequest` → `Modules\Wallet\Http\Requests\StoreTopUpRequest`
+- [ ] `StoreWithdrawRequestRequest` → `Modules\Wallet\Http\Requests\StoreWithdrawRequest`
+      Add: `canWithdraw` check against available balance
+- [ ] Create `Dashboard\UpdateTopUpRequestStatusRequest` → `Modules\Wallet\Http\Requests\Dashboard\`
+- [ ] Create `Dashboard\UpdateWithdrawRequestStatusRequest` → `Modules\Wallet\Http\Requests\Dashboard\`
+- [ ] Leave backward-compat aliases
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 13 — V1 API Controller
+
+- [ ] Create `Modules\Wallet\Http\Controllers\V1\WalletController`
+      Replaces: `App\Http\Controllers\Api\V1\WalletController`
+      Methods: `balance`, `addBalance`, `withdraw`, `transactions`
+      Fix: balance check uses `WalletService::canWithdraw()` with lock
+      Fix: set `wallet_id` on TopUpRequest create
+      Uses: WalletService only — no direct model mutations
+- [ ] Create `Modules/Wallet/Routes/V1/wallet.php` — same URLs, same names
+- [ ] Remove old routes from `routes/Api/V1/catalog.php`
+- [ ] Run tests
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 14 — Provider Controllers
+
+- [ ] Create `Modules\Wallet\Http\Controllers\Provider\TopUpController`
+      Replaces: `App\Http\Controllers\Provider\TopUpController`
+      Uses: WalletService
+- [ ] Create `Modules\Wallet\Http\Controllers\Provider\WithdrawController`
+      Replaces: `App\Http\Controllers\Provider\WithdrawController`
+      Fix: remove references to non-existent `transaction_id`/`payment_driver` on WithdrawRequest
+      Fix: unreachable catch pattern
+      Uses: WalletService
+- [ ] Create `Modules/Wallet/Routes/provider.php` — same URLs, same names
+- [ ] Remove old routes from `routes/provider.php`
+- [ ] Run tests
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 15 — Dashboard Controllers
+
+- [ ] Create `Modules\Wallet\Http\Controllers\Dashboard\TopUpRequestController`
+      Replaces: `App\Http\Controllers\Dashboard\TopUpRequestController`
+      Fix: remove orphaned `DB::commit()` without `beginTransaction()`
+      Uses: `WalletService::credit()` instead of inline wallet mutation
+- [ ] Create `Modules\Wallet\Http\Controllers\Dashboard\WithdrawRequestController`
+      Replaces: `App\Http\Controllers\Dashboard\WithdrawRequestController`
+      Uses: `WalletService::finalizeWithdraw()`
+- [ ] Create `Modules/Wallet/Routes/dashboard.php` — same URLs, same names
+- [ ] Remove old routes from `routes/dashboard.php`
+- [ ] Run tests
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 16 — Update Payment Pipeline (use WalletService)
+
+Replace ALL inline wallet mutations in payment actions with WalletService:
+- [ ] `app/Actions/Payment/AddModelTransaction` → `WalletService::credit()` or `WalletService::addPendingDebit()`
+- [ ] `app/Actions/Payment/Order/AddUserTransaction` → `WalletService::addPendingDebit()`
+- [ ] `app/Actions/Payment/Order/AddProviderTransaction` → `WalletService::adjustPending()`
+- [ ] `Modules/Guarantor/Actions/Payment/AddCounterpartyWalletTransaction` → `WalletService::addPendingCredit()`
+- [ ] `Modules/Guarantor/Actions/Payment/AddRequesterWalletTransaction` → `WalletService::addPendingDebit()`
+- [ ] `Modules/Guarantor/Actions/Installment/ReleaseInstallmentAction` → `WalletService::releasePendingCreditToBalance()`
+- [ ] `Modules/Guarantor/Actions/Guarantor/EndGuarantorAction` → `WalletService::releasePendingCreditToBalance()`
+      Fix bug: was releasing full pending_credit without deducting fees
+- [ ] `Modules/Guarantor/Actions/Guarantor/CancelGuarantorAction` → `WalletService::reversePendingDebit()` + `WalletService::reversePendingCredit()` (if exists)
+- [ ] Run ALL tests — 315 must pass
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 17 — Cleanup
+
+- [ ] Delete old controllers from `app/Http/Controllers/Api/V1/WalletController.php`
+- [ ] Delete `app/Http/Controllers/Provider/TopUpController.php`
+- [ ] Delete `app/Http/Controllers/Provider/WithdrawController.php`
+- [ ] Delete `app/Http/Controllers/Dashboard/TopUpRequestController.php`
+- [ ] Delete `app/Http/Controllers/Dashboard/WithdrawRequestController.php`
+- [ ] Delete old resources from `app/Http/Resources/Api/V1/TopUpResource.php`
+- [ ] Delete `app/Http/Resources/Api/V1/WithdrawRequestResource.php`
+- [ ] Delete `app/Http/Resources/Dashboard/TopUpResource.php`
+- [ ] Delete `app/Http/Resources/Dashboard/WithdrawResource.php`
+- [ ] Delete old requests from `app/Http/Requests/Api/V1/StoreTopUpRequest.php`
+- [ ] Delete `app/Http/Requests/Api/V1/StoreWithdrawRequestRequest.php`
+- [ ] Delete `app/Http/Requests/Dashboard/UpdateTopUpRequestStatusRequest.php`
+- [ ] Delete `app/Http/Requests/Dashboard/UpdateWithdrawRequestStatusRequest.php`
+- [ ] Delete backward-compat model aliases from `app/Models/`
+- [ ] Delete `app/Traits/HasWallet.php`
+- [ ] Remove wallet bindings from `AppServiceProvider`
+- [ ] Run: `php artisan route:list | grep wallet` — same routes as before
+- [ ] `npm run build` — no errors
+- [ ] Run ALL tests — 315 must pass
+
+### Completed: —
+### Summary: —
+
+---
+
+## Phase 18 — Tests
+
+- [ ] Tests for `WalletService` — all 10 methods
+- [ ] Tests for each Action
+- [ ] Tests for `InsufficientBalanceException`
+- [ ] Tests for `V1/WalletController` routes (balance, topup online, topup offline, withdraw, transactions)
+- [ ] Tests for Provider TopUp routes
+- [ ] Tests for Provider Withdraw routes
+- [ ] Tests for Dashboard TopUp approval routes
+- [ ] Tests for Dashboard Withdraw approval routes
+- [ ] Tests for concurrent withdraw (race condition prevention)
+- [ ] Regression: ALL 315 existing tests pass
+
+### Completed: —
+### Summary: —
+
+---
+
+## Bug Fixes Log
+
+| # | Bug | Fixed in Phase |
+|---|-----|----------------|
+| 1 | `TopUpRequestController` — `DB::commit()` without `beginTransaction()` | Phase 15 |
+| 2 | `WithdrawController::show()` — reads non-existent `transaction_id`, `payment_driver` | Phase 14 |
+| 3 | `WithdrawRequestResource` — `@mixin TopUpRequest` wrong model | Phase 11 |
+| 4 | `WithdrawResource (Dashboard)` — `@mixin TopUpRequest` wrong model | Phase 11 |
+| 5 | `WalletController` — balance check without row lock on concurrent withdraws | Phase 13 |
+| 6 | `HasWallet::walletTTransactions()` — typo (extra T) | Phase 2 |
+| 7 | `EndGuarantorAction` — releases full pending_credit without deducting fees | Phase 16 |
+| 8 | `wallets.credit` — in fillable but no DB column | Phase 4 |
+| 9 | `TopUpRequest.wallet_id` — never set on create | Phase 13 |
+| 10 | `wallet_transactions.pending_credit/debit` — no default value | Phase 4 |
+
+---
+
+## Notes
+- WalletService is the ONLY place that mutates wallet balance — no direct model mutations anywhere else
+- All actions run inside the CALLER's DB transaction — they never start their own
+- Route URLs do NOT change — same paths, same names
+- API response shapes do NOT change
+- Backward-compat aliases stay until Phase 17 cleanup
+- `OperationStatusEnum` stays in `app/Enums/` — shared with TicketSupport
