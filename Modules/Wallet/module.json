@@ -1,0 +1,12 @@
+{
+    "name": "Wallet",
+    "alias": "wallet",
+    "description": "Wallet module — handles all wallet operations, top-up requests, withdraw requests, and ledger.",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Wallet\\Providers\\WalletServiceProvider"
+    ],
+    "aliases": {},
+    "files": []
+}

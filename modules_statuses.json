@@ -3,5 +3,6 @@
     "Catalog": true,
     "Opportunity": true,
     "Guarantor": true,
-    "Chat": true
+    "Chat": true,
+    "Wallet": true
 }

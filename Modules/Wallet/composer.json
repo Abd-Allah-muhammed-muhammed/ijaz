@@ -1,0 +1,28 @@
+{
+    "name": "nwidart/wallet",
+    "description": "Wallet module for balances, top-up requests, withdraw requests, and ledger",
+    "authors": [
+        {
+            "name": "Ijaz",
+            "email": "dev@ijaz.test"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Wallet\\": "./",
+            "Modules\\Wallet\\Database\\Factories\\": "database/factories/",
+            "Modules\\Wallet\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Wallet\\Tests\\": "tests/"
+        }
+    }
+}

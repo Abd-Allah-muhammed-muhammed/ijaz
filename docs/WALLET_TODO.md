@@ -32,11 +32,11 @@ Modules/Guarantor/ → uses Modules\Wallet\Services\WalletService
 ---
 
 ## Phase 1 — Module Scaffold
-- [ ] Create module: `php artisan module:make Wallet`
-- [ ] Configure `module.json` and `composer.json`
-- [ ] Create `WalletServiceProvider` + `RouteServiceProvider`
-- [ ] Register in `modules_statuses.json`
-- [ ] Create full directory structure with .gitkeep:
+- [x] Create module: `php artisan module:make Wallet`
+- [x] Configure `module.json` and `composer.json`
+- [x] Create `WalletServiceProvider` + `RouteServiceProvider`
+- [x] Register in `modules_statuses.json`
+- [x] Create full directory structure with .gitkeep:
 ```
 Modules/Wallet/
 ├── Actions/
@@ -65,12 +65,12 @@ Modules/Wallet/
 ├── Services/
 └── Traits/
 ```
-- [ ] Remove scaffold artifacts (app/, config/, resources/, etc.)
-- [ ] `composer dump-autoload`
-- [ ] Verify: `php artisan module:list` shows Wallet enabled
+- [x] Remove scaffold artifacts (app/, config/, resources/, etc.)
+- [x] `composer dump-autoload`
+- [x] Verify: `php artisan module:list` shows Wallet enabled
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Created `Modules/Wallet/` with Opportunity-style providers at `Providers/` (not `app/Providers/`). Configured `module.json`, module-level `composer.json` (PSR-4 `./`), empty route stubs (`Routes/V1/wallet.php`, `provider.php`, `dashboard.php`), and full directory tree with `.gitkeep`. Removed nwidart scaffold (`app/`, `config/`, `resources/`, `routes/`, `database/seeders`, `package.json`, `vite.config.js`). Registered `"Wallet": true` in `modules_statuses.json`. `RouteServiceProvider::mapApiRoutes()` uses a compatible signature with `BaseModuleRouteServiceProvider` and loads `wallet.php` instead of `api.php`.
 
 ---
 
