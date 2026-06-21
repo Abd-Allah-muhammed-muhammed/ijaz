@@ -212,7 +212,7 @@ readonly class WalletTransactionData {
 
 ## Phase 8 — Repositories
 
-- [ ] Create `WalletRepositoryInterface` → `Modules/Wallet/Contracts/Repositories/`
+- [x] Create `WalletRepositoryInterface` → `Modules/Wallet/Contracts/Repositories/`
 ```php
 interface WalletRepositoryInterface {
     public function findOrCreate(Model $owner): Wallet;
@@ -220,7 +220,7 @@ interface WalletRepositoryInterface {
 }
 ```
 
-- [ ] Create `WalletTransactionRepositoryInterface`
+- [x] Create `WalletTransactionRepositoryInterface`
 ```php
 interface WalletTransactionRepositoryInterface {
     public function create(Wallet $wallet, WalletTransactionData $data): WalletTransaction;
@@ -228,12 +228,12 @@ interface WalletTransactionRepositoryInterface {
 }
 ```
 
-- [ ] Create `WalletRepository` → `Modules/Wallet/Repositories/`
-- [ ] Create `WalletTransactionRepository`
-- [ ] Bind both in `WalletServiceProvider::register()`
+- [x] Create `WalletRepository` → `Modules/Wallet/Repositories/`
+- [x] Create `WalletTransactionRepository`
+- [x] Bind both in `WalletServiceProvider::register()`
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Created `WalletRepository` and `WalletTransactionRepository` with interfaces. Repository bindings registered in `WalletServiceProvider`.
 
 ---
 
@@ -244,19 +244,19 @@ Each action:
 - Does NOT start its own DB transaction (runs inside caller's transaction)
 - Creates a `WalletTransaction` ledger row via repository
 
-- [ ] `CreditWalletAction` — `balance += amount`
-- [ ] `DebitWalletAction` — `balance -= amount` (throws InsufficientBalanceException if insufficient)
-- [ ] `AddPendingCreditAction` — `pending_credit += amount`
-- [ ] `AddPendingDebitAction` — `pending_debit += amount`
-- [ ] `ReleasePendingCreditToBalanceAction` — `pending_credit -= gross`, `balance += net` (gross - fees)
-- [ ] `ReversePendingDebitAction` — `pending_debit -= amount`
-- [ ] `AdjustPendingAction` — `pending_credit += X`, `pending_debit -= Y` (single SQL — replaces AddProviderTransaction)
-- [ ] `FinalizeWithdrawAction` — reverse pending + optional debit (replaces WithdrawRequestController logic)
+- [x] `CreditWalletAction` — `balance += amount`
+- [x] `DebitWalletAction` — `balance -= amount` (throws InsufficientBalanceException if insufficient)
+- [x] `AddPendingCreditAction` — `pending_credit += amount`
+- [x] `AddPendingDebitAction` — `pending_debit += amount`
+- [x] `ReleasePendingCreditToBalanceAction` — `pending_credit -= gross`, `balance += net` (gross - fees)
+- [x] `ReversePendingDebitAction` — `pending_debit -= amount`
+- [x] `AdjustPendingAction` — `pending_credit += X`, `pending_debit -= Y` (single SQL — replaces AddProviderTransaction)
+- [x] `FinalizeWithdrawAction` — reverse pending + optional debit (replaces WithdrawRequestController logic)
 
 Run tests after — 315 must pass.
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Created all 8 wallet actions. Each locks wallet via repository, mutates balance/pending fields, and records ledger rows through `WalletTransactionRepository`. `FinalizeWithdrawAction` delegates to `ReversePendingDebitAction` and `DebitWalletAction`.
 
 ---
 
@@ -264,7 +264,7 @@ Run tests after — 315 must pass.
 
 THE only place that touches wallet balance. All other code uses this service.
 
-- [ ] Create `Modules\Wallet\Services\WalletService`
+- [x] Create `Modules\Wallet\Services\WalletService`
 
 Methods (all run inside caller's DB transaction):
 ```php
@@ -280,11 +280,11 @@ public function canWithdraw(Model $owner, float $amount): bool
 public function getBalance(Model $owner): WalletBalanceData
 ```
 
-- [ ] Bind `WalletService` in `WalletServiceProvider::register()`
-- [ ] Run ALL tests — 315 must pass
+- [x] Bind `WalletService` in `WalletServiceProvider::register()`
+- [x] Run ALL tests — 315 must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Created `WalletService` as the public API delegating to all 8 actions. Added `canWithdraw()` (available balance check with lock) and `getBalance()` (returns `WalletBalanceData`). Bound in `WalletServiceProvider`. Added `payment_id` to `WalletTransaction` fillable. All 323 module tests pass.
 
 ---
 

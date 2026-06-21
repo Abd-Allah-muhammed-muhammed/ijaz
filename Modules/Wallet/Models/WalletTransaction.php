@@ -13,7 +13,7 @@ class WalletTransaction extends Model
 
     protected $fillable = [
         'wallet_id', 'user_id', 'user_type', 'credit', 'debit', 'balance_before', 'balance_after', 'description',
-        'operation_id', 'operation_type', 'pending_credit', 'pending_debit',
+        'operation_id', 'operation_type', 'pending_credit', 'pending_debit', 'payment_id',
     ];
 
     protected $keyType = 'string';
