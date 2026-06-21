@@ -12,9 +12,9 @@ use App\Http\Resources\Api\V1\TopUpResource;
 use App\Http\Resources\Api\V1\WalletResource;
 use App\Http\Resources\Api\V1\WalletTransactionCollection;
 use App\Http\Resources\Api\V1\WithdrawRequestResource;
-use App\Models\TopUpRequest;
 use App\Traits\HasPayments;
-use App\Traits\HasWallet;
+use Modules\Wallet\Models\TopUpRequest;
+use Modules\Wallet\Traits\HasWallet;
 use DB;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Contracts\Database\Eloquent\Builder;
@@ -121,7 +121,7 @@ class WalletController extends Controller
             $withdrawRequest = $user->withdrawRequests()->create($data);
             $wallet = $user->wallet()->lockForUpdate()->firstOrCreate();
 
-            $user->walletTTransactions()->create([
+            $user->walletTransactions()->create([
                 'wallet_id' => $wallet->id,
                 'balance_after' => $wallet->balance,
                 'balance_before' => $wallet->balance,
@@ -157,7 +157,7 @@ class WalletController extends Controller
          */
         return $this->successResponse(
             WalletTransactionCollection::make(
-                auth()->user()->walletTTransactions()->latest()
+                auth()->user()->walletTransactions()->latest()
                     ->when($request->data_from, function (Builder $q, $v) {
                         $q->where('created_at', '>=', $v);
                     })

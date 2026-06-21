@@ -12,7 +12,6 @@ use App\Traits\HasBroadcastChanel;
 use App\Traits\HasJobs;
 use App\Traits\HasOTPs;
 use App\Traits\HasPayments;
-use App\Traits\HasWallet;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -33,6 +32,7 @@ use Modules\Classifieds\Models\ElectronicAdvisement;
 use Modules\Classifieds\Models\InstituteAdvisement;
 use Modules\Classifieds\Models\PropertyAdvisement;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Wallet\Traits\HasWallet;
 
 /**
  * App\Models\User

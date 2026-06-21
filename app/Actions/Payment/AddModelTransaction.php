@@ -5,10 +5,10 @@ namespace App\Actions\Payment;
 use App\Enums\Payment\PaymentStatusEnum;
 use App\Models\OrderOffer;
 use App\Models\Payment;
-use App\Models\TopUpRequest;
-use App\Models\Wallet;
-use App\Models\WithdrawRequest;
-use App\Traits\HasWallet;
+use Modules\Wallet\Models\TopUpRequest;
+use Modules\Wallet\Models\Wallet;
+use Modules\Wallet\Models\WithdrawRequest;
+use Modules\Wallet\Traits\HasWallet;
 use Closure;
 use RuntimeException;
 
@@ -66,7 +66,7 @@ class AddModelTransaction
             default:
                 throw new RuntimeException('Unsupported product type: '.$payment->product_type);
         }
-        $user->walletTTransactions()->create([
+        $user->walletTransactions()->create([
             'wallet_id' => $wallet->id,
             'debit' => $debit,
             'credit' => $credit,

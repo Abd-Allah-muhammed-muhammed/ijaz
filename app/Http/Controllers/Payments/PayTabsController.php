@@ -15,7 +15,7 @@ use App\Enums\Payment\PaymentStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Models\OrderOffer;
 use App\Models\Payment;
-use App\Models\TopUpRequest;
+use Modules\Wallet\Models\TopUpRequest;
 use http\Exception\RuntimeException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

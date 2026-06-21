@@ -8,7 +8,7 @@ use App\Http\Requests\Dashboard\UpdateTopUpRequestStatusRequest;
 use App\Http\Resources\Dashboard\TopUpCollection;
 use App\Http\Resources\Dashboard\TopUpResource;
 use App\Http\Resources\PayTapResponseResource;
-use App\Models\TopUpRequest;
+use Modules\Wallet\Models\TopUpRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -78,7 +78,7 @@ class TopUpRequestController extends Controller
                 $balance_after = $wallet->balance + $credit;
                 $wallet->increment('balance', $credit);
 
-                $user->walletTTransactions()->create([
+                $user->walletTransactions()->create([
                     'wallet_id' => $wallet->id,
                     'debit' => 0,
                     'credit' => $credit,

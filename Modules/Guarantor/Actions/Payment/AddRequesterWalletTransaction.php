@@ -4,7 +4,7 @@ namespace Modules\Guarantor\Actions\Payment;
 
 use App\Enums\Payment\PaymentStatusEnum;
 use App\Models\Payment;
-use App\Models\Wallet;
+use Modules\Wallet\Models\Wallet;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Guarantor\Models\GuarantorInstallment;
@@ -27,7 +27,7 @@ class AddRequesterWalletTransaction
 
         $wallet->increment('pending_debit', $payment->amount);
 
-        $payer->walletTTransactions()->create([
+        $payer->walletTransactions()->create([
             'wallet_id' => $wallet->id,
             'debit' => 0,
             'credit' => 0,

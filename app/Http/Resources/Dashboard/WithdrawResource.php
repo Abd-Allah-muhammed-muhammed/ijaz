@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\Dashboard;
 
-use App\Models\TopUpRequest;
+use Modules\Wallet\Models\TopUpRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

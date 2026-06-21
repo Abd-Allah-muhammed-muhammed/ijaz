@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\Dashboard;
 
-use App\Models\WalletTransaction;
+use Modules\Wallet\Models\WalletTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 

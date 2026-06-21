@@ -6,7 +6,7 @@ use App\Enums\Payment\PaymentStatusEnum;
 use App\Models\OrderOffer;
 use App\Models\Payment;
 use App\Models\User;
-use App\Models\Wallet;
+use Modules\Wallet\Models\Wallet;
 use Closure;
 use DB;
 use RuntimeException;
@@ -49,7 +49,7 @@ class AddProviderTransaction
             'pending_debit' => DB::raw('pending_debit - '.$pending_debit),
         ]);
 
-        $provider->walletTTransactions()->create([
+        $provider->walletTransactions()->create([
             'wallet_id' => $wallet->id,
             'debit' => $debit,
             'credit' => $credit,

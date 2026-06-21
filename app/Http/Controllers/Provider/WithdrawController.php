@@ -7,7 +7,7 @@ use App\Http\Requests\Api\V1\WithdrawRequestRequest;
 use App\Http\Resources\Dashboard\WithdrawCollection;
 use App\Http\Resources\Dashboard\WithdrawResource;
 use App\Http\Resources\PayTapResponseResource;
-use App\Models\WithdrawRequest;
+use Modules\Wallet\Models\WithdrawRequest;
 use DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -73,7 +73,7 @@ class WithdrawController extends Controller
             $withdrawRequest = $user->withdrawRequests()->create($data);
             $wallet = $user->wallet()->lockForUpdate()->firstOrCreate();
 
-            $user->walletTTransactions()->create([
+            $user->walletTransactions()->create([
                 'wallet_id' => $wallet->id,
                 'balance_after' => $wallet->balance,
                 'balance_before' => $wallet->balance,
@@ -113,7 +113,7 @@ class WithdrawController extends Controller
 
             $wallet = $user->wallet()->lockForUpdate()->firstOrCreate();
 
-            $user->walletTTransactions()->create([
+            $user->walletTransactions()->create([
                 'wallet_id' => $wallet->id,
                 'balance_after' => $wallet->balance,
                 'balance_before' => $wallet->balance,

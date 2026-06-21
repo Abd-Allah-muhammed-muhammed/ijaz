@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\UpdateWithdrawRequestStatusRequest;
 use App\Http\Resources\Dashboard\WithdrawCollection;
 use App\Http\Resources\Dashboard\WithdrawResource;
-use App\Models\WithdrawRequest;
+use Modules\Wallet\Models\WithdrawRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use MMAE\ApiResponse\Traits\HasApiResponse;
@@ -63,7 +63,7 @@ class WithdrawRequestController extends Controller
             $user = $withdrawRequest->user;
             $wallet = $user->wallet()->lockForUpdate()->firstOrCreate();
 
-            $user->walletTTransactions()->create([
+            $user->walletTransactions()->create([
                 'wallet_id' => $wallet->id,
                 'debit' => $withdrawRequest->status === OperationStatusEnum::Approved ? $withdrawRequest->amount : 0,
                 'credit' => 0,

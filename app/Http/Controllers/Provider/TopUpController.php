@@ -11,7 +11,7 @@ use App\Http\Requests\Api\V1\TopUpRequestRequest;
 use App\Http\Resources\Dashboard\TopUpCollection;
 use App\Http\Resources\Dashboard\TopUpResource;
 use App\Http\Resources\PayTapResponseResource;
-use App\Models\TopUpRequest;
+use Modules\Wallet\Models\TopUpRequest;
 use DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

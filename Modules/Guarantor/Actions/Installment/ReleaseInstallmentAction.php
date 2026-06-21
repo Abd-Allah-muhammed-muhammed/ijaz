@@ -50,7 +50,7 @@ class ReleaseInstallmentAction
             $wallet->increment('balance', $releaseAmount);
             $balanceAfter = (float) $wallet->fresh()->balance;
 
-            $requester->walletTTransactions()->create([
+            $requester->walletTransactions()->create([
                 'wallet_id' => $wallet->id,
                 'debit' => 0,
                 'credit' => $releaseAmount,

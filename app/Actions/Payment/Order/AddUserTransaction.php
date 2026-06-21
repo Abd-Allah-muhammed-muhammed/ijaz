@@ -6,7 +6,7 @@ use App\Enums\Payment\PaymentStatusEnum;
 use App\Models\OrderOffer;
 use App\Models\Payment;
 use App\Models\User;
-use App\Models\Wallet;
+use Modules\Wallet\Models\Wallet;
 use Closure;
 use RuntimeException;
 
@@ -45,7 +45,7 @@ class AddUserTransaction
             default:
                 throw new RuntimeException('Unsupported product type: '.$payment->product_type);
         }
-        $user->walletTTransactions()->create([
+        $user->walletTransactions()->create([
             'wallet_id' => $wallet->id,
             'debit' => $debit,
             'credit' => $credit,

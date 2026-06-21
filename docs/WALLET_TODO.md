@@ -77,10 +77,10 @@ Modules/Wallet/
 ## Phase 2 — Move Models
 
 Move from `app/Models/` → `Modules/Wallet/Models/`:
-- [ ] `Wallet.php` → `Modules/Wallet/Models/Wallet.php`
-- [ ] `WalletTransaction.php` → `Modules/Wallet/Models/WalletTransaction.php`
-- [ ] `TopUpRequest.php` → `Modules/Wallet/Models/TopUpRequest.php`
-- [ ] `WithdrawRequest.php` → `Modules/Wallet/Models/WithdrawRequest.php`
+- [x] `Wallet.php` → `Modules/Wallet/Models/Wallet.php`
+- [x] `WalletTransaction.php` → `Modules/Wallet/Models/WalletTransaction.php`
+- [x] `TopUpRequest.php` → `Modules/Wallet/Models/TopUpRequest.php`
+- [x] `WithdrawRequest.php` → `Modules/Wallet/Models/WithdrawRequest.php`
 
 For each model:
 - Update namespace to `Modules\Wallet\Models`
@@ -94,16 +94,16 @@ class Wallet extends \Modules\Wallet\Models\Wallet {}
 ```
 
 Move `HasWallet` trait:
-- [ ] `app/Traits/HasWallet.php` → `Modules/Wallet/Traits/HasWallet.php`
-- [ ] Fix typo: `walletTTransactions()` → `walletTransactions()`
-- [ ] Update namespace to `Modules\Wallet\Traits`
-- [ ] Update imports in `User.php` and `Provider.php`
-- [ ] Leave backward-compat alias in `app/Traits/HasWallet.php`
+- [x] `app/Traits/HasWallet.php` → `Modules/Wallet/Traits/HasWallet.php`
+- [x] Fix typo: `walletTTransactions()` → `walletTransactions()`
+- [x] Update namespace to `Modules\Wallet\Traits`
+- [x] Update imports in `User.php` and `Provider.php`
+- [x] Leave backward-compat alias in `app/Traits/HasWallet.php`
 
 Run tests after — 315 must pass.
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Moved `Wallet`, `WalletTransaction`, `TopUpRequest`, and `WithdrawRequest` to `Modules/Wallet/Models/` with namespace `Modules\Wallet\Models`. Moved `HasWallet` to `Modules/Wallet/Traits/` and renamed `walletTTransactions()` → `walletTransactions()` across 10 consumer files. Updated imports in payment actions, controllers, resources, and Guarantor actions. Backward-compat aliases remain in `app/Models/` and `app/Traits/`. `OperationStatusEnum` stays in `app/Enums/`. All 323 module tests pass (Guarantor 153, Opportunity 81, Chat 89).
 
 ---
 
