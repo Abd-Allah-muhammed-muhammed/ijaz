@@ -23,11 +23,6 @@ class PaymentServiceProvider extends ModuleServiceProvider
         $this->mergeConfigFrom(module_path('Payment', 'config/payment.php'), 'payment');
 
         $this->app->singleton(PaymentHandlerRegistry::class);
-
-        $this->app->bind(
-            PaymentService::class,
-            PaymentService::class,
-        );
     }
 
     public function boot(): void
