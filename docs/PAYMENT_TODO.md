@@ -275,12 +275,8 @@ Replaces: `lib/Payment/Gates/TestingGate.php`
 - `initiate()` → returns mock URL
 - `verify()` → reads status from request, returns `PaymentVerifyResult`
 
-### Completed: —
-### Summary: —
-
----
-
-## Phase 7 — PaymentHandlerRegistry + Events
+### Completed: 2026-06-21
+### Summary: Added `PayTabsGateway` and `TestingGateway` implementing `PaymentGatewayInterface`. PayTabs uses mode-based config, paytabs package, and unified `payment.redirect` / `payment.callback` route names with no domain model imports. TestingGateway returns mock redirect URL and parses verify status from payload. All 386 regression tests pass.
 
 ### Task 1 — PaymentHandlerRegistry
 File: `Modules/Payment/Registry/PaymentHandlerRegistry.php`
