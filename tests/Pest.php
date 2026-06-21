@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /*
@@ -16,9 +17,14 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(LazilyRefreshDatabase::class)
-    ->in('Feature', 'Unit', '../Modules/Classifieds/tests/Feature', '../Modules/Catalog/tests/Feature', '../Modules/Opportunity/tests/Feature', '../Modules/Opportunity/tests/Unit', '../Modules/Guarantor/tests/Unit', '../Modules/Guarantor/tests/Feature', '../Modules/Chat/tests/Unit', '../Modules/Chat/tests/Feature');
+    ->in('Feature', 'Unit', '../Modules/Classifieds/tests/Feature', '../Modules/Catalog/tests/Feature', '../Modules/Opportunity/tests/Feature', '../Modules/Opportunity/tests/Unit', '../Modules/Guarantor/tests/Unit', '../Modules/Guarantor/tests/Feature', '../Modules/Chat/tests/Unit', '../Modules/Chat/tests/Feature', '../Modules/Wallet/tests/Unit');
+
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
+    ->in('../Modules/Wallet/tests/Feature');
 
 require_once __DIR__.'/../Modules/Chat/tests/helpers.php';
+require_once __DIR__.'/../Modules/Wallet/tests/helpers.php';
 
 /*
 |--------------------------------------------------------------------------

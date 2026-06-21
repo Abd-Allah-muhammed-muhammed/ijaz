@@ -8,14 +8,16 @@ use App\Enums\Payment\PaymentStatusEnum;
 use App\Models\Admin;
 use App\Models\Payment;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Modules\Wallet\Database\Factories\TopUpRequestFactory;
 
 class TopUpRequest extends Model
 {
-    use HasUuids;
+    use HasFactory, HasUuids;
 
     protected $keyType = 'string';
 
@@ -51,5 +53,10 @@ class TopUpRequest extends Model
             'payment_status' => PaymentStatusEnum::class,
             'status' => OperationStatusEnum::class,
         ];
+    }
+
+    protected static function newFactory(): TopUpRequestFactory
+    {
+        return TopUpRequestFactory::new();
     }
 }

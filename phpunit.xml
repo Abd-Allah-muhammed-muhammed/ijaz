@@ -20,6 +20,9 @@
         <testsuite name="Chat">
             <directory suffix="Test.php">./Modules/Chat/tests</directory>
         </testsuite>
+        <testsuite name="Wallet">
+            <directory suffix="Test.php">./Modules/Wallet/tests</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
@@ -29,6 +32,7 @@
             <directory>Modules/Opportunity</directory>
             <directory>Modules/Guarantor</directory>
             <directory>Modules/Chat</directory>
+            <directory>Modules/Wallet</directory>
         </include>
     </source>
     <php>
@@ -44,5 +48,6 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="PAYMENT_DRIVER" value="testing"/>
     </php>
 </phpunit>

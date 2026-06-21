@@ -38,13 +38,15 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
             return;
         }
 
-        Route::group([
-            'prefix' => LaravelLocalization::setLocale(),
-            'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
-        ], function () use ($path) {
-            Route::group(['prefix' => 'provider', 'as' => 'provider.'], function () use ($path) {
-                Route::middleware('auth:provider')->group(function () use ($path) {
-                    Route::prefix('dashboard')->group($path);
+        Route::middleware('web')->group(function () use ($path) {
+            Route::group([
+                'prefix' => LaravelLocalization::setLocale(),
+                'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
+            ], function () use ($path) {
+                Route::group(['prefix' => 'provider', 'as' => 'provider.'], function () use ($path) {
+                    Route::middleware('auth:provider')->group(function () use ($path) {
+                        Route::prefix('dashboard')->group($path);
+                    });
                 });
             });
         });
@@ -58,12 +60,14 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
             return;
         }
 
-        Route::group([
-            'prefix' => LaravelLocalization::setLocale(),
-            'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
-        ], function () use ($path) {
-            Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () use ($path) {
-                Route::middleware('auth:admin')->group($path);
+        Route::middleware('web')->group(function () use ($path) {
+            Route::group([
+                'prefix' => LaravelLocalization::setLocale(),
+                'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
+            ], function () use ($path) {
+                Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () use ($path) {
+                    Route::middleware('auth:admin')->group($path);
+                });
             });
         });
     }

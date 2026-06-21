@@ -5,13 +5,15 @@ namespace Modules\Wallet\Models;
 use App\Enums\OperationStatusEnum;
 use App\Models\Admin;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Modules\Wallet\Database\Factories\WithdrawRequestFactory;
 
 class WithdrawRequest extends Model
 {
-    use HasUuids;
+    use HasFactory, HasUuids;
 
     protected $keyType = 'string';
 
@@ -20,7 +22,7 @@ class WithdrawRequest extends Model
     ];
 
     protected $attributes = [
-        'status' => OperationStatusEnum::Pending,
+        'status' => OperationStatusEnum::Pending->value,
     ];
 
     public function user(): MorphTo
@@ -43,5 +45,10 @@ class WithdrawRequest extends Model
         return [
             'status' => OperationStatusEnum::class,
         ];
+    }
+
+    protected static function newFactory(): WithdrawRequestFactory
+    {
+        return WithdrawRequestFactory::new();
     }
 }
