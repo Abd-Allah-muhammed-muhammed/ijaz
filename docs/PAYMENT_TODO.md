@@ -135,17 +135,17 @@ $this->mergeConfigFrom(module_path('Payment', 'config/payment.php'), 'payment');
 
 ## Phase 3 — Move Migration
 
-- [ ] Move `database/migrations/2025_08_21_193400_create_payments_table.php`
+- [x] Move `database/migrations/2025_08_21_193400_create_payments_table.php`
       → `Modules/Payment/Database/Migrations/`
-- [ ] Register migrations path in `PaymentServiceProvider::boot()`:
+- [x] Register migrations path in `PaymentServiceProvider::boot()`:
 ```php
 $this->loadMigrationsFrom(module_path('Payment', 'Database/Migrations'));
 ```
-- [ ] Verify: `php artisan migrate:status` shows payment migration as Ran
-- [ ] Run tests — 386 must pass
+- [x] Verify: `php artisan migrate:status` shows payment migration as Ran
+- [x] Run tests — 386 must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Moved `2025_08_21_193400_create_payments_table.php` to `Modules/Payment/Database/Migrations/` unchanged. Migration path already registered in `PaymentServiceProvider`. `migrate:status` shows Ran; all 386 regression tests pass.
 
 ---
 
