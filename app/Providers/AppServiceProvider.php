@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Listeners\Payment\NotifyOrderPaymentCompleted;
+use App\Listeners\Payment\NotifyOrderPaymentFailed;
 use App\Models\Setting;
 use App\NotificationChannel\EventChannel;
 use App\NotificationChannel\FirebaseChannel;
@@ -14,11 +16,14 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Modules\Payment\Events\PaymentCompleted;
+use Modules\Payment\Events\PaymentFailed;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -80,5 +85,8 @@ class AppServiceProvider extends ServiceProvider
         });
         Notification::extend('firebase', static fn ($app) => $app->make(FirebaseChannel::class));
         Notification::extend('event', static fn ($app) => $app->make(EventChannel::class));
+
+        Event::listen(PaymentCompleted::class, NotifyOrderPaymentCompleted::class);
+        Event::listen(PaymentFailed::class, NotifyOrderPaymentFailed::class);
     }
 }

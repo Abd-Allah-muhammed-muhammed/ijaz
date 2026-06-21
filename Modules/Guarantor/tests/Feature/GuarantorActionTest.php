@@ -1,9 +1,7 @@
 <?php
 
-use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Models\Admin;
 use App\Models\Conversation;
-use Modules\Payment\Models\Payment;
 use App\Models\User;
 use App\Services\Sms\Phone;
 use Illuminate\Http\Request;
@@ -45,6 +43,8 @@ use Modules\Guarantor\Notifications\GuarantorCreatedNotification;
 use Modules\Guarantor\Notifications\GuarantorEndedNotification;
 use Modules\Guarantor\Notifications\InstallmentReleasedNotification;
 use Modules\Guarantor\Services\GuarantorService;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Models\Payment;
 
 const TEST_COUNTERPARTY_PHONE = '0501234567';
 

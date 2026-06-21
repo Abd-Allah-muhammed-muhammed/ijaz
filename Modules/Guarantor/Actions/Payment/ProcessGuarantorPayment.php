@@ -21,10 +21,10 @@ class ProcessGuarantorPayment
         private readonly OpenGuarantorChatAction $openGuarantorChatAction,
     ) {}
 
-    public function __invoke(Payment $payment, Closure $next): mixed
+    public function handle(Payment $payment): void
     {
         if ($payment->status->isNot(PaymentStatusEnum::Accepted)) {
-            return $next($payment);
+            return;
         }
 
         match ($payment->product_type) {
@@ -32,6 +32,11 @@ class ProcessGuarantorPayment
             GuarantorInstallment::class => $this->processInstallmentPayment($payment),
             default => throw new RuntimeException('Unsupported guarantor product type: '.$payment->product_type),
         };
+    }
+
+    public function __invoke(Payment $payment, Closure $next): mixed
+    {
+        $this->handle($payment);
 
         return $next($payment);
     }

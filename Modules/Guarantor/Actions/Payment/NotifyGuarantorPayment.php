@@ -9,7 +9,7 @@ use Modules\Payment\Models\Payment;
 
 class NotifyGuarantorPayment
 {
-    public function __invoke(Payment $payment, Closure $next): mixed
+    public function handle(Payment $payment): void
     {
         if ($payment->status->is(PaymentStatusEnum::Accepted)) {
             // TODO: add dedicated GuarantorPaymentReceivedNotification translation keys
@@ -19,6 +19,11 @@ class NotifyGuarantorPayment
                 'product_id' => $payment->product_id,
             ]);
         }
+    }
+
+    public function __invoke(Payment $payment, Closure $next): mixed
+    {
+        $this->handle($payment);
 
         return $next($payment);
     }
