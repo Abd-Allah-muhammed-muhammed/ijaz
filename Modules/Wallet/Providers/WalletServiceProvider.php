@@ -25,6 +25,8 @@ class WalletServiceProvider extends ModuleServiceProvider
     {
         parent::boot();
 
+        $this->loadMigrationsFrom(module_path('Wallet', 'Database/Migrations'));
+
         // Policies — added in later phases
     }
 }

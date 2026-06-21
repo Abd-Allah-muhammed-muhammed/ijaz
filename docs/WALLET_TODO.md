@@ -109,7 +109,7 @@ Run tests after — 315 must pass.
 
 ## Phase 3 — Move Migrations
 
-- [ ] Move all wallet migrations to `Modules/Wallet/Database/Migrations/`:
+- [x] Move all wallet migrations to `Modules/Wallet/Database/Migrations/`:
   - `2025_05_23_220424_create_wallets_table.php`
   - `2025_07_01_175711_create_top_up_requests_table.php`
   - `2025_08_21_193400_create_payments_table.php` ← stays in app/ (Payment module will own it)
@@ -117,11 +117,11 @@ Run tests after — 315 must pass.
   - `2025_08_28_202050_add_cols_to_wallets.php`
   - `2025_09_12_224428_add_payment_driver_to_top_up_requests.php`
   - `2025_09_23_174450_create_withdraw_requests_table.php`
-- [ ] Register migrations path in `WalletServiceProvider::boot()`
-- [ ] Verify `php artisan migrate:status` shows all migrations
+- [x] Register migrations path in `WalletServiceProvider::boot()`
+- [x] Verify `php artisan migrate:status` shows all migrations
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Moved 6 wallet migrations from `database/migrations/` to `Modules/Wallet/Database/Migrations/` (payments migration left in app/). Registered path via `loadMigrationsFrom()` in `WalletServiceProvider::boot()`. All 6 migrations show as `Ran` in `migrate:status`. All 323 module tests pass.
 
 ---
 
