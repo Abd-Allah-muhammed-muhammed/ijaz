@@ -724,8 +724,8 @@ Same pattern for failed payments:
 - `Modules/Guarantor/Listeners/HandleGuarantorPaymentFailed.php`
 - `app/Listeners/Payment/NotifyOrderPaymentFailed.php`
 
-### Completed: —
-### Summary: —
+### Completed: ✅
+### Summary: Wired post-payment domain logic via Events/Listeners in consuming modules. **Guarantor** (`GuarantorServiceProvider`): sync `HandleGuarantorPaymentCompleted` → `ProcessGuarantorPayment::handle()`, queued `NotifyGuarantorPaymentCompleted` → `NotifyGuarantorPayment::handle()`, placeholder `HandleGuarantorPaymentFailed`. **Order** (`AppServiceProvider`): queued `NotifyOrderPaymentCompleted` and `NotifyOrderPaymentFailed` (TODO placeholders for Firebase). Added `handle()` methods to `ProcessGuarantorPayment` and `NotifyGuarantorPayment` (pipeline `__invoke` delegates to `handle()`). Listeners guard by `product_type`. `ProcessGuarantorPayment` no longer called directly outside listener + tests. All 386 regression tests pass.
 
 ---
 
