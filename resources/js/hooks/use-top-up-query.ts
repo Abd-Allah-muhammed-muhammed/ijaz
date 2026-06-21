@@ -2,7 +2,7 @@ import axios from "@/helpers/axios";
 import {useMutation, UseMutationResult} from "@tanstack/react-query";
 import {SingleApiResponse} from "@/types/api";
 import {AxiosError} from "axios";
-import TopUpController from "@/actions/App/Http/Controllers/Provider/TopUpController";
+import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/TopUpController";
 import {walletDepositFormSchema} from "@/pages/Provider/Auth/Profile/wallet-forms-schems";
 
 

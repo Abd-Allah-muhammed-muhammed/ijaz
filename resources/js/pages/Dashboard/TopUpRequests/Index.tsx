@@ -11,7 +11,7 @@ import {TopUpRequest} from "@/types/models";
 import ConfirmAction from "@/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
 import {OperationStatusEnum} from "@/Enums/Enums";
-import TopUpRequestController from "@/actions/App/Http/Controllers/Dashboard/TopUpRequestController";
+import TopUpRequestController from "@/actions/Modules/Wallet/Http/Controllers/Dashboard/TopUpRequestController";
 
 
 type Props = {

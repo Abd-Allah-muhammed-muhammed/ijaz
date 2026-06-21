@@ -13,7 +13,7 @@ import MasterLayout from '@/_metronic/layout/MasterLayout';
 import { Button } from 'react-bootstrap';
 import { OperationStatusEnum } from '@/Enums/Enums';
 import { FormInput } from '@/pages/Dashboard/WithdrawRequests/types';
-import WithdrawRequestController from '@/actions/App/Http/Controllers/Dashboard/WithdrawRequestController';
+import WithdrawRequestController from '@/actions/Modules/Wallet/Http/Controllers/Dashboard/WithdrawRequestController';
 
 
 type Props = {

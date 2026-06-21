@@ -5,9 +5,9 @@ import HomeController from "@/actions/App/Http/Controllers/Provider/HomeControll
 import ProviderChatIndexController from "@/actions/Modules/Chat/Http/Controllers/Provider/ProviderChatIndexController";
 import {SidebarMenuItemWithSub} from "@/_metronic/layout/components/sidebar/sidebar-menu/SidebarMenuItemWithSub";
 import OrderController from "@/actions/App/Http/Controllers/Provider/OrderController";
-import TopUpController from "@/actions/App/Http/Controllers/Provider/TopUpController";
+import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/TopUpController";
 import AuthController from "@/actions/App/Http/Controllers/Provider/AuthController";
-import WithdrawController from '@/actions/App/Http/Controllers/Provider/WithdrawController';
+import WithdrawController from '@/actions/Modules/Wallet/Http/Controllers/Provider/WithdrawController';
 import { useTranslation } from 'react-i18next';
 
 const SidebarMenuMain = () => {

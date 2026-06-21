@@ -20,9 +20,9 @@ import RegionController from '@/actions/App/Http/Controllers/Dashboard/RegionCon
 import RoleController from '@/actions/App/Http/Controllers/Dashboard/RoleController';
 import SkillController from '@/actions/App/Http/Controllers/Dashboard/SkillController';
 import SupportController from '@/actions/App/Http/Controllers/Dashboard/SupportController';
-import TopUpRequestController from '@/actions/App/Http/Controllers/Dashboard/TopUpRequestController';
+import TopUpRequestController from '@/actions/Modules/Wallet/Http/Controllers/Dashboard/TopUpRequestController';
 import UserController from '@/actions/App/Http/Controllers/Dashboard/UserController';
-import WithdrawRequestController from '@/actions/App/Http/Controllers/Dashboard/WithdrawRequestController';
+import WithdrawRequestController from '@/actions/Modules/Wallet/Http/Controllers/Dashboard/WithdrawRequestController';
 import useActiveRoute from '@/hooks/use-active-route';
 import usePermissions from '@/hooks/use-permissions';
 import { useTranslation } from 'react-i18next';

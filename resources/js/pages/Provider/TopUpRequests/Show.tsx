@@ -6,7 +6,7 @@ import {Head, usePage} from "@inertiajs/react";
 import {KTCard} from "@/_metronic/helpers";
 import {TopUpRequest} from "@/types/models";
 import {ReactNode, useEffect} from "react";
-import TopUpController from "@/actions/App/Http/Controllers/Provider/TopUpController";
+import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/TopUpController";
 import ProviderLayout from "@/layouts/provider/ProviderLayout";
 import {PaymentResponse} from "@/types/api";
 import {build_date} from "@/helpers/general";

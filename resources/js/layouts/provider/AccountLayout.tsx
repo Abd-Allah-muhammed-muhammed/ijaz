@@ -15,7 +15,7 @@ import { walletDepositFormSchema, walletWithdrawFormSchema } from '@/pages/Provi
 import InputError from "@/components/inputs/InputError";
 import {useAddBalance} from "@/hooks/use-top-up-query";
 import {toast} from "sonner";
-import WithdrawController from '@/actions/App/Http/Controllers/Provider/WithdrawController';
+import WithdrawController from '@/actions/Modules/Wallet/Http/Controllers/Provider/WithdrawController';
 
 
 type Props = {

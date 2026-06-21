@@ -10,7 +10,7 @@ import {TopUpRequest} from "@/types/models";
 import ConfirmAction from "@/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
 import {OperationStatusEnum} from "@/Enums/Enums";
-import WithdrawController from "@/actions/App/Http/Controllers/Provider/WithdrawController";
+import WithdrawController from "@/actions/Modules/Wallet/Http/Controllers/Provider/WithdrawController";
 import ProviderLayout from "@/layouts/provider/ProviderLayout";
 
 

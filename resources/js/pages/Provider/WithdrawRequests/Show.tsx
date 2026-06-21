@@ -6,7 +6,7 @@ import { Head, usePage } from "@inertiajs/react";
 import { KTCard } from "@/_metronic/helpers";
 import { WithdrawRequest } from "@/types/models";
 import { ReactNode } from "react";
-import WithdrawController from "@/actions/App/Http/Controllers/Provider/WithdrawController";
+import WithdrawController from "@/actions/Modules/Wallet/Http/Controllers/Provider/WithdrawController";
 import ProviderLayout from "@/layouts/provider/ProviderLayout";
 import { PaymentResponse } from "@/types/api";
 import { build_date } from "@/helpers/general";

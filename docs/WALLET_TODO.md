@@ -398,28 +398,28 @@ Replace ALL inline wallet mutations in payment actions with WalletService:
 
 ## Phase 17 — Cleanup
 
-- [ ] Delete old controllers from `app/Http/Controllers/Api/V1/WalletController.php`
-- [ ] Delete `app/Http/Controllers/Provider/TopUpController.php`
-- [ ] Delete `app/Http/Controllers/Provider/WithdrawController.php`
-- [ ] Delete `app/Http/Controllers/Dashboard/TopUpRequestController.php`
-- [ ] Delete `app/Http/Controllers/Dashboard/WithdrawRequestController.php`
-- [ ] Delete old resources from `app/Http/Resources/Api/V1/TopUpResource.php`
-- [ ] Delete `app/Http/Resources/Api/V1/WithdrawRequestResource.php`
-- [ ] Delete `app/Http/Resources/Dashboard/TopUpResource.php`
-- [ ] Delete `app/Http/Resources/Dashboard/WithdrawResource.php`
-- [ ] Delete old requests from `app/Http/Requests/Api/V1/StoreTopUpRequest.php`
-- [ ] Delete `app/Http/Requests/Api/V1/StoreWithdrawRequestRequest.php`
-- [ ] Delete `app/Http/Requests/Dashboard/UpdateTopUpRequestStatusRequest.php`
-- [ ] Delete `app/Http/Requests/Dashboard/UpdateWithdrawRequestStatusRequest.php`
-- [ ] Delete backward-compat model aliases from `app/Models/`
-- [ ] Delete `app/Traits/HasWallet.php`
-- [ ] Remove wallet bindings from `AppServiceProvider`
-- [ ] Run: `php artisan route:list | grep wallet` — same routes as before
-- [ ] `npm run build` — no errors
-- [ ] Run ALL tests — 315 must pass
+- [x] Delete old controllers from `app/Http/Controllers/Api/V1/WalletController.php`
+- [x] Delete `app/Http/Controllers/Provider/TopUpController.php`
+- [x] Delete `app/Http/Controllers/Provider/WithdrawController.php`
+- [x] Delete `app/Http/Controllers/Dashboard/TopUpRequestController.php`
+- [x] Delete `app/Http/Controllers/Dashboard/WithdrawRequestController.php`
+- [x] Delete old resources from `app/Http/Resources/Api/V1/TopUpResource.php`
+- [x] Delete `app/Http/Resources/Api/V1/WithdrawRequestResource.php`
+- [x] Delete `app/Http/Resources/Dashboard/TopUpResource.php`
+- [x] Delete `app/Http/Resources/Dashboard/WithdrawResource.php`
+- [x] Delete old requests from `app/Http/Requests/Api/V1/StoreTopUpRequest.php`
+- [x] Delete `app/Http/Requests/Api/V1/StoreWithdrawRequestRequest.php`
+- [x] Delete `app/Http/Requests/Dashboard/UpdateTopUpRequestStatusRequest.php`
+- [x] Delete `app/Http/Requests/Dashboard/UpdateWithdrawRequestStatusRequest.php`
+- [x] Delete backward-compat model aliases from `app/Models/`
+- [x] Delete `app/Traits/HasWallet.php`
+- [x] Remove wallet bindings from `AppServiceProvider` (none existed)
+- [x] Run: `php artisan route:list | grep wallet` — same routes as before
+- [x] `npm run build` — no errors
+- [x] Run ALL tests — 315 must pass
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Deleted 18 backward-compat alias files (4 models, 1 trait, 5 controllers, 4 resources, 4 requests). Updated `TopUpCollection` and `WithdrawCollection` to reference module resources. Updated 12 frontend files to import Wayfinder actions from `Modules/Wallet/Http/Controllers/*`. No remaining old-path imports in app/, Modules/, or resources/js/. All wallet routes intact. 323 tests pass. `npm run build` succeeds.
 
 ---
 
@@ -463,5 +463,5 @@ Replace ALL inline wallet mutations in payment actions with WalletService:
 - All actions run inside the CALLER's DB transaction — they never start their own
 - Route URLs do NOT change — same paths, same names
 - API response shapes do NOT change
-- Backward-compat aliases stay until Phase 17 cleanup
+- Backward-compat aliases removed in Phase 17 cleanup
 - `OperationStatusEnum` stays in `app/Enums/` — shared with TicketSupport

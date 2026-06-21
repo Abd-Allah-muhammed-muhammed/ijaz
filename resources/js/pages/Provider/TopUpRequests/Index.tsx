@@ -11,7 +11,7 @@ import {TopUpRequest} from "@/types/models";
 import ConfirmAction from "@/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
 import {OperationStatusEnum} from "@/Enums/Enums";
-import TopUpController from "@/actions/App/Http/Controllers/Provider/TopUpController";
+import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/TopUpController";
 import ProviderLayout from "@/layouts/provider/ProviderLayout";
 
 

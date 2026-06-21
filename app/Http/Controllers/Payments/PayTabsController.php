@@ -15,7 +15,6 @@ use App\Enums\Payment\PaymentStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Models\OrderOffer;
 use App\Models\Payment;
-use Modules\Wallet\Models\TopUpRequest;
 use http\Exception\RuntimeException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +25,7 @@ use Modules\Guarantor\Actions\Payment\NotifyGuarantorPayment;
 use Modules\Guarantor\Actions\Payment\ProcessGuarantorPayment;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Wallet\Models\TopUpRequest;
 use Throwable;
 
 class PayTabsController extends Controller

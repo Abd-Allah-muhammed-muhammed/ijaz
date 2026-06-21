@@ -9,7 +9,7 @@ import Table, {LinkAction} from "@/components/Table";
 import {PaginationResource} from "@/types";
 import {WithdrawRequest} from "@/types/models";
 import {ReactElement} from "react";
-import WithdrawRequestController from "@/actions/App/Http/Controllers/Dashboard/WithdrawRequestController";
+import WithdrawRequestController from "@/actions/Modules/Wallet/Http/Controllers/Dashboard/WithdrawRequestController";
 
 
 type Props = {
