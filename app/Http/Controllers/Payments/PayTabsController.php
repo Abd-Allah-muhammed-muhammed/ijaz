@@ -134,11 +134,11 @@ class PayTabsController extends Controller
 
     public function success()
     {
-        return view('payment.success');
+        return view('payment::success');
     }
 
     public function failed()
     {
-        return view('payment.failed');
+        return view('payment::failed');
     }
 }

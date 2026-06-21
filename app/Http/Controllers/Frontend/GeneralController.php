@@ -8,14 +8,14 @@ use App\Actions\Payment\Order\NotifyProviderForOrder;
 use App\Actions\Payment\Order\NotifyUserForOrder;
 use App\Actions\Payment\Order\ProcessOrder;
 use App\Actions\Payment\Test\UpdatePaymentStatus;
-use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Models\OrderOffer;
-use Modules\Payment\Models\Payment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Pipeline;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Models\Payment;
 use RuntimeException;
 
 class GeneralController extends Controller
@@ -120,12 +120,12 @@ class GeneralController extends Controller
 
     public function paymentTestSuccess()
     {
-        return view('payment.success');
+        return view('payment::success');
     }
 
     public function paymentTestFailed()
     {
-        return view('payment.failed');
+        return view('payment::failed');
     }
 
     // Example in a controller

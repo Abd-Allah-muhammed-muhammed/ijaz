@@ -5,7 +5,6 @@ use App\Http\Controllers\Frontend\GeneralController;
 use App\Http\Controllers\General\AjaxController;
 use App\Http\Controllers\General\MediaController;
 use App\Http\Controllers\General\ReactSelectController;
-use App\Http\Controllers\Payments\PayTabsController;
 use Illuminate\Support\Facades\Route;
 use Modules\Catalog\Http\Controllers\General\CatalogSelectController;
 
@@ -84,13 +83,3 @@ Route::group(
         });
     });
 
-Route::group(['prefix' => 'payments', 'as' => 'payment.'], static function () {
-    Route::controller(PayTabsController::class)->as('paytabs.')->group(function () {
-        //    Route::prefix('paytabs')->group(function () {
-        //      Route::match(['get', 'post'], '/{payment}/redirect', 'redirect')->name('redirect');
-        //      Route::match(['get', 'post'], '/{payment}/callback', 'callback')->name('callback');
-        //    });
-        Route::get('/{payment}/callback/success', 'success')->name('success');
-        Route::get('/{payment}/callback/failed', 'failed')->name('failed');
-    });
-});

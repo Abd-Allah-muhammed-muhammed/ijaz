@@ -26,6 +26,7 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
 
         if (file_exists($path)) {
             Route::middleware('api')
+                ->prefix('api')
                 ->group($path);
         }
     }

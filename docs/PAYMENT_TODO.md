@@ -469,8 +469,8 @@ class PaymentCallbackController extends Controller
 }
 ```
 
-### Completed: —
-### Summary: —
+### Completed: 2026-06-21
+### Summary: Added idempotent `HandleCallbackAction` (verify → transaction → handler → `DB::afterCommit` events) and driver-agnostic `PaymentCallbackController`. Unified routes in module `api.php`/`web.php`; removed legacy PayTabs routes from `routes/api.php` and `routes/web.php`. Moved success/failed views to `Modules/Payment/Resources/views/`. All 386 regression tests pass.
 
 ---
 

@@ -2,23 +2,19 @@
 
 namespace Lib\Payment\Gates;
 
-use Modules\Payment\Models\Payment;
 use http\Exception\RuntimeException;
 use Lib\Payment\Contracts\IPaymentGate;
 use Lib\Payment\DTOs\PaymentResponse;
-use Modules\Guarantor\Models\GuarantorInstallment;
-use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Payment\Models\Payment;
 
 class TestingGate implements IPaymentGate
 {
     public function pay(Payment $payment): PaymentResponse
     {
-        $url = in_array($payment->product_type, [
-            GuarantorRequest::class,
-            GuarantorInstallment::class,
-        ], true)
-            ? route('payment.paytabs.guarantor.redirect', $payment)
-            : route('payment.test', ['payment' => $payment->id]);
+        $url = route('payment.redirect', [
+            'driver' => 'testing',
+            'payment' => $payment->id,
+        ]);
 
         return new PaymentResponse(
             status: 'success',
