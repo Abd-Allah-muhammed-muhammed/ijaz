@@ -3,12 +3,9 @@
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 use Modules\Payment\Actions\HandleCallbackAction;
-use Modules\Payment\Contracts\PaymentHandlerInterface;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Events\PaymentCompleted;
 use Modules\Payment\Events\PaymentFailed;
-use Modules\Payment\Models\Payment;
-use Modules\Payment\Registry\PaymentHandlerRegistry;
 use Modules\Wallet\Models\TopUpRequest;
 
 test('skips processing when payment status is not Pending — idempotency', function () {
@@ -55,48 +52,6 @@ test('updates payment status to Rejected on failure', function () {
 
     expect($payment->status)->toBe(PaymentStatusEnum::Rejected)
         ->and($payment->transaction_id)->toBe('txn-rejected-1');
-});
-
-test('calls handler onSuccess when payment accepted', function () {
-    $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
-    $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
-
-    $handler = Mockery::mock(PaymentHandlerInterface::class);
-    $handler->shouldReceive('onSuccess')->once()->with(Mockery::on(
-        fn (Payment $p) => $p->is($payment) && $p->status === PaymentStatusEnum::Accepted
-    ));
-    $handler->shouldReceive('onFailure')->never();
-
-    $registry = new PaymentHandlerRegistry;
-    $registry->register(TopUpRequest::class, $handler);
-    app()->instance(PaymentHandlerRegistry::class, $registry);
-
-    app(HandleCallbackAction::class)->handle($payment, [
-        'status' => 'success',
-        'payment_id' => 'txn-handler-success',
-    ]);
-});
-
-test('calls handler onFailure when payment rejected', function () {
-    $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
-    $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
-
-    $handler = Mockery::mock(PaymentHandlerInterface::class);
-    $handler->shouldReceive('onFailure')->once()->with(Mockery::on(
-        fn (Payment $p) => $p->is($payment) && $p->status === PaymentStatusEnum::Rejected
-    ));
-    $handler->shouldReceive('onSuccess')->never();
-
-    $registry = new PaymentHandlerRegistry;
-    $registry->register(TopUpRequest::class, $handler);
-    app()->instance(PaymentHandlerRegistry::class, $registry);
-
-    app(HandleCallbackAction::class)->handle($payment, [
-        'status' => 'failed',
-        'payment_id' => 'txn-handler-failure',
-    ]);
 });
 
 test('fires PaymentCompleted event after transaction when accepted', function () {
@@ -147,7 +102,7 @@ test('does not fire events when payment already processed — idempotency', func
     Event::assertNothingDispatched();
 });
 
-test('does not throw when no handler registered for product type', function () {
+test('does not throw when product type has no listener', function () {
     $user = createWalletUser();
     $payment = createPaymentFor($user, $user, [
         'driver' => 'testing',
@@ -157,7 +112,7 @@ test('does not throw when no handler registered for product type', function () {
 
     app(HandleCallbackAction::class)->handle($payment, [
         'status' => 'success',
-        'payment_id' => 'txn-no-handler',
+        'payment_id' => 'txn-no-listener',
     ]);
 
     expect($payment->fresh()->status)->toBe(PaymentStatusEnum::Accepted);

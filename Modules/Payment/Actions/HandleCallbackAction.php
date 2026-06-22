@@ -7,14 +7,12 @@ use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Events\PaymentCompleted;
 use Modules\Payment\Events\PaymentFailed;
 use Modules\Payment\Models\Payment;
-use Modules\Payment\Registry\PaymentHandlerRegistry;
 use Modules\Payment\Services\PaymentService;
 
 class HandleCallbackAction
 {
     public function __construct(
         private readonly PaymentService $paymentService,
-        private readonly PaymentHandlerRegistry $registry,
     ) {}
 
     public function handle(Payment $payment, array $payload): void
@@ -33,27 +31,15 @@ class HandleCallbackAction
                 'response' => $result->rawResponse,
                 'message' => $result->message,
             ]);
-
-            $payment->refresh();
-
-            if (! $this->registry->hasHandler($payment->product_type)) {
-                return;
-            }
-
-            $handler = $this->registry->getHandler($payment->product_type);
-
-            if ($result->isAccepted()) {
-                $handler->onSuccess($payment);
-            } else {
-                $handler->onFailure($payment);
-            }
         });
 
         DB::afterCommit(function () use ($payment, $result) {
+            $payment->refresh();
+
             if ($result->isAccepted()) {
-                event(new PaymentCompleted($payment->fresh()));
+                event(new PaymentCompleted($payment));
             } else {
-                event(new PaymentFailed($payment->fresh()));
+                event(new PaymentFailed($payment));
             }
         });
     }

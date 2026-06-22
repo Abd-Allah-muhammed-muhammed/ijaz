@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Listeners\Payment\HandleOrderPaymentCompleted;
+use App\Listeners\Payment\HandleOrderPaymentFailed;
 use App\Listeners\Payment\NotifyOrderPaymentCompleted;
 use App\Listeners\Payment\NotifyOrderPaymentFailed;
 use App\Models\Setting;
@@ -86,7 +88,9 @@ class AppServiceProvider extends ServiceProvider
         Notification::extend('firebase', static fn ($app) => $app->make(FirebaseChannel::class));
         Notification::extend('event', static fn ($app) => $app->make(EventChannel::class));
 
+        Event::listen(PaymentCompleted::class, HandleOrderPaymentCompleted::class);
         Event::listen(PaymentCompleted::class, NotifyOrderPaymentCompleted::class);
+        Event::listen(PaymentFailed::class, HandleOrderPaymentFailed::class);
         Event::listen(PaymentFailed::class, NotifyOrderPaymentFailed::class);
     }
 }

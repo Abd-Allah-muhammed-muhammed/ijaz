@@ -2,8 +2,13 @@
 
 namespace Modules\Wallet\Providers;
 
+use Illuminate\Support\Facades\Event;
+use Modules\Payment\Events\PaymentCompleted;
+use Modules\Payment\Events\PaymentFailed;
 use Modules\Wallet\Contracts\Repositories\WalletRepositoryInterface;
 use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
+use Modules\Wallet\Listeners\HandleTopUpPaymentCompleted;
+use Modules\Wallet\Listeners\HandleTopUpPaymentFailed;
 use Modules\Wallet\Repositories\WalletRepository;
 use Modules\Wallet\Repositories\WalletTransactionRepository;
 use Modules\Wallet\Services\WalletService;
@@ -44,6 +49,9 @@ class WalletServiceProvider extends ModuleServiceProvider
         parent::boot();
 
         $this->loadMigrationsFrom(module_path('Wallet', 'Database/Migrations'));
+
+        Event::listen(PaymentCompleted::class, HandleTopUpPaymentCompleted::class);
+        Event::listen(PaymentFailed::class, HandleTopUpPaymentFailed::class);
 
         // Policies — added in later phases
     }

@@ -8,15 +8,10 @@ use Modules\Payment\DTOs\PaymentInitResult;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Gateways\PayTabsGateway;
 use Modules\Payment\Gateways\TestingGateway;
-use Modules\Payment\Registry\PaymentHandlerRegistry;
 use RuntimeException;
 
 class PaymentService
 {
-    public function __construct(
-        private readonly PaymentHandlerRegistry $registry,
-    ) {}
-
     /**
      * Initiate a payment for a product.
      * Creates the Payment record and calls the gateway.

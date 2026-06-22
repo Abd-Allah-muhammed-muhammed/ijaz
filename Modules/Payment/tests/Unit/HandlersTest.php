@@ -3,49 +3,53 @@
 use App\Enums\OperationStatusEnum;
 use App\Enums\Order\OfferStatusEnum;
 use App\Enums\Order\OrderStatusEnum;
+use App\Listeners\Payment\HandleOrderPaymentCompleted;
+use App\Listeners\Payment\HandleOrderPaymentFailed;
 use App\Models\OrderOffer;
 use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Modules\Guarantor\Listeners\HandleGuarantorPaymentCompleted;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Payment\Enums\PaymentStatusEnum;
-use Modules\Payment\Handlers\GuarantorPaymentHandler;
-use Modules\Payment\Handlers\OrderPaymentHandler;
-use Modules\Payment\Handlers\TopUpPaymentHandler;
+use Modules\Payment\Events\PaymentCompleted;
+use Modules\Payment\Events\PaymentFailed;
+use Modules\Wallet\Listeners\HandleTopUpPaymentCompleted;
+use Modules\Wallet\Listeners\HandleTopUpPaymentFailed;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Services\WalletService;
 
-test('OrderPaymentHandler onSuccess marks offer as Paid', function () {
+test('HandleOrderPaymentCompleted marks offer as Paid', function () {
     ['user' => $user, 'offer' => $offer] = createOrderPaymentContext();
-    $payment = createPaymentFor($user, $offer, ['amount' => 500, 'driver' => 'testing']);
+    $payment = createPaymentFor($user, $offer, ['amount' => 500, 'driver' => 'testing', 'status' => PaymentStatusEnum::Accepted]);
 
-    DB::transaction(fn () => app(OrderPaymentHandler::class)->onSuccess($payment));
+    DB::transaction(fn () => app(HandleOrderPaymentCompleted::class)->handle(new PaymentCompleted($payment)));
 
     expect($offer->fresh()->status)->toBe(OfferStatusEnum::Paid);
 });
 
-test('OrderPaymentHandler onSuccess marks order as InProgress', function () {
+test('HandleOrderPaymentCompleted marks order as InProgress', function () {
     ['user' => $user, 'order' => $order, 'offer' => $offer] = createOrderPaymentContext();
-    $payment = createPaymentFor($user, $offer, ['amount' => 500, 'driver' => 'testing']);
+    $payment = createPaymentFor($user, $offer, ['amount' => 500, 'driver' => 'testing', 'status' => PaymentStatusEnum::Accepted]);
 
-    DB::transaction(fn () => app(OrderPaymentHandler::class)->onSuccess($payment));
+    DB::transaction(fn () => app(HandleOrderPaymentCompleted::class)->handle(new PaymentCompleted($payment)));
 
     expect($order->fresh()->status)->toBe(OrderStatusEnum::InProgress);
 });
 
-test('OrderPaymentHandler onSuccess sets order price from payment amount', function () {
+test('HandleOrderPaymentCompleted sets order price from payment amount', function () {
     ['user' => $user, 'order' => $order, 'offer' => $offer] = createOrderPaymentContext(400);
-    $payment = createPaymentFor($user, $offer, ['amount' => 425, 'driver' => 'testing']);
+    $payment = createPaymentFor($user, $offer, ['amount' => 425, 'driver' => 'testing', 'status' => PaymentStatusEnum::Accepted]);
 
-    DB::transaction(fn () => app(OrderPaymentHandler::class)->onSuccess($payment));
+    DB::transaction(fn () => app(HandleOrderPaymentCompleted::class)->handle(new PaymentCompleted($payment)));
 
     expect((float) $order->fresh()->price)->toBe(425.0);
 });
 
-test('OrderPaymentHandler onSuccess calls walletService addPendingDebit for user', function () {
+test('HandleOrderPaymentCompleted calls walletService addPendingDebit for user', function () {
     ['user' => $user, 'offer' => $offer] = createOrderPaymentContext();
-    $payment = createPaymentFor($user, $offer, ['amount' => 500, 'driver' => 'testing']);
+    $payment = createPaymentFor($user, $offer, ['amount' => 500, 'driver' => 'testing', 'status' => PaymentStatusEnum::Accepted]);
 
     $walletService = Mockery::mock(WalletService::class);
     $walletService->shouldReceive('addPendingDebit')->once()->with(
@@ -56,14 +60,14 @@ test('OrderPaymentHandler onSuccess calls walletService addPendingDebit for user
     );
     $walletService->shouldReceive('adjustPending')->once();
 
-    $handler = new OrderPaymentHandler($walletService);
+    $listener = new HandleOrderPaymentCompleted($walletService);
 
-    DB::transaction(fn () => $handler->onSuccess($payment));
+    DB::transaction(fn () => $listener->handle(new PaymentCompleted($payment)));
 });
 
-test('OrderPaymentHandler onSuccess calls walletService adjustPending for provider', function () {
-    ['user' => $user, 'provider' => $provider, 'order' => $order, 'offer' => $offer] = createOrderPaymentContext();
-    $payment = createPaymentFor($user, $offer, ['amount' => 500, 'driver' => 'testing']);
+test('HandleOrderPaymentCompleted calls walletService adjustPending for provider', function () {
+    ['user' => $user, 'offer' => $offer] = createOrderPaymentContext();
+    $payment = createPaymentFor($user, $offer, ['amount' => 500, 'driver' => 'testing', 'status' => PaymentStatusEnum::Accepted]);
 
     $walletService = Mockery::mock(WalletService::class);
     $walletService->shouldReceive('addPendingDebit')->once();
@@ -75,63 +79,72 @@ test('OrderPaymentHandler onSuccess calls walletService adjustPending for provid
         Mockery::type('string'),
     );
 
-    $handler = new OrderPaymentHandler($walletService);
+    $listener = new HandleOrderPaymentCompleted($walletService);
 
-    DB::transaction(fn () => $handler->onSuccess($payment));
+    DB::transaction(fn () => $listener->handle(new PaymentCompleted($payment)));
 });
 
-test('OrderPaymentHandler onFailure does nothing', function () {
+test('HandleOrderPaymentCompleted ignores non-order payments', function () {
+    $user = createWalletUser();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $payment = createPaymentFor($user, $topUp, ['amount' => 100, 'driver' => 'testing', 'status' => PaymentStatusEnum::Accepted]);
+
+    app(HandleOrderPaymentCompleted::class)->handle(new PaymentCompleted($payment));
+
+    expect($topUp->fresh()->status)->toBe(OperationStatusEnum::Pending);
+});
+
+test('HandleOrderPaymentFailed does nothing', function () {
     ['user' => $user, 'offer' => $offer] = createOrderPaymentContext();
     $payment = createPaymentFor($user, $offer, ['amount' => 500, 'driver' => 'testing']);
     $originalStatus = $offer->status;
 
-    app(OrderPaymentHandler::class)->onFailure($payment);
+    app(HandleOrderPaymentFailed::class)->handle(new PaymentFailed($payment));
 
     expect($offer->fresh()->status)->toBe($originalStatus);
 });
 
-test('OrderPaymentHandler productTypes returns OrderOffer class', function () {
-    expect(app(OrderPaymentHandler::class)->productTypes())->toBe([OrderOffer::class]);
-});
-
-test('TopUpPaymentHandler onSuccess approves TopUpRequest', function () {
+test('HandleTopUpPaymentCompleted approves TopUpRequest', function () {
     $user = createWalletUser();
     $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
     $payment = createPaymentFor($user, $topUp, [
         'amount' => 200,
         'driver' => 'testing',
         'transaction_id' => 'topup-txn-1',
+        'status' => PaymentStatusEnum::Accepted,
     ]);
 
-    DB::transaction(fn () => app(TopUpPaymentHandler::class)->onSuccess($payment));
+    DB::transaction(fn () => app(HandleTopUpPaymentCompleted::class)->handle(new PaymentCompleted($payment)));
 
     expect($topUp->fresh()->status)->toBe(OperationStatusEnum::Approved);
 });
 
-test('TopUpPaymentHandler onSuccess credits wallet', function () {
+test('HandleTopUpPaymentCompleted credits wallet', function () {
     $user = createWalletUser();
     $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
     $payment = createPaymentFor($user, $topUp, [
         'amount' => 200,
         'driver' => 'testing',
         'transaction_id' => 'topup-txn-2',
+        'status' => PaymentStatusEnum::Accepted,
     ]);
 
-    DB::transaction(fn () => app(TopUpPaymentHandler::class)->onSuccess($payment));
+    DB::transaction(fn () => app(HandleTopUpPaymentCompleted::class)->handle(new PaymentCompleted($payment)));
 
     expect((float) $user->wallet->fresh()->balance)->toBe(200.0);
 });
 
-test('TopUpPaymentHandler onSuccess sets payment_driver and transaction_id on TopUpRequest', function () {
+test('HandleTopUpPaymentCompleted sets payment_driver and transaction_id on TopUpRequest', function () {
     $user = createWalletUser();
     $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
     $payment = createPaymentFor($user, $topUp, [
         'amount' => 150,
         'driver' => 'testing',
         'transaction_id' => 'topup-txn-3',
+        'status' => PaymentStatusEnum::Accepted,
     ]);
 
-    DB::transaction(fn () => app(TopUpPaymentHandler::class)->onSuccess($payment));
+    DB::transaction(fn () => app(HandleTopUpPaymentCompleted::class)->handle(new PaymentCompleted($payment)));
 
     $topUp->refresh();
 
@@ -140,45 +153,60 @@ test('TopUpPaymentHandler onSuccess sets payment_driver and transaction_id on To
         ->and($topUp->payment_status)->toBe(PaymentStatusEnum::Accepted);
 });
 
-test('TopUpPaymentHandler onFailure rejects TopUpRequest', function () {
+test('HandleTopUpPaymentCompleted ignores non-top-up payments', function () {
+    ['user' => $user, 'offer' => $offer] = createOrderPaymentContext();
+    $payment = createPaymentFor($user, $offer, ['amount' => 500, 'driver' => 'testing', 'status' => PaymentStatusEnum::Accepted]);
+
+    app(HandleTopUpPaymentCompleted::class)->handle(new PaymentCompleted($payment));
+
+    expect($offer->fresh()->status)->toBe(OfferStatusEnum::Accepted);
+});
+
+test('HandleTopUpPaymentFailed rejects TopUpRequest', function () {
     $user = createWalletUser();
     $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
     $payment = createPaymentFor($user, $topUp, ['amount' => 100, 'driver' => 'testing']);
 
-    app(TopUpPaymentHandler::class)->onFailure($payment);
+    app(HandleTopUpPaymentFailed::class)->handle(new PaymentFailed($payment));
 
     expect($topUp->fresh()->payment_status)->toBe(PaymentStatusEnum::Rejected);
 });
 
-test('TopUpPaymentHandler productTypes returns TopUpRequest class', function () {
-    expect(app(TopUpPaymentHandler::class)->productTypes())->toBe([TopUpRequest::class]);
-});
-
-test('GuarantorPaymentHandler onSuccess does nothing — delegates to event listener', function () {
+test('HandleGuarantorPaymentCompleted processes guarantor request payment', function () {
     $user = createWalletUser();
     $request = GuarantorRequest::factory()->accepted()->create();
-    $payment = createPaymentFor($user, $request, ['amount' => 1000, 'driver' => 'testing']);
-    $originalStatus = $request->status;
-
-    app(GuarantorPaymentHandler::class)->onSuccess($payment);
-
-    expect($request->fresh()->status)->toBe($originalStatus);
-});
-
-test('GuarantorPaymentHandler onFailure does nothing — delegates to event listener', function () {
-    $user = createWalletUser();
-    $request = GuarantorRequest::factory()->accepted()->create();
-    $payment = createPaymentFor($user, $request, ['amount' => 1000, 'driver' => 'testing']);
-    $originalStatus = $request->status;
-
-    app(GuarantorPaymentHandler::class)->onFailure($payment);
-
-    expect($request->fresh()->status)->toBe($originalStatus);
-});
-
-test('GuarantorPaymentHandler productTypes returns GuarantorRequest and GuarantorInstallment', function () {
-    expect(app(GuarantorPaymentHandler::class)->productTypes())->toBe([
-        GuarantorRequest::class,
-        GuarantorInstallment::class,
+    $payment = createPaymentFor($user, $request, [
+        'amount' => 1000,
+        'driver' => 'testing',
+        'status' => PaymentStatusEnum::Accepted,
     ]);
+
+    app(HandleGuarantorPaymentCompleted::class)->handle(new PaymentCompleted($payment));
+
+    expect($request->fresh()->status->value)->toBe('in_progress');
+});
+
+test('HandleGuarantorPaymentCompleted ignores non-guarantor payments', function () {
+    $user = createWalletUser();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $payment = createPaymentFor($user, $topUp, ['amount' => 100, 'driver' => 'testing', 'status' => PaymentStatusEnum::Accepted]);
+
+    app(HandleGuarantorPaymentCompleted::class)->handle(new PaymentCompleted($payment));
+
+    expect($topUp->fresh()->status)->toBe(OperationStatusEnum::Pending);
+});
+
+test('HandleGuarantorPaymentCompleted handles GuarantorInstallment product type', function () {
+    $user = createWalletUser();
+    $request = GuarantorRequest::factory()->accepted()->create();
+    $installment = GuarantorInstallment::factory()->for($request, 'guarantorRequest')->create();
+    $payment = createPaymentFor($user, $installment, [
+        'amount' => 500,
+        'driver' => 'testing',
+        'status' => PaymentStatusEnum::Accepted,
+    ]);
+
+    app(HandleGuarantorPaymentCompleted::class)->handle(new PaymentCompleted($payment));
+
+    expect($installment->fresh()->status->value)->toBe('paid');
 });

@@ -1,22 +1,27 @@
 <?php
 
-namespace Modules\Payment\Handlers;
+namespace Modules\Wallet\Listeners;
 
 use App\Enums\OperationStatusEnum;
-use Modules\Payment\Contracts\PaymentHandlerInterface;
 use Modules\Payment\Enums\PaymentStatusEnum;
-use Modules\Payment\Models\Payment;
+use Modules\Payment\Events\PaymentCompleted;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Services\WalletService;
 
-class TopUpPaymentHandler implements PaymentHandlerInterface
+class HandleTopUpPaymentCompleted
 {
     public function __construct(
         private readonly WalletService $walletService,
     ) {}
 
-    public function onSuccess(Payment $payment): void
+    public function handle(PaymentCompleted $event): void
     {
+        $payment = $event->payment;
+
+        if ($payment->product_type !== TopUpRequest::class) {
+            return;
+        }
+
         /** @var TopUpRequest $topUp */
         $topUp = $payment->product;
 
@@ -33,20 +38,5 @@ class TopUpPaymentHandler implements PaymentHandlerInterface
             operation: $topUp,
             description: "Online top-up approved — TopUpRequest#{$topUp->id}",
         );
-    }
-
-    public function onFailure(Payment $payment): void
-    {
-        /** @var TopUpRequest $topUp */
-        $topUp = $payment->product;
-
-        $topUp->update([
-            'payment_status' => PaymentStatusEnum::Rejected,
-        ]);
-    }
-
-    public function productTypes(): array
-    {
-        return [TopUpRequest::class];
     }
 }

@@ -1,22 +1,27 @@
 <?php
 
-namespace Modules\Payment\Handlers;
+namespace App\Listeners\Payment;
 
 use App\Enums\Order\OfferStatusEnum;
 use App\Enums\Order\OrderStatusEnum;
 use App\Models\OrderOffer;
-use Modules\Payment\Contracts\PaymentHandlerInterface;
-use Modules\Payment\Models\Payment;
+use Modules\Payment\Events\PaymentCompleted;
 use Modules\Wallet\Services\WalletService;
 
-class OrderPaymentHandler implements PaymentHandlerInterface
+class HandleOrderPaymentCompleted
 {
     public function __construct(
         private readonly WalletService $walletService,
     ) {}
 
-    public function onSuccess(Payment $payment): void
+    public function handle(PaymentCompleted $event): void
     {
+        $payment = $event->payment;
+
+        if ($payment->product_type !== OrderOffer::class) {
+            return;
+        }
+
         $offer = $payment->product;
         $order = $offer->order;
 
@@ -40,15 +45,5 @@ class OrderPaymentHandler implements PaymentHandlerInterface
             operation: $offer,
             description: "Order payment received — OrderOffer#{$offer->id}",
         );
-    }
-
-    public function onFailure(Payment $payment): void
-    {
-        // No domain changes needed on failure
-    }
-
-    public function productTypes(): array
-    {
-        return [OrderOffer::class];
     }
 }
