@@ -48,3 +48,5 @@ jobs:
 
       - name: Tests
         run: ./vendor/bin/pest
+        env:
+          PAYMENT_DRIVER: testing

@@ -1,0 +1,60 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+
+            cd /home/ijaz/project
+
+            # 1. Pull latest
+            git fetch origin main
+            git reset --hard origin/main
+
+            # 2. Remove sensitive docs — never leave on server
+            rm -rf docs/
+            rm -f PROJECT_CONTEXT.md
+            rm -f api-documentation-notes.md
+            rm -f API_AUDIT_REPORT.md
+            rm -f API_INVENTORY.md
+            rm -f ENUMS_REFERENCE.md
+            rm -f MODELS_REFERENCE.md
+            rm -f REFACTOR_NOTES.md
+
+            # 3. PHP dependencies
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            # 4. Frontend build
+            npm ci --prefer-offline
+            npm run build
+
+            # 5. Migrations
+            php artisan migrate --force
+
+            # 6. Cache
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+
+            # 7. Restart workers
+            supervisorctl restart ijaz-default-worker:*
+            supervisorctl restart ijaz-guarantor-worker:*
+
+            echo "Deployed successfully"
