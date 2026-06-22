@@ -12,6 +12,10 @@ use RuntimeException;
 
 class PaymentService
 {
+    public function __construct(
+        private readonly InitiatePaymentAction $initiatePaymentAction,
+    ) {}
+
     /**
      * Initiate a payment for a product.
      * Must be called inside a DB transaction by the caller.
@@ -22,7 +26,7 @@ class PaymentService
         float $amount,
         ?string $driver = null,
     ): PaymentInitResult {
-        return app(InitiatePaymentAction::class)->handle($owner, $product, $amount, $driver);
+        return $this->initiatePaymentAction->handle($owner, $product, $amount, $driver);
     }
 
     /**
