@@ -3,9 +3,9 @@
 namespace Modules\Payment\Services;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Payment\Actions\InitiatePaymentAction;
 use Modules\Payment\Contracts\PaymentGatewayInterface;
 use Modules\Payment\DTOs\PaymentInitResult;
-use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Gateways\PayTabsGateway;
 use Modules\Payment\Gateways\TestingGateway;
 use RuntimeException;
@@ -14,7 +14,6 @@ class PaymentService
 {
     /**
      * Initiate a payment for a product.
-     * Creates the Payment record and calls the gateway.
      * Must be called inside a DB transaction by the caller.
      */
     public function initiate(
@@ -23,18 +22,7 @@ class PaymentService
         float $amount,
         ?string $driver = null,
     ): PaymentInitResult {
-        $driver = $driver ?? $this->getDefaultDriver();
-        $gateway = $this->resolveGateway($driver);
-
-        $payment = $owner->payments()->create([
-            'product_type' => $product::class,
-            'product_id' => $product->getKey(),
-            'amount' => $amount,
-            'status' => PaymentStatusEnum::Pending,
-            'driver' => $driver,
-        ]);
-
-        return $gateway->initiate($payment);
+        return app(InitiatePaymentAction::class)->handle($owner, $product, $amount, $driver);
     }
 
     /**

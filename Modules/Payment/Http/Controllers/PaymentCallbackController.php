@@ -22,6 +22,8 @@ class PaymentCallbackController extends Controller
      */
     public function redirect(string $driver, Payment $payment, Request $request): RedirectResponse
     {
+        abort_if($payment->driver !== $driver, 404);
+
         $this->handleCallbackAction->handle($payment, $request->all());
 
         $payment->refresh();
@@ -38,6 +40,8 @@ class PaymentCallbackController extends Controller
      */
     public function callback(string $driver, Payment $payment, Request $request): Response
     {
+        abort_if($payment->driver !== $driver, 404);
+
         $this->handleCallbackAction->handle($payment, $request->all());
 
         return response('OK', 200);
