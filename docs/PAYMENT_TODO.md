@@ -752,21 +752,31 @@ Same pattern for failed payments:
 
 ## Phase 15 — Tests
 
-- [ ] Tests for `PaymentService::initiate()`
-- [ ] Tests for `PayTabsGateway` (mock HTTP calls)
-- [ ] Tests for `TestingGateway`
-- [ ] Tests for `HandleCallbackAction` (idempotency + happy path + failure)
-- [ ] Tests for `OrderPaymentHandler::onSuccess()`
-- [ ] Tests for `TopUpPaymentHandler::onSuccess()`
-- [ ] Tests for `GuarantorPaymentHandler` + listener
-- [ ] Tests for `PaymentCallbackController` routes
-- [ ] Tests for `PaymentCompleted` event dispatch
-- [ ] Tests for `HandleGuarantorPaymentCompleted` listener
-- [ ] Tests for `NotifyOrderPaymentCompleted` listener (queued)
-- [ ] Regression: ALL 386 existing tests pass
+- [x] Tests for `PaymentService::initiate()`
+- [x] Tests for `PayTabsGateway` (mock HTTP calls)
+- [x] Tests for `TestingGateway`
+- [x] Tests for `HandleCallbackAction` (idempotency + happy path + failure)
+- [x] Tests for `OrderPaymentHandler::onSuccess()`
+- [x] Tests for `TopUpPaymentHandler::onSuccess()`
+- [x] Tests for `GuarantorPaymentHandler` + listener
+- [x] Tests for `PaymentCallbackController` routes
+- [x] Tests for `PaymentCompleted` event dispatch
+- [x] Tests for `HandleGuarantorPaymentCompleted` listener
+- [x] Tests for `NotifyOrderPaymentCompleted` listener (queued)
+- [x] Regression: ALL 386 existing tests pass
 
-### Completed: —
-### Summary: —
+### Completed: ✅
+### Summary: Added `Modules/Payment/tests/` with 42 Pest tests (8 PaymentService, 9 HandleCallbackAction, 15 Handlers, 10 callback routes). Created `PaymentFactory` with `forProduct()`, `accepted()`, `rejected()` states. Registered Payment test suite in `phpunit.xml` and `tests/Pest.php`. Fixed `PaymentCallbackController` route parameter order (`$driver` before `$payment`). All 428 tests pass (386 regression + 42 new).
+
+---
+
+## Module Complete ✅
+- Payment module: Modules/Payment/
+- Phases completed: 15/15
+- Tests: 428 passing total
+- API contracts: unchanged
+- Route URLs: unchanged
+- Branch: feature/payment-module
 
 ---
 

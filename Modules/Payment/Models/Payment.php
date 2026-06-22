@@ -3,8 +3,10 @@
 namespace Modules\Payment\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Modules\Payment\Database\Factories\PaymentFactory;
 use Modules\Payment\Enums\PaymentStatusEnum;
 
 /**
@@ -29,7 +31,7 @@ use Modules\Payment\Enums\PaymentStatusEnum;
  */
 class Payment extends Model
 {
-    use HasUuids;
+    use HasFactory, HasUuids;
 
     protected $keyType = 'string';
 
@@ -52,5 +54,10 @@ class Payment extends Model
     public function product(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    protected static function newFactory(): PaymentFactory
+    {
+        return PaymentFactory::new();
     }
 }

@@ -20,7 +20,7 @@ class PaymentCallbackController extends Controller
      * Return URL — user is redirected here after payment page.
      * GET|POST /payments/{driver}/{payment}/redirect
      */
-    public function redirect(Payment $payment, Request $request): RedirectResponse
+    public function redirect(string $driver, Payment $payment, Request $request): RedirectResponse
     {
         $this->handleCallbackAction->handle($payment, $request->all());
 
@@ -36,7 +36,7 @@ class PaymentCallbackController extends Controller
      * Webhook/IPN — server-to-server callback from gateway.
      * GET|POST /payments/{driver}/{payment}/callback
      */
-    public function callback(Payment $payment, Request $request): Response
+    public function callback(string $driver, Payment $payment, Request $request): Response
     {
         $this->handleCallbackAction->handle($payment, $request->all());
 

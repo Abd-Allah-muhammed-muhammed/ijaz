@@ -23,6 +23,9 @@
         <testsuite name="Wallet">
             <directory suffix="Test.php">./Modules/Wallet/tests</directory>
         </testsuite>
+        <testsuite name="Payment">
+            <directory suffix="Test.php">./Modules/Payment/tests</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
@@ -33,6 +36,7 @@
             <directory>Modules/Guarantor</directory>
             <directory>Modules/Chat</directory>
             <directory>Modules/Wallet</directory>
+            <directory>Modules/Payment</directory>
         </include>
     </source>
     <php>
