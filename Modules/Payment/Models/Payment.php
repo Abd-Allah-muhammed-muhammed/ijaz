@@ -5,7 +5,7 @@ namespace Modules\Payment\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Lib\Payment\DTOs\PaymentResponse;
+use Modules\Payment\DTOs\PaymentResponse;
 use Modules\Payment\Enums\PaymentStatusEnum;
 
 /**
@@ -48,7 +48,7 @@ class Payment extends Model
     public function toPaymentResponse(): PaymentResponse
     {
         return new PaymentResponse(
-            status: $this->status,
+            status: $this->status->value,
             transactionId: $this->transaction_id,
             driver: $this->driver,
             url: $this->url,

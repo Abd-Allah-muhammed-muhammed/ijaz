@@ -69,7 +69,7 @@ class GeneralController extends Controller
 
     public function paymentTest(Payment $payment)
     {
-        return view('payment.mock', compact('payment'));
+        return view('payment::payment.mock', compact('payment'));
     }
 
     public function paymentTestSubmit(Request $request, Payment $payment)

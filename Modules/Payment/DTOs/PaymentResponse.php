@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Lib\Payment\DTOs;
+namespace Modules\Payment\DTOs;
 
 use Illuminate\Contracts\Support\Arrayable;
 
@@ -16,7 +16,6 @@ final readonly class PaymentResponse implements Arrayable
         protected bool $payable,
         protected array $data = [],
         protected ?string $message = null,
-
     ) {}
 
     public function getStatus(): string

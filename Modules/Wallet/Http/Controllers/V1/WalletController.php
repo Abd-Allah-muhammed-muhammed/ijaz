@@ -4,7 +4,6 @@ namespace Modules\Wallet\Http\Controllers\V1;
 
 use App\Enums\OperationStatusEnum;
 use App\Http\Controllers\Controller;
-use App\Traits\HasPayments;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,6 +12,7 @@ use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Payment\Enums\PaymentMethodEnum;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Services\PaymentService;
+use Modules\Payment\Traits\HasPayments;
 use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
 use Modules\Wallet\Http\Requests\StoreTopUpRequest;
 use Modules\Wallet\Http\Requests\StoreWithdrawRequest;

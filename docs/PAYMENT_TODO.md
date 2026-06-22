@@ -731,23 +731,22 @@ Same pattern for failed payments:
 
 ## Phase 14 — Cleanup
 
-- [ ] Delete `lib/Payment/` directory completely
-- [ ] Delete `app/Actions/Payment/` directory completely
-- [ ] Delete `app/Http/Controllers/Payments/PayTabsController.php`
-- [ ] Delete `app/Http/Resources/PayTapResponseResource.php`
-- [ ] Delete `app/Models/Payment.php` (alias)
-- [ ] Delete `app/Traits/HasPayments.php` (alias)
-- [ ] Delete `app/Enums/Payment/` directory
-- [ ] Delete `resources/views/payment/` (moved to module)
-- [ ] Remove `PaypageServiceProvider` from `bootstrap/providers.php`
-      (paytabs package no longer needed — we call PayTabs API directly)
-- [ ] Remove payment section from `config/app.php`
-- [ ] Run: `php artisan route:list | grep payment` — same routes
-- [ ] `npm run build` — no errors
-- [ ] Run ALL tests — 386 must pass
+- [x] Delete `lib/Payment/` directory completely
+- [x] Delete `app/Actions/Payment/` directory completely (done in Phase 12)
+- [x] Delete `app/Http/Controllers/Payments/PayTabsController.php` (done in Phase 12)
+- [x] Keep `app/Http/Resources/PayTapResponseResource.php` (updated to use `Modules\Payment\DTOs\PaymentResponse`)
+- [x] Delete `app/Models/Payment.php` (alias)
+- [x] Delete `app/Traits/HasPayments.php` (alias)
+- [x] Delete `app/Enums/Payment/` directory
+- [x] Delete `resources/views/payment/` (mock view moved to `Modules/Payment/Resources/views/payment/mock.blade.php`)
+- [x] Keep `PaypageServiceProvider` in `bootstrap/providers.php` — `PayTabsGateway` still uses `paypage` from the package
+- [x] Payment section already removed from `config/app.php` (Phase 2)
+- [x] Run: `php artisan route:list | grep payment` — same routes
+- [x] `npm run build` — no errors
+- [x] Run ALL tests — 386 pass
 
-### Completed: —
-### Summary: —
+### Completed: ✅
+### Summary: Removed all backward-compat aliases (`app/Models/Payment`, `app/Traits/HasPayments`, `app/Enums/Payment/`). Deleted entire `lib/Payment/` (facade, gates, manager, DTO). Moved `PaymentResponse` DTO to `Modules/Payment/DTOs/`. Updated imports in Payment model, PayTapResponseResource, TopUp controllers, WalletController. Moved mock payment view to module namespace (`payment::payment.mock`). Kept `PaypageServiceProvider` because `PayTabsGateway` depends on the PayTabs package. `lib/` retained for SMS/WhatsApp. All 386 regression tests pass.
 
 ---
 

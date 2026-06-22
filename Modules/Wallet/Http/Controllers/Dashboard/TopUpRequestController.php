@@ -9,7 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-use Lib\Payment\DTOs\PaymentResponse;
+use Modules\Payment\DTOs\PaymentResponse;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Services\PaymentService;
 use Modules\Wallet\Http\Requests\Dashboard\UpdateTopUpStatusRequest;
