@@ -12,7 +12,9 @@ use Modules\Wallet\Listeners\HandleTopUpPaymentFailed;
 use Modules\Wallet\Listeners\NotifyTopUpPaymentFailed;
 use Modules\Wallet\Repositories\WalletRepository;
 use Modules\Wallet\Repositories\WalletTransactionRepository;
+use Modules\Wallet\Services\TopUpRequestService;
 use Modules\Wallet\Services\WalletService;
+use Modules\Wallet\Services\WithdrawRequestService;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class WalletServiceProvider extends ModuleServiceProvider
@@ -42,6 +44,16 @@ class WalletServiceProvider extends ModuleServiceProvider
         $this->app->bind(
             WalletService::class,
             WalletService::class,
+        );
+
+        $this->app->bind(
+            TopUpRequestService::class,
+            TopUpRequestService::class,
+        );
+
+        $this->app->bind(
+            WithdrawRequestService::class,
+            WithdrawRequestService::class,
         );
     }
 

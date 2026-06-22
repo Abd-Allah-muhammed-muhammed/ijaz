@@ -2,22 +2,25 @@
 
 namespace Modules\Wallet\Http\Controllers\Provider;
 
-use App\Enums\OperationStatusEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PaymentResponseResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Inertia\Response;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Payment\DTOs\PaymentResponse;
-use Modules\Payment\Enums\PaymentMethodEnum;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Services\PaymentService;
+use Modules\Wallet\DTOs\CreateTopUpData;
+use Modules\Wallet\Exceptions\WalletException;
 use Modules\Wallet\Http\Requests\Provider\TopUpRequestRequest;
 use Modules\Wallet\Http\Resources\Dashboard\TopUpCollection;
 use Modules\Wallet\Http\Resources\Dashboard\TopUpResource;
 use Modules\Wallet\Models\TopUpRequest;
+use Modules\Wallet\Services\TopUpRequestService;
 use Throwable;
 
 class TopUpController extends Controller
@@ -25,17 +28,16 @@ class TopUpController extends Controller
     use HasApiResponse;
 
     public function __construct(
+        private readonly TopUpRequestService $topUpRequestService,
         private readonly PaymentService $paymentService,
     ) {}
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
-        $rows = auth('provider')->user()->topUpRequests()
-            ->latest()
-            ->paginate($request->integer('perPage', 16));
+        $rows = $this->topUpRequestService->listForOwner(
+            auth('provider')->user(),
+            $request->integer('perPage', 16),
+        );
 
         return inertia('Provider/TopUpRequests/Index', [
             'rows' => fn () => TopUpCollection::make($rows),
@@ -43,10 +45,7 @@ class TopUpController extends Controller
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(TopUpRequest $topUpRequest)
+    public function show(TopUpRequest $topUpRequest): Response
     {
         return inertia('Provider/TopUpRequests/Show', [
             'row' => TopUpResource::make($topUpRequest),
@@ -54,55 +53,31 @@ class TopUpController extends Controller
         ]);
     }
 
-    /**
-     * @throws Throwable
-     */
-    public function store(TopUpRequestRequest $request): JsonResponse
+    public function store(TopUpRequestRequest $request): JsonResponse|RedirectResponse
     {
-        $data = $request->validated();
-        $user = auth('provider')->user();
+        $provider = auth('provider')->user();
+        $imagePath = null;
+
+        if ($request->hasFile('transaction_image')) {
+            $imagePath = $request->file('transaction_image')
+                ->store('topup', 'local');
+        }
+
+        $data = CreateTopUpData::fromRequest($request->validated(), $imagePath);
 
         DB::beginTransaction();
         try {
-            /** @var PaymentMethodEnum $paymentMethod */
-            $paymentMethod = $request->enum('payment_method', PaymentMethodEnum::class);
+            $result = $this->topUpRequestService->create($provider, $data);
+            $paymentResult = $result['paymentResult'];
+            DB::commit();
 
-            if ($paymentMethod->isOffline() && $request->hasFile('transaction_image')) {
-                $data['transaction_image'] = $request->file('transaction_image')?->store('topup', 'local');
-            }
-
-            if ($paymentMethod->isOnline()) {
-                $data['payment_status'] = PaymentStatusEnum::Pending;
-            }
-
-            /** @var TopUpRequest $topUpRequest */
-            $topUpRequest = $user->topUpRequests()->create([
-                ...$data,
-                'status' => OperationStatusEnum::Pending,
-                'wallet_id' => $user->wallet->id,
-            ]);
-
-            if ($paymentMethod->isOnline()) {
-                $result = $this->paymentService->initiate(
-                    owner: $user,
-                    product: $topUpRequest,
-                    amount: $topUpRequest->amount,
-                    driver: $request->validated('payment_driver')
-                        ?? $this->paymentService->getDefaultDriver(),
-                );
-
-                if (! $result->isSuccessful()) {
-                    DB::rollBack();
-
-                    return $this->failedMessageResponse($result->message);
+            if ($paymentResult !== null) {
+                if (! $paymentResult->isSuccessful()) {
+                    return $this->failedMessageResponse($paymentResult->message);
                 }
 
-                DB::commit();
-
-                return $this->successResponse($result->toArray());
+                return $this->successResponse($paymentResult->toArray());
             }
-
-            DB::commit();
 
             return $this->successResponse([
                 'status' => 'pending',
@@ -113,22 +88,24 @@ class TopUpController extends Controller
                 'data' => [],
                 'message' => trans('Top up request created successfully and is pending admin approval.'),
             ]);
-        } catch (Throwable $th) {
+        } catch (Throwable $e) {
             DB::rollBack();
-            report($th);
+            report($e);
 
             return $this->failedMessageResponse(__('something went wrong'));
         }
     }
 
-    public function destroy(TopUpRequest $topUpRequest)
+    public function destroy(TopUpRequest $topUpRequest): RedirectResponse
     {
-        if (! $topUpRequest->status->isPending()) {
-            return $this->failedMessageResponse(__('Only pending top-up requests can be deleted.'));
-        }
-        $topUpRequest->delete();
+        try {
+            $this->topUpRequestService->cancel($topUpRequest);
 
-        return redirect()->route('provider.top-up-requests.index')->with('success', __('data deleted successfully'));
+            return redirect()->route('provider.top-up-requests.index')
+                ->with('success', __('data deleted successfully'));
+        } catch (WalletException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 
     private function resolvePaymentResponse(TopUpRequest $topUpRequest): ?PaymentResponseResource

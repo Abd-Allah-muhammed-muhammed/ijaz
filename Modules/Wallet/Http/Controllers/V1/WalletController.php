@@ -2,26 +2,25 @@
 
 namespace Modules\Wallet\Http\Controllers\V1;
 
-use App\Enums\OperationStatusEnum;
 use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use MMAE\ApiResponse\Traits\HasApiResponse;
-use Modules\Payment\Enums\PaymentMethodEnum;
-use Modules\Payment\Enums\PaymentStatusEnum;
-use Modules\Payment\Services\PaymentService;
-use Modules\Payment\Traits\HasPayments;
 use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
+use Modules\Wallet\DTOs\CreateTopUpData;
+use Modules\Wallet\DTOs\CreateWithdrawData;
+use Modules\Wallet\Exceptions\InsufficientBalanceException;
 use Modules\Wallet\Http\Requests\StoreTopUpRequest;
 use Modules\Wallet\Http\Requests\StoreWithdrawRequest;
 use Modules\Wallet\Http\Resources\TopUpResource;
 use Modules\Wallet\Http\Resources\WalletResource;
 use Modules\Wallet\Http\Resources\WalletTransactionCollection;
 use Modules\Wallet\Http\Resources\WithdrawRequestResource;
-use Modules\Wallet\Models\TopUpRequest;
+use Modules\Wallet\Services\TopUpRequestService;
 use Modules\Wallet\Services\WalletService;
+use Modules\Wallet\Services\WithdrawRequestService;
 use Modules\Wallet\Traits\HasWallet;
 use Throwable;
 
@@ -32,65 +31,49 @@ class WalletController extends Controller
 
     public function __construct(
         private readonly WalletService $walletService,
+        private readonly TopUpRequestService $topUpRequestService,
+        private readonly WithdrawRequestService $withdrawRequestService,
         private readonly WalletTransactionRepositoryInterface $transactionRepository,
-        private readonly PaymentService $paymentService,
     ) {}
 
     public function balance(Request $request): JsonResponse
     {
         /** @var HasWallet $user */
         $user = auth()->user();
+        $this->walletService->getBalance($user);
 
         return $this->successResponse(
             WalletResource::make($user->wallet)
         );
     }
 
-    /**
-     * @throws Throwable
-     */
     public function addBalance(StoreTopUpRequest $request): JsonResponse
     {
-        /** @var HasWallet&HasPayments $user */
         $user = auth()->user();
-        $data = $request->validated();
+
+        $imagePath = $request->file('transaction_image')
+            ?->store('transactions');
+
+        $data = CreateTopUpData::fromRequest($request->validated(), $imagePath);
 
         DB::beginTransaction();
         try {
-            if ($data['payment_method'] === PaymentMethodEnum::Online->value) {
-                $data['payment_status'] = PaymentStatusEnum::Pending;
-            }
+            $result = $this->topUpRequestService->create($user, $data);
+            DB::commit();
 
-            /** @var TopUpRequest $topRequest */
-            $topRequest = $user->topUpRequests()->create([
-                ...$data,
-                'status' => OperationStatusEnum::Pending,
-                'wallet_id' => $user->wallet->id,
-                'transaction_image' => $request->file('transaction_image')?->store('transactions'),
-            ]);
+            $topUpRequest = $result['topUpRequest'];
+            $paymentResult = $result['paymentResult'];
 
-            if ($topRequest->payment_method->isOnline()) {
-                $result = $this->paymentService->initiate(
-                    owner: $user,
-                    product: $topRequest,
-                    amount: $topRequest->amount,
-                );
-
-                if (! $result->isSuccessful()) {
-                    DB::rollBack();
-
-                    return $this->failedMessageResponse($result->message);
+            if ($paymentResult !== null) {
+                if (! $paymentResult->isSuccessful()) {
+                    return $this->failedMessageResponse($paymentResult->message);
                 }
 
-                DB::commit();
-
                 return $this->successResponse([
-                    ...$result->toArray(),
-                    'data' => TopUpResource::make($topRequest),
+                    ...$paymentResult->toArray(),
+                    'data' => TopUpResource::make($topUpRequest),
                 ]);
             }
-
-            DB::commit();
 
             return $this->successResponse([
                 'status' => 'pending',
@@ -98,12 +81,12 @@ class WalletController extends Controller
                 'driver' => 'offline',
                 'url' => '',
                 'payable' => false,
-                'data' => TopUpResource::make($topRequest),
+                'data' => TopUpResource::make($topUpRequest),
                 'message' => trans('top up request created successfully, waiting for admin approval'),
             ]);
-        } catch (Throwable $throwable) {
+        } catch (Throwable $e) {
             DB::rollBack();
-            report($throwable);
+            report($e);
 
             return $this->failedMessageResponse(trans('something went wrong'));
         }
@@ -111,27 +94,12 @@ class WalletController extends Controller
 
     public function withdraw(StoreWithdrawRequest $request): JsonResponse
     {
-        /** @var HasWallet $user */
         $user = auth()->user();
-        $data = $request->validated();
+        $data = CreateWithdrawData::fromRequest($request->validated());
 
         DB::beginTransaction();
         try {
-            if (! $this->walletService->canWithdraw($user, (float) $data['amount'])) {
-                DB::rollBack();
-
-                return $this->failedMessageResponse(__('You can\'t withdraw this amount.'));
-            }
-
-            $withdrawRequest = $user->withdrawRequests()->create($data);
-
-            $this->walletService->addPendingDebit(
-                $user,
-                (float) $data['amount'],
-                $withdrawRequest,
-                'Withdraw Request Created #'.$withdrawRequest->id,
-            );
-
+            $withdrawRequest = $this->withdrawRequestService->create($user, $data);
             DB::commit();
 
             return $this->successResponse([
@@ -139,9 +107,13 @@ class WalletController extends Controller
                 'data' => WithdrawRequestResource::make($withdrawRequest),
                 'message' => trans('Withdraw request created successfully and is pending admin approval.'),
             ]);
-        } catch (Throwable $th) {
+        } catch (InsufficientBalanceException $e) {
             DB::rollBack();
-            report($th);
+
+            return $this->failedMessageResponse(__("You can't withdraw this amount."));
+        } catch (Throwable $e) {
+            DB::rollBack();
+            report($e);
 
             return $this->failedMessageResponse(trans('something went wrong'));
         }

@@ -7,29 +7,26 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Inertia\Response;
 use Modules\Wallet\Http\Requests\Dashboard\UpdateWithdrawStatusRequest;
 use Modules\Wallet\Http\Resources\Dashboard\WithdrawCollection;
 use Modules\Wallet\Http\Resources\Dashboard\WithdrawResource;
 use Modules\Wallet\Models\WithdrawRequest;
 use Modules\Wallet\Services\WalletService;
-use Throwable;
+use Modules\Wallet\Services\WithdrawRequestService;
 
 class WithdrawRequestController extends Controller
 {
     public function __construct(
+        private readonly WithdrawRequestService $withdrawRequestService,
         private readonly WalletService $walletService,
     ) {}
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
-        $rows = WithdrawRequest::query()
-            ->with(['user'])
-            ->orderBy(DB::raw('status = "'.OperationStatusEnum::Pending->value.'"'), 'DESC')
-            ->orderBy('created_at', 'desc')
-            ->paginate($request->integer('perPage', 16));
+        $rows = $this->withdrawRequestService->listAll(
+            $request->integer('perPage', 16),
+        );
 
         return inertia('Dashboard/WithdrawRequests/Index', [
             'rows' => fn () => WithdrawCollection::make($rows),
@@ -37,48 +34,39 @@ class WithdrawRequestController extends Controller
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(WithdrawRequest $withdrawRequest)
+    public function show(WithdrawRequest $withdrawRequest): Response
     {
-        $withdrawRequest->load(['user']);
+        $withdrawRequest->load('user');
 
         return inertia('Dashboard/WithdrawRequests/Show', [
             'row' => WithdrawResource::make($withdrawRequest),
         ]);
     }
 
-    public function updateStatus(WithdrawRequest $withdrawRequest, UpdateWithdrawStatusRequest $request): RedirectResponse
-    {
-        $data = $request->validated();
-        $admin = auth('admin')->user();
-
+    public function updateStatus(
+        WithdrawRequest $withdrawRequest,
+        UpdateWithdrawStatusRequest $request,
+    ): RedirectResponse {
         if ($withdrawRequest->status !== OperationStatusEnum::Pending) {
             return redirect()->back()->with('error', __('you can not update this withdraw request status'));
         }
 
-        $approved = $data['status'] === OperationStatusEnum::Approved->value;
+        $approved = $request->validated('status') === OperationStatusEnum::Approved->value;
 
-        try {
-            DB::transaction(function () use ($data, $withdrawRequest, $admin, $approved) {
-                $withdrawRequest->update([
-                    ...$data,
-                    'admin_id' => $admin->id,
-                ]);
+        DB::transaction(function () use ($request, $withdrawRequest, $approved) {
+            $withdrawRequest->update([
+                'status' => $request->validated('status'),
+                'admin_notes' => $request->validated('admin_notes'),
+                'admin_id' => auth('admin')->id(),
+            ]);
 
-                $this->walletService->finalizeWithdraw(
-                    $withdrawRequest->user,
-                    $withdrawRequest,
-                    $approved,
-                );
-            });
+            $this->walletService->finalizeWithdraw(
+                owner: $withdrawRequest->user,
+                request: $withdrawRequest,
+                approved: $approved,
+            );
+        });
 
-            return redirect()->route('dashboard.withdraw-requests.index')->with('success', __('data saved successfully'));
-        } catch (Throwable $throwable) {
-            report($throwable);
-
-            return redirect()->back()->with('error', __('something went wrong'));
-        }
+        return redirect()->route('dashboard.withdraw-requests.index')->with('success', __('data saved successfully'));
     }
 }

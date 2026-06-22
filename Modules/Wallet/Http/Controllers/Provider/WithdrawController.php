@@ -6,30 +6,29 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use MMAE\ApiResponse\Traits\HasApiResponse;
+use Inertia\Response;
+use Modules\Wallet\DTOs\CreateWithdrawData;
+use Modules\Wallet\Exceptions\InsufficientBalanceException;
+use Modules\Wallet\Exceptions\WalletException;
 use Modules\Wallet\Http\Requests\Provider\WithdrawRequestRequest;
 use Modules\Wallet\Http\Resources\Dashboard\WithdrawCollection;
 use Modules\Wallet\Http\Resources\Dashboard\WithdrawResource;
 use Modules\Wallet\Models\WithdrawRequest;
-use Modules\Wallet\Services\WalletService;
+use Modules\Wallet\Services\WithdrawRequestService;
 use Throwable;
 
 class WithdrawController extends Controller
 {
-    use HasApiResponse;
-
     public function __construct(
-        private readonly WalletService $walletService,
+        private readonly WithdrawRequestService $withdrawRequestService,
     ) {}
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
+    public function index(Request $request): Response
     {
-        $rows = auth('provider')->user()->withdrawRequests()
-            ->latest()
-            ->paginate($request->integer('perPage', 16));
+        $rows = $this->withdrawRequestService->listForOwner(
+            auth('provider')->user(),
+            $request->integer('perPage', 16),
+        );
 
         return inertia('Provider/WithdrawRequests/Index', [
             'rows' => fn () => WithdrawCollection::make($rows),
@@ -37,10 +36,7 @@ class WithdrawController extends Controller
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(WithdrawRequest $withdrawRequest)
+    public function show(WithdrawRequest $withdrawRequest): Response
     {
         return inertia('Provider/WithdrawRequests/Show', [
             'row' => WithdrawResource::make($withdrawRequest),
@@ -48,68 +44,48 @@ class WithdrawController extends Controller
         ]);
     }
 
-    /**
-     * @throws Throwable
-     */
     public function store(WithdrawRequestRequest $request): RedirectResponse
     {
-        $data = $request->validated();
-        $user = auth('provider')->user();
+        $provider = auth('provider')->user();
+        $data = CreateWithdrawData::fromRequest($request->validated());
 
         DB::beginTransaction();
         try {
-            if (! $this->walletService->canWithdraw($user, (float) $data['amount'])) {
-                DB::rollBack();
-
-                return redirect()->back()->with('error', __('You can\'t withdraw this amount.'));
-            }
-
-            /** @var WithdrawRequest $withdrawRequest */
-            $withdrawRequest = $user->withdrawRequests()->create($data);
-
-            $this->walletService->addPendingDebit(
-                $user,
-                (float) $data['amount'],
-                $withdrawRequest,
-                'Withdraw Request Created #'.$withdrawRequest->id,
-            );
-
+            $this->withdrawRequestService->create($provider, $data);
             DB::commit();
 
-            return redirect()->back()->with('success', trans('Withdraw request created successfully and is pending admin approval.'));
-        } catch (Throwable $th) {
+            return redirect()->back()
+                ->with('success', trans('Withdraw request created successfully and is pending admin approval.'));
+        } catch (InsufficientBalanceException $e) {
             DB::rollBack();
-            report($th);
+
+            return redirect()->back()->with('error', __("You can't withdraw this amount."));
+        } catch (Throwable $e) {
+            DB::rollBack();
+            report($e);
 
             return redirect()->back()->with('error', __('something went wrong'));
         }
     }
 
-    public function destroy(WithdrawRequest $withdrawRequest)
+    public function destroy(WithdrawRequest $withdrawRequest): RedirectResponse
     {
-        if (! $withdrawRequest->status->isPending()) {
-            return $this->failedMessageResponse(__('Only pending withdraw requests can be deleted.'));
-        }
-
-        $user = auth('provider')->user();
+        $provider = auth('provider')->user();
 
         DB::beginTransaction();
         try {
-            $this->walletService->reversePendingDebit(
-                $user,
-                (float) $withdrawRequest->amount,
-                $withdrawRequest,
-                'Withdraw Request Deleted #'.$withdrawRequest->id,
-            );
-
-            $withdrawRequest->delete();
-
+            $this->withdrawRequestService->cancel($provider, $withdrawRequest);
             DB::commit();
 
-            return redirect()->route('provider.withdraw-requests.index')->with('success', __('data deleted successfully'));
-        } catch (Throwable $th) {
+            return redirect()->route('provider.withdraw-requests.index')
+                ->with('success', __('data deleted successfully'));
+        } catch (WalletException $e) {
             DB::rollBack();
-            report($th);
+
+            return redirect()->back()->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            DB::rollBack();
+            report($e);
 
             return redirect()->back()->with('error', __('something went wrong'));
         }
