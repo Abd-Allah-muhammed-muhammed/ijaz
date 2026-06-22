@@ -23,6 +23,8 @@ interface InstallmentRepositoryInterface
 
     public function getPendingForRequest(GuarantorRequest $request): Collection;
 
+    public function listOrderedForRequest(GuarantorRequest $request): Collection;
+
     public function getNextPendingForRequest(GuarantorRequest $request): ?GuarantorInstallment;
 
     public function getOverdue(): LazyCollection;

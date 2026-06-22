@@ -135,6 +135,59 @@ test('listByCounterparty returns only counterparty requests', function () {
         ->and($results->first()->id)->toBe($assigned->id);
 });
 
+test('listForActor filters by multiple statuses', function () {
+    $actor = User::factory()->create();
+
+    $accepted = GuarantorRequest::factory()->create([
+        'requester_type' => User::class,
+        'requester_id' => $actor->getKey(),
+        'status' => GuarantorStatusEnum::Accepted,
+    ]);
+
+    $inProgress = GuarantorRequest::factory()->create([
+        'requester_type' => User::class,
+        'requester_id' => $actor->getKey(),
+        'status' => GuarantorStatusEnum::InProgress,
+    ]);
+
+    GuarantorRequest::factory()->create([
+        'requester_type' => User::class,
+        'requester_id' => $actor->getKey(),
+        'status' => GuarantorStatusEnum::Ended,
+    ]);
+
+    $results = app(GuarantorRepositoryInterface::class)
+        ->listForActor($actor, new GuarantorFiltersData(
+            statuses: [GuarantorStatusEnum::Accepted->value, GuarantorStatusEnum::InProgress->value],
+            per_page: 50,
+        ));
+
+    expect($results->total())->toBe(2)
+        ->and($results->pluck('id')->all())->toContain($accepted->id, $inProgress->id);
+});
+
+test('listOrderedForRequest returns all installments ordered by order', function () {
+    $guarantorRequest = GuarantorRequest::factory()->create();
+
+    $paid = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create([
+        'order' => 1,
+        'status' => InstallmentStatusEnum::Paid,
+        'paid_at' => now(),
+    ]);
+
+    $pending = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create([
+        'order' => 2,
+        'status' => InstallmentStatusEnum::Pending,
+    ]);
+
+    $results = app(InstallmentRepositoryInterface::class)
+        ->listOrderedForRequest($guarantorRequest);
+
+    expect($results)->toHaveCount(2)
+        ->and($results->first()->id)->toBe($paid->id)
+        ->and($results->last()->id)->toBe($pending->id);
+});
+
 test('getNextPendingForRequest returns lowest order pending installment', function () {
     $guarantorRequest = GuarantorRequest::factory()->create();
 

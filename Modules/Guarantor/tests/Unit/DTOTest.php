@@ -1,12 +1,38 @@
 <?php
 
+use Illuminate\Http\Request;
 use Modules\Guarantor\DTOs\CompanyDetailData;
 use Modules\Guarantor\DTOs\GuarantorData;
+use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
 use Modules\Guarantor\Http\Requests\UpdateGuarantorStatusRequest;
+
+test('GuarantorFiltersData parses single status string', function () {
+    $data = GuarantorFiltersData::fromRequest(new Request(['status' => 'accepted']));
+
+    expect($data->statuses)->toBe(['accepted']);
+});
+
+test('GuarantorFiltersData parses comma-separated statuses', function () {
+    $data = GuarantorFiltersData::fromRequest(new Request(['status' => 'new,accepted']));
+
+    expect($data->statuses)->toBe(['new', 'accepted']);
+});
+
+test('GuarantorFiltersData parses status array', function () {
+    $data = GuarantorFiltersData::fromRequest(new Request(['status' => ['new', 'in_progress']]));
+
+    expect($data->statuses)->toBe(['new', 'in_progress']);
+});
+
+test('GuarantorFiltersData returns null statuses when not provided', function () {
+    $data = GuarantorFiltersData::fromRequest(new Request);
+
+    expect($data->statuses)->toBeNull();
+});
 
 test('GuarantorData can be constructed', function () {
     $data = new GuarantorData(

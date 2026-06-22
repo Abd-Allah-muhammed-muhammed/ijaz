@@ -53,7 +53,7 @@ class InstallmentController extends Controller
 
         return $this->successResponse(
             InstallmentResource::collection(
-                $guarantorRequest->installments()->orderBy('order')->get()
+                $this->service->listForRequest($guarantorRequest)
             )
         );
     }
