@@ -3,16 +3,16 @@
 namespace Modules\Wallet\Models;
 
 use App\Enums\OperationStatusEnum;
-use Modules\Payment\Enums\PaymentMethodEnum;
-use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Models\Admin;
-use Modules\Payment\Models\Payment;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Modules\Payment\Enums\PaymentMethodEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Models\Payment;
 use Modules\Wallet\Database\Factories\TopUpRequestFactory;
 
 class TopUpRequest extends Model

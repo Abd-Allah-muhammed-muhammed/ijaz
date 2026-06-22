@@ -5,6 +5,7 @@ namespace App\Listeners\Payment;
 use App\Enums\Order\OfferStatusEnum;
 use App\Enums\Order\OrderStatusEnum;
 use App\Models\OrderOffer;
+use Illuminate\Support\Facades\DB;
 use Modules\Payment\Events\PaymentCompleted;
 use Modules\Wallet\Services\WalletService;
 
@@ -22,28 +23,30 @@ class HandleOrderPaymentCompleted
             return;
         }
 
-        $offer = $payment->product;
-        $order = $offer->order;
+        DB::transaction(function () use ($payment) {
+            $offer = $payment->product;
+            $order = $offer->order;
 
-        $offer->update(['status' => OfferStatusEnum::Paid]);
-        $order->update([
-            'status' => OrderStatusEnum::InProgress,
-            'price' => $payment->amount,
-        ]);
+            $offer->update(['status' => OfferStatusEnum::Paid]);
+            $order->update([
+                'status' => OrderStatusEnum::InProgress,
+                'price' => $payment->amount,
+            ]);
 
-        $this->walletService->addPendingDebit(
-            owner: $payment->user,
-            amount: $payment->amount,
-            operation: $offer,
-            description: "Order payment — OrderOffer#{$offer->id}",
-        );
+            $this->walletService->addPendingDebit(
+                owner: $payment->user,
+                amount: $payment->amount,
+                operation: $offer,
+                description: "Order payment — OrderOffer#{$offer->id}",
+            );
 
-        $this->walletService->adjustPending(
-            owner: $offer->provider,
-            creditDelta: $order->price,
-            debitDelta: $order->provider_fees,
-            operation: $offer,
-            description: "Order payment received — OrderOffer#{$offer->id}",
-        );
+            $this->walletService->adjustPending(
+                owner: $offer->provider,
+                creditDelta: $order->price,
+                debitDelta: $order->provider_fees,
+                operation: $offer,
+                description: "Order payment received — OrderOffer#{$offer->id}",
+            );
+        });
     }
 }

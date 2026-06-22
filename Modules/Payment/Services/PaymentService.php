@@ -3,19 +3,13 @@
 namespace Modules\Payment\Services;
 
 use Illuminate\Database\Eloquent\Model;
-use Modules\Payment\Actions\InitiatePaymentAction;
 use Modules\Payment\Contracts\PaymentGatewayInterface;
 use Modules\Payment\DTOs\PaymentInitResult;
-use Modules\Payment\Gateways\PayTabsGateway;
-use Modules\Payment\Gateways\TestingGateway;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use RuntimeException;
 
 class PaymentService
 {
-    public function __construct(
-        private readonly InitiatePaymentAction $initiatePaymentAction,
-    ) {}
-
     /**
      * Initiate a payment for a product.
      * Must be called inside a DB transaction by the caller.
@@ -26,7 +20,18 @@ class PaymentService
         float $amount,
         ?string $driver = null,
     ): PaymentInitResult {
-        return $this->initiatePaymentAction->handle($owner, $product, $amount, $driver);
+        $driver = $driver ?? $this->getDefaultDriver();
+        $gateway = $this->resolveGateway($driver);
+
+        $payment = $owner->payments()->create([
+            'product_type' => $product::class,
+            'product_id' => $product->getKey(),
+            'amount' => $amount,
+            'status' => PaymentStatusEnum::Pending,
+            'driver' => $driver,
+        ]);
+
+        return $gateway->initiate($payment);
     }
 
     /**
@@ -34,11 +39,13 @@ class PaymentService
      */
     public function resolveGateway(string $driver): PaymentGatewayInterface
     {
-        return match ($driver) {
-            'paytabs' => app(PayTabsGateway::class),
-            'testing' => app(TestingGateway::class),
-            default => throw new RuntimeException("Unsupported payment driver: {$driver}"),
-        };
+        $gateways = config('payment.gateways', []);
+
+        if (! array_key_exists($driver, $gateways)) {
+            throw new RuntimeException("Unsupported payment driver: [{$driver}]");
+        }
+
+        return app($gateways[$driver]);
     }
 
     /**

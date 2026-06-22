@@ -6,6 +6,12 @@ namespace Modules\Payment\DTOs;
 
 use Illuminate\Contracts\Support\Arrayable;
 
+/**
+ * Payment response shape for admin/provider display pages (Inertia).
+ * Used by TopUpController show pages.
+ *
+ * @see PaymentInitResult for API initiation responses
+ */
 final readonly class PaymentResponse implements Arrayable
 {
     public function __construct(

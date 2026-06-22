@@ -3,6 +3,7 @@
 namespace Modules\Wallet\Listeners;
 
 use App\Enums\OperationStatusEnum;
+use Illuminate\Support\Facades\DB;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Events\PaymentCompleted;
 use Modules\Wallet\Models\TopUpRequest;
@@ -22,21 +23,23 @@ class HandleTopUpPaymentCompleted
             return;
         }
 
-        /** @var TopUpRequest $topUp */
-        $topUp = $payment->product;
+        DB::transaction(function () use ($payment) {
+            /** @var TopUpRequest $topUp */
+            $topUp = $payment->product;
 
-        $topUp->update([
-            'status' => OperationStatusEnum::Approved,
-            'payment_status' => PaymentStatusEnum::Accepted,
-            'transaction_id' => $payment->transaction_id,
-            'payment_driver' => $payment->driver,
-        ]);
+            $topUp->update([
+                'status' => OperationStatusEnum::Approved,
+                'payment_status' => PaymentStatusEnum::Accepted,
+                'transaction_id' => $payment->transaction_id,
+                'payment_driver' => $payment->driver,
+            ]);
 
-        $this->walletService->credit(
-            owner: $payment->user,
-            amount: $payment->amount,
-            operation: $topUp,
-            description: "Online top-up approved — TopUpRequest#{$topUp->id}",
-        );
+            $this->walletService->credit(
+                owner: $payment->user,
+                amount: $payment->amount,
+                operation: $topUp,
+                description: "Online top-up approved — TopUpRequest#{$topUp->id}",
+            );
+        });
     }
 }

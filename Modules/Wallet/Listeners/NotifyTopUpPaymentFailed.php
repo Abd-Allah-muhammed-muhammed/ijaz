@@ -2,12 +2,11 @@
 
 namespace Modules\Wallet\Listeners;
 
-use Illuminate\Support\Facades\DB;
-use Modules\Payment\Enums\PaymentStatusEnum;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Payment\Events\PaymentFailed;
 use Modules\Wallet\Models\TopUpRequest;
 
-class HandleTopUpPaymentFailed
+class NotifyTopUpPaymentFailed implements ShouldQueue
 {
     public function handle(PaymentFailed $event): void
     {
@@ -17,10 +16,7 @@ class HandleTopUpPaymentFailed
             return;
         }
 
-        DB::transaction(function () use ($payment) {
-            $payment->product->update([
-                'payment_status' => PaymentStatusEnum::Rejected,
-            ]);
-        });
+        // TODO: notify user that top-up payment failed
+        // FirebaseService::notify($payment->user, 'top_up_failed', ...)
     }
 }

@@ -7,7 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Payment\DTOs\PaymentResponse;
 
 /** @mixin PaymentResponse  */
-class PayTapResponseResource extends JsonResource
+class PaymentResponseResource extends JsonResource
 {
     public function toArray(Request $request): array
     {

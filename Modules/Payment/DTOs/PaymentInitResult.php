@@ -2,6 +2,12 @@
 
 namespace Modules\Payment\DTOs;
 
+/**
+ * Result of a payment initiation (gateway::initiate()).
+ * Returned to API callers via PaymentService::initiate().
+ *
+ * @see PaymentResponse for admin/provider display use cases
+ */
 final readonly class PaymentInitResult
 {
     public function __construct(

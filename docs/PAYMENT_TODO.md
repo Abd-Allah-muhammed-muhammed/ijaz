@@ -780,6 +780,17 @@ Same pattern for failed payments:
 
 ---
 
+## Pre-Rajhi Cleanup ✅
+- Removed circular dependency (InitiatePaymentAction deleted)
+- Config-driven gateway resolution
+- PaymentDriverEnum::Rajhi added
+- DB::transaction added to all sync listeners
+- PayTapResponseResource → PaymentResponseResource
+- NotifyTopUpPaymentFailed added
+- Deprecated app/Enums/Payment/ aliases removed
+
+---
+
 ## Bug Fixes (fixed during build)
 
 | # | Bug | Fixed in Phase |

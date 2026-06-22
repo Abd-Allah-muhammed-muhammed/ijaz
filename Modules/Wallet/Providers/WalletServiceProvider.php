@@ -9,6 +9,7 @@ use Modules\Wallet\Contracts\Repositories\WalletRepositoryInterface;
 use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
 use Modules\Wallet\Listeners\HandleTopUpPaymentCompleted;
 use Modules\Wallet\Listeners\HandleTopUpPaymentFailed;
+use Modules\Wallet\Listeners\NotifyTopUpPaymentFailed;
 use Modules\Wallet\Repositories\WalletRepository;
 use Modules\Wallet\Repositories\WalletTransactionRepository;
 use Modules\Wallet\Services\WalletService;
@@ -52,6 +53,7 @@ class WalletServiceProvider extends ModuleServiceProvider
 
         Event::listen(PaymentCompleted::class, HandleTopUpPaymentCompleted::class);
         Event::listen(PaymentFailed::class, HandleTopUpPaymentFailed::class);
+        Event::listen(PaymentFailed::class, NotifyTopUpPaymentFailed::class);
 
         // Policies — added in later phases
     }

@@ -4,7 +4,7 @@ namespace Modules\Wallet\Http\Controllers\Dashboard;
 
 use App\Enums\OperationStatusEnum;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\PayTapResponseResource;
+use App\Http\Resources\PaymentResponseResource;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -56,7 +56,7 @@ class TopUpRequestController extends Controller
         ]);
     }
 
-    private function resolvePaymentResponse(TopUpRequest $topUpRequest): ?PayTapResponseResource
+    private function resolvePaymentResponse(TopUpRequest $topUpRequest): ?PaymentResponseResource
     {
         if (! $topUpRequest->transaction_id || ! $topUpRequest->payment_driver) {
             return null;
@@ -77,7 +77,7 @@ class TopUpRequestController extends Controller
             $rawResponse = $verifyResult->rawResponse;
         }
 
-        return PayTapResponseResource::make(new PaymentResponse(
+        return PaymentResponseResource::make(new PaymentResponse(
             status: $payment->status === PaymentStatusEnum::Accepted ? 'success' : $payment->status->value,
             transactionId: $topUpRequest->transaction_id,
             driver: $topUpRequest->payment_driver,

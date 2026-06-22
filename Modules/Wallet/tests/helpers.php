@@ -1,8 +1,6 @@
 <?php
 
 use App\Enums\OperationStatusEnum;
-use Modules\Payment\Enums\PaymentMethodEnum;
-use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Models\Admin;
 use App\Models\City;
@@ -16,6 +14,8 @@ use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
+use Modules\Payment\Enums\PaymentMethodEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Models\WithdrawRequest;
 use Modules\Wallet\Services\WalletService;

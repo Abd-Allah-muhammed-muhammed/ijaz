@@ -2,6 +2,7 @@
 
 namespace Modules\Guarantor\Listeners;
 
+use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Actions\Payment\ProcessGuarantorPayment;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
@@ -24,6 +25,8 @@ class HandleGuarantorPaymentCompleted
             return;
         }
 
-        $this->processGuarantorPayment->handle($payment);
+        DB::transaction(function () use ($payment) {
+            $this->processGuarantorPayment->handle($payment);
+        });
     }
 }

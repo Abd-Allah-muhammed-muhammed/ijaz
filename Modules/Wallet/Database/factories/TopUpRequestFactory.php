@@ -3,10 +3,10 @@
 namespace Modules\Wallet\Database\Factories;
 
 use App\Enums\OperationStatusEnum;
-use Modules\Payment\Enums\PaymentMethodEnum;
-use Modules\Payment\Enums\PaymentStatusEnum;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Payment\Enums\PaymentMethodEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Wallet\Models\TopUpRequest;
 
 /**

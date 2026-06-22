@@ -1,8 +1,17 @@
 <?php
 
+use Modules\Payment\Gateways\PayTabsGateway;
+use Modules\Payment\Gateways\TestingGateway;
+
 return [
 
     'default' => env('PAYMENT_DRIVER', 'paytabs'),
+
+    'gateways' => [
+        'paytabs' => PayTabsGateway::class,
+        'testing' => TestingGateway::class,
+        // 'rajhi' => RajhiGateway::class,
+    ],
 
     'drivers' => [
 

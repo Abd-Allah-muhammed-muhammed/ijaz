@@ -75,7 +75,7 @@ test('resolveGateway returns PayTabsGateway for paytabs driver', function () {
 
 test('resolveGateway throws RuntimeException for unknown driver', function () {
     expect(fn () => app(PaymentService::class)->resolveGateway('unknown-driver'))
-        ->toThrow(RuntimeException::class, 'Unsupported payment driver: unknown-driver');
+        ->toThrow(RuntimeException::class, 'Unsupported payment driver: [unknown-driver]');
 });
 
 test('getDefaultDriver reads from config', function () {
