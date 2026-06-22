@@ -791,6 +791,16 @@ Same pattern for failed payments:
 
 ---
 
+## PayTabs Gateway Fix ✅
+- Bridged config in PaymentServiceProvider (paytabs.* ← payment.drivers.paytabs.{mode})
+- verify() now handles both Return URL (tranRef) and IPN (tran_ref)
+- Signature verification added:
+  - Return URL: is_valid_redirect($postArray)
+  - IPN: is_valid_ipn($rawBody, $headerSignature)
+- Response status mapping: A=Accepted, C/V=Canceled, else=Rejected
+
+---
+
 ## Bug Fixes (fixed during build)
 
 | # | Bug | Fixed in Phase |

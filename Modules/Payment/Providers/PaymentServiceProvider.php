@@ -19,6 +19,10 @@ class PaymentServiceProvider extends ModuleServiceProvider
         parent::register();
 
         $this->mergeConfigFrom(module_path('Payment', 'config/payment.php'), 'payment');
+
+        $this->app->booting(function () {
+            $this->bridgePaytabsConfig();
+        });
     }
 
     public function boot(): void
@@ -27,5 +31,18 @@ class PaymentServiceProvider extends ModuleServiceProvider
 
         $this->loadMigrationsFrom(module_path('Payment', 'Database/Migrations'));
         $this->loadViewsFrom(module_path('Payment', 'Resources/views'), 'payment');
+    }
+
+    private function bridgePaytabsConfig(): void
+    {
+        $mode = config('payment.drivers.paytabs.mode', 'test');
+        $config = config("payment.drivers.paytabs.{$mode}", []);
+
+        config([
+            'paytabs.profile_id' => $config['profile_id'] ?? null,
+            'paytabs.server_key' => $config['server_key'] ?? null,
+            'paytabs.currency' => $config['currency'] ?? 'SAR',
+            'paytabs.region' => $config['region'] ?? 'SAU',
+        ]);
     }
 }

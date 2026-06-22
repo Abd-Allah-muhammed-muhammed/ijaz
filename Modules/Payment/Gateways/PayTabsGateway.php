@@ -8,6 +8,7 @@ use Modules\Payment\DTOs\PaymentVerifyResult;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Models\Payment;
 use Paytabscom\Laravel_paytabs\paypage;
+use Paytabscom\Laravel_paytabs\PaytabsApi;
 use Paytabscom\Laravel_paytabs\PaytabsEnum;
 use Throwable;
 
@@ -27,7 +28,6 @@ class PayTabsGateway implements PaymentGatewayInterface
     public function initiate(Payment $payment): PaymentInitResult
     {
         try {
-            $config = $this->getConfig();
             $page = $this->paypage
                 ->sendPaymentCode('all')
                 ->sendTransaction('sale', PaytabsEnum::TRAN_CLASS_ECOM)
@@ -42,7 +42,7 @@ class PayTabsGateway implements PaymentGatewayInterface
                     $payment->user->email,
                     $payment->user->phone,
                     null, null, null,
-                    $config['region'] ?? 'SAU',
+                    config('paytabs.region', 'SAU'),
                     null,
                     request()->ip(),
                 )
@@ -73,36 +73,88 @@ class PayTabsGateway implements PaymentGatewayInterface
 
     public function verify(Payment $payment, array $payload): PaymentVerifyResult
     {
+        $isIpn = isset($payload['tran_ref']) && ! isset($payload['tranRef']);
+
+        if ($isIpn) {
+            return $this->verifyIpn($payment, $payload);
+        }
+
+        return $this->verifyReturnUrl($payment, $payload);
+    }
+
+    private function verifyReturnUrl(Payment $payment, array $payload): PaymentVerifyResult
+    {
+        $api = $this->paytabsApi();
+
+        if (! $api->is_valid_redirect($payload)) {
+            return new PaymentVerifyResult(
+                status: PaymentStatusEnum::Rejected,
+                message: 'Invalid signature on return URL',
+            );
+        }
+
+        $respStatus = $payload['respStatus'] ?? '';
         $tranRef = $payload['tranRef'] ?? null;
 
-        if (! $tranRef) {
-            return new PaymentVerifyResult(
-                status: PaymentStatusEnum::Rejected,
-                message: 'Missing tranRef in payload',
-            );
+        $status = $this->mapResponseStatus($respStatus);
+
+        if ($tranRef) {
+            $response = $this->paypage->queryTransaction($tranRef);
+
+            if (! $response->failed) {
+                $status = $this->mapResponseStatus($response->payment_result->response_status ?? '');
+            }
         }
-
-        $response = $this->paypage->queryTransaction($tranRef);
-
-        if ($response->failed) {
-            return new PaymentVerifyResult(
-                status: PaymentStatusEnum::Rejected,
-                rawResponse: (array) $response,
-                message: $response->message ?? 'Transaction not found',
-            );
-        }
-
-        $status = match ($response->payment_result->response_status ?? '') {
-            'A' => PaymentStatusEnum::Accepted,
-            'C' => PaymentStatusEnum::Canceled,
-            default => PaymentStatusEnum::Rejected,
-        };
 
         return new PaymentVerifyResult(
             status: $status,
             transactionId: $tranRef,
-            rawResponse: (array) $response,
+            rawResponse: $payload,
         );
+    }
+
+    private function verifyIpn(Payment $payment, array $payload): PaymentVerifyResult
+    {
+        $rawBody = request()->getContent();
+        $signature = request()->header('signature', '');
+
+        $api = $this->paytabsApi();
+
+        if (! empty($signature) && ! $api->is_valid_ipn($rawBody, $signature)) {
+            return new PaymentVerifyResult(
+                status: PaymentStatusEnum::Rejected,
+                message: 'Invalid signature on IPN',
+            );
+        }
+
+        $tranRef = $payload['tran_ref'] ?? null;
+        $responseStatus = $payload['payment_result']['response_status'] ?? '';
+
+        $status = $this->mapResponseStatus($responseStatus);
+
+        return new PaymentVerifyResult(
+            status: $status,
+            transactionId: $tranRef,
+            rawResponse: $payload,
+        );
+    }
+
+    private function paytabsApi(): PaytabsApi
+    {
+        return PaytabsApi::getInstance(
+            config('paytabs.region'),
+            config('paytabs.profile_id'),
+            config('paytabs.server_key'),
+        );
+    }
+
+    private function mapResponseStatus(string $responseStatus): PaymentStatusEnum
+    {
+        return match ($responseStatus) {
+            'A' => PaymentStatusEnum::Accepted,
+            'C', 'V' => PaymentStatusEnum::Canceled,
+            default => PaymentStatusEnum::Rejected,
+        };
     }
 
     private function redirectUrl(Payment $payment): string
