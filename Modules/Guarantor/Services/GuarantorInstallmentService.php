@@ -49,6 +49,6 @@ class GuarantorInstallmentService
 
     public function listForRequest(GuarantorRequest $request): Collection
     {
-        return $this->repository->getPendingForRequest($request);
+        return $this->repository->listOrderedForRequest($request);
     }
 }

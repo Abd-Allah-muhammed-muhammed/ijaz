@@ -81,7 +81,7 @@ class GuarantorRepository implements GuarantorRepositoryInterface
 
                 return $q->forActor($actor);
             })
-            ->when($filters->status, fn ($q, $v) => $q->where('status', $v))
+            ->when($filters->statuses, fn ($q) => $q->whereIn('status', $filters->statuses))
             ->when($filters->type, fn ($q, $v) => $q->where('type', $v))
             ->when($filters->search, fn ($q, $v) => $q->where('title', 'like', "%{$v}%"))
             ->when($filters->date_from, fn ($q, $v) => $q->whereDate('created_at', '>=', $v))

@@ -44,6 +44,13 @@ class InstallmentRepository implements InstallmentRepositoryInterface
             ->get();
     }
 
+    public function listOrderedForRequest(GuarantorRequest $request): Collection
+    {
+        return $request->installments()
+            ->orderBy('order')
+            ->get();
+    }
+
     public function getNextPendingForRequest(GuarantorRequest $request): ?GuarantorInstallment
     {
         return $request->installments()
