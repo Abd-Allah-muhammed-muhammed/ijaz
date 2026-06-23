@@ -144,18 +144,18 @@ test('counterparty can end when status is in_progress', function () {
     expect(Gate::forUser($counterparty)->allows('end', $guarantorRequest))->toBeTrue();
 });
 
-test('both parties can chat when status is in_progress', function () {
-    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::InProgress]);
+test('both parties can chat when status is accepted', function () {
+    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::Accepted]);
 
     expect(Gate::forUser($guarantorRequest->requester)->allows('chat', $guarantorRequest))->toBeTrue()
         ->and(Gate::forUser($guarantorRequest->counterparty)->allows('chat', $guarantorRequest))->toBeTrue();
 });
 
-test('parties cannot chat when status is accepted', function () {
-    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::Accepted]);
+test('both parties can chat when status is in_progress', function () {
+    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::InProgress]);
 
-    expect(Gate::forUser($guarantorRequest->requester)->allows('chat', $guarantorRequest))->toBeFalse()
-        ->and(Gate::forUser($guarantorRequest->counterparty)->allows('chat', $guarantorRequest))->toBeFalse();
+    expect(Gate::forUser($guarantorRequest->requester)->allows('chat', $guarantorRequest))->toBeTrue()
+        ->and(Gate::forUser($guarantorRequest->counterparty)->allows('chat', $guarantorRequest))->toBeTrue();
 });
 
 test('stranger cannot chat', function () {
