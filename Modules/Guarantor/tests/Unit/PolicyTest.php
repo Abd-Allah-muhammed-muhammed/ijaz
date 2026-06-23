@@ -151,11 +151,11 @@ test('both parties can chat when status is in_progress', function () {
         ->and(Gate::forUser($guarantorRequest->counterparty)->allows('chat', $guarantorRequest))->toBeTrue();
 });
 
-test('parties cannot chat when status is accepted', function () {
+test('both parties can chat when status is accepted', function () {
     $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::Accepted]);
 
-    expect(Gate::forUser($guarantorRequest->requester)->allows('chat', $guarantorRequest))->toBeFalse()
-        ->and(Gate::forUser($guarantorRequest->counterparty)->allows('chat', $guarantorRequest))->toBeFalse();
+    expect(Gate::forUser($guarantorRequest->requester)->allows('chat', $guarantorRequest))->toBeTrue()
+        ->and(Gate::forUser($guarantorRequest->counterparty)->allows('chat', $guarantorRequest))->toBeTrue();
 });
 
 test('stranger cannot chat', function () {
