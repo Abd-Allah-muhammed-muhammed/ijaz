@@ -5,7 +5,6 @@ namespace Modules\Guarantor\Actions\Payment;
 use App\Enums\Payment\PaymentStatusEnum;
 use App\Models\Payment;
 use Closure;
-use Modules\Guarantor\Actions\Chat\OpenGuarantorChatAction;
 use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
@@ -18,7 +17,6 @@ class ProcessGuarantorPayment
 {
     public function __construct(
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
-        private readonly OpenGuarantorChatAction $openGuarantorChatAction,
     ) {}
 
     public function __invoke(Payment $payment, Closure $next): mixed
@@ -51,8 +49,6 @@ class ProcessGuarantorPayment
             toStatus: GuarantorStatusEnum::InProgress->value,
             notes: 'Payment accepted by gateway',
         );
-
-        $this->openGuarantorChatAction->handle($request->fresh());
     }
 
     private function processInstallmentPayment(Payment $payment): void
@@ -74,8 +70,6 @@ class ProcessGuarantorPayment
                 'status' => GuarantorStatusEnum::InProgress,
                 'overdue_at' => null,
             ]);
-
-            $this->openGuarantorChatAction->handle($request->fresh());
         }
 
         if ($installment->order <= 1) {

@@ -351,6 +351,8 @@ test('chat stays available on in_progress after payment', function () {
     config(['app.payment.driver' => 'testing']);
 
     $acceptedRequest = GuarantorRequest::factory()->accepted()->create(['amount' => 1000, 'fees' => 10]);
+    app(OpenGuarantorChatAction::class)->handle($acceptedRequest);
+
     $payment = acceptedGuarantorPayment($acceptedRequest, $acceptedRequest->counterparty, 1010);
 
     runPaymentPipelineStage(app(ProcessGuarantorPayment::class), $payment);
@@ -358,7 +360,7 @@ test('chat stays available on in_progress after payment', function () {
     expect(Conversation::query()
         ->where('operation_type', GuarantorRequest::class)
         ->where('operation_id', $acceptedRequest->id)
-        ->exists())->toBeTrue()
+        ->count())->toBe(1)
         ->and($acceptedRequest->fresh()->status)->toBe(GuarantorStatusEnum::InProgress);
 });
 
@@ -656,7 +658,29 @@ test('ProcessGuarantorPayment sets request to in_progress on payment accepted', 
         ->and(Conversation::query()
             ->where('operation_type', GuarantorRequest::class)
             ->where('operation_id', $guarantorRequest->id)
-            ->exists())->toBeTrue();
+            ->exists())->toBeFalse();
+});
+
+test('ProcessGuarantorPayment does not open chat when recovering from overdue', function () {
+    $guarantorRequest = GuarantorRequest::factory()->company()->create([
+        'status' => GuarantorStatusEnum::Overdue,
+        'amount' => 1000,
+        'fees' => 10,
+    ]);
+    app(OpenGuarantorChatAction::class)->handle($guarantorRequest->fresh(['requester', 'counterparty']));
+    $installment = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create([
+        'order' => 1,
+        'amount' => 500,
+    ]);
+    $payment = acceptedInstallmentPayment($installment, $guarantorRequest->counterparty);
+
+    runPaymentPipelineStage(app(ProcessGuarantorPayment::class), $payment);
+
+    expect($guarantorRequest->fresh()->status)->toBe(GuarantorStatusEnum::InProgress)
+        ->and(Conversation::query()
+            ->where('operation_type', GuarantorRequest::class)
+            ->where('operation_id', $guarantorRequest->id)
+            ->count())->toBe(1);
 });
 
 test('ProcessGuarantorPayment sets installment to paid on installment payment', function () {
