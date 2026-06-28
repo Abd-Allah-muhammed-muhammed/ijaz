@@ -47,9 +47,15 @@ class InitiateRajhiPaymentAction
         ];
 
         try {
-            $response = Http::timeout(30)
-                ->withHeader('Content-Type', 'application/json')
-                ->post($config['endpoint'], $request);
+            $http = Http::timeout(30)
+                ->withHeader('Content-Type', 'application/json');
+
+            // Disable SSL verification in local/testing environments only
+            if (app()->environment(['local', 'testing'])) {
+                $http = $http->withoutVerifying();
+            }
+
+            $response = $http->post($config['endpoint'], $request);
 
             if (! $response->successful()) {
                 return new PaymentInitResult(
