@@ -43,8 +43,11 @@ class RajhiEncryptionService
         // Neoleap expects array wrapper [{}]
         $json = json_encode([$data], JSON_UNESCAPED_UNICODE);
 
+        // urlencode before encrypting — required by Neoleap spec
+        $urlEncoded = urlencode($json);
+
         $encrypted = openssl_encrypt(
-            $json,
+            $urlEncoded,
             $this->cipher,
             $this->key,
             OPENSSL_RAW_DATA,
@@ -88,7 +91,9 @@ class RajhiEncryptionService
             throw new RuntimeException('Rajhi decryption failed: '.openssl_error_string());
         }
 
-        $result = json_decode($decrypted, associative: true);
+        $urlDecoded = urldecode($decrypted);
+
+        $result = json_decode($urlDecoded, associative: true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new RuntimeException('Rajhi decryption failed: invalid JSON — '.json_last_error_msg());
