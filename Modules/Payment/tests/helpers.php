@@ -8,10 +8,15 @@ use App\Models\Provider;
 use App\Models\User;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Payment\Actions\HandleRajhiCallbackAction;
+use Modules\Payment\Actions\HandleRajhiWebhookAction;
+use Modules\Payment\Actions\InitiateRajhiPaymentAction;
 use Modules\Payment\Contracts\PaymentGatewayInterface;
 use Modules\Payment\DTOs\PaymentVerifyResult;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Gateways\PayTabsGateway;
 use Modules\Payment\Models\Payment;
+use Modules\Payment\Services\RajhiEncryptionService;
 
 function createPaymentFor(Model $owner, Model $product, array $attributes = []): Payment
 {
@@ -64,4 +69,44 @@ function mockPayTabsGateway(PaymentVerifyResult $result): void
     $gateway->shouldReceive('verify')->andReturn($result);
 
     app()->instance(PayTabsGateway::class, $gateway);
+}
+
+function configureRajhiTestCredentials(): void
+{
+    config([
+        'payment.drivers.rajhi.mode' => 'test',
+        'payment.drivers.rajhi.test.resource_key' => str_repeat('a', 32),
+        'payment.drivers.rajhi.test.encryption_iv' => 'PGKEYENCDECIVSPC',
+        'payment.drivers.rajhi.test.tranportal_id' => 'test-portal-id',
+        'payment.drivers.rajhi.test.tranportal_password' => 'test-portal-password',
+        'payment.drivers.rajhi.test.currency' => '682',
+        'payment.drivers.rajhi.test.endpoint' => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
+    ]);
+}
+
+function forgetRajhiServices(): void
+{
+    app()->forgetInstance(RajhiEncryptionService::class);
+    app()->forgetInstance(InitiateRajhiPaymentAction::class);
+    app()->forgetInstance(HandleRajhiCallbackAction::class);
+    app()->forgetInstance(HandleRajhiWebhookAction::class);
+}
+
+function rajhiEncryptionService(): RajhiEncryptionService
+{
+    return new RajhiEncryptionService;
+}
+
+function createRajhiPaymentFor(Model $owner, Model $product, float $amount = 100.0, array $attributes = []): Payment
+{
+    return createPaymentFor($owner, $product, array_merge([
+        'driver' => 'rajhi',
+        'amount' => $amount,
+        'status' => PaymentStatusEnum::Pending,
+    ], $attributes));
+}
+
+function rajhiTrandata(array $payload): string
+{
+    return rajhiEncryptionService()->encrypt($payload);
 }

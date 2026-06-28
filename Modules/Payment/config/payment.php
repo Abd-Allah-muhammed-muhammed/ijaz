@@ -6,7 +6,7 @@ use Modules\Payment\Gateways\TestingGateway;
 
 return [
 
-    'default' => env('PAYMENT_DRIVER', 'paytabs'),
+    'default' => env('PAYMENT_DRIVER', 'rajhi'),
 
     'gateways' => [
         'paytabs' => PayTabsGateway::class,
