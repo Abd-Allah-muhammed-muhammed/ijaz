@@ -2,6 +2,7 @@
 
 namespace Modules\Payment\Services;
 
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class RajhiEncryptionService
@@ -23,12 +24,19 @@ class RajhiEncryptionService
         if (empty($this->key)) {
             throw new RuntimeException('Rajhi resource_key is not configured.');
         }
+
+        // Log key details for debugging
+        Log::debug('Rajhi encryption config', [
+            'key_length' => strlen($this->key),
+            'iv_length' => strlen($this->iv),
+            'key_preview' => substr($this->key, 0, 4).'...',
+        ]);
     }
 
     /**
      * Encrypt an array payload to trandata string.
      * Input:  plain array (e.g. id, password, action, amt, ...)
-     * Output: AES-256-CBC encrypted, base64-encoded string
+     * Output: AES-256-CBC encrypted, uppercase hex-encoded string
      */
     public function encrypt(array $data): string
     {
@@ -47,20 +55,25 @@ class RajhiEncryptionService
             throw new RuntimeException('Rajhi encryption failed: '.openssl_error_string());
         }
 
-        return base64_encode($encrypted);
+        return strtoupper(bin2hex($encrypted));
     }
 
     /**
      * Decrypt a trandata string from Neoleap callback.
-     * Input:  AES-256-CBC encrypted, base64-encoded string
+     * Input:  AES-256-CBC encrypted, hex or base64-encoded string
      * Output: decoded array
      */
     public function decrypt(string $trandata): array
     {
-        $decoded = base64_decode($trandata, strict: true);
+        // Try hex first, fallback to base64
+        if (ctype_xdigit($trandata)) {
+            $decoded = strlen($trandata) % 2 === 0 ? hex2bin($trandata) : false;
+        } else {
+            $decoded = base64_decode($trandata, strict: false);
+        }
 
         if ($decoded === false) {
-            throw new RuntimeException('Rajhi decryption failed: invalid base64 trandata.');
+            throw new RuntimeException('Rajhi decryption failed: invalid trandata.');
         }
 
         $decrypted = openssl_decrypt(

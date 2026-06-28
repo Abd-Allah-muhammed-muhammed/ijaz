@@ -27,9 +27,9 @@ test('encrypts and decrypts array roundtrip correctly', function () {
     expect($decrypted)->toBe($plain);
 });
 
-test('decrypt throws on invalid base64', function () {
-    expect(fn () => rajhiEncryptionService()->decrypt('!!!not-valid-base64!!!'))
-        ->toThrow(RuntimeException::class, 'invalid base64 trandata');
+test('decrypt throws on invalid trandata', function () {
+    expect(fn () => rajhiEncryptionService()->decrypt('ABC'))
+        ->toThrow(RuntimeException::class, 'invalid trandata');
 });
 
 test('decrypt throws on invalid key', function () {
