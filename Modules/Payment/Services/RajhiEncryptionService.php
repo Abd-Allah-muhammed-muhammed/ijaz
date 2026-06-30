@@ -63,20 +63,19 @@ class RajhiEncryptionService
 
     /**
      * Decrypt a trandata string from Neoleap callback.
-     * Input:  AES-256-CBC encrypted, hex or base64-encoded string
+     * Input:  AES-256-CBC encrypted, uppercase hex-encoded string
      * Output: decoded array
      */
     public function decrypt(string $trandata): array
     {
-        // Try hex first, fallback to base64
-        if (ctype_xdigit($trandata)) {
-            $decoded = strlen($trandata) % 2 === 0 ? hex2bin($trandata) : false;
-        } else {
-            $decoded = base64_decode($trandata, strict: false);
+        if (! ctype_xdigit($trandata) || strlen($trandata) % 2 !== 0) {
+            throw new RuntimeException('Rajhi decryption failed: invalid hex trandata.');
         }
 
+        $decoded = hex2bin($trandata);
+
         if ($decoded === false) {
-            throw new RuntimeException('Rajhi decryption failed: invalid trandata.');
+            throw new RuntimeException('Rajhi decryption failed: invalid hex trandata.');
         }
 
         $decrypted = openssl_decrypt(

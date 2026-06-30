@@ -6,6 +6,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Modules\Payment\Actions\HandleCallbackAction;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Models\Payment;
@@ -23,6 +24,16 @@ class PaymentCallbackController extends Controller
     public function redirect(string $driver, Payment $payment, Request $request): RedirectResponse
     {
         abort_if($payment->driver !== $driver, 404);
+
+        // TEMPORARY DEBUG
+        Log::debug('Rajhi redirect payload', [
+            'driver' => $driver,
+            'method' => $request->method(),
+            'all' => $request->all(),
+            'query' => $request->query->all(),
+            'post' => $request->request->all(),
+            'headers' => $request->headers->all(),
+        ]);
 
         $this->handleCallbackAction->handle($payment, $request->all());
 

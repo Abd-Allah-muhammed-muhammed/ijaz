@@ -2,6 +2,7 @@
 
 namespace Modules\Payment\Actions;
 
+use Illuminate\Support\Facades\Log;
 use Modules\Payment\DTOs\PaymentVerifyResult;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Models\Payment;
@@ -34,6 +35,9 @@ class HandleRajhiCallbackAction
     {
         try {
             $decrypted = $this->encryption->decrypt($trandata);
+
+            // TEMPORARY DEBUG
+            Log::debug('Rajhi decrypted trandata', $decrypted);
 
             return $this->mapResult($decrypted);
         } catch (Throwable $e) {

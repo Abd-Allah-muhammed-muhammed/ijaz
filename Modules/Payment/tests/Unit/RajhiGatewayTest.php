@@ -27,9 +27,9 @@ test('encrypts and decrypts array roundtrip correctly', function () {
     expect($decrypted)->toBe($plain);
 });
 
-test('decrypt throws on invalid trandata', function () {
+test('decrypt throws on invalid hex trandata', function () {
     expect(fn () => rajhiEncryptionService()->decrypt('ABC'))
-        ->toThrow(RuntimeException::class, 'invalid trandata');
+        ->toThrow(RuntimeException::class, 'invalid hex trandata');
 });
 
 test('decrypt throws on invalid key', function () {
@@ -180,7 +180,7 @@ test('returns Rejected when decryption fails', function () {
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $result = app(HandleRajhiCallbackAction::class)->handle($payment, [
-        'trandata' => base64_encode('invalid-ciphertext'),
+        'trandata' => str_repeat('00', 32),
     ]);
 
     expect($result->status)->toBe(PaymentStatusEnum::Rejected)
