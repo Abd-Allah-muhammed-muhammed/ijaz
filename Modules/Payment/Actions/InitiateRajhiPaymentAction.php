@@ -61,8 +61,11 @@ class InitiateRajhiPaymentAction
                 ],
             ]);
 
+            $customerIp = $this->resolveCustomerIp();
+
             $http = Http::timeout(30)
-                ->withHeader('Content-Type', 'application/json');
+                ->withHeader('Content-Type', 'application/json')
+                ->withHeader('X-FORWARDED-FOR', $customerIp);
 
             // Disable SSL verification in local/testing environments only
             if (app()->environment(['local', 'testing'])) {
@@ -133,5 +136,16 @@ class InitiateRajhiPaymentAction
         $mode = config('payment.drivers.rajhi.mode', 'test');
 
         return config("payment.drivers.rajhi.{$mode}", []);
+    }
+
+    private function resolveCustomerIp(): string
+    {
+        $forwardedFor = request()->header('X-Forwarded-For');
+
+        if (is_string($forwardedFor) && $forwardedFor !== '') {
+            return trim(explode(',', $forwardedFor)[0]);
+        }
+
+        return request()->ip();
     }
 }
