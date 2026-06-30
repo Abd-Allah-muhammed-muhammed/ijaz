@@ -175,6 +175,21 @@ test('falls back to direct fields when trandata is missing', function () {
         ->and($result->transactionId)->toBe('rajhi-direct-1');
 });
 
+test('maps authRespCode to code and description in message', function () {
+    $user = createWalletUser();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $payment = createRajhiPaymentFor($user, $topUp, 100);
+
+    $result = app(HandleRajhiCallbackAction::class)->handle($payment, [
+        'result' => 'NOT CAPTURED',
+        'transId' => 'rajhi-n7-1',
+        'authRespCode' => 'N7',
+    ]);
+
+    expect($result->status)->toBe(PaymentStatusEnum::Rejected)
+        ->and($result->message)->toBe('N7 — CVV2/CVC2 mismatch — incorrect CVV entered');
+});
+
 test('returns Rejected when decryption fails', function () {
     $user = createWalletUser();
     $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();

@@ -79,7 +79,7 @@ class HandleRajhiCallbackAction
             default => PaymentStatusEnum::Rejected,
         };
 
-        $message = $data['errorText'] ?? $this->describeAuthRespCode($authRespCode) ?? $authRespCode;
+        $message = $this->buildMessage($data, $authRespCode);
 
         return new PaymentVerifyResult(
             status: $status,
@@ -87,6 +87,23 @@ class HandleRajhiCallbackAction
             rawResponse: $data,
             message: $message,
         );
+    }
+
+    private function buildMessage(array $data, ?string $authRespCode): ?string
+    {
+        if (! empty($data['errorText'])) {
+            return $data['errorText'];
+        }
+
+        if ($authRespCode === null) {
+            return null;
+        }
+
+        $description = $this->describeAuthRespCode($authRespCode);
+
+        return $description !== null
+            ? "{$authRespCode} — {$description}"
+            : $authRespCode;
     }
 
     private function describeAuthRespCode(?string $code): ?string
