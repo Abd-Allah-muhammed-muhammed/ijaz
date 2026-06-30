@@ -1,16 +1,17 @@
 <?php
 
 use Modules\Payment\Gateways\PayTabsGateway;
+use Modules\Payment\Gateways\RajhiGateway;
 use Modules\Payment\Gateways\TestingGateway;
 
 return [
 
-    'default' => env('PAYMENT_DRIVER', 'paytabs'),
+    'default' => env('PAYMENT_DRIVER', 'rajhi'),
 
     'gateways' => [
         'paytabs' => PayTabsGateway::class,
         'testing' => TestingGateway::class,
-        // 'rajhi' => RajhiGateway::class,
+        'rajhi' => RajhiGateway::class,
     ],
 
     'drivers' => [
@@ -45,7 +46,8 @@ return [
                 'tranportal_password' => env('RAJHI_TEST_TRANPORTAL_PASSWORD'),
                 'resource_key' => env('RAJHI_TEST_RESOURCE_KEY'),
                 'currency' => env('RAJHI_TEST_CURRENCY', '682'),
-                'endpoint' => 'https://securepayments.alrajhibank.com.sa/pg/payment/hosted.htm',
+                'encryption_iv' => env('RAJHI_TEST_ENCRYPTION_IV', 'PGKEYENCDECIVSPC'),
+                'endpoint' => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
             ],
 
             'live' => [
@@ -53,7 +55,8 @@ return [
                 'tranportal_password' => env('RAJHI_LIVE_TRANPORTAL_PASSWORD'),
                 'resource_key' => env('RAJHI_LIVE_RESOURCE_KEY'),
                 'currency' => env('RAJHI_LIVE_CURRENCY', '682'),
-                'endpoint' => 'https://digitalpayments.alrajhibank.com.sa/pg/payment/hosted.htm',
+                'encryption_iv' => env('RAJHI_LIVE_ENCRYPTION_IV', 'PGKEYENCDECIVSPC'),
+                'endpoint' => 'https://securepayments.neoleap.com.sa/pg/payment/hosted.htm',
             ],
         ],
 

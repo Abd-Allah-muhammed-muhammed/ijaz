@@ -321,7 +321,7 @@ const FrontendLayout = ({ children }: { children: ReactNode }) => {
                             <div className="w-auto d-flex align-items-center">
                               <p className="mb-0">{t('all_rights_reserved')}</p>
                             </div>
-                            <div className="w-auto d-flex align-items-center gap-4 flex-column">
+                            {/* <div className="w-auto d-flex align-items-center gap-4 flex-column">
                               <p className="d-inline-block mb-0 text-center">{t('we_work_with_complete_credibility_and_trust')}</p>
                               <div className="d-flex justify-content-between gap-4">
                                 <a href="/media/landing/Certificate.pdf" target="_blank">
@@ -331,7 +331,7 @@ const FrontendLayout = ({ children }: { children: ReactNode }) => {
                                   <img src="/media/landing/SaudiBusiness.svg" alt="saudibusiness" />
                                 </a>
                               </div>
-                            </div>
+                            </div> */}
                         </Row>
                     </div>
                 </Container>

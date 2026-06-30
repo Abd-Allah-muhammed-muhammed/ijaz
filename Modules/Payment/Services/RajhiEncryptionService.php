@@ -1,0 +1,100 @@
+<?php
+
+namespace Modules\Payment\Services;
+
+use RuntimeException;
+
+class RajhiEncryptionService
+{
+    private string $key;
+
+    private string $iv;
+
+    private string $cipher = 'AES-256-CBC';
+
+    public function __construct()
+    {
+        $mode = config('payment.drivers.rajhi.mode', 'test');
+        $config = config("payment.drivers.rajhi.{$mode}", []);
+
+        $this->key = $config['resource_key'] ?? '';
+        $this->iv = $config['encryption_iv'] ?? 'PGKEYENCDECIVSPC';
+
+        if (empty($this->key)) {
+            throw new RuntimeException('Rajhi resource_key is not configured.');
+        }
+    }
+
+    /**
+     * Encrypt an array payload to trandata string.
+     * Input:  plain array (e.g. id, password, action, amt, ...)
+     * Output: AES-256-CBC encrypted, uppercase hex-encoded string
+     */
+    public function encrypt(array $data): string
+    {
+        // Neoleap expects array wrapper [{}]
+        $json = json_encode([$data], JSON_UNESCAPED_UNICODE);
+
+        // urlencode before encrypting — required by Neoleap spec
+        $urlEncoded = urlencode($json);
+
+        $encrypted = openssl_encrypt(
+            $urlEncoded,
+            $this->cipher,
+            $this->key,
+            OPENSSL_RAW_DATA,
+            $this->iv,
+        );
+
+        if ($encrypted === false) {
+            throw new RuntimeException('Rajhi encryption failed: '.openssl_error_string());
+        }
+
+        return strtoupper(bin2hex($encrypted));
+    }
+
+    /**
+     * Decrypt a trandata string from Neoleap callback.
+     * Input:  AES-256-CBC encrypted, uppercase hex-encoded string
+     * Output: decoded array
+     */
+    public function decrypt(string $trandata): array
+    {
+        if (! ctype_xdigit($trandata) || strlen($trandata) % 2 !== 0) {
+            throw new RuntimeException('Rajhi decryption failed: invalid hex trandata.');
+        }
+
+        $decoded = hex2bin($trandata);
+
+        if ($decoded === false) {
+            throw new RuntimeException('Rajhi decryption failed: invalid hex trandata.');
+        }
+
+        $decrypted = openssl_decrypt(
+            $decoded,
+            $this->cipher,
+            $this->key,
+            OPENSSL_RAW_DATA,
+            $this->iv,
+        );
+
+        if ($decrypted === false) {
+            throw new RuntimeException('Rajhi decryption failed: '.openssl_error_string());
+        }
+
+        $urlDecoded = urldecode($decrypted);
+
+        $result = json_decode($urlDecoded, associative: true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new RuntimeException('Rajhi decryption failed: invalid JSON — '.json_last_error_msg());
+        }
+
+        // Unwrap array if Neoleap wraps in [{}]
+        if (isset($result[0]) && is_array($result[0])) {
+            $result = $result[0];
+        }
+
+        return $result;
+    }
+}

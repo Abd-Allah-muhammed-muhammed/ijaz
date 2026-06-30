@@ -27,6 +27,20 @@ class PayTabsGateway implements PaymentGatewayInterface
 
     public function initiate(Payment $payment): PaymentInitResult
     {
+        $requestData = [
+            'cart_id' => $payment->id,
+            'amount' => $payment->amount,
+            'description' => 'Payment for '.class_basename($payment->product_type).' #'.$payment->product_id,
+            'customer' => [
+                'name' => $payment->user->name,
+                'email' => $payment->user->email,
+                'phone' => $payment->user->phone,
+            ],
+            'redirect_url' => $this->redirectUrl($payment),
+            'callback_url' => $this->callbackUrl($payment),
+            'language' => app()->getLocale(),
+        ];
+
         try {
             $page = $this->paypage
                 ->sendPaymentCode('all')
@@ -52,6 +66,11 @@ class PayTabsGateway implements PaymentGatewayInterface
                 )
                 ->sendLanguage(app()->getLocale())
                 ->create_pay_page();
+
+            $payment->update([
+                'request' => $requestData,
+                'url' => $page->getTargetUrl(),
+            ]);
 
             return new PaymentInitResult(
                 status: 'success',
@@ -90,6 +109,7 @@ class PayTabsGateway implements PaymentGatewayInterface
             return new PaymentVerifyResult(
                 status: PaymentStatusEnum::Rejected,
                 message: 'Invalid signature on return URL',
+                rawResponse: $payload,
             );
         }
 
@@ -124,6 +144,7 @@ class PayTabsGateway implements PaymentGatewayInterface
             return new PaymentVerifyResult(
                 status: PaymentStatusEnum::Rejected,
                 message: 'Invalid signature on IPN',
+                rawResponse: $payload,
             );
         }
 
