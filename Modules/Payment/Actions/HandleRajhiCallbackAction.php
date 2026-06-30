@@ -64,6 +64,7 @@ class HandleRajhiCallbackAction
     {
         $result = strtoupper($resultOverride ?? $data['result'] ?? '');
         $transId = (string) ($data['transId'] ?? $data['tranId'] ?? '');
+        $authRespCode = $data['authRespCode'] ?? null;
 
         // From Neoleap docs:
         // CAPTURED       → success
@@ -78,11 +79,26 @@ class HandleRajhiCallbackAction
             default => PaymentStatusEnum::Rejected,
         };
 
+        $message = $data['errorText'] ?? $this->describeAuthRespCode($authRespCode) ?? $authRespCode;
+
         return new PaymentVerifyResult(
             status: $status,
             transactionId: $transId ?: null,
             rawResponse: $data,
-            message: $data['authRespCode'] ?? $data['errorText'] ?? null,
+            message: $message,
         );
+    }
+
+    private function describeAuthRespCode(?string $code): ?string
+    {
+        return match ($code) {
+            '00' => 'Approved',
+            'N7' => 'CVV2/CVC2 mismatch — incorrect CVV entered',
+            '05' => 'Do not honor',
+            '51' => 'Insufficient funds',
+            '54' => 'Expired card',
+            '14' => 'Invalid card number',
+            default => null,
+        };
     }
 }
