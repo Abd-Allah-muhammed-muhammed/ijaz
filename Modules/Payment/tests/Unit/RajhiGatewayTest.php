@@ -121,7 +121,8 @@ test('handles encrypted trandata and maps CAPTURED to Accepted', function () {
 
     expect($result->status)->toBe(PaymentStatusEnum::Accepted)
         ->and($result->transactionId)->toBe('rajhi-txn-1')
-        ->and($result->isAccepted())->toBeTrue();
+        ->and($result->isAccepted())->toBeTrue()
+        ->and($result->rawResponse)->toHaveKey('trandata');
 });
 
 test('handles encrypted trandata and maps NOT CAPTURED to Rejected', function () {

@@ -33,6 +33,8 @@ class InitiateRajhiPaymentAction
             'errorURL' => route('payment.failed', $payment),
         ];
 
+        $payment->update(['request' => $plain]);
+
         // Encrypt plain request to trandata
         $trandata = $this->encryption->encrypt($plain);
 
@@ -91,6 +93,11 @@ class InitiateRajhiPaymentAction
             $paymentUrl = $parts[1] ?? '';
 
             $redirectUrl = trim($paymentUrl).'?PaymentID='.$paymentId;
+
+            $payment->update([
+                'url' => $redirectUrl,
+                'transaction_id' => $paymentId,
+            ]);
 
             return new PaymentInitResult(
                 status: 'success',

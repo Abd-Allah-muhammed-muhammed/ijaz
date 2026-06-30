@@ -2,6 +2,7 @@
 
 namespace Modules\Payment\Providers;
 
+use Illuminate\Support\Facades\Blade;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class PaymentServiceProvider extends ModuleServiceProvider
@@ -31,6 +32,8 @@ class PaymentServiceProvider extends ModuleServiceProvider
 
         $this->loadMigrationsFrom(module_path('Payment', 'Database/Migrations'));
         $this->loadViewsFrom(module_path('Payment', 'Resources/views'), 'payment');
+
+        Blade::anonymousComponentPath(module_path('Payment', 'Resources/views/components'), 'payment');
     }
 
     private function bridgePaytabsConfig(): void

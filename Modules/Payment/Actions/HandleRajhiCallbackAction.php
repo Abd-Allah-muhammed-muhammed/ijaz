@@ -22,23 +22,30 @@ class HandleRajhiCallbackAction
         $trandata = $payload['trandata'] ?? null;
 
         if ($trandata) {
-            return $this->handleEncrypted($trandata);
+            return $this->handleEncrypted($trandata, $payload);
         }
 
         // Fallback: direct fields (no trandata)
         return $this->handleDirectFields($payload);
     }
 
-    private function handleEncrypted(string $trandata): PaymentVerifyResult
+    private function handleEncrypted(string $trandata, array $payload): PaymentVerifyResult
     {
         try {
             $decrypted = $this->encryption->decrypt($trandata);
+            $result = $this->mapResult($decrypted);
 
-            return $this->mapResult($decrypted);
+            return new PaymentVerifyResult(
+                status: $result->status,
+                transactionId: $result->transactionId,
+                rawResponse: $payload,
+                message: $result->message,
+            );
         } catch (Throwable $e) {
             return new PaymentVerifyResult(
                 status: PaymentStatusEnum::Rejected,
                 message: 'Decryption failed: '.$e->getMessage(),
+                rawResponse: $payload,
             );
         }
     }

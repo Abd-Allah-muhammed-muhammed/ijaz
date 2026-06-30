@@ -22,6 +22,16 @@ class TestingGateway implements PaymentGatewayInterface
             'payment' => $payment->id,
         ]);
 
+        $payment->update([
+            'request' => [
+                'driver' => 'testing',
+                'amount' => $payment->amount,
+                'payment_id' => $payment->id,
+                'redirect_url' => $url,
+            ],
+            'url' => $url,
+        ]);
+
         return new PaymentInitResult(
             status: 'success',
             driver: 'testing',
