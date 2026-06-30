@@ -4,7 +4,6 @@ namespace Modules\Payment\Actions;
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Modules\Payment\DTOs\PaymentInitResult;
 use Modules\Payment\Models\Payment;
 use Modules\Payment\Services\RajhiEncryptionService;
@@ -48,19 +47,6 @@ class InitiateRajhiPaymentAction
         ];
 
         try {
-            // TEMPORARY DEBUG
-            Log::debug('Neoleap request payload', [
-                'plain' => $plain,
-                'request' => $request,
-                'config' => [
-                    'endpoint' => $config['endpoint'],
-                    'tranportal_id' => $config['tranportal_id'],
-                    'currency' => $config['currency'],
-                    'has_key' => ! empty($config['resource_key']),
-                    'iv' => $config['encryption_iv'],
-                ],
-            ]);
-
             $customerIp = $this->resolveCustomerIp();
 
             $http = Http::timeout(30)
@@ -73,13 +59,6 @@ class InitiateRajhiPaymentAction
             }
 
             $response = $http->post($config['endpoint'], $request);
-
-            // TEMPORARY DEBUG — remove after fixing
-            Log::debug('Neoleap raw response', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-                'headers' => $response->headers(),
-            ]);
 
             if (! $response->successful()) {
                 return new PaymentInitResult(

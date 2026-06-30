@@ -2,7 +2,6 @@
 
 namespace Modules\Payment\Services;
 
-use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class RajhiEncryptionService
@@ -24,13 +23,6 @@ class RajhiEncryptionService
         if (empty($this->key)) {
             throw new RuntimeException('Rajhi resource_key is not configured.');
         }
-
-        // Log key details for debugging
-        Log::debug('Rajhi encryption config', [
-            'key_length' => strlen($this->key),
-            'iv_length' => strlen($this->iv),
-            'key_preview' => substr($this->key, 0, 4).'...',
-        ]);
     }
 
     /**
