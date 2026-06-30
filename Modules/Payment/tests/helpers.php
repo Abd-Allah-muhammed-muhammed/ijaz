@@ -110,3 +110,30 @@ function rajhiTrandata(array $payload): string
 {
     return rajhiEncryptionService()->encrypt($payload);
 }
+
+/**
+ * @return array<int, array<string, mixed>>
+ */
+function rajhiWebhookPayload(string $trackId, string $resultStatus = 'CAPTURED', array $payLoadOverrides = []): array
+{
+    return [
+        [
+            'result' => [['status' => $resultStatus]],
+            'responseURL' => 'https://example.com/webhook',
+            'payLoad' => [[
+                'date' => '0415',
+                'authRespCode' => $resultStatus === 'CAPTURED' ? '00' : 'N7',
+                'authCode' => '623666',
+                'transId' => 202110527755152,
+                'trackId' => $trackId,
+                'amt' => 10,
+                'actionCode' => '1',
+                'card' => '401200XXXXXX1112',
+                'expMonth' => '6',
+                'expYear' => '24',
+                ...$payLoadOverrides,
+            ]],
+            'type' => 'PAYMENT',
+        ],
+    ];
+}

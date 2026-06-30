@@ -194,7 +194,7 @@ test('throws when trackId is missing from payload', function () {
 });
 
 test('throws when payment not found', function () {
-    expect(fn () => app(HandleRajhiWebhookAction::class)->handle(['trackId' => 'missing-payment-id']))
+    expect(fn () => app(HandleRajhiWebhookAction::class)->handle(rajhiWebhookPayload('missing-payment-id')))
         ->toThrow(RuntimeException::class, 'Rajhi webhook: payment not found');
 });
 
@@ -208,11 +208,11 @@ test('returns early when payment is already processed (idempotency)', function (
         'transaction_id' => 'already-done',
     ]);
 
-    app(HandleRajhiWebhookAction::class)->handle([
-        'trackId' => $payment->id,
-        'result' => 'CAPTURED',
-        'transId' => 'should-not-apply',
-    ]);
+    app(HandleRajhiWebhookAction::class)->handle(rajhiWebhookPayload(
+        $payment->id,
+        'CAPTURED',
+        ['transId' => 'should-not-apply'],
+    ));
 
     expect($payment->fresh()->transaction_id)->toBe('already-done');
     Event::assertNothingDispatched();
@@ -225,11 +225,11 @@ test('processes payment and fires PaymentCompleted on CAPTURED', function () {
     $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
-    app(HandleRajhiWebhookAction::class)->handle([
-        'trackId' => $payment->id,
-        'result' => 'CAPTURED',
-        'transId' => 'webhook-captured-1',
-    ]);
+    app(HandleRajhiWebhookAction::class)->handle(rajhiWebhookPayload(
+        $payment->id,
+        'CAPTURED',
+        ['transId' => 'webhook-captured-1'],
+    ));
 
     $payment->refresh();
 
@@ -247,11 +247,11 @@ test('processes payment and fires PaymentFailed on NOT CAPTURED', function () {
     $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
-    app(HandleRajhiWebhookAction::class)->handle([
-        'trackId' => $payment->id,
-        'result' => 'NOT CAPTURED',
-        'transId' => 'webhook-failed-1',
-    ]);
+    app(HandleRajhiWebhookAction::class)->handle(rajhiWebhookPayload(
+        $payment->id,
+        'NOT CAPTURED',
+        ['transId' => 'webhook-failed-1'],
+    ));
 
     $payment->refresh();
 
@@ -259,4 +259,44 @@ test('processes payment and fires PaymentFailed on NOT CAPTURED', function () {
 
     Event::assertDispatched(PaymentFailed::class, fn (PaymentFailed $event) => $event->payment->id === $payment->id);
     Event::assertNotDispatched(PaymentCompleted::class);
+});
+
+test('webhook parses nested payLoad structure per ARB spec', function () {
+    $user = createWalletUser();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $payment = createRajhiPaymentFor($user, $topUp, 100);
+
+    app(HandleRajhiWebhookAction::class)->handle(rajhiWebhookPayload($payment->id));
+
+    expect($payment->fresh()->status)->toBe(PaymentStatusEnum::Accepted)
+        ->and($payment->fresh()->transaction_id)->toBe('202110527755152');
+});
+
+test('webhook reads top-level result status correctly', function () {
+    $user = createWalletUser();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $payment = createRajhiPaymentFor($user, $topUp, 100);
+
+    $payload = rajhiWebhookPayload($payment->id, 'CAPTURED');
+    $payload[0]['payLoad'][0]['result'] = 'NOT CAPTURED';
+
+    app(HandleRajhiWebhookAction::class)->handle($payload);
+
+    expect($payment->fresh()->status)->toBe(PaymentStatusEnum::Accepted);
+});
+
+test('webhook handles PAYMENT FAILURE type with NOT CAPTURED result', function () {
+    Event::fake([PaymentCompleted::class, PaymentFailed::class]);
+
+    $user = createWalletUser();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $payment = createRajhiPaymentFor($user, $topUp, 100);
+
+    $payload = rajhiWebhookPayload($payment->id, 'NOT CAPTURED');
+    $payload[0]['type'] = 'PAYMENT FAILURE';
+
+    app(HandleRajhiWebhookAction::class)->handle($payload);
+
+    expect($payment->fresh()->status)->toBe(PaymentStatusEnum::Rejected);
+    Event::assertDispatched(PaymentFailed::class);
 });

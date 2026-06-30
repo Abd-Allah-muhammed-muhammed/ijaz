@@ -16,9 +16,8 @@ class HandleRajhiCallbackAction
 
     public function handle(Payment $payment, array $payload): PaymentVerifyResult
     {
-        // Callback sends encrypted trandata
-        // Webhook sends encrypted trandata too
-        // Both paths go through here
+        // Callback sends encrypted trandata on redirect.
+        // Webhook uses plain payLoad via handleWebhookPayload().
 
         $trandata = $payload['trandata'] ?? null;
 
@@ -49,9 +48,14 @@ class HandleRajhiCallbackAction
         return $this->mapResult($payload);
     }
 
-    private function mapResult(array $data): PaymentVerifyResult
+    public function handleWebhookPayload(array $payLoad, ?string $resultOverride = null): PaymentVerifyResult
     {
-        $result = strtoupper($data['result'] ?? '');
+        return $this->mapResult($payLoad, $resultOverride);
+    }
+
+    private function mapResult(array $data, ?string $resultOverride = null): PaymentVerifyResult
+    {
+        $result = strtoupper($resultOverride ?? $data['result'] ?? '');
         $transId = (string) ($data['transId'] ?? $data['tranId'] ?? '');
 
         // From Neoleap docs:

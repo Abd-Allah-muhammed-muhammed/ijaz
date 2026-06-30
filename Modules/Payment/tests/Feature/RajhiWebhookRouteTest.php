@@ -16,11 +16,7 @@ test('webhook returns status 1 on success', function () {
     $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
-    $this->postJson(route('payment.rajhi.webhook'), [
-        'trackId' => $payment->id,
-        'result' => 'CAPTURED',
-        'transId' => 'route-success-1',
-    ])
+    $this->postJson(route('payment.rajhi.webhook'), rajhiWebhookPayload($payment->id))
         ->assertOk()
         ->assertJson([['status' => '1']]);
 
@@ -29,7 +25,13 @@ test('webhook returns status 1 on success', function () {
 
 test('webhook returns status 0 when trackId is missing', function () {
     $this->postJson(route('payment.rajhi.webhook'), [
-        'result' => 'CAPTURED',
+        [
+            'result' => [['status' => 'CAPTURED']],
+            'payLoad' => [[
+                'transId' => '202110527755152',
+            ]],
+            'type' => 'PAYMENT',
+        ],
     ])
         ->assertOk()
         ->assertJson([['status' => '0']]);
@@ -45,11 +47,11 @@ test('webhook returns status 1 when payment already processed (idempotency)', fu
         'transaction_id' => 'already-processed',
     ]);
 
-    $this->postJson(route('payment.rajhi.webhook'), [
-        'trackId' => $payment->id,
-        'result' => 'CAPTURED',
-        'transId' => 'should-not-overwrite',
-    ])
+    $this->postJson(route('payment.rajhi.webhook'), rajhiWebhookPayload(
+        $payment->id,
+        'CAPTURED',
+        ['transId' => 'should-not-overwrite'],
+    ))
         ->assertOk()
         ->assertJson([['status' => '1']]);
 
@@ -64,11 +66,7 @@ test('webhook fires PaymentCompleted event on CAPTURED result', function () {
     $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
-    $this->postJson(route('payment.rajhi.webhook'), [
-        'trackId' => $payment->id,
-        'result' => 'CAPTURED',
-        'transId' => 'route-event-success',
-    ])->assertOk();
+    $this->postJson(route('payment.rajhi.webhook'), rajhiWebhookPayload($payment->id))->assertOk();
 
     Event::assertDispatched(PaymentCompleted::class, fn (PaymentCompleted $event) => $event->payment->id === $payment->id);
     Event::assertNotDispatched(PaymentFailed::class);
@@ -81,11 +79,7 @@ test('webhook fires PaymentFailed event on NOT CAPTURED result', function () {
     $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
-    $this->postJson(route('payment.rajhi.webhook'), [
-        'trackId' => $payment->id,
-        'result' => 'NOT CAPTURED',
-        'transId' => 'route-event-failure',
-    ])->assertOk();
+    $this->postJson(route('payment.rajhi.webhook'), rajhiWebhookPayload($payment->id, 'NOT CAPTURED'))->assertOk();
 
     Event::assertDispatched(PaymentFailed::class, fn (PaymentFailed $event) => $event->payment->id === $payment->id);
     Event::assertNotDispatched(PaymentCompleted::class);
