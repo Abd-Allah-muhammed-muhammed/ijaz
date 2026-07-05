@@ -35,21 +35,41 @@ class MakeJsEnumsCommand extends Command
     public function handle(): void
     {
 
-        $path = base_path('app/Enums/');
+        $appPath = base_path('app/Enums/');
         $output = resource_path('js/Enums');
         //    $this->makeJsFile($output, 'index', collect([PaymentDriverEnum::class]));
         //    return;
         if (! is_dir($output) && ! mkdir($output, 0777, true) && ! is_dir($output)) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $output));
         }
-        collect(array_merge(glob($path.'*/*Enum.php'), glob($path.'*Enum.php')))
+
+        $appEnums = array_merge(
+            glob($appPath.'*/*Enum.php'),
+            glob($appPath.'*Enum.php')
+        );
+
+        $moduleEnums = array_merge(
+            glob(base_path('Modules/*/Enums/*Enum.php')),
+            glob(base_path('Modules/*/Enums/*/*Enum.php'))
+        );
+
+        collect(array_merge($appEnums, $moduleEnums))
             ->map(fn ($file) => str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $file))
             ->map(fn ($file) => str($file)
                 ->replace([base_path().DIRECTORY_SEPARATOR, DIRECTORY_SEPARATOR, '.php'], ['', '\\', ''])
                 ->ucfirst()
                 ->toString()
             )
-            ->groupBy(fn ($file) => str($file)->beforeLast('\\')->afterLast('\\')->toString())
+            ->groupBy(function (string $className) {
+                if (str_starts_with($className, 'Modules\\')) {
+                    return match (explode('\\', $className)[1]) {
+                        'Classifieds' => 'Advisements',
+                        default => explode('\\', $className)[1],
+                    };
+                }
+
+                return str($className)->beforeLast('\\')->afterLast('\\')->toString();
+            })
             ->each(fn ($files, $key) => $this->makeJsFile($output, $key, $files));
 
     }
