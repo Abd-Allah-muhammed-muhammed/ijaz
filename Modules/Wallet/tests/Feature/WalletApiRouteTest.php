@@ -3,6 +3,7 @@
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
+use Modules\Payment\Enums\PaymentDriverEnum;
 use Modules\Payment\Enums\PaymentMethodEnum;
 use Modules\Payment\Models\Payment;
 use Modules\Wallet\Http\Controllers\V1\WalletController;
@@ -52,6 +53,7 @@ test('online top-up creates TopUpRequest and Payment → 200', function () {
     $this->postJson(action([WalletController::class, 'addBalance']), [
         'amount' => 150,
         'payment_method' => PaymentMethodEnum::Online->value,
+        'payment_driver' => PaymentDriverEnum::Testing->value,
     ])->assertSuccessful();
 
     expect(TopUpRequest::query()->where('user_id', $user->id)->exists())->toBeTrue()
@@ -65,8 +67,27 @@ test('online top-up returns payment URL', function () {
     $this->postJson(action([WalletController::class, 'addBalance']), [
         'amount' => 100,
         'payment_method' => PaymentMethodEnum::Online->value,
+        'payment_driver' => PaymentDriverEnum::Testing->value,
     ])->assertSuccessful()
         ->assertJsonStructure(['data' => ['url', 'transaction_id', 'driver']]);
+});
+
+test('user api top-up accepts payment_driver field', function () {
+    $user = createWalletUser();
+    Sanctum::actingAs($user);
+
+    $response = $this->postJson(action([WalletController::class, 'addBalance']), [
+        'amount' => 125,
+        'payment_method' => PaymentMethodEnum::Online->value,
+        'payment_driver' => PaymentDriverEnum::Testing->value,
+    ])->assertSuccessful();
+
+    $payment = Payment::query()->where('amount', 125)->first();
+
+    expect($payment)->not->toBeNull()
+        ->and($payment->driver)->toBe(PaymentDriverEnum::Testing->value)
+        ->and($response->json('data.driver'))->toBe(PaymentDriverEnum::Testing->value)
+        ->and($response->json('data.url'))->toBe(route('payment.testing.checkout', ['payment' => $payment->id]));
 });
 
 test('offline top-up creates TopUpRequest without Payment → 200', function () {
