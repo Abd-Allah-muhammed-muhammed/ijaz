@@ -26,7 +26,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Lib\SMS\DTOs\SMSMessage;
 use Lib\SMS\Facade\SMS;
+use Modules\Wallet\Actions\CreditProviderRegistrationBonusAction;
 use Random\RandomException;
+use RuntimeException;
 use Throwable;
 
 class AuthController extends Controller
@@ -43,7 +45,27 @@ class AuthController extends Controller
         $data['phone'] = Phone::make($data['phone'])->toString();
         DB::beginTransaction();
         try {
-            $data['logo'] = $request->file('logo')?->store('providers', 'public');
+            $logoFile = $request->file('logo');
+
+            if (
+                ! $logoFile
+                || ! $logoFile->isValid()
+                || $logoFile->getError() !== UPLOAD_ERR_OK
+                || ! $logoFile->getRealPath()
+            ) {
+                report(new RuntimeException(
+                    'Provider registration: logo upload invalid or temp file missing. '
+                    .'isValid='.var_export($logoFile?->isValid(), true)
+                    .' error='.$logoFile?->getError()
+                    .' realPath='.$logoFile?->getRealPath()
+                    .' size='.$logoFile?->getSize()
+                ));
+                DB::rollBack();
+
+                return redirect()->back()->with('error', __('logo upload failed, please try again'));
+            }
+
+            $data['logo'] = $logoFile->store('providers', 'public');
             $provider = Provider::create([
                 ...$data,
                 'status' => ProviderStatusEnum::Pending,
@@ -72,6 +94,7 @@ class AuthController extends Controller
             //          ->flatten(1)
             //          ->toArray()
             //      );
+            app(CreditProviderRegistrationBonusAction::class)->handle($provider);
             DB::commit();
 
             return to_route('auth.register')

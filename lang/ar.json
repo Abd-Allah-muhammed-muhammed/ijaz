@@ -420,6 +420,10 @@
   "withdraw_request_details": "تفاصيل طلب السحب",
   "withdraw_requests": "طلبات السحب",
   "withdraw_request": "طلب السحب",
+  "minimum_withdrawal_amount": "الحد الأدنى للسحب هو :amount ريال",
+  "Registration bonus": "مكافأة التسجيل",
+  "logo upload failed, please try again": "فشل رفع الشعار، يرجى المحاولة مرة أخرى",
+
   "from": "من",
   "to": "الي",
   "new_order_assigned": "تم تعيين طلب جديد",

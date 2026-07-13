@@ -125,11 +125,11 @@ test('unauthenticated cannot withdraw → 401', function () {
 
 test('withdraw with sufficient balance creates WithdrawRequest → 200', function () {
     $user = createWalletUser();
-    fundWallet($user, 200);
+    fundWallet($user, 400);
     Sanctum::actingAs($user);
 
     $this->postJson(action([WalletController::class, 'withdraw']), [
-        'amount' => 50,
+        'amount' => 200,
     ])->assertSuccessful()
         ->assertJsonPath('data.status', 'pending');
 
@@ -141,7 +141,7 @@ test('withdraw with insufficient balance → 422', function () {
     Sanctum::actingAs($user);
 
     $response = $this->postJson(action([WalletController::class, 'withdraw']), [
-        'amount' => 50,
+        'amount' => 200,
     ]);
 
     expect($response->status())->toBeGreaterThanOrEqual(400)
@@ -150,14 +150,14 @@ test('withdraw with insufficient balance → 422', function () {
 
 test('withdraw creates pending_debit hold on wallet', function () {
     $user = createWalletUser();
-    fundWallet($user, 200);
+    fundWallet($user, 400);
     Sanctum::actingAs($user);
 
     $this->postJson(action([WalletController::class, 'withdraw']), [
-        'amount' => 60,
+        'amount' => 200,
     ])->assertSuccessful();
 
-    expect((float) $user->wallet->fresh()->pending_debit)->toBe(60.0);
+    expect((float) $user->wallet->fresh()->pending_debit)->toBe(200.0);
 });
 
 test('missing amount on withdraw → 422', function () {
