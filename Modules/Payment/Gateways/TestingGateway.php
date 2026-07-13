@@ -17,17 +17,14 @@ class TestingGateway implements PaymentGatewayInterface
 
     public function initiate(Payment $payment): PaymentInitResult
     {
-        $url = route('payment.redirect', [
-            'driver' => 'testing',
-            'payment' => $payment->id,
-        ]);
+        $url = route('payment.testing.checkout', ['payment' => $payment->id]);
 
         $payment->update([
             'request' => [
                 'driver' => 'testing',
                 'amount' => $payment->amount,
                 'payment_id' => $payment->id,
-                'redirect_url' => $url,
+                'checkout_url' => $url,
             ],
             'url' => $url,
         ]);
