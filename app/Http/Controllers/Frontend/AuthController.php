@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Lib\SMS\DTOs\SMSMessage;
 use Lib\SMS\Facade\SMS;
+use Modules\Wallet\Actions\CreditProviderRegistrationBonusAction;
 use Random\RandomException;
 use Throwable;
 
@@ -72,6 +73,7 @@ class AuthController extends Controller
             //          ->flatten(1)
             //          ->toArray()
             //      );
+            app(CreditProviderRegistrationBonusAction::class)->handle($provider);
             DB::commit();
 
             return to_route('auth.register')

@@ -30,12 +30,12 @@ test('provider can create withdraw request with sufficient balance', function ()
     $this->actingAs($provider, 'provider')
         ->from(action([WithdrawController::class, 'index']))
         ->post(action([WithdrawController::class, 'store']), [
-            'amount' => 100,
+            'amount' => 200,
         ])->assertRedirect()
         ->assertSessionHas('success');
 
     expect(WithdrawRequest::query()->where('user_id', $provider->id)->exists())->toBeTrue()
-        ->and((float) $provider->wallet->fresh()->pending_debit)->toBe(100.0);
+        ->and((float) $provider->wallet->fresh()->pending_debit)->toBe(200.0);
 });
 
 test('provider cannot create withdraw with insufficient balance', function () {
@@ -45,7 +45,7 @@ test('provider cannot create withdraw with insufficient balance', function () {
     $this->actingAs($provider, 'provider')
         ->from(action([WithdrawController::class, 'index']))
         ->post(action([WithdrawController::class, 'store']), [
-            'amount' => 50,
+            'amount' => 200,
         ])->assertRedirect()
         ->assertSessionHas('error');
 

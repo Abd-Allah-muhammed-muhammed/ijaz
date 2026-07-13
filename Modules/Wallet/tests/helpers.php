@@ -7,6 +7,7 @@ use App\Models\City;
 use App\Models\Provider;
 use App\Models\ProviderType;
 use App\Models\Region;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -105,4 +106,14 @@ function fundWallet(User|Provider $owner, float $amount): void
         $owner,
         'Test wallet funding',
     ));
+}
+
+function setWalletSetting(string $key, string $content): void
+{
+    Setting::query()->updateOrCreate(
+        ['key' => $key],
+        ['content' => $content],
+    );
+    cache()->forget('settings');
+    app()->forgetInstance('settings');
 }
