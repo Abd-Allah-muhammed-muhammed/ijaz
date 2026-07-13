@@ -420,6 +420,8 @@
   "insufficient_balance": "Insufficient balance",
   "minimum_withdrawal_amount": "Minimum withdrawal amount is :amount SAR",
   "Registration bonus": "Registration bonus",
+  "logo upload failed, please try again": "Logo upload failed, please try again",
+
   "withdrawal_request_sent": "Withdrawal request sent successfully",
   "new": "New",
   "in_progress": "In Progress",
