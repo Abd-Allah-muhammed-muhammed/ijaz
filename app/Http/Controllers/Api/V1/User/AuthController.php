@@ -11,13 +11,13 @@ use App\Http\Resources\Api\V1\User\UserResource;
 use App\Models\User;
 use App\Services\Sms\Phone;
 use App\Traits\OTPGeneration;
-use DB;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Lib\SMS\DTOs\SMSMessage;
-use Lib\SMS\Facade\SMS;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Sms\DTOs\SmsMessage;
+use Modules\Sms\Services\SmsService;
 use Random\RandomException;
 use Throwable;
 
@@ -25,6 +25,10 @@ use Throwable;
 class AuthController extends Controller
 {
     use HasApiResponse, OTPGeneration;
+
+    public function __construct(
+        private readonly SmsService $smsService,
+    ) {}
 
     /**
      * Authenticate a user and return a short-lived login token.
@@ -51,12 +55,11 @@ class AuthController extends Controller
             return $this->failedMessageResponse($msg, 400);
         }
         $code = $user->updateOrCreateVerificationCode($this->generateOtpForPhone($phone), 'login');
-        Log::channel('sms')->info('Login OTP for user '.$user->id.' is '.$code->token, SMS::send(
-            new SMSMessage(
-                otp: $code->token,
-            ),
+        $result = $this->smsService->send(
+            SmsMessage::otp($code->token),
             Phone::make($user->phone)->toString()
-        )->toArray());
+        );
+        Log::channel('sms')->info('Login OTP for user '.$user->id.' is '.$code->token, $result->toArray());
         $user->tokens()->delete(); // Delete previous login token
 
         return $this->successResponseWithToken(
@@ -97,12 +100,11 @@ class AuthController extends Controller
             }
             $user = User::create($data);
             $code = $user->updateOrCreateVerificationCode($this->generateOtpForPhone($phone), 'login');
-            Log::channel('sms')->info('Login OTP for user '.$user->id.' is '.$code->token, SMS::send(
-                new SMSMessage(
-                    otp: $code->token,
-                ),
+            $result = $this->smsService->send(
+                SmsMessage::otp($code->token),
                 $phone->toString()
-            )->toArray());
+            );
+            Log::channel('sms')->info('Login OTP for user '.$user->id.' is '.$code->token, $result->toArray());
             $token = explode('|', $user->createToken('login', [], now()->addMinutes(15))->plainTextToken)[1];
             $user->load(['nationality.translation']);
             DB::commit();
