@@ -182,3 +182,61 @@ test('send returns failed result on non-200 http response', function () {
         ->and($result->status)->toBe('failed')
         ->and($result->message)->toBe('Server error');
 });
+
+test('send composes full translated message when type is Otp', function () {
+    app()->setLocale('en');
+
+    Http::fake([
+        'app.mobile.net.sa/*' => Http::response(['status' => 'Success', 'data' => []], 200),
+    ]);
+
+    app(OrbitGateway::class)->send(
+        SmsMessage::otp('1234'),
+        '966555338296',
+    );
+
+    Http::assertSent(fn ($request) => $request['messageBody'] === 'Your verification code is: 1234');
+});
+
+test('send uses raw body as-is when type is Custom', function () {
+    Http::fake([
+        'app.mobile.net.sa/*' => Http::response(['status' => 'Success', 'data' => []], 200),
+    ]);
+
+    app(OrbitGateway::class)->send(
+        new SmsMessage(body: 'Hello raw custom'),
+        '966555338296',
+    );
+
+    Http::assertSent(fn ($request) => $request['messageBody'] === 'Hello raw custom');
+});
+
+test('send composes Arabic message when app locale is ar', function () {
+    app()->setLocale('ar');
+
+    Http::fake([
+        'app.mobile.net.sa/*' => Http::response(['status' => 'Success', 'data' => []], 200),
+    ]);
+
+    app(OrbitGateway::class)->send(
+        SmsMessage::otp('5678'),
+        '966555338296',
+    );
+
+    Http::assertSent(fn ($request) => $request['messageBody'] === 'رمز التحقق الخاص بك هو: 5678');
+});
+
+test('send composes English message when app locale is en', function () {
+    app()->setLocale('en');
+
+    Http::fake([
+        'app.mobile.net.sa/*' => Http::response(['status' => 'Success', 'data' => []], 200),
+    ]);
+
+    app(OrbitGateway::class)->send(
+        SmsMessage::otp('9012'),
+        '966555338296',
+    );
+
+    Http::assertSent(fn ($request) => $request['messageBody'] === 'Your verification code is: 9012');
+});

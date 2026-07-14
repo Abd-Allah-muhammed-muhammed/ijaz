@@ -673,5 +673,6 @@
   "installment_released_body": "آپ کے اکاؤنٹ میں قسط کی ادائیگی جاری کر دی گئی ہے",
   "guarantor_ended": "ضامن درخواست ختم",
   "guarantor_has_been_ended": "آپ کی ضامن درخواست ختم کر دی گئی ہے",
-  "errors.not_found": "وسیلہ نہیں ملا"
+  "errors.not_found": "وسیلہ نہیں ملا",
+  "sms_verification_code_message": "آپ کا تصدیقی کوڈ ہے: :code"
 }
