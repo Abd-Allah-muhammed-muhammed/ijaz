@@ -1,36 +1,38 @@
 <?php
 
-namespace Lib\SMS\Gates;
+namespace Modules\Sms\Gateways;
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
-use Lib\SMS\Contracts\ISMSGate;
-use Lib\SMS\DTOs\SMSMessage;
-use Lib\SMS\DTOs\SMSResponse;
+use Modules\Sms\Contracts\SmsGatewayInterface;
+use Modules\Sms\DTOs\SmsMessage;
+use Modules\Sms\DTOs\SmsResult;
 
-class AuthenticaGate implements ISMSGate
+class AuthenticaGateway implements SmsGatewayInterface
 {
     /**
      * @throws ConnectionException
      */
-    public function send(SMSMessage $message, string $number): SMSResponse
+    public function send(SmsMessage $message, string $number): SmsResult
     {
+        $config = config('sms.drivers.authentica', []);
+
         $response = Http::withHeaders([
             'Accept' => 'application/json',
-            'X-Authorization' => config('sms.drivers.authentica.api_key'),
+            'X-Authorization' => $config['api_key'] ?? null,
             'Content-Type' => 'application/json',
         ])
-            ->post('https://api.authentica.sa/api/v2/send-otp', [
-                'template_id' => config('sms.drivers.authentica.template_id'),
+            ->post($config['endpoint'] ?? 'https://api.authentica.sa/api/v2/send-otp', [
+                'template_id' => $config['template_id'] ?? null,
                 'phone' => $number,
-                'message' => $message->getText(),
+                'message' => $message->body,
                 'method' => 'sms',
-                'otp' => $message->getOtp(),
-                'app_name' => config('sms.drivers.authentica.app_name'),
+                'otp' => $message->body,
+                'app_name' => $config['app_name'] ?? null,
             ]);
         $response = $response->json();
 
-        return new SMSResponse(
+        return new SmsResult(
             status: $response['success'] ? 'success' : 'failed',
             driver: 'authentica',
             message: $response['message'],
@@ -42,9 +44,9 @@ class AuthenticaGate implements ISMSGate
         );
     }
 
-    public function sendMany(SMSMessage $message, string ...$numbers): SMSResponse
+    public function sendMany(SmsMessage $message, string ...$numbers): SmsResult
     {
-        return new SMSResponse(
+        return new SmsResult(
             status: 'success',
             driver: 'testing',
             data: [

@@ -1,16 +1,16 @@
 <?php
 
-namespace Lib\SMS\Gates;
+namespace Modules\Sms\Gateways;
 
-use Lib\SMS\Contracts\ISMSGate;
-use Lib\SMS\DTOs\SMSMessage;
-use Lib\SMS\DTOs\SMSResponse;
+use Modules\Sms\Contracts\SmsGatewayInterface;
+use Modules\Sms\DTOs\SmsMessage;
+use Modules\Sms\DTOs\SmsResult;
 
-class TestingGate implements ISMSGate
+class TestingGateway implements SmsGatewayInterface
 {
-    public function send(SMSMessage $message, string $number): SMSResponse
+    public function send(SmsMessage $message, string $number): SmsResult
     {
-        return new SMSResponse(
+        return new SmsResult(
             status: 'success',
             driver: 'testing',
             data: [
@@ -20,9 +20,9 @@ class TestingGate implements ISMSGate
         );
     }
 
-    public function sendMany(SMSMessage $message, string ...$numbers): SMSResponse
+    public function sendMany(SmsMessage $message, string ...$numbers): SmsResult
     {
-        return new SMSResponse(
+        return new SmsResult(
             status: 'success',
             driver: 'testing',
             data: [

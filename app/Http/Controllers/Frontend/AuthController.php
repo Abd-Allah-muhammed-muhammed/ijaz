@@ -24,8 +24,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Lib\SMS\DTOs\SMSMessage;
-use Lib\SMS\Facade\SMS;
+use Modules\Sms\Services\SmsService;
 use Modules\Wallet\Actions\CreditProviderRegistrationBonusAction;
 use Random\RandomException;
 use RuntimeException;
@@ -34,6 +33,10 @@ use Throwable;
 class AuthController extends Controller
 {
     use OTPGeneration;
+
+    public function __construct(
+        private readonly SmsService $smsService,
+    ) {}
 
     /**
      * @throws Throwable
@@ -142,16 +145,11 @@ class AuthController extends Controller
             'token' => $this->generateOtpForPhone($phone),
             'expires_at' => now()->addMinutes(5),
         ]);
+        $result = $this->smsService->sendOtp($code->token, $phone);
         Log::channel('sms')
             ->info(
                 'Login OTP for number '.$phone.' is '.$code->token,
-                SMS::send(
-                    new SMSMessage(
-                        otp: $code->token,
-                    ),
-                    $phone
-                )
-                    ->toArray()
+                $result->toArray()
             );
 
         return response()->json([]);
