@@ -22,6 +22,18 @@ class SmsService
     }
 
     /**
+     * Send an OTP code to a single number using the given driver
+     * (or the configured default if none is specified).
+     *
+     * Convenience wrapper around send() for the common OTP case — callers
+     * don't need to know about SmsMessage's construction.
+     */
+    public function sendOtp(string $code, string $number, ?string $driver = null): SmsResult
+    {
+        return $this->send(SmsMessage::otp($code), $number, $driver);
+    }
+
+    /**
      * Send a message to multiple numbers using the given driver
      * (or the configured default if none is specified).
      */

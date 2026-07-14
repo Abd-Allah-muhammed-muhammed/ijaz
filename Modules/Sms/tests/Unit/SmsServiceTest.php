@@ -83,3 +83,32 @@ test('send returns SmsResult from the resolved gateway', function () {
             'driver' => 'testing',
         ]);
 });
+
+test('sendOtp builds an otp message and delegates to send', function () {
+    config(['sms.default' => 'testing']);
+
+    $result = app(SmsService::class)->sendOtp('1234', '966555338296');
+
+    expect($result)->toBeInstanceOf(SmsResult::class)
+        ->and($result->isSuccessful())->toBeTrue()
+        ->and($result->driver)->toBe('testing')
+        ->and($result->data['number'])->toBe('966555338296');
+});
+
+test('sendOtp uses default driver when none specified', function () {
+    config(['sms.default' => 'testing']);
+
+    $result = app(SmsService::class)->sendOtp('5678', '966555338296');
+
+    expect($result->driver)->toBe('testing')
+        ->and($result->isSuccessful())->toBeTrue();
+});
+
+test('sendOtp uses explicit driver when specified', function () {
+    config(['sms.default' => 'authentica']);
+
+    $result = app(SmsService::class)->sendOtp('5678', '966555338296', 'testing');
+
+    expect($result->driver)->toBe('testing')
+        ->and($result->isSuccessful())->toBeTrue();
+});

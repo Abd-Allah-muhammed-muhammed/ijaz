@@ -24,7 +24,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Modules\Sms\DTOs\SmsMessage;
 use Modules\Sms\Services\SmsService;
 use Modules\Wallet\Actions\CreditProviderRegistrationBonusAction;
 use Random\RandomException;
@@ -146,10 +145,7 @@ class AuthController extends Controller
             'token' => $this->generateOtpForPhone($phone),
             'expires_at' => now()->addMinutes(5),
         ]);
-        $result = $this->smsService->send(
-            SmsMessage::otp($code->token),
-            $phone
-        );
+        $result = $this->smsService->sendOtp($code->token, $phone);
         Log::channel('sms')
             ->info(
                 'Login OTP for number '.$phone.' is '.$code->token,

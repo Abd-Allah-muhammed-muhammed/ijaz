@@ -16,7 +16,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use MMAE\ApiResponse\Traits\HasApiResponse;
-use Modules\Sms\DTOs\SmsMessage;
 use Modules\Sms\Services\SmsService;
 use Random\RandomException;
 use Throwable;
@@ -55,10 +54,7 @@ class AuthController extends Controller
             return $this->failedMessageResponse($msg, 400);
         }
         $code = $user->updateOrCreateVerificationCode($this->generateOtpForPhone($phone), 'login');
-        $result = $this->smsService->send(
-            SmsMessage::otp($code->token),
-            Phone::make($user->phone)->toString()
-        );
+        $result = $this->smsService->sendOtp($code->token, Phone::make($user->phone)->toString());
         Log::channel('sms')->info('Login OTP for user '.$user->id.' is '.$code->token, $result->toArray());
         $user->tokens()->delete(); // Delete previous login token
 
@@ -100,10 +96,7 @@ class AuthController extends Controller
             }
             $user = User::create($data);
             $code = $user->updateOrCreateVerificationCode($this->generateOtpForPhone($phone), 'login');
-            $result = $this->smsService->send(
-                SmsMessage::otp($code->token),
-                $phone->toString()
-            );
+            $result = $this->smsService->sendOtp($code->token, $phone->toString());
             Log::channel('sms')->info('Login OTP for user '.$user->id.' is '.$code->token, $result->toArray());
             $token = explode('|', $user->createToken('login', [], now()->addMinutes(15))->plainTextToken)[1];
             $user->load(['nationality.translation']);

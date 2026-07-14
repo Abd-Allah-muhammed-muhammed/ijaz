@@ -2,7 +2,6 @@
 
 use App\Models\User;
 use App\Services\Sms\Phone;
-use Modules\Sms\DTOs\SmsMessage;
 use Modules\Sms\DTOs\SmsResult;
 use Modules\Sms\Services\SmsService;
 
@@ -15,10 +14,10 @@ test('api login sends otp via SmsService', function () {
     User::factory()->create(['phone' => $normalized]);
 
     $sms = Mockery::mock(SmsService::class);
-    $sms->shouldReceive('send')
+    $sms->shouldReceive('sendOtp')
         ->once()
-        ->withArgs(function (SmsMessage $message, string $number) use ($normalized) {
-            return $number === $normalized && $message->body !== '';
+        ->withArgs(function (string $code, string $number) use ($normalized) {
+            return $number === $normalized && $code !== '';
         })
         ->andReturn(new SmsResult(status: 'success', driver: 'testing'));
     app()->instance(SmsService::class, $sms);
@@ -29,10 +28,10 @@ test('api login sends otp via SmsService', function () {
 
 test('provider register otp sends via SmsService', function () {
     $sms = Mockery::mock(SmsService::class);
-    $sms->shouldReceive('send')
+    $sms->shouldReceive('sendOtp')
         ->once()
-        ->withArgs(function (SmsMessage $message, string $number) {
-            return $number === Phone::make('512345679')->toString() && $message->body !== '';
+        ->withArgs(function (string $code, string $number) {
+            return $number === Phone::make('512345679')->toString() && $code !== '';
         })
         ->andReturn(new SmsResult(status: 'success', driver: 'testing'));
     app()->instance(SmsService::class, $sms);
