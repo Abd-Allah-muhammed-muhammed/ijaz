@@ -3,6 +3,7 @@
 namespace Modules\Sms\DTOs;
 
 use Carbon\Carbon;
+use Modules\Sms\Enums\SmsMessageType;
 
 /**
  * Outbound SMS payload for gateway::send() / sendMany().
@@ -16,6 +17,7 @@ final readonly class SmsMessage
         public string $body,
         public ?string $senderName = null,
         public ?Carbon $scheduledAt = null,
+        public SmsMessageType $type = SmsMessageType::Custom,
     ) {}
 
     /**
@@ -23,7 +25,7 @@ final readonly class SmsMessage
      */
     public static function otp(string $code): self
     {
-        return new self(body: $code);
+        return new self(body: $code, type: SmsMessageType::Otp);
     }
 
     public function isScheduled(): bool
@@ -37,6 +39,7 @@ final readonly class SmsMessage
             'body' => $this->body,
             'sender_name' => $this->senderName,
             'scheduled_at' => $this->scheduledAt?->toIso8601String(),
+            'type' => $this->type->value,
         ];
     }
 }

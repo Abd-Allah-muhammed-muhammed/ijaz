@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Modules\Sms\Contracts\SmsGatewayInterface;
 use Modules\Sms\DTOs\SmsMessage;
 use Modules\Sms\DTOs\SmsResult;
+use Modules\Sms\Enums\SmsMessageType;
 
 class OrbitGateway implements SmsGatewayInterface
 {
@@ -58,11 +59,15 @@ class OrbitGateway implements SmsGatewayInterface
     {
         $config = config('sms.drivers.orbit', []);
 
+        $body = $message->type === SmsMessageType::Otp
+            ? __('sms_verification_code_message', ['code' => $message->body])
+            : $message->body;
+
         $payload = [
             ...$recipientFields,
             'senderName' => $message->senderName ?? ($config['sender_name'] ?? null),
             'sendAtOption' => $message->isScheduled() ? 'Later' : 'Now',
-            'messageBody' => $message->body,
+            'messageBody' => $body,
             'allow_duplicate' => true,
         ];
 

@@ -884,5 +884,6 @@
   "installment_released_body": "An installment payment has been released to your account",
   "guarantor_ended": "Guarantor Request Ended",
   "guarantor_has_been_ended": "Your guarantor request has been ended",
-  "errors.not_found": "Resource not found"
+  "errors.not_found": "Resource not found",
+  "sms_verification_code_message": "Your verification code is: :code"
 }

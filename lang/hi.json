@@ -675,5 +675,6 @@
   "installment_released_body": "आपके खाते में किस्त भुगतान जारी कर दिया गया है",
   "guarantor_ended": "गारंटर अनुरोध समाप्त",
   "guarantor_has_been_ended": "आपका गारंटर अनुरोध समाप्त कर दिया गया है",
-  "errors.not_found": "संसाधन नहीं मिला"
+  "errors.not_found": "संसाधन नहीं मिला",
+  "sms_verification_code_message": "आपका सत्यापन कोड है: :code"
 }

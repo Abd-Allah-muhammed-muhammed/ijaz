@@ -71,3 +71,22 @@ test('authentica gateway sendMany stub returns testing-style success', function 
         ->and($result->data['numbers'])->toBe(['966555338296', '966555000000'])
         ->and($result->data['message'])->toBe('This is a test message sent via TestingGate to multiple numbers.');
 });
+
+test('authentica gateway still sends raw otp code regardless of message type', function () {
+    Http::fake([
+        'api.authentica.sa/*' => Http::response([
+            'success' => true,
+            'message' => 'OTP sent',
+        ], 200),
+    ]);
+
+    app(AuthenticaGateway::class)->send(
+        SmsMessage::otp('4321'),
+        '966555338296',
+    );
+
+    Http::assertSent(function ($request) {
+        return $request['otp'] === '4321'
+            && $request['message'] === '4321';
+    });
+});

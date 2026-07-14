@@ -781,5 +781,6 @@
   "installment_released_body": "تم تحرير دفعة لحسابك",
   "guarantor_ended": "انتهى طلب الضامن",
   "guarantor_has_been_ended": "تم إنهاء طلب الضامن الخاص بك",
-  "errors.not_found": "المورد غير موجود"
+  "errors.not_found": "المورد غير موجود",
+  "sms_verification_code_message": "رمز التحقق الخاص بك هو: :code"
 }
