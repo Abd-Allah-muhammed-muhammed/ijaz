@@ -8,6 +8,11 @@ return [
 
     'default' => env('SMS_DRIVER', 'testing'),
 
+    /*
+    | Fixed OTP for the configured test number (used by OTPGeneration).
+    */
+    'test_number' => env('SMS_TEST_NUMBER', '966555338296'),
+
     'gateways' => [
         'authentica' => AuthenticaGateway::class,
         'orbit' => OrbitGateway::class,
@@ -23,9 +28,6 @@ return [
             'endpoint' => env('SMS_AUTHENTICA_ENDPOINT', 'https://api.authentica.sa/api/v2/send-otp'),
         ],
 
-        // Orbit gateway config block — filled with real keys in a later step
-        // when we build OrbitGateway itself. Leave placeholders here for now
-        // so the shape is complete, but don't wire real credentials/logic yet.
         'orbit' => [
             'api_token' => env('SMS_ORBIT_API_TOKEN'),
             'sender_name' => env('SMS_ORBIT_SENDER_NAME'),
