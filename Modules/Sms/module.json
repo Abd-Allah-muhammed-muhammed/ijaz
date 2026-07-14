@@ -1,0 +1,12 @@
+{
+    "name": "Sms",
+    "alias": "sms",
+    "description": "SMS module — handles SMS gateways and outbound messaging.",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Sms\\Providers\\SmsServiceProvider"
+    ],
+    "aliases": {},
+    "files": []
+}

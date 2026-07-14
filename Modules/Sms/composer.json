@@ -1,0 +1,26 @@
+{
+    "name": "nwidart/sms",
+    "description": "SMS module for gateways and outbound messaging",
+    "authors": [
+        {
+            "name": "Ijaz",
+            "email": "dev@ijaz.test"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Sms\\": "./"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Sms\\Tests\\": "tests/"
+        }
+    }
+}
