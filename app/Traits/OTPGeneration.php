@@ -15,23 +15,11 @@ trait OTPGeneration
         if (is_string($phone)) {
             $phone = Phone::make($phone);
         }
-        if ($phone->toString() === config('sms.test_number')) {
-            return '4444';
+
+        if ($phone->toString() === config('sms.test_number') || config('sms.verification_code_all_numbers') == true) {
+            return config('sms.verification_code') ?? 1111;
         }
 
-        return $this->generateOtp();
-    }
-
-    /**
-     * @throws RandomException
-     */
-    protected function generateOtp(): string
-    {
-        $codeConfig = config('verification_code.code');
-        if ($codeConfig === 'random') {
-            return random_int(1000, 9999);
-        }
-
-        return $codeConfig;
+        return random_int(1000, 9999);
     }
 }

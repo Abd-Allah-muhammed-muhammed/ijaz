@@ -13,6 +13,10 @@ return [
     */
     'test_number' => env('SMS_TEST_NUMBER', '966555338296'),
 
+    'verification_code' => env('SMS_VERIFICATION_CODE', 1111),
+
+    'verification_code_all_numbers' => env('SMS_VERIFICATION_CODE_ALL_NUMBERS', false),
+
     'gateways' => [
         'authentica' => AuthenticaGateway::class,
         'orbit' => OrbitGateway::class,
