@@ -15,11 +15,11 @@ use App\Models\City;
 use App\Models\ProviderCategory;
 use App\Models\ProviderType;
 use App\Models\Region;
+use App\Services\Auth\ProviderAuthService;
 use App\Services\Sms\Phone;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
@@ -27,6 +27,10 @@ use Throwable;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        private readonly ProviderAuthService $providerAuthService,
+    ) {}
+
     public function loginForm()
     {
         return inertia('Provider/Auth/LoginPage');
@@ -34,21 +38,14 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request)
     {
-        $request->authenticate();
-        $request->session()->regenerate();
-        auth('provider')->user()->update([
-            'language' => app()->getLocale(),
-        ]);
+        $result = $this->providerAuthService->login($request);
 
-        return redirect()->intended(route('provider.home', absolute: false));
+        return redirect()->intended(route($result->redirectRouteName, absolute: false));
     }
 
     public function logout(Request $request)
     {
-        Auth::guard('provider')->logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $this->providerAuthService->logout($request);
 
         return redirect('/');
     }

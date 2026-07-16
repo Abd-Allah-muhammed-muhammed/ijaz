@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Contracts\Auth\AdminRepositoryInterface;
+use App\Contracts\Auth\ProviderRepositoryInterface;
 use App\Contracts\Auth\UserRepositoryInterface;
 use App\Listeners\Payment\HandleOrderPaymentCompleted;
 use App\Listeners\Payment\HandleOrderPaymentFailed;
@@ -12,6 +13,7 @@ use App\Models\Setting;
 use App\NotificationChannel\EventChannel;
 use App\NotificationChannel\FirebaseChannel;
 use App\Repositories\Auth\AdminRepository;
+use App\Repositories\Auth\ProviderRepository;
 use App\Repositories\Auth\UserRepository;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
@@ -48,6 +50,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             UserRepositoryInterface::class,
             UserRepository::class,
+        );
+
+        $this->app->bind(
+            ProviderRepositoryInterface::class,
+            ProviderRepository::class,
         );
     }
 
