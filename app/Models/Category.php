@@ -6,6 +6,7 @@ use App\Contracts\Selects\IReactSelect;
 use App\Enums\CategoryFeesTypeEnum;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,7 +16,7 @@ use Storage;
 
 class Category extends Model implements IReactSelect
 {
-    use Translatable;
+    use HasFactory, Translatable;
 
     public array $translatedAttributes = ['title', 'normalized_title', 'description'];
 
