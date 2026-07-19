@@ -18,10 +18,9 @@ class SendProviderRegistrationOtpAction
     ) {}
 
     /**
-     * Reproduces Frontend\AuthController::otp()'s exact current behavior:
+     * Reproduces Frontend\AuthController::otp()'s behavior:
      * System B (RegisterVerificationCode, phone-string keyed), 5-minute TTL,
-     * SMS dispatch, and the OTP-in-logs line. The logs and lack of rate
-     * limiting are known issues deferred to a later security-focused step.
+     * and SMS dispatch. OTP codes are intentionally omitted from log output.
      *
      * @throws RandomException
      */
@@ -38,10 +37,12 @@ class SendProviderRegistrationOtpAction
 
         $result = $this->smsService->sendOtp($code->token, $phone);
 
-        Log::channel('sms')
-            ->info(
-                'Login OTP for number '.$phone.' is '.$code->token,
-                $result->toArray()
-            );
+        // Do not log the OTP or $result->data: AuthenticaGateway nests the code
+        // in data.message.body (SmsMessage::toArray()), which would leak it.
+        Log::channel('sms')->info('Login OTP sent for number '.$phone, [
+            'status' => $result->status,
+            'driver' => $result->driver,
+            'message' => $result->message,
+        ]);
     }
 }

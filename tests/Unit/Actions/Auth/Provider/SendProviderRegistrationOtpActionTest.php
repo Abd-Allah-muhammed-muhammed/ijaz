@@ -1,39 +1,19 @@
 <?php
 
-use App\Actions\Auth\User\SendLoginOtpAction;
-use App\Models\User;
+use App\Actions\Auth\Provider\SendProviderRegistrationOtpAction;
+use App\Models\RegisterVerificationCode;
 use App\Services\Sms\Phone;
 use Illuminate\Support\Facades\Log;
 use Modules\Sms\DTOs\SmsResult;
 use Modules\Sms\Services\SmsService;
 
-test('generates otp, stores it, dispatches sms, and logs result', function () {
-    $phone = Phone::make('512345678')->toString();
-    $user = User::factory()->create(['phone' => $phone]);
-
-    $sms = Mockery::mock(SmsService::class);
-    $sms->shouldReceive('sendOtp')
-        ->once()
-        ->withArgs(fn (string $code, string $number) => $number === $phone && $code !== '')
-        ->andReturn(new SmsResult(status: 'success', driver: 'testing'));
-    app()->instance(SmsService::class, $sms);
-
-    Log::shouldReceive('channel')->with('sms')->once()->andReturnSelf();
-    Log::shouldReceive('info')->once();
-
-    app(SendLoginOtpAction::class)->handle($user);
-
-    expect($user->verificationCodes()->where('type', 'login')->exists())->toBeTrue();
-});
-
-test('SendLoginOtpAction does not log the raw otp code', function () {
+test('SendProviderRegistrationOtpAction does not log the raw otp code', function () {
     config([
         'sms.verification_code_all_numbers' => true,
         'sms.verification_code' => '4829',
     ]);
 
     $phone = Phone::make('512345678')->toString();
-    $user = User::factory()->create(['phone' => $phone]);
     $otp = '4829';
 
     $sms = Mockery::mock(SmsService::class);
@@ -54,8 +34,8 @@ test('SendLoginOtpAction does not log the raw otp code', function () {
     Log::shouldReceive('channel')->with('sms')->once()->andReturnSelf();
     Log::shouldReceive('info')
         ->once()
-        ->withArgs(function (string $message, array $context) use ($otp, $user) {
-            expect($message)->toBe('Login OTP sent for user '.$user->id)
+        ->withArgs(function (string $message, array $context) use ($otp, $phone) {
+            expect($message)->toBe('Login OTP sent for number '.$phone)
                 ->and($message)->not->toContain($otp)
                 ->and($context)->toBe([
                     'status' => 'success',
@@ -67,5 +47,7 @@ test('SendLoginOtpAction does not log the raw otp code', function () {
             return true;
         });
 
-    app(SendLoginOtpAction::class)->handle($user);
+    app(SendProviderRegistrationOtpAction::class)->handle('512345678');
+
+    expect(RegisterVerificationCode::query()->where('queryable', $phone)->where('token', $otp)->exists())->toBeTrue();
 });

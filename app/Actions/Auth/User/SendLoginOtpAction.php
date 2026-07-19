@@ -31,6 +31,13 @@ class SendLoginOtpAction
         $phone = Phone::make($user->phone);
         $code = $user->updateOrCreateVerificationCode($this->generateOtpForPhone($phone), 'login');
         $result = $this->smsService->sendOtp($code->token, $phone->toString());
-        Log::channel('sms')->info('Login OTP for user '.$user->id.' is '.$code->token, $result->toArray());
+
+        // Do not log the OTP or $result->data: AuthenticaGateway nests the code
+        // in data.message.body (SmsMessage::toArray()), which would leak it.
+        Log::channel('sms')->info('Login OTP sent for user '.$user->id, [
+            'status' => $result->status,
+            'driver' => $result->driver,
+            'message' => $result->message,
+        ]);
     }
 }
