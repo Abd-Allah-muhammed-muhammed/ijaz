@@ -231,6 +231,10 @@ class OrderController extends Controller
      */
     public function updateOfferStatus(Order $order, OrderOffer $offer, UpdateOfferStatusRequest $request): JsonResponse
     {
+        if ($order->user()->isNot(auth()->user())) {
+            abort(404);
+        }
+
         if ($offer->status->isIn([OfferStatusEnum::Cancelled, OfferStatusEnum::Rejected, OfferStatusEnum::Paid]) || $offer->order()->isNot($order)) {
             return $this->failedMessageResponse(__('you can not update this offer'));
         }
