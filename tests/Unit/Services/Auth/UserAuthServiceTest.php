@@ -150,7 +150,7 @@ test('verifyOtp for email type preserves current behavior (bool passed to getUse
     expect($user->fresh()->email_verified_at)->not->toBeNull();
 });
 
-test('verifyOtp for phone type is a no-op matching current stub behavior', function () {
+test('verifyOtp for phone type still returns success false while persisting phone_verified_at', function () {
     $user = createUserAuthUser();
     $this->actingAs($user, 'user-api');
     $user->updateOrCreateVerificationCode('1234', 'phone');
@@ -159,7 +159,15 @@ test('verifyOtp for phone type is a no-op matching current stub behavior', funct
 
     expect($result)->not->toBeNull()
         ->and($result->success)->toBeFalse()
-        ->and($result->token)->toBe('');
+        ->and($result->token)->toBe('')
+        ->and($user->fresh()->phone_verified_at)->not->toBeNull();
+});
+
+test('markPhoneAsVerified persists phone_verified_at timestamp', function () {
+    $user = createUserAuthUser(['phone_verified_at' => null]);
+
+    expect($user->markPhoneAsVerified())->toBeTrue()
+        ->and($user->fresh()->phone_verified_at)->not->toBeNull();
 });
 
 test('verifyOtp with wrong code returns failure result', function () {

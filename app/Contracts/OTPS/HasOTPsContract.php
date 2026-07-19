@@ -24,7 +24,7 @@ interface HasOTPsContract
 
     public function markEmailAsVerified();
 
-    public function markPhoneAsVerified();
+    public function markPhoneAsVerified(): bool;
 
     public function markLoginAsVerified(bool $token = true);
 }
