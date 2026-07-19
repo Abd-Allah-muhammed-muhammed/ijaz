@@ -3,6 +3,7 @@
 namespace App\Actions\Auth\User;
 
 use App\Actions\Auth\EnsureOtpCooldownAction;
+use App\Actions\Auth\SendOtpSmsAction;
 use App\Models\User;
 use App\Services\Sms\Phone;
 use App\Traits\OTPGeneration;
@@ -14,15 +15,11 @@ class IssueOtpAction
 
     public function __construct(
         private readonly EnsureOtpCooldownAction $ensureOtpCooldownAction,
+        private readonly SendOtpSmsAction $sendOtpSmsAction,
     ) {}
 
     /**
-     * Matches OtpController::send()'s current behavior EXACTLY: generates and
-     * stores a code but does NOT dispatch an SMS and does NOT log anything.
-     *
-     * This is intentionally different from SendLoginOtpAction (see its docblock).
-     * The missing SMS dispatch is a KNOWN gap deferred to a later security step —
-     * do not "fix" it here.
+     * Generates, stores, and sends an OTP via SMS for the requested type.
      *
      * @throws RandomException
      */
@@ -33,8 +30,8 @@ class IssueOtpAction
 
         $this->ensureOtpCooldownAction->ensure($normalizedPhone);
 
-        $user->updateOrCreateVerificationCode($this->generateOtpForPhone($phone), $type);
+        $code = $user->updateOrCreateVerificationCode($this->generateOtpForPhone($phone), $type);
 
-        $this->ensureOtpCooldownAction->recordSent($normalizedPhone);
+        $this->sendOtpSmsAction->handle($user, $code->token, $normalizedPhone, $type);
     }
 }

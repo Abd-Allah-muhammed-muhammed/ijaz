@@ -57,9 +57,10 @@ test('SendLoginOtpAction does not log the raw otp code', function () {
     Log::shouldReceive('info')
         ->once()
         ->withArgs(function (string $message, array $context) use ($otp, $user) {
-            expect($message)->toBe('Login OTP sent for user '.$user->id)
+            expect($message)->toBe('OTP sent for user '.$user->id)
                 ->and($message)->not->toContain($otp)
                 ->and($context)->toBe([
+                    'type' => 'login',
                     'status' => 'success',
                     'driver' => 'authentica',
                     'message' => 'ok',

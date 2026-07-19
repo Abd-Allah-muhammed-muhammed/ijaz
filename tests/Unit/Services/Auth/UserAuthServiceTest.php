@@ -7,6 +7,7 @@ use App\Services\Auth\UserAuthService;
 use App\Services\Sms\Phone;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Modules\Sms\DTOs\SmsResult;
 use Modules\Sms\Services\SmsService;
 
 beforeEach(function () {
@@ -108,17 +109,20 @@ test('register rolls back transaction on failure', function () {
         ->and(VerificationCode::count())->toBe(0);
 });
 
-test('sendOtp stores code without dispatching sms (matches current OtpController::send behavior)', function () {
+test('sendOtp stores code and dispatches sms', function () {
     $user = createUserAuthUser();
     $this->actingAs($user, 'user-api');
 
-    $sms = Mockery::spy(SmsService::class);
+    $sms = Mockery::mock(SmsService::class);
+    $sms->shouldReceive('sendOtp')
+        ->once()
+        ->withArgs(fn (string $code, string $number) => $code !== '' && $number === $user->phone)
+        ->andReturn(new SmsResult(status: 'success', driver: 'testing'));
     app()->instance(SmsService::class, $sms);
 
     app(UserAuthService::class)->sendOtp('login');
 
     expect($user->verificationCodes()->where('type', 'login')->exists())->toBeTrue();
-    $sms->shouldNotHaveReceived('sendOtp');
 });
 
 test('verifyOtp for login type elevates to full-abilities token', function () {
