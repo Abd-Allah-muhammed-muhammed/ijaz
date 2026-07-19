@@ -35,10 +35,7 @@ it('lists property types with translations', function (): void {
 it('filters property types by search', function (): void {
     /** @var TestCase $this */
     $matching = PropertyType::factory()->create();
-    $matching->translations()->create([
-        'locale' => 'en',
-        'name' => 'Villa',
-    ]);
+    $matching->translations()->where('locale', 'en')->update(['name' => 'Villa']);
 
     PropertyType::factory()->create();
 
