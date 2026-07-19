@@ -33,10 +33,6 @@ Route::prefix('catalog')->group(static function () {
 });
 
 Route::middleware('auth:sanctum')->group(static function () {
-    Route::prefix('chats')->group(static function () {
-        require base_path('Modules/Opportunity/Routes/V1/chat.php');
-        require base_path('Modules/Guarantor/Routes/V1/chat.php');
-    });
 
     Route::controller(OtpController::class)->prefix('otp')->group(static function () {
         Route::post('send', 'send');

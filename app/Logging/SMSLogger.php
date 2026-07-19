@@ -3,7 +3,7 @@
 namespace App\Logging;
 
 use Monolog\Formatter\LineFormatter;
-use Monolog\Handler\StreamHandler;
+use Monolog\Handler\RotatingFileHandler;
 use Monolog\Logger;
 
 class SMSLogger
@@ -12,13 +12,10 @@ class SMSLogger
     {
         $logger = new Logger('sms');
 
-        // Define the log file path
         $logPath = storage_path('logs/sms.log');
 
-        // Create a StreamHandler
-        $handler = new StreamHandler($logPath, Logger::INFO);
+        $handler = new RotatingFileHandler($logPath, 14, Logger::INFO);
 
-        // Optionally, set a custom formatter
         $formatter = new LineFormatter(
             "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n",
             'Y-m-d H:i:s',
@@ -27,7 +24,6 @@ class SMSLogger
         );
         $handler->setFormatter($formatter);
 
-        // Push the handler to the logger
         $logger->pushHandler($handler);
 
         return $logger;
