@@ -17,7 +17,6 @@ Route::group(
                     Route::get('/login', 'loginForm')->name('login');
                     Route::post('/login', 'login')->name('login.submit');
                     Route::get('/register', 'register')->name('register');
-                    Route::post('/register', 'store')->name('register.submit');
                 });
                 Route::group(['middleware' => ['auth:provider']], static function () {
                     Route::get('/profile', 'profile')->name('profile');

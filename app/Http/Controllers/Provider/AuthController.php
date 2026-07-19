@@ -50,13 +50,9 @@ class AuthController extends Controller
         return redirect('/');
     }
 
-    public function register()
+    public function register(): RedirectResponse
     {
-        return inertia('Provider/Auth/Register', [
-            'types' => ProviderTypeResource::collection(ProviderType::all()),
-            'regions' => RegionResource::collection(Region::withTranslation()->get()),
-            'cities' => CityResource::collection(City::withTranslation()->get()),
-        ]);
+        return to_route('auth.register');
     }
 
     public function profile()
@@ -194,12 +190,6 @@ class AuthController extends Controller
 
             return redirect()->back()->with('error', __('something went wrong'));
         }
-    }
-
-    public function store()
-    {
-        // Registration logic here
-        return redirect()->route('provider.login')->with('success', __('Registration successful'));
     }
 
     public function statements(Request $request)

@@ -122,6 +122,11 @@ test('registration page can be rendered', function () {
         );
 });
 
+test('legacy provider registration page redirects to canonical registration page', function () {
+    $this->get(route('provider.register'))
+        ->assertRedirect(route('auth.register'));
+});
+
 test('provider can send otp before registering', function () {
     $phone = Phone::make('512345678')->toString();
     RateLimiter::clear('otp-send:'.$phone);
