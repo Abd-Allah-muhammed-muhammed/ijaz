@@ -19,7 +19,7 @@ class QuestionController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:show questions', only: ['index', 'show']),
+            new Middleware('permission:show questions', only: ['index']),
             new Middleware('permission:create questions', only: ['create', 'store']),
             new Middleware('permission:edit questions', only: ['edit', 'update']),
             new Middleware('permission:delete questions', only: ['destroy']),
@@ -72,14 +72,6 @@ class QuestionController extends Controller implements HasMiddleware
     public function create()
     {
         return inertia('Dashboard/Questions/Create');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Question $question)
-    {
-        //
     }
 
     /**

@@ -19,7 +19,7 @@ class PageController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:show pages', only: ['index', 'show']),
+            new Middleware('permission:show pages', only: ['index']),
             new Middleware('permission:create pages', only: ['create', 'store']),
             new Middleware('permission:edit pages', only: ['edit', 'update']),
             new Middleware('permission:delete pages', only: ['destroy']),
@@ -78,14 +78,6 @@ class PageController extends Controller implements HasMiddleware
     public function create()
     {
         return inertia('Dashboard/Pages/Create');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Page $page)
-    {
-        //
     }
 
     /**
