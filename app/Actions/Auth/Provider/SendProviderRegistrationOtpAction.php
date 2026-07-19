@@ -2,6 +2,7 @@
 
 namespace App\Actions\Auth\Provider;
 
+use App\Actions\Auth\EnsureOtpCooldownAction;
 use App\Models\RegisterVerificationCode;
 use App\Services\Sms\Phone;
 use App\Traits\OTPGeneration;
@@ -15,6 +16,7 @@ class SendProviderRegistrationOtpAction
 
     public function __construct(
         private readonly SmsService $smsService,
+        private readonly EnsureOtpCooldownAction $ensureOtpCooldownAction,
     ) {}
 
     /**
@@ -28,6 +30,8 @@ class SendProviderRegistrationOtpAction
     {
         $phone = Phone::make($rawPhone)->toString();
 
+        $this->ensureOtpCooldownAction->ensure($phone);
+
         $code = RegisterVerificationCode::updateOrCreate([
             'queryable' => $phone,
         ], [
@@ -36,6 +40,10 @@ class SendProviderRegistrationOtpAction
         ]);
 
         $result = $this->smsService->sendOtp($code->token, $phone);
+
+        if ($result->isSuccessful()) {
+            $this->ensureOtpCooldownAction->recordSent($phone);
+        }
 
         // Do not log the OTP or $result->data: AuthenticaGateway nests the code
         // in data.message.body (SmsMessage::toArray()), which would leak it.

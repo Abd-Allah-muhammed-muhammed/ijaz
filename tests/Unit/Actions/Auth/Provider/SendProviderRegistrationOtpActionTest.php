@@ -1,9 +1,11 @@
 <?php
 
 use App\Actions\Auth\Provider\SendProviderRegistrationOtpAction;
+use App\Exceptions\Auth\OtpCooldownException;
 use App\Models\RegisterVerificationCode;
 use App\Services\Sms\Phone;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Modules\Sms\DTOs\SmsResult;
 use Modules\Sms\Services\SmsService;
 
@@ -50,4 +52,26 @@ test('SendProviderRegistrationOtpAction does not log the raw otp code', function
     app(SendProviderRegistrationOtpAction::class)->handle('512345678');
 
     expect(RegisterVerificationCode::query()->where('queryable', $phone)->where('token', $otp)->exists())->toBeTrue();
+});
+
+test('SendProviderRegistrationOtpAction throws cooldown exception on rapid repeat calls', function () {
+    $phone = Phone::make('512345678')->toString();
+    RateLimiter::clear('otp-send:'.$phone);
+
+    $sms = Mockery::mock(SmsService::class);
+    $sms->shouldReceive('sendOtp')
+        ->once()
+        ->andReturn(new SmsResult(status: 'success', driver: 'testing'));
+    app()->instance(SmsService::class, $sms);
+
+    Log::shouldReceive('channel')->with('sms')->once()->andReturnSelf();
+    Log::shouldReceive('info')->once();
+
+    $action = app(SendProviderRegistrationOtpAction::class);
+    $action->handle('512345678');
+
+    expect(fn () => $action->handle('512345678'))
+        ->toThrow(OtpCooldownException::class);
+
+    RateLimiter::clear('otp-send:'.$phone);
 });

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Auth\User;
 
+use App\Actions\Auth\EnsureOtpCooldownAction;
 use App\Models\User;
 use App\Services\Sms\Phone;
 use App\Traits\OTPGeneration;
@@ -10,6 +11,10 @@ use Random\RandomException;
 class IssueOtpAction
 {
     use OTPGeneration;
+
+    public function __construct(
+        private readonly EnsureOtpCooldownAction $ensureOtpCooldownAction,
+    ) {}
 
     /**
      * Matches OtpController::send()'s current behavior EXACTLY: generates and
@@ -24,6 +29,12 @@ class IssueOtpAction
     public function handle(User $user, string $type): void
     {
         $phone = Phone::make($user->phone);
+        $normalizedPhone = $phone->toString();
+
+        $this->ensureOtpCooldownAction->ensure($normalizedPhone);
+
         $user->updateOrCreateVerificationCode($this->generateOtpForPhone($phone), $type);
+
+        $this->ensureOtpCooldownAction->recordSent($normalizedPhone);
     }
 }

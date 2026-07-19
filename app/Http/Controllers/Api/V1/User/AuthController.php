@@ -10,6 +10,7 @@ use App\Http\Resources\Api\V1\User\UserResource;
 use App\Services\Auth\UserAuthService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Random\RandomException;
 use Throwable;
@@ -59,6 +60,8 @@ class AuthController extends Controller
     {
         try {
             $result = $this->userAuthService->register($request->validated());
+        } catch (ValidationException $exception) {
+            throw $exception;
         } catch (Throwable $throwable) {
             report($throwable);
 

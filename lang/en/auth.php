@@ -16,6 +16,7 @@ return [
     'failed' => 'These credentials do not match our records.',
     'password' => 'The provided password is incorrect.',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
+    'otp_throttle' => 'Please wait :seconds seconds before requesting another code.',
     'otp_expired' => 'The OTP has expired. Please request a new one.',
     'otp_invalid' => 'The OTP you entered is invalid.',
     'pending' => 'Your account is pending',

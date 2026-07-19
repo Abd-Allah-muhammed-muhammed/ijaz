@@ -2,6 +2,7 @@
 
 namespace App\Actions\Auth\User;
 
+use App\Actions\Auth\EnsureOtpCooldownAction;
 use App\Models\User;
 use App\Services\Sms\Phone;
 use App\Traits\OTPGeneration;
@@ -15,6 +16,7 @@ class SendLoginOtpAction
 
     public function __construct(
         private readonly SmsService $smsService,
+        private readonly EnsureOtpCooldownAction $ensureOtpCooldownAction,
     ) {}
 
     /**
@@ -29,8 +31,16 @@ class SendLoginOtpAction
     public function handle(User $user): void
     {
         $phone = Phone::make($user->phone);
+        $normalizedPhone = $phone->toString();
+
+        $this->ensureOtpCooldownAction->ensure($normalizedPhone);
+
         $code = $user->updateOrCreateVerificationCode($this->generateOtpForPhone($phone), 'login');
-        $result = $this->smsService->sendOtp($code->token, $phone->toString());
+        $result = $this->smsService->sendOtp($code->token, $normalizedPhone);
+
+        if ($result->isSuccessful()) {
+            $this->ensureOtpCooldownAction->recordSent($normalizedPhone);
+        }
 
         // Do not log the OTP or $result->data: AuthenticaGateway nests the code
         // in data.message.body (SmsMessage::toArray()), which would leak it.
