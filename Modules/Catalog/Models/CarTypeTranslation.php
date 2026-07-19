@@ -9,7 +9,7 @@ class CarTypeTranslation extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'locale'];
 
     public function carType(): BelongsTo
     {

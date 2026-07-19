@@ -5,14 +5,18 @@ namespace Modules\Catalog\Models;
 use App\Contracts\Selects\IReactSelect;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
+use Modules\Catalog\Database\Factories\CarCategoryFactory;
 
 class CarCategory extends Model implements IReactSelect
 {
-    use Translatable;
+    /** @use HasFactory<CarCategoryFactory> */
+    use HasFactory, Translatable;
 
     public array $translatedAttributes = ['title', 'normalized_title', 'description'];
 
@@ -56,5 +60,10 @@ class CarCategory extends Model implements IReactSelect
     public function getValue(): string
     {
         return (string) $this->id;
+    }
+
+    protected static function newFactory(): Factory
+    {
+        return CarCategoryFactory::new();
     }
 }

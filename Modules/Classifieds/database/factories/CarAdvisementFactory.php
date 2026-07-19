@@ -4,6 +4,7 @@ namespace Modules\Classifieds\Database\Factories;
 
 use App\Models\City;
 use App\Models\Region;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use Modules\Catalog\Models\CarBrand;
@@ -38,8 +39,8 @@ final class CarAdvisementFactory extends Factory
             'status' => AdvisementStatusEnum::PUBLISHED,
             'operation' => $this->faker->randomElement(OperationEnum::cases()),
             'usage_status' => $this->faker->randomElement(UsageStatusEnum::cases()),
-            'user_type' => 'App\\Models\\User',
-            'user_id' => null,
+            'user_type' => User::class,
+            'user_id' => User::factory(),
             'car_brand_id' => CarBrand::factory(),
             'car_type_id' => CarType::factory(),
             'car_category_id' => CarCategory::factory(),

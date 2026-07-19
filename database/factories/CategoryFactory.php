@@ -19,6 +19,7 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         return [
+            'icon' => fake()->imageUrl(),
             'fees' => fake()->randomFloat(2, 5, 50),
             'fees_type' => fake()->randomElement([
                 CategoryFeesTypeEnum::FIXED,

@@ -16,7 +16,7 @@ class PropertiyCategoryTranslation extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['title'];
+    protected $fillable = ['title', 'locale'];
 
     public function propertiyCategory(): BelongsTo
     {

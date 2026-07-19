@@ -206,7 +206,7 @@ it('can update own advisement', function () {
         'price' => 1000,
     ];
 
-    $this->postJson(action([PropertyAdvisementController::class, 'edit'], $advisement), $data)
+    $this->putJson(action([PropertyAdvisementController::class, 'update'], $advisement), $data)
         ->assertOk()
         ->assertJsonPath('data.title', 'Updated Title')
         ->assertJsonPath('data.operation.value', OperationEnum::RENT->value);
@@ -236,7 +236,7 @@ it('cannot update others advisement', function () {
         'price' => 1000,
     ];
 
-    $this->postJson(action([PropertyAdvisementController::class, 'edit'], $advisement), $data)
+    $this->putJson(action([PropertyAdvisementController::class, 'update'], $advisement), $data)
         ->assertForbidden()
         ->assertJson([
             'message' => 'forbidden !!',
@@ -254,7 +254,7 @@ it('can delete own advisement', function () {
     $this->deleteJson(action([PropertyAdvisementController::class, 'destroy'], $advisement))
         ->assertOk()
         ->assertJson([
-            'message' => 'data deleted successfully',
+            'message' => 'Data deleted successfully',
         ]);
 
     $this->assertDatabaseMissing('property_advisements', [

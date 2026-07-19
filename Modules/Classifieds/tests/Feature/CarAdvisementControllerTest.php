@@ -207,6 +207,8 @@ it('validates required fields on create', function () {
 });
 
 it('can show advisement', function () {
+    Sanctum::actingAs($this->user);
+
     $advisement = CarAdvisement::factory()->create();
 
     $this->getJson(action([CarAdvisementController::class, 'show'], $advisement))
@@ -237,7 +239,7 @@ it('can update own advisement', function () {
         'price' => 1000,
     ];
 
-    $this->postJson(action([CarAdvisementController::class, 'edit'], $advisement), $data)
+    $this->putJson(action([CarAdvisementController::class, 'update'], $advisement), $data)
         ->assertOk()
         ->assertJsonPath('data.title', 'Updated Title')
         ->assertJsonPath('data.operation.value', OperationEnum::RENT->value)
@@ -271,7 +273,7 @@ it('cannot update others advisement', function () {
         'price' => 1000,
     ];
 
-    $this->postJson(action([CarAdvisementController::class, 'edit'], $advisement), $data)
+    $this->putJson(action([CarAdvisementController::class, 'update'], $advisement), $data)
         ->assertForbidden()
         ->assertJson([
             'message' => 'forbidden !!',
@@ -289,7 +291,7 @@ it('can delete own advisement', function () {
     $this->deleteJson(action([CarAdvisementController::class, 'destroy'], $advisement))
         ->assertOk()
         ->assertJson([
-            'message' => 'data deleted successfully',
+            'message' => 'Data deleted successfully',
         ]);
 
     $this->assertDatabaseMissing('car_advisements', [
