@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V1\User;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\Api\User\findProviderRequest;
+use App\Http\Requests\Api\User\findProviderRequest;
 use App\Http\Resources\Api\V1\ProviderResource;
 use App\Models\Provider;
 use Dedoc\Scramble\Attributes\Group;
