@@ -6,6 +6,7 @@ use App\Contracts\Auth\UserRepositoryInterface;
 use App\DTOs\Auth\UserRegisterResult;
 use App\Services\Sms\Phone;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 use Random\RandomException;
 
 class RegisterUserAction
@@ -16,9 +17,8 @@ class RegisterUserAction
     ) {}
 
     /**
-     * Reproduces AuthController::register()'s body exactly: phone normalization,
-     * image storage, password-defaults-to-phone-when-blank, user creation, OTP
-     * send, 15-minute login token, and nationality.translation eager load.
+     * Handles phone normalization, image storage, user creation, OTP dispatch,
+     * short-lived token issuance, and nationality eager loading.
      *
      * Transaction handling stays at the Service level (UserAuthService::register
      * wraps this in DB::transaction), matching the current controller's
@@ -36,7 +36,10 @@ class RegisterUserAction
         }
 
         if (! filled($validatedData['password'] ?? null)) {
-            $validatedData['password'] = $validatedData['phone'];
+            // Mobile users authenticate with phone and OTP. This unknown value only
+            // satisfies the non-nullable column and dormant web auth scaffolding,
+            // so it must never be derived from guessable user data.
+            $validatedData['password'] = Str::random(32);
         }
 
         $user = $this->userRepository->create($validatedData);
