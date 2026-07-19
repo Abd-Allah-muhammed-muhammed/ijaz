@@ -3,7 +3,7 @@
     "alias": "opportunity",
     "description": "Opportunity listings with offers and comments",
     "keywords": [],
-    "priority": 0,
+    "priority": -1,
     "providers": [
         "Modules\\Opportunity\\Providers\\OpportunityServiceProvider"
     ],

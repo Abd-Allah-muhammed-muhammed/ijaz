@@ -3,7 +3,7 @@
     "alias": "guarantor",
     "description": "Guarantor requests module — individuals and companies",
     "keywords": [],
-    "priority": 0,
+    "priority": -1,
     "providers": [
         "Modules\\Guarantor\\Providers\\GuarantorServiceProvider"
     ],

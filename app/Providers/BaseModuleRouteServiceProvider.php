@@ -11,9 +11,21 @@ abstract class BaseModuleRouteServiceProvider extends ServiceProvider
 {
     protected string $moduleName;
 
+    /**
+     * Extra route files beyond the default Routes/V1/api.php.
+     *
+     * @var array<string, array{
+     *     prefix?: string,
+     *     name?: string,
+     *     middleware?: string|array<int, string>
+     * }>
+     */
+    protected array $additionalApiRoutes = [];
+
     public function map(): void
     {
         $this->mapApiRoutes('V1', 'api/v1', 'api.v1.');
+        $this->mapAdditionalApiRoutes();
         $this->mapDashboardRoutes();
     }
 
@@ -31,6 +43,22 @@ abstract class BaseModuleRouteServiceProvider extends ServiceProvider
             ->prefix($prefix)
             ->name($namePrefix.$moduleKey.'.')
             ->group($routesPath);
+    }
+
+    protected function mapAdditionalApiRoutes(): void
+    {
+        foreach ($this->additionalApiRoutes as $relativePath => $routeConfig) {
+            $routesPath = module_path($this->moduleName, $relativePath);
+
+            if (! is_file($routesPath)) {
+                continue;
+            }
+
+            Route::middleware($routeConfig['middleware'] ?? 'api')
+                ->prefix($routeConfig['prefix'] ?? 'api/v1')
+                ->name($routeConfig['name'] ?? '')
+                ->group($routesPath);
+        }
     }
 
     protected function mapDashboardRoutes(): void

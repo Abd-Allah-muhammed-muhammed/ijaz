@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
@@ -757,6 +758,19 @@ test('response contains status as array', function () {
 });
 
 // ─── Opportunity Chat ────────────────────────────────────────────────────────
+
+test('opportunity chat routes preserve their public contract', function () {
+    expect(Route::has('api.v1.chats.opportunities.index'))->toBeTrue()
+        ->and(route('api.v1.chats.opportunities.index'))->toBe(url('api/v1/chats/opportunities'))
+        ->and(Route::has('api.v1.chats.opportunities.store'))->toBeTrue()
+        ->and(route('api.v1.chats.opportunities.store'))->toBe(url('api/v1/chats/opportunities'))
+        ->and(Route::has('api.v1.chats.opportunities.show'))->toBeTrue()
+        ->and(route('api.v1.chats.opportunities.show', 'conversation-id'))
+        ->toBe(url('api/v1/chats/opportunities/conversation-id'))
+        ->and(Route::has('api.v1.chats.opportunities.send'))->toBeTrue()
+        ->and(route('api.v1.chats.opportunities.send', 'conversation-id'))
+        ->toBe(url('api/v1/chats/opportunities/conversation-id/send'));
+});
 
 test('actor can list opportunity chats', function () {
     ['author' => $author, 'offerer' => $offerer, 'opportunity' => $opportunity] = createOpportunityWithAcceptedOffer();
