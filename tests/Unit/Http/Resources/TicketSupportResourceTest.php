@@ -55,7 +55,7 @@ it('hides user fields when relation loaded', function () {
     $ticket->load('user');
 
     $resource = new TicketSupportResource($ticket);
-    $array = $resource->toArray(request());
+    $array = $resource->resolve(request());
 
     expect($array)->not->toHaveKey('user_id')
         ->and($array)->not->toHaveKey('user_type');
@@ -78,7 +78,7 @@ it('hides operation fields when relation loaded', function () {
     $ticket->load('operation');
 
     $resource = new TicketSupportResource($ticket);
-    $array = $resource->toArray(request());
+    $array = $resource->resolve(request());
 
     expect($array)->not->toHaveKey('operation_id')
         ->and($array)->not->toHaveKey('operation_type');

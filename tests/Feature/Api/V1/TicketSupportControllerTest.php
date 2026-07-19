@@ -39,10 +39,10 @@ it('allows authenticated user to list their tickets', function () {
 
     $this->getJson(action([TicketSupportController::class, 'index']))
         ->assertOk()
-        ->assertJsonCount(3, 'data.data')
+        ->assertJsonCount(3, 'data.items')
         ->assertJsonStructure([
             'data' => [
-                'data' => [
+                'items' => [
                     '*' => [
                         'id',
                         'title',
@@ -56,8 +56,12 @@ it('allows authenticated user to list their tickets', function () {
                         'updated_at',
                     ],
                 ],
-                'meta',
-                'links',
+                'total',
+                'count',
+                'per_page',
+                'current_page',
+                'last_page',
+                'has_more_pages',
             ],
         ]);
 });
@@ -205,7 +209,7 @@ it('allows authenticated user to delete their pending ticket', function () {
     $this->deleteJson(action([TicketSupportController::class, 'destroy'], $ticket))
         ->assertOk()
         ->assertJson([
-            'message' => 'data deleted successfully',
+            'message' => 'Data deleted successfully',
         ]);
 
     $this->assertDatabaseMissing('ticket_supports', [
@@ -280,16 +284,16 @@ it('paginates tickets', function () {
 
     $this->getJson(action([TicketSupportController::class, 'index'], ['per_page' => 10]))
         ->assertOk()
-        ->assertJsonCount(10, 'data.data')
+        ->assertJsonCount(10, 'data.items')
         ->assertJsonStructure([
             'data' => [
-                'data',
-                'meta' => [
-                    'current_page',
-                    'last_page',
-                    'per_page',
-                    'total',
-                ],
+                'items',
+                'total',
+                'count',
+                'per_page',
+                'current_page',
+                'last_page',
+                'has_more_pages',
             ],
         ]);
 });
@@ -299,7 +303,7 @@ it('orders tickets by latest first', function () {
 
     $order = Order::factory()->create(['user_id' => $this->user->id]);
 
-    $oldTicket = TicketSupport::create([
+    $oldTicket = TicketSupport::factory()->create([
         'user_type' => User::class,
         'user_id' => $this->user->id,
         'operation_type' => Order::class,
@@ -310,7 +314,7 @@ it('orders tickets by latest first', function () {
         'created_at' => now()->subDays(2),
     ]);
 
-    $newTicket = TicketSupport::create([
+    $newTicket = TicketSupport::factory()->create([
         'user_type' => User::class,
         'user_id' => $this->user->id,
         'operation_type' => Order::class,
@@ -325,7 +329,7 @@ it('orders tickets by latest first', function () {
 
     $response->assertOk();
 
-    $tickets = $response->json('data.data');
+    $tickets = $response->json('data.items');
     expect($tickets[0]['id'])->toBe($newTicket->id)
         ->and($tickets[1]['id'])->toBe($oldTicket->id);
 });

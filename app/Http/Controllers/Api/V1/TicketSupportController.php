@@ -20,6 +20,7 @@ use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\Dashboard\ConversationMessageCollection;
 use Modules\Chat\Services\ConversationService;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 #[Group('Tickets')]
@@ -113,7 +114,10 @@ class TicketSupportController extends Controller
         }
 
         if ($ticketSupport->status->isNot(TicketSupportStatusEnum::Pending)) {
-            return $this->failedMessageResponse(__('you can not delete this ticket'));
+            return $this->failedMessageResponse(
+                trans('you can not delete this ticket'),
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+            );
         }
 
         DB::beginTransaction();
