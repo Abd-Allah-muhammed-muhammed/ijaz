@@ -37,7 +37,8 @@ it('filters property types by search', function (): void {
     $matching = PropertyType::factory()->create();
     $matching->translations()->where('locale', 'en')->update(['name' => 'Villa']);
 
-    PropertyType::factory()->create();
+    $nonMatching = PropertyType::factory()->create();
+    $nonMatching->translations()->where('locale', 'en')->update(['name' => 'Apartment']);
 
     $response = $this->getJson(action([PropertyTypeController::class, 'index'], ['search' => 'Villa']));
 
