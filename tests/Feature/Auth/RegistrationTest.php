@@ -11,6 +11,7 @@ use App\Services\Sms\Phone;
 use Carbon\CarbonInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
@@ -125,6 +126,10 @@ test('registration page can be rendered', function () {
 test('legacy provider registration page redirects to canonical registration page', function () {
     $this->get(route('provider.register'))
         ->assertRedirect(route('auth.register'));
+});
+
+test('provider registration does not expose a separate otp verification route', function () {
+    expect(Route::has('auth.register.otp.verify'))->toBeFalse();
 });
 
 test('provider can send otp before registering', function () {

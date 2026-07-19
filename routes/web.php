@@ -58,7 +58,6 @@ Route::group(
             Route::get('/register', 'create')->name('register');
             Route::post('/register', 'store')->name('register.submit');
             Route::post('/otp/register', 'otp')->name('register.otp');
-            Route::post('/otp/register/verify', 'verifyOtp')->name('register.otp.verify');
         });
         Route::controller(ReactSelectController::class)->prefix('general')->as('general.')->group(function () {
             Route::get('/skills', 'skills')->name('skills');
@@ -82,4 +81,3 @@ Route::group(
             Route::get('/categories/{category}', 'category')->name('categories.show');
         });
     });
-
