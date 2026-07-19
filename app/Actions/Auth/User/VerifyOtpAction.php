@@ -22,8 +22,8 @@ class VerifyOtpAction
      * otherwise returns the processCode()-shaped result.
      *
      * The full switch (email/phone/password_reset/login/default->throw) is kept
-     * verbatim, including markPhoneAsVerified()'s no-op stub, the login-case
-     * player_id update + unreadNotifications count, and the User/Provider
+     * verbatim, including phone's deliberate success:false response contract, the
+     * login-case player_id update + unreadNotifications count, and the User/Provider
      * resource match (Provider arm kept even though it is dead code in practice).
      *
      * @throws Exception
@@ -55,7 +55,10 @@ class VerifyOtpAction
                 );
 
             case 'phone':
-
+                // Side-effect now actually persists (previously a no-op stub), but the
+                // response contract is deliberately UNCHANGED (still success: false) to
+                // avoid a mobile-breaking change. Making this endpoint return success:true
+                // is a deferred product decision — see docs/DEFERRED_MOBILE_BREAKING_CHANGES.md
                 $model->markPhoneAsVerified();
 
                 return new OtpVerifyResult(success: false);

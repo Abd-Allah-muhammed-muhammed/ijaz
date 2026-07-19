@@ -8,16 +8,6 @@ use App\Http\Controllers\General\ReactSelectController;
 use Illuminate\Support\Facades\Route;
 use Modules\Catalog\Http\Controllers\General\CatalogSelectController;
 
-Route::get('testing', static function () {
-
-    //  return \Illuminate\Support\Facades\Http::post('https://translate.argosopentech.com/translate',[
-    //    'q' => 'Hello World',
-    //    'source' => 'en',
-    //    'target' => 'ar',
-    //  ])->json();
-})
-    ->name('testing');
-
 Route::group(['prefix' => 'media', 'as' => 'media.'], static function () {
     Route::controller(MediaController::class)->middleware('auth:admin,provider')->group(function () {
         Route::get('file/{media}', 'file')->name('file-path');
@@ -58,7 +48,6 @@ Route::group(
             Route::get('/register', 'create')->name('register');
             Route::post('/register', 'store')->name('register.submit');
             Route::post('/otp/register', 'otp')->name('register.otp');
-            Route::post('/otp/register/verify', 'verifyOtp')->name('register.otp.verify');
         });
         Route::controller(ReactSelectController::class)->prefix('general')->as('general.')->group(function () {
             Route::get('/skills', 'skills')->name('skills');
@@ -82,4 +71,3 @@ Route::group(
             Route::get('/categories/{category}', 'category')->name('categories.show');
         });
     });
-

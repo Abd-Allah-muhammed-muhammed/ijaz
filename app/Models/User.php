@@ -53,6 +53,7 @@ use Modules\Wallet\Traits\HasWallet;
  * @property Carbon|null $blocked_until
  * @property string|null $player_id
  * @property Carbon|null $email_verified_at
+ * @property Carbon|null $phone_verified_at
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -227,6 +228,7 @@ class User extends Authenticatable implements HasConversation, HasOTPsContract, 
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'password' => 'hashed',
             'status' => UserStatusEnum::class,
             'blocked_at' => 'datetime',

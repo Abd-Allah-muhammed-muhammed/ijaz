@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Api\Api\User;
+namespace App\Http\Requests\Api\User;
 
+use App\Enums\Order\OfferStatusEnum;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Validation\Rules\Enum;
 use MMAE\ApiResponse\Request\ApiRequest;
 
-class findProviderRequest extends ApiRequest
+class UpdateOfferStatusRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,7 +25,7 @@ class findProviderRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'provider_id' => ['required'],
+            'status' => ['required', new Enum(OfferStatusEnum::class)],
         ];
     }
 }

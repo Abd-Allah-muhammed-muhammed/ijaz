@@ -69,8 +69,8 @@ trait HasOTPs
         return null;
     }
 
-    public function markPhoneAsVerified()
+    public function markPhoneAsVerified(): bool
     {
-        // TODO: Implement markPhoneAsVerified() method.
+        return $this->forceFill(['phone_verified_at' => now()])->save();
     }
 }

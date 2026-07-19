@@ -70,7 +70,12 @@ class WalletController extends Controller
                 }
 
                 return $this->successResponse([
-                    ...$paymentResult->toArray(),
+                    'status' => $paymentResult->status,
+                    'driver' => $paymentResult->driver,
+                    'url' => $paymentResult->url,
+                    'payable' => $paymentResult->payable,
+                    'transaction_id' => $paymentResult->transactionId,
+                    'message' => $paymentResult->message,
                     'data' => TopUpResource::make($topUpRequest),
                 ]);
             }

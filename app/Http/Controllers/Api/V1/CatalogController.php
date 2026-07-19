@@ -306,10 +306,4 @@ class CatalogController extends Controller
             )
         );
     }
-
-    public function counts(): JsonResponse
-    {
-        // TODO: Implement counts endpoint - currently unused
-        return $this->successResponse([]);
-    }
 }

@@ -1,13 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Api\Api\User;
+namespace App\Http\Requests\Api\User;
 
-use App\Enums\Order\OfferStatusEnum;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Validation\Rules\Enum;
 use MMAE\ApiResponse\Request\ApiRequest;
 
-class UpdateOfferStatusRequest extends ApiRequest
+class EndAndReviewRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,7 +23,8 @@ class UpdateOfferStatusRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', new Enum(OfferStatusEnum::class)],
+            'rating' => 'required|integer|between:1,5',
+            'comment' => 'required|string',
         ];
     }
 }

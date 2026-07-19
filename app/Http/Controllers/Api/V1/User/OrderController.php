@@ -6,8 +6,8 @@ use App\Enums\Order\OfferStatusEnum;
 use App\Enums\Order\OrderStatusEnum;
 use App\Events\User\NewOrderCreated;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\Api\User\EndAndReviewRequest;
-use App\Http\Requests\Api\Api\User\UpdateOfferStatusRequest;
+use App\Http\Requests\Api\User\EndAndReviewRequest;
+use App\Http\Requests\Api\User\UpdateOfferStatusRequest;
 use App\Http\Requests\Api\V1\OrderRequest;
 use App\Http\Resources\Api\V1\OrderCollection;
 use App\Http\Resources\Api\V1\OrderResource;
@@ -231,6 +231,10 @@ class OrderController extends Controller
      */
     public function updateOfferStatus(Order $order, OrderOffer $offer, UpdateOfferStatusRequest $request): JsonResponse
     {
+        if ($order->user()->isNot(auth()->user())) {
+            abort(404);
+        }
+
         if ($offer->status->isIn([OfferStatusEnum::Cancelled, OfferStatusEnum::Rejected, OfferStatusEnum::Paid]) || $offer->order()->isNot($order)) {
             return $this->failedMessageResponse(__('you can not update this offer'));
         }

@@ -72,6 +72,36 @@ test('online top-up returns payment URL', function () {
         ->assertJsonStructure(['data' => ['url', 'transaction_id', 'driver']]);
 });
 
+test('wallet addBalance response shape is unchanged', function () {
+    $user = createWalletUser();
+    Sanctum::actingAs($user);
+
+    $response = $this->postJson(action([WalletController::class, 'addBalance']), [
+        'amount' => 100,
+        'payment_method' => PaymentMethodEnum::Online->value,
+        'payment_driver' => PaymentDriverEnum::Testing->value,
+    ])->assertSuccessful();
+
+    $data = $response->json('data');
+
+    expect(array_keys($data))->toBe([
+        'status',
+        'driver',
+        'url',
+        'payable',
+        'transaction_id',
+        'message',
+        'data',
+    ])
+        ->and($data['status'])->toBe('success')
+        ->and($data['driver'])->toBe(PaymentDriverEnum::Testing->value)
+        ->and($data['payable'])->toBeTrue()
+        ->and($data['url'])->toBeString()->not->toBeEmpty()
+        ->and($data['transaction_id'])->not->toBeNull()
+        ->and($data['data'])->toBeArray()
+        ->and($data['data'])->toHaveKeys(['id', 'amount', 'status', 'payment_method']);
+});
+
 test('user api top-up accepts payment_driver field', function () {
     $user = createWalletUser();
     Sanctum::actingAs($user);
