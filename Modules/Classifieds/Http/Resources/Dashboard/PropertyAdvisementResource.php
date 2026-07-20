@@ -3,14 +3,14 @@
 namespace Modules\Classifieds\Http\Resources\Dashboard;
 
 use App\Http\Resources\Api\V1\MediaResource;
-use App\Http\Resources\Dashboard\CityResource;
-use App\Http\Resources\Dashboard\RegionResource;
 use App\Http\Resources\Dashboard\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Catalog\Http\Resources\Dashboard\PropertyCategoryResource;
 use Modules\Catalog\Http\Resources\Dashboard\PropertyTypeResource;
 use Modules\Classifieds\Models\PropertyAdvisement;
+use Modules\Geo\Http\Resources\Dashboard\CityResource;
+use Modules\Geo\Http\Resources\Dashboard\RegionResource;
 
 /** @mixin PropertyAdvisement */
 class PropertyAdvisementResource extends JsonResource

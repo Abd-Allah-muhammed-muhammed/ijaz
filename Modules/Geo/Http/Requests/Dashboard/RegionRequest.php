@@ -1,31 +1,25 @@
 <?php
 
-namespace App\Http\Requests\Dashboard;
+namespace Modules\Geo\Http\Requests\Dashboard;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class CityRequest extends FormRequest
+class RegionRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         $supportedLocales = array_keys(config('laravellocalization.supportedLocales'));
         $rules = [
-            'region_id' => ['required', 'exists:regions,id'],
             'translations' => ['required', 'array'],
         ];
         foreach ($supportedLocales as $locale) {

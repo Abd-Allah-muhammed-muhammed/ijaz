@@ -1,20 +1,21 @@
 <?php
 
-namespace App\Http\Resources\Dashboard;
+namespace Modules\Geo\Http\Resources\Dashboard;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Geo\Models\Nationality;
+use Modules\Geo\Models\Region;
 
-/** @mixin Nationality */
-class NationalityResource extends JsonResource
+/** @mixin Region */
+class RegionResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
+            'cities_count' => $this->whenCounted('cities'),
             $this->mergeWhen($this->whenLoaded('translation'), [
-                'name' => $this->name,
+                'title' => $this->title,
             ]),
             'translations' => $this->whenLoaded('translations', function () {
                 return $this->translations->keyBy('locale');

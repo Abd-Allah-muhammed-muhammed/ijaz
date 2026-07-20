@@ -1,24 +1,18 @@
 <?php
 
-namespace App\Http\Requests\Dashboard;
+namespace Modules\Geo\Http\Requests\Dashboard;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class RegionRequest extends FormRequest
+class NationalityRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
@@ -28,15 +22,10 @@ class RegionRequest extends FormRequest
             'translations' => ['required', 'array'],
         ];
         foreach ($supportedLocales as $locale) {
-            $rules['translations.'.$locale.'.title'] = [
+            $rules['translations.'.$locale.'.name'] = [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('region_translations', 'title')
-                    ->where('locale', $locale)
-                    ->when($this->route('region'), function ($query) {
-                        return $query->whereNot('region_id', $this->route('region')->id);
-                    }),
             ];
         }
 

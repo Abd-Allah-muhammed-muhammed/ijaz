@@ -9,7 +9,7 @@ import {KTCard} from "@/_metronic/helpers";
 import Form from "./Form";
 import {ReactNode} from "react";
 import SkillController from "@/actions/App/Http/Controllers/Dashboard/SkillController";
-import NationalityController from "@/actions/App/Http/Controllers/Dashboard/NationalityController";
+import NationalityController from "@/actions/Modules/Geo/Http/Controllers/Dashboard/NationalityController";
 
 
 type Props = {

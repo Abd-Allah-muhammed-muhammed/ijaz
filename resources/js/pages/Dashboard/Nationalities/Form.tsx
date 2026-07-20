@@ -7,7 +7,7 @@ import ActionButton from "@/components/action-button";
 import {getSupportedLocales} from "@/hooks/use-locales";
 import CategoryController from "@/actions/App/Http/Controllers/Dashboard/CategoryController";
 import InputError from "@/components/inputs/InputError";
-import NationalityController from "@/actions/App/Http/Controllers/Dashboard/NationalityController";
+import NationalityController from "@/actions/Modules/Geo/Http/Controllers/Dashboard/NationalityController";
 
 type Props = {
   /**

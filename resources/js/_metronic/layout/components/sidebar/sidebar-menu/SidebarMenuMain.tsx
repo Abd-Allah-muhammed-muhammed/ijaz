@@ -4,10 +4,10 @@ import CarBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashb
 import CarCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarCategoryController';
 import CarTypeController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarTypeController';
 import CategoryController from '@/actions/App/Http/Controllers/Dashboard/CategoryController';
-import CityController from '@/actions/App/Http/Controllers/Dashboard/CityController';
+import CityController from '@/actions/Modules/Geo/Http/Controllers/Dashboard/CityController';
 import HomeController from '@/actions/App/Http/Controllers/Dashboard/HomeController';
 import MessageController from '@/actions/App/Http/Controllers/Dashboard/MessageController';
-import NationalityController from '@/actions/App/Http/Controllers/Dashboard/NationalityController';
+import NationalityController from '@/actions/Modules/Geo/Http/Controllers/Dashboard/NationalityController';
 import OrderController from '@/actions/App/Http/Controllers/Dashboard/OrderController';
 import PageController from '@/actions/App/Http/Controllers/Dashboard/PageController';
 import PanAnalyticsController from '@/actions/App/Http/Controllers/Dashboard/PanAnalyticsController';
@@ -16,7 +16,7 @@ import PropertyTypeController from '@/actions/Modules/Catalog/Http/Controllers/D
 import ProviderController from '@/actions/App/Http/Controllers/Dashboard/ProviderController';
 import ProviderTypeController from '@/actions/App/Http/Controllers/Dashboard/ProviderTypeController';
 import QuestionController from '@/actions/App/Http/Controllers/Dashboard/QuestionController';
-import RegionController from '@/actions/App/Http/Controllers/Dashboard/RegionController';
+import RegionController from '@/actions/Modules/Geo/Http/Controllers/Dashboard/RegionController';
 import RoleController from '@/actions/App/Http/Controllers/Dashboard/RoleController';
 import SkillController from '@/actions/App/Http/Controllers/Dashboard/SkillController';
 import SupportController from '@/actions/App/Http/Controllers/Dashboard/SupportController';

@@ -10,7 +10,7 @@ import {PaginationResource} from "@/types";
 import {City} from "@/types/models";
 import ConfirmAction from "@/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
-import CityController from "@/actions/App/Http/Controllers/Dashboard/CityController";
+import CityController from "@/actions/Modules/Geo/Http/Controllers/Dashboard/CityController";
 
 
 type Props = {

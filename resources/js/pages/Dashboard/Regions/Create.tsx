@@ -12,7 +12,7 @@ import AdminController from "@/actions/App/Http/Controllers/Dashboard/AdminContr
 import {ReactNode} from "react";
 import CategoryController from "@/actions/App/Http/Controllers/Dashboard/CategoryController";
 import SkillController from "@/actions/App/Http/Controllers/Dashboard/SkillController";
-import RegionController from "@/actions/App/Http/Controllers/Dashboard/RegionController";
+import RegionController from "@/actions/Modules/Geo/Http/Controllers/Dashboard/RegionController";
 
 
 type Props = {

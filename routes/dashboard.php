@@ -4,22 +4,22 @@ use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\AuthController;
 use App\Http\Controllers\Dashboard\BannerController;
 use App\Http\Controllers\Dashboard\CategoryController;
-use App\Http\Controllers\Dashboard\CityController;
 use App\Http\Controllers\Dashboard\HomeController;
 use App\Http\Controllers\Dashboard\MessageController;
-use App\Http\Controllers\Dashboard\NationalityController;
 use App\Http\Controllers\Dashboard\OrderController;
 use App\Http\Controllers\Dashboard\PageController;
 use App\Http\Controllers\Dashboard\PanAnalyticsController;
 use App\Http\Controllers\Dashboard\ProviderController;
 use App\Http\Controllers\Dashboard\ProviderTypeController;
 use App\Http\Controllers\Dashboard\QuestionController;
-use App\Http\Controllers\Dashboard\RegionController;
 use App\Http\Controllers\Dashboard\RoleController;
 use App\Http\Controllers\Dashboard\SkillController;
 use App\Http\Controllers\Dashboard\SupportController;
 use App\Http\Controllers\Dashboard\UserController;
 use Illuminate\Support\Facades\Route;
+use Modules\Geo\Http\Controllers\Dashboard\CityController;
+use Modules\Geo\Http\Controllers\Dashboard\NationalityController;
+use Modules\Geo\Http\Controllers\Dashboard\RegionController;
 
 Route::group(
     [

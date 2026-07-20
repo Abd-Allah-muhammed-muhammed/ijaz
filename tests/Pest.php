@@ -31,11 +31,13 @@ pest()->extend(TestCase::class)
     ->in('../Modules/Sms/tests');
 
 pest()->extend(TestCase::class)
+    ->use(LazilyRefreshDatabase::class)
     ->in('../Modules/Geo/tests');
 
 require_once __DIR__.'/../Modules/Chat/tests/helpers.php';
 require_once __DIR__.'/../Modules/Wallet/tests/helpers.php';
 require_once __DIR__.'/../Modules/Payment/tests/helpers.php';
+require_once __DIR__.'/../Modules/Geo/tests/helpers.php';
 
 /*
 |--------------------------------------------------------------------------

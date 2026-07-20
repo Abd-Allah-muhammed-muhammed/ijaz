@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\Dashboard;
+namespace Modules\Geo\Http\Resources\Dashboard;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;

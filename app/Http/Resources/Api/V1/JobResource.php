@@ -2,10 +2,10 @@
 
 namespace App\Http\Resources\Api\V1;
 
-use App\Http\Resources\Dashboard\CityResource;
 use App\Models\JobOffer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Geo\Http\Resources\Dashboard\CityResource;
 
 /** @mixin JobOffer */
 class JobResource extends JsonResource
