@@ -2,11 +2,11 @@
 
 namespace Modules\Guarantor\Services;
 
-use Modules\Chat\Models\Conversation;
-use Modules\Chat\Models\ConversationMessage;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\DTOs\ChatMessageData;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationMessage;
 use Modules\Guarantor\Actions\Chat\ListGuarantorChatMessagesAction;
 use Modules\Guarantor\Actions\Chat\ListGuarantorChatsAction;
 use Modules\Guarantor\Actions\Chat\OpenGuarantorChatAction;

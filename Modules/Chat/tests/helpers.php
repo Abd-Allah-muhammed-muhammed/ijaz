@@ -11,12 +11,6 @@ use App\Models\TicketSupport;
 use App\Models\User;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\System;
-use Modules\Guarantor\Enums\GuarantorStatusEnum;
-use Modules\Guarantor\Models\GuarantorRequest;
-use Modules\Opportunity\Enums\OfferStatusEnum;
-use Modules\Opportunity\Enums\OpportunityStatusEnum;
-use Modules\Opportunity\Models\Opportunity;
-use Modules\Opportunity\Models\OpportunityOffer;
 
 function ensureSystemExists(): System
 {
@@ -120,29 +114,6 @@ function createTicketSupportConversation(?User $user = null): array
     return compact('user', 'ticket', 'conversation');
 }
 
-/**
- * @return array{author: User, offerer: User, opportunity: Opportunity}
- */
-function createOpportunityForChatHandler(): array
-{
-    $author = User::factory()->create();
-    $offerer = User::factory()->create();
-    $opportunity = Opportunity::factory()->create([
-        'author_type' => User::class,
-        'author_id' => $author->id,
-        'status' => OpportunityStatusEnum::OfferAccepted,
-    ]);
-    $offer = OpportunityOffer::factory()->create([
-        'opportunity_id' => $opportunity->id,
-        'author_type' => User::class,
-        'author_id' => $offerer->id,
-        'status' => OfferStatusEnum::Accepted,
-    ]);
-    $opportunity->update(['accepted_offer_id' => $offer->id]);
-
-    return compact('author', 'offerer', 'opportunity');
-}
-
 function createTestTicketSupport(?User $user = null): TicketSupport
 {
     $user ??= User::factory()->create();
@@ -153,12 +124,5 @@ function createTestTicketSupport(?User $user = null): TicketSupport
         'title' => fake()->sentence(),
         'message' => fake()->paragraph(),
         'status' => TicketSupportStatusEnum::Pending,
-    ]);
-}
-
-function createGuarantorForChatHandler(?GuarantorStatusEnum $status = null): GuarantorRequest
-{
-    return GuarantorRequest::factory()->create([
-        'status' => $status ?? GuarantorStatusEnum::InProgress,
     ]);
 }

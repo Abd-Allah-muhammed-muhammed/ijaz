@@ -3,7 +3,6 @@
 namespace Modules\Opportunity\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
-use Modules\Chat\Models\Conversation;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,6 +10,7 @@ use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Http\Resources\ConversationMessageCollection;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
+use Modules\Chat\Models\Conversation;
 use Modules\Opportunity\DTOs\ChatData;
 use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Http\Controllers\Concerns\AuthorizesOpportunityRequests;

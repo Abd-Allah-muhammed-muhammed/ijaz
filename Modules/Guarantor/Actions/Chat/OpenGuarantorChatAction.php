@@ -2,11 +2,11 @@
 
 namespace Modules\Guarantor\Actions\Chat;
 
-use Modules\Chat\Models\Conversation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Modules\Chat\Actions\OpenConversationAction;
 use Modules\Chat\Enums\ChatTypeEnum;
+use Modules\Chat\Models\Conversation;
 use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;

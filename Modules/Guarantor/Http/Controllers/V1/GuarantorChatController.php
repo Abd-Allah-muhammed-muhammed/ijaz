@@ -3,7 +3,6 @@
 namespace Modules\Guarantor\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
-use Modules\Chat\Models\Conversation;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,6 +10,7 @@ use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Http\Resources\ConversationMessageCollection;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
+use Modules\Chat\Models\Conversation;
 use Modules\Guarantor\Http\Requests\SendGuarantorMessageRequest;
 use Modules\Guarantor\Http\Requests\StoreChatRequest;
 use Modules\Guarantor\Http\Resources\Api\GuarantorConversationCollection;

@@ -1,8 +1,8 @@
 <?php
 
-use Modules\Chat\Models\Conversation;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
+use Modules\Chat\Models\Conversation;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;

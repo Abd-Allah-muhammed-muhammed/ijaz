@@ -1,44 +1,49 @@
 <?php
 
-namespace Modules\Chat\Handlers;
+namespace Modules\Opportunity\Handlers;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Contracts\ChatTypeHandlerInterface;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Support\ParticipantConversationMessenger;
-use Modules\Guarantor\Enums\GuarantorStatusEnum;
-use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Opportunity\Enums\OpportunityStatusEnum;
+use Modules\Opportunity\Models\Opportunity;
 
-class GuarantorChatHandler implements ChatTypeHandlerInterface
+class OpportunityChatHandler implements ChatTypeHandlerInterface
 {
     public function operationType(): ?string
     {
-        return GuarantorRequest::class;
+        return Opportunity::class;
     }
 
     public function canOpen(Model $actor, Model $operation): bool
     {
-        /** @var GuarantorRequest $operation */
-        return (
-            $operation->requester_type === $actor::class
-            && (string) $operation->requester_id === (string) $actor->getKey()
-        ) || (
-            $operation->counterparty_type === $actor::class
-            && (string) $operation->counterparty_id === (string) $actor->getKey()
-        );
+        /** @var Opportunity $operation */
+        if (
+            $operation->author_type === $actor::class
+            && (string) $operation->author_id === (string) $actor->getKey()
+        ) {
+            return true;
+        }
+
+        $operation->loadMissing('acceptedOffer');
+
+        return $operation->acceptedOffer !== null
+            && $operation->acceptedOffer->author_type === $actor::class
+            && (string) $operation->acceptedOffer->author_id === (string) $actor->getKey();
     }
 
     public function participants(Model $operation): array
     {
-        /** @var GuarantorRequest $operation */
-        return [$operation->requester, $operation->counterparty];
+        /** @var Opportunity $operation */
+        return [$operation->author, $operation->acceptedOffer->author];
     }
 
     public function listQuery(Model $actor): Builder
     {
         return Conversation::query()
-            ->where('operation_type', GuarantorRequest::class)
+            ->where('operation_type', Opportunity::class)
             ->where(function (Builder $q) use ($actor) {
                 $q->where(function ($q) use ($actor) {
                     $q->where('user1_type', $actor::class)
@@ -50,11 +55,8 @@ class GuarantorChatHandler implements ChatTypeHandlerInterface
             })
             ->whereHas('operation', function ($query) {
                 $query->whereNotIn('status', [
-                    GuarantorStatusEnum::RejectedByAdmin->value,
-                    GuarantorStatusEnum::Rejected->value,
-                    GuarantorStatusEnum::Ended->value,
-                    GuarantorStatusEnum::Cancelled->value,
-                    GuarantorStatusEnum::Refunded->value,
+                    OpportunityStatusEnum::Ended->value,
+                    OpportunityStatusEnum::Cancelled->value,
                 ]);
             })
             ->with(['user1', 'user2', 'lastMessage', 'operation'])

@@ -3,7 +3,6 @@
 namespace Modules\Opportunity\Models;
 
 use App\Models\City;
-use Modules\Chat\Models\Conversation;
 use App\Models\Region;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Chat\Models\Conversation;
 use Modules\Opportunity\Database\Factories\OpportunityFactory;
 use Modules\Opportunity\Enums\OpportunityStatusEnum;
 use Spatie\MediaLibrary\HasMedia;

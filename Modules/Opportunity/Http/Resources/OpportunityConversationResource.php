@@ -2,11 +2,11 @@
 
 namespace Modules\Opportunity\Http\Resources;
 
-use Modules\Chat\Models\Conversation;
 use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Chat\Models\Conversation;
 
 /**
  * @mixin Conversation

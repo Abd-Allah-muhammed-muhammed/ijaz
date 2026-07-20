@@ -3,10 +3,13 @@
 namespace Modules\Opportunity\Providers;
 
 use Illuminate\Support\Facades\Gate;
+use Modules\Chat\Enums\ChatTypeEnum;
+use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Opportunity\Console\Commands\ExpireOpportunitiesCommand;
 use Modules\Opportunity\Contracts\Repositories\OpportunityCommentRepositoryInterface;
 use Modules\Opportunity\Contracts\Repositories\OpportunityOfferRepositoryInterface;
 use Modules\Opportunity\Contracts\Repositories\OpportunityRepositoryInterface;
+use Modules\Opportunity\Handlers\OpportunityChatHandler;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityComment;
 use Modules\Opportunity\Models\OpportunityOffer;
@@ -35,6 +38,9 @@ class OpportunityServiceProvider extends ModuleServiceProvider
         Gate::policy(Opportunity::class, OpportunityPolicy::class);
         Gate::policy(OpportunityOffer::class, OpportunityOfferPolicy::class);
         Gate::policy(OpportunityComment::class, OpportunityCommentPolicy::class);
+
+        $this->app->make(ChatTypeRegistry::class)
+            ->register(ChatTypeEnum::Opportunity, new OpportunityChatHandler);
 
         if ($this->app->runningInConsole()) {
             $this->commands([

@@ -7,9 +7,7 @@ use Modules\Chat\Contracts\IChatService;
 use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
 use Modules\Chat\Contracts\Repositories\ConversationRepositoryInterface;
 use Modules\Chat\Enums\ChatTypeEnum;
-use Modules\Chat\Handlers\GuarantorChatHandler;
 use Modules\Chat\Handlers\MemberChatHandler;
-use Modules\Chat\Handlers\OpportunityChatHandler;
 use Modules\Chat\Handlers\OrderChatHandler;
 use Modules\Chat\Handlers\TicketSupportChatHandler;
 use Modules\Chat\Infrastructure\Jobs\NotifyChatMessageReceiver;
@@ -82,7 +80,5 @@ class ChatServiceProvider extends ModuleServiceProvider
         $registry->register(ChatTypeEnum::Member, new MemberChatHandler);
         $registry->register(ChatTypeEnum::Order, new OrderChatHandler);
         $registry->register(ChatTypeEnum::TicketSupport, new TicketSupportChatHandler);
-        $registry->register(ChatTypeEnum::Opportunity, new OpportunityChatHandler);
-        $registry->register(ChatTypeEnum::Guarantor, new GuarantorChatHandler);
     }
 }

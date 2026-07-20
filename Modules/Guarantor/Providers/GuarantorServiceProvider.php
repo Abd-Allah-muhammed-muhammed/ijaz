@@ -4,10 +4,13 @@ namespace Modules\Guarantor\Providers;
 
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Modules\Chat\Enums\ChatTypeEnum;
+use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Guarantor\Console\Commands\CheckOverdueInstallmentsCommand;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\StatusHistoryRepositoryInterface;
+use Modules\Guarantor\Handlers\GuarantorChatHandler;
 use Modules\Guarantor\Listeners\HandleGuarantorPaymentCompleted;
 use Modules\Guarantor\Listeners\HandleGuarantorPaymentFailed;
 use Modules\Guarantor\Listeners\NotifyGuarantorPaymentCompleted;
@@ -68,6 +71,9 @@ class GuarantorServiceProvider extends ModuleServiceProvider
         Event::listen(PaymentCompleted::class, HandleGuarantorPaymentCompleted::class);
         Event::listen(PaymentCompleted::class, NotifyGuarantorPaymentCompleted::class);
         Event::listen(PaymentFailed::class, HandleGuarantorPaymentFailed::class);
+
+        $this->app->make(ChatTypeRegistry::class)
+            ->register(ChatTypeEnum::Guarantor, new GuarantorChatHandler);
 
         if ($this->app->runningInConsole()) {
             $this->commands([

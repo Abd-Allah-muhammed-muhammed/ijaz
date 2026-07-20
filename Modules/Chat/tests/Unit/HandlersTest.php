@@ -3,9 +3,7 @@
 use App\Models\Order;
 use App\Models\Provider;
 use App\Models\User;
-use Modules\Chat\Handlers\GuarantorChatHandler;
 use Modules\Chat\Handlers\MemberChatHandler;
-use Modules\Chat\Handlers\OpportunityChatHandler;
 use Modules\Chat\Handlers\OrderChatHandler;
 use Modules\Chat\Handlers\TicketSupportChatHandler;
 use Modules\Chat\Models\Conversation;
@@ -109,36 +107,4 @@ test('TicketSupportChatHandler participants returns System and ticket user', fun
 
     expect($system)->toBeInstanceOf(System::class)
         ->and($ticketUser->is($user))->toBeTrue();
-});
-
-test('OpportunityChatHandler canOpen returns true for opportunity author', function () {
-    ['author' => $author, 'opportunity' => $opportunity] = createOpportunityForChatHandler();
-
-    expect((new OpportunityChatHandler)->canOpen($author, $opportunity))->toBeTrue();
-});
-
-test('OpportunityChatHandler canOpen returns false for unrelated user', function () {
-    ['opportunity' => $opportunity] = createOpportunityForChatHandler();
-    $stranger = User::factory()->create();
-
-    expect((new OpportunityChatHandler)->canOpen($stranger, $opportunity))->toBeFalse();
-});
-
-test('GuarantorChatHandler canOpen returns true for requester', function () {
-    $guarantorRequest = createGuarantorForChatHandler();
-
-    expect((new GuarantorChatHandler)->canOpen($guarantorRequest->requester, $guarantorRequest))->toBeTrue();
-});
-
-test('GuarantorChatHandler canOpen returns true for counterparty', function () {
-    $guarantorRequest = createGuarantorForChatHandler();
-
-    expect((new GuarantorChatHandler)->canOpen($guarantorRequest->counterparty, $guarantorRequest))->toBeTrue();
-});
-
-test('GuarantorChatHandler canOpen returns false for unrelated user', function () {
-    $guarantorRequest = createGuarantorForChatHandler();
-    $stranger = User::factory()->create();
-
-    expect((new GuarantorChatHandler)->canOpen($stranger, $guarantorRequest))->toBeFalse();
 });

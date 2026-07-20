@@ -3,14 +3,10 @@
 use App\Models\Order;
 use App\Models\TicketSupport;
 use Modules\Chat\Enums\ChatTypeEnum;
-use Modules\Chat\Handlers\GuarantorChatHandler;
 use Modules\Chat\Handlers\MemberChatHandler;
-use Modules\Chat\Handlers\OpportunityChatHandler;
 use Modules\Chat\Handlers\OrderChatHandler;
 use Modules\Chat\Handlers\TicketSupportChatHandler;
 use Modules\Chat\Registry\ChatTypeRegistry;
-use Modules\Guarantor\Models\GuarantorRequest;
-use Modules\Opportunity\Models\Opportunity;
 
 test('registry can register and retrieve handler by type', function () {
     $registry = new ChatTypeRegistry;
@@ -39,7 +35,7 @@ test('registry returns null for unknown operation type', function () {
     expect($registry->getByOperationType('App\\Models\\Unknown'))->toBeNull();
 });
 
-test('registry returns all handlers', function () {
+test('registry returns all handlers including self-registered domain types', function () {
     $registry = app(ChatTypeRegistry::class);
 
     expect($registry->all())->toHaveCount(5)
@@ -62,12 +58,4 @@ test('OrderChatHandler operationType is Order::class', function () {
 
 test('TicketSupportChatHandler operationType is TicketSupport::class', function () {
     expect((new TicketSupportChatHandler)->operationType())->toBe(TicketSupport::class);
-});
-
-test('OpportunityChatHandler operationType is Opportunity::class', function () {
-    expect((new OpportunityChatHandler)->operationType())->toBe(Opportunity::class);
-});
-
-test('GuarantorChatHandler operationType is GuarantorRequest::class', function () {
-    expect((new GuarantorChatHandler)->operationType())->toBe(GuarantorRequest::class);
 });

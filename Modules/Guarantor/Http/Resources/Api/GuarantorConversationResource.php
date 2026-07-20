@@ -2,11 +2,11 @@
 
 namespace Modules\Guarantor\Http\Resources\Api;
 
-use Modules\Chat\Models\Conversation;
 use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Chat\Models\Conversation;
 
 /** @mixin Conversation */
 class GuarantorConversationResource extends JsonResource

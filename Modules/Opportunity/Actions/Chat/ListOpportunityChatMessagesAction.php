@@ -2,10 +2,10 @@
 
 namespace Modules\Opportunity\Actions\Chat;
 
-use Modules\Chat\Models\Conversation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Actions\ListMessagesAction;
+use Modules\Chat\Models\Conversation;
 
 class ListOpportunityChatMessagesAction
 {

@@ -2,12 +2,12 @@
 
 namespace Modules\Opportunity\Actions\Chat;
 
-use Modules\Chat\Models\Conversation;
-use Modules\Chat\Models\ConversationMessage;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Actions\SendMessageAction;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Enums\ChatTypeEnum;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationMessage;
 use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Models\Opportunity;

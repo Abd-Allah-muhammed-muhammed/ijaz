@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Admin;
-use Modules\Chat\Models\Conversation;
 use App\Models\User;
 use App\Services\Sms\Phone;
 use Illuminate\Http\Request;
@@ -10,6 +9,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\Sanctum;
+use Modules\Chat\Models\Conversation;
 use Modules\Guarantor\Actions\Chat\OpenGuarantorChatAction;
 use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateCompanyGuarantorAction;

@@ -1,6 +1,5 @@
 <?php
 
-use Modules\Chat\Models\Conversation;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -13,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
 use Modules\Chat\Infrastructure\Events\NewMessageEvent;
+use Modules\Chat\Models\Conversation;
 use Modules\Opportunity\Actions\Opportunity\ExpireOpportunityAction;
 use Modules\Opportunity\Enums\OfferStatusEnum;
 use Modules\Opportunity\Enums\OpportunityStatusEnum;

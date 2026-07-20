@@ -2,11 +2,11 @@
 
 namespace Modules\Opportunity\Services;
 
-use Modules\Chat\Models\Conversation;
-use Modules\Chat\Models\ConversationMessage;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\DTOs\ChatMessageData;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationMessage;
 use Modules\Opportunity\Actions\Chat\ListOpportunityChatMessagesAction;
 use Modules\Opportunity\Actions\Chat\ListOpportunityChatsAction;
 use Modules\Opportunity\Actions\Chat\OpenOpportunityChatAction;
