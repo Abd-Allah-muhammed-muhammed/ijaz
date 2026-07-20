@@ -8,7 +8,6 @@ use App\Http\Requests\UserRequest;
 use App\Http\Resources\Api\V1\NationalityResource;
 use App\Http\Resources\Dashboard\UserCollection;
 use App\Http\Resources\Dashboard\UserResource;
-use App\Models\Nationality;
 use App\Models\User;
 use App\Services\Sms\Phone;
 use Exception;
@@ -19,6 +18,7 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Enum;
+use Modules\Geo\Models\Nationality;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
 use Throwable;
 

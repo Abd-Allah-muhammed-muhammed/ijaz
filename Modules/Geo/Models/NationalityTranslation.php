@@ -1,28 +1,28 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Geo\Models;
 
 use App\Traits\HasNormalizedAttributes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class RegionTranslation extends Model
+class NationalityTranslation extends Model
 {
     use HasNormalizedAttributes;
 
     public $timestamps = false;
 
-    protected $fillable = ['title', 'normalized_title', 'locale', 'region_id'];
+    protected $fillable = ['name', 'normalized_name', 'locale', 'nationality_id'];
 
-    public function region(): BelongsTo
+    public function nationality(): BelongsTo
     {
-        return $this->belongsTo(Region::class);
+        return $this->belongsTo(Nationality::class);
     }
 
     protected function getHasNormalizedAttributesMap(): array
     {
         return [
-            'title' => 'normalized_title',
+            'name' => 'normalized_name',
         ];
     }
 }

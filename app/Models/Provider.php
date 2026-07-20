@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Modules\Chat\Contracts\HasConversation;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 use Modules\Payment\Traits\HasPayments;
 use Modules\Wallet\Traits\HasWallet;
 use Spatie\MediaLibrary\HasMedia;

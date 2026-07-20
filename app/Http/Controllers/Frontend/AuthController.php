@@ -7,15 +7,15 @@ use App\Http\Requests\ProviderRegisterRequest;
 use App\Http\Resources\Dashboard\CityResource;
 use App\Http\Resources\Dashboard\ProviderTypeResource;
 use App\Http\Resources\Dashboard\RegionResource;
-use App\Models\City;
 use App\Models\Provider;
 use App\Models\ProviderType;
-use App\Models\Region;
 use App\Rules\ValidPhoneRule;
 use App\Services\Auth\ProviderAuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 use Random\RandomException;
 use Throwable;
 

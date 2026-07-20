@@ -2,8 +2,6 @@
 
 namespace Modules\Classifieds\Database\Factories;
 
-use App\Models\City;
-use App\Models\Region;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -14,6 +12,8 @@ use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;
 use Modules\Classifieds\Enums\UsageStatusEnum;
 use Modules\Classifieds\Models\CarAdvisement;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 /**
  * @extends Factory<CarAdvisement>

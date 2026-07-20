@@ -4,11 +4,11 @@ namespace Database\Factories;
 
 use App\Enums\Order\OrderStatusEnum;
 use App\Models\Category;
-use App\Models\City;
 use App\Models\Order;
-use App\Models\Region;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 /**
  * @extends Factory<Order>

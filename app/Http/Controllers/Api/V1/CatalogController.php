@@ -14,17 +14,17 @@ use App\Http\Resources\Api\V1\RegionCollection;
 use App\Http\Resources\Api\V1\SkillCollection;
 use App\Models\Banner;
 use App\Models\Category;
-use App\Models\Nationality;
 use App\Models\Page;
 use App\Models\Provider;
 use App\Models\Question;
-use App\Models\Region;
 use App\Models\Skill;
 use App\Services\Sms\Phone;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Geo\Models\Nationality;
+use Modules\Geo\Models\Region;
 
 #[Group('Catalog')]
 class CatalogController extends Controller

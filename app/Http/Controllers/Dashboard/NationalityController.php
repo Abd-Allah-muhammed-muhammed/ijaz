@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\NationalityRequest;
 use App\Http\Resources\Dashboard\NationalityCollection;
 use App\Http\Resources\Dashboard\NationalityResource;
-use App\Models\Nationality;
 use App\Services\Normalize\Normalize;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Modules\Geo\Models\Nationality;
 use Throwable;
 
 class NationalityController extends Controller implements HasMiddleware

@@ -1,11 +1,11 @@
 <?php
 
 use App\Actions\Auth\EnsureOtpCooldownAction;
-use App\Models\Nationality;
 use App\Services\Sms\Phone;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
+use Modules\Geo\Models\Nationality;
 
 test('register endpoint surfaces otp cooldown as 422 validation error, not generic 400', function () {
     Storage::fake('local');

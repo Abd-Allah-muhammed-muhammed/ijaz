@@ -3,8 +3,6 @@
 namespace Modules\Classifieds\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Models\City;
-use App\Models\Region;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -18,6 +16,8 @@ use Modules\Classifieds\Enums\ElectronicConditionEnum;
 use Modules\Classifieds\Http\Resources\Dashboard\ElectronicAdvisementCollection;
 use Modules\Classifieds\Http\Resources\Dashboard\ElectronicAdvisementResource;
 use Modules\Classifieds\Models\ElectronicAdvisement;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 class ElectronicAdvisementController extends Controller implements HasMiddleware
 {

@@ -1,6 +1,7 @@
 {
     "Classifieds": true,
     "Catalog": true,
+    "Geo": true,
     "Opportunity": true,
     "Guarantor": true,
     "Chat": true,

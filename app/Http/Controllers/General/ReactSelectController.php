@@ -6,13 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\CategoryCollection;
 use App\Http\Resources\General\ReactSelectResource;
 use App\Models\Category;
-use App\Models\City;
-use App\Models\Nationality;
-use App\Models\Region;
 use App\Models\Skill;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Nationality;
+use Modules\Geo\Models\Region;
 
 class ReactSelectController extends Controller
 {

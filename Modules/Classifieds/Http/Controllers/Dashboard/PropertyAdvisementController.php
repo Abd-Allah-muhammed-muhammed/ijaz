@@ -3,8 +3,6 @@
 namespace Modules\Classifieds\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Models\City;
-use App\Models\Region;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -14,6 +12,8 @@ use Modules\Catalog\Models\PropertyType;
 use Modules\Classifieds\Http\Resources\Dashboard\PropertyAdvisementCollection;
 use Modules\Classifieds\Http\Resources\Dashboard\PropertyAdvisementResource;
 use Modules\Classifieds\Models\PropertyAdvisement;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 class PropertyAdvisementController extends Controller implements HasMiddleware
 {

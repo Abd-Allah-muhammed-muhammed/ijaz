@@ -2,8 +2,6 @@
 
 namespace Modules\Classifieds\Models;
 
-use App\Models\City;
-use App\Models\Region;
 use App\Traits\HasNormalizedAttributes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -20,6 +18,8 @@ use Modules\Classifieds\Database\Factories\CarAdvisementFactory;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;
 use Modules\Classifieds\Enums\UsageStatusEnum;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 

@@ -2,14 +2,16 @@
 
 namespace Database\Factories;
 
-use App\Models\Region;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Geo\Models\Region;
 
 /**
  * @extends Factory<Region>
  */
 class RegionFactory extends Factory
 {
+    protected $model = Region::class;
+
     /**
      * Define the model's default state.
      *

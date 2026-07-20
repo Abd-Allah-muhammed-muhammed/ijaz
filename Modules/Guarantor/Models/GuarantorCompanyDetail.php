@@ -2,11 +2,11 @@
 
 namespace Modules\Guarantor\Models;
 
-use App\Models\City;
-use App\Models\Region;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 use Modules\Guarantor\Enums\AuthorizationTypeEnum;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;

@@ -2,10 +2,8 @@
 
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Models\Category;
-use App\Models\City;
 use App\Models\Provider;
 use App\Models\ProviderType;
-use App\Models\Region;
 use App\Models\RegisterVerificationCode;
 use App\Services\Sms\Phone;
 use Carbon\CarbonInterface;
@@ -17,6 +15,8 @@ use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 use Modules\Sms\DTOs\SmsResult;
 use Modules\Sms\Services\SmsService;
 use Modules\Wallet\Models\WalletTransaction;

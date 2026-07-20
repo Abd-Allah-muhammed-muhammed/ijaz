@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\City;
-use App\Models\Region;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 use Modules\Catalog\Models\CarBrand;
@@ -12,6 +10,8 @@ use Modules\Classifieds\Enums\OperationEnum;
 use Modules\Classifieds\Enums\UsageStatusEnum;
 use Modules\Classifieds\Http\Controllers\V1\CarAdvisementController;
 use Modules\Classifieds\Models\CarAdvisement;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 beforeEach(function () {
     $this->user = User::factory()->create();

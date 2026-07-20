@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\RegionRequest;
 use App\Http\Resources\Dashboard\RegionCollection;
 use App\Http\Resources\Dashboard\RegionResource;
-use App\Models\Region;
 use App\Services\Normalize\Normalize;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
+use Modules\Geo\Models\Region;
 use Throwable;
 
 class RegionController extends Controller implements HasMiddleware

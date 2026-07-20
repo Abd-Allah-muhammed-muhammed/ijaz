@@ -30,6 +30,9 @@ pest()->extend(TestCase::class)
 pest()->extend(TestCase::class)
     ->in('../Modules/Sms/tests');
 
+pest()->extend(TestCase::class)
+    ->in('../Modules/Geo/tests');
+
 require_once __DIR__.'/../Modules/Chat/tests/helpers.php';
 require_once __DIR__.'/../Modules/Wallet/tests/helpers.php';
 require_once __DIR__.'/../Modules/Payment/tests/helpers.php';

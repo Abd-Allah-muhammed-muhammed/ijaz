@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Geo\Models;
 
 use App\Traits\HasNormalizedAttributes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CityTranslation extends Model
+class RegionTranslation extends Model
 {
     use HasNormalizedAttributes;
 
     public $timestamps = false;
 
-    protected $fillable = ['title', 'normalized_title', 'locale', 'city_id'];
+    protected $fillable = ['title', 'normalized_title', 'locale', 'region_id'];
 
-    public function city(): BelongsTo
+    public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class);
     }

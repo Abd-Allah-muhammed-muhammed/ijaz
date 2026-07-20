@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\City;
-use App\Models\Region;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 use Modules\Catalog\Models\PropertiyCategory;
@@ -10,6 +8,8 @@ use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;
 use Modules\Classifieds\Http\Controllers\V1\PropertyAdvisementController;
 use Modules\Classifieds\Models\PropertyAdvisement;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 beforeEach(function () {
     $this->user = User::factory()->create();

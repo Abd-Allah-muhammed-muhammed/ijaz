@@ -7,13 +7,13 @@ use App\Http\Requests\Dashboard\CityRequest;
 use App\Http\Resources\Dashboard\CityCollection;
 use App\Http\Resources\Dashboard\CityResource;
 use App\Http\Resources\Dashboard\RegionResource;
-use App\Models\City;
-use App\Models\Region;
 use App\Services\Normalize\Normalize;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 use Throwable;
 
 class CityController extends Controller implements HasMiddleware

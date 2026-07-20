@@ -31,6 +31,7 @@ use Modules\Classifieds\Models\CarAdvisement;
 use Modules\Classifieds\Models\ElectronicAdvisement;
 use Modules\Classifieds\Models\InstituteAdvisement;
 use Modules\Classifieds\Models\PropertyAdvisement;
+use Modules\Geo\Models\Nationality;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Payment\Traits\HasPayments;
 use Modules\Wallet\Traits\HasWallet;

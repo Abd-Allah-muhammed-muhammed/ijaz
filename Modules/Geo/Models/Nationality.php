@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Geo\Models;
 
 use App\Contracts\Selects\IReactSelect;
+use App\Models\User;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;

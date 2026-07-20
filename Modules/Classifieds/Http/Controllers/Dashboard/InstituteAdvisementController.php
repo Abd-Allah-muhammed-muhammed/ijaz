@@ -3,8 +3,6 @@
 namespace Modules\Classifieds\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Models\City;
-use App\Models\Region;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -19,6 +17,8 @@ use Modules\Classifieds\Enums\StudyTypeEnum;
 use Modules\Classifieds\Http\Resources\Dashboard\InstituteAdvisementCollection;
 use Modules\Classifieds\Http\Resources\Dashboard\InstituteAdvisementResource;
 use Modules\Classifieds\Models\InstituteAdvisement;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 class InstituteAdvisementController extends Controller implements HasMiddleware
 {

@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\Dashboard;
 
-use App\Models\City;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Geo\Models\City;
 
 /** @mixin City */
 class CityResource extends JsonResource

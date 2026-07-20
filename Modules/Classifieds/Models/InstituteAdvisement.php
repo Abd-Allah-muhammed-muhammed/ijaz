@@ -2,8 +2,6 @@
 
 namespace Modules\Classifieds\Models;
 
-use App\Models\City;
-use App\Models\Region;
 use App\Traits\HasNormalizedAttributes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +15,8 @@ use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\InstituteTypeEnum;
 use Modules\Classifieds\Enums\StudyLevelEnum;
 use Modules\Classifieds\Enums\StudyTypeEnum;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 

@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\Dashboard;
 
-use App\Models\Region;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
+use Modules\Geo\Models\Region;
 
 /** @see Region */
 class RegionCollection extends ResourceCollection

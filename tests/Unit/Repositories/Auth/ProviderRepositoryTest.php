@@ -2,10 +2,10 @@
 
 use App\Contracts\Auth\ProviderRepositoryInterface;
 use App\Enums\Providers\ProviderStatusEnum;
-use App\Models\City;
 use App\Models\Provider;
 use App\Models\ProviderType;
-use App\Models\Region;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 test('findAuthenticated returns the currently authenticated provider', function () {
     $provider = createWalletProvider();

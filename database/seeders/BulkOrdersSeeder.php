@@ -5,15 +5,15 @@ namespace Database\Seeders;
 use App\Enums\Order\OfferStatusEnum;
 use App\Enums\Order\OrderStatusEnum;
 use App\Models\Category;
-use App\Models\City;
 use App\Models\Order;
 use App\Models\Provider;
-use App\Models\Region;
 use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 class BulkOrdersSeeder extends Seeder
 {

@@ -3,8 +3,6 @@
 namespace Modules\Classifieds\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Models\City;
-use App\Models\Region;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -15,6 +13,8 @@ use Modules\Catalog\Models\CarType;
 use Modules\Classifieds\Http\Resources\Dashboard\CarAdvisementCollection;
 use Modules\Classifieds\Http\Resources\Dashboard\CarAdvisementResource;
 use Modules\Classifieds\Models\CarAdvisement;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 class CarAdvisementController extends Controller implements HasMiddleware
 {
