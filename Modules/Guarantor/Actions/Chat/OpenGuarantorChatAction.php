@@ -2,7 +2,7 @@
 
 namespace Modules\Guarantor\Actions\Chat;
 
-use App\Models\Conversation;
+use Modules\Chat\Models\Conversation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Modules\Chat\Actions\OpenConversationAction;

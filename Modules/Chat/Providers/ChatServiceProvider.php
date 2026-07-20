@@ -2,7 +2,6 @@
 
 namespace Modules\Chat\Providers;
 
-use App\Models\Conversation;
 use Illuminate\Support\Facades\Gate;
 use Modules\Chat\Contracts\IChatService;
 use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
@@ -14,6 +13,7 @@ use Modules\Chat\Handlers\OpportunityChatHandler;
 use Modules\Chat\Handlers\OrderChatHandler;
 use Modules\Chat\Handlers\TicketSupportChatHandler;
 use Modules\Chat\Infrastructure\Jobs\NotifyChatMessageReceiver;
+use Modules\Chat\Models\Conversation;
 use Modules\Chat\Policies\ConversationPolicy;
 use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Chat\Repositories\ConversationMessageRepository;

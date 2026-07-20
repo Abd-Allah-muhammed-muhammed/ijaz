@@ -2,7 +2,7 @@
 
 namespace Modules\Opportunity\Http\Resources;
 
-use App\Models\Conversation;
+use Modules\Chat\Models\Conversation;
 use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Http\Request;

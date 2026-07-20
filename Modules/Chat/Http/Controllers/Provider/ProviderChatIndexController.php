@@ -4,13 +4,13 @@ namespace Modules\Chat\Http\Controllers\Provider;
 
 use App\Enums\Order\OrderStatusEnum;
 use App\Http\Controllers\Controller;
-use App\Models\Conversation;
 use App\Models\Order;
 use App\Models\Provider;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Response;
 use Modules\Chat\Http\Resources\Dashboard\ConversationCollection;
+use Modules\Chat\Models\Conversation;
 
 class ProviderChatIndexController extends Controller
 {

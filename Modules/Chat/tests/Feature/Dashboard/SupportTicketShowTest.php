@@ -2,12 +2,12 @@
 
 use App\Http\Controllers\Dashboard\SupportController;
 use App\Models\Admin;
-use App\Models\ConversationMessage;
 use App\Models\User;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
+use Modules\Chat\Models\ConversationMessage;
 
 function withoutDashboardLocaleMiddlewareForSupportTicketShow(): void
 {

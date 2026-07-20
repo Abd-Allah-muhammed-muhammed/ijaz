@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Admin;
-use App\Models\System;
+use Modules\Chat\Models\System;
 use Illuminate\Database\Seeder;
 use Str;
 

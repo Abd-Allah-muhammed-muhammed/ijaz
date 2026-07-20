@@ -3,9 +3,6 @@
 namespace Modules\Chat\Services;
 
 use App\Models\Admin;
-use App\Models\Conversation;
-use App\Models\ConversationMessage;
-use App\Models\System;
 use App\Models\TicketSupport;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +13,9 @@ use Modules\Chat\Actions\SendMessageAction;
 use Modules\Chat\Contracts\ChatTypeHandlerInterface;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Enums\ChatTypeEnum;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationMessage;
+use Modules\Chat\Models\System;
 use Modules\Chat\Registry\ChatTypeRegistry;
 
 class ConversationService

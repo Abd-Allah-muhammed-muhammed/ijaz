@@ -26,6 +26,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Chat\Contracts\HasConversation;
+use Modules\Chat\Models\ConversationMessage;
 use Modules\Classifieds\Models\CarAdvisement;
 use Modules\Classifieds\Models\ElectronicAdvisement;
 use Modules\Classifieds\Models\InstituteAdvisement;

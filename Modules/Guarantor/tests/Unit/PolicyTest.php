@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Conversation;
+use Modules\Chat\Models\Conversation;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;

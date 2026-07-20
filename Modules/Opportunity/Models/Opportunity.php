@@ -3,7 +3,7 @@
 namespace Modules\Opportunity\Models;
 
 use App\Models\City;
-use App\Models\Conversation;
+use Modules\Chat\Models\Conversation;
 use App\Models\Region;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;

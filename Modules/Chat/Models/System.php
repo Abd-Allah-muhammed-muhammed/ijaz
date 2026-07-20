@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Chat\Models;
 
 use App\Traits\HasBroadcastChanel;
 use Illuminate\Foundation\Auth\User as Authenticatable;

@@ -2,9 +2,6 @@
 
 namespace Modules\Chat\Infrastructure;
 
-use App\Models\Conversation;
-use App\Models\ConversationMessage;
-use App\Models\System;
 use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -17,6 +14,9 @@ use Modules\Chat\Exceptions\ChatMessageException;
 use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
 use Modules\Chat\Infrastructure\Events\NewMessageEvent;
 use Modules\Chat\Infrastructure\Jobs\NotifyChatMessageReceiver;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationMessage;
+use Modules\Chat\Models\System;
 use Pusher\ApiErrorException;
 
 abstract class BaseChatService

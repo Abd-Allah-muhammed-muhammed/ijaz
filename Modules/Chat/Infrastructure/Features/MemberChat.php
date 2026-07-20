@@ -2,13 +2,13 @@
 
 namespace Modules\Chat\Infrastructure\Features;
 
-use App\Models\Conversation;
 use Illuminate\Http\UploadedFile;
 use Modules\Chat\Contracts\HasConversation;
 use Modules\Chat\Exceptions\ChatException;
 use Modules\Chat\Exceptions\ChatMessageException;
 use Modules\Chat\Exceptions\ChatUserException;
 use Modules\Chat\Infrastructure\BaseChatService;
+use Modules\Chat\Models\Conversation;
 use Pusher\ApiErrorException;
 
 class MemberChat extends BaseChatService

@@ -2,9 +2,9 @@
 
 use App\Models\Admin;
 use App\Models\Category;
-use App\Models\Conversation;
+use Modules\Chat\Models\Conversation;
 use App\Models\Provider;
-use App\Models\System;
+use Modules\Chat\Models\System;
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 use Modules\Chat\Http\Resources\ChatUserResource;

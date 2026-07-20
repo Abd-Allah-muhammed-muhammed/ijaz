@@ -2,7 +2,6 @@
 
 namespace Modules\Chat\Infrastructure\Jobs;
 
-use App\Models\ConversationMessage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -11,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Modules\Chat\Contracts\HasConversation;
 use Modules\Chat\Infrastructure\Notifications\NewMessageSentNotification;
+use Modules\Chat\Models\ConversationMessage;
 
 class NotifyChatMessageReceiver implements ShouldDispatchAfterCommit, ShouldQueue
 {

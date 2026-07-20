@@ -3,13 +3,13 @@
 namespace App\Console\Commands;
 
 use App\Console\Commands\listeners\Context;
-use App\Models\System;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Modules\Chat\Models\System;
 use Ratchet\Client\WebSocket;
 use Ratchet\RFC6455\Messaging\Message;
 

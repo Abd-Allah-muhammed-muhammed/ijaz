@@ -2,8 +2,8 @@
 
 namespace Modules\Guarantor\Actions\Chat;
 
-use App\Models\Conversation;
-use App\Models\ConversationMessage;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationMessage;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Actions\SendMessageAction;
 use Modules\Chat\DTOs\ChatMessageData;

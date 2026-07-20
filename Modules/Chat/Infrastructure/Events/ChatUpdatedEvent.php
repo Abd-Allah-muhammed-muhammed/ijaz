@@ -3,8 +3,6 @@
 namespace Modules\Chat\Infrastructure\Events;
 
 use App\Models\Admin;
-use App\Models\Conversation;
-use App\Models\System;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
@@ -15,6 +13,8 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Modules\Chat\Contracts\HasConversation;
 use Modules\Chat\Enums\ChatEventEnum;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\System;
 
 class ChatUpdatedEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterCommit
 {

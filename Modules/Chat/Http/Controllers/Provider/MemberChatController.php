@@ -3,7 +3,6 @@
 namespace Modules\Chat\Http\Controllers\Provider;
 
 use App\Http\Controllers\Controller;
-use App\Models\Conversation;
 use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -18,6 +17,7 @@ use Modules\Chat\Http\Resources\ConversationCollection;
 use Modules\Chat\Http\Resources\ConversationMessageCollection;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\ConversationResource;
+use Modules\Chat\Models\Conversation;
 use Modules\Chat\Services\ConversationService;
 
 class MemberChatController extends Controller

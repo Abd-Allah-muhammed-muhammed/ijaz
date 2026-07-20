@@ -3,7 +3,6 @@
 namespace Modules\Chat\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
-use App\Models\Conversation;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +13,7 @@ use Modules\Chat\Http\Requests\SendMessageRequest;
 use Modules\Chat\Http\Resources\ConversationCollection;
 use Modules\Chat\Http\Resources\ConversationMessageCollection;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
+use Modules\Chat\Models\Conversation;
 use Modules\Chat\Services\ConversationService;
 
 #[Group('Ticket Support Chat')]

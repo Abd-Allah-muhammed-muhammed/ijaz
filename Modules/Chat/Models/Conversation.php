@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Chat\Models;
 
 use Eloquent;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 
 /**
- * App\Models\Conversation
+ * Modules\Chat\Models\Conversation
  *
  * @template T of Model
  *

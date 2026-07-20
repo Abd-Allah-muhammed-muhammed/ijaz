@@ -2,7 +2,7 @@
 
 namespace Modules\Guarantor\Actions\Chat;
 
-use App\Models\Conversation;
+use Modules\Chat\Models\Conversation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Actions\ListMessagesAction;

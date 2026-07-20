@@ -2,10 +2,10 @@
 
 namespace Modules\Chat\Repositories;
 
-use App\Models\Conversation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Contracts\Repositories\ConversationRepositoryInterface;
+use Modules\Chat\Models\Conversation;
 
 class ConversationRepository implements ConversationRepositoryInterface
 {

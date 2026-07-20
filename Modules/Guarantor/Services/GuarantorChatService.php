@@ -2,8 +2,8 @@
 
 namespace Modules\Guarantor\Services;
 
-use App\Models\Conversation;
-use App\Models\ConversationMessage;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationMessage;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\DTOs\ChatMessageData;

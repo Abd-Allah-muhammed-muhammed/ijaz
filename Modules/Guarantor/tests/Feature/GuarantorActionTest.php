@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Admin;
-use App\Models\Conversation;
+use Modules\Chat\Models\Conversation;
 use App\Models\User;
 use App\Services\Sms\Phone;
 use Illuminate\Http\Request;

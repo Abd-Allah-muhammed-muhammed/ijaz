@@ -2,11 +2,11 @@
 
 namespace Modules\Chat\Actions;
 
-use App\Models\Conversation;
-use App\Models\ConversationMessage;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Contracts\ChatTypeHandlerInterface;
 use Modules\Chat\DTOs\ChatMessageData;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationMessage;
 use Modules\Chat\Support\ParticipantConversationMessenger;
 
 class SendMessageAction

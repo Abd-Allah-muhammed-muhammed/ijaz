@@ -2,9 +2,9 @@
 
 namespace Modules\Chat\Contracts;
 
-use App\Models\Conversation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Chat\Models\Conversation;
 
 interface ChatTypeHandlerInterface
 {

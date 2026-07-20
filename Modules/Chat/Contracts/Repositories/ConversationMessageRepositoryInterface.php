@@ -2,9 +2,9 @@
 
 namespace Modules\Chat\Contracts\Repositories;
 
-use App\Models\Conversation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Chat\Models\Conversation;
 
 interface ConversationMessageRepositoryInterface
 {

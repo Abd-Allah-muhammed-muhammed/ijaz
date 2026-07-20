@@ -2,11 +2,11 @@
 
 namespace Modules\Chat\Handlers;
 
-use App\Models\Conversation;
 use App\Models\Order;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Contracts\ChatTypeHandlerInterface;
+use Modules\Chat\Models\Conversation;
 use Modules\Chat\Support\ParticipantConversationMessenger;
 
 class OrderChatHandler implements ChatTypeHandlerInterface

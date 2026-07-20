@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Chat\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;

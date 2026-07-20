@@ -2,7 +2,7 @@
 
 namespace Modules\Guarantor\Models;
 
-use App\Models\Conversation;
+use Modules\Chat\Models\Conversation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;

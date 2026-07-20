@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\UpdateSettingsRequest;
 use App\Http\Resources\Api\V1\NotificationCollection;
-use App\Models\ConversationMessage;
+use Modules\Chat\Models\ConversationMessage;
 use App\Models\Provider;
 use App\Models\User;
 use Dedoc\Scramble\Attributes\Group;
