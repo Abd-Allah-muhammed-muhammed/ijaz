@@ -75,14 +75,23 @@ it('rejects store when validation fails', function () {
 });
 
 /**
- * KNOWN ISSUE (lock-in): show() has NO ownership check — any authenticated user
- * can fetch any order by id. Flag for later Orders hardening step.
+ * IDOR fix (Step 0.5): show() requires ownership — non-owners get 404
+ * (same pattern as updateOfferStatus), without leaking order existence.
  */
-it('shows an order even when the requester does not own it', function () {
+it('returns 404 when a non-owner tries to view an order', function () {
     ['order' => $order] = createOrderWithOffer();
     $attacker = User::factory()->create();
 
     Sanctum::actingAs($attacker, ['user-api'], 'user-api');
+
+    $this->getJson(action([OrderController::class, 'show'], ['order' => $order]))
+        ->assertNotFound();
+});
+
+it('allows the owner to view their own order', function () {
+    ['owner' => $owner, 'order' => $order] = createOrderWithOffer();
+
+    Sanctum::actingAs($owner, ['user-api'], 'user-api');
 
     $this->getJson(action([OrderController::class, 'show'], ['order' => $order]))
         ->assertOk()
@@ -134,10 +143,10 @@ it('forbids edit by non-owner', function () {
 });
 
 /**
- * KNOWN ISSUE (lock-in): destroy() has NO ownership check — any authenticated user
- * can delete any order that has zero offers.
+ * IDOR fix (Step 0.5): destroy() requires ownership before the "has offers" guard —
+ * non-owners get 404 even when the order has no offers.
  */
-it('destroys an order with no offers even for a non-owner', function () {
+it('returns 404 when a non-owner tries to delete an order', function () {
     $owner = User::factory()->create();
     $attacker = User::factory()->create();
     $order = Order::factory()->create([
@@ -146,6 +155,21 @@ it('destroys an order with no offers even for a non-owner', function () {
     ]);
 
     Sanctum::actingAs($attacker, ['user-api'], 'user-api');
+
+    $this->deleteJson(action([OrderController::class, 'destroy'], ['order' => $order]))
+        ->assertNotFound();
+
+    expect(Order::query()->find($order->id))->not->toBeNull();
+});
+
+it('allows the owner to delete their own order when it has no offers', function () {
+    $owner = User::factory()->create();
+    $order = Order::factory()->create([
+        'user_id' => $owner->id,
+        'status' => OrderStatusEnum::New,
+    ]);
+
+    Sanctum::actingAs($owner, ['user-api'], 'user-api');
 
     $this->deleteJson(action([OrderController::class, 'destroy'], ['order' => $order]))
         ->assertOk();

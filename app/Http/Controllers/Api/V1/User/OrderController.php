@@ -183,6 +183,10 @@ class OrderController extends Controller
      */
     public function show(Order $order): JsonResponse
     {
+        if ($order->user()->isNot(auth()->user())) {
+            abort(404);
+        }
+
         $order->load([
             'offers.provider',
             'category.translation',
@@ -207,6 +211,10 @@ class OrderController extends Controller
      */
     public function destroy(Order $order): JsonResponse
     {
+        if ($order->user()->isNot(auth()->user())) {
+            abort(404);
+        }
+
         if ($order->offers()->exists()) {
             return $this->failedMessageResponse(__('you can not delete this order because it has offers'));
         }

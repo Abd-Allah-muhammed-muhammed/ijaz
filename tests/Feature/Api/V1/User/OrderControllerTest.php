@@ -77,3 +77,58 @@ test('user can update offer status on their own order', function () {
     expect($offer->fresh()->status)->toBe(OfferStatusEnum::Rejected)
         ->and($order->fresh()->status)->toBe(OrderStatusEnum::New);
 });
+
+test('user cannot view another users order', function () {
+    ['order' => $order] = createOwnedOrderWithPendingOffer();
+    $attacker = User::factory()->create();
+
+    Sanctum::actingAs($attacker, ['user-api'], 'user-api');
+
+    $this->getJson(action([OrderController::class, 'show'], ['order' => $order]))
+        ->assertNotFound();
+});
+
+test('user can still view their own order', function () {
+    ['owner' => $owner, 'order' => $order] = createOwnedOrderWithPendingOffer();
+
+    Sanctum::actingAs($owner, ['user-api'], 'user-api');
+
+    $this->getJson(action([OrderController::class, 'show'], ['order' => $order]))
+        ->assertOk()
+        ->assertJsonPath('data.id', $order->id);
+});
+
+test('user cannot delete another users order', function () {
+    $owner = User::factory()->create();
+    $attacker = User::factory()->create();
+    $order = Order::factory()->create([
+        'user_id' => $owner->id,
+        'status' => OrderStatusEnum::New,
+        'provider_id' => null,
+        'accepted_offer_id' => null,
+    ]);
+
+    Sanctum::actingAs($attacker, ['user-api'], 'user-api');
+
+    $this->deleteJson(action([OrderController::class, 'destroy'], ['order' => $order]))
+        ->assertNotFound();
+
+    expect(Order::query()->find($order->id))->not->toBeNull();
+});
+
+test('user can still delete their own order without offers', function () {
+    $owner = User::factory()->create();
+    $order = Order::factory()->create([
+        'user_id' => $owner->id,
+        'status' => OrderStatusEnum::New,
+        'provider_id' => null,
+        'accepted_offer_id' => null,
+    ]);
+
+    Sanctum::actingAs($owner, ['user-api'], 'user-api');
+
+    $this->deleteJson(action([OrderController::class, 'destroy'], ['order' => $order]))
+        ->assertOk();
+
+    expect(Order::query()->find($order->id))->toBeNull();
+});
