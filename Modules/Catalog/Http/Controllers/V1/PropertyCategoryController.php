@@ -7,16 +7,16 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Catalog\Contracts\Services\PropertyCategoryServiceInterface;
 use Modules\Catalog\Http\Resources\Api\PropertyCategoryCollection;
 use Modules\Catalog\QueryFilters\PropertyCategory\PropertyCategoryFilters;
-use Modules\Catalog\Services\PropertyCategoryService;
 
 #[Group('Property Categories')]
 class PropertyCategoryController extends Controller
 {
     use HasApiResponse;
 
-    public function __construct(private readonly PropertyCategoryService $propertyCategoryService) {}
+    public function __construct(private readonly PropertyCategoryServiceInterface $propertyCategoryService) {}
 
     /**
      * Property categories.

@@ -6,16 +6,21 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Support\Facades\DB;
+use Modules\Catalog\Contracts\Services\PropertyCategoryServiceInterface;
+use Modules\Catalog\DTOs\StorePropertyCategoryDTO;
+use Modules\Catalog\DTOs\UpdatePropertyCategoryDTO;
 use Modules\Catalog\Http\Requests\Dashboard\PropertyCategoryRequest;
 use Modules\Catalog\Http\Resources\Dashboard\PropertyCategoryCollection;
 use Modules\Catalog\Http\Resources\Dashboard\PropertyCategoryResource;
 use Modules\Catalog\Models\PropertiyCategory;
-use Modules\Catalog\Services\Normalize\Normalize;
 use Throwable;
 
 class PropertyCategoryController extends Controller implements HasMiddleware
 {
+    public function __construct(
+        private readonly PropertyCategoryServiceInterface $service,
+    ) {}
+
     public static function middleware(): array
     {
         return [
@@ -31,24 +36,9 @@ class PropertyCategoryController extends Controller implements HasMiddleware
      */
     public function index(Request $request)
     {
-        $categories = PropertiyCategory::withCount(['children'])
-            ->with(['translation'])
-            ->when($request->input('search'), function ($query, $v) {
-                $v = Normalize::make($v, app()->getLocale());
-
-                return $query->whereTranslationLike('normalized_title', "%{$v}%");
-            })
-            ->when(
-                $request->integer('parent_id'),
-                fn ($query, $v) => $query->where('parent_id', $v),
-                fn ($query) => $query->whereNull('parent_id'),
-            )
-            ->paginate($request->integer('per_page', 10))
-            ->withQueryString();
-
         return inertia('Dashboard/PropertyCategories/Index', [
             'prams' => fn () => $request->all() ?: [],
-            'rows' => fn () => PropertyCategoryCollection::make($categories),
+            'rows' => fn () => PropertyCategoryCollection::make($this->service->index($request)),
         ]);
     }
 
@@ -59,9 +49,7 @@ class PropertyCategoryController extends Controller implements HasMiddleware
     {
         return inertia('Dashboard/PropertyCategories/Create', [
             'categories' => PropertyCategoryResource::collection(
-                PropertiyCategory::with(['translation'])
-                    ->whereNull('parent_id')
-                    ->get()
+                $this->service->getRootCategories()
             ),
         ]);
     }
@@ -72,15 +60,11 @@ class PropertyCategoryController extends Controller implements HasMiddleware
     public function store(PropertyCategoryRequest $request)
     {
 
-        DB::beginTransaction();
         try {
-            $data = $request->validated();
-            PropertiyCategory::create($data);
-            DB::commit();
+            $this->service->store(StorePropertyCategoryDTO::fromValidated($request->validated()));
 
             return redirect()->route('dashboard.property-categories.index')->with('success', __('data saved successfully'));
         } catch (Throwable $throwable) {
-            DB::rollBack();
             report($throwable);
 
             return redirect()->back()->with('error', __('something went wrong'));
@@ -92,14 +76,10 @@ class PropertyCategoryController extends Controller implements HasMiddleware
      */
     public function edit(PropertiyCategory $propertyCategory)
     {
-        $propertyCategory->load(['translations', 'parent']);
-
         return inertia('Dashboard/PropertyCategories/Edit', [
-            'category' => PropertyCategoryResource::make($propertyCategory),
+            'category' => PropertyCategoryResource::make($this->service->show($propertyCategory)),
             'categories' => PropertyCategoryResource::collection(
-                PropertiyCategory::with(['translation'])
-                    ->whereNull('parent_id')
-                    ->get()
+                $this->service->getRootCategories()
             ),
         ]);
     }
@@ -109,15 +89,11 @@ class PropertyCategoryController extends Controller implements HasMiddleware
      */
     public function update(PropertyCategoryRequest $request, PropertiyCategory $propertyCategory)
     {
-        DB::beginTransaction();
         try {
-            $data = $request->validated();
-            $propertyCategory->update($data);
-            DB::commit();
+            $this->service->update($propertyCategory, UpdatePropertyCategoryDTO::fromValidated($request->validated()));
 
             return redirect()->route('dashboard.property-categories.index')->with('success', __('data updated successfully'));
         } catch (Throwable $throwable) {
-            DB::rollBack();
             report($throwable);
 
             return redirect()->back()->with('error', __('something went wrong'));
@@ -129,11 +105,18 @@ class PropertyCategoryController extends Controller implements HasMiddleware
      */
     public function destroy(PropertiyCategory $propertyCategory)
     {
-        if ($propertyCategory->children()->exists()) {
-            return redirect()->back()->with('error', __('this category has subcategories'));
-        }
-        $propertyCategory->delete();
+        try {
+            $this->service->destroy($propertyCategory);
 
-        return redirect()->route('dashboard.property-categories.index')->with('success', __('data deleted successfully'));
+            return redirect()->route('dashboard.property-categories.index')->with('success', __('data deleted successfully'));
+        } catch (Throwable $e) {
+            if ($e->getMessage() === __('this category has subcategories')) {
+                return redirect()->back()->with('error', $e->getMessage());
+            }
+
+            report($e);
+
+            return redirect()->back()->with('error', __('something went wrong'));
+        }
     }
 }

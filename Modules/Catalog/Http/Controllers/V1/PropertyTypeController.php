@@ -7,16 +7,16 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Catalog\Contracts\Services\PropertyTypeServiceInterface;
 use Modules\Catalog\Http\Resources\Api\PropertyTypeCollection;
 use Modules\Catalog\QueryFilters\PropertyType\PropertyTypeFilters;
-use Modules\Catalog\Services\PropertyTypeService;
 
 #[Group('Property Types')]
 class PropertyTypeController extends Controller
 {
     use HasApiResponse;
 
-    public function __construct(private readonly PropertyTypeService $propertyTypeService) {}
+    public function __construct(private readonly PropertyTypeServiceInterface $propertyTypeService) {}
 
     /**
      * Property types.
