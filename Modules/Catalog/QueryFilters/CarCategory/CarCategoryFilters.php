@@ -3,11 +3,11 @@
 namespace Modules\Catalog\QueryFilters\CarCategory;
 
 use App\Contracts\QueryFilters\QueryFilterInterface;
+use App\Services\Normalize\Normalize;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Modules\Catalog\QueryFilters\CarCategory\Filters\ParentFilter;
 use Modules\Catalog\QueryFilters\CarCategory\Filters\SearchFilter;
-use Modules\Catalog\Services\Normalize\Normalize;
 
 class CarCategoryFilters
 {

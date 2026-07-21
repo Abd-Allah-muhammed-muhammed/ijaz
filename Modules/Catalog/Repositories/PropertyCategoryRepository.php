@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\Repositories;
 
+use App\Services\Normalize\Normalize;
 use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -9,7 +10,6 @@ use Illuminate\Http\Request;
 use Modules\Catalog\Contracts\Repositories\PropertyCategoryRepositoryInterface;
 use Modules\Catalog\Models\PropertiyCategory;
 use Modules\Catalog\QueryFilters\PropertyCategory\PropertyCategoryFilters;
-use Modules\Catalog\Services\Normalize\Normalize;
 
 class PropertyCategoryRepository implements PropertyCategoryRepositoryInterface
 {

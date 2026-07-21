@@ -3,8 +3,8 @@
 namespace Modules\Catalog\QueryFilters\PropertyCategory\Filters;
 
 use App\Contracts\QueryFilters\QueryFilterInterface;
+use App\Services\Normalize\Normalize;
 use Illuminate\Database\Eloquent\Builder;
-use Modules\Catalog\Services\Normalize\Normalize;
 
 class SearchFilter implements QueryFilterInterface
 {
