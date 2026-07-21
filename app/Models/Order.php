@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Modules\Chat\Models\Conversation;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
+use Modules\Marketplace\Models\Category;
+use Modules\Marketplace\Models\Skill;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
