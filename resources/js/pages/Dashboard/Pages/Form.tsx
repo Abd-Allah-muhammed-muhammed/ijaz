@@ -7,7 +7,7 @@ import ActionButton from "@/components/action-button";
 import {getSupportedLocales} from "@/hooks/use-locales";
 import InputError from "@/components/inputs/InputError";
 import {Inputs} from "@/pages/Dashboard/Pages/validation";
-import PageController from "@/actions/App/Http/Controllers/Dashboard/PageController";
+import PageController from "@/actions/Modules/Cms/Http/Controllers/Dashboard/PageController";
 
 type Props = {
   /**

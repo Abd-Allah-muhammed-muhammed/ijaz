@@ -4,7 +4,7 @@ import {Col, Form as BTForm, FormControl, FormGroup, FormLabel, Row} from "react
 import {InertiaFormProps, Link, useForm} from "@inertiajs/react";
 import {FormInput} from "./types";
 import ActionButton from "@/components/action-button";
-import BannerController from "@/actions/App/Http/Controllers/Dashboard/BannerController";
+import BannerController from "@/actions/Modules/Cms/Http/Controllers/Dashboard/BannerController";
 import ImageInput from "@/components/inputs/ImageInput";
 import InputError from "@/components/inputs/InputError";
 

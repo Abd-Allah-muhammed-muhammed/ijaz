@@ -9,7 +9,7 @@ import Table, {LinkAction} from "@/components/Table";
 import {PaginationResource} from "@/types";
 import {Banner} from "@/types/models";
 import ConfirmAction from "@/components/Table/partials/confirm-action";
-import BannerController from "@/actions/App/Http/Controllers/Dashboard/BannerController";
+import BannerController from "@/actions/Modules/Cms/Http/Controllers/Dashboard/BannerController";
 import {ReactElement} from "react";
 
 

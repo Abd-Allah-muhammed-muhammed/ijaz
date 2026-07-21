@@ -10,7 +10,7 @@ import {PaginationResource} from "@/types";
 import {Question} from "@/types/models";
 import ConfirmAction from "@/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
-import QuestionController from "@/actions/App/Http/Controllers/Dashboard/QuestionController";
+import QuestionController from "@/actions/Modules/Cms/Http/Controllers/Dashboard/QuestionController";
 
 
 type Props = {

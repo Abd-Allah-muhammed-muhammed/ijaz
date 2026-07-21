@@ -10,7 +10,7 @@ import {PaginationResource} from "@/types";
 import {Message} from "@/types/models";
 import ConfirmAction from "@/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
-import MessageController from "@/actions/App/Http/Controllers/Dashboard/MessageController";
+import MessageController from "@/actions/Modules/Cms/Http/Controllers/Dashboard/MessageController";
 
 
 type Props = {

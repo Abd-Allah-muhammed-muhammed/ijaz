@@ -11,7 +11,7 @@ import {Page} from "@/types/models";
 import ConfirmAction from "@/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
 
-import PageController from "@/actions/App/Http/Controllers/Dashboard/PageController";
+import PageController from "@/actions/Modules/Cms/Http/Controllers/Dashboard/PageController";
 
 
 type Props = {

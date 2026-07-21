@@ -9,7 +9,7 @@ import Form from "./Form";
 import {ReactNode} from "react";
 import {zodValidate} from "@/helpers/general";
 import {Inputs} from "@/pages/Dashboard/Pages/validation";
-import QuestionController from "@/actions/App/Http/Controllers/Dashboard/QuestionController";
+import QuestionController from "@/actions/Modules/Cms/Http/Controllers/Dashboard/QuestionController";
 
 
 type Props = {};
