@@ -3,20 +3,14 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Api\V1\BannerResource;
 use App\Http\Resources\Api\V1\CategoryCollection;
 use App\Http\Resources\Api\V1\CityCollection;
 use App\Http\Resources\Api\V1\NationalityCollection;
-use App\Http\Resources\Api\V1\PageResource;
 use App\Http\Resources\Api\V1\ProviderResource;
-use App\Http\Resources\Api\V1\QuestionCollection;
 use App\Http\Resources\Api\V1\RegionCollection;
 use App\Http\Resources\Api\V1\SkillCollection;
-use App\Models\Banner;
 use App\Models\Category;
-use App\Models\Page;
 use App\Models\Provider;
-use App\Models\Question;
 use App\Models\Skill;
 use App\Services\Sms\Phone;
 use Dedoc\Scramble\Attributes\Group;
@@ -250,60 +244,8 @@ class CatalogController extends Controller
     /**
      * @unauthenticated
      */
-    public function banners(): JsonResponse
-    {
-        return $this->successResponse(BannerResource::collection(Banner::all()));
-    }
-
-    /**
-     * @unauthenticated
-     */
-    public function pages(): JsonResponse
-    {
-        return $this->successResponse(
-            Page::with('translation')->get()->map(function (Page $page) {
-                return [
-                    'id' => $page->id,
-                    'slug' => $page->slug,
-                    'title' => $page->title,
-                ];
-            })
-        );
-    }
-
-    /**
-     * @unauthenticated
-     */
-    public function page(Page $page): JsonResponse
-    {
-        $page->load('translation');
-
-        return $this->successResponse(PageResource::make($page));
-    }
-
-    /**
-     * @unauthenticated
-     */
     public function settings(): JsonResponse
     {
         return $this->successResponse(app('settings')->toArray());
-    }
-
-    /**
-     * @unauthenticated
-     */
-    public function questions(Request $request): JsonResponse
-    {
-        return $this->successResponse(
-            QuestionCollection::make(
-                Question::query()
-                    ->withTranslation()
-                    ->when(
-                        $request->search,
-                        fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
-                    )
-                    ->paginate(request()->integer('per_page', 10))
-            )
-        );
     }
 }

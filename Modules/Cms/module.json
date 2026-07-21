@@ -1,0 +1,11 @@
+{
+    "name": "Cms",
+    "alias": "cms",
+    "description": "CMS content — banners, pages, FAQ questions, and contact messages",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Cms\\Providers\\CmsServiceProvider"
+    ],
+    "files": []
+}

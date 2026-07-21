@@ -8,5 +8,6 @@
     "Chat": true,
     "Wallet": true,
     "Payment": true,
-    "Sms": true
+    "Sms": true,
+    "Cms": true
 }

@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Provider;
 use App\Enums\Order\OfferStatusEnum;
 use App\Enums\Order\OrderStatusEnum;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Dashboard\BannerResource;
 use App\Http\Resources\Dashboard\OrderResource;
-use App\Models\Banner;
 use App\Models\Order;
+use Modules\Cms\Http\Resources\Dashboard\BannerResource;
+use Modules\Cms\Models\Banner;
 
 class HomeController extends Controller
 {

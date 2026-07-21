@@ -2,10 +2,11 @@
 
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\V1\CatalogController;
-use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\OtpController;
 use App\Http\Controllers\Api\V1\TicketSupportController;
 use Illuminate\Support\Facades\Route;
+use Modules\Cms\Http\Controllers\V1\CatalogController as CmsCatalogController;
+use Modules\Cms\Http\Controllers\V1\MessageController;
 use Modules\Jobs\Http\Controllers\V1\JobController;
 
 Route::prefix('catalog')->group(static function () {
@@ -24,10 +25,13 @@ Route::prefix('catalog')->group(static function () {
         Route::get('/nationalities', 'nationalities');
 
         Route::get('/providers', 'providers');
+        Route::get('/settings', 'settings');
+    });
+
+    Route::controller(CmsCatalogController::class)->group(static function () {
         Route::get('/banners', 'banners');
         Route::get('/pages', 'pages');
         Route::get('/pages/{page}', 'page');
-        Route::get('/settings', 'settings');
         Route::get('/questions', 'questions');
     });
 });
