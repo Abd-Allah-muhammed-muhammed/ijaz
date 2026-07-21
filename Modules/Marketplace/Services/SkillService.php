@@ -3,10 +3,12 @@
 namespace Modules\Marketplace\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Marketplace\Actions\Skill\DeleteSkillAction;
 use Modules\Marketplace\Actions\Skill\ListSkillsAction;
 use Modules\Marketplace\Actions\Skill\ListSkillsForApiAction;
+use Modules\Marketplace\Actions\Skill\ListSkillsForSelectAction;
 use Modules\Marketplace\Actions\Skill\ShowSkillAction;
 use Modules\Marketplace\Actions\Skill\StoreSkillAction;
 use Modules\Marketplace\Actions\Skill\UpdateSkillAction;
@@ -19,6 +21,7 @@ class SkillService
     public function __construct(
         private readonly ListSkillsAction $listAction,
         private readonly ListSkillsForApiAction $listForApiAction,
+        private readonly ListSkillsForSelectAction $listForSelectAction,
         private readonly StoreSkillAction $storeAction,
         private readonly UpdateSkillAction $updateAction,
         private readonly DeleteSkillAction $deleteAction,
@@ -58,5 +61,13 @@ class SkillService
     public function show(Skill $skill): Skill
     {
         return $this->showAction->handle($skill);
+    }
+
+    /**
+     * @return Collection<int, Skill>
+     */
+    public function listForSelect(?string $search = null, int $categoryId = 0): Collection
+    {
+        return $this->listForSelectAction->handle($search, $categoryId);
     }
 }

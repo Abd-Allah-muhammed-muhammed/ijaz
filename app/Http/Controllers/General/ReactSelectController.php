@@ -11,39 +11,37 @@ use Modules\Geo\Models\City;
 use Modules\Geo\Models\Nationality;
 use Modules\Geo\Models\Region;
 use Modules\Marketplace\Http\Resources\Api\V1\CategoryCollection;
-use Modules\Marketplace\Models\Category;
-use Modules\Marketplace\Models\Skill;
+use Modules\Marketplace\Services\CategoryService;
+use Modules\Marketplace\Services\SkillService;
 
 class ReactSelectController extends Controller
 {
     use HasApiResponse;
 
+    public function __construct(
+        private readonly CategoryService $categoryService,
+        private readonly SkillService $skillService,
+    ) {}
+
     public function categories(Request $request)
     {
         return $this->successResponse(
             CategoryCollection::make(
-                Category::query()
-                    ->withTranslation()
-                    ->withExists('children')
-                    ->when(
-                        $request->integer('parent_id'),
-                        fn ($query, $v) => $query->where('parent_id', $v),
-                        fn ($query) => $query->whereNull('parent_id')
-                    )
-                    ->when(
-                        $request->search,
-                        fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
-                    )
-                    ->paginate($request->integer('per_page', 10))
+                $this->categoryService->listForSelect(
+                    $request->search,
+                    $request->integer('parent_id'),
+                    $request->integer('per_page', 10),
+                )
             ),
         );
     }
 
     public function skills(Request $request): JsonResponse
     {
-        $rows = Skill::query()->withTranslation()
-            ->when($request->search, fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%"))
-            ->where('category_id', $request->integer('category_id'))->get();
+        $rows = $this->skillService->listForSelect(
+            $request->search,
+            $request->integer('category_id'),
+        );
 
         return $this->successResponse(ReactSelectResource::collection($rows));
     }

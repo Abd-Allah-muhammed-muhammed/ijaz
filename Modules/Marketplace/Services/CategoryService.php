@@ -9,6 +9,7 @@ use Modules\Marketplace\Actions\Category\DeleteCategoryAction;
 use Modules\Marketplace\Actions\Category\GetCategoriesForDropdownAction;
 use Modules\Marketplace\Actions\Category\ListCategoriesAction;
 use Modules\Marketplace\Actions\Category\ListCategoriesForApiAction;
+use Modules\Marketplace\Actions\Category\ListCategoriesForSelectAction;
 use Modules\Marketplace\Actions\Category\ListLeafCategoriesAction;
 use Modules\Marketplace\Actions\Category\ListRootCategoriesAction;
 use Modules\Marketplace\Actions\Category\ShowCategoryAction;
@@ -23,6 +24,7 @@ class CategoryService
     public function __construct(
         private readonly ListCategoriesAction $listAction,
         private readonly ListCategoriesForApiAction $listForApiAction,
+        private readonly ListCategoriesForSelectAction $listForSelectAction,
         private readonly ListRootCategoriesAction $listRootAction,
         private readonly ListLeafCategoriesAction $listLeafAction,
         private readonly StoreCategoryAction $storeAction,
@@ -94,5 +96,10 @@ class CategoryService
     public function getAllExcept(Category $category): Collection
     {
         return $this->dropdownAction->handleExcept($category);
+    }
+
+    public function listForSelect(?string $search = null, int $parentId = 0, int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->listForSelectAction->handle($search, $parentId, $perPage);
     }
 }
