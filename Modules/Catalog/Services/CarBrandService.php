@@ -3,9 +3,11 @@
 namespace Modules\Catalog\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Actions\CarBrand\DeleteCarBrandAction;
 use Modules\Catalog\Actions\CarBrand\ListCarBrandsAction;
+use Modules\Catalog\Actions\CarBrand\ListCarBrandsForSelectAction;
 use Modules\Catalog\Actions\CarBrand\ShowCarBrandAction;
 use Modules\Catalog\Actions\CarBrand\StoreCarBrandAction;
 use Modules\Catalog\Actions\CarBrand\UpdateCarBrandAction;
@@ -19,6 +21,7 @@ class CarBrandService implements CarBrandServiceInterface
 {
     public function __construct(
         private readonly ListCarBrandsAction $listAction,
+        private readonly ListCarBrandsForSelectAction $listForSelectAction,
         private readonly StoreCarBrandAction $storeAction,
         private readonly UpdateCarBrandAction $updateAction,
         private readonly UpdateStatusCarBrandAction $updateStatusAction,
@@ -54,5 +57,13 @@ class CarBrandService implements CarBrandServiceInterface
     public function show(CarBrand $carBrand): CarBrand
     {
         return $this->showAction->handle($carBrand);
+    }
+
+    /**
+     * @return Collection<int, CarBrand>
+     */
+    public function listForSelect(?string $search = null): Collection
+    {
+        return $this->listForSelectAction->handle($search);
     }
 }

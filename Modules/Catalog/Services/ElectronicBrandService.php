@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Modules\Catalog\Actions\ElectronicBrand\DeleteElectronicBrandAction;
 use Modules\Catalog\Actions\ElectronicBrand\ListAllElectronicBrandsAction;
 use Modules\Catalog\Actions\ElectronicBrand\ListElectronicBrandsAction;
+use Modules\Catalog\Actions\ElectronicBrand\ListElectronicBrandsForSelectAction;
 use Modules\Catalog\Actions\ElectronicBrand\ShowElectronicBrandAction;
 use Modules\Catalog\Actions\ElectronicBrand\StoreElectronicBrandAction;
 use Modules\Catalog\Actions\ElectronicBrand\UpdateElectronicBrandAction;
@@ -22,6 +23,7 @@ class ElectronicBrandService implements ElectronicBrandServiceInterface
     public function __construct(
         private readonly ListElectronicBrandsAction $listAction,
         private readonly ListAllElectronicBrandsAction $listAllAction,
+        private readonly ListElectronicBrandsForSelectAction $listForSelectAction,
         private readonly StoreElectronicBrandAction $storeAction,
         private readonly UpdateElectronicBrandAction $updateAction,
         private readonly UpdateStatusElectronicBrandAction $updateStatusAction,
@@ -62,5 +64,13 @@ class ElectronicBrandService implements ElectronicBrandServiceInterface
     public function show(ElectronicBrand $electronicBrand): ElectronicBrand
     {
         return $this->showAction->handle($electronicBrand);
+    }
+
+    /**
+     * @return Collection<int, ElectronicBrand>
+     */
+    public function listForSelect(?string $search = null): Collection
+    {
+        return $this->listForSelectAction->handle($search);
     }
 }

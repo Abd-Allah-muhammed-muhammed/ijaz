@@ -2,12 +2,13 @@
 
 namespace Modules\Catalog\Models;
 
+use App\Contracts\Selects\IReactSelect;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
-class DeviceCategory extends Model implements TranslatableContract
+class DeviceCategory extends Model implements IReactSelect, TranslatableContract
 {
     use Translatable;
 
@@ -33,5 +34,15 @@ class DeviceCategory extends Model implements TranslatableContract
         if ($this->icon) {
             Storage::delete($this->icon);
         }
+    }
+
+    public function getLabel(): string
+    {
+        return $this->title ?? '';
+    }
+
+    public function getValue(): string
+    {
+        return (string) $this->id;
     }
 }

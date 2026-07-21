@@ -3,10 +3,12 @@
 namespace Modules\Catalog\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Actions\PropertyType\DeletePropertyTypeAction;
 use Modules\Catalog\Actions\PropertyType\ListPropertyTypesAction;
 use Modules\Catalog\Actions\PropertyType\ListPropertyTypesForApiAction;
+use Modules\Catalog\Actions\PropertyType\ListPropertyTypesForSelectAction;
 use Modules\Catalog\Actions\PropertyType\ShowPropertyTypeAction;
 use Modules\Catalog\Actions\PropertyType\StorePropertyTypeAction;
 use Modules\Catalog\Actions\PropertyType\UpdatePropertyTypeAction;
@@ -22,6 +24,7 @@ class PropertyTypeService implements PropertyTypeServiceInterface
     public function __construct(
         private readonly ListPropertyTypesAction $listAction,
         private readonly ListPropertyTypesForApiAction $listForApiAction,
+        private readonly ListPropertyTypesForSelectAction $listForSelectAction,
         private readonly StorePropertyTypeAction $storeAction,
         private readonly UpdatePropertyTypeAction $updateAction,
         private readonly DeletePropertyTypeAction $deleteAction,
@@ -62,5 +65,13 @@ class PropertyTypeService implements PropertyTypeServiceInterface
     public function show(PropertyType $propertyType): PropertyType
     {
         return $this->showAction->handle($propertyType);
+    }
+
+    /**
+     * @return Collection<int, PropertyType>
+     */
+    public function listForSelect(?string $search = null): Collection
+    {
+        return $this->listForSelectAction->handle($search);
     }
 }

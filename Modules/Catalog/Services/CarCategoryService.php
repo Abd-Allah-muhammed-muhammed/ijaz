@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Actions\CarCategory\DeleteCarCategoryAction;
 use Modules\Catalog\Actions\CarCategory\ListCarCategoriesAction;
+use Modules\Catalog\Actions\CarCategory\ListCarCategoriesForSelectAction;
 use Modules\Catalog\Actions\CarCategory\ListRootCarCategoriesAction;
 use Modules\Catalog\Actions\CarCategory\ShowCarCategoryAction;
 use Modules\Catalog\Actions\CarCategory\StoreCarCategoryAction;
@@ -20,6 +21,7 @@ class CarCategoryService implements CarCategoryServiceInterface
 {
     public function __construct(
         private readonly ListCarCategoriesAction $listAction,
+        private readonly ListCarCategoriesForSelectAction $listForSelectAction,
         private readonly StoreCarCategoryAction $storeAction,
         private readonly UpdateCarCategoryAction $updateAction,
         private readonly DeleteCarCategoryAction $deleteAction,
@@ -58,5 +60,13 @@ class CarCategoryService implements CarCategoryServiceInterface
     public function getRootCategories(): Collection
     {
         return $this->listRootAction->handle();
+    }
+
+    /**
+     * @return Collection<int, CarCategory>
+     */
+    public function listForSelect(?string $search = null): Collection
+    {
+        return $this->listForSelectAction->handle($search);
     }
 }

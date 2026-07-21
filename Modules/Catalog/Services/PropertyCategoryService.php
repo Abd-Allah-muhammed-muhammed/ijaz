@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Modules\Catalog\Actions\PropertyCategory\DeletePropertyCategoryAction;
 use Modules\Catalog\Actions\PropertyCategory\ListPropertyCategoriesAction;
 use Modules\Catalog\Actions\PropertyCategory\ListPropertyCategoriesForApiAction;
+use Modules\Catalog\Actions\PropertyCategory\ListPropertyCategoriesForSelectAction;
 use Modules\Catalog\Actions\PropertyCategory\ListRootPropertyCategoriesAction;
 use Modules\Catalog\Actions\PropertyCategory\ShowPropertyCategoryAction;
 use Modules\Catalog\Actions\PropertyCategory\StorePropertyCategoryAction;
@@ -23,6 +24,7 @@ class PropertyCategoryService implements PropertyCategoryServiceInterface
     public function __construct(
         private readonly ListPropertyCategoriesAction $listAction,
         private readonly ListPropertyCategoriesForApiAction $listForApiAction,
+        private readonly ListPropertyCategoriesForSelectAction $listForSelectAction,
         private readonly StorePropertyCategoryAction $storeAction,
         private readonly UpdatePropertyCategoryAction $updateAction,
         private readonly DeletePropertyCategoryAction $deleteAction,
@@ -66,5 +68,13 @@ class PropertyCategoryService implements PropertyCategoryServiceInterface
     public function getRootCategories(): Collection
     {
         return $this->listRootAction->handle();
+    }
+
+    /**
+     * @return Collection<int, PropertiyCategory>
+     */
+    public function listForSelect(?string $search = null): Collection
+    {
+        return $this->listForSelectAction->handle($search);
     }
 }

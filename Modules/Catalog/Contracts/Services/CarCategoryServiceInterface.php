@@ -25,4 +25,9 @@ interface CarCategoryServiceInterface
      * @return Collection<int, CarCategory>
      */
     public function getRootCategories(): Collection;
+
+    /**
+     * @return Collection<int, CarCategory>
+     */
+    public function listForSelect(?string $search = null): Collection;
 }

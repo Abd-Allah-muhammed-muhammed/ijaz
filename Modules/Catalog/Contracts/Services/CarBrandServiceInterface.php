@@ -3,6 +3,7 @@
 namespace Modules\Catalog\Contracts\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\DTOs\StoreCarBrandDTO;
 use Modules\Catalog\DTOs\UpdateCarBrandDTO;
@@ -21,4 +22,9 @@ interface CarBrandServiceInterface
     public function destroy(CarBrand $carBrand): void;
 
     public function show(CarBrand $carBrand): CarBrand;
+
+    /**
+     * @return Collection<int, CarBrand>
+     */
+    public function listForSelect(?string $search = null): Collection;
 }

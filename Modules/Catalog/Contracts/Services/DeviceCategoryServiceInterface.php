@@ -30,4 +30,9 @@ interface DeviceCategoryServiceInterface
      * @return Collection<int, DeviceCategory>
      */
     public function getRootCategories(?int $excludeId = null): Collection;
+
+    /**
+     * @return Collection<int, DeviceCategory>
+     */
+    public function listForSelect(?string $search = null): Collection;
 }

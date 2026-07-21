@@ -3,6 +3,7 @@
 namespace Modules\Catalog\Contracts\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\DTOs\StorePropertyTypeDTO;
 use Modules\Catalog\DTOs\UpdatePropertyTypeDTO;
@@ -24,4 +25,9 @@ interface PropertyTypeServiceInterface
     public function updateStatus(PropertyType $propertyType, bool $isActive): PropertyType;
 
     public function show(PropertyType $propertyType): PropertyType;
+
+    /**
+     * @return Collection<int, PropertyType>
+     */
+    public function listForSelect(?string $search = null): Collection;
 }

@@ -9,6 +9,7 @@ use Modules\Catalog\Actions\Specialization\DeleteSpecializationAction;
 use Modules\Catalog\Actions\Specialization\ListAllSpecializationsAction;
 use Modules\Catalog\Actions\Specialization\ListRootSpecializationsAction;
 use Modules\Catalog\Actions\Specialization\ListSpecializationsAction;
+use Modules\Catalog\Actions\Specialization\ListSpecializationsForSelectAction;
 use Modules\Catalog\Actions\Specialization\ShowSpecializationAction;
 use Modules\Catalog\Actions\Specialization\StoreSpecializationAction;
 use Modules\Catalog\Actions\Specialization\UpdateSpecializationAction;
@@ -22,6 +23,7 @@ class SpecializationService implements SpecializationServiceInterface
     public function __construct(
         private readonly ListSpecializationsAction $listAction,
         private readonly ListAllSpecializationsAction $listAllAction,
+        private readonly ListSpecializationsForSelectAction $listForSelectAction,
         private readonly StoreSpecializationAction $storeAction,
         private readonly UpdateSpecializationAction $updateAction,
         private readonly DeleteSpecializationAction $deleteAction,
@@ -65,5 +67,13 @@ class SpecializationService implements SpecializationServiceInterface
     public function getRootSpecializations(?int $excludeId = null): Collection
     {
         return $this->listRootAction->handle($excludeId);
+    }
+
+    /**
+     * @return Collection<int, Specialization>
+     */
+    public function listForSelect(?string $search = null, int $parentId = 0): Collection
+    {
+        return $this->listForSelectAction->handle($search, $parentId);
     }
 }

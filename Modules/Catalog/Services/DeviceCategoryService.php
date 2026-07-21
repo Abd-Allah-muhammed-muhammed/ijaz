@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Modules\Catalog\Actions\DeviceCategory\DeleteDeviceCategoryAction;
 use Modules\Catalog\Actions\DeviceCategory\ListAllDeviceCategoriesAction;
 use Modules\Catalog\Actions\DeviceCategory\ListDeviceCategoriesAction;
+use Modules\Catalog\Actions\DeviceCategory\ListDeviceCategoriesForSelectAction;
 use Modules\Catalog\Actions\DeviceCategory\ListRootDeviceCategoriesAction;
 use Modules\Catalog\Actions\DeviceCategory\ShowDeviceCategoryAction;
 use Modules\Catalog\Actions\DeviceCategory\StoreDeviceCategoryAction;
@@ -22,6 +23,7 @@ class DeviceCategoryService implements DeviceCategoryServiceInterface
     public function __construct(
         private readonly ListDeviceCategoriesAction $listAction,
         private readonly ListAllDeviceCategoriesAction $listAllAction,
+        private readonly ListDeviceCategoriesForSelectAction $listForSelectAction,
         private readonly StoreDeviceCategoryAction $storeAction,
         private readonly UpdateDeviceCategoryAction $updateAction,
         private readonly DeleteDeviceCategoryAction $deleteAction,
@@ -65,5 +67,13 @@ class DeviceCategoryService implements DeviceCategoryServiceInterface
     public function getRootCategories(?int $excludeId = null): Collection
     {
         return $this->listRootAction->handle($excludeId);
+    }
+
+    /**
+     * @return Collection<int, DeviceCategory>
+     */
+    public function listForSelect(?string $search = null): Collection
+    {
+        return $this->listForSelectAction->handle($search);
     }
 }

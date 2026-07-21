@@ -30,4 +30,9 @@ interface SpecializationServiceInterface
      * @return Collection<int, Specialization>
      */
     public function getRootSpecializations(?int $excludeId = null): Collection;
+
+    /**
+     * @return Collection<int, Specialization>
+     */
+    public function listForSelect(?string $search = null, int $parentId = 0): Collection;
 }

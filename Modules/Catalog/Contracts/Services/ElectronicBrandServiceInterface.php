@@ -27,4 +27,9 @@ interface ElectronicBrandServiceInterface
     public function destroy(ElectronicBrand $electronicBrand): void;
 
     public function show(ElectronicBrand $electronicBrand): ElectronicBrand;
+
+    /**
+     * @return Collection<int, ElectronicBrand>
+     */
+    public function listForSelect(?string $search = null): Collection;
 }

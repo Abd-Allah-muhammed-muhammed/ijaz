@@ -28,4 +28,9 @@ interface PropertyCategoryServiceInterface
      * @return Collection<int, PropertiyCategory>
      */
     public function getRootCategories(): Collection;
+
+    /**
+     * @return Collection<int, PropertiyCategory>
+     */
+    public function listForSelect(?string $search = null): Collection;
 }
