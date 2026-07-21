@@ -5,7 +5,7 @@ import {InertiaFormProps, Link, useForm} from "@inertiajs/react";
 import {FormInput, TranslatedAttributes} from "./types";
 import ActionButton from "@/components/action-button";
 import {getSupportedLocales} from "@/hooks/use-locales";
-import CategoryController from "@/actions/App/Http/Controllers/Dashboard/CategoryController";
+import CategoryController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/CategoryController";
 import InputError from "@/components/inputs/InputError";
 
 type Props = {

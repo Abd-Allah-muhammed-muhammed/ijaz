@@ -8,7 +8,7 @@ import {City, Region} from "@/types/models";
 import {KTCard} from "@/_metronic/helpers";
 import Form from "./Form";
 import {ReactNode} from "react";
-import SkillController from "@/actions/App/Http/Controllers/Dashboard/SkillController";
+import SkillController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/SkillController";
 import CityController from "@/actions/Modules/Geo/Http/Controllers/Dashboard/CityController";
 
 

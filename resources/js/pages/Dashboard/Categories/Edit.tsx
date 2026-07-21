@@ -8,7 +8,7 @@ import { Category, CategoryFeesType } from '@/types/models';
 import {KTCard} from "@/_metronic/helpers";
 import Form from "./Form";
 import {ReactNode} from "react";
-import CategoryController from "@/actions/App/Http/Controllers/Dashboard/CategoryController";
+import CategoryController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/CategoryController";
 
 
 type Props = {

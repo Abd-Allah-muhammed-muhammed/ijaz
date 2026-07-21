@@ -8,8 +8,8 @@ import {Category, Skill} from "@/types/models";
 import {KTCard} from "@/_metronic/helpers";
 import Form from "./Form";
 import {ReactNode} from "react";
-import CategoryController from "@/actions/App/Http/Controllers/Dashboard/CategoryController";
-import SkillController from "@/actions/App/Http/Controllers/Dashboard/SkillController";
+import CategoryController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/CategoryController";
+import SkillController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/SkillController";
 
 
 type Props = {

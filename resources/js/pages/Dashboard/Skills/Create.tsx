@@ -10,8 +10,8 @@ import Form from "./Form";
 import {Category, Role} from "@/types/models";
 import AdminController from "@/actions/App/Http/Controllers/Dashboard/AdminController";
 import {ReactNode} from "react";
-import CategoryController from "@/actions/App/Http/Controllers/Dashboard/CategoryController";
-import SkillController from "@/actions/App/Http/Controllers/Dashboard/SkillController";
+import CategoryController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/CategoryController";
+import SkillController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/SkillController";
 
 
 type Props = {

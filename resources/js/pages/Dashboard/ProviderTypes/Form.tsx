@@ -6,7 +6,7 @@ import {FormInput, ProviderTypeFilesEnumValues, TranslatedAttributes} from "./ty
 import ActionButton from "@/components/action-button";
 import {getSupportedLocales} from "@/hooks/use-locales";
 import InputError from "@/components/inputs/InputError";
-import ProviderTypeController from "@/actions/App/Http/Controllers/Dashboard/ProviderTypeController";
+import ProviderTypeController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/ProviderTypeController";
 import {ProviderTypeFilesEnum} from "@/Enums/Enums";
 import ImageInput from "@/components/inputs/ImageInput";
 import Select from 'react-select';

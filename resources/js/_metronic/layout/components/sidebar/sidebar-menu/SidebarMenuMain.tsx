@@ -3,7 +3,7 @@ import BannerController from '@/actions/Modules/Cms/Http/Controllers/Dashboard/B
 import CarBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarBrandController';
 import CarCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarCategoryController';
 import CarTypeController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarTypeController';
-import CategoryController from '@/actions/App/Http/Controllers/Dashboard/CategoryController';
+import CategoryController from '@/actions/Modules/Marketplace/Http/Controllers/Dashboard/CategoryController';
 import CityController from '@/actions/Modules/Geo/Http/Controllers/Dashboard/CityController';
 import HomeController from '@/actions/App/Http/Controllers/Dashboard/HomeController';
 import MessageController from '@/actions/Modules/Cms/Http/Controllers/Dashboard/MessageController';
@@ -14,11 +14,11 @@ import PanAnalyticsController from '@/actions/App/Http/Controllers/Dashboard/Pan
 import PropertyCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/PropertyCategoryController';
 import PropertyTypeController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/PropertyTypeController';
 import ProviderController from '@/actions/App/Http/Controllers/Dashboard/ProviderController';
-import ProviderTypeController from '@/actions/App/Http/Controllers/Dashboard/ProviderTypeController';
+import ProviderTypeController from '@/actions/Modules/Marketplace/Http/Controllers/Dashboard/ProviderTypeController';
 import QuestionController from '@/actions/Modules/Cms/Http/Controllers/Dashboard/QuestionController';
 import RegionController from '@/actions/Modules/Geo/Http/Controllers/Dashboard/RegionController';
 import RoleController from '@/actions/App/Http/Controllers/Dashboard/RoleController';
-import SkillController from '@/actions/App/Http/Controllers/Dashboard/SkillController';
+import SkillController from '@/actions/Modules/Marketplace/Http/Controllers/Dashboard/SkillController';
 import SupportController from '@/actions/Modules/Support/Http/Controllers/Dashboard/SupportController';
 import TopUpRequestController from '@/actions/Modules/Wallet/Http/Controllers/Dashboard/TopUpRequestController';
 import UserController from '@/actions/App/Http/Controllers/Dashboard/UserController';
