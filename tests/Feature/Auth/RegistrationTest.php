@@ -1,9 +1,9 @@
 <?php
 
 use App\Enums\Providers\ProviderStatusEnum;
-use App\Models\Category;
+use Modules\Marketplace\Models\Category;
 use App\Models\Provider;
-use App\Models\ProviderType;
+use Modules\Marketplace\Models\ProviderType;
 use App\Models\RegisterVerificationCode;
 use App\Services\Sms\Phone;
 use Carbon\CarbonInterface;

@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\Order\OfferStatusEnum;
 use App\Enums\Order\OrderStatusEnum;
-use App\Models\Category;
+use Modules\Marketplace\Models\Category;
 use App\Models\Order;
 use App\Models\OrderOffer;
 use App\Models\Provider;

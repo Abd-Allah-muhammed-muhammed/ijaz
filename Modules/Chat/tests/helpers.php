@@ -2,10 +2,10 @@
 
 use App\Enums\Order\OrderStatusEnum;
 use App\Enums\Providers\ProviderStatusEnum;
-use App\Models\Category;
+use Modules\Marketplace\Models\Category;
 use App\Models\Order;
 use App\Models\Provider;
-use App\Models\ProviderType;
+use Modules\Marketplace\Models\ProviderType;
 use App\Models\User;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\System;

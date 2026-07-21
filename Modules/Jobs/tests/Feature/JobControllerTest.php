@@ -1,14 +1,14 @@
 <?php
 
 use App\Enums\Jobs\JobTypeEnum;
-use App\Models\Category;
-use App\Models\Skill;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Nationality;
 use Modules\Geo\Models\Region;
 use Modules\Jobs\Models\JobOffer;
+use Modules\Marketplace\Models\Category;
+use Modules\Marketplace\Models\Skill;
 
 function createJobsModuleFixtures(): array
 {

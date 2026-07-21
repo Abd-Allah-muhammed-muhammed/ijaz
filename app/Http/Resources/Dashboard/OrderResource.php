@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Geo\Http\Resources\Dashboard\CityResource;
 use Modules\Geo\Http\Resources\Dashboard\RegionResource;
+use Modules\Marketplace\Http\Resources\Dashboard\CategoryResource;
+use Modules\Marketplace\Http\Resources\Dashboard\SkillResource;
 
 /** @mixin Order */
 class OrderResource extends JsonResource

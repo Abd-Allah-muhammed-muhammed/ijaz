@@ -10,5 +10,6 @@
     "Payment": true,
     "Sms": true,
     "Cms": true,
-    "Support": true
+    "Support": true,
+    "Marketplace": true
 }

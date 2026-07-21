@@ -3,15 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Api\V1\CategoryCollection;
 use App\Http\Resources\Api\V1\CityCollection;
 use App\Http\Resources\Api\V1\NationalityCollection;
 use App\Http\Resources\Api\V1\ProviderResource;
 use App\Http\Resources\Api\V1\RegionCollection;
-use App\Http\Resources\Api\V1\SkillCollection;
-use App\Models\Category;
 use App\Models\Provider;
-use App\Models\Skill;
 use App\Services\Sms\Phone;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -19,11 +15,24 @@ use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Geo\Models\Nationality;
 use Modules\Geo\Models\Region;
+use Modules\Marketplace\Http\Resources\Api\V1\CategoryCollection;
+use Modules\Marketplace\Http\Resources\Api\V1\ProviderTypeCollection;
+use Modules\Marketplace\Http\Resources\Api\V1\SkillCollection;
+use Modules\Marketplace\Models\Category;
+use Modules\Marketplace\Services\CategoryService;
+use Modules\Marketplace\Services\ProviderTypeService;
+use Modules\Marketplace\Services\SkillService;
 
 #[Group('Catalog')]
 class CatalogController extends Controller
 {
     use HasApiResponse;
+
+    public function __construct(
+        private readonly CategoryService $categoryService,
+        private readonly SkillService $skillService,
+        private readonly ProviderTypeService $providerTypeService,
+    ) {}
 
     /**
      * @unauthenticated
@@ -31,23 +40,7 @@ class CatalogController extends Controller
     public function categories(Request $request): JsonResponse
     {
         return $this->successResponse(
-            CategoryCollection::make(
-                Category::query()
-                    ->withTranslation()
-                    ->with(['children' => function ($query) {
-                        $query->withTranslation()->limit(6);
-                    }])
-                    ->when(
-                        $request->integer('parent_id'),
-                        fn ($query, $v) => $query->where('parent_id', $v),
-                        fn ($query) => $query->whereNull('parent_id')
-                    )
-                    ->when(
-                        $request->search,
-                        fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
-                    )
-                    ->paginate($request->integer('per_page', 10))
-            ),
+            CategoryCollection::make($this->categoryService->listForApi($request)),
         );
     }
 
@@ -57,20 +50,7 @@ class CatalogController extends Controller
     public function categoriesWithNoChildren(Request $request): JsonResponse
     {
         return $this->successResponse(
-            CategoryCollection::make(
-                Category::query()
-                    ->withTranslation()
-                    ->when(
-                        $request->integer('parent_id'),
-                        fn ($query, $v) => $query->where('parent_id', $v)
-                    )
-                    ->when(
-                        $request->search,
-                        fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
-                    )
-                    ->whereDoesntHave('children')
-                    ->paginate($request->integer('per_page', 10))
-            ),
+            CategoryCollection::make($this->categoryService->listWithNoChildrenForApi($request)),
         );
     }
 
@@ -80,15 +60,7 @@ class CatalogController extends Controller
     public function categoryChildren(Category $category, Request $request): JsonResponse
     {
         return $this->successResponse(
-            CategoryCollection::make(
-                $category->children()
-                    ->withTranslation()
-                    ->when(
-                        $request->search,
-                        fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
-                    )
-                    ->paginate($request->integer('per_page', 10))
-            )
+            CategoryCollection::make($this->categoryService->listChildrenForApi($category, $request)),
         );
     }
 
@@ -97,29 +69,15 @@ class CatalogController extends Controller
      */
     public function categorySkills(Request $request, string $id): JsonResponse
     {
-
         if ($id == 0) {
             return $this->successResponse(SkillCollection::make(
-                Skill::query()
-                    ->withTranslation()
-                    ->when(
-                        $request->search,
-                        fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
-                    )
-                    ->paginate($request->integer('per_page', 10))
+                $this->skillService->listForApi($request)
             ));
         }
-        $category = Category::findOrFail($id);
 
         return $this->successResponse(
             SkillCollection::make(
-                $category->skills()
-                    ->withTranslation()
-                    ->when(
-                        $request->search,
-                        fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
-                    )
-                    ->paginate($request->integer('per_page', 10))
+                $this->skillService->listForCategoryApi($request, (int) $id)
             )
         );
     }
@@ -130,18 +88,18 @@ class CatalogController extends Controller
     public function skills(Request $request): JsonResponse
     {
         return $this->successResponse(SkillCollection::make(
-            Skill::query()
-                ->when(
-                    $request->category_id,
-                    fn ($query, $v) => $query->where('category_id', $v)
-                )
-                ->withTranslation()
-                ->when(
-                    $request->search,
-                    fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
-                )
-                ->paginate($request->integer('per_page', 10))
+            $this->skillService->listForApi($request)
         ));
+    }
+
+    /**
+     * @unauthenticated
+     */
+    public function providerTypes(): JsonResponse
+    {
+        return $this->successResponse(
+            ProviderTypeCollection::make($this->providerTypeService->listForApi())
+        );
     }
 
     /**

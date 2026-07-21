@@ -4,7 +4,7 @@ use App\Enums\OperationStatusEnum;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Models\Admin;
 use App\Models\Provider;
-use App\Models\ProviderType;
+use Modules\Marketplace\Models\ProviderType;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;

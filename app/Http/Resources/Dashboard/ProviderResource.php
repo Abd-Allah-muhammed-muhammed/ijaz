@@ -6,6 +6,8 @@ use App\Http\Resources\Api\V1\MediaResource;
 use App\Models\Provider;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Marketplace\Http\Resources\Dashboard\CategoryResource;
+use Modules\Marketplace\Http\Resources\Dashboard\ProviderTypeResource;
 use Modules\Wallet\Http\Resources\Dashboard\WalletResource;
 
 /** @mixin Provider */

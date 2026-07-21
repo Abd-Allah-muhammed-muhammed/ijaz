@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Api\V1\CategoryCollection;
-use App\Http\Resources\Api\V1\SkillCollection;
-use App\Models\Category;
-use App\Models\Skill;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Marketplace\Http\Resources\Api\V1\CategoryCollection;
+use Modules\Marketplace\Http\Resources\Api\V1\SkillCollection;
+use Modules\Marketplace\Models\Category;
+use Modules\Marketplace\Models\Skill;
 
 class CatalogController extends Controller
 {

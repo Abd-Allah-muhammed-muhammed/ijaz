@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\General;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Dashboard\CategoryResource;
-use App\Models\Category;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Marketplace\Http\Resources\Dashboard\CategoryResource;
+use Modules\Marketplace\Models\Category;
 
 class AjaxController extends Controller
 {

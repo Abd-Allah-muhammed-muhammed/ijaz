@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Admin;
-use App\Models\Category;
+use Modules\Marketplace\Models\Category;
 use Modules\Chat\Models\Conversation;
 use App\Models\Provider;
 use Modules\Chat\Models\System;

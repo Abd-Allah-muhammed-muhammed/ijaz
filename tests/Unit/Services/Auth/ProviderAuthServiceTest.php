@@ -3,7 +3,7 @@
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Http\Requests\Provider\Auth\LoginRequest;
 use App\Models\Provider;
-use App\Models\ProviderType;
+use Modules\Marketplace\Models\ProviderType;
 use App\Models\RegisterVerificationCode;
 use App\Services\Auth\ProviderAuthService;
 use App\Services\Sms\Phone;

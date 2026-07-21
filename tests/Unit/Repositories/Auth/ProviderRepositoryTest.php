@@ -3,7 +3,7 @@
 use App\Contracts\Auth\ProviderRepositoryInterface;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Models\Provider;
-use App\Models\ProviderType;
+use Modules\Marketplace\Models\ProviderType;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
 

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\UpdateSettingsRequest;
 use App\Http\Resources\Api\V1\NotificationCollection;
-use Modules\Chat\Models\ConversationMessage;
 use App\Models\Provider;
 use App\Models\User;
 use Dedoc\Scramble\Attributes\Group;
@@ -13,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Chat\Models\ConversationMessage;
 
 #[Group('Users')]
 class UserController extends Controller

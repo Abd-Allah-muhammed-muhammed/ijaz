@@ -3,14 +3,16 @@
 namespace Database\Factories;
 
 use App\Enums\CategoryFeesTypeEnum;
-use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Marketplace\Models\Category;
 
 /**
  * @extends Factory<Category>
  */
 class CategoryFactory extends Factory
 {
+    protected $model = Category::class;
+
     /**
      * Define the model's default state.
      *

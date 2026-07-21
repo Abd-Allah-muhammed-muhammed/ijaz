@@ -2,9 +2,9 @@
 
 namespace Modules\Jobs\Models;
 
-use App\Models\Skill;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Modules\Marketplace\Models\Skill;
 
 class JobOfferSkill extends Pivot
 {

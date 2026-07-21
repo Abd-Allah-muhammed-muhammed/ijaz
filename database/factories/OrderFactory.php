@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\Order\OrderStatusEnum;
-use App\Models\Category;
+use Modules\Marketplace\Models\Category;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;

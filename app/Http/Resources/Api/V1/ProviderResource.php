@@ -5,6 +5,8 @@ namespace App\Http\Resources\Api\V1;
 use App\Models\Provider;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Marketplace\Http\Resources\Api\V1\CategoryResource;
+use Modules\Marketplace\Http\Resources\Api\V1\SkillResource;
 
 /**
  * @see Provider

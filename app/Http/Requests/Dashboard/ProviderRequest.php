@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Dashboard;
 
 use App\Models\Provider;
-use App\Models\ProviderType;
+use Modules\Marketplace\Models\ProviderType;
 use App\Services\Sms\Phone;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\Model;

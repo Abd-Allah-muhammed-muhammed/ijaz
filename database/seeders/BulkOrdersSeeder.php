@@ -4,10 +4,10 @@ namespace Database\Seeders;
 
 use App\Enums\Order\OfferStatusEnum;
 use App\Enums\Order\OrderStatusEnum;
-use App\Models\Category;
+use Modules\Marketplace\Models\Category;
 use App\Models\Order;
 use App\Models\Provider;
-use App\Models\Skill;
+use Modules\Marketplace\Models\Skill;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
