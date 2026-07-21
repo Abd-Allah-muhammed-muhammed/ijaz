@@ -10,9 +10,7 @@ use Modules\Chat\Contracts\HasConversation;
 use Modules\Chat\Contracts\IChatService;
 use Modules\Chat\Infrastructure\Features\MemberChat;
 use Modules\Chat\Infrastructure\Features\OrderChat;
-use Modules\Chat\Infrastructure\Features\SupportChat;
 use Modules\Chat\Models\Conversation;
-use Modules\Support\Models\TicketSupport;
 use Pusher\ApiErrorException;
 
 class ChatService implements IChatService
@@ -41,11 +39,6 @@ class ChatService implements IChatService
     public function order(Order $order): OrderChat
     {
         return new OrderChat($order);
-    }
-
-    public function support(TicketSupport $ticket): SupportChat
-    {
-        return new SupportChat($ticket);
     }
 
     /**

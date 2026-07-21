@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Chat\Infrastructure\Features;
+namespace Modules\Support\Infrastructure\Features;
 
 use App\Models\Admin;
 use http\Exception\RuntimeException;

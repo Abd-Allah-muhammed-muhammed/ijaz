@@ -14,7 +14,6 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
     {
         $this->map();
         $this->mapProviderRoutes();
-        $this->mapDashboardRoutes();
         $this->mapChatApiRoutes();
     }
 
@@ -47,21 +46,5 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
                 });
             });
         });
-    }
-
-    protected function mapDashboardRoutes(): void
-    {
-        $path = module_path('Chat', 'Routes/dashboard.php');
-
-        if (! file_exists($path)) {
-            return;
-        }
-
-        Route::middleware('web')
-            ->prefix(LaravelLocalization::setLocale().'/dashboard')
-            ->name('dashboard.')
-            ->group(function () use ($path) {
-                Route::middleware('auth:admin')->group($path);
-            });
     }
 }

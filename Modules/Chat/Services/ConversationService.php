@@ -2,7 +2,6 @@
 
 namespace Modules\Chat\Services;
 
-use App\Models\Admin;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Actions\ListConversationsAction;
@@ -14,9 +13,7 @@ use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\ConversationMessage;
-use Modules\Chat\Models\System;
 use Modules\Chat\Registry\ChatTypeRegistry;
-use Modules\Support\Models\TicketSupport;
 
 class ConversationService
 {
@@ -26,7 +23,6 @@ class ConversationService
         private readonly ListConversationsAction $listAction,
         private readonly ListMessagesAction $listMessagesAction,
         private readonly SendMessageAction $sendAction,
-        private readonly ChatService $chatService,
     ) {}
 
     public function open(
@@ -76,44 +72,5 @@ class ConversationService
     public function getHandler(ChatTypeEnum $type): ChatTypeHandlerInterface
     {
         return $this->registry->get($type);
-    }
-
-    public function ensureTicketSupportConversation(TicketSupport $ticket): Conversation
-    {
-        return Conversation::query()->firstOrCreate([
-            'operation_type' => TicketSupport::class,
-            'operation_id' => $ticket->getKey(),
-        ], [
-            'user1_type' => System::class,
-            'user1_id' => 1,
-            'user2_type' => $ticket->user_type,
-            'user2_id' => $ticket->user_id,
-        ]);
-    }
-
-    public function sendTicketSupportAsAdmin(
-        TicketSupport $ticket,
-        Admin $admin,
-        ChatMessageData $data,
-    ): ConversationMessage {
-        $conversation = $this->chatService->support($ticket)->replyAsAdmin(
-            $admin,
-            $data->content,
-            $data->files ?? [],
-        );
-
-        return $conversation->lastMessage->loadMissing(['sender', 'attachments']);
-    }
-
-    public function sendTicketSupportAsUser(
-        TicketSupport $ticket,
-        ChatMessageData $data,
-    ): ConversationMessage {
-        $conversation = $this->chatService->support($ticket)->replyAsSupportable(
-            $data->content,
-            $data->files ?? [],
-        );
-
-        return $conversation->lastMessage->loadMissing(['sender', 'attachments']);
     }
 }

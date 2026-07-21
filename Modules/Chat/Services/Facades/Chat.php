@@ -8,12 +8,9 @@ use Illuminate\Support\Facades\Facade;
 use Modules\Chat\Contracts\IChatService;
 use Modules\Chat\Infrastructure\Features\MemberChat;
 use Modules\Chat\Infrastructure\Features\OrderChat;
-use Modules\Chat\Infrastructure\Features\SupportChat;
 use Modules\Chat\Models\Conversation;
-use Modules\Support\Models\TicketSupport;
 
 /**
- * @method static SupportChat  support(?TicketSupport $ticket = null):
  * @method static Collection  onlineUsers():
  * @method static MemberChat members(?Conversation $chat = null):
  * @method static OrderChat order(Order $order):

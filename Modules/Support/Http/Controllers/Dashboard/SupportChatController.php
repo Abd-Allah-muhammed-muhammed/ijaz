@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Chat\Http\Controllers\Dashboard;
+namespace Modules\Support\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -11,15 +11,15 @@ use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Http\Requests\SendSupportMessageRequest;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\Dashboard\ConversationMessageCollection;
-use Modules\Chat\Services\ConversationService;
 use Modules\Support\Models\TicketSupport;
+use Modules\Support\Services\TicketSupportChatService;
 
 class SupportChatController extends Controller
 {
     use HasApiResponse;
 
     public function __construct(
-        private readonly ConversationService $service,
+        private readonly TicketSupportChatService $service,
     ) {}
 
     public function show(Request $request, TicketSupport $ticketSupport): JsonResponse
@@ -32,7 +32,7 @@ class SupportChatController extends Controller
 
         return $this->successResponse(
             ConversationMessageCollection::make(
-                $this->service->messages(
+                $this->service->listMessages(
                     $conversation,
                     auth('admin')->user(),
                     $request->integer('per_page', 20),
@@ -45,7 +45,7 @@ class SupportChatController extends Controller
         SendSupportMessageRequest $request,
         TicketSupport $ticket,
     ): JsonResponse|RedirectResponse {
-        $message = $this->service->sendTicketSupportAsAdmin(
+        $message = $this->service->sendAsAdmin(
             $ticket,
             auth('admin')->user(),
             ChatMessageData::fromRequest($request),

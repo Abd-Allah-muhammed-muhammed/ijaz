@@ -4,8 +4,8 @@ use App\Models\Order;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Handlers\MemberChatHandler;
 use Modules\Chat\Handlers\OrderChatHandler;
-use Modules\Chat\Handlers\TicketSupportChatHandler;
 use Modules\Chat\Registry\ChatTypeRegistry;
+use Modules\Support\Handlers\TicketSupportChatHandler;
 use Modules\Support\Models\TicketSupport;
 
 test('registry can register and retrieve handler by type', function () {

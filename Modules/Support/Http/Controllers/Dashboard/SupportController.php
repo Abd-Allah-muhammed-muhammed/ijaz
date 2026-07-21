@@ -9,19 +9,19 @@ use Illuminate\Validation\Rules\Enum;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\ConversationResource;
-use Modules\Chat\Services\ConversationService;
 use Modules\Support\Contracts\Services\TicketSupportServiceInterface;
 use Modules\Support\DTOs\UpdateTicketSupportStatusDTO;
 use Modules\Support\Enums\TicketSupportStatusEnum;
 use Modules\Support\Http\Resources\Dashboard\TicketSupportCollection;
 use Modules\Support\Http\Resources\Dashboard\TicketSupportResource;
 use Modules\Support\Models\TicketSupport;
+use Modules\Support\Services\TicketSupportChatService;
 
 class SupportController extends Controller
 {
     public function __construct(
         private readonly TicketSupportServiceInterface $service,
-        private readonly ConversationService $conversationService,
+        private readonly TicketSupportChatService $chatService,
     ) {}
 
     public function index(Request $request)
@@ -82,7 +82,7 @@ class SupportController extends Controller
     {
         $admin = auth('admin')->user();
 
-        $this->conversationService->sendTicketSupportAsAdmin(
+        $this->chatService->sendAsAdmin(
             $ticket,
             $admin,
             new ChatMessageData(

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Chat\Handlers;
+namespace Modules\Support\Handlers;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;

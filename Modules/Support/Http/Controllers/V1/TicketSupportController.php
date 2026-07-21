@@ -11,7 +11,6 @@ use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Http\Requests\SendSupportMessageRequest;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\Dashboard\ConversationMessageCollection;
-use Modules\Chat\Services\ConversationService;
 use Modules\Support\Contracts\Services\TicketSupportServiceInterface;
 use Modules\Support\DTOs\StoreTicketSupportDTO;
 use Modules\Support\Exceptions\TicketSupportNotDeletableException;
@@ -19,6 +18,7 @@ use Modules\Support\Http\Requests\TicketSupportRequest;
 use Modules\Support\Http\Resources\Api\TicketSupportCollection;
 use Modules\Support\Http\Resources\Api\TicketSupportResource;
 use Modules\Support\Models\TicketSupport;
+use Modules\Support\Services\TicketSupportChatService;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -29,7 +29,7 @@ class TicketSupportController extends Controller
 
     public function __construct(
         private readonly TicketSupportServiceInterface $service,
-        private readonly ConversationService $conversationService,
+        private readonly TicketSupportChatService $chatService,
     ) {}
 
     /**
@@ -114,13 +114,13 @@ class TicketSupportController extends Controller
             return $this->failedMessageResponse(trans('forbidden !!'), 403);
         }
 
-        $conversation = $ticketSupport->chat ?? $this->conversationService->ensureTicketSupportConversation($ticketSupport);
+        $conversation = $ticketSupport->chat ?? $this->chatService->ensureConversation($ticketSupport);
 
         return $this->successResponse(
             [
                 'chat_id' => $conversation->id,
                 'messages' => ConversationMessageCollection::make(
-                    $this->conversationService->messages(
+                    $this->chatService->listMessages(
                         $conversation,
                         $user,
                         $request->integer('per_page', 15),
@@ -138,7 +138,7 @@ class TicketSupportController extends Controller
             return $this->failedMessageResponse(trans('forbidden !!'), 403);
         }
 
-        $message = $this->conversationService->sendTicketSupportAsUser(
+        $message = $this->chatService->sendAsUser(
             $ticketSupport,
             ChatMessageData::fromRequest($request),
         );
