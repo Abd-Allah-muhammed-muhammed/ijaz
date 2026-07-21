@@ -3,34 +3,32 @@
 namespace Modules\Jobs\Providers;
 
 use App\Providers\BaseModuleRouteServiceProvider;
+use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends BaseModuleRouteServiceProvider
 {
     protected string $moduleName = 'Jobs';
-
-    /**
-     * Jobs routes must keep unprefixed names (jobs.index, etc.).
-     * Default mapApiRoutes() would apply api.v1.jobs. and produce jobs.jobs.*.
-     *
-     * @var array<string, array{prefix?: string, name?: string, middleware?: string|array<int, string>}>
-     */
-    protected array $additionalApiRoutes = [
-        'Routes/V1/api.php' => [
-            'prefix' => 'api/v1',
-            'name' => '',
-            'middleware' => 'api',
-        ],
-    ];
 
     public function boot(): void
     {
         $this->map();
     }
 
-    public function map(): void
+    /**
+     * Override: load Routes/V1/api.php WITHOUT the default api.v1.{module}.
+     * name prefix, so apiResource names stay jobs.index / jobs.store / etc.
+     * (not api.v1.jobs.jobs.*).
+     */
+    protected function mapApiRoutes(string $version, string $prefix, string $namePrefix): void
     {
-        // Skip mapApiRoutes() so Routes/V1/api.php is not double-loaded with a name prefix.
-        $this->mapAdditionalApiRoutes();
-        $this->mapDashboardRoutes();
+        $routesPath = module_path($this->moduleName, 'Routes/'.$version.'/api.php');
+
+        if (! is_file($routesPath)) {
+            return;
+        }
+
+        Route::middleware('api')
+            ->prefix($prefix)
+            ->group($routesPath);
     }
 }
