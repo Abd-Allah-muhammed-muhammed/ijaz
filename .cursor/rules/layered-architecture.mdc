@@ -1,0 +1,115 @@
+---
+description: Enforce layered architecture (Controller -> Service -> Action -> Repository/DTO/FormRequest) across app/ and Modules/
+globs: ["app/**/*.php", "Modules/**/*.php"]
+alwaysApply: true
+---
+
+# Layered Architecture — Mandatory Pattern
+
+This project follows a strict layered architecture. Every new feature, refactor, or fix
+MUST follow this chain:
+
+```
+Controller → Service → Action → Repository / DTO / Contracts
+                              ↘ FormRequest (validation only, called by Controller)
+```
+
+## Rules (non-negotiable)
+
+1. **Controllers contain ZERO business logic.** A Controller method may only:
+   - Accept a FormRequest (validation happens there, not in the controller)
+   - Call exactly one Service method
+   - Map the Service's return value (a DTO or result object) into an HTTP response
+   - Never: query the database directly, contain if/else business rules, call other
+     Controllers, or manipulate Eloquent models directly.
+
+2. **Services orchestrate, they do not implement.** A Service method may only:
+   - Call one or more Actions
+   - Wrap Actions in a DB transaction when multiple writes must be atomic
+   - Never: contain the actual business logic itself (that belongs in an Action), never
+     query Eloquent directly (that belongs in a Repository), never format HTTP responses.
+
+3. **Actions do the real work.** Each Action is a single-purpose class with one `handle()`
+   method that performs ONE unit of business logic. Actions may:
+   - Call a Repository to read/write data
+   - Call other Actions (composition) when a step is itself reusable
+   - Return a DTO representing the result
+   - Never: know about HTTP (no Request/Response objects), never contain validation logic
+     (that's the FormRequest's job).
+
+4. **Repositories are the ONLY layer allowed to talk to Eloquent directly.** If a Model
+   needs a query, it goes through a Repository (bound via a `*RepositoryInterface`
+   contract), not called ad-hoc from a Service or Action. Simple CRUD-only lookups may use
+   a lightweight Repository — don't skip this layer "because it's simple."
+
+5. **DTOs carry data between layers.** Use `final readonly class` DTOs (matching the
+   project's established style — public promoted properties, no Arrayable interface unless
+   the existing codebase pattern requires it) to pass data from Action → Service → Controller,
+   instead of raw arrays or Eloquent models leaking across layers.
+
+6. **FormRequests own validation ONLY.** Authorization/business-rule checks that require
+   querying other data (e.g. "does this order belong to the authenticated user") belong in
+   the Controller or Service as an explicit guard — check `authorize()` usage precedent in
+   already-refactored code (Auth module) before deciding where a given check belongs.
+
+## Where this applies
+
+- Every Module under `Modules/*` (Payment, Wallet, Sms, Chat, Guarantor, Opportunity,
+  Catalog, Classifieds, Geo, and any future module)
+- Every remaining domain under `app/` not yet extracted into a Module (Orders, core Auth,
+  etc.)
+
+## Reference implementations (follow these exactly when in doubt)
+
+- `app/Services/Auth/AdminAuthService.php` + `app/Actions/Auth/Admin/LoginAdminAction.php`
+  + `app/Repositories/Auth/AdminRepository.php` — simplest complete reference
+- `app/Services/Auth/UserAuthService.php` + `app/Actions/Auth/User/*` — handles multiple
+  Actions orchestrated by one Service
+- `Modules/Payment/Services/PaymentService.php` + `Modules/Payment/Gateways/*` — Service
+  resolving a driver/strategy, not the same shape as Auth but same layering discipline
+- `Modules/Sms/Services/SmsService.php` + `Modules/Sms/Gateways/*` — same driver-resolution
+  pattern as Payment
+
+## Explicit imports — no same-namespace fallback
+
+Never reference a class by its short name and rely on it being in the same namespace as
+the current file. Always use an explicit `use` statement, even if the class currently
+"happens" to live in the same namespace.
+
+Why: `NationalityResource::make(...)` inside `App\Http\Resources\Dashboard\UserResource`
+resolved fine when `NationalityResource` also lived in `App\Http\Resources\Dashboard\`.
+When `NationalityResource` was extracted to `Modules\Geo\Http\Resources\Dashboard\`,
+`UserResource` broke at runtime with "Class not found" — and `grep`-based sweeps for the
+old FQCN found NOTHING, because there was never an explicit `use App\Http\Resources\
+Dashboard\NationalityResource` to find. The bug was invisible to static search.
+
+**Rule:** every class reference gets an explicit `use` statement at the top of the file,
+regardless of whether it's currently in the same namespace. This makes future namespace
+moves searchable and prevents this exact class of silent breakage.
+
+## Post-extraction verification — grep is not enough
+
+After moving any class to a new module namespace, a `grep` sweep for the OLD fully-
+qualified class name is NECESSARY but NOT SUFFICIENT. It will miss:
+- Unqualified same-namespace references (see above)
+- Dynamically resolved class names (`$class::make()`, string-based class resolution)
+
+After any module extraction, in addition to the grep sweep, verify by actually EXERCISING
+the affected routes/controllers — hit every Dashboard/API route that could plausibly
+touch the moved class (via a feature test or manual route smoke-check), not just
+searching for its old name in source code. A clean `grep` result does not mean the
+extraction is safe.
+
+## When reviewing or writing code, if you find:
+
+- A Controller with an `if` statement checking business state (not just null-checking a
+  Service result) → flag it, move the logic to a Service/Action
+- A Service directly calling `Model::where(...)` or `$model->save()` → flag it, extract to
+  a Repository
+- An Action that accepts a `Request` object → flag it, Actions should receive plain
+  arguments/DTOs, not framework Request objects
+- Logic duplicated across two Controllers that could be one shared Action → flag it
+
+Always propose the correct layer placement before writing code, even if the person asking
+didn't explicitly request the full pattern — this is the project's established convention,
+not optional per-feature.
