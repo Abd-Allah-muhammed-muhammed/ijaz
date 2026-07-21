@@ -43,7 +43,7 @@ class CarCategoryController extends Controller implements HasMiddleware
     public function create()
     {
         return inertia('Dashboard/CarCategories/Create', [
-            'categories' => CarCategoryResource::collection(CarCategory::with(['translation'])->whereNull('parent_id')->get()),
+            'categories' => CarCategoryResource::collection($this->service->getRootCategories()),
         ]);
     }
 
@@ -61,11 +61,7 @@ class CarCategoryController extends Controller implements HasMiddleware
 
         return inertia('Dashboard/CarCategories/Edit', [
             'category' => CarCategoryResource::make($car_category),
-            'categories' => CarCategoryResource::collection(
-                CarCategory::with(['translation'])
-                    ->whereNull('parent_id')
-                    ->get()
-            ),
+            'categories' => CarCategoryResource::collection($this->service->getRootCategories()),
         ]);
     }
 

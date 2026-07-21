@@ -5,8 +5,13 @@ namespace Modules\Catalog\Services;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Modules\Catalog\Contracts\Repositories\DeviceCategoryRepositoryInterface;
+use Modules\Catalog\Actions\DeviceCategory\DeleteDeviceCategoryAction;
+use Modules\Catalog\Actions\DeviceCategory\ListAllDeviceCategoriesAction;
+use Modules\Catalog\Actions\DeviceCategory\ListDeviceCategoriesAction;
+use Modules\Catalog\Actions\DeviceCategory\ListRootDeviceCategoriesAction;
+use Modules\Catalog\Actions\DeviceCategory\ShowDeviceCategoryAction;
+use Modules\Catalog\Actions\DeviceCategory\StoreDeviceCategoryAction;
+use Modules\Catalog\Actions\DeviceCategory\UpdateDeviceCategoryAction;
 use Modules\Catalog\Contracts\Services\DeviceCategoryServiceInterface;
 use Modules\Catalog\DTOs\StoreDeviceCategoryDTO;
 use Modules\Catalog\DTOs\UpdateDeviceCategoryDTO;
@@ -15,81 +20,43 @@ use Modules\Catalog\Models\DeviceCategory;
 class DeviceCategoryService implements DeviceCategoryServiceInterface
 {
     public function __construct(
-        private readonly DeviceCategoryRepositoryInterface $repository,
+        private readonly ListDeviceCategoriesAction $listAction,
+        private readonly ListAllDeviceCategoriesAction $listAllAction,
+        private readonly StoreDeviceCategoryAction $storeAction,
+        private readonly UpdateDeviceCategoryAction $updateAction,
+        private readonly DeleteDeviceCategoryAction $deleteAction,
+        private readonly ShowDeviceCategoryAction $showAction,
+        private readonly ListRootDeviceCategoriesAction $listRootAction,
     ) {}
 
     public function index(Request $request): LengthAwarePaginator
     {
-        return $this->repository->paginate($request);
+        return $this->listAction->handle($request);
     }
 
     public function getAll(Request $request): Collection
     {
-        return $this->repository->getAll($request);
+        return $this->listAllAction->handle($request);
     }
 
     public function store(StoreDeviceCategoryDTO $dto): DeviceCategory
     {
-        DB::beginTransaction();
-        try {
-            $data = [
-                'parent_id' => $dto->parentId,
-                'icon' => $dto->icon,
-            ];
-
-            $deviceCategory = $this->repository->create($data);
-            $deviceCategory->translations()->createMany($dto->translations);
-
-            DB::commit();
-
-            return $deviceCategory->load(['translation']);
-        } catch (\Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+        return $this->storeAction->handle($dto);
     }
 
     public function update(DeviceCategory $deviceCategory, UpdateDeviceCategoryDTO $dto): DeviceCategory
     {
-        DB::beginTransaction();
-        try {
-            $data = [
-                'parent_id' => $dto->parentId,
-            ];
-
-            if ($dto->icon) {
-                $deviceCategory->deleteIcon();
-                $data['icon'] = $dto->icon;
-            }
-
-            $deviceCategory = $this->repository->update($deviceCategory, $data);
-            $deviceCategory->translations()->delete();
-            $deviceCategory->translations()->createMany($dto->translations);
-
-            DB::commit();
-
-            return $deviceCategory->load(['translation']);
-        } catch (\Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+        return $this->updateAction->handle($deviceCategory, $dto);
     }
 
     public function destroy(DeviceCategory $deviceCategory): void
     {
-        $this->repository->delete($deviceCategory);
+        $this->deleteAction->handle($deviceCategory);
     }
 
     public function show(DeviceCategory $deviceCategory): DeviceCategory
     {
-        return $deviceCategory
-            ->loadCount('children')
-            ->load([
-                'translation',
-                'children.translation',
-            ]);
+        return $this->showAction->handle($deviceCategory);
     }
 
     /**
@@ -97,6 +64,6 @@ class DeviceCategoryService implements DeviceCategoryServiceInterface
      */
     public function getRootCategories(?int $excludeId = null): Collection
     {
-        return $this->repository->getRootCategories($excludeId);
+        return $this->listRootAction->handle($excludeId);
     }
 }

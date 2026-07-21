@@ -4,6 +4,7 @@ namespace Modules\Catalog\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Contracts\Repositories\CarCategoryRepositoryInterface;
 use Modules\Catalog\Models\CarCategory;
@@ -50,5 +51,13 @@ class CarCategoryRepository implements CarCategoryRepositoryInterface
     public function findById(int $id): CarCategory
     {
         return CarCategory::findOrFail($id);
+    }
+
+    /**
+     * @return Collection<int, CarCategory>
+     */
+    public function getRootCategories(): Collection
+    {
+        return CarCategory::with(['translation'])->whereNull('parent_id')->get();
     }
 }

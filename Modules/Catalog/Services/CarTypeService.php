@@ -4,8 +4,12 @@ namespace Modules\Catalog\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Modules\Catalog\Contracts\Repositories\CarTypeRepositoryInterface;
+use Modules\Catalog\Actions\CarType\DeleteCarTypeAction;
+use Modules\Catalog\Actions\CarType\ListCarTypesAction;
+use Modules\Catalog\Actions\CarType\ShowCarTypeAction;
+use Modules\Catalog\Actions\CarType\StoreCarTypeAction;
+use Modules\Catalog\Actions\CarType\UpdateCarTypeAction;
+use Modules\Catalog\Actions\CarType\UpdateStatusCarTypeAction;
 use Modules\Catalog\Contracts\Services\CarTypeServiceInterface;
 use Modules\Catalog\DTOs\StoreCarTypeDTO;
 use Modules\Catalog\DTOs\UpdateCarTypeDTO;
@@ -14,87 +18,41 @@ use Modules\Catalog\Models\CarType;
 class CarTypeService implements CarTypeServiceInterface
 {
     public function __construct(
-        private readonly CarTypeRepositoryInterface $repository,
+        private readonly ListCarTypesAction $listAction,
+        private readonly StoreCarTypeAction $storeAction,
+        private readonly UpdateCarTypeAction $updateAction,
+        private readonly UpdateStatusCarTypeAction $updateStatusAction,
+        private readonly DeleteCarTypeAction $deleteAction,
+        private readonly ShowCarTypeAction $showAction,
     ) {}
 
     public function index(Request $request): LengthAwarePaginator
     {
-        return $this->repository->paginate($request);
+        return $this->listAction->handle($request);
     }
 
     public function store(StoreCarTypeDTO $dto): CarType
     {
-        DB::beginTransaction();
-        try {
-            $data = [
-                'is_active' => $dto->isActive,
-                'image' => $dto->image,
-                'car_brand_id' => $dto->carBrandId,
-            ];
-
-            $carType = $this->repository->create($data);
-            $carType->translations()->createMany($dto->translations);
-
-            DB::commit();
-
-            return $carType->load(['translation', 'carBrand.translation']);
-        } catch (\Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+        return $this->storeAction->handle($dto);
     }
 
     public function update(CarType $carType, UpdateCarTypeDTO $dto): CarType
     {
-        DB::beginTransaction();
-        try {
-            $data = [
-                'is_active' => $dto->isActive,
-                'car_brand_id' => $dto->carBrandId,
-            ];
-
-            if ($dto->image) {
-                $carType->deleteImage();
-                $data['image'] = $dto->image;
-            }
-
-            $carType = $this->repository->update($carType, $data);
-            $carType->translations()->delete();
-            $carType->translations()->createMany($dto->translations);
-
-            DB::commit();
-
-            return $carType->load(['translation', 'carBrand.translation']);
-        } catch (\Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+        return $this->updateAction->handle($carType, $dto);
     }
 
     public function updateStatus(CarType $carType, bool $isActive): CarType
     {
-        DB::beginTransaction();
-        try {
-            $carType = $this->repository->update($carType, ['is_active' => $isActive]);
-            DB::commit();
-
-            return $carType;
-        } catch (\Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+        return $this->updateStatusAction->handle($carType, $isActive);
     }
 
     public function destroy(CarType $carType): void
     {
-        $this->repository->delete($carType);
+        $this->deleteAction->handle($carType);
     }
 
     public function show(CarType $carType): CarType
     {
-        return $carType->load(['translation', 'carBrand.translation']);
+        return $this->showAction->handle($carType);
     }
 }

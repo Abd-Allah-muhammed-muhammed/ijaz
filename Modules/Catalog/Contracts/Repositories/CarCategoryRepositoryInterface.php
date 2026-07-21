@@ -4,6 +4,7 @@ namespace Modules\Catalog\Contracts\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Models\CarCategory;
 
@@ -20,4 +21,9 @@ interface CarCategoryRepositoryInterface
     public function delete(CarCategory $carCategory): void;
 
     public function findById(int $id): CarCategory;
+
+    /**
+     * @return Collection<int, CarCategory>
+     */
+    public function getRootCategories(): Collection;
 }
