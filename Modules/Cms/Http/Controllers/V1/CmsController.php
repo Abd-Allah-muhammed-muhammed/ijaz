@@ -16,7 +16,7 @@ use Modules\Cms\Services\PageService;
 use Modules\Cms\Services\QuestionService;
 
 #[Group('Catalog')]
-class CatalogController extends Controller
+class CmsController extends Controller
 {
     use HasApiResponse;
 

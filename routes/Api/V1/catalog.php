@@ -5,7 +5,7 @@ use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\OtpController;
 use App\Http\Controllers\Api\V1\TicketSupportController;
 use Illuminate\Support\Facades\Route;
-use Modules\Cms\Http\Controllers\V1\CatalogController as CmsCatalogController;
+use Modules\Cms\Http\Controllers\V1\CmsController;
 use Modules\Cms\Http\Controllers\V1\MessageController;
 use Modules\Jobs\Http\Controllers\V1\JobController;
 
@@ -28,7 +28,7 @@ Route::prefix('catalog')->group(static function () {
         Route::get('/settings', 'settings');
     });
 
-    Route::controller(CmsCatalogController::class)->group(static function () {
+    Route::controller(CmsController::class)->group(static function () {
         Route::get('/banners', 'banners');
         Route::get('/pages', 'pages');
         Route::get('/pages/{page}', 'page');
