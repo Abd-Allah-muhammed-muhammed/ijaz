@@ -18,6 +18,10 @@ class CmsServiceProvider extends ModuleServiceProvider
 
     protected string $nameLower = 'cms';
 
+    protected array $providers = [
+        RouteServiceProvider::class,
+    ];
+
     public function register(): void
     {
         parent::register();

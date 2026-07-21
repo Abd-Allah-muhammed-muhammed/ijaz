@@ -16,6 +16,10 @@ class GeoServiceProvider extends ModuleServiceProvider
 
     protected string $nameLower = 'geo';
 
+    protected array $providers = [
+        RouteServiceProvider::class,
+    ];
+
     public function register(): void
     {
         parent::register();

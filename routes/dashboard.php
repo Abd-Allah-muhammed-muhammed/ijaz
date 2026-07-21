@@ -13,13 +13,6 @@ use App\Http\Controllers\Dashboard\SkillController;
 use App\Http\Controllers\Dashboard\SupportController;
 use App\Http\Controllers\Dashboard\UserController;
 use Illuminate\Support\Facades\Route;
-use Modules\Cms\Http\Controllers\Dashboard\BannerController;
-use Modules\Cms\Http\Controllers\Dashboard\MessageController;
-use Modules\Cms\Http\Controllers\Dashboard\PageController;
-use Modules\Cms\Http\Controllers\Dashboard\QuestionController;
-use Modules\Geo\Http\Controllers\Dashboard\CityController;
-use Modules\Geo\Http\Controllers\Dashboard\NationalityController;
-use Modules\Geo\Http\Controllers\Dashboard\RegionController;
 
 Route::group(
     [
@@ -38,11 +31,7 @@ Route::group(
                 Route::resource('roles', RoleController::class)->except(['show']);
                 Route::resource('admins', AdminController::class)->except(['show']);
                 Route::resource('categories', CategoryController::class)->except(['show']);
-                Route::resource('banners', BannerController::class)->except(['show']);
                 Route::resource('skills', SkillController::class)->except(['show']);
-                Route::resource('regions', RegionController::class)->except(['show']);
-                Route::resource('cities', CityController::class)->except(['show']);
-                Route::resource('nationalities', NationalityController::class)->except(['show']);
                 Route::resource('provider-types', ProviderTypeController::class)->except(['show']);
                 Route::controller(ProviderController::class)->prefix('providers')->as('providers.')->group(function () {
                     Route::put('/{provider}/status', 'updateStatus')->name('update-status');
@@ -52,12 +41,6 @@ Route::group(
                     Route::put('/{user}/status', 'updateStatus')->name('update-status');
                 });
                 Route::resource('users', UserController::class);
-                Route::resource('pages', PageController::class)->except(['show']);
-                Route::resource('questions', QuestionController::class)->except(['show']);
-                Route::controller(MessageController::class)->prefix('messages')->as('messages.')->group(function () {
-                    Route::get('/', 'index')->name('index');
-                    Route::delete('/{message}', 'destroy')->name('destroy');
-                });
                 Route::prefix('/orders')->controller(OrderController::class)->as('orders.')->group(static function () {
                     Route::get('/', 'index')->name('index');
                     Route::get('/{order}', 'show')->name('show');

@@ -5,9 +5,6 @@ use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\OtpController;
 use App\Http\Controllers\Api\V1\TicketSupportController;
 use Illuminate\Support\Facades\Route;
-use Modules\Cms\Http\Controllers\V1\CmsController;
-use Modules\Cms\Http\Controllers\V1\MessageController;
-use Modules\Jobs\Http\Controllers\V1\JobController;
 
 Route::prefix('catalog')->group(static function () {
     Route::controller(CatalogController::class)->group(static function () {
@@ -27,13 +24,6 @@ Route::prefix('catalog')->group(static function () {
         Route::get('/providers', 'providers');
         Route::get('/settings', 'settings');
     });
-
-    Route::controller(CmsController::class)->group(static function () {
-        Route::get('/banners', 'banners');
-        Route::get('/pages', 'pages');
-        Route::get('/pages/{page}', 'page');
-        Route::get('/questions', 'questions');
-    });
 });
 
 Route::middleware('auth:sanctum')->group(static function () {
@@ -41,15 +31,6 @@ Route::middleware('auth:sanctum')->group(static function () {
     Route::controller(OtpController::class)->prefix('otp')->group(static function () {
         Route::post('send', 'send');
         Route::post('verify', 'verify');
-    });
-
-    Route::get('jobs/all', [JobController::class, 'all']);
-    Route::get('jobs/{job}', [JobController::class, 'show']);
-    Route::delete('jobs/{job}/media/{media}', [JobController::class, 'deleteMedia']);
-    Route::apiResource('jobs', JobController::class)->except('show');
-
-    Route::controller(MessageController::class)->prefix('messages')->group(static function () {
-        Route::post('/', 'store');
     });
 
     Route::controller(UserController::class)->prefix('auth')->group(static function () {

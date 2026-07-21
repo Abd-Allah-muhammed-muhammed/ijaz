@@ -12,6 +12,10 @@ class JobsServiceProvider extends ModuleServiceProvider
 
     protected string $nameLower = 'jobs';
 
+    protected array $providers = [
+        RouteServiceProvider::class,
+    ];
+
     public function register(): void
     {
         parent::register();
