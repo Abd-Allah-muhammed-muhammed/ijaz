@@ -9,7 +9,7 @@ import Table, {LinkAction} from "@/components/Table";
 import {PaginationResource} from "@/types";
 import {Order, TicketSupport} from "@/types/models";
 import {ReactElement} from "react";
-import SupportController from "@/actions/App/Http/Controllers/Dashboard/SupportController";
+import SupportController from "@/actions/Modules/Support/Http/Controllers/Dashboard/SupportController";
 
 
 type Props = {

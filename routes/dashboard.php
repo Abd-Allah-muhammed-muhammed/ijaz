@@ -12,7 +12,6 @@ use App\Http\Controllers\Dashboard\RoleController;
 use App\Http\Controllers\Dashboard\SkillController;
 use App\Http\Controllers\Dashboard\UserController;
 use Illuminate\Support\Facades\Route;
-use Modules\Support\Http\Controllers\Dashboard\SupportController;
 
 Route::group(
     [
@@ -45,12 +44,6 @@ Route::group(
                     Route::get('/', 'index')->name('index');
                     Route::get('/{order}', 'show')->name('show');
                     Route::get('/{order}/conversation-messages', 'conversationMessages')->name('conversation-messages');
-                });
-                Route::controller(SupportController::class)->prefix('support')->as('support.')->group(function () {
-                    Route::get('/tickets', 'index')->name('tickets.index');
-                    Route::get('/tickets/{ticket}', 'show')->name('tickets.show');
-                    Route::post('/tickets/{ticket}', 'openChat')->name('tickets.open-chat');
-                    Route::put('/tickets/{ticket}/status', 'updateStatus')->name('tickets.update-status');
                 });
                 Route::controller(PanAnalyticsController::class)->prefix('pan-analytics')->as('pan-analytics.')->group(function () {
                     Route::get('/', 'index')->name('index');

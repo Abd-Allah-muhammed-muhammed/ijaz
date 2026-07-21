@@ -19,7 +19,7 @@ import QuestionController from '@/actions/App/Http/Controllers/Dashboard/Questio
 import RegionController from '@/actions/Modules/Geo/Http/Controllers/Dashboard/RegionController';
 import RoleController from '@/actions/App/Http/Controllers/Dashboard/RoleController';
 import SkillController from '@/actions/App/Http/Controllers/Dashboard/SkillController';
-import SupportController from '@/actions/App/Http/Controllers/Dashboard/SupportController';
+import SupportController from '@/actions/Modules/Support/Http/Controllers/Dashboard/SupportController';
 import TopUpRequestController from '@/actions/Modules/Wallet/Http/Controllers/Dashboard/TopUpRequestController';
 import UserController from '@/actions/App/Http/Controllers/Dashboard/UserController';
 import WithdrawRequestController from '@/actions/Modules/Wallet/Http/Controllers/Dashboard/WithdrawRequestController';

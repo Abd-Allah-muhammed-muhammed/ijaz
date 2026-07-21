@@ -4,7 +4,6 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\OtpController;
 use Illuminate\Support\Facades\Route;
-use Modules\Support\Http\Controllers\V1\TicketSupportController;
 
 Route::prefix('catalog')->group(static function () {
     Route::controller(CatalogController::class)->group(static function () {
@@ -43,14 +42,5 @@ Route::middleware('auth:sanctum')->group(static function () {
         Route::post('/update-settings', 'updateSettings');
 
         Route::get('/delete-account', 'deleteAccount');
-    });
-
-    Route::controller(TicketSupportController::class)->prefix('tickets')->group(function () {
-        Route::get('/', 'index');
-        Route::post('/', 'store');
-        Route::get('/{ticketSupport}', 'show');
-        Route::delete('/{ticketSupport}', 'destroy');
-        Route::get('/{ticketSupport}/conversation', 'conversation');
-        Route::post('/{ticketSupport}/conversation', 'conversationStore');
     });
 });
