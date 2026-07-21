@@ -7,6 +7,8 @@ use App\Http\Resources\Api\V1\User\UserResource;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Geo\Http\Resources\Dashboard\CityResource;
+use Modules\Geo\Http\Resources\Dashboard\RegionResource;
 
 /** @mixin Order */
 class OrderResource extends JsonResource
