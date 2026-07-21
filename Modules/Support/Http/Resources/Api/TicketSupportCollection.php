@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\Api\V1;
+namespace Modules\Support\Http\Resources\Api;
 
 use App\Http\Resources\Api\BaseCollection;
 

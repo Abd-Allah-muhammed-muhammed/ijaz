@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Api\V1;
+namespace Modules\Support\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use MMAE\ApiResponse\Request\ApiRequest;

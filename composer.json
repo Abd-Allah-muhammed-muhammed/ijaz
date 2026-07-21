@@ -53,6 +53,7 @@
       "Modules\\Guarantor\\Database\\Factories\\": "Modules/Guarantor/database/factories/",
       "Modules\\Guarantor\\Database\\Seeders\\": "Modules/Guarantor/database/seeders/",
       "Modules\\Payment\\Database\\Factories\\": "Modules/Payment/Database/Factories/",
+      "Modules\\Support\\Database\\Factories\\": "Modules/Support/database/factories/",
       "Database\\Factories\\": "database/factories/",
       "Database\\Seeders\\": "database/seeders/",
       "Lib\\": "lib/"

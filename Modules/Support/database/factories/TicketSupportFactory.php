@@ -1,18 +1,20 @@
 <?php
 
-namespace Database\Factories;
+namespace Modules\Support\Database\Factories;
 
-use App\Enums\SupportTickets\TicketSupportStatusEnum;
 use App\Models\Order;
-use App\Models\TicketSupport;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Support\Enums\TicketSupportStatusEnum;
+use Modules\Support\Models\TicketSupport;
 
 /**
  * @extends Factory<TicketSupport>
  */
 class TicketSupportFactory extends Factory
 {
+    protected $model = TicketSupport::class;
+
     /**
      * Define the model's default state.
      *

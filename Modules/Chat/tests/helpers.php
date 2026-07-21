@@ -2,15 +2,15 @@
 
 use App\Enums\Order\OrderStatusEnum;
 use App\Enums\Providers\ProviderStatusEnum;
-use App\Enums\SupportTickets\TicketSupportStatusEnum;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Provider;
 use App\Models\ProviderType;
-use App\Models\TicketSupport;
 use App\Models\User;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\System;
+use Modules\Support\Enums\TicketSupportStatusEnum;
+use Modules\Support\Models\TicketSupport;
 
 function ensureSystemExists(): System
 {

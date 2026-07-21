@@ -1,9 +1,9 @@
 <?php
 
-use App\Enums\SupportTickets\TicketSupportStatusEnum;
 use App\Models\Order;
-use App\Models\TicketSupport;
 use App\Models\User;
+use Modules\Support\Enums\TicketSupportStatusEnum;
+use Modules\Support\Models\TicketSupport;
 
 it('has fillable attributes', function () {
     $fillable = [

@@ -10,9 +10,9 @@ use App\Http\Controllers\Dashboard\ProviderController;
 use App\Http\Controllers\Dashboard\ProviderTypeController;
 use App\Http\Controllers\Dashboard\RoleController;
 use App\Http\Controllers\Dashboard\SkillController;
-use App\Http\Controllers\Dashboard\SupportController;
 use App\Http\Controllers\Dashboard\UserController;
 use Illuminate\Support\Facades\Route;
+use Modules\Support\Http\Controllers\Dashboard\SupportController;
 
 Route::group(
     [

@@ -9,5 +9,6 @@
     "Wallet": true,
     "Payment": true,
     "Sms": true,
-    "Cms": true
+    "Cms": true,
+    "Support": true
 }

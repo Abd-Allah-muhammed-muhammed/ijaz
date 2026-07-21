@@ -2,13 +2,13 @@
 
 namespace Modules\Chat\Handlers;
 
-use App\Models\TicketSupport;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Contracts\ChatTypeHandlerInterface;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\System;
 use Modules\Chat\Support\ParticipantConversationMessenger;
+use Modules\Support\Models\TicketSupport;
 
 class TicketSupportChatHandler implements ChatTypeHandlerInterface
 {

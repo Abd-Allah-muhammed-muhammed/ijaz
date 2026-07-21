@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Http\Resources\Dashboard;
+namespace Modules\Support\Http\Resources\Dashboard;
 
-use App\Models\TicketSupport;
+use App\Http\Resources\Dashboard\GeneralOperationUserResource;
+use App\Http\Resources\Dashboard\OperationUserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Support\Models\TicketSupport;
 
 /**
  * @see  TicketSupport

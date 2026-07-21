@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Support\Models;
 
 use App\Enums\OperationStatusEnum;
-use App\Enums\SupportTickets\TicketSupportStatusEnum;
-use Database\Factories\TicketSupportFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
 use Modules\Chat\Models\Conversation;
+use Modules\Support\Database\Factories\TicketSupportFactory;
+use Modules\Support\Enums\TicketSupportStatusEnum;
 
 /**
  * @property int $id
@@ -51,7 +51,7 @@ class TicketSupport extends Model
 
     public function chat(): MorphOne
     {
-        return $this->MorphOne(Conversation::class, 'operation');
+        return $this->morphOne(Conversation::class, 'operation');
     }
 
     protected function casts(): array
@@ -59,5 +59,10 @@ class TicketSupport extends Model
         return [
             'status' => TicketSupportStatusEnum::class,
         ];
+    }
+
+    protected static function newFactory(): TicketSupportFactory
+    {
+        return TicketSupportFactory::new();
     }
 }

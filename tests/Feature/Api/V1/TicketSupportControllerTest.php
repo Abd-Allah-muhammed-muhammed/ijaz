@@ -1,11 +1,11 @@
 <?php
 
-use App\Enums\SupportTickets\TicketSupportStatusEnum;
-use App\Http\Controllers\Api\V1\TicketSupportController;
 use App\Models\Order;
-use App\Models\TicketSupport;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
+use Modules\Support\Enums\TicketSupportStatusEnum;
+use Modules\Support\Http\Controllers\V1\TicketSupportController;
+use Modules\Support\Models\TicketSupport;
 
 beforeEach(function () {
     $this->user = User::factory()->create();

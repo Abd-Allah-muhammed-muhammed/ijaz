@@ -3,8 +3,8 @@
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\OtpController;
-use App\Http\Controllers\Api\V1\TicketSupportController;
 use Illuminate\Support\Facades\Route;
+use Modules\Support\Http\Controllers\V1\TicketSupportController;
 
 Route::prefix('catalog')->group(static function () {
     Route::controller(CatalogController::class)->group(static function () {

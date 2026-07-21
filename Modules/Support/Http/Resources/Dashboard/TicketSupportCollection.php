@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Resources\Dashboard;
+namespace Modules\Support\Http\Resources\Dashboard;
 
-use App\Models\TicketSupport;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
+use Modules\Support\Models\TicketSupport;
 
 /** @see TicketSupport */
 class TicketSupportCollection extends ResourceCollection

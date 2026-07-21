@@ -3,7 +3,6 @@
 namespace Modules\Chat\Infrastructure\Features;
 
 use App\Models\Admin;
-use App\Models\TicketSupport;
 use http\Exception\RuntimeException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
@@ -14,6 +13,7 @@ use Modules\Chat\Exceptions\ChatMessageException;
 use Modules\Chat\Infrastructure\BaseChatService;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\System;
+use Modules\Support\Models\TicketSupport;
 use Pusher\ApiErrorException;
 
 class SupportChat extends BaseChatService

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Enums\SupportTickets;
+namespace Modules\Support\Enums;
 
 use App\Enums\Utilities\HasOperations;
 

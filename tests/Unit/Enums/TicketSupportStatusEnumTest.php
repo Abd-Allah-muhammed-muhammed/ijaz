@@ -1,6 +1,6 @@
 <?php
 
-use App\Enums\SupportTickets\TicketSupportStatusEnum;
+use Modules\Support\Enums\TicketSupportStatusEnum;
 
 it('has correct values', function () {
     expect(TicketSupportStatusEnum::Pending->value)->toBe('pending')

@@ -3,7 +3,6 @@
 namespace Modules\Chat\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Models\TicketSupport;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +12,7 @@ use Modules\Chat\Http\Requests\SendSupportMessageRequest;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\Dashboard\ConversationMessageCollection;
 use Modules\Chat\Services\ConversationService;
+use Modules\Support\Models\TicketSupport;
 
 class SupportChatController extends Controller
 {

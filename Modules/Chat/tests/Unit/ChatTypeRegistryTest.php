@@ -1,12 +1,12 @@
 <?php
 
 use App\Models\Order;
-use App\Models\TicketSupport;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Handlers\MemberChatHandler;
 use Modules\Chat\Handlers\OrderChatHandler;
 use Modules\Chat\Handlers\TicketSupportChatHandler;
 use Modules\Chat\Registry\ChatTypeRegistry;
+use Modules\Support\Models\TicketSupport;
 
 test('registry can register and retrieve handler by type', function () {
     $registry = new ChatTypeRegistry;

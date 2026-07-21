@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Requests\Api\V1\TicketSupportRequest;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Modules\Support\Http\Requests\TicketSupportRequest;
 
 it('authorizes the request', function () {
     $request = new TicketSupportRequest;

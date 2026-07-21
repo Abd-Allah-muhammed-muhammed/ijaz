@@ -1,10 +1,10 @@
 <?php
 
-use App\Enums\SupportTickets\TicketSupportStatusEnum;
-use App\Http\Resources\Api\V1\TicketSupportResource;
 use App\Models\Order;
-use App\Models\TicketSupport;
 use App\Models\User;
+use Modules\Support\Enums\TicketSupportStatusEnum;
+use Modules\Support\Http\Resources\Api\TicketSupportResource;
+use Modules\Support\Models\TicketSupport;
 
 it('transforms ticket support to array', function () {
     $user = User::factory()->create();

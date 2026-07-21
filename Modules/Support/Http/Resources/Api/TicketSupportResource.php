@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Resources\Api\V1;
+namespace Modules\Support\Http\Resources\Api;
 
-use App\Models\TicketSupport;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Support\Models\TicketSupport;
 
 /** @mixin TicketSupport */
 class TicketSupportResource extends JsonResource

@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Dashboard\SupportController;
 use App\Models\Admin;
 use App\Models\User;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
@@ -8,6 +7,7 @@ use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
 use Modules\Chat\Models\ConversationMessage;
+use Modules\Support\Http\Controllers\Dashboard\SupportController;
 
 function withoutDashboardLocaleMiddlewareForSupportTicketShow(): void
 {

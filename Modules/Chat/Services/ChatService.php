@@ -3,7 +3,6 @@
 namespace Modules\Chat\Services;
 
 use App\Models\Order;
-use App\Models\TicketSupport;
 use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -13,6 +12,7 @@ use Modules\Chat\Infrastructure\Features\MemberChat;
 use Modules\Chat\Infrastructure\Features\OrderChat;
 use Modules\Chat\Infrastructure\Features\SupportChat;
 use Modules\Chat\Models\Conversation;
+use Modules\Support\Models\TicketSupport;
 use Pusher\ApiErrorException;
 
 class ChatService implements IChatService
