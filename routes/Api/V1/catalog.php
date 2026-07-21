@@ -7,17 +7,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('catalog')->group(static function () {
     Route::controller(CatalogController::class)->group(static function () {
-        Route::prefix('categories')->group(static function () {
-            Route::get('/', 'categories');
-            Route::get('/{category}/children', 'categoryChildren');
-            Route::get('/{category}/skills', 'categorySkills');
-            Route::get('/with-no-children', 'categoriesWithNoChildren');
-        });
         Route::prefix('regions')->group(static function () {
             Route::get('/', 'regions');
             Route::get('/{region}/cities', 'cities');
         });
-        Route::get('/provider-types', 'providerTypes');
         Route::get('/nationalities', 'nationalities');
 
         Route::get('/providers', 'providers');
