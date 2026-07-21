@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Jobs\Models;
 
 use App\Enums\Jobs\JobTypeEnum;
+use App\Models\Skill;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;

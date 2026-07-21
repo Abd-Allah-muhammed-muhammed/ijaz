@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace Modules\Jobs\Models;
 
+use App\Models\Skill;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 

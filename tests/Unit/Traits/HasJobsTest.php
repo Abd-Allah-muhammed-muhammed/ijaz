@@ -1,13 +1,13 @@
 <?php
 
 use App\Enums\Jobs\JobTypeEnum;
-use App\Models\JobOffer;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Laravel\Sanctum\Sanctum;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Nationality;
 use Modules\Geo\Models\Region;
+use Modules\Jobs\Models\JobOffer;
 
 test('HasJobs jobs relation returns MorphMany and behaves identically for index/store', function () {
     $user = User::factory()->create();

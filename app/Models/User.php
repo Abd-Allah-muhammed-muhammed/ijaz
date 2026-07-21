@@ -9,7 +9,6 @@ use App\Services\Firebase\Contract\InteractWithFirebase;
 use App\Services\Firebase\DTO\Target;
 use App\Traits\Blockable;
 use App\Traits\HasBroadcastChanel;
-use App\Traits\HasJobs;
 use App\Traits\HasOTPs;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -33,6 +32,7 @@ use Modules\Classifieds\Models\InstituteAdvisement;
 use Modules\Classifieds\Models\PropertyAdvisement;
 use Modules\Geo\Models\Nationality;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Jobs\Concerns\HasJobs;
 use Modules\Payment\Traits\HasPayments;
 use Modules\Wallet\Traits\HasWallet;
 

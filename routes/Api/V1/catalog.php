@@ -2,11 +2,11 @@
 
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\V1\CatalogController;
-use App\Http\Controllers\Api\V1\JobController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\OtpController;
 use App\Http\Controllers\Api\V1\TicketSupportController;
 use Illuminate\Support\Facades\Route;
+use Modules\Jobs\Http\Controllers\V1\JobController;
 
 Route::prefix('catalog')->group(static function () {
     Route::controller(CatalogController::class)->group(static function () {

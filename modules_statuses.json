@@ -2,6 +2,7 @@
     "Classifieds": true,
     "Catalog": true,
     "Geo": true,
+    "Jobs": true,
     "Opportunity": true,
     "Guarantor": true,
     "Chat": true,
