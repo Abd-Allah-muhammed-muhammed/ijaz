@@ -26,6 +26,8 @@ interface SpecializationServiceInterface
 
     public function show(Specialization $specialization): Specialization;
 
+    public function findById(int $id): ?Specialization;
+
     /**
      * @return Collection<int, Specialization>
      */

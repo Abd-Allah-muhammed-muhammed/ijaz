@@ -28,6 +28,8 @@ interface ElectronicBrandServiceInterface
 
     public function show(ElectronicBrand $electronicBrand): ElectronicBrand;
 
+    public function findById(int $id): ?ElectronicBrand;
+
     /**
      * @return Collection<int, ElectronicBrand>
      */

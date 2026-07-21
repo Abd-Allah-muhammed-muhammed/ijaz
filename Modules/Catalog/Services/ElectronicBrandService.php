@@ -6,6 +6,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Actions\ElectronicBrand\DeleteElectronicBrandAction;
+use Modules\Catalog\Actions\ElectronicBrand\FindElectronicBrandAction;
 use Modules\Catalog\Actions\ElectronicBrand\ListAllElectronicBrandsAction;
 use Modules\Catalog\Actions\ElectronicBrand\ListElectronicBrandsAction;
 use Modules\Catalog\Actions\ElectronicBrand\ListElectronicBrandsForSelectAction;
@@ -29,6 +30,7 @@ class ElectronicBrandService implements ElectronicBrandServiceInterface
         private readonly UpdateStatusElectronicBrandAction $updateStatusAction,
         private readonly DeleteElectronicBrandAction $deleteAction,
         private readonly ShowElectronicBrandAction $showAction,
+        private readonly FindElectronicBrandAction $findAction,
     ) {}
 
     public function index(Request $request): LengthAwarePaginator
@@ -64,6 +66,11 @@ class ElectronicBrandService implements ElectronicBrandServiceInterface
     public function show(ElectronicBrand $electronicBrand): ElectronicBrand
     {
         return $this->showAction->handle($electronicBrand);
+    }
+
+    public function findById(int $id): ?ElectronicBrand
+    {
+        return $this->findAction->handle($id);
     }
 
     /**

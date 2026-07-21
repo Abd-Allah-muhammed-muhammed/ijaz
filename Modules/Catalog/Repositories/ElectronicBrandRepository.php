@@ -66,6 +66,11 @@ class ElectronicBrandRepository implements ElectronicBrandRepositoryInterface
         return ElectronicBrand::findOrFail($id);
     }
 
+    public function find(int $id): ?ElectronicBrand
+    {
+        return ElectronicBrand::find($id);
+    }
+
     public function updateStatus(ElectronicBrand $electronicBrand, bool $isActive): ElectronicBrand
     {
         $electronicBrand->update(['is_active' => $isActive]);

@@ -27,6 +27,8 @@ interface DeviceCategoryRepositoryInterface
 
     public function findById(int $id): DeviceCategory;
 
+    public function find(int $id): ?DeviceCategory;
+
     /**
      * @return Collection<int, DeviceCategory>
      */

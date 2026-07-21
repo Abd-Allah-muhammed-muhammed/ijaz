@@ -6,6 +6,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Actions\DeviceCategory\DeleteDeviceCategoryAction;
+use Modules\Catalog\Actions\DeviceCategory\FindDeviceCategoryAction;
 use Modules\Catalog\Actions\DeviceCategory\ListAllDeviceCategoriesAction;
 use Modules\Catalog\Actions\DeviceCategory\ListDeviceCategoriesAction;
 use Modules\Catalog\Actions\DeviceCategory\ListDeviceCategoriesForSelectAction;
@@ -28,6 +29,7 @@ class DeviceCategoryService implements DeviceCategoryServiceInterface
         private readonly UpdateDeviceCategoryAction $updateAction,
         private readonly DeleteDeviceCategoryAction $deleteAction,
         private readonly ShowDeviceCategoryAction $showAction,
+        private readonly FindDeviceCategoryAction $findAction,
         private readonly ListRootDeviceCategoriesAction $listRootAction,
     ) {}
 
@@ -59,6 +61,11 @@ class DeviceCategoryService implements DeviceCategoryServiceInterface
     public function show(DeviceCategory $deviceCategory): DeviceCategory
     {
         return $this->showAction->handle($deviceCategory);
+    }
+
+    public function findById(int $id): ?DeviceCategory
+    {
+        return $this->findAction->handle($id);
     }
 
     /**

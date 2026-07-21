@@ -26,6 +26,8 @@ interface DeviceCategoryServiceInterface
 
     public function show(DeviceCategory $deviceCategory): DeviceCategory;
 
+    public function findById(int $id): ?DeviceCategory;
+
     /**
      * @return Collection<int, DeviceCategory>
      */

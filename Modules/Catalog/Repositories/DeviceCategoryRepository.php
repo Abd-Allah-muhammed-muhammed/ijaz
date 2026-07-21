@@ -71,6 +71,11 @@ class DeviceCategoryRepository implements DeviceCategoryRepositoryInterface
         return DeviceCategory::findOrFail($id);
     }
 
+    public function find(int $id): ?DeviceCategory
+    {
+        return DeviceCategory::find($id);
+    }
+
     /**
      * @return Collection<int, DeviceCategory>
      */

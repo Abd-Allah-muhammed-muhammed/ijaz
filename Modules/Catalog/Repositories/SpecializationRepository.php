@@ -71,6 +71,11 @@ class SpecializationRepository implements SpecializationRepositoryInterface
         return Specialization::findOrFail($id);
     }
 
+    public function find(int $id): ?Specialization
+    {
+        return Specialization::find($id);
+    }
+
     /**
      * @return Collection<int, Specialization>
      */

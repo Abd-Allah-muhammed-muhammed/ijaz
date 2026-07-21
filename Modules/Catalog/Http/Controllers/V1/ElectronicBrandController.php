@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Catalog\Contracts\Services\ElectronicBrandServiceInterface;
 use Modules\Catalog\Http\Resources\Api\ElectronicBrandResource;
-use Modules\Catalog\Models\ElectronicBrand;
 
 #[Group('Electronic Data')]
 class ElectronicBrandController extends Controller
@@ -39,7 +38,7 @@ class ElectronicBrandController extends Controller
      */
     public function show(int $electronicBrand): JsonResponse
     {
-        $record = ElectronicBrand::find($electronicBrand);
+        $record = $this->service->findById($electronicBrand);
 
         if (! $record) {
             return $this->failedMessageResponse(__('not_found'), 404);

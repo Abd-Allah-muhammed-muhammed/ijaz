@@ -6,6 +6,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Actions\Specialization\DeleteSpecializationAction;
+use Modules\Catalog\Actions\Specialization\FindSpecializationAction;
 use Modules\Catalog\Actions\Specialization\ListAllSpecializationsAction;
 use Modules\Catalog\Actions\Specialization\ListRootSpecializationsAction;
 use Modules\Catalog\Actions\Specialization\ListSpecializationsAction;
@@ -28,6 +29,7 @@ class SpecializationService implements SpecializationServiceInterface
         private readonly UpdateSpecializationAction $updateAction,
         private readonly DeleteSpecializationAction $deleteAction,
         private readonly ShowSpecializationAction $showAction,
+        private readonly FindSpecializationAction $findAction,
         private readonly ListRootSpecializationsAction $listRootAction,
     ) {}
 
@@ -59,6 +61,11 @@ class SpecializationService implements SpecializationServiceInterface
     public function show(Specialization $specialization): Specialization
     {
         return $this->showAction->handle($specialization);
+    }
+
+    public function findById(int $id): ?Specialization
+    {
+        return $this->findAction->handle($id);
     }
 
     /**

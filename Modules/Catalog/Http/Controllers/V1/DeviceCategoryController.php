@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Catalog\Contracts\Services\DeviceCategoryServiceInterface;
 use Modules\Catalog\Http\Resources\Api\DeviceCategoryResource;
-use Modules\Catalog\Models\DeviceCategory;
 
 #[Group('Device Data')]
 class DeviceCategoryController extends Controller
@@ -39,7 +38,7 @@ class DeviceCategoryController extends Controller
      */
     public function show(int $deviceCategory): JsonResponse
     {
-        $record = DeviceCategory::find($deviceCategory);
+        $record = $this->service->findById($deviceCategory);
 
         if (! $record) {
             return $this->failedMessageResponse(__('not_found'), 404);

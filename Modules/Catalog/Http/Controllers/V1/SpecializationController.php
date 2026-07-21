@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Catalog\Contracts\Services\SpecializationServiceInterface;
 use Modules\Catalog\Http\Resources\Api\SpecializationResource;
-use Modules\Catalog\Models\Specialization;
 
 #[Group('Specialization Data')]
 class SpecializationController extends Controller
@@ -39,7 +38,7 @@ class SpecializationController extends Controller
      */
     public function show(int $specialization): JsonResponse
     {
-        $record = Specialization::find($specialization);
+        $record = $this->service->findById($specialization);
 
         if (! $record) {
             return $this->failedMessageResponse(__('not_found'), 404);

@@ -27,5 +27,7 @@ interface ElectronicBrandRepositoryInterface
 
     public function findById(int $id): ElectronicBrand;
 
+    public function find(int $id): ?ElectronicBrand;
+
     public function updateStatus(ElectronicBrand $electronicBrand, bool $isActive): ElectronicBrand;
 }

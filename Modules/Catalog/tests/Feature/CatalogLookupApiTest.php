@@ -143,6 +143,48 @@ it('shows a specialization', function (): void {
         ->assertJsonPath('data.parent_id', null);
 });
 
+test('device category show returns custom not_found message for missing id', function (): void {
+    /** @var TestCase $this */
+    $response = $this->getJson(action([DeviceCategoryController::class, 'show'], ['deviceCategory' => 999999]));
+
+    $response->assertNotFound()
+        ->assertExactJson([
+            'success' => false,
+            'data' => [],
+            'errors' => [],
+            'message' => __('not_found'),
+            'token' => '',
+        ]);
+});
+
+test('electronic brand show returns custom not_found message for missing id', function (): void {
+    /** @var TestCase $this */
+    $response = $this->getJson(action([ElectronicBrandController::class, 'show'], ['electronicBrand' => 999999]));
+
+    $response->assertNotFound()
+        ->assertExactJson([
+            'success' => false,
+            'data' => [],
+            'errors' => [],
+            'message' => __('not_found'),
+            'token' => '',
+        ]);
+});
+
+test('specialization show returns custom not_found message for missing id', function (): void {
+    /** @var TestCase $this */
+    $response = $this->getJson(action([SpecializationController::class, 'show'], ['specialization' => 999999]));
+
+    $response->assertNotFound()
+        ->assertExactJson([
+            'success' => false,
+            'data' => [],
+            'errors' => [],
+            'message' => __('not_found'),
+            'token' => '',
+        ]);
+});
+
 it('lists car brands with paginated response shape', function (): void {
     /** @var TestCase $this */
     CarBrand::factory()->create(['is_active' => true]);
