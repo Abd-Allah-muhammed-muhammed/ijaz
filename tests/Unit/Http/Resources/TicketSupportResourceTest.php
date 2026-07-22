@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Order;
 use App\Models\User;
+use Modules\Orders\Models\Order;
 use Modules\Support\Enums\TicketSupportStatusEnum;
 use Modules\Support\Http\Resources\Api\TicketSupportResource;
 use Modules\Support\Models\TicketSupport;

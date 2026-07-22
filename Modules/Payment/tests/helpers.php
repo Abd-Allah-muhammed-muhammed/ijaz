@@ -1,13 +1,13 @@
 <?php
 
-use App\Enums\Order\OfferStatusEnum;
-use App\Enums\Order\OrderStatusEnum;
-use App\Models\Order;
-use App\Models\OrderOffer;
 use App\Models\Provider;
 use App\Models\User;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Orders\Enums\OfferStatusEnum;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Models\Order;
+use Modules\Orders\Models\OrderOffer;
 use Modules\Payment\Actions\HandleRajhiCallbackAction;
 use Modules\Payment\Actions\HandleRajhiWebhookAction;
 use Modules\Payment\Actions\InitiateRajhiPaymentAction;

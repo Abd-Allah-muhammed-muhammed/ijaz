@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Order;
+use Modules\Orders\Models\Order;
 
 /**
  * KNOWN ISSUE (lock-in from Orders audit): providerTotal accessor falls back to

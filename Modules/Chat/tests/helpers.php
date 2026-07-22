@@ -1,14 +1,14 @@
 <?php
 
-use App\Enums\Order\OrderStatusEnum;
 use App\Enums\Providers\ProviderStatusEnum;
-use Modules\Marketplace\Models\Category;
-use App\Models\Order;
 use App\Models\Provider;
-use Modules\Marketplace\Models\ProviderType;
 use App\Models\User;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\System;
+use Modules\Marketplace\Models\Category;
+use Modules\Marketplace\Models\ProviderType;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Models\Order;
 use Modules\Support\Enums\TicketSupportStatusEnum;
 use Modules\Support\Models\TicketSupport;
 

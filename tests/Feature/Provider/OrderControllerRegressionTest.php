@@ -1,10 +1,6 @@
 <?php
 
 use App\Enums\CategoryFeesTypeEnum;
-use App\Enums\Order\OfferStatusEnum;
-use App\Enums\Order\OrderStatusEnum;
-use App\Http\Controllers\Provider\OrderController;
-use App\Models\Order;
 use App\Models\Provider;
 use App\Models\Review;
 use App\Models\User;
@@ -12,6 +8,10 @@ use App\Notifications\User\OrderAcceptedOfferUpdatedNotification;
 use App\Notifications\User\OrderOfferCreatedNotification;
 use Illuminate\Support\Facades\Notification;
 use Modules\Marketplace\Models\Category;
+use Modules\Orders\Enums\OfferStatusEnum;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Http\Controllers\Provider\OrderController;
+use Modules\Orders\Models\Order;
 
 beforeEach(function () {
     Notification::fake();

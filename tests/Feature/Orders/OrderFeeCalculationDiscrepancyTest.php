@@ -1,12 +1,12 @@
 <?php
 
 use App\Enums\CategoryFeesTypeEnum;
-use App\Enums\Order\OfferStatusEnum;
-use App\Enums\Order\OrderStatusEnum;
-use App\Http\Controllers\Api\V1\User\OrderController as UserOrderController;
-use App\Http\Controllers\Provider\OrderController as ProviderOrderController;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
+use Modules\Orders\Enums\OfferStatusEnum;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Http\Controllers\Provider\OrderController as ProviderOrderController;
+use Modules\Orders\Http\Controllers\V1\OrderController as UserOrderController;
 use Modules\Payment\Services\PaymentService;
 
 beforeEach(function () {

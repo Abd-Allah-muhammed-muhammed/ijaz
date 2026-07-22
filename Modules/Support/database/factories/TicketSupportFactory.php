@@ -2,9 +2,9 @@
 
 namespace Modules\Support\Database\Factories;
 
-use App\Models\Order;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Orders\Models\Order;
 use Modules\Support\Enums\TicketSupportStatusEnum;
 use Modules\Support\Models\TicketSupport;
 

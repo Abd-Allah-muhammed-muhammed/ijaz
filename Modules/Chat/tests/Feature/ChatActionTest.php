@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Bus;
@@ -20,6 +19,7 @@ use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\ConversationMessage;
 use Modules\Chat\Repositories\ConversationMessageRepository;
 use Modules\Chat\Repositories\ConversationRepository;
+use Modules\Orders\Models\Order;
 
 test('OpenConversationAction creates conversation for order', function () {
     ['user' => $user, 'order' => $order] = createOrderWithParticipants();

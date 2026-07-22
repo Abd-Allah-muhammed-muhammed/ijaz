@@ -1,13 +1,13 @@
 <?php
 
-use App\Enums\Order\OfferStatusEnum;
-use App\Enums\Order\OrderStatusEnum;
-use App\Http\Controllers\Api\V1\User\OrderController;
-use App\Models\Order;
-use App\Models\OrderOffer;
 use App\Models\User;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
+use Modules\Orders\Enums\OfferStatusEnum;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Http\Controllers\V1\OrderController;
+use Modules\Orders\Models\Order;
+use Modules\Orders\Models\OrderOffer;
 
 beforeEach(function () {
     Notification::fake();

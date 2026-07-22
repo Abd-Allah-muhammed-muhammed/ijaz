@@ -10,7 +10,7 @@ interface ChatTypeHandlerInterface
 {
     /**
      * The operation_type value stored in conversations table.
-     * e.g. App\Models\Order::class
+     * e.g. Modules\Orders\Models\Order::class
      */
     public function operationType(): ?string;
 

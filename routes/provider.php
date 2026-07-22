@@ -2,9 +2,9 @@
 
 use App\Http\Controllers\Provider\AuthController;
 use App\Http\Controllers\Provider\HomeController;
-use App\Http\Controllers\Provider\OrderController;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Modules\Orders\Http\Controllers\Provider\OrderController;
 
 Route::group(
     [

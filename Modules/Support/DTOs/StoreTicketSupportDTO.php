@@ -2,8 +2,8 @@
 
 namespace Modules\Support\DTOs;
 
-use App\Models\Order;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Orders\Models\Order;
 use RuntimeException;
 
 final readonly class StoreTicketSupportDTO

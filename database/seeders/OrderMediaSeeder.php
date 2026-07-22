@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\Order;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Modules\Orders\Models\Order;
 
 class OrderMediaSeeder extends Seeder
 {

@@ -8,7 +8,7 @@ import CityController from '@/actions/Modules/Geo/Http/Controllers/Dashboard/Cit
 import HomeController from '@/actions/App/Http/Controllers/Dashboard/HomeController';
 import MessageController from '@/actions/Modules/Cms/Http/Controllers/Dashboard/MessageController';
 import NationalityController from '@/actions/Modules/Geo/Http/Controllers/Dashboard/NationalityController';
-import OrderController from '@/actions/App/Http/Controllers/Dashboard/OrderController';
+import OrderController from '@/actions/Modules/Orders/Http/Controllers/Dashboard/OrderController';
 import PageController from '@/actions/Modules/Cms/Http/Controllers/Dashboard/PageController';
 import PanAnalyticsController from '@/actions/App/Http/Controllers/Dashboard/PanAnalyticsController';
 import PropertyCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/PropertyCategoryController';

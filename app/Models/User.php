@@ -33,6 +33,7 @@ use Modules\Classifieds\Models\PropertyAdvisement;
 use Modules\Geo\Models\Nationality;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Jobs\Concerns\HasJobs;
+use Modules\Orders\Models\Order;
 use Modules\Payment\Traits\HasPayments;
 use Modules\Wallet\Traits\HasWallet;
 

@@ -2,7 +2,7 @@
 
 namespace App\Listeners\Payment;
 
-use App\Models\OrderOffer;
+use Modules\Orders\Models\OrderOffer;
 use Modules\Payment\Events\PaymentFailed;
 
 class HandleOrderPaymentFailed

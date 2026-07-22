@@ -2,7 +2,6 @@
 
 namespace Modules\Chat\Services;
 
-use App\Models\Order;
 use Illuminate\Broadcasting\BroadcastManager;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -11,6 +10,7 @@ use Modules\Chat\Contracts\IChatService;
 use Modules\Chat\Infrastructure\Features\MemberChat;
 use Modules\Chat\Infrastructure\Features\OrderChat;
 use Modules\Chat\Models\Conversation;
+use Modules\Orders\Models\Order;
 use Pusher\ApiErrorException;
 
 class ChatService implements IChatService

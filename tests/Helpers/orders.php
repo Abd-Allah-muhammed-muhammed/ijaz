@@ -1,19 +1,19 @@
 <?php
 
 use App\Enums\CategoryFeesTypeEnum;
-use App\Enums\Order\OfferStatusEnum;
-use App\Enums\Order\OrderStatusEnum;
 use App\Models\Admin;
-use App\Models\Order;
-use App\Models\OrderOffer;
 use App\Models\Provider;
 use App\Models\User;
-use Database\Factories\OrderOfferFactory;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
 use Modules\Marketplace\Models\Category;
+use Modules\Orders\Database\Factories\OrderOfferFactory;
+use Modules\Orders\Enums\OfferStatusEnum;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Models\Order;
+use Modules\Orders\Models\OrderOffer;
 
 /**
  * Shared helpers for Orders Step 0 regression-lock tests.

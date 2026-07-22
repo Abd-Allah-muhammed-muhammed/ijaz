@@ -50,6 +50,10 @@ pest()->extend(TestCase::class)
     ->use(LazilyRefreshDatabase::class)
     ->in('../Modules/Marketplace/tests');
 
+pest()->extend(TestCase::class)
+    ->use(LazilyRefreshDatabase::class)
+    ->in('../Modules/Orders/tests');
+
 require_once __DIR__.'/../Modules/Chat/tests/helpers.php';
 require_once __DIR__.'/../Modules/Wallet/tests/helpers.php';
 require_once __DIR__.'/../Modules/Payment/tests/helpers.php';

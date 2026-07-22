@@ -1,9 +1,9 @@
 <?php
 
 use App\Enums\CategoryFeesTypeEnum;
-use App\Models\Order;
 use Modules\Marketplace\Models\Category;
 use Modules\Marketplace\Models\Skill;
+use Modules\Orders\Models\Order;
 
 /**
  * Regression lock: Order↔Category/Skill relations must resolve to Marketplace

@@ -2,8 +2,8 @@
 
 namespace App\Listeners\Payment;
 
-use App\Models\OrderOffer;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Modules\Orders\Models\OrderOffer;
 use Modules\Payment\Events\PaymentFailed;
 
 class NotifyOrderPaymentFailed implements ShouldQueue

@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Order;
 use App\Models\Provider;
 use App\Models\User;
 use Modules\Chat\Handlers\MemberChatHandler;
@@ -8,6 +7,7 @@ use Modules\Chat\Handlers\OrderChatHandler;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\System;
 use Modules\Chat\Support\ParticipantConversationMessenger;
+use Modules\Orders\Models\Order;
 use Modules\Support\Handlers\TicketSupportChatHandler;
 
 test('MemberChatHandler listQuery returns only P2P conversations', function () {

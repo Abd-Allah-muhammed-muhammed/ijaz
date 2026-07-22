@@ -2,18 +2,18 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Order\OfferStatusEnum;
-use App\Enums\Order\OrderStatusEnum;
-use Modules\Marketplace\Models\Category;
-use App\Models\Order;
 use App\Models\Provider;
-use Modules\Marketplace\Models\Skill;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
+use Modules\Marketplace\Models\Category;
+use Modules\Marketplace\Models\Skill;
+use Modules\Orders\Enums\OfferStatusEnum;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Models\Order;
 
 class BulkOrdersSeeder extends Seeder
 {

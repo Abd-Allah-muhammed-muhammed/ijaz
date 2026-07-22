@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Provider;
 
-use App\Enums\Order\OfferStatusEnum;
-use App\Enums\Order\OrderStatusEnum;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Dashboard\OrderResource;
-use App\Models\Order;
 use Modules\Cms\Http\Resources\Dashboard\BannerResource;
 use Modules\Cms\Models\Banner;
+use Modules\Orders\Enums\OfferStatusEnum;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Http\Resources\Dashboard\OrderResource;
+use Modules\Orders\Models\Order;
 
 class HomeController extends Controller
 {

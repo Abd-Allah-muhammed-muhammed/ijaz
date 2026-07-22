@@ -1,17 +1,17 @@
 <?php
 
 use App\Enums\OperationStatusEnum;
-use App\Enums\Order\OfferStatusEnum;
-use App\Enums\Order\OrderStatusEnum;
 use App\Listeners\Payment\HandleOrderPaymentCompleted;
 use App\Listeners\Payment\HandleOrderPaymentFailed;
-use App\Models\OrderOffer;
 use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Listeners\HandleGuarantorPaymentCompleted;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Orders\Enums\OfferStatusEnum;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Models\OrderOffer;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Events\PaymentCompleted;
 use Modules\Payment\Events\PaymentFailed;

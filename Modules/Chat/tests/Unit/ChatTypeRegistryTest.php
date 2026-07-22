@@ -1,10 +1,10 @@
 <?php
 
-use App\Models\Order;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Handlers\MemberChatHandler;
 use Modules\Chat\Handlers\OrderChatHandler;
 use Modules\Chat\Registry\ChatTypeRegistry;
+use Modules\Orders\Models\Order;
 use Modules\Support\Handlers\TicketSupportChatHandler;
 use Modules\Support\Models\TicketSupport;
 

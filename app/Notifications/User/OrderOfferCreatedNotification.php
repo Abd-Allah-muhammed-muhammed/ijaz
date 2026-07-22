@@ -2,7 +2,6 @@
 
 namespace App\Notifications\User;
 
-use App\Models\OrderOffer;
 use App\Services\Firebase\DTO\Message;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -11,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Modules\Orders\Models\OrderOffer;
 
 class OrderOfferCreatedNotification extends Notification implements ShouldBroadcastNow, ShouldDispatchAfterCommit, ShouldQueue
 {

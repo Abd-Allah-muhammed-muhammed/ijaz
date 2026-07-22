@@ -23,6 +23,8 @@ use Modules\Marketplace\Models\CategorySkill;
 use Modules\Marketplace\Models\ProviderCategory;
 use Modules\Marketplace\Models\ProviderType;
 use Modules\Marketplace\Models\Skill;
+use Modules\Orders\Models\Order;
+use Modules\Orders\Models\OrderOffer;
 use Modules\Payment\Traits\HasPayments;
 use Modules\Wallet\Traits\HasWallet;
 use Spatie\MediaLibrary\HasMedia;

@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\Dashboard;
 
-use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Orders\Models\Order;
 
 /** @mixin Order */
 class GeneralOperationUserResource extends JsonResource

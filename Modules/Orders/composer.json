@@ -1,0 +1,27 @@
+{
+    "name": "nwidart/orders",
+    "description": "Orders module for user, provider, and dashboard order flows",
+    "authors": [
+        {
+            "name": "Ijaz",
+            "email": "dev@ijaz.test"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Orders\\": "./",
+            "Modules\\Orders\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Orders\\Tests\\": "tests/"
+        }
+    }
+}

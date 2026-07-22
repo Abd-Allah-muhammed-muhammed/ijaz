@@ -8,7 +8,7 @@ import {KTIcon} from "@/_metronic/helpers";
 import Pagination from "../../../components/Table/partials/Pagination";
 import {PaginationResource} from "@/types";
 import {Order} from "@/types/models";
-import OrderController from "@/actions/App/Http/Controllers/Provider/OrderController";
+import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/OrderController";
 import OrderCard from "@/components/order/order-card";
 import {Col, Row} from "react-bootstrap";
 

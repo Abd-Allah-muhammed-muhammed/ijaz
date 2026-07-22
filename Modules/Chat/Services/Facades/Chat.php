@@ -2,13 +2,13 @@
 
 namespace Modules\Chat\Services\Facades;
 
-use App\Models\Order;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Facade;
 use Modules\Chat\Contracts\IChatService;
 use Modules\Chat\Infrastructure\Features\MemberChat;
 use Modules\Chat\Infrastructure\Features\OrderChat;
 use Modules\Chat\Models\Conversation;
+use Modules\Orders\Models\Order;
 
 /**
  * @method static Collection  onlineUsers():

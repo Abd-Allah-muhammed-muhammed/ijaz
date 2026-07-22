@@ -1,8 +1,8 @@
 <?php
 
-use App\Enums\Order\OrderStatusEnum;
-use App\Http\Controllers\Dashboard\OrderController;
-use App\Models\Order;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Http\Controllers\Dashboard\OrderController;
+use Modules\Orders\Models\Order;
 
 beforeEach(function () {
     withoutOrdersLocaleMiddleware();

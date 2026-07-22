@@ -2,10 +2,10 @@
 
 namespace App\Listeners\Payment;
 
-use App\Enums\Order\OfferStatusEnum;
-use App\Enums\Order\OrderStatusEnum;
-use App\Models\OrderOffer;
 use Illuminate\Support\Facades\DB;
+use Modules\Orders\Enums\OfferStatusEnum;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Models\OrderOffer;
 use Modules\Payment\Events\PaymentCompleted;
 use Modules\Wallet\Services\WalletService;
 

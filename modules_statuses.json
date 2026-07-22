@@ -11,5 +11,6 @@
     "Sms": true,
     "Cms": true,
     "Support": true,
-    "Marketplace": true
+    "Marketplace": true,
+    "Orders": true
 }

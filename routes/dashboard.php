@@ -3,12 +3,12 @@
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\AuthController;
 use App\Http\Controllers\Dashboard\HomeController;
-use App\Http\Controllers\Dashboard\OrderController;
 use App\Http\Controllers\Dashboard\PanAnalyticsController;
 use App\Http\Controllers\Dashboard\ProviderController;
 use App\Http\Controllers\Dashboard\RoleController;
 use App\Http\Controllers\Dashboard\UserController;
 use Illuminate\Support\Facades\Route;
+use Modules\Orders\Http\Controllers\Dashboard\OrderController;
 
 Route::group(
     [

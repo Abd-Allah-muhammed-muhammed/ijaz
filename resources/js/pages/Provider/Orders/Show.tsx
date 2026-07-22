@@ -10,7 +10,7 @@ import {KTIcon} from "@/_metronic/helpers";
 import React, {ChangeEvent, useState} from 'react';
 import {OfferSchema, OfferSchemaType} from "@/pages/Provider/Orders/offer-schema";
 import {ReviewSchema, ReviewSchemaType} from "@/pages/Provider/Orders/review-schema";
-import OrderController from "@/actions/App/Http/Controllers/Provider/OrderController";
+import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/OrderController";
 import InputError from "@/components/inputs/InputError";
 import {OfferStatusEnum, OrderStatusEnum} from "@/Enums/Order";
 import ActionButton from "@/components/action-button";

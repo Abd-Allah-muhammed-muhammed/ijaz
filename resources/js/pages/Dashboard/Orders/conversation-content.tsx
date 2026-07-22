@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import MessageIn from "@/components/chat/components/message-in";
 import InfiniteScroll from 'react-infinite-scroll-component';
 import { ApiResponse, ConversationMessagePaginationResource } from '@/types/api';
-import OrderController from '@/actions/App/Http/Controllers/Dashboard/OrderController';
+import OrderController from '@/actions/Modules/Orders/Http/Controllers/Dashboard/OrderController';
 import axios from '@/helpers/axios';
 import { useTranslation } from 'react-i18next';
 

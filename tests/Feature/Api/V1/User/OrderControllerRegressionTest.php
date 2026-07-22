@@ -1,11 +1,7 @@
 <?php
 
 use App\Enums\CategoryFeesTypeEnum;
-use App\Enums\Order\OfferStatusEnum;
-use App\Enums\Order\OrderStatusEnum;
 use App\Events\User\NewOrderCreated;
-use App\Http\Controllers\Api\V1\User\OrderController;
-use App\Models\Order;
 use App\Models\Provider;
 use App\Models\Review;
 use App\Models\User;
@@ -17,6 +13,10 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
 use Modules\Marketplace\Models\Category;
+use Modules\Orders\Enums\OfferStatusEnum;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Http\Controllers\V1\OrderController;
+use Modules\Orders\Models\Order;
 use Modules\Payment\DTOs\PaymentInitResult;
 use Modules\Payment\Services\PaymentService;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
