@@ -15,7 +15,7 @@ use Laravel\Sanctum\Sanctum;
 use Modules\Marketplace\Models\Category;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
-use Modules\Orders\Http\Controllers\V1\OrderController;
+use Modules\Orders\Http\Controllers\Api\V1\OrderController;
 use Modules\Orders\Models\Order;
 use Modules\Payment\DTOs\PaymentInitResult;
 use Modules\Payment\Services\PaymentService;

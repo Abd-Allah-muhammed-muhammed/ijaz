@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
-use Modules\Orders\Http\Controllers\V1\OrderController;
+use Modules\Orders\Http\Controllers\Api\V1\OrderController;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Models\OrderOffer;
 

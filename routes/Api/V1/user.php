@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\V1\User\AuthController;
 use App\Http\Controllers\Api\V1\User\ProviderController;
 use Illuminate\Support\Facades\Route;
-use Modules\Orders\Http\Controllers\V1\OrderController;
+use Modules\Orders\Http\Controllers\Api\V1\OrderController;
 
 Route::group(['prefix' => 'user'], static function () {
     Route::controller(AuthController::class)->prefix('auth')->group(static function () {

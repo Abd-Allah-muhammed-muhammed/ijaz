@@ -6,7 +6,7 @@ use Laravel\Sanctum\Sanctum;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Http\Controllers\Provider\OrderController as ProviderOrderController;
-use Modules\Orders\Http\Controllers\V1\OrderController as UserOrderController;
+use Modules\Orders\Http\Controllers\Api\V1\OrderController as UserOrderController;
 use Modules\Payment\Services\PaymentService;
 
 beforeEach(function () {
