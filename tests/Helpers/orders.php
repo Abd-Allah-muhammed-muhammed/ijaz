@@ -79,7 +79,7 @@ function createOrderWithOffer(
 }
 
 /**
- * Current User-controller fee formula (lock-in):
+ * Shared fee math (both User accept and Provider update now call CalculateOrderFeesAction):
  * gatewayFees + categoryFees + (15% of categoryFees)
  * gateway key = PaymentService::getDefaultDriver().'_fees'
  */
@@ -89,15 +89,9 @@ function computeUserControllerOfferFees(float $categoryFees, float $gatewayFees)
 }
 
 /**
- * Current Provider-controller fee formula (lock-in):
- * gatewayFees + categoryFees + (15% of categoryFees)
- * gateway key = config('payment.default').'_fees'
- *
- * KNOWN: expressions differ from User controller (getDefaultDriver vs config),
- * but PaymentService::getDefaultDriver() currently returns config('payment.default'),
- * so results match unless getDefaultDriver is overridden independently.
+ * @deprecated Alias kept for older regression helpers — same formula as computeUserControllerOfferFees.
  */
 function computeProviderControllerOfferFees(float $categoryFees, float $gatewayFees): float
 {
-    return floatval($gatewayFees) + $categoryFees + (15 / 100 * $categoryFees);
+    return computeUserControllerOfferFees($categoryFees, $gatewayFees);
 }

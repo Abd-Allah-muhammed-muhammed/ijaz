@@ -123,11 +123,8 @@ class Order extends Model implements HasMedia
         return Attribute::get(static fn ($value, array $attributes) => $value ?? (($attributes['price'] ?? 0) + ($attributes['user_fees'] ?? 0)));
     }
 
-    /**
-     * KNOWN BUG: see Orders Step 2 — providerTotal fallback uses user_fees, not provider_fees.
-     */
     protected function providerTotal(): Attribute
     {
-        return Attribute::get(static fn ($value, array $attributes) => $value ?? (($attributes['price'] ?? 0) - ($attributes['user_fees'] ?? 0)));
+        return Attribute::get(static fn ($value, array $attributes) => $value ?? (($attributes['price'] ?? 0) - ($attributes['provider_fees'] ?? 0)));
     }
 }

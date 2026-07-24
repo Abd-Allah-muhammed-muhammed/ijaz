@@ -7,20 +7,20 @@ use App\Notifications\Provider\OrderOfferAcceptedNotification;
 use App\Notifications\Provider\OrderOfferCanceledNotification;
 use App\Notifications\Provider\OrderOfferRejectedNotification;
 use Illuminate\Support\Facades\DB;
+use Modules\Orders\Actions\CalculateOrderFeesAction;
 use Modules\Orders\DTOs\UpdateOfferStatusDTO;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Exceptions\OrdersException;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Models\OrderOffer;
-use Modules\Payment\Services\PaymentService;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class UpdateOfferStatusAction
 {
     public function __construct(
-        private readonly PaymentService $paymentService,
+        private readonly CalculateOrderFeesAction $calculateOrderFees,
     ) {}
 
     /**
@@ -43,16 +43,14 @@ class UpdateOfferStatusAction
             switch ($offer->status) {
                 case OfferStatusEnum::Accepted:
                     if ($order->status->is(OrderStatusEnum::New)) {
-                        $categoryFees = $order->category->getFees($offer->price);
-                        $paymentGatewayFees = app('settings')->get($this->paymentService->getDefaultDriver().'_fees');
-                        $fees = (float) $paymentGatewayFees + $categoryFees + (15 / 100 * $categoryFees);
+                        $fees = $this->calculateOrderFees->handle($order, (float) $offer->price);
                         $order->update([
                             'provider_id' => $offer->provider_id,
                             'accepted_offer_id' => $offer->id,
                             'status' => OrderStatusEnum::OfferProvided,
-                            'price' => $offer->price,
-                            'user_fees' => 0,
-                            'provider_fees' => $fees,
+                            'price' => $fees->price,
+                            'user_fees' => $fees->userFees,
+                            'provider_fees' => $fees->providerFees,
                         ]);
                         $offer->provider->notify(new OrderOfferAcceptedNotification($offer));
                     }

@@ -3,10 +3,11 @@
 use App\Enums\CategoryFeesTypeEnum;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
+use Modules\Orders\Actions\CalculateOrderFeesAction;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
-use Modules\Orders\Http\Controllers\Provider\OrderController as ProviderOrderController;
 use Modules\Orders\Http\Controllers\Api\V1\OrderController as UserOrderController;
+use Modules\Orders\Http\Controllers\Provider\OrderController as ProviderOrderController;
 use Modules\Payment\Services\PaymentService;
 
 beforeEach(function () {
@@ -16,29 +17,24 @@ beforeEach(function () {
 });
 
 /**
- * Documents fee-key resolution for User vs Provider controllers.
- *
- * User:  app('settings')->get($paymentService->getDefaultDriver().'_fees')
- * Provider: app('settings')->get(config('payment.default').'_fees')
- *
- * PaymentService::getDefaultDriver() currently returns config('payment.default'),
- * so TODAY both formulas produce identical fees for the same category/gateway inputs.
- * This file locks that parity AND shows they would diverge if getDefaultDriver were
- * overridden independently of config('payment.default') (fragile dual-source coupling).
+ * Step 0 lock-in numbers must still hold after fee unification:
+ * category FIXED fees=10, gateway testing_fees=20, offer 200
+ * → provider_fees = 20 + 10 + (0.15 * 10) = 31.5
  */
-it('produces identical fees for the same scenario via both controller formulas today', function () {
-    $categoryFees = 10.0;
-    $gatewayFromConfig = (float) app('settings')->get(config('payment.default').'_fees');
-    $gatewayFromDriver = (float) app('settings')->get(app(PaymentService::class)->getDefaultDriver().'_fees');
+it('produces provider_fees of 31.5 for the Step 0 concrete scenario via CalculateOrderFeesAction', function () {
+    ['order' => $order, 'offer' => $offer] = createOrderWithOffer(
+        categoryAttrs: ['fees' => 10.0, 'fees_type' => CategoryFeesTypeEnum::FIXED],
+        offerAttrs: ['price' => 200.0],
+    );
 
-    expect(app(PaymentService::class)->getDefaultDriver())->toBe(config('payment.default'))
-        ->and($gatewayFromConfig)->toBe($gatewayFromDriver)
-        ->and(computeUserControllerOfferFees($categoryFees, $gatewayFromDriver))
-        ->toBe(computeProviderControllerOfferFees($categoryFees, $gatewayFromConfig))
-        ->and(computeUserControllerOfferFees($categoryFees, $gatewayFromDriver))->toBe(31.5);
+    $result = app(CalculateOrderFeesAction::class)->handle($order, (float) $offer->price);
+
+    expect($result->providerFees)->toBe(31.5)
+        ->and($result->userFees)->toBe(0.0)
+        ->and($result->price)->toBe(200.0);
 });
 
-it('applies the same provider_fees when user accepts then provider updates price with same category fees', function () {
+it('applies identical provider_fees when user accepts then provider updates price with same category fees', function () {
     ['owner' => $owner, 'provider' => $provider, 'order' => $order, 'offer' => $offer] = createOrderWithOffer(
         categoryAttrs: ['fees' => 10.0, 'fees_type' => CategoryFeesTypeEnum::FIXED],
         offerAttrs: ['price' => 200.0],
@@ -64,21 +60,15 @@ it('applies the same provider_fees when user accepts then provider updates price
         'description' => 'Price bump',
     ])->assertRedirect();
 
-    // Category fee base unchanged (FIXED 10) + same gateway key → same provider_fees.
+    // FIXED category fees + shared CalculateOrderFeesAction → same provider_fees.
     expect((float) $order->fresh()->provider_fees)->toBe($feesAfterUserAccept)
         ->and((float) $order->fresh()->price)->toBe(250.0)
         ->and($order->fresh()->status)->toBe(OrderStatusEnum::OfferProvided);
 });
 
-/**
- * KNOWN FRAGILITY (not a current runtime bug): if getDefaultDriver() were ever
- * overridden to differ from config('payment.default'), User accept fees and Provider
- * update fees would silently diverge. Lock the dual-expression surface here.
- */
-it('documents that fee gateway keys come from different expressions', function () {
-    $userKey = app(PaymentService::class)->getDefaultDriver().'_fees';
-    $providerKey = config('payment.default').'_fees';
+it('uses a single gateway fee key via PaymentService getDefaultDriver for both User and Provider paths', function () {
+    $driverKey = app(PaymentService::class)->getDefaultDriver().'_fees';
 
-    expect($userKey)->toBe($providerKey)
-        ->and($userKey)->toBe('testing_fees');
+    expect($driverKey)->toBe('testing_fees')
+        ->and(app(PaymentService::class)->getDefaultDriver())->toBe(config('payment.default'));
 });

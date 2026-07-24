@@ -5,6 +5,7 @@ namespace Modules\Orders\Actions\Provider;
 use App\Models\Provider;
 use App\Notifications\User\OrderAcceptedOfferUpdatedNotification;
 use Illuminate\Support\Facades\DB;
+use Modules\Orders\Actions\CalculateOrderFeesAction;
 use Modules\Orders\DTOs\UpdateOrderOfferDTO;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Exceptions\OrdersException;
@@ -14,6 +15,10 @@ use Throwable;
 
 class UpdateProviderOfferAction
 {
+    public function __construct(
+        private readonly CalculateOrderFeesAction $calculateOrderFees,
+    ) {}
+
     /**
      * @throws Throwable
      */
@@ -38,15 +43,11 @@ class UpdateProviderOfferAction
 
             $offer->update();
             if ($offer->status->is(OfferStatusEnum::Accepted) && $order->acceptedOffer()->is($offer)) {
-                $categoryFees = $order->category->getFees($offer->price);
-                // KNOWN BUG: see Orders Step 2 — provider offer update reads gateway fees via
-                // config('payment.default') while the User controller uses PaymentService::getDefaultDriver().
-                $paymentGatewayFees = app('settings')->get(config('payment.default').'_fees');
-                $providerFees = floatval($paymentGatewayFees) + $categoryFees + (15 / 100 * $categoryFees);
+                $fees = $this->calculateOrderFees->handle($order, (float) $offer->price);
                 $order->update([
-                    'price' => $offer->price,
-                    'user_fees' => 0,
-                    'provider_fees' => $providerFees,
+                    'price' => $fees->price,
+                    'user_fees' => $fees->userFees,
+                    'provider_fees' => $fees->providerFees,
                 ]);
                 $order->user->notify(new OrderAcceptedOfferUpdatedNotification($order));
             }
