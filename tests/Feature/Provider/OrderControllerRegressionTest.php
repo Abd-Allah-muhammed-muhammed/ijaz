@@ -226,11 +226,10 @@ it('ends an in-progress order as the assigned provider', function () {
 });
 
 /**
- * KNOWN ISSUE (lock-in): updateReview stores reviewer_id = $order->user_id while
- * reviewer_type = Provider::class, and reviewee_id = auth()->user()->id (provider)
- * with reviewee_type = User::class. IDs/types are crossed vs the User endAndReview path.
+ * Provider review must store consistent reviewer (provider) and reviewee (user) type/id pairs.
+ * (Previously crossed: reviewer_id=order.user_id with reviewer_type=Provider, reviewee_id=provider.)
  */
-it('stores review with crossed reviewer_id and reviewee_id as currently implemented', function () {
+it('stores review with consistent reviewer provider and reviewee user ids', function () {
     $provider = createWalletProvider();
     $owner = User::factory()->create();
     $order = Order::factory()->create([
@@ -256,9 +255,8 @@ it('stores review with crossed reviewer_id and reviewee_id as currently implemen
     ])->first();
 
     expect($review)->not->toBeNull()
-        // Lock-in of the suspicious mismatch:
-        ->and($review->reviewer_id)->toBe($owner->id)
+        ->and($review->reviewer_id)->toBe($provider->id)
         ->and($review->reviewee_type)->toBe(User::class)
-        ->and($review->reviewee_id)->toBe($provider->id)
+        ->and($review->reviewee_id)->toBe($owner->id)
         ->and($review->rating)->toBe(4);
 });
