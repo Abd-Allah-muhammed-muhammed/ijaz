@@ -44,6 +44,9 @@
         <testsuite name="Marketplace">
             <directory suffix="Test.php">./Modules/Marketplace/tests</directory>
         </testsuite>
+        <testsuite name="Orders">
+            <directory suffix="Test.php">./Modules/Orders/tests</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
@@ -61,6 +64,7 @@
             <directory>Modules/Cms</directory>
             <directory>Modules/Support</directory>
             <directory>Modules/Marketplace</directory>
+            <directory>Modules/Orders</directory>
         </include>
     </source>
     <php>

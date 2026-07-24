@@ -295,29 +295,35 @@ it('rejects an offer and notifies the provider', function () {
 });
 
 /**
- * KNOWN ISSUE (lock-in): Cancel branch is dead code. Status is updated to Cancelled
- * BEFORE the switch, so `if ($offer->status->isNot(Cancelled))` never runs — order
- * fields are NOT cleared and OrderOfferCanceledNotification is NOT sent.
+ * Cancel must reset order linkage fields and notify the provider.
+ * (Previously dead: status was set to Cancelled before switch, so isNot(Cancelled) never ran.)
  */
-it('marks offer cancelled but does not reset order fields (dead cancel branch)', function () {
-    ['owner' => $owner, 'order' => $order, 'offer' => $offer, 'provider' => $provider] = createOrderWithOffer([
-        'provider_id' => null,
-        'status' => OrderStatusEnum::New,
-    ]);
+it('cancels an accepted offer, resets order fields, and notifies the provider', function () {
+    ['owner' => $owner, 'order' => $order, 'offer' => $offer, 'provider' => $provider] = createOrderWithOffer();
 
-    // Simulate a previously accepted state on the offer only (order still New),
-    // then cancel — documenting that cancel never clears order linkage fields.
     Sanctum::actingAs($owner, ['user-api'], 'user-api');
 
     $this->postJson(action([OrderController::class, 'updateOfferStatus'], [
         'order' => $order,
         'offer' => $offer,
+    ]), ['status' => OfferStatusEnum::Accepted->value])->assertOk();
+
+    expect($order->fresh()->provider_id)->toBe($provider->id)
+        ->and($order->fresh()->accepted_offer_id)->toBe($offer->id)
+        ->and($order->fresh()->status)->toBe(OrderStatusEnum::OfferProvided);
+
+    $this->postJson(action([OrderController::class, 'updateOfferStatus'], [
+        'order' => $order,
+        'offer' => $offer->fresh(),
     ]), ['status' => OfferStatusEnum::Cancelled->value])->assertOk();
 
     expect($offer->fresh()->status)->toBe(OfferStatusEnum::Cancelled)
-        ->and($order->fresh()->status)->toBe(OrderStatusEnum::New);
+        ->and($order->fresh()->provider_id)->toBeNull()
+        ->and($order->fresh()->accepted_offer_id)->toBeNull()
+        ->and($order->fresh()->status)->toBe(OrderStatusEnum::New)
+        ->and($order->fresh()->price)->toBeNull();
 
-    Notification::assertNotSentTo($provider, OrderOfferCanceledNotification::class);
+    Notification::assertSentTo($provider, OrderOfferCanceledNotification::class);
 });
 
 it('initiates payment via PaymentService using order user_total', function () {

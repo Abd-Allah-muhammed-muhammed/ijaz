@@ -40,7 +40,7 @@ class UpdateOfferStatusAction
             $offer->update([
                 'status' => $data->status,
             ]);
-            switch ($offer->status) {
+            switch ($data->status) {
                 case OfferStatusEnum::Accepted:
                     if ($order->status->is(OrderStatusEnum::New)) {
                         $fees = $this->calculateOrderFees->handle($order, (float) $offer->price);
@@ -63,18 +63,13 @@ class UpdateOfferStatusAction
                     assert(false, 'unreachable');
                     // no break
                 case OfferStatusEnum::Cancelled:
-                    // KNOWN BUG: see Orders Step 2 — dead branch: $offer->status was just set to the
-                    // incoming status above, so within the Cancelled case isNot(Cancelled) is always
-                    // false and the cancel rollback logic never executes.
-                    if ($offer->status->isNot(OfferStatusEnum::Cancelled)) {
-                        $order->update([
-                            'provider_id' => null,
-                            'accepted_offer_id' => null,
-                            'status' => OrderStatusEnum::New,
-                            'price' => null,
-                        ]);
-                        $offer->provider->notify(new OrderOfferCanceledNotification($offer));
-                    }
+                    $order->update([
+                        'provider_id' => null,
+                        'accepted_offer_id' => null,
+                        'status' => OrderStatusEnum::New,
+                        'price' => null,
+                    ]);
+                    $offer->provider->notify(new OrderOfferCanceledNotification($offer));
                     break;
             }
         });
