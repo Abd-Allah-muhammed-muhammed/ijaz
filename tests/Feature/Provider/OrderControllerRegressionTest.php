@@ -151,20 +151,30 @@ it('lists provider order offers', function () {
 });
 
 /**
- * KNOWN ISSUE (lock-in — inverted deleteOffer logic):
- * Message says "you can not delete this offer because it has been processed" when
- * status IS Pending — i.e. pending offers are blocked from delete, while non-pending
- * (processed) offers ARE deleted. Also uses auth()->user() (default guard) rather than
- * auth('provider')->user(), so ownership often fails under provider-only auth.
- *
- * This test documents ACTUAL current behavior.
+ * Pending offers may be deleted; processed (non-pending) offers may not.
+ * (Previously inverted: Pending was blocked with the "processed" message.)
  */
-it('blocks deleting a pending offer with the processed error message', function () {
+it('allows deleting a pending offer', function () {
     ['provider' => $provider, 'order' => $order, 'offer' => $offer] = createOrderWithOffer(
         offerAttrs: ['status' => OfferStatusEnum::Pending],
     );
 
-    // Ensure default guard also sees the provider (mirrors production ambiguity surface).
+    $this->actingAs($provider, 'provider');
+    auth()->shouldUse('provider');
+
+    $this->delete(action([OrderController::class, 'deleteOffer'], [
+        'order' => $order,
+        'offer' => $offer,
+    ]))->assertRedirect(route('provider.orders.show', $order));
+
+    expect($order->offers()->whereKey($offer->id)->exists())->toBeFalse();
+});
+
+it('blocks deleting an accepted offer with the processed error message', function () {
+    ['provider' => $provider, 'order' => $order, 'offer' => $offer] = createOrderWithOffer(
+        offerAttrs: ['status' => OfferStatusEnum::Accepted],
+    );
+
     $this->actingAs($provider, 'provider');
     auth()->shouldUse('provider');
 
@@ -179,11 +189,7 @@ it('blocks deleting a pending offer with the processed error message', function 
     $response->assertSessionHas('error', __('you can not delete this offer because it has been processed.'));
 });
 
-/**
- * Companion to inverted-logic lock: once status is not Pending, delete is allowed
- * (when provider auth resolves via shouldUse).
- */
-it('allows deleting a non-pending offer when provider auth resolves', function () {
+it('blocks deleting a rejected offer with the processed error message', function () {
     ['provider' => $provider, 'order' => $order, 'offer' => $offer] = createOrderWithOffer(
         offerAttrs: ['status' => OfferStatusEnum::Rejected],
     );
@@ -191,12 +197,15 @@ it('allows deleting a non-pending offer when provider auth resolves', function (
     $this->actingAs($provider, 'provider');
     auth()->shouldUse('provider');
 
-    $this->delete(action([OrderController::class, 'deleteOffer'], [
-        'order' => $order,
-        'offer' => $offer,
-    ]))->assertRedirect(route('provider.orders.show', $order));
+    $response = $this->from(route('provider.orders.show', $order))
+        ->delete(action([OrderController::class, 'deleteOffer'], [
+            'order' => $order,
+            'offer' => $offer,
+        ]));
 
-    expect($order->offers()->whereKey($offer->id)->exists())->toBeFalse();
+    $response->assertRedirect();
+    expect($offer->fresh())->not->toBeNull();
+    $response->assertSessionHas('error', __('you can not delete this offer because it has been processed.'));
 });
 
 it('ends an in-progress order as the assigned provider', function () {
