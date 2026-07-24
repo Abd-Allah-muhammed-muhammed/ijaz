@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Listeners\Payment;
+namespace Modules\Orders\Listeners;
 
 use Illuminate\Support\Facades\DB;
 use Modules\Orders\Enums\OfferStatusEnum;

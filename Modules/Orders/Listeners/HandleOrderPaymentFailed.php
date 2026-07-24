@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Listeners\Payment;
+namespace Modules\Orders\Listeners;
 
 use Modules\Orders\Models\OrderOffer;
 use Modules\Payment\Events\PaymentFailed;

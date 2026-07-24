@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Listeners\Payment;
+namespace Modules\Orders\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Modules\Orders\Models\OrderOffer;

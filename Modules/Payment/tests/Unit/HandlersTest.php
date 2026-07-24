@@ -1,8 +1,6 @@
 <?php
 
 use App\Enums\OperationStatusEnum;
-use App\Listeners\Payment\HandleOrderPaymentCompleted;
-use App\Listeners\Payment\HandleOrderPaymentFailed;
 use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +9,8 @@ use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Listeners\HandleOrderPaymentCompleted;
+use Modules\Orders\Listeners\HandleOrderPaymentFailed;
 use Modules\Orders\Models\OrderOffer;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Events\PaymentCompleted;
