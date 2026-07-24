@@ -130,7 +130,7 @@ class OrderController extends Controller
     public function deleteOffer(Order $order, OrderOffer $offer): RedirectResponse
     {
         try {
-            $this->orderOfferService->deleteForProvider($order, $offer, auth()->user());
+            $this->orderOfferService->deleteForProvider($order, $offer, auth('provider')->user());
 
             return redirect()->route('provider.orders.show', $order)->with('success', __('data deleted successfully'));
         } catch (OrdersException $e) {
@@ -141,7 +141,7 @@ class OrderController extends Controller
     public function end(Order $order): RedirectResponse
     {
         try {
-            $this->orderService->endForProvider($order, auth()->user());
+            $this->orderService->endForProvider($order, auth('provider')->user());
 
             return redirect()->back()->with('success', __('data updated successfully'));
         } catch (OrdersException $e) {
@@ -154,7 +154,7 @@ class OrderController extends Controller
         try {
             $this->orderService->updateReviewForProvider(
                 $order,
-                auth()->user(),
+                auth('provider')->user(),
                 EndAndReviewDTO::fromValidated($request->validated()),
             );
 

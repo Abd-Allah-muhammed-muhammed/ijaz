@@ -19,8 +19,7 @@ class UpdateProviderReviewAction
             throw new OrdersException('you can not review this order');
         }
 
-        // KNOWN BUG: see Orders Step 2 — auth()->user() uses the default guard; Fix 5 standardizes
-        // callers to auth('provider')->user().
+        // Reviewer is the authenticated provider; reviewee is the order's client user.
         Review::updateOrCreate([
             'reviewer_type' => Provider::class,
             'reviewer_id' => $authUser->id,

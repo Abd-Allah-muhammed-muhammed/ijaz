@@ -17,8 +17,6 @@ class EndProviderOrderAction
 
     public function handle(Order $order, ?Authenticatable $authUser): void
     {
-        // KNOWN BUG: see Orders Step 2 — ownership uses auth()->user() (default guard) instead of
-        // auth('provider')->user(); the caller passes the default-guard user verbatim.
         if ($order->provider()->isNot($authUser)) {
             abort(404);
         }

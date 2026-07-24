@@ -20,8 +20,6 @@ class DeleteProviderOfferAction
         if ($offer->order()->isNot($order) || $offer->provider()->isNot($authUser)) {
             throw new OrdersException('sorry this offer does not belong to this order.');
         }
-        // KNOWN BUG: see Orders Step 2 — ownership uses auth()->user() (default guard) instead of
-        // auth('provider')->user(); the caller passes the default-guard user verbatim.
         if ($offer->status->isNot(OfferStatusEnum::Pending)) {
             throw new OrdersException('you can not delete this offer because it has been processed.');
         }
