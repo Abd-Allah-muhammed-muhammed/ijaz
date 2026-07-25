@@ -4,6 +4,7 @@ namespace Modules\Classifieds\Contracts\Repositories;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Modules\Classifieds\Models\PropertyAdvisement;
 use Modules\Classifieds\QueryFilters\PropertyAdvisementFilters;
 
@@ -22,4 +23,6 @@ interface PropertyAdvisementRepositoryInterface
      * @param  array<string, mixed>  $data
      */
     public function update(PropertyAdvisement $model, array $data): PropertyAdvisement;
+
+    public function paginateForDashboard(Request $request): LengthAwarePaginator;
 }

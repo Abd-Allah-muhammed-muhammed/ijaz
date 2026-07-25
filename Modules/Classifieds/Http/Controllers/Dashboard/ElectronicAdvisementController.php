@@ -9,18 +9,18 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Validation\Rule;
 use Inertia\Response;
-use Modules\Catalog\Models\DeviceCategory;
-use Modules\Catalog\Models\ElectronicBrand;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
-use Modules\Classifieds\Enums\ElectronicConditionEnum;
 use Modules\Classifieds\Http\Resources\Dashboard\ElectronicAdvisementCollection;
 use Modules\Classifieds\Http\Resources\Dashboard\ElectronicAdvisementResource;
 use Modules\Classifieds\Models\ElectronicAdvisement;
-use Modules\Geo\Models\City;
-use Modules\Geo\Models\Region;
+use Modules\Classifieds\Services\ElectronicAdvisementService;
 
 class ElectronicAdvisementController extends Controller implements HasMiddleware
 {
+    public function __construct(
+        private readonly ElectronicAdvisementService $service,
+    ) {}
+
     public static function middleware(): array
     {
         return [
@@ -34,25 +34,10 @@ class ElectronicAdvisementController extends Controller implements HasMiddleware
     {
         return inertia('Dashboard/ElectronicAdvisement/Index', [
             'rows' => fn () => ElectronicAdvisementCollection::make(
-                ElectronicAdvisement::query()
-                    ->when($request->search, function ($query, $search) {
-                        $query->where(function ($query) use ($search) {
-                            $query->where('normalized_title', 'like', "%{$search}%")
-                                ->orWhere('normalized_description', 'like', "%{$search}%")
-                                ->orWhere('id', 'like', "%{$search}%");
-                        });
-                    })
-                    ->when($request->status, fn ($query, $v) => $query->where('status', $v))
-                    ->when($request->condition, fn ($query, $v) => $query->where('condition', $v))
-                    ->when($request->device_category_id, fn ($query, $v) => $query->where('device_category_id', $v))
-                    ->when($request->electronic_brand_id, fn ($query, $v) => $query->where('electronic_brand_id', $v))
-                    ->when($request->city_id, fn ($query, $v) => $query->where('city_id', $v))
-                    ->when($request->region_id, fn ($query, $v) => $query->where('region_id', $v))
-                    ->paginate($request->integer('per_page', 10))
-                    ->withQueryString()
+                $this->service->listForDashboard($request)
             ),
             'prams' => $request->all() ?: [],
-            'selects' => fn () => $this->buildSelectsFromRequest($request),
+            'selects' => fn () => $this->service->resolveDashboardSelects($request),
         ]);
     }
 
@@ -83,54 +68,5 @@ class ElectronicAdvisementController extends Controller implements HasMiddleware
         return redirect()
             ->route('dashboard.electronic-advisements.index')
             ->with('success', __('data deleted successfully'));
-    }
-
-    /**
-     * @return array{status: array{value: string, label: string, color: string}|null, condition: array{value: string, label: string, color: string}|null, device_category: array{value: int, label: string}|null, electronic_brand: array{value: int, label: string}|null, city: array{value: int, label: string}|null, region: array{value: int, label: string}|null}
-     */
-    private function buildSelectsFromRequest(Request $request): array
-    {
-        $selects = [
-            'status' => null,
-            'condition' => null,
-            'device_category' => null,
-            'electronic_brand' => null,
-            'city' => null,
-            'region' => null,
-        ];
-
-        if ($status = AdvisementStatusEnum::tryFrom((string) $request->input('status'))) {
-            $selects['status'] = [
-                'value' => $status->value,
-                'label' => $status->label(),
-                'color' => $status->color(),
-            ];
-        }
-
-        if ($condition = ElectronicConditionEnum::tryFrom((string) $request->input('condition'))) {
-            $selects['condition'] = [
-                'value' => $condition->value,
-                'label' => $condition->label(),
-                'color' => $condition->color(),
-            ];
-        }
-
-        if ($deviceCategory = DeviceCategory::find($request->device_category_id)) {
-            $selects['device_category'] = ['value' => $deviceCategory->id, 'label' => $deviceCategory->title];
-        }
-
-        if ($electronicBrand = ElectronicBrand::find($request->electronic_brand_id)) {
-            $selects['electronic_brand'] = ['value' => $electronicBrand->id, 'label' => $electronicBrand->name];
-        }
-
-        if ($city = City::find($request->city_id)) {
-            $selects['city'] = ['value' => $city->id, 'label' => $city->title];
-        }
-
-        if ($region = Region::find($request->region_id)) {
-            $selects['region'] = ['value' => $region->id, 'label' => $region->title];
-        }
-
-        return $selects;
     }
 }

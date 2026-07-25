@@ -4,6 +4,7 @@ namespace Modules\Classifieds\Contracts\Repositories;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Modules\Classifieds\Models\CarAdvisement;
 use Modules\Classifieds\QueryFilters\CarAdvisementFilters;
 
@@ -22,4 +23,6 @@ interface CarAdvisementRepositoryInterface
      * @param  array<string, mixed>  $data
      */
     public function update(CarAdvisement $model, array $data): CarAdvisement;
+
+    public function paginateForDashboard(Request $request): LengthAwarePaginator;
 }

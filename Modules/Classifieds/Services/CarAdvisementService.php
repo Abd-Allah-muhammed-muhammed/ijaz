@@ -4,8 +4,11 @@ namespace Modules\Classifieds\Services;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Classifieds\Actions\CarAdvisement\ListCarAdvisementsForDashboardAction;
+use Modules\Classifieds\Actions\CarAdvisement\ResolveCarAdvisementDashboardSelectsAction;
 use Modules\Classifieds\Contracts\Repositories\CarAdvisementRepositoryInterface;
 use Modules\Classifieds\DTOs\CarAdvisementDTO;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -18,7 +21,22 @@ final class CarAdvisementService
 {
     public function __construct(
         private readonly CarAdvisementRepositoryInterface $repository,
+        private readonly ListCarAdvisementsForDashboardAction $listForDashboardAction,
+        private readonly ResolveCarAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
     ) {}
+
+    public function listForDashboard(Request $request): LengthAwarePaginator
+    {
+        return $this->listForDashboardAction->handle($request);
+    }
+
+    /**
+     * @return array{car_brand: array{value: int, label: string}|null, car_type: array{value: int, label: string}|null, city: array{value: int, label: string}|null, region: array{value: int, label: string}|null, category: array{value: int, label: string}|null}
+     */
+    public function resolveDashboardSelects(Request $request): array
+    {
+        return $this->resolveDashboardSelectsAction->handle($request);
+    }
 
     public function listUserAdvisements(User $user, CarAdvisementFilters $filters): LengthAwarePaginator
     {

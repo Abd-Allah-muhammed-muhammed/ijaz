@@ -4,8 +4,11 @@ namespace Modules\Classifieds\Services;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Classifieds\Actions\ElectronicAdvisement\ListElectronicAdvisementsForDashboardAction;
+use Modules\Classifieds\Actions\ElectronicAdvisement\ResolveElectronicAdvisementDashboardSelectsAction;
 use Modules\Classifieds\Contracts\Repositories\ElectronicAdvisementRepositoryInterface;
 use Modules\Classifieds\DTOs\ElectronicAdvisementDTO;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -18,7 +21,22 @@ final class ElectronicAdvisementService
 {
     public function __construct(
         private readonly ElectronicAdvisementRepositoryInterface $repository,
+        private readonly ListElectronicAdvisementsForDashboardAction $listForDashboardAction,
+        private readonly ResolveElectronicAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
     ) {}
+
+    public function listForDashboard(Request $request): LengthAwarePaginator
+    {
+        return $this->listForDashboardAction->handle($request);
+    }
+
+    /**
+     * @return array{status: array{value: string, label: string, color: string}|null, condition: array{value: string, label: string, color: string}|null, device_category: array{value: int, label: string}|null, electronic_brand: array{value: int, label: string}|null, city: array{value: int, label: string}|null, region: array{value: int, label: string}|null}
+     */
+    public function resolveDashboardSelects(Request $request): array
+    {
+        return $this->resolveDashboardSelectsAction->handle($request);
+    }
 
     public function listUserAdvisements(User $user, ElectronicAdvisementFilters $filters): LengthAwarePaginator
     {

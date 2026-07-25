@@ -4,6 +4,7 @@ namespace Modules\Classifieds\Repositories;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Modules\Classifieds\Contracts\Repositories\CarAdvisementRepositoryInterface;
 use Modules\Classifieds\Models\CarAdvisement;
 use Modules\Classifieds\QueryFilters\CarAdvisementFilters;
@@ -57,5 +58,27 @@ final class CarAdvisementRepository implements CarAdvisementRepositoryInterface
         $model->update($data);
 
         return $model;
+    }
+
+    public function paginateForDashboard(Request $request): LengthAwarePaginator
+    {
+        return CarAdvisement::query()
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('normalized_title', 'like', "%{$search}%")
+                        ->orWhere('normalized_description', 'like', "%{$search}%")
+                        ->orWhere('id', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->status, fn ($query, $v) => $query->where('status', $v))
+            ->when($request->operation, fn ($query, $v) => $query->where('operation', $v))
+            ->when($request->usage_status, fn ($query, $v) => $query->where('usage_status', $v))
+            ->when($request->car_brand_id, fn ($query, $v) => $query->where('car_brand_id', $v))
+            ->when($request->car_type_id, fn ($query, $v) => $query->where('car_type_id', $v))
+            ->when($request->car_category_id, fn ($query, $v) => $query->where('car_category_id', $v))
+            ->when($request->city_id, fn ($query, $v) => $query->where('city_id', $v))
+            ->when($request->region_id, fn ($query, $v) => $query->where('region_id', $v))
+            ->paginate($request->integer('per_page', 10))
+            ->withQueryString();
     }
 }

@@ -4,8 +4,11 @@ namespace Modules\Classifieds\Services;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Classifieds\Actions\InstituteAdvisement\ListInstituteAdvisementsForDashboardAction;
+use Modules\Classifieds\Actions\InstituteAdvisement\ResolveInstituteAdvisementDashboardSelectsAction;
 use Modules\Classifieds\Contracts\Repositories\InstituteAdvisementRepositoryInterface;
 use Modules\Classifieds\DTOs\InstituteAdvisementDTO;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -18,7 +21,22 @@ final class InstituteAdvisementService
 {
     public function __construct(
         private readonly InstituteAdvisementRepositoryInterface $repository,
+        private readonly ListInstituteAdvisementsForDashboardAction $listForDashboardAction,
+        private readonly ResolveInstituteAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
     ) {}
+
+    public function listForDashboard(Request $request): LengthAwarePaginator
+    {
+        return $this->listForDashboardAction->handle($request);
+    }
+
+    /**
+     * @return array{status: array{value: string, label: string, color: string}|null, type: array{value: string, label: string, color: string}|null, study_type: array{value: string, label: string, color: string}|null, study_level: array{value: string, label: string, color: string}|null, specialization: array{value: int, label: string}|null, city: array{value: int, label: string}|null, region: array{value: int, label: string}|null}
+     */
+    public function resolveDashboardSelects(Request $request): array
+    {
+        return $this->resolveDashboardSelectsAction->handle($request);
+    }
 
     public function listUserAdvisements(User $user, InstituteAdvisementFilters $filters): LengthAwarePaginator
     {

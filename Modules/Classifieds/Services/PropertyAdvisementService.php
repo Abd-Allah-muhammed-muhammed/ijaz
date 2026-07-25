@@ -4,7 +4,10 @@ namespace Modules\Classifieds\Services;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Classifieds\Actions\PropertyAdvisement\ListPropertyAdvisementsForDashboardAction;
+use Modules\Classifieds\Actions\PropertyAdvisement\ResolvePropertyAdvisementDashboardSelectsAction;
 use Modules\Classifieds\Contracts\Repositories\PropertyAdvisementRepositoryInterface;
 use Modules\Classifieds\DTOs\PropertyAdvisementDTO;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -17,7 +20,22 @@ class PropertyAdvisementService
 {
     public function __construct(
         private readonly PropertyAdvisementRepositoryInterface $repository,
+        private readonly ListPropertyAdvisementsForDashboardAction $listForDashboardAction,
+        private readonly ResolvePropertyAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
     ) {}
+
+    public function listForDashboard(Request $request): LengthAwarePaginator
+    {
+        return $this->listForDashboardAction->handle($request);
+    }
+
+    /**
+     * @return array{property_type: array{value: int, label: string}|null, city: array{value: int, label: string}|null, region: array{value: int, label: string}|null, category: array{value: int, label: string}|null}
+     */
+    public function resolveDashboardSelects(Request $request): array
+    {
+        return $this->resolveDashboardSelectsAction->handle($request);
+    }
 
     public function listUserAdvisements(User $user, PropertyAdvisementFilters $filters): LengthAwarePaginator
     {
