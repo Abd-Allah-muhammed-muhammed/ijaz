@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Jobs\Http\Controllers\V1\JobController;
+use Modules\Jobs\Http\Controllers\Api\V1\JobController;
 
 Route::middleware('auth:sanctum')->group(static function () {
     Route::get('jobs/all', [JobController::class, 'all']);
