@@ -1,6 +1,6 @@
 <?php
 
-use Modules\Catalog\Http\Controllers\V1\PropertyCategoryController;
+use Modules\Catalog\Http\Controllers\Api\V1\PropertyCategoryController;
 use Modules\Catalog\Models\PropertiyCategory;
 use Tests\TestCase;
 

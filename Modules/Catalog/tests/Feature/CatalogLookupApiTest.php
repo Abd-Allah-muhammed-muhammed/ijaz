@@ -1,11 +1,11 @@
 <?php
 
-use Modules\Catalog\Http\Controllers\V1\CarBrandController;
-use Modules\Catalog\Http\Controllers\V1\CarCategoryController;
-use Modules\Catalog\Http\Controllers\V1\CarTypeController;
-use Modules\Catalog\Http\Controllers\V1\DeviceCategoryController;
-use Modules\Catalog\Http\Controllers\V1\ElectronicBrandController;
-use Modules\Catalog\Http\Controllers\V1\SpecializationController;
+use Modules\Catalog\Http\Controllers\Api\V1\CarBrandController;
+use Modules\Catalog\Http\Controllers\Api\V1\CarCategoryController;
+use Modules\Catalog\Http\Controllers\Api\V1\CarTypeController;
+use Modules\Catalog\Http\Controllers\Api\V1\DeviceCategoryController;
+use Modules\Catalog\Http\Controllers\Api\V1\ElectronicBrandController;
+use Modules\Catalog\Http\Controllers\Api\V1\SpecializationController;
 use Modules\Catalog\Models\CarBrand;
 use Modules\Catalog\Models\CarCategory;
 use Modules\Catalog\Models\CarType;

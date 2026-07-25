@@ -1,14 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Catalog\Http\Controllers\V1\CarBrandController;
-use Modules\Catalog\Http\Controllers\V1\CarCategoryController;
-use Modules\Catalog\Http\Controllers\V1\CarTypeController;
-use Modules\Catalog\Http\Controllers\V1\DeviceCategoryController;
-use Modules\Catalog\Http\Controllers\V1\ElectronicBrandController;
-use Modules\Catalog\Http\Controllers\V1\PropertyCategoryController;
-use Modules\Catalog\Http\Controllers\V1\PropertyTypeController;
-use Modules\Catalog\Http\Controllers\V1\SpecializationController;
+use Modules\Catalog\Http\Controllers\Api\V1\CarBrandController;
+use Modules\Catalog\Http\Controllers\Api\V1\CarCategoryController;
+use Modules\Catalog\Http\Controllers\Api\V1\CarTypeController;
+use Modules\Catalog\Http\Controllers\Api\V1\DeviceCategoryController;
+use Modules\Catalog\Http\Controllers\Api\V1\ElectronicBrandController;
+use Modules\Catalog\Http\Controllers\Api\V1\PropertyCategoryController;
+use Modules\Catalog\Http\Controllers\Api\V1\PropertyTypeController;
+use Modules\Catalog\Http\Controllers\Api\V1\SpecializationController;
 
 Route::prefix('catalog')->group(static function () {
     Route::get('property-types', [PropertyTypeController::class, 'index']);
