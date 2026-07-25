@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Chat\Http\Controllers\V1\MemberChatController;
-use Modules\Chat\Http\Controllers\V1\OrderChatController;
-use Modules\Chat\Http\Controllers\V1\TicketSupportChatController;
+use Modules\Chat\Http\Controllers\Api\V1\MemberChatController;
+use Modules\Chat\Http\Controllers\Api\V1\OrderChatController;
+use Modules\Chat\Http\Controllers\Api\V1\TicketSupportChatController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('chats')->group(function () {

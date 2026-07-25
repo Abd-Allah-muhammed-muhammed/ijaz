@@ -1,33 +1,33 @@
 <?php
 
-namespace Modules\Chat\Http\Controllers\V1;
+namespace Modules\Chat\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Provider;
+use App\Models\User;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Enums\ChatTypeEnum;
-use Modules\Chat\Exceptions\ChatException;
 use Modules\Chat\Http\Requests\SendMessageRequest;
-use Modules\Chat\Http\Requests\StoreOrderChatRequest;
+use Modules\Chat\Http\Requests\StoreConversationRequest;
 use Modules\Chat\Http\Resources\ConversationCollection;
 use Modules\Chat\Http\Resources\ConversationMessageCollection;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\ConversationResource;
 use Modules\Chat\Models\Conversation;
-use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Chat\Services\ConversationService;
 
-#[Group('Order Chat')]
-class OrderChatController extends Controller
+#[Group('Member Chat')]
+class MemberChatController extends Controller
 {
     use HasApiResponse;
 
     public function __construct(
         private readonly ConversationService $service,
-        private readonly ChatTypeRegistry $chatTypeRegistry,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -36,27 +36,22 @@ class OrderChatController extends Controller
             ConversationCollection::make(
                 $this->service->list(
                     auth()->user(),
-                    ChatTypeEnum::Order,
+                    ChatTypeEnum::Member,
                     $request->integer('per_page', 15),
                 )
             )
         );
     }
 
-    public function store(StoreOrderChatRequest $request): JsonResponse
+    public function store(StoreConversationRequest $request): JsonResponse
     {
-        $operationClass = $this->chatTypeRegistry->get(ChatTypeEnum::Order)->operationType();
-        $order = $operationClass::query()->findOrFail($request->validated('order_id'));
+        $receiver = $this->resolveReceiverFromSocketId($request->validated('socket_id'));
 
-        try {
-            $conversation = $this->service->open(auth()->user(), $order, ChatTypeEnum::Order);
-        } catch (ChatException) {
-            return $this->failedResponse(
-                errors: [],
-                message: 'not found',
-                statusCode: 404,
-            );
+        if ($receiver === null) {
+            return $this->failedMessageResponse(trans('User Not Found'));
         }
+
+        $conversation = $this->service->openMemberChat(auth()->user(), $receiver);
 
         return $this->successResponse(
             ConversationResource::make(
@@ -88,11 +83,33 @@ class OrderChatController extends Controller
             $conversation,
             auth()->user(),
             ChatMessageData::fromRequest($request),
-            ChatTypeEnum::Order,
+            ChatTypeEnum::Member,
         );
 
         return $this->successResponse(
             ConversationMessageResource::make($message->loadMissing(['sender', 'attachments']))
         );
+    }
+
+    public function chat(Conversation $conversation): JsonResponse
+    {
+        $this->authorize('view', $conversation);
+
+        return $this->successResponse(
+            ConversationResource::make(
+                $conversation->load(['user1', 'user2', 'lastMessage'])
+            )
+        );
+    }
+
+    private function resolveReceiverFromSocketId(string $socketId): ?Model
+    {
+        [$type, $id] = explode('-', $socketId, 2);
+
+        return match ($type) {
+            'user' => User::query()->find($id),
+            'provider' => Provider::query()->find($id),
+            default => null,
+        };
     }
 }
