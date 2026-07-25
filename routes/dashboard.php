@@ -8,7 +8,6 @@ use App\Http\Controllers\Dashboard\ProviderController;
 use App\Http\Controllers\Dashboard\RoleController;
 use App\Http\Controllers\Dashboard\UserController;
 use Illuminate\Support\Facades\Route;
-use Modules\Orders\Http\Controllers\Dashboard\OrderController;
 
 Route::group(
     [
@@ -34,11 +33,6 @@ Route::group(
                     Route::put('/{user}/status', 'updateStatus')->name('update-status');
                 });
                 Route::resource('users', UserController::class);
-                Route::prefix('/orders')->controller(OrderController::class)->as('orders.')->group(static function () {
-                    Route::get('/', 'index')->name('index');
-                    Route::get('/{order}', 'show')->name('show');
-                    Route::get('/{order}/conversation-messages', 'conversationMessages')->name('conversation-messages');
-                });
                 Route::controller(PanAnalyticsController::class)->prefix('pan-analytics')->as('pan-analytics.')->group(function () {
                     Route::get('/', 'index')->name('index');
                     Route::post('/export', 'export')->name('export');

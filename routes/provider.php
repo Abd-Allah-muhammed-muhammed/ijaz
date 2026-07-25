@@ -4,7 +4,6 @@ use App\Http\Controllers\Provider\AuthController;
 use App\Http\Controllers\Provider\HomeController;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
-use Modules\Orders\Http\Controllers\Provider\OrderController;
 
 Route::group(
     [
@@ -30,19 +29,6 @@ Route::group(
                 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
                 Route::prefix('dashboard')->group(static function () {
                     Route::get('/', HomeController::class)->name('home');
-                    Route::prefix('/orders')->controller(OrderController::class)->as('orders.')->group(static function () {
-                        Route::get('/', 'index')->name('index');
-                        Route::get('/offers', 'offers')->name('offers');
-                        Route::get('/new', 'new')->name('index');
-                        Route::group(['prefix' => '/{order}/offers', 'as' => 'offers.'], static function () {
-                            Route::post('submit', 'submitOffer')->name('offers.store');
-                            Route::post('{offer}/update', 'updateOffer')->name('offers.update');
-                            Route::delete('{offer}', 'deleteOffer')->name('offers.delete');
-                        });
-                        Route::post('/{order}/end', 'end');
-                        Route::post('/{order}/review', 'updateReview')->name('review.update');
-                        Route::get('/{order}', 'show')->name('show');
-                    });
                 });
             });
         });

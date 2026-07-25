@@ -16,6 +16,23 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
         $this->mapProviderRoutes();
     }
 
+    /**
+     * Override: load Routes/V1/api.php WITHOUT the default api.v1.orders.
+     * name prefix — User API order routes were previously unnamed and must stay that way.
+     */
+    protected function mapApiRoutes(string $version, string $prefix, string $namePrefix): void
+    {
+        $routesPath = module_path($this->moduleName, 'Routes/'.$version.'/api.php');
+
+        if (! is_file($routesPath)) {
+            return;
+        }
+
+        Route::middleware('api')
+            ->prefix($prefix)
+            ->group($routesPath);
+    }
+
     protected function mapProviderRoutes(): void
     {
         $path = module_path('Orders', 'Routes/provider.php');
@@ -26,7 +43,7 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
 
         Route::group([
             'prefix' => LaravelLocalization::setLocale(),
-            'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
+            'middleware' => ['web', 'localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
         ], function () use ($path) {
             Route::group(['prefix' => 'provider', 'as' => 'provider.'], function () use ($path) {
                 Route::middleware('auth:provider')->group(function () use ($path) {
