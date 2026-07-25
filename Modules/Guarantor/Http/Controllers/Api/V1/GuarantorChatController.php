@@ -15,8 +15,8 @@ use Modules\Guarantor\Http\Requests\SendGuarantorMessageRequest;
 use Modules\Guarantor\Http\Requests\StoreChatRequest;
 use Modules\Guarantor\Http\Resources\Api\GuarantorConversationCollection;
 use Modules\Guarantor\Http\Resources\Api\GuarantorConversationResource;
-use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Guarantor\Services\GuarantorChatService;
+use Modules\Guarantor\Services\GuarantorService;
 
 #[Group('Guarantor Chat')]
 class GuarantorChatController extends Controller
@@ -25,6 +25,7 @@ class GuarantorChatController extends Controller
 
     public function __construct(
         private readonly GuarantorChatService $chatService,
+        private readonly GuarantorService $guarantorService,
     ) {}
 
     /**
@@ -88,7 +89,7 @@ class GuarantorChatController extends Controller
      */
     public function store(StoreChatRequest $request): JsonResponse
     {
-        $guarantorRequest = GuarantorRequest::findOrFail(
+        $guarantorRequest = $this->guarantorService->findById(
             $request->validated('guarantor_request_id')
         );
 

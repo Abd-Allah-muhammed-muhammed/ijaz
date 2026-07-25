@@ -14,7 +14,6 @@ use Modules\Marketplace\Http\Requests\Dashboard\SkillRequest;
 use Modules\Marketplace\Http\Resources\Dashboard\CategoryResource;
 use Modules\Marketplace\Http\Resources\Dashboard\SkillCollection;
 use Modules\Marketplace\Http\Resources\Dashboard\SkillResource;
-use Modules\Marketplace\Models\Category;
 use Modules\Marketplace\Models\Skill;
 use Modules\Marketplace\Services\CategoryService;
 use Modules\Marketplace\Services\SkillService;
@@ -72,7 +71,7 @@ class SkillController extends Controller implements HasMiddleware
         return inertia('Dashboard/Skills/Edit', [
             'row' => SkillResource::make($skill),
             'categories' => CategoryResource::collection(
-                Category::with(['translations'])->get()
+                $this->categoryService->getLeafCategories()
             ),
         ]);
     }

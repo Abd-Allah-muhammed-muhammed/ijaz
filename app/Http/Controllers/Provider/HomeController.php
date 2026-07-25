@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Provider;
 
 use App\Http\Controllers\Controller;
 use Modules\Cms\Http\Resources\Dashboard\BannerResource;
-use Modules\Cms\Models\Banner;
+use Modules\Cms\Services\BannerService;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Http\Resources\Dashboard\OrderResource;
@@ -12,6 +12,10 @@ use Modules\Orders\Models\Order;
 
 class HomeController extends Controller
 {
+    public function __construct(
+        private readonly BannerService $bannerService,
+    ) {}
+
     public function __invoke()
     {
         $auth = auth('provider')->user();
@@ -52,7 +56,7 @@ class HomeController extends Controller
             ->get()
             ->groupBy(fn ($i) => $i->status->value);
 
-        $banners = Banner::all();
+        $banners = $this->bannerService->all();
 
         return inertia('Provider/Home', [
             'totalOrders' => $totalOrders,

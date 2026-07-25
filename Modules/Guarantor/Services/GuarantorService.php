@@ -148,6 +148,11 @@ class GuarantorService
         $this->cancelAction->handle($request, $reason, $actor, $actorRole);
     }
 
+    public function findById(string $id): GuarantorRequest
+    {
+        return $this->repository->findById($id);
+    }
+
     public function loadForShow(GuarantorRequest $request): GuarantorRequest
     {
         return $request->load([
