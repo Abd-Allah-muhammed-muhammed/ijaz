@@ -46,4 +46,9 @@ interface CategoryRepositoryInterface
      * @return Collection<int, Category>
      */
     public function getAllExcept(Category $category): Collection;
+
+    /**
+     * @return Collection<int, Category>
+     */
+    public function listForAjax(?string $search = null, int $parentId = 0, ?int $providerTypeId = null): Collection;
 }

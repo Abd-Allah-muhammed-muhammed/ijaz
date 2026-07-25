@@ -133,4 +133,28 @@ class CategoryRepository implements CategoryRepositoryInterface
             ->where('id', '!=', $category->id)
             ->get();
     }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    public function listForAjax(?string $search = null, int $parentId = 0, ?int $providerTypeId = null): Collection
+    {
+        return Category::query()
+            ->withTranslation()
+            ->when(
+                $search,
+                fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
+            )
+            ->when(
+                $parentId,
+                fn ($query, $v) => $query->where('parent_id', $v),
+                fn ($query) => $query->whereNull('parent_id')
+            )
+            ->when(
+                $providerTypeId && ! $parentId,
+                fn ($query) => $query->whereHas('providerTypes', fn ($q) => $q->where('id', $providerTypeId))
+            )
+            ->withExists('children')
+            ->get();
+    }
 }

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Modules\Marketplace\Actions\Category\DeleteCategoryAction;
 use Modules\Marketplace\Actions\Category\GetCategoriesForDropdownAction;
 use Modules\Marketplace\Actions\Category\ListCategoriesAction;
+use Modules\Marketplace\Actions\Category\ListCategoriesForAjaxAction;
 use Modules\Marketplace\Actions\Category\ListCategoriesForApiAction;
 use Modules\Marketplace\Actions\Category\ListCategoriesForSelectAction;
 use Modules\Marketplace\Actions\Category\ListLeafCategoriesAction;
@@ -24,6 +25,7 @@ class CategoryService
     public function __construct(
         private readonly ListCategoriesAction $listAction,
         private readonly ListCategoriesForApiAction $listForApiAction,
+        private readonly ListCategoriesForAjaxAction $listForAjaxAction,
         private readonly ListCategoriesForSelectAction $listForSelectAction,
         private readonly ListRootCategoriesAction $listRootAction,
         private readonly ListLeafCategoriesAction $listLeafAction,
@@ -101,5 +103,13 @@ class CategoryService
     public function listForSelect(?string $search = null, int $parentId = 0, int $perPage = 10): LengthAwarePaginator
     {
         return $this->listForSelectAction->handle($search, $parentId, $perPage);
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    public function listForAjax(?string $search = null, int $parentId = 0, ?int $providerTypeId = null): Collection
+    {
+        return $this->listForAjaxAction->handle($search, $parentId, $providerTypeId);
     }
 }

@@ -8,10 +8,15 @@ use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Marketplace\Http\Resources\Dashboard\CategoryResource;
 use Modules\Marketplace\Models\Category;
+use Modules\Marketplace\Services\CategoryService;
 
 class AjaxController extends Controller
 {
     use HasApiResponse;
+
+    public function __construct(
+        private readonly CategoryService $categoryService,
+    ) {}
 
     public function category(Category $category): JsonResponse
     {
@@ -29,22 +34,11 @@ class AjaxController extends Controller
     {
         return $this->successResponse(
             CategoryResource::collection(
-                Category::query()
-                    ->withTranslation()
-                    ->when(
-                        $request->search,
-                        fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
-                    )
-                    ->when(
-                        $request->integer('parent_id'),
-                        fn ($query, $v) => $query->where('parent_id', $v),
-                        fn ($query) => $query->whereNull('parent_id')
-                    )
-                    ->when($request->provider_type_id && ! $request->parent_id,
-                        fn ($query, $v) => $query->whereHas('providerTypes', fn ($q) => $q->where('id', $request->provider_type_id))
-                    )
-                    ->withExists('children')
-                    ->get()
+                $this->categoryService->listForAjax(
+                    $request->search,
+                    $request->integer('parent_id'),
+                    $request->filled('provider_type_id') ? $request->integer('provider_type_id') : null,
+                )
             )
         );
     }
