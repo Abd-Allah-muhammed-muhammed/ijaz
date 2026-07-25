@@ -1,0 +1,35 @@
+<?php
+
+namespace Modules\Payment\Repositories;
+
+use Carbon\CarbonInterface;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Modules\Payment\Contracts\Repositories\PaymentRepositoryInterface;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Models\Payment;
+
+class PaymentRepository implements PaymentRepositoryInterface
+{
+    public function sumAcceptedAmount(): float|int|string
+    {
+        return Payment::query()
+            ->where('status', '=', PaymentStatusEnum::Accepted)
+            ->sum('amount');
+    }
+
+    /**
+     * @return Collection<string, float|int|string>
+     */
+    public function acceptedDailyTotalsSince(CarbonInterface $since): Collection
+    {
+        return Payment::query()
+            ->where('status', '=', PaymentStatusEnum::Accepted)
+            ->where('created_at', '>=', $since)
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('sum(amount) as total'))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->pluck('total', 'date');
+    }
+}

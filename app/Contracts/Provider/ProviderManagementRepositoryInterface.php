@@ -4,8 +4,11 @@ namespace App\Contracts\Provider;
 
 use App\Models\Provider;
 use App\Support\Phone;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection as SupportCollection;
 
 interface ProviderManagementRepositoryInterface
 {
@@ -46,4 +49,16 @@ interface ProviderManagementRepositoryInterface
      * @param  list<array{category_id: int|string, skill_id: int|string}>  $skills
      */
     public function syncSkills(Provider $provider, array $skills): void;
+
+    public function countAll(): int;
+
+    /**
+     * @return SupportCollection<string, int>
+     */
+    public function registrationCountsSince(CarbonInterface $since): SupportCollection;
+
+    /**
+     * @return Collection<int, Provider>
+     */
+    public function latestForDashboard(int $limit = 4): Collection;
 }

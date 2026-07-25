@@ -8,6 +8,9 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
+use Modules\Orders\Actions\Dashboard\CountAllOrdersAction;
+use Modules\Orders\Actions\Dashboard\GetOrderStatusDistributionAction;
+use Modules\Orders\Actions\Dashboard\ListDashboardHomeWindowedOrdersAction;
 use Modules\Orders\Actions\Dashboard\ListDashboardOrdersAction;
 use Modules\Orders\Actions\Dashboard\ListOrderConversationMessagesAction;
 use Modules\Orders\Actions\Dashboard\ShowDashboardOrderAction;
@@ -54,6 +57,9 @@ class OrderService
         private readonly EndProviderOrderAction $endProviderOrder,
         private readonly UpdateProviderReviewAction $updateProviderReview,
         private readonly ListDashboardOrdersAction $listDashboardOrders,
+        private readonly ListDashboardHomeWindowedOrdersAction $listDashboardHomeWindowedOrders,
+        private readonly CountAllOrdersAction $countAllOrders,
+        private readonly GetOrderStatusDistributionAction $getOrderStatusDistribution,
         private readonly ShowDashboardOrderAction $showDashboardOrder,
         private readonly ListOrderConversationMessagesAction $listConversationMessages,
     ) {}
@@ -160,6 +166,27 @@ class OrderService
     public function updateReviewForProvider(Order $order, ?Authenticatable $authUser, EndAndReviewDTO $data): void
     {
         $this->updateProviderReview->handle($order, $authUser, $data);
+    }
+
+    /**
+     * @return Collection<string, Collection<int, Order>>
+     */
+    public function listWindowedForDashboardHome(): Collection
+    {
+        return $this->listDashboardHomeWindowedOrders->handle();
+    }
+
+    public function countAll(): int
+    {
+        return $this->countAllOrders->handle();
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    public function statusDistribution(): array
+    {
+        return $this->getOrderStatusDistribution->handle();
     }
 
     /**

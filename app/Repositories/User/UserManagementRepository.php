@@ -4,9 +4,12 @@ namespace App\Repositories\User;
 
 use App\Contracts\User\UserManagementRepositoryInterface;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
 
 class UserManagementRepository implements UserManagementRepositoryInterface
@@ -76,5 +79,36 @@ class UserManagementRepository implements UserManagementRepositoryInterface
     public function revokeTokens(User $user): void
     {
         $user->tokens()->delete();
+    }
+
+    public function countAll(): int
+    {
+        return User::query()->count('id');
+    }
+
+    /**
+     * @return SupportCollection<string, int>
+     */
+    public function registrationCountsSince(CarbonInterface $since): SupportCollection
+    {
+        return User::query()
+            ->where('created_at', '>=', $since)
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->pluck('count', 'date');
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function latestForDashboard(int $limit = 4): Collection
+    {
+        return User::query()
+            ->withCount(['orders'])
+            ->limit($limit)
+            ->orderByDesc('created_at')
+            ->get();
     }
 }

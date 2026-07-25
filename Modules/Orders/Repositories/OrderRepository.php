@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Modules\Orders\Contracts\Repositories\OrderRepositoryInterface;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
@@ -103,6 +104,47 @@ class OrderRepository implements OrderRepositoryInterface
             ->limit(count($orderStatuses) * 3)
             ->get()
             ->groupBy(fn ($i) => $i->status->value);
+    }
+
+    /**
+     * @return Collection<string, Collection<int, Order>>
+     */
+    public function listWindowedForDashboardHome(): Collection
+    {
+        $orderStatuses = [
+            OrderStatusEnum::New,
+            OrderStatusEnum::OfferProvided,
+            OrderStatusEnum::EndedByProvider,
+            OrderStatusEnum::InProgress,
+        ];
+
+        return Order::query()
+            ->with(['user', 'provider'])
+            ->orderByRaw('ROW_NUMBER() OVER (PARTITION BY status ORDER BY created_at DESC)')
+            ->limit(count($orderStatuses) * 3)
+            ->whereIn('status', $orderStatuses)
+            ->get()
+            ->groupBy(fn ($i) => $i->status->value);
+    }
+
+    public function countAll(): int
+    {
+        return Order::query()->count('id');
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    public function statusDistribution(): array
+    {
+        return Order::query()
+            ->select('status', DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [$item->status->value => $item->count];
+            })
+            ->all();
     }
 
     /**

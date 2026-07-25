@@ -5,9 +5,13 @@ namespace App\Repositories\Provider;
 use App\Contracts\Provider\ProviderManagementRepositoryInterface;
 use App\Models\Provider;
 use App\Support\Phone;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection as SupportCollection;
+use Illuminate\Support\Facades\DB;
 
 class ProviderManagementRepository implements ProviderManagementRepositoryInterface
 {
@@ -115,5 +119,37 @@ class ProviderManagementRepository implements ProviderManagementRepositoryInterf
     public function syncSkills(Provider $provider, array $skills): void
     {
         $provider->skills()->sync($skills);
+    }
+
+    public function countAll(): int
+    {
+        return Provider::query()->count('id');
+    }
+
+    /**
+     * @return SupportCollection<string, int>
+     */
+    public function registrationCountsSince(CarbonInterface $since): SupportCollection
+    {
+        return Provider::query()
+            ->where('created_at', '>=', $since)
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->pluck('count', 'date');
+    }
+
+    /**
+     * @return Collection<int, Provider>
+     */
+    public function latestForDashboard(int $limit = 4): Collection
+    {
+        return Provider::query()
+            ->withCount(['orders', 'reviews'])
+            ->withAvg('reviews', 'rating')
+            ->limit($limit)
+            ->orderByDesc('created_at')
+            ->get();
     }
 }

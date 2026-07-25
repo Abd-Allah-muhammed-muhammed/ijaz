@@ -2,8 +2,11 @@
 
 namespace App\Services\User;
 
+use App\Actions\User\CountAllUsersAction;
 use App\Actions\User\DeleteUserAction;
 use App\Actions\User\EditUserAction;
+use App\Actions\User\GetUserRegistrationCountsSinceAction;
+use App\Actions\User\ListLatestUsersForDashboardAction;
 use App\Actions\User\ListUsersAction;
 use App\Actions\User\ListUserWalletTransactionsAction;
 use App\Actions\User\ShowUserAction;
@@ -14,9 +17,11 @@ use App\DTOs\User\StoreUserDTO;
 use App\DTOs\User\UpdateUserDTO;
 use App\DTOs\User\UpdateUserStatusDTO;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
 use Modules\Geo\Models\Nationality;
 use Modules\Geo\Services\NationalityService;
@@ -32,6 +37,9 @@ class UserManagementService
         private readonly DeleteUserAction $deleteAction,
         private readonly UpdateUserStatusAction $updateStatusAction,
         private readonly ListUserWalletTransactionsAction $walletTransactionsAction,
+        private readonly CountAllUsersAction $countAllAction,
+        private readonly GetUserRegistrationCountsSinceAction $registrationCountsAction,
+        private readonly ListLatestUsersForDashboardAction $latestForDashboardAction,
         private readonly NationalityService $nationalityService,
     ) {}
 
@@ -83,5 +91,26 @@ class UserManagementService
     public function getNationalitiesForDropdown(): Collection
     {
         return $this->nationalityService->listForSelect();
+    }
+
+    public function countAll(): int
+    {
+        return $this->countAllAction->handle();
+    }
+
+    /**
+     * @return SupportCollection<string, int>
+     */
+    public function registrationCountsSince(CarbonInterface $since): SupportCollection
+    {
+        return $this->registrationCountsAction->handle($since);
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function latestForDashboard(int $limit = 4): Collection
+    {
+        return $this->latestForDashboardAction->handle($limit);
     }
 }

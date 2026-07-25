@@ -2,7 +2,11 @@
 
 namespace Modules\Payment\Services;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Modules\Payment\Actions\GetAcceptedDailyTotalsSinceAction;
+use Modules\Payment\Actions\SumAcceptedPaymentsAction;
 use Modules\Payment\Contracts\PaymentGatewayInterface;
 use Modules\Payment\DTOs\PaymentInitResult;
 use Modules\Payment\Enums\PaymentStatusEnum;
@@ -10,6 +14,11 @@ use RuntimeException;
 
 class PaymentService
 {
+    public function __construct(
+        private readonly SumAcceptedPaymentsAction $sumAcceptedPaymentsAction,
+        private readonly GetAcceptedDailyTotalsSinceAction $acceptedDailyTotalsAction,
+    ) {}
+
     /**
      * Initiate a payment for a product.
      * Must be called inside a DB transaction by the caller.
@@ -54,5 +63,18 @@ class PaymentService
     public function getDefaultDriver(): string
     {
         return config('payment.default', 'paytabs');
+    }
+
+    public function sumAcceptedAmount(): float|int|string
+    {
+        return $this->sumAcceptedPaymentsAction->handle();
+    }
+
+    /**
+     * @return Collection<string, float|int|string>
+     */
+    public function acceptedDailyTotalsSince(CarbonInterface $since): Collection
+    {
+        return $this->acceptedDailyTotalsAction->handle($since);
     }
 }

@@ -30,6 +30,21 @@ interface OrderRepositoryInterface
     public function listWindowedForProviderHome(Provider $provider): Collection;
 
     /**
+     * Dashboard home windowed latest orders (unscoped).
+     * Same ROW_NUMBER + ORDER BY + LIMIT quirk as listWindowedForProviderHome.
+     *
+     * @return Collection<string, Collection<int, Order>>
+     */
+    public function listWindowedForDashboardHome(): Collection;
+
+    public function countAll(): int;
+
+    /**
+     * @return array<string, int>
+     */
+    public function statusDistribution(): array;
+
+    /**
      * @return array{totalOrders: int, totalFinishedOrders: int}
      */
     public function providerHomeStats(Provider $provider): array;

@@ -2,10 +2,13 @@
 
 namespace App\Services\Provider;
 
+use App\Actions\Provider\CountAllProvidersAction;
 use App\Actions\Provider\DeleteProviderAction;
 use App\Actions\Provider\EditProviderAction;
 use App\Actions\Provider\FindProviderByPhoneAction;
 use App\Actions\Provider\FindProviderForApiAction;
+use App\Actions\Provider\GetProviderRegistrationCountsSinceAction;
+use App\Actions\Provider\ListLatestProvidersForDashboardAction;
 use App\Actions\Provider\ListProvidersAction;
 use App\Actions\Provider\ListProviderWalletTransactionsAction;
 use App\Actions\Provider\ShowProviderAction;
@@ -17,9 +20,11 @@ use App\DTOs\Provider\UpdateProviderDTO;
 use App\DTOs\Provider\UpdateProviderStatusDTO;
 use App\Models\Provider;
 use App\Support\Phone;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
@@ -41,6 +46,9 @@ class ProviderManagementService
         private readonly ListProviderWalletTransactionsAction $walletTransactionsAction,
         private readonly FindProviderForApiAction $findForApiAction,
         private readonly FindProviderByPhoneAction $findByPhoneAction,
+        private readonly CountAllProvidersAction $countAllAction,
+        private readonly GetProviderRegistrationCountsSinceAction $registrationCountsAction,
+        private readonly ListLatestProvidersForDashboardAction $latestForDashboardAction,
         private readonly ProviderTypeService $providerTypeService,
         private readonly RegionService $regionService,
         private readonly CityService $cityService,
@@ -120,5 +128,26 @@ class ProviderManagementService
     public function getCitiesForDropdown(): Collection
     {
         return $this->cityService->listForSelect();
+    }
+
+    public function countAll(): int
+    {
+        return $this->countAllAction->handle();
+    }
+
+    /**
+     * @return SupportCollection<string, int>
+     */
+    public function registrationCountsSince(CarbonInterface $since): SupportCollection
+    {
+        return $this->registrationCountsAction->handle($since);
+    }
+
+    /**
+     * @return Collection<int, Provider>
+     */
+    public function latestForDashboard(int $limit = 4): Collection
+    {
+        return $this->latestForDashboardAction->handle($limit);
     }
 }
