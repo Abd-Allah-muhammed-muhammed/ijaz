@@ -7,6 +7,7 @@ use App\Contracts\Admin\RoleRepositoryInterface;
 use App\Contracts\Auth\AdminRepositoryInterface;
 use App\Contracts\Auth\ProviderRepositoryInterface;
 use App\Contracts\Auth\UserRepositoryInterface;
+use App\Contracts\Provider\ProviderManagementRepositoryInterface;
 use App\Contracts\User\UserManagementRepositoryInterface;
 use App\Models\Setting;
 use App\NotificationChannel\EventChannel;
@@ -16,6 +17,7 @@ use App\Repositories\Admin\RoleRepository;
 use App\Repositories\Auth\AdminRepository;
 use App\Repositories\Auth\ProviderRepository;
 use App\Repositories\Auth\UserRepository;
+use App\Repositories\Provider\ProviderManagementRepository;
 use App\Repositories\User\UserManagementRepository;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
@@ -69,6 +71,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             UserManagementRepositoryInterface::class,
             UserManagementRepository::class,
+        );
+
+        $this->app->bind(
+            ProviderManagementRepositoryInterface::class,
+            ProviderManagementRepository::class,
         );
     }
 

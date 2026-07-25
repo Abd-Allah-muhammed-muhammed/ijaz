@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class ProviderCategory extends Pivot
 {
+    public $timestamps = false;
+
     protected $fillable = [
         'category_id',
         'provider_id',

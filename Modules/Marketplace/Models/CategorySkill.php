@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class CategorySkill extends Pivot
 {
+    public $timestamps = false;
+
     protected $fillable = [
         'category_id',
         'skill_id',

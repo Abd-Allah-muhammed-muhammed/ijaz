@@ -7,7 +7,7 @@ use App\Http\Resources\Api\V1\CityCollection;
 use App\Http\Resources\Api\V1\NationalityCollection;
 use App\Http\Resources\Api\V1\ProviderResource;
 use App\Http\Resources\Api\V1\RegionCollection;
-use App\Models\Provider;
+use App\Services\Provider\ProviderManagementService;
 use App\Support\Phone;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -27,6 +27,7 @@ class CatalogController extends Controller
         private readonly RegionService $regionService,
         private readonly CityService $cityService,
         private readonly NationalityService $nationalityService,
+        private readonly ProviderManagementService $providerService,
     ) {}
 
     /**
@@ -91,14 +92,10 @@ class CatalogController extends Controller
             ], 'not found');
         }
 
-        $provider = Provider::query()
-            ->with(['categories.translations'])
-            ->when(
-                $request->category_id,
-                fn ($query, $v) => $query->whereHas('categories', fn ($q) => $q->where('categories.id', $v))
-            )
-            ->where('phone', $phone)
-            ->first();
+        $provider = $this->providerService->findByPhone(
+            $phone,
+            $request->filled('category_id') ? $request->integer('category_id') : null,
+        );
 
         if (! $provider) {
             return $this->failedResponse([
