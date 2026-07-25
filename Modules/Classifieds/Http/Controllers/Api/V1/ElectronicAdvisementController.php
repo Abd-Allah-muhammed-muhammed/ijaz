@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Classifieds\Http\Controllers\V1;
+namespace Modules\Classifieds\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -9,39 +9,35 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use MMAE\ApiResponse\Traits\HasApiResponse;
-use Modules\Classifieds\DTOs\CarAdvisementDTO;
-use Modules\Classifieds\Http\Requests\Api\CarAdvisementRequest;
-use Modules\Classifieds\Http\Resources\Api\CarAdvisementCollection;
-use Modules\Classifieds\Http\Resources\Api\CarAdvisementResource;
-use Modules\Classifieds\Models\CarAdvisement;
-use Modules\Classifieds\QueryFilters\CarAdvisementFilters;
-use Modules\Classifieds\Services\CarAdvisementService;
+use Modules\Classifieds\DTOs\ElectronicAdvisementDTO;
+use Modules\Classifieds\Http\Requests\Api\ElectronicAdvisementRequest;
+use Modules\Classifieds\Http\Resources\Api\ElectronicAdvisementCollection;
+use Modules\Classifieds\Http\Resources\Api\ElectronicAdvisementResource;
+use Modules\Classifieds\Models\ElectronicAdvisement;
+use Modules\Classifieds\QueryFilters\ElectronicAdvisementFilters;
+use Modules\Classifieds\Services\ElectronicAdvisementService;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Throwable;
 
-#[Group('Car Advisements')]
-class CarAdvisementController extends Controller
+#[Group('Electronic Advisements')]
+class ElectronicAdvisementController extends Controller
 {
     use HasApiResponse;
 
     public function __construct(
-        private readonly CarAdvisementService $carAdvisementService,
+        private readonly ElectronicAdvisementService $service,
     ) {}
 
     /**
-     * List own advisement's (authenticated user's advisement's)
+     * List own advisements (authenticated user's advisements)
      *
-     * @queryParam operation string optional Filter by operation.
-     * @queryParam usage_status string optional Filter by usage status.
-     * @queryParam car_brand_id integer optional Filter by car brand.
-     * @queryParam car_type_id integer optional Filter by car type.
-     * @queryParam car_category_id integer optional Filter by car category.
+     * @queryParam status string optional Filter by status (when includeStatus is on).
+     * @queryParam condition string optional Filter by condition (new|used|less_than_year).
+     * @queryParam device_category_id integer optional Filter by device category.
      * @queryParam city_id integer optional Filter by city.
      * @queryParam region_id integer optional Filter by region.
-     * @queryParam min_year integer optional Minimum year.
-     * @queryParam max_year integer optional Maximum year.
      * @queryParam min_price numeric optional Minimum price.
      * @queryParam max_price numeric optional Maximum price.
      * @queryParam search string optional Search title or description.
@@ -51,11 +47,11 @@ class CarAdvisementController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $filters = new CarAdvisementFilters($request);
+        $filters = new ElectronicAdvisementFilters($request, includeStatus: true);
 
         return $this->successResponse(
-            CarAdvisementCollection::make(
-                $this->carAdvisementService->listUserAdvisements($user, $filters)
+            ElectronicAdvisementCollection::make(
+                $this->service->listUserAdvisements($user, $filters)
             )
         );
     }
@@ -65,15 +61,10 @@ class CarAdvisementController extends Controller
      *
      * @unauthenticated
      *
-     * @queryParam operation string optional Filter by operation.
-     * @queryParam usage_status string optional Filter by usage status.
-     * @queryParam car_brand_id integer optional Filter by car brand.
-     * @queryParam car_type_id integer optional Filter by car type.
-     * @queryParam car_category_id integer optional Filter by car category.
+     * @queryParam condition string optional Filter by condition (new|used|less_than_year).
+     * @queryParam device_category_id integer optional Filter by device category.
      * @queryParam city_id integer optional Filter by city.
      * @queryParam region_id integer optional Filter by region.
-     * @queryParam min_year integer optional Minimum year.
-     * @queryParam max_year integer optional Maximum year.
      * @queryParam min_price numeric optional Minimum price.
      * @queryParam max_price numeric optional Maximum price.
      * @queryParam search string optional Search title or description.
@@ -81,32 +72,32 @@ class CarAdvisementController extends Controller
      */
     public function all(Request $request): JsonResponse
     {
-        $filters = new CarAdvisementFilters($request);
+        $filters = new ElectronicAdvisementFilters($request, includeStatus: false);
 
         return $this->successResponse(
-            CarAdvisementCollection::make(
-                $this->carAdvisementService->listPublishedAdvisements($filters)
+            ElectronicAdvisementCollection::make(
+                $this->service->listPublishedAdvisements($filters)
             )
         );
     }
 
     /**
-     * Create a new car advisement
+     * Create a new electronic advisement
      *
      * @authenticated
      *
      * @throws Throwable
      */
-    public function store(CarAdvisementRequest $request): JsonResponse
+    public function store(ElectronicAdvisementRequest $request): JsonResponse
     {
         /** @var User $user */
         $user = Auth::user();
 
         try {
-            $dto = CarAdvisementDTO::fromRequest($request);
-            $carAdvisement = $this->carAdvisementService->create($user, $dto);
+            $dto = ElectronicAdvisementDTO::fromRequest($request);
+            $electronicAdvisement = $this->service->create($user, $dto);
 
-            return $this->successResponse(CarAdvisementResource::make($carAdvisement));
+            return $this->successResponse(ElectronicAdvisementResource::make($electronicAdvisement));
         } catch (Throwable $throwable) {
             report($throwable);
 
@@ -115,36 +106,36 @@ class CarAdvisementController extends Controller
     }
 
     /**
-     * Get a car advisement
+     * Get an electronic advisement
      *
      * @authenticated
      *
      * @throws Throwable
      */
-    public function show(CarAdvisement $carAdvisement): JsonResponse
+    public function show(ElectronicAdvisement $electronicAdvisement): JsonResponse
     {
-        $carAdvisement = $this->carAdvisementService->loadForShow($carAdvisement);
+        $electronicAdvisement = $this->service->loadForShow($electronicAdvisement);
 
-        return $this->successResponse(CarAdvisementResource::make($carAdvisement));
+        return $this->successResponse(ElectronicAdvisementResource::make($electronicAdvisement));
     }
 
     /**
-     * Update an existing car advisement
+     * Update an existing electronic advisement
      *
      * @authenticated
      *
      * @throws Throwable
      */
-    public function update(CarAdvisementRequest $request, CarAdvisement $carAdvisement): JsonResponse
+    public function update(ElectronicAdvisementRequest $request, ElectronicAdvisement $electronicAdvisement): JsonResponse
     {
         /** @var User $user */
         $user = Auth::user();
 
         try {
-            $dto = CarAdvisementDTO::fromRequest($request);
-            $carAdvisement = $this->carAdvisementService->update($user, $carAdvisement, $dto);
+            $dto = ElectronicAdvisementDTO::fromRequest($request);
+            $electronicAdvisement = $this->service->update($user, $electronicAdvisement, $dto);
 
-            return $this->successResponse(CarAdvisementResource::make($carAdvisement));
+            return $this->successResponse(ElectronicAdvisementResource::make($electronicAdvisement));
         } catch (AccessDeniedHttpException) {
             return $this->failedMessageResponse(__('forbidden !!'), Response::HTTP_FORBIDDEN);
         } catch (Throwable $throwable) {
@@ -155,19 +146,19 @@ class CarAdvisementController extends Controller
     }
 
     /**
-     * Delete a media from a car advisement
+     * Delete a media from an electronic advisement
      *
      * @authenticated
      *
      * @throws Throwable
      */
-    public function deleteMedia(CarAdvisement $carAdvisement, Media $media): JsonResponse
+    public function deleteMedia(ElectronicAdvisement $electronicAdvisement, Media $media): JsonResponse
     {
         /** @var User $user */
         $user = Auth::user();
 
         try {
-            $this->carAdvisementService->deleteMedia($user, $carAdvisement, $media);
+            $this->service->deleteMedia($user, $electronicAdvisement, $media);
 
             return $this->successMessageResponse(__('media deleted successfully'));
         } catch (AccessDeniedHttpException) {
@@ -180,19 +171,19 @@ class CarAdvisementController extends Controller
     }
 
     /**
-     * Delete a car advisement
+     * Delete an electronic advisement
      *
      * @authenticated
      *
      * @throws Throwable
      */
-    public function destroy(CarAdvisement $carAdvisement): JsonResponse
+    public function destroy(ElectronicAdvisement $electronicAdvisement): JsonResponse
     {
         /** @var User $user */
         $user = Auth::user();
 
         try {
-            $this->carAdvisementService->delete($user, $carAdvisement);
+            $this->service->delete($user, $electronicAdvisement);
 
             return $this->successMessageResponse(__('data deleted successfully'));
         } catch (AccessDeniedHttpException) {

@@ -1,10 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Classifieds\Http\Controllers\V1\CarAdvisementController;
-use Modules\Classifieds\Http\Controllers\V1\ElectronicAdvisementController;
-use Modules\Classifieds\Http\Controllers\V1\InstituteAdvisementController;
-use Modules\Classifieds\Http\Controllers\V1\PropertyAdvisementController;
+use Modules\Classifieds\Http\Controllers\Api\V1\CarAdvisementController;
+use Modules\Classifieds\Http\Controllers\Api\V1\ElectronicAdvisementController;
+use Modules\Classifieds\Http\Controllers\Api\V1\InstituteAdvisementController;
+use Modules\Classifieds\Http\Controllers\Api\V1\PropertyAdvisementController;
 
 Route::group(['prefix' => 'classifieds'], function () {
 

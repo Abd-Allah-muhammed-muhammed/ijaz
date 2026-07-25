@@ -6,7 +6,7 @@ use Modules\Catalog\Models\PropertiyCategory;
 use Modules\Catalog\Models\PropertyType;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;
-use Modules\Classifieds\Http\Controllers\V1\PropertyAdvisementController;
+use Modules\Classifieds\Http\Controllers\Api\V1\PropertyAdvisementController;
 use Modules\Classifieds\Models\PropertyAdvisement;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;

@@ -8,7 +8,7 @@ use Modules\Catalog\Models\CarType;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;
 use Modules\Classifieds\Enums\UsageStatusEnum;
-use Modules\Classifieds\Http\Controllers\V1\CarAdvisementController;
+use Modules\Classifieds\Http\Controllers\Api\V1\CarAdvisementController;
 use Modules\Classifieds\Models\CarAdvisement;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
