@@ -9,6 +9,7 @@ use Modules\Chat\Actions\ListMessagesAction;
 use Modules\Chat\Actions\OpenConversationAction;
 use Modules\Chat\Actions\SendMessageAction;
 use Modules\Chat\Contracts\ChatTypeHandlerInterface;
+use Modules\Chat\Contracts\Repositories\ConversationRepositoryInterface;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Models\Conversation;
@@ -23,6 +24,7 @@ class ConversationService
         private readonly ListConversationsAction $listAction,
         private readonly ListMessagesAction $listMessagesAction,
         private readonly SendMessageAction $sendAction,
+        private readonly ConversationRepositoryInterface $conversations,
     ) {}
 
     public function open(
@@ -72,5 +74,24 @@ class ConversationService
     public function getHandler(ChatTypeEnum $type): ChatTypeHandlerInterface
     {
         return $this->registry->get($type);
+    }
+
+    /**
+     * Provider dashboard listing of order conversations, excluding an operation status via join.
+     */
+    public function listForProviderOrderOperations(
+        Model $provider,
+        string $operationType,
+        string $operationsTable,
+        string|int $excludedOperationStatus,
+        int $perPage = 10,
+    ): LengthAwarePaginator {
+        return $this->conversations->paginateForProviderOrderOperations(
+            $provider,
+            $operationType,
+            $operationsTable,
+            $excludedOperationStatus,
+            $perPage,
+        );
     }
 }

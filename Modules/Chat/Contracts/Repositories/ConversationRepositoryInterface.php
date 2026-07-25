@@ -21,4 +21,17 @@ interface ConversationRepositoryInterface
         ?string $operationType,
         int $perPage = 15,
     ): LengthAwarePaginator;
+
+    /**
+     * Provider dashboard order-chat listing: active order conversations for a provider.
+     *
+     * @param  string|int  $excludedOperationStatus  Status value excluded via join on $operationsTable
+     */
+    public function paginateForProviderOrderOperations(
+        Model $provider,
+        string $operationType,
+        string $operationsTable,
+        string|int $excludedOperationStatus,
+        int $perPage = 10,
+    ): LengthAwarePaginator;
 }

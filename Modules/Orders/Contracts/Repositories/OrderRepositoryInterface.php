@@ -5,6 +5,8 @@ namespace Modules\Orders\Contracts\Repositories;
 use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 use Modules\Orders\Models\Order;
 
 interface OrderRepositoryInterface
@@ -16,6 +18,21 @@ interface OrderRepositoryInterface
     public function paginateForProvider(Provider $provider, int $perPage): LengthAwarePaginator;
 
     public function paginateRecommendedForProvider(Provider $provider, int $perPage): LengthAwarePaginator;
+
+    /**
+     * @return EloquentCollection<int, Order>
+     */
+    public function listRecommendedForProviderHome(Provider $provider, int $limit = 10): EloquentCollection;
+
+    /**
+     * @return Collection<string, Collection<int, Order>>
+     */
+    public function listWindowedForProviderHome(Provider $provider): Collection;
+
+    /**
+     * @return array{totalOrders: int, totalFinishedOrders: int}
+     */
+    public function providerHomeStats(Provider $provider): array;
 
     /**
      * @param  array{status?: mixed, date_from?: mixed, date_to?: mixed}  $filters

@@ -5,6 +5,8 @@ namespace Modules\Orders\Repositories;
 use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 use Modules\Orders\Contracts\Repositories\OrderRepositoryInterface;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
@@ -54,6 +56,66 @@ class OrderRepository implements OrderRepositoryInterface
             ->withCount(['offers', 'media'])
             ->whereNull('accepted_offer_id')
             ->paginate($perPage);
+    }
+
+    /**
+     * @return EloquentCollection<int, Order>
+     */
+    public function listRecommendedForProviderHome(Provider $provider, int $limit = 10): EloquentCollection
+    {
+        $categories = $provider->providerCategories()->pluck('category_id')->toArray();
+
+        return Order::query()
+            ->where('status', OrderStatusEnum::New)
+            ->whereIn('category_id', $categories)
+            ->whereNull('provider_id')
+            ->whereNull('accepted_offer_id')
+            ->withCount(['offers', 'media'])
+            ->with(['category.translation', 'user'])
+            ->latest()
+            ->take($limit)
+            ->get();
+    }
+
+    /**
+     * @return Collection<string, Collection<int, Order>>
+     */
+    public function listWindowedForProviderHome(Provider $provider): Collection
+    {
+        $orderStatuses = [
+            OrderStatusEnum::New,
+            OrderStatusEnum::OfferProvided,
+            OrderStatusEnum::EndedByProvider,
+            OrderStatusEnum::InProgress,
+        ];
+
+        return Order::query()
+            ->orderByRaw('ROW_NUMBER() OVER (PARTITION BY status ORDER BY created_at DESC)')
+            ->whereIn('status', $orderStatuses)
+            ->where(function ($query) use ($provider) {
+                return $query
+                    ->where(function ($query) use ($provider) {
+                        return $query->whereHas('offers', fn ($q) => $q->where('provider_id', $provider->id)->where('status', OfferStatusEnum::Pending))
+                            ->where('status', OrderStatusEnum::New);
+                    })
+                    ->orWhere('provider_id', $provider->id);
+            })
+            ->limit(count($orderStatuses) * 3)
+            ->get()
+            ->groupBy(fn ($i) => $i->status->value);
+    }
+
+    /**
+     * @return array{totalOrders: int, totalFinishedOrders: int}
+     */
+    public function providerHomeStats(Provider $provider): array
+    {
+        return [
+            'totalOrders' => $provider->orders()->count(),
+            'totalFinishedOrders' => $provider->orders()
+                ->where('status', OrderStatusEnum::EndedByClient)
+                ->count(),
+        ];
     }
 
     /**

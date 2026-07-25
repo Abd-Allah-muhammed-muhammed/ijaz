@@ -4,36 +4,26 @@ namespace Modules\Orders\Http\Controllers\Provider;
 
 use App\Http\Controllers\Controller;
 use App\Models\Provider;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Response;
 use Modules\Chat\Http\Resources\Dashboard\ConversationCollection;
-use Modules\Chat\Models\Conversation;
-use Modules\Orders\Enums\OrderStatusEnum;
-use Modules\Orders\Models\Order;
+use Modules\Orders\Services\OrderService;
 
 class ProviderChatIndexController extends Controller
 {
+    public function __construct(
+        private readonly OrderService $orderService,
+    ) {}
+
     public function __invoke(Request $request): Response
     {
         /** @var Provider $provider */
         $provider = auth('provider')->user();
 
-        $rows = Conversation::query()
-            ->select('conversations.*')
-            ->where('operation_type', Order::class)
-            ->join('orders', function ($join) {
-                $join->on('orders.id', 'conversations.operation_id')
-                    ->where('orders.status', '!=', OrderStatusEnum::EndedByClient);
-            })
-            ->with(['lastMessage.sender', 'lastMessage.lastAttachment', 'user2', 'user1'])
-            ->withCountUnreadMessagesFor($provider)
-            ->where(function (Builder $query) use ($provider) {
-                $query->whereMorphedTo('user1', $provider)
-                    ->orWhereMorphedTo('user2', $provider);
-            })
-            ->paginate($request->integer('per_page', 10))
-            ->withQueryString();
+        $rows = $this->orderService->listConversationsForProvider(
+            $provider,
+            $request->integer('per_page', 10),
+        );
 
         return inertia('Provider/Chat/Index', [
             'prams' => $request->all() ?: [],

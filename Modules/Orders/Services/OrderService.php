@@ -6,10 +6,16 @@ use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 use Modules\Orders\Actions\Dashboard\ListDashboardOrdersAction;
 use Modules\Orders\Actions\Dashboard\ListOrderConversationMessagesAction;
 use Modules\Orders\Actions\Dashboard\ShowDashboardOrderAction;
 use Modules\Orders\Actions\Provider\EndProviderOrderAction;
+use Modules\Orders\Actions\Provider\GetProviderHomeOrderStatsAction;
+use Modules\Orders\Actions\Provider\ListProviderHomeRecommendedOrdersAction;
+use Modules\Orders\Actions\Provider\ListProviderHomeWindowedOrdersAction;
+use Modules\Orders\Actions\Provider\ListProviderOrderConversationsAction;
 use Modules\Orders\Actions\Provider\ListProviderOrdersAction;
 use Modules\Orders\Actions\Provider\ListRecommendedOrdersAction;
 use Modules\Orders\Actions\Provider\ShowProviderOrderAction;
@@ -40,6 +46,10 @@ class OrderService
         private readonly EndAndReviewOrderAction $endAndReviewOrder,
         private readonly ListProviderOrdersAction $listProviderOrders,
         private readonly ListRecommendedOrdersAction $listRecommendedOrders,
+        private readonly ListProviderHomeRecommendedOrdersAction $listProviderHomeRecommendedOrders,
+        private readonly ListProviderHomeWindowedOrdersAction $listProviderHomeWindowedOrders,
+        private readonly GetProviderHomeOrderStatsAction $getProviderHomeOrderStats,
+        private readonly ListProviderOrderConversationsAction $listProviderOrderConversations,
         private readonly ShowProviderOrderAction $showProviderOrder,
         private readonly EndProviderOrderAction $endProviderOrder,
         private readonly UpdateProviderReviewAction $updateProviderReview,
@@ -106,6 +116,35 @@ class OrderService
     public function listRecommendedForProvider(Provider $provider, int $perPage): LengthAwarePaginator
     {
         return $this->listRecommendedOrders->handle($provider, $perPage);
+    }
+
+    /**
+     * @return EloquentCollection<int, Order>
+     */
+    public function listRecommendedForProviderHome(Provider $provider, int $limit = 10): EloquentCollection
+    {
+        return $this->listProviderHomeRecommendedOrders->handle($provider, $limit);
+    }
+
+    /**
+     * @return Collection<string, Collection<int, Order>>
+     */
+    public function listWindowedForProviderHome(Provider $provider): Collection
+    {
+        return $this->listProviderHomeWindowedOrders->handle($provider);
+    }
+
+    /**
+     * @return array{totalOrders: int, totalFinishedOrders: int}
+     */
+    public function providerHomeStats(Provider $provider): array
+    {
+        return $this->getProviderHomeOrderStats->handle($provider);
+    }
+
+    public function listConversationsForProvider(Provider $provider, int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->listProviderOrderConversations->handle($provider, $perPage);
     }
 
     public function showForProvider(Order $order, Provider $provider): Order

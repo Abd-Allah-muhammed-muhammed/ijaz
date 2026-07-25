@@ -3,6 +3,7 @@
 namespace Modules\Chat\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Contracts\Repositories\ConversationRepositoryInterface;
 use Modules\Chat\Models\Conversation;
@@ -59,5 +60,29 @@ class ConversationRepository implements ConversationRepositoryInterface
             ->with(['user1', 'user2', 'lastMessage', 'operation'])
             ->latest('last_message_at')
             ->paginate($perPage);
+    }
+
+    public function paginateForProviderOrderOperations(
+        Model $provider,
+        string $operationType,
+        string $operationsTable,
+        string|int $excludedOperationStatus,
+        int $perPage = 10,
+    ): LengthAwarePaginator {
+        return Conversation::query()
+            ->select('conversations.*')
+            ->where('operation_type', $operationType)
+            ->join($operationsTable, function ($join) use ($operationsTable, $excludedOperationStatus) {
+                $join->on("{$operationsTable}.id", 'conversations.operation_id')
+                    ->where("{$operationsTable}.status", '!=', $excludedOperationStatus);
+            })
+            ->with(['lastMessage.sender', 'lastMessage.lastAttachment', 'user2', 'user1'])
+            ->withCountUnreadMessagesFor($provider)
+            ->where(function (Builder $query) use ($provider) {
+                $query->whereMorphedTo('user1', $provider)
+                    ->orWhereMorphedTo('user2', $provider);
+            })
+            ->paginate($perPage)
+            ->withQueryString();
     }
 }
