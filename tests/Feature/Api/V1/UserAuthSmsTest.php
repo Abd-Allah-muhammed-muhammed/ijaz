@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\User;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Modules\Sms\DTOs\SmsResult;
 use Modules\Sms\Services\SmsService;
 

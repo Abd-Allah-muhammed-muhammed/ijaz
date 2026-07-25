@@ -3,11 +3,11 @@
 namespace App\Http\Requests\Provider\Auth;
 
 use App\Models\Provider;
-use Modules\Marketplace\Models\ProviderType;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\Marketplace\Models\ProviderType;
 
 class UpdateProfileRequest extends FormRequest
 {

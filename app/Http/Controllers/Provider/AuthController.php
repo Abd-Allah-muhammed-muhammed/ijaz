@@ -8,7 +8,7 @@ use App\Http\Requests\Provider\Auth\LoginRequest;
 use App\Http\Requests\Provider\Auth\UpdateProfileRequest;
 use App\Http\Resources\Dashboard\ProviderResource;
 use App\Services\Auth\ProviderAuthService;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

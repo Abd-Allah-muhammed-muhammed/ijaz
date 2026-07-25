@@ -3,7 +3,7 @@
 use App\Actions\Auth\User\SendLoginOtpAction;
 use App\Exceptions\Auth\OtpCooldownException;
 use App\Models\User;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Modules\Sms\DTOs\SmsResult;

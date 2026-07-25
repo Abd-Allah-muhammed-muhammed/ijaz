@@ -9,7 +9,7 @@ use App\Http\Resources\Api\V1\NationalityResource;
 use App\Http\Resources\Dashboard\UserCollection;
 use App\Http\Resources\Dashboard\UserResource;
 use App\Models\User;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Exception;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;

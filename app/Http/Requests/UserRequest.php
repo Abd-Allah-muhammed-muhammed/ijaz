@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\RegisterVerificationCode;
 use App\Models\User;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;

@@ -2,7 +2,7 @@
 
 use App\Http\Resources\Api\V1\MediaResource;
 use App\Models\User;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;

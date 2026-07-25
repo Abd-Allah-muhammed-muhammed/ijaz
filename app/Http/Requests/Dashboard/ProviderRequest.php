@@ -3,12 +3,12 @@
 namespace App\Http\Requests\Dashboard;
 
 use App\Models\Provider;
-use Modules\Marketplace\Models\ProviderType;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\Marketplace\Models\ProviderType;
 
 class ProviderRequest extends FormRequest
 {

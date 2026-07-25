@@ -7,8 +7,8 @@ use App\Contracts\OTPS\HasOTPsContract;
 use App\Enums\Users\UserStatusEnum;
 use App\Services\Firebase\Contract\InteractWithFirebase;
 use App\Services\Firebase\DTO\Target;
+use App\Support\HasBroadcastChannel;
 use App\Traits\Blockable;
-use App\Traits\HasBroadcastChanel;
 use App\Traits\HasOTPs;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -98,7 +98,7 @@ use Modules\Wallet\Traits\HasWallet;
 class User extends Authenticatable implements HasConversation, HasOTPsContract, InteractWithFirebase
 {
     /** @use HasFactory<UserFactory> */
-    use Blockable, HasApiTokens, HasBroadcastChanel, HasFactory, HasJobs, HasOTPs, HasPayments, HasWallet, Notifiable;
+    use Blockable, HasApiTokens, HasBroadcastChannel, HasFactory, HasJobs, HasOTPs, HasPayments, HasWallet, Notifiable;
 
     /**
      * The attributes that are mass assignable.

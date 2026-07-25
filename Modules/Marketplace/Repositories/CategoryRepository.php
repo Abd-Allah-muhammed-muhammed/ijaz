@@ -2,7 +2,7 @@
 
 namespace Modules\Marketplace\Repositories;
 
-use App\Services\Normalize\Normalize;
+use App\Support\Normalize;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;

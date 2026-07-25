@@ -2,7 +2,7 @@
 
 namespace Modules\Classifieds\Models;
 
-use App\Traits\HasNormalizedAttributes;
+use App\Support\HasNormalizedAttributes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

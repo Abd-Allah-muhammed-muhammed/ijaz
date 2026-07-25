@@ -5,8 +5,8 @@ namespace App\Models;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Services\Firebase\Contract\InteractWithFirebase;
 use App\Services\Firebase\DTO\Target;
+use App\Support\HasBroadcastChannel;
 use App\Traits\Blockable;
-use App\Traits\HasBroadcastChanel;
 use App\Traits\HasReviews;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -62,7 +62,7 @@ use Storage;
  */
 class Provider extends Authenticatable implements HasConversation, HasMedia, InteractWithFirebase
 {
-    use Blockable, HasBroadcastChanel, HasJobs, HasPayments, HasReviews, HasRoles, HasWallet, InteractsWithMedia, Notifiable;
+    use Blockable, HasBroadcastChannel, HasJobs, HasPayments, HasReviews, HasRoles, HasWallet, InteractsWithMedia, Notifiable;
 
     protected string $default_image = 'media/avatars/blank.png';
 

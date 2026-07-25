@@ -4,7 +4,7 @@ namespace App\Rules;
 
 use App\Models\Provider;
 use App\Models\User;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Translation\PotentiallyTranslatedString;

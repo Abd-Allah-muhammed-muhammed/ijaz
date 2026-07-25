@@ -87,6 +87,34 @@ Dashboard\NationalityResource` to find. The bug was invisible to static search.
 regardless of whether it's currently in the same namespace. This makes future namespace
 moves searchable and prevents this exact class of silent breakage.
 
+### Pint conflict: `no_unused_imports` vs same-namespace explicit imports
+
+Laravel Pint's default `laravel` preset enables `no_unused_imports` (there is no project
+`pint.json` overriding this). PHP-CS-Fixer treats same-namespace `use` statements as
+redundant and **always strips them**, even when the short name is referenced in code.
+There is no per-line ignore and no rule option to keep intentional same-namespace imports.
+
+Additionally, `no_unneeded_import_alias` strips aliases that match the class's short name
+(`use App\Support\Normalize as Normalize`), so that is not a workaround.
+
+**Do not** disable `no_unused_imports` project-wide — it still catches genuinely unused
+imports elsewhere.
+
+**Required pattern when an explicit same-namespace import is intentional:** use a
+**distinct** alias so Pint keeps the import (FQCN remains searchable):
+
+```php
+namespace App\Support;
+
+// Distinct alias required — see "Pint conflict" above.
+use App\Support\Normalize as TextNormalize;
+
+TextNormalize::make($value, $locale);
+```
+
+Reference: `app/Support/HasNormalizedAttributes.php`. Apply the same pattern anywhere else
+an intentional same-namespace `use` would otherwise be stripped on the next `pint` run.
+
 ## Post-extraction verification — grep is not enough
 
 After moving any class to a new module namespace, a `grep` sweep for the OLD fully-

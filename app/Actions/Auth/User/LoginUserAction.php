@@ -5,7 +5,7 @@ namespace App\Actions\Auth\User;
 use App\Contracts\Auth\UserRepositoryInterface;
 use App\DTOs\Auth\UserLoginResult;
 use App\Enums\Users\UserStatusEnum;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Random\RandomException;
 
 class LoginUserAction

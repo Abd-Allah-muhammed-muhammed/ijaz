@@ -1,7 +1,7 @@
 <?php
 
 use App\Actions\Auth\EnsureOtpCooldownAction;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;

@@ -2,7 +2,7 @@
 
 namespace App\Rules;
 
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Database\Eloquent\Builder;

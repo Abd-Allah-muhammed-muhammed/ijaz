@@ -31,7 +31,7 @@ Last verified from source: 2026-04-16
 | (none) | - | - |
 
 ## Traits
-- `App\Traits\HasBroadcastChanel`
+- `App\Support\HasBroadcastChannel`
 
 ## Enums Used
 - None detected in casts()
@@ -135,7 +135,7 @@ Last verified from source: 2026-04-16
 | `user` | `MorphTo` | `Unknown` |
 
 ## Traits
-- `App\Traits\HasNormalizedAttributes`
+- `App\Support\HasNormalizedAttributes`
 
 ## Enums Used
 - None detected in casts()
@@ -364,7 +364,7 @@ Last verified from source: 2026-04-16
 | `category` | `BelongsTo` | `Category` |
 
 ## Traits
-- `App\Traits\HasNormalizedAttributes`
+- `App\Support\HasNormalizedAttributes`
 
 ## Enums Used
 - None detected in casts()
@@ -413,7 +413,7 @@ Last verified from source: 2026-04-16
 | `city` | `BelongsTo` | `Region` |
 
 ## Traits
-- `App\Traits\HasNormalizedAttributes`
+- `App\Support\HasNormalizedAttributes`
 
 ## Enums Used
 - None detected in casts()
@@ -733,7 +733,7 @@ Last verified from source: 2026-04-16
 | `nationality` | `BelongsTo` | `Nationality` |
 
 ## Traits
-- `App\Traits\HasNormalizedAttributes`
+- `App\Support\HasNormalizedAttributes`
 
 ## Enums Used
 - None detected in casts()
@@ -1081,7 +1081,7 @@ Last verified from source: 2026-04-16
 | `user` | `MorphTo` | `Unknown` |
 
 ## Traits
-- `App\Traits\HasNormalizedAttributes`
+- `App\Support\HasNormalizedAttributes`
 
 ## Enums Used
 - None detected in casts()
@@ -1178,7 +1178,7 @@ Last verified from source: 2026-04-16
 
 ## Traits
 - `App\Traits\Blockable`
-- `App\Traits\HasBroadcastChanel`
+- `App\Support\HasBroadcastChannel`
 - `App\Traits\HasJobs`
 - `App\Traits\HasPayments`
 - `App\Traits\HasReviews`
@@ -1362,7 +1362,7 @@ Last verified from source: 2026-04-16
 | `region` | `BelongsTo` | `Region` |
 
 ## Traits
-- `App\Traits\HasNormalizedAttributes`
+- `App\Support\HasNormalizedAttributes`
 
 ## Enums Used
 - None detected in casts()
@@ -1493,7 +1493,7 @@ Last verified from source: 2026-04-16
 | `skill` | `BelongsTo` | `Skill` |
 
 ## Traits
-- `App\Traits\HasNormalizedAttributes`
+- `App\Support\HasNormalizedAttributes`
 
 ## Enums Used
 - None detected in casts()
@@ -1517,7 +1517,7 @@ Last verified from source: 2026-04-16
 | (none) | - | - |
 
 ## Traits
-- `App\Traits\HasBroadcastChanel`
+- `App\Support\HasBroadcastChannel`
 
 ## Enums Used
 - None detected in casts()
@@ -1632,7 +1632,7 @@ Last verified from source: 2026-04-16
 
 ## Traits
 - `App\Traits\Blockable`
-- `App\Traits\HasBroadcastChanel`
+- `App\Support\HasBroadcastChannel`
 - `App\Traits\HasJobs`
 - `App\Traits\HasOTPs`
 - `App\Traits\HasPayments`
