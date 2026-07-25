@@ -2,14 +2,14 @@
 
 namespace Modules\Chat\Models;
 
-use App\Traits\HasBroadcastChanel;
+use App\Support\HasBroadcastChannel;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Chat\Contracts\HasConversation;
 
 class System extends Authenticatable implements HasConversation
 {
-    use HasApiTokens, HasBroadcastChanel;
+    use HasApiTokens, HasBroadcastChannel;
 
     //
     public function getType(): string

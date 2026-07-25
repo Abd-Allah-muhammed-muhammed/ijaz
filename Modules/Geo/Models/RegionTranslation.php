@@ -2,7 +2,7 @@
 
 namespace Modules\Geo\Models;
 
-use App\Traits\HasNormalizedAttributes;
+use App\Support\HasNormalizedAttributes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

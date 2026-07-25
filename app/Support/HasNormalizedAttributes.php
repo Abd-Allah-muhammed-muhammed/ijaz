@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Traits;
+namespace App\Support;
 
-use App\Services\Normalize\Normalize;
+use App\Support\Normalize;
 
 trait HasNormalizedAttributes
 {

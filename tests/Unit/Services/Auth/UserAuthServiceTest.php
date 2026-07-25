@@ -4,7 +4,7 @@ use App\Enums\Users\UserStatusEnum;
 use App\Models\User;
 use App\Models\VerificationCode;
 use App\Services\Auth\UserAuthService;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Modules\Sms\DTOs\SmsResult;

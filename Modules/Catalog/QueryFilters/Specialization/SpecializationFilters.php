@@ -3,7 +3,7 @@
 namespace Modules\Catalog\QueryFilters\Specialization;
 
 use App\Contracts\QueryFilters\QueryFilterInterface;
-use App\Services\Normalize\Normalize;
+use App\Support\Normalize;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Modules\Catalog\QueryFilters\Specialization\Filters\ParentFilter;

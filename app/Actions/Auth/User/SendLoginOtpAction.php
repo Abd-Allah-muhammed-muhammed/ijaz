@@ -5,7 +5,7 @@ namespace App\Actions\Auth\User;
 use App\Actions\Auth\EnsureOtpCooldownAction;
 use App\Actions\Auth\SendOtpSmsAction;
 use App\Models\User;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use App\Traits\OTPGeneration;
 use Random\RandomException;
 

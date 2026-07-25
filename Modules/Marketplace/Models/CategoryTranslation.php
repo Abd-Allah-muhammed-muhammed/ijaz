@@ -2,7 +2,7 @@
 
 namespace Modules\Marketplace\Models;
 
-use App\Traits\HasNormalizedAttributes;
+use App\Support\HasNormalizedAttributes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

@@ -1,11 +1,9 @@
 <?php
 
 use App\Enums\Providers\ProviderStatusEnum;
-use Modules\Marketplace\Models\Category;
 use App\Models\Provider;
-use Modules\Marketplace\Models\ProviderType;
 use App\Models\RegisterVerificationCode;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Carbon\CarbonInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
@@ -17,6 +15,8 @@ use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
+use Modules\Marketplace\Models\Category;
+use Modules\Marketplace\Models\ProviderType;
 use Modules\Sms\DTOs\SmsResult;
 use Modules\Sms\Services\SmsService;
 use Modules\Wallet\Models\WalletTransaction;

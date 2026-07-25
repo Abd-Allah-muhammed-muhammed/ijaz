@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Traits;
+namespace App\Support;
 
-trait HasBroadcastChanel
+trait HasBroadcastChannel
 {
     public function receivesBroadcastNotificationsOn(): string
     {

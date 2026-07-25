@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Random\RandomException;
 
 trait OTPGeneration

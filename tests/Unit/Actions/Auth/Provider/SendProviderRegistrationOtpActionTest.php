@@ -3,7 +3,7 @@
 use App\Actions\Auth\Provider\SendProviderRegistrationOtpAction;
 use App\Exceptions\Auth\OtpCooldownException;
 use App\Models\RegisterVerificationCode;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Modules\Sms\DTOs\SmsResult;

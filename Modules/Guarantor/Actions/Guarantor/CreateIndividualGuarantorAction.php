@@ -3,7 +3,7 @@
 namespace Modules\Guarantor\Actions\Guarantor;
 
 use App\Models\User;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;

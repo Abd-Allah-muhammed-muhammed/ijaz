@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Traits\HasBroadcastChanel;
+use App\Support\HasBroadcastChannel;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +15,7 @@ use Storage;
 class Admin extends Authenticatable implements HasConversation
 {
     /** @use HasFactory<UserFactory> */
-    use HasBroadcastChanel, HasFactory, HasRoles, Notifiable;
+    use HasBroadcastChannel, HasFactory, HasRoles, Notifiable;
 
     public string $guard_name = 'admin';
 

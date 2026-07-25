@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Repositories;
 
-use App\Services\Normalize\Normalize;
+use App\Support\Normalize;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;

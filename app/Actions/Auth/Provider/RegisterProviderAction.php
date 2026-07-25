@@ -6,7 +6,7 @@ use App\Contracts\Auth\ProviderRepositoryInterface;
 use App\DTOs\Auth\ProviderRegisterResult;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Enums\ProviderTypeFilesEnum;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Http\Request;
 use Modules\Wallet\Actions\CreditProviderRegistrationBonusAction;
 use RuntimeException;

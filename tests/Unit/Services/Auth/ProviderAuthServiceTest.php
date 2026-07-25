@@ -3,15 +3,15 @@
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Http\Requests\Provider\Auth\LoginRequest;
 use App\Models\Provider;
-use Modules\Marketplace\Models\ProviderType;
 use App\Models\RegisterVerificationCode;
 use App\Services\Auth\ProviderAuthService;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
+use Modules\Marketplace\Models\ProviderType;
 use Modules\Sms\DTOs\SmsResult;
 use Modules\Sms\Services\SmsService;
 use Modules\Wallet\Actions\CreditProviderRegistrationBonusAction;

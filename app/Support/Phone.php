@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Sms;
+namespace App\Support;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Stringable;

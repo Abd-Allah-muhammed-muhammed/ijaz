@@ -9,7 +9,7 @@ use App\Http\Requests\Dashboard\ProviderRequest;
 use App\Http\Resources\Dashboard\ProviderCollection;
 use App\Http\Resources\Dashboard\ProviderResource;
 use App\Models\Provider;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use DB;
 use Exception;
 use Illuminate\Contracts\Database\Eloquent\Builder;

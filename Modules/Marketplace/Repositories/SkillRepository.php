@@ -2,7 +2,7 @@
 
 namespace Modules\Marketplace\Repositories;
 
-use App\Services\Normalize\Normalize;
+use App\Support\Normalize;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Modules\Marketplace\Contracts\Repositories\SkillRepositoryInterface;

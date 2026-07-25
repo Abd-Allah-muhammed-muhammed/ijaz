@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Models;
 
-use App\Services\Normalize\Normalize;
+use App\Support\Normalize;
 use Illuminate\Database\Eloquent\Model;
 
 class CarCategoryTranslation extends Model

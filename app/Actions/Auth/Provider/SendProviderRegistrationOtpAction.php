@@ -4,7 +4,7 @@ namespace App\Actions\Auth\Provider;
 
 use App\Actions\Auth\EnsureOtpCooldownAction;
 use App\Models\RegisterVerificationCode;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use App\Traits\OTPGeneration;
 use Illuminate\Support\Facades\Log;
 use Modules\Sms\Services\SmsService;

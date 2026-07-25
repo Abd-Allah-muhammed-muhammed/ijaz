@@ -8,7 +8,7 @@ use App\Http\Resources\Api\V1\NationalityCollection;
 use App\Http\Resources\Api\V1\ProviderResource;
 use App\Http\Resources\Api\V1\RegionCollection;
 use App\Models\Provider;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

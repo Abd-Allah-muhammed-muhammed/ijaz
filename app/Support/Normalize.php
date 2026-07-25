@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Normalize;
+namespace App\Support;
 
 readonly class Normalize
 {
