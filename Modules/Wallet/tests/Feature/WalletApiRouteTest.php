@@ -6,7 +6,7 @@ use Laravel\Sanctum\Sanctum;
 use Modules\Payment\Enums\PaymentDriverEnum;
 use Modules\Payment\Enums\PaymentMethodEnum;
 use Modules\Payment\Models\Payment;
-use Modules\Wallet\Http\Controllers\V1\WalletController;
+use Modules\Wallet\Http\Controllers\Api\V1\WalletController;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Models\WithdrawRequest;
 

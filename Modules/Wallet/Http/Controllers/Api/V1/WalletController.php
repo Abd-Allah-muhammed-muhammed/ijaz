@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Wallet\Http\Controllers\V1;
+namespace Modules\Wallet\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
