@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Marketplace\Http\Controllers\V1\MarketplaceCatalogController;
+use Modules\Marketplace\Http\Controllers\Api\V1\MarketplaceCatalogController;
 
 Route::prefix('catalog')->group(static function () {
     Route::controller(MarketplaceCatalogController::class)->group(static function () {
