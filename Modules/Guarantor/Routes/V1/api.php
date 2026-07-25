@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Guarantor\Http\Controllers\V1\GuarantorController;
-use Modules\Guarantor\Http\Controllers\V1\InstallmentController;
+use Modules\Guarantor\Http\Controllers\Api\V1\GuarantorController;
+use Modules\Guarantor\Http\Controllers\Api\V1\InstallmentController;
 
 Route::prefix('guarantor')->name('guarantor.')->group(function () {
 

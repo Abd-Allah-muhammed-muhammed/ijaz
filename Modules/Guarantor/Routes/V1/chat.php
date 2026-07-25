@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Guarantor\Http\Controllers\V1\GuarantorChatController;
+use Modules\Guarantor\Http\Controllers\Api\V1\GuarantorChatController;
 
 Route::middleware('auth:sanctum')->controller(GuarantorChatController::class)->group(static function () {
     Route::get('/', 'index')->name('index');
