@@ -9,8 +9,7 @@ use Modules\Chat\Models\Conversation;
 interface ChatTypeHandlerInterface
 {
     /**
-     * The operation_type value stored in conversations table.
-     * e.g. Modules\Orders\Models\Order::class
+     * The morph class stored on conversations.operation_type (null for P2P member chat).
      */
     public function operationType(): ?string;
 

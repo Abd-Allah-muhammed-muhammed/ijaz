@@ -6,14 +6,11 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Facade;
 use Modules\Chat\Contracts\IChatService;
 use Modules\Chat\Infrastructure\Features\MemberChat;
-use Modules\Chat\Infrastructure\Features\OrderChat;
 use Modules\Chat\Models\Conversation;
-use Modules\Orders\Models\Order;
 
 /**
  * @method static Collection  onlineUsers():
  * @method static MemberChat members(?Conversation $chat = null):
- * @method static OrderChat order(Order $order):
  * @method static Conversation generate(\Modules\Chat\Contracts\HasConversation $user1, \Modules\Chat\Contracts\HasConversation $user2)
  */
 class Chat extends Facade

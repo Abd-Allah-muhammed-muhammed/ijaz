@@ -16,8 +16,8 @@ use Modules\Chat\Http\Resources\ConversationMessageCollection;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\ConversationResource;
 use Modules\Chat\Models\Conversation;
+use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Chat\Services\ConversationService;
-use Modules\Orders\Models\Order;
 
 class OrderChatController extends Controller
 {
@@ -25,6 +25,7 @@ class OrderChatController extends Controller
 
     public function __construct(
         private readonly ConversationService $service,
+        private readonly ChatTypeRegistry $chatTypeRegistry,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -42,7 +43,8 @@ class OrderChatController extends Controller
 
     public function store(StoreOrderChatRequest $request): JsonResponse
     {
-        $order = Order::query()->findOrFail($request->validated('order_id'));
+        $operationClass = $this->chatTypeRegistry->get(ChatTypeEnum::Order)->operationType();
+        $order = $operationClass::query()->findOrFail($request->validated('order_id'));
 
         try {
             $conversation = $this->service->open(auth('provider')->user(), $order, ChatTypeEnum::Order);

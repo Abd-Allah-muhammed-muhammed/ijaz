@@ -3,10 +3,10 @@
 use App\Models\Provider;
 use App\Models\User;
 use Modules\Chat\Handlers\MemberChatHandler;
-use Modules\Chat\Handlers\OrderChatHandler;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\System;
 use Modules\Chat\Support\ParticipantConversationMessenger;
+use Modules\Orders\Handlers\OrderChatHandler;
 use Modules\Orders\Models\Order;
 use Modules\Support\Handlers\TicketSupportChatHandler;
 

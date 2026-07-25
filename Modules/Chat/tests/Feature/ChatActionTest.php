@@ -11,7 +11,6 @@ use Modules\Chat\Actions\OpenConversationAction;
 use Modules\Chat\Actions\SendMessageAction;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Handlers\MemberChatHandler;
-use Modules\Chat\Handlers\OrderChatHandler;
 use Modules\Chat\Http\Requests\SendMessageRequest;
 use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
 use Modules\Chat\Infrastructure\Events\NewMessageEvent;
@@ -19,6 +18,7 @@ use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\ConversationMessage;
 use Modules\Chat\Repositories\ConversationMessageRepository;
 use Modules\Chat\Repositories\ConversationRepository;
+use Modules\Orders\Handlers\OrderChatHandler;
 use Modules\Orders\Models\Order;
 
 test('OpenConversationAction creates conversation for order', function () {

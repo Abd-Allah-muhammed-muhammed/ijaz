@@ -2,7 +2,7 @@ import {useIntl} from 'react-intl'
 import {SidebarMenuItem} from './SidebarMenuItem'
 import useActiveRoute from "@/hooks/use-active-route";
 import HomeController from "@/actions/App/Http/Controllers/Provider/HomeController";
-import ProviderChatIndexController from "@/actions/Modules/Chat/Http/Controllers/Provider/ProviderChatIndexController";
+import ProviderChatIndexController from "@/actions/Modules/Orders/Http/Controllers/Provider/ProviderChatIndexController";
 import {SidebarMenuItemWithSub} from "@/_metronic/layout/components/sidebar/sidebar-menu/SidebarMenuItemWithSub";
 import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/OrderController";
 import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/TopUpController";

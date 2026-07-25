@@ -3,8 +3,11 @@
 namespace Modules\Orders\Providers;
 
 use Illuminate\Support\Facades\Event;
+use Modules\Chat\Enums\ChatTypeEnum;
+use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Orders\Contracts\Repositories\OrderOfferRepositoryInterface;
 use Modules\Orders\Contracts\Repositories\OrderRepositoryInterface;
+use Modules\Orders\Handlers\OrderChatHandler;
 use Modules\Orders\Listeners\HandleOrderPaymentCompleted;
 use Modules\Orders\Listeners\HandleOrderPaymentFailed;
 use Modules\Orders\Listeners\NotifyOrderPaymentCompleted;
@@ -41,5 +44,8 @@ class OrdersServiceProvider extends ModuleServiceProvider
         Event::listen(PaymentCompleted::class, NotifyOrderPaymentCompleted::class);
         Event::listen(PaymentFailed::class, HandleOrderPaymentFailed::class);
         Event::listen(PaymentFailed::class, NotifyOrderPaymentFailed::class);
+
+        $this->app->make(ChatTypeRegistry::class)
+            ->register(ChatTypeEnum::Order, new OrderChatHandler);
     }
 }

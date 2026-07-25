@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Chat\Http\Controllers\Provider;
+namespace Modules\Orders\Http\Controllers\Provider;
 
 use App\Http\Controllers\Controller;
 use App\Models\Provider;

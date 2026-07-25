@@ -8,9 +8,7 @@ use Illuminate\Support\Collection;
 use Modules\Chat\Contracts\HasConversation;
 use Modules\Chat\Contracts\IChatService;
 use Modules\Chat\Infrastructure\Features\MemberChat;
-use Modules\Chat\Infrastructure\Features\OrderChat;
 use Modules\Chat\Models\Conversation;
-use Modules\Orders\Models\Order;
 use Pusher\ApiErrorException;
 
 class ChatService implements IChatService
@@ -34,11 +32,6 @@ class ChatService implements IChatService
         }
 
         return $chat;
-    }
-
-    public function order(Order $order): OrderChat
-    {
-        return new OrderChat($order);
     }
 
     /**
