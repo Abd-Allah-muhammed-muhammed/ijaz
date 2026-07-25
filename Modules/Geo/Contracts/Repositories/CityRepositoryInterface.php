@@ -6,6 +6,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 interface CityRepositoryInterface
 {
@@ -25,4 +26,6 @@ interface CityRepositoryInterface
      * @return Collection<int, City>
      */
     public function listForSelect(?string $search = null, int $regionId = 0): Collection;
+
+    public function paginateForApiByRegion(Region $region, ?string $search = null, int $perPage = 10): LengthAwarePaginator;
 }

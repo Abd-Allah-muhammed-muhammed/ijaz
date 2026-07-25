@@ -76,4 +76,15 @@ class RegionRepository implements RegionRepositoryInterface
             ->when($search, fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%"))
             ->get();
     }
+
+    public function paginateForApi(?string $search = null, int $perPage = 10): LengthAwarePaginator
+    {
+        return Region::query()
+            ->withTranslation()
+            ->when(
+                $search,
+                fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
+            )
+            ->paginate($perPage);
+    }
 }

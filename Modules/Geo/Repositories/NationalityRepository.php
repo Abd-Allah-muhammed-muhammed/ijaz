@@ -65,4 +65,15 @@ class NationalityRepository implements NationalityRepositoryInterface
             ->when($search, fn ($query, $v) => $query->whereTranslationLike('name', "%{$v}%"))
             ->get();
     }
+
+    public function paginateForApi(?string $search = null, int $perPage = 10): LengthAwarePaginator
+    {
+        return Nationality::query()
+            ->withTranslation()
+            ->when(
+                $search,
+                fn ($query, $v) => $query->whereTranslationLike('name', "%{$v}%")
+            )
+            ->paginate($perPage);
+    }
 }

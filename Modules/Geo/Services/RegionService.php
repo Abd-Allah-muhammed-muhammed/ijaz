@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Modules\Geo\Actions\Region\DeleteRegionAction;
 use Modules\Geo\Actions\Region\GetRegionsForDropdownAction;
 use Modules\Geo\Actions\Region\ListRegionsAction;
+use Modules\Geo\Actions\Region\ListRegionsForApiAction;
 use Modules\Geo\Actions\Region\ListRegionsForSelectAction;
 use Modules\Geo\Actions\Region\ShowRegionAction;
 use Modules\Geo\Actions\Region\StoreRegionAction;
@@ -20,6 +21,7 @@ class RegionService
 {
     public function __construct(
         private readonly ListRegionsAction $listAction,
+        private readonly ListRegionsForApiAction $listForApiAction,
         private readonly ListRegionsForSelectAction $listForSelectAction,
         private readonly StoreRegionAction $storeAction,
         private readonly UpdateRegionAction $updateAction,
@@ -67,5 +69,10 @@ class RegionService
     public function listForSelect(?string $search = null): Collection
     {
         return $this->listForSelectAction->handle($search);
+    }
+
+    public function listForApi(?string $search = null, int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->listForApiAction->handle($search, $perPage);
     }
 }

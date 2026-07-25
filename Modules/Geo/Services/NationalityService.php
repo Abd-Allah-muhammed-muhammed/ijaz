@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Geo\Actions\Nationality\DeleteNationalityAction;
 use Modules\Geo\Actions\Nationality\ListNationalitiesAction;
+use Modules\Geo\Actions\Nationality\ListNationalitiesForApiAction;
 use Modules\Geo\Actions\Nationality\ListNationalitiesForSelectAction;
 use Modules\Geo\Actions\Nationality\StoreNationalityAction;
 use Modules\Geo\Actions\Nationality\UpdateNationalityAction;
@@ -19,6 +20,7 @@ class NationalityService
 {
     public function __construct(
         private readonly ListNationalitiesAction $listAction,
+        private readonly ListNationalitiesForApiAction $listForApiAction,
         private readonly ListNationalitiesForSelectAction $listForSelectAction,
         private readonly StoreNationalityAction $storeAction,
         private readonly UpdateNationalityAction $updateAction,
@@ -54,5 +56,10 @@ class NationalityService
     public function listForSelect(?string $search = null): Collection
     {
         return $this->listForSelectAction->handle($search);
+    }
+
+    public function listForApi(?string $search = null, int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->listForApiAction->handle($search, $perPage);
     }
 }

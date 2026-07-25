@@ -30,4 +30,6 @@ interface RegionRepositoryInterface
      * @return Collection<int, Region>
      */
     public function listForSelect(?string $search = null): Collection;
+
+    public function paginateForApi(?string $search = null, int $perPage = 10): LengthAwarePaginator;
 }

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Geo\Actions\City\DeleteCityAction;
 use Modules\Geo\Actions\City\ListCitiesAction;
+use Modules\Geo\Actions\City\ListCitiesForApiAction;
 use Modules\Geo\Actions\City\ListCitiesForSelectAction;
 use Modules\Geo\Actions\City\ShowCityAction;
 use Modules\Geo\Actions\City\StoreCityAction;
@@ -21,6 +22,7 @@ class CityService
 {
     public function __construct(
         private readonly ListCitiesAction $listAction,
+        private readonly ListCitiesForApiAction $listForApiAction,
         private readonly ListCitiesForSelectAction $listForSelectAction,
         private readonly StoreCityAction $storeAction,
         private readonly UpdateCityAction $updateAction,
@@ -68,5 +70,10 @@ class CityService
     public function listForSelect(?string $search = null, int $regionId = 0): Collection
     {
         return $this->listForSelectAction->handle($search, $regionId);
+    }
+
+    public function listForApi(Region $region, ?string $search = null, int $perPage = 10): LengthAwarePaginator
+    {
+        return $this->listForApiAction->handle($region, $search, $perPage);
     }
 }

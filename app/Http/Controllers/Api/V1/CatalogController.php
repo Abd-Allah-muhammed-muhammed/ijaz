@@ -13,28 +13,33 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
-use Modules\Geo\Models\Nationality;
 use Modules\Geo\Models\Region;
+use Modules\Geo\Services\CityService;
+use Modules\Geo\Services\NationalityService;
+use Modules\Geo\Services\RegionService;
 
 #[Group('Catalog')]
 class CatalogController extends Controller
 {
     use HasApiResponse;
 
+    public function __construct(
+        private readonly RegionService $regionService,
+        private readonly CityService $cityService,
+        private readonly NationalityService $nationalityService,
+    ) {}
+
     /**
      * @unauthenticated
      */
-    public function regions(): JsonResponse
+    public function regions(Request $request): JsonResponse
     {
         return $this->successResponse(
             RegionCollection::make(
-                Region::query()
-                    ->withTranslation()
-                    ->when(
-                        request()->search,
-                        fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
-                    )
-                    ->paginate(request()->integer('per_page', 10))
+                $this->regionService->listForApi(
+                    $request->search,
+                    $request->integer('per_page', 10),
+                )
             )
         );
     }
@@ -46,13 +51,11 @@ class CatalogController extends Controller
     {
         return $this->successResponse(
             CityCollection::make(
-                $region->cities()
-                    ->withTranslation()
-                    ->when(
-                        $request->search,
-                        fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
-                    )
-                    ->paginate($request->integer('per_page', 10))
+                $this->cityService->listForApi(
+                    $region,
+                    $request->search,
+                    $request->integer('per_page', 10),
+                )
             )
         );
     }
@@ -64,13 +67,10 @@ class CatalogController extends Controller
     {
         return $this->successResponse(
             NationalityCollection::make(
-                Nationality::query()
-                    ->withTranslation()
-                    ->when(
-                        $request->search,
-                        fn ($query, $v) => $query->whereTranslationLike('name', "%{$v}%")
-                    )
-                    ->paginate($request->integer('per_page', 10))
+                $this->nationalityService->listForApi(
+                    $request->search,
+                    $request->integer('per_page', 10),
+                )
             )
         );
     }
@@ -83,13 +83,15 @@ class CatalogController extends Controller
         if (! $request->filled('phone')) {
             return $this->failedMessageResponse(__('phone is required'));
         }
+
         $phone = Phone::make($request->input('phone'));
         if ($phone->isNotValid()) {
             return $this->failedResponse([
                 'phone' => trans('validation.exists', ['attribute' => trans('phone')]),
             ], 'not found');
         }
-        $q = Provider::query()
+
+        $provider = Provider::query()
             ->with(['categories.translations'])
             ->when(
                 $request->category_id,
@@ -98,24 +100,13 @@ class CatalogController extends Controller
             ->where('phone', $phone)
             ->first();
 
-        if (! $q) {
+        if (! $provider) {
             return $this->failedResponse([
                 'phone' => trans('validation.exists', ['attribute' => trans('phone')]),
             ], 'not found');
         }
 
-        return $this->successResponse(
-            ProviderResource::make(
-                Provider::query()
-                    ->with(['categories.translations'])
-                    ->when(
-                        $request->category_id,
-                        fn ($query, $v) => $query->whereHas('categories', fn ($q) => $q->where('categories.id', $v))
-                    )
-                    ->where('phone', $phone)
-                    ->first()
-            )
-        );
+        return $this->successResponse(ProviderResource::make($provider));
     }
 
     /**
