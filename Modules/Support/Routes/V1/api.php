@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Support\Http\Controllers\V1\TicketSupportController;
+use Modules\Support\Http\Controllers\Api\V1\TicketSupportController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::controller(TicketSupportController::class)->prefix('tickets')->group(function () {

@@ -4,7 +4,7 @@ use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 use Modules\Orders\Models\Order;
 use Modules\Support\Enums\TicketSupportStatusEnum;
-use Modules\Support\Http\Controllers\V1\TicketSupportController;
+use Modules\Support\Http\Controllers\Api\V1\TicketSupportController;
 use Modules\Support\Models\TicketSupport;
 
 beforeEach(function () {
