@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Opportunity\Http\Controllers\V1\OpportunityChatController;
+use Modules\Opportunity\Http\Controllers\Api\V1\OpportunityChatController;
 
 Route::middleware('auth:sanctum')->controller(OpportunityChatController::class)->group(static function () {
     Route::get('/', 'index')->name('index');

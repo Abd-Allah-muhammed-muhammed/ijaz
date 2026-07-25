@@ -1,9 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Opportunity\Http\Controllers\V1\CommentController;
-use Modules\Opportunity\Http\Controllers\V1\OfferController;
-use Modules\Opportunity\Http\Controllers\V1\OpportunityController;
+use Modules\Opportunity\Http\Controllers\Api\V1\CommentController;
+use Modules\Opportunity\Http\Controllers\Api\V1\OfferController;
+use Modules\Opportunity\Http\Controllers\Api\V1\OpportunityController;
 
 Route::prefix('opportunities')->name('opportunities.')->group(function () {
 

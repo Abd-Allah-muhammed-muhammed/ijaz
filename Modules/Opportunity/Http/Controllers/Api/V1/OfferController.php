@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Opportunity\Http\Controllers\V1;
+namespace Modules\Opportunity\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
