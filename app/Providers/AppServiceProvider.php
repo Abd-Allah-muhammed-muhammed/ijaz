@@ -2,12 +2,16 @@
 
 namespace App\Providers;
 
+use App\Contracts\Admin\AdminManagementRepositoryInterface;
+use App\Contracts\Admin\RoleRepositoryInterface;
 use App\Contracts\Auth\AdminRepositoryInterface;
 use App\Contracts\Auth\ProviderRepositoryInterface;
 use App\Contracts\Auth\UserRepositoryInterface;
 use App\Models\Setting;
 use App\NotificationChannel\EventChannel;
 use App\NotificationChannel\FirebaseChannel;
+use App\Repositories\Admin\AdminManagementRepository;
+use App\Repositories\Admin\RoleRepository;
 use App\Repositories\Auth\AdminRepository;
 use App\Repositories\Auth\ProviderRepository;
 use App\Repositories\Auth\UserRepository;
@@ -38,6 +42,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             AdminRepositoryInterface::class,
             AdminRepository::class,
+        );
+
+        $this->app->bind(
+            RoleRepositoryInterface::class,
+            RoleRepository::class,
+        );
+
+        $this->app->bind(
+            AdminManagementRepositoryInterface::class,
+            AdminManagementRepository::class,
         );
 
         $this->app->bind(
