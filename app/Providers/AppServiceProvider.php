@@ -7,6 +7,7 @@ use App\Contracts\Admin\RoleRepositoryInterface;
 use App\Contracts\Auth\AdminRepositoryInterface;
 use App\Contracts\Auth\ProviderRepositoryInterface;
 use App\Contracts\Auth\UserRepositoryInterface;
+use App\Contracts\User\UserManagementRepositoryInterface;
 use App\Models\Setting;
 use App\NotificationChannel\EventChannel;
 use App\NotificationChannel\FirebaseChannel;
@@ -15,6 +16,7 @@ use App\Repositories\Admin\RoleRepository;
 use App\Repositories\Auth\AdminRepository;
 use App\Repositories\Auth\ProviderRepository;
 use App\Repositories\Auth\UserRepository;
+use App\Repositories\User\UserManagementRepository;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
@@ -62,6 +64,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             ProviderRepositoryInterface::class,
             ProviderRepository::class,
+        );
+
+        $this->app->bind(
+            UserManagementRepositoryInterface::class,
+            UserManagementRepository::class,
         );
     }
 
