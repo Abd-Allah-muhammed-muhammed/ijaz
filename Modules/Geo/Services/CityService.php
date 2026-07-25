@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Geo\Actions\City\DeleteCityAction;
 use Modules\Geo\Actions\City\ListCitiesAction;
+use Modules\Geo\Actions\City\ListCitiesForSelectAction;
 use Modules\Geo\Actions\City\ShowCityAction;
 use Modules\Geo\Actions\City\StoreCityAction;
 use Modules\Geo\Actions\City\UpdateCityAction;
@@ -20,6 +21,7 @@ class CityService
 {
     public function __construct(
         private readonly ListCitiesAction $listAction,
+        private readonly ListCitiesForSelectAction $listForSelectAction,
         private readonly StoreCityAction $storeAction,
         private readonly UpdateCityAction $updateAction,
         private readonly DeleteCityAction $deleteAction,
@@ -58,5 +60,13 @@ class CityService
     public function getRegionsForDropdown(): Collection
     {
         return $this->regionsDropdownAction->handle();
+    }
+
+    /**
+     * @return Collection<int, City>
+     */
+    public function listForSelect(?string $search = null, int $regionId = 0): Collection
+    {
+        return $this->listForSelectAction->handle($search, $regionId);
     }
 }

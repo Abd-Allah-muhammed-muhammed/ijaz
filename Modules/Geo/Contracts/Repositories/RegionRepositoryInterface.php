@@ -25,4 +25,9 @@ interface RegionRepositoryInterface
      * @return Collection<int, Region>
      */
     public function getAllForDropdown(): Collection;
+
+    /**
+     * @return Collection<int, Region>
+     */
+    public function listForSelect(?string $search = null): Collection;
 }

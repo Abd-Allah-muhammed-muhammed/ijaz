@@ -66,4 +66,14 @@ class RegionRepository implements RegionRepositoryInterface
             ->with(['translation'])
             ->get();
     }
+
+    /**
+     * @return Collection<int, Region>
+     */
+    public function listForSelect(?string $search = null): Collection
+    {
+        return Region::query()->withTranslation()
+            ->when($search, fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%"))
+            ->get();
+    }
 }

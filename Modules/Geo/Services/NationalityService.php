@@ -3,9 +3,11 @@
 namespace Modules\Geo\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Geo\Actions\Nationality\DeleteNationalityAction;
 use Modules\Geo\Actions\Nationality\ListNationalitiesAction;
+use Modules\Geo\Actions\Nationality\ListNationalitiesForSelectAction;
 use Modules\Geo\Actions\Nationality\StoreNationalityAction;
 use Modules\Geo\Actions\Nationality\UpdateNationalityAction;
 use Modules\Geo\DTOs\StoreNationalityDTO;
@@ -17,6 +19,7 @@ class NationalityService
 {
     public function __construct(
         private readonly ListNationalitiesAction $listAction,
+        private readonly ListNationalitiesForSelectAction $listForSelectAction,
         private readonly StoreNationalityAction $storeAction,
         private readonly UpdateNationalityAction $updateAction,
         private readonly DeleteNationalityAction $deleteAction,
@@ -43,5 +46,13 @@ class NationalityService
     public function destroy(Nationality $nationality): void
     {
         $this->deleteAction->handle($nationality);
+    }
+
+    /**
+     * @return Collection<int, Nationality>
+     */
+    public function listForSelect(?string $search = null): Collection
+    {
+        return $this->listForSelectAction->handle($search);
     }
 }

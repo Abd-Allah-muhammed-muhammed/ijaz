@@ -3,6 +3,7 @@
 namespace Modules\Geo\Contracts\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Geo\Models\City;
 
@@ -19,4 +20,9 @@ interface CityRepositoryInterface
     public function delete(City $city): void;
 
     public function loadForEdit(City $city): City;
+
+    /**
+     * @return Collection<int, City>
+     */
+    public function listForSelect(?string $search = null, int $regionId = 0): Collection;
 }

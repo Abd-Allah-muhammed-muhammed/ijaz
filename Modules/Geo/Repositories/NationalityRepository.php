@@ -5,6 +5,7 @@ namespace Modules\Geo\Repositories;
 use App\Support\Normalize;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Geo\Contracts\Repositories\NationalityRepositoryInterface;
 use Modules\Geo\Exceptions\GeoException;
@@ -53,5 +54,15 @@ class NationalityRepository implements NationalityRepositoryInterface
         }
 
         $nationality->delete();
+    }
+
+    /**
+     * @return Collection<int, Nationality>
+     */
+    public function listForSelect(?string $search = null): Collection
+    {
+        return Nationality::query()->withTranslation()
+            ->when($search, fn ($query, $v) => $query->whereTranslationLike('name', "%{$v}%"))
+            ->get();
     }
 }

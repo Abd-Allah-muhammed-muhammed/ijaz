@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Modules\Geo\Actions\Region\DeleteRegionAction;
 use Modules\Geo\Actions\Region\GetRegionsForDropdownAction;
 use Modules\Geo\Actions\Region\ListRegionsAction;
+use Modules\Geo\Actions\Region\ListRegionsForSelectAction;
 use Modules\Geo\Actions\Region\ShowRegionAction;
 use Modules\Geo\Actions\Region\StoreRegionAction;
 use Modules\Geo\Actions\Region\UpdateRegionAction;
@@ -19,6 +20,7 @@ class RegionService
 {
     public function __construct(
         private readonly ListRegionsAction $listAction,
+        private readonly ListRegionsForSelectAction $listForSelectAction,
         private readonly StoreRegionAction $storeAction,
         private readonly UpdateRegionAction $updateAction,
         private readonly DeleteRegionAction $deleteAction,
@@ -57,5 +59,13 @@ class RegionService
     public function getAllForDropdown(): Collection
     {
         return $this->dropdownAction->handle();
+    }
+
+    /**
+     * @return Collection<int, Region>
+     */
+    public function listForSelect(?string $search = null): Collection
+    {
+        return $this->listForSelectAction->handle($search);
     }
 }
