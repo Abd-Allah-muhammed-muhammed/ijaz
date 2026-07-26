@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Chat\Events;
+namespace Modules\Chat\Infrastructure\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;

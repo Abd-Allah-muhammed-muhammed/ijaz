@@ -3,11 +3,11 @@
 use App\Models\Admin;
 use App\Models\Provider;
 use App\Models\User;
-use App\Services\Chat\Events\NewNotificationSendEvent;
 use App\Support\HasBroadcastChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Notifications\Events\BroadcastNotificationCreated;
 use Illuminate\Notifications\Notification;
+use Modules\Chat\Infrastructure\Events\NewNotificationSendEvent;
 use Modules\Chat\Models\System;
 
 it('applies HasBroadcastChannel to User, Provider, Admin, and System', function () {
