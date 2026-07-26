@@ -1,295 +1,747 @@
 # Enums Reference
 
-Last verified from source: 2026-04-16 (pre-module-extraction)
+Regenerated from the live codebase (`app/Enums` + `Modules/*/Enums`). Utility traits live under `app/Enums/Utilities/` and are documented separately below.
 
-Extracted from `app/Enums/` directory. All enums are backed enums unless otherwise noted.
+**Last verified: 2026-07-26, post-full-module-extraction**
 
-> **⚠️ Namespaces are stale and coverage is incomplete.** Of the 16 enums documented below,
-> only 6 still live under `App\Enums\` (`CategoryFeesTypeEnum`, `Jobs\JobTypeEnum`,
-> `OperationStatusEnum`, `Providers\ProviderStatusEnum`, `ProviderTypeFilesEnum`,
-> `Users\UserStatusEnum`). The other 10 moved into their owning modules:
->
-> | Documented as | Now lives at |
-> |---|---|
-> | `App\Enums\Advisements\{AdvisementStatus,Operation,UsageStatus}Enum` | `Modules\Classifieds\Enums\*` |
-> | `App\Enums\Chat\ChatEventEnum` | `Modules\Chat\Enums\ChatEventEnum` |
-> | `App\Enums\Order\{OfferStatus,OrderStatus}Enum` | `Modules\Orders\Enums\*` |
-> | `App\Enums\Payment\{PaymentDriver,PaymentMethod,PaymentStatus}Enum` | `Modules\Payment\Enums\*` |
-> | `App\Enums\SupportTickets\TicketSupportStatusEnum` | `Modules\Support\Enums\TicketSupportStatusEnum` |
->
-> A further 12 module enums are missing entirely (`Chat\ChatTypeEnum`, four
-> `Classifieds\*` enums, four `Guarantor\*` enums, two `Opportunity\*` enums, and
-> `Wallet\TransactionTypeEnum`). The case/value tables themselves are still accurate.
-> Needs a regeneration pass.
+Model cast cross-references come from the regenerated `docs/MODELS_REFERENCE.md` plus a live scan of model `casts()` methods. Short-name collisions (e.g. two `OfferStatusEnum` classes) are disambiguated by module.
 
----
+## Scope
 
-## `App\Enums\Advisements\AdvisementStatusEnum`
-**File:** `app/Enums/Advisements/AdvisementStatusEnum.php`
-
-| Case | Value | Description |
-|---|---|---|
-| `PUBLISHED` | `published` | Listing is publicly visible |
-| `PENDING` | `pending` | Awaiting approval |
-| `REJECTED` | `rejected` | Rejected by admin |
-| `CLOSED` | `closed` | Listing closed by owner |
+| Group | Enums |
+|---|---:|
+| App Core | 6 |
+| Chat | 2 |
+| Classifieds | 7 |
+| Guarantor | 4 |
+| Opportunity | 2 |
+| Orders | 2 |
+| Payment | 3 |
+| Sms | 1 |
+| Support | 1 |
+| Wallet | 1 |
+| **Total** | **29** |
 
 ---
 
-## `App\Enums\Advisements\OperationEnum`
-**File:** `app/Enums/Advisements/OperationEnum.php`
-
-| Case | Value | Description |
-|---|---|---|
-| `SALE` | `sale` | Selling operation |
-| `RENT` | `rent` | Renting operation |
-| `BUY` | `buy` | Buying operation |
-
----
-
-## `App\Enums\Advisements\UsageStatusEnum`
-**File:** `app/Enums/Advisements/UsageStatusEnum.php`
-
-| Case | Value | Description |
-|---|---|---|
-| `NEW` | `new` | Brand new item |
-| `USED` | `used` | Used item |
-| `NOT_SPECIFIED` | `not_specified` | Status not specified |
-
----
+# App Core
 
 ## `App\Enums\CategoryFeesTypeEnum`
-**File:** `app/Enums/CategoryFeesTypeEnum.php`
 
-| Case | Value | Description |
-|---|---|---|
-| `INHERITED` | `inherited` | Fees inherited from parent category |
-| `FIXED` | `fixed` | Fixed fee amount |
-| `PERCENTAGE` | `percentage` | Percentage-based fee |
+**File:** `app/Enums/CategoryFeesTypeEnum.php`  
+**Backing type:** `string`
 
----
+| Case | Value |
+|---|---|
+| `INHERITED` | `inherited` |
+| `FIXED` | `fixed` |
+| `PERCENTAGE` | `percentage` |
 
-## `App\Enums\Chat\ChatEventEnum`
-**File:** `app/Enums/Chat/ChatEventEnum.php`
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\Stringable`
 
-| Case | Value | Description |
-|---|---|---|
-| `New_Message` | `new-message` | New message in chat |
-| `Chat_Updated` | `chat-updated` | Chat conversation updated |
+### Used by models (casts)
+- `Category.fees_type`
 
 ---
 
 ## `App\Enums\Jobs\JobTypeEnum`
-**File:** `app/Enums/Jobs/JobTypeEnum.php`
 
-| Case | Value | Description |
-|---|---|---|
-| `Governmental` | `1` | Government job |
-| `Private` | `2` | Private sector job |
+**File:** `app/Enums/Jobs/JobTypeEnum.php`  
+**Backing type:** `int`
+
+| Case | Value |
+|---|---|
+| `Governmental` | `1` |
+| `Private` | `2` |
+
+### Utility traits
+- None
+
+### Used by models (casts)
+- `JobOffer.type`
 
 ---
 
 ## `App\Enums\OperationStatusEnum`
-**File:** `app/Enums/OperationStatusEnum.php`
 
-| Case | Value | Description |
-|---|---|---|
-| `Pending` | `pending` | Awaiting action |
-| `Rejected` | `rejected` | Operation rejected |
-| `Approved` | `approved` | Operation approved |
+**File:** `app/Enums/OperationStatusEnum.php`  
+**Backing type:** `string`
 
----
+| Case | Value |
+|---|---|
+| `Pending` | `pending` |
+| `Rejected` | `rejected` |
+| `Approved` | `approved` |
 
-## `App\Enums\Order\OfferStatusEnum`
-**File:** `app/Enums/Order/OfferStatusEnum.php`
+### Utility traits
+- `App\Enums\Utilities\HasOperations`
 
-| Case | Value | Description |
-|---|---|---|
-| `Pending` | `pending` | Offer awaiting response |
-| `Accepted` | `accepted` | Offer accepted |
-| `Rejected` | `rejected` | Offer rejected |
-| `Cancelled` | `cancelled` | Offer cancelled |
-| `Paid` | `paid` | Payment processed |
-
----
-
-## `App\Enums\Order\OrderStatusEnum`
-**File:** `app/Enums/Order/OrderStatusEnum.php`
-
-| Case | Value | Description |
-|---|---|---|
-| `New` | `new` | Newly created order |
-| `Hold` | `hold` | Order on hold |
-| `OfferProvided` | `offer_provided` | Provider submitted offer |
-| `PaymentCompleted` | `payment_completed` | Payment completed |
-| `InProgress` | `in_progress` | Work in progress |
-| `CancelledByProvider` | `cancelled_by_provider` | Cancelled by provider |
-| `CancelledByClient` | `cancelled_by_client` | Cancelled by client |
-| `EndedByProvider` | `ended_by_provider` | Ended by provider |
-| `EndedByClient` | `ended_by_client` | Ended by client |
-| `Refunded` | `refunded` | Payment refunded |
-
----
-
-## `App\Enums\Payment\PaymentDriverEnum`
-**File:** `app/Enums/Payment/PaymentDriverEnum.php`
-
-| Case | Value | Description |
-|---|---|---|
-| `PayTabs` | `paytabs` | PayTabs gateway (production) |
-| `Testing` | `testing` | Testing gateway (development) |
-
-⚠️ Note: Testing driver has hardcoded fee logic; if this expands, config-driven behavior would be cleaner.
-
----
-
-## `App\Enums\Payment\PaymentMethodEnum`
-**File:** `app/Enums/Payment/PaymentMethodEnum.php`
-
-| Case | Value | Description |
-|---|---|---|
-| `Offline` | `offline` | Offline payment (transfer, check, etc.) |
-| `Online` | `online` | Online payment gateway |
-
----
-
-## `App\Enums\Payment\PaymentStatusEnum`
-**File:** `app/Enums/Payment/PaymentStatusEnum.php`
-
-| Case | Value | Description |
-|---|---|---|
-| `Pending` | `pending` | Payment awaiting processing |
-| `Accepted` | `accepted` | Payment accepted by gateway |
-| `Canceled` | `canceled` | Payment cancelled |
-| `Rejected` | `rejected` | Payment rejected by gateway |
+### Used by models (casts)
+- `TopUpRequest.status`
+- `WithdrawRequest.status`
 
 ---
 
 ## `App\Enums\Providers\ProviderStatusEnum`
-**File:** `app/Enums/Providers/ProviderStatusEnum.php`
 
-| Case | Value | Description |
-|---|---|---|
-| `Pending` | `pending` | Awaiting approval |
-| `Approved` | `approved` | Approved to operate |
-| `Suspended` | `suspended` | Temporarily suspended |
-| `Rejected` | `rejected` | Application rejected |
-| `Blocked` | `blocked` | Account blocked |
+**File:** `app/Enums/Providers/ProviderStatusEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `Pending` | `pending` |
+| `Approved` | `approved` |
+| `Suspended` | `suspended` |
+| `Rejected` | `rejected` |
+| `Blocked` | `blocked` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `Provider.status`
 
 ---
 
 ## `App\Enums\ProviderTypeFilesEnum`
-**File:** `app/Enums/ProviderTypeFilesEnum.php`
 
-| Case | Value | Description |
-|---|---|---|
-| `ID_IMAGE` | `id_image` | Government ID document |
-| `COMMERCIAL_RECORD` | `commercial_record` | Business license |
-| `FREELANCER_CERTIFICATION` | `freelancer_certification` | Freelancer certification |
-| `IBAN_CERTIFICATION` | `iban_certification` | Bank account verification |
-| `LICENSE_TO_PRACTICE_LAW` | `license_to_practice_law` | Legal practice license |
+**File:** `app/Enums/ProviderTypeFilesEnum.php`  
+**Backing type:** `string`
 
----
+| Case | Value |
+|---|---|
+| `ID_IMAGE` | `id_image` |
+| `COMMERCIAL_RECORD` | `commercial_record` |
+| `FREELANCER_CERTIFICATION` | `freelancer_certification` |
+| `IBAN_CERTIFICATION` | `iban_certification` |
+| `LICENSE_TO_PRACTICE_LAW` | `license_to_practice_law` |
 
-## `App\Enums\SupportTickets\TicketSupportStatusEnum`
-**File:** `app/Enums/SupportTickets/TicketSupportStatusEnum.php`
+### Utility traits
+- `App\Enums\Utilities\Collectable`
 
-| Case | Value | Description |
-|---|---|---|
-| `Pending` | `pending` | Ticket newly created |
-| `Open` | `open` | Ticket being worked on |
-| `Closed` | `closed` | Ticket resolved |
+### Used by models (casts)
+- None detected in model casts (may still be used in validation, events, DTOs, or JS enum generation)
 
 ---
 
 ## `App\Enums\Users\UserStatusEnum`
-**File:** `app/Enums/Users/UserStatusEnum.php`
 
-| Case | Value | Description |
-|---|---|---|
-| `Active` | `active` | Account active |
-| `Blocked` | `blocked` | Account blocked |
-| `Deleted` | `deleted` | Account deleted (soft-deleted) |
+**File:** `app/Enums/Users/UserStatusEnum.php`  
+**Backing type:** `string`
 
----
+| Case | Value |
+|---|---|
+| `Active` | `active` |
+| `Blocked` | `blocked` |
+| `Deleted` | `deleted` |
 
-## Utility Enum Traits
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\Stringable`
 
-The following traits are available for use with enums and are used throughout the codebase:
-
-### `Collectable`
-Adds a `collect()` method to gather enum cases into a collection.
-
-**Usage:**
-```php
-class MyEnum extends Enum {
-    use Collectable;
-}
-
-$collected = MyEnum::collect(); // Returns Collection of all cases
-```
-
-### `HasOperations`
-Adds comparison helpers for enum matching.
-
-**Methods:**
-- `is(Enum $compare)` - Check if this case equals the comparison
-- `isNot(Enum $compare)` - Check if this case does not equal the comparison
-- `isIn(array $cases)` - Check if this case is in the given array
-- `isNotIn(array $cases)` - Check if this case is not in the given array
-
-**Usage:**
-```php
-if ($status->is(OrderStatusEnum::Completed)) {
-    // Handle completion
-}
-```
-
-### `HasTranslations`
-Adds `translated()` method based on an abstract translation key.
-
-**Usage:**
-```php
-$label = $status->translated(); // Returns translated label
-```
-
-### `Stringable`
-Adds `toString()` translation helper for converting enum cases to readable strings.
-
-**Usage:**
-```php
-$label = $status->toString(); // Returns string representation
-```
+### Used by models (casts)
+- `User.status`
 
 ---
 
-## Enum Usage Patterns
+# Chat
 
-**In Model Casts:**
+## `Modules\Chat\Enums\ChatEventEnum`
+
+**File:** `Modules/Chat/Enums/ChatEventEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `New_Message` | `new-message` |
+| `Chat_Updated` | `chat-updated` |
+
+### Utility traits
+- `App\Enums\Utilities\HasOperations`
+
+### Used by models (casts)
+- None detected in model casts (may still be used in validation, events, DTOs, or JS enum generation)
+
+---
+
+## `Modules\Chat\Enums\ChatTypeEnum`
+
+**File:** `Modules/Chat/Enums/ChatTypeEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `Member` | `member` |
+| `Order` | `order` |
+| `TicketSupport` | `ticket_support` |
+| `Opportunity` | `opportunity` |
+| `Guarantor` | `guarantor` |
+
+### Utility traits
+- None
+
+### Used by models (casts)
+- None detected in model casts (may still be used in validation, events, DTOs, or JS enum generation)
+
+---
+
+# Classifieds
+
+## `Modules\Classifieds\Enums\AdvisementStatusEnum`
+
+**File:** `Modules/Classifieds/Enums/AdvisementStatusEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `PUBLISHED` | `published` |
+| `PENDING` | `pending` |
+| `REJECTED` | `rejected` |
+| `CLOSED` | `closed` |
+
+### Utility traits
+- None
+
+### Used by models (casts)
+- `CarAdvisement.status`
+- `ElectronicAdvisement.status`
+- `InstituteAdvisement.status`
+- `PropertyAdvisement.status`
+
+---
+
+## `Modules\Classifieds\Enums\ElectronicConditionEnum`
+
+**File:** `Modules/Classifieds/Enums/ElectronicConditionEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `NEW` | `new` |
+| `USED` | `used` |
+| `LESS_THAN_YEAR` | `less_than_year` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\HasTranslations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `ElectronicAdvisement.condition`
+
+---
+
+## `Modules\Classifieds\Enums\InstituteTypeEnum`
+
+**File:** `Modules/Classifieds/Enums/InstituteTypeEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `INSTITUTE` | `institute` |
+| `UNIVERSITY` | `university` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\HasTranslations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `InstituteAdvisement.type`
+
+---
+
+## `Modules\Classifieds\Enums\OperationEnum`
+
+**File:** `Modules/Classifieds/Enums/OperationEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `SALE` | `sale` |
+| `RENT` | `rent` |
+| `BUY` | `buy` |
+
+### Utility traits
+- None
+
+### Used by models (casts)
+- `CarAdvisement.operation`
+- `PropertyAdvisement.operation`
+
+---
+
+## `Modules\Classifieds\Enums\StudyLevelEnum`
+
+**File:** `Modules/Classifieds/Enums/StudyLevelEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `DIPLOMA` | `diploma` |
+| `BACHELOR` | `bachelor` |
+| `MASTER` | `master` |
+| `PHD` | `phd` |
+| `CERTIFICATE` | `certificate` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\HasTranslations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `InstituteAdvisement.study_level`
+
+---
+
+## `Modules\Classifieds\Enums\StudyTypeEnum`
+
+**File:** `Modules/Classifieds/Enums/StudyTypeEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `ONSITE` | `onsite` |
+| `ONLINE` | `online` |
+| `HYBRID` | `hybrid` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\HasTranslations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `InstituteAdvisement.study_type`
+
+---
+
+## `Modules\Classifieds\Enums\UsageStatusEnum`
+
+**File:** `Modules/Classifieds/Enums/UsageStatusEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `NEW` | `new` |
+| `USED` | `used` |
+| `NOT_SPECIFIED` | `not_specified` |
+
+### Utility traits
+- None
+
+### Used by models (casts)
+- `CarAdvisement.usage_status`
+
+---
+
+# Guarantor
+
+## `Modules\Guarantor\Enums\AuthorizationTypeEnum`
+
+**File:** `Modules/Guarantor/Enums/AuthorizationTypeEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `PowerOfAttorney` | `power_of_attorney` |
+| `Agency` | `agency` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `GuarantorCompanyDetail.authorization_type`
+
+---
+
+## `Modules\Guarantor\Enums\GuarantorStatusEnum`
+
+**File:** `Modules/Guarantor/Enums/GuarantorStatusEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `New` | `new` |
+| `PendingAdmin` | `pending_admin` |
+| `ApprovedByAdmin` | `approved_by_admin` |
+| `RejectedByAdmin` | `rejected_by_admin` |
+| `Accepted` | `accepted` |
+| `Rejected` | `rejected` |
+| `InProgress` | `in_progress` |
+| `Overdue` | `overdue` |
+| `Ended` | `ended` |
+| `Cancelled` | `cancelled` |
+| `Refunded` | `refunded` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `GuarantorRequest.status`
+
+---
+
+## `Modules\Guarantor\Enums\GuarantorTypeEnum`
+
+**File:** `Modules/Guarantor/Enums/GuarantorTypeEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `Individual` | `individual` |
+| `Company` | `company` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `GuarantorRequest.type`
+
+---
+
+## `Modules\Guarantor\Enums\InstallmentStatusEnum`
+
+**File:** `Modules/Guarantor/Enums/InstallmentStatusEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `Pending` | `pending` |
+| `Paid` | `paid` |
+| `Released` | `released` |
+| `Overdue` | `overdue` |
+| `Refunded` | `refunded` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `GuarantorInstallment.status`
+
+---
+
+# Opportunity
+
+## `Modules\Opportunity\Enums\OfferStatusEnum`
+
+**File:** `Modules/Opportunity/Enums/OfferStatusEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `Pending` | `pending` |
+| `Accepted` | `accepted` |
+| `Rejected` | `rejected` |
+| `Cancelled` | `cancelled` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `OpportunityOffer.status`
+
+---
+
+## `Modules\Opportunity\Enums\OpportunityStatusEnum`
+
+**File:** `Modules/Opportunity/Enums/OpportunityStatusEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `New` | `new` |
+| `OfferAccepted` | `offer_accepted` |
+| `InProgress` | `in_progress` |
+| `Ended` | `ended` |
+| `Cancelled` | `cancelled` |
+| `Expired` | `expired` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `Opportunity.status`
+
+---
+
+# Orders
+
+## `Modules\Orders\Enums\OfferStatusEnum`
+
+**File:** `Modules/Orders/Enums/OfferStatusEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `Pending` | `pending` |
+| `Accepted` | `accepted` |
+| `Rejected` | `rejected` |
+| `Cancelled` | `cancelled` |
+| `Paid` | `paid` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `OrderOffer.status`
+- `OrderOfferHistory.status`
+
+---
+
+## `Modules\Orders\Enums\OrderStatusEnum`
+
+**File:** `Modules/Orders/Enums/OrderStatusEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `New` | `new` |
+| `Hold` | `hold` |
+| `OfferProvided` | `offer_provided` |
+| `PaymentCompleted` | `payment_completed` |
+| `InProgress` | `in_progress` |
+| `CancelledByProvider` | `cancelled_by_provider` |
+| `CancelledByClient` | `cancelled_by_client` |
+| `EndedByProvider` | `ended_by_provider` |
+| `EndedByClient` | `ended_by_client` |
+| `Refunded` | `refunded` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `Order.status`
+- `OrderStatusHistory.status`
+
+---
+
+# Payment
+
+## `Modules\Payment\Enums\PaymentDriverEnum`
+
+**File:** `Modules/Payment/Enums/PaymentDriverEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `PayTabs` | `paytabs` |
+| `Rajhi` | `rajhi` |
+| `Testing` | `testing` |
+
+### Utility traits
+- None
+
+### Used by models (casts)
+- None detected in model casts (may still be used in validation, events, DTOs, or JS enum generation)
+
+---
+
+## `Modules\Payment\Enums\PaymentMethodEnum`
+
+**File:** `Modules/Payment/Enums/PaymentMethodEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `Offline` | `offline` |
+| `Online` | `online` |
+
+### Utility traits
+- `App\Enums\Utilities\HasOperations`
+
+### Used by models (casts)
+- `TopUpRequest.payment_method`
+
+---
+
+## `Modules\Payment\Enums\PaymentStatusEnum`
+
+**File:** `Modules/Payment/Enums/PaymentStatusEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `Pending` | `pending` |
+| `Accepted` | `accepted` |
+| `Canceled` | `canceled` |
+| `Rejected` | `rejected` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `Payment.status`
+- `TopUpRequest.payment_status`
+
+---
+
+# Sms
+
+## `Modules\Sms\Enums\SmsMessageType`
+
+**File:** `Modules/Sms/Enums/SmsMessageType.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `Otp` | `otp` |
+| `Custom` | `custom` |
+
+### Utility traits
+- None
+
+### Used by models (casts)
+- None detected in model casts (may still be used in validation, events, DTOs, or JS enum generation)
+
+---
+
+# Support
+
+## `Modules\Support\Enums\TicketSupportStatusEnum`
+
+**File:** `Modules/Support/Enums/TicketSupportStatusEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `Pending` | `pending` |
+| `Open` | `open` |
+| `Closed` | `closed` |
+
+### Utility traits
+- `App\Enums\Utilities\HasOperations`
+
+### Used by models (casts)
+- `TicketSupport.status`
+
+---
+
+# Wallet
+
+## `Modules\Wallet\Enums\TransactionTypeEnum`
+
+**File:** `Modules/Wallet/Enums/TransactionTypeEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `Credit` | `credit` |
+| `Debit` | `debit` |
+| `PendingCredit` | `pending_credit` |
+| `PendingDebit` | `pending_debit` |
+
+### Utility traits
+- None
+
+### Used by models (casts)
+- None detected in model casts (may still be used in validation, events, DTOs, or JS enum generation)
+
+---
+
+# Utility Enum Traits
+
+Located in `app/Enums/Utilities/`. Verified present and used by several App Core enums.
+
+## `App\Enums\Utilities\Collectable`
+
+**File:** `app/Enums/Utilities/Collectable.php`
+
+Adds `collect()` to return an `Illuminate\Support\Collection` of all enum cases.
+
 ```php
-protected $casts = [
-    'status' => UserStatusEnum::class,
-    'payment_status' => PaymentStatusEnum::class,
-];
+MyEnum::collect(); // Collection of cases
 ```
 
-**In Validation Rules:**
+## `App\Enums\Utilities\HasOperations`
+
+**File:** `app/Enums/Utilities/HasOperations.php`
+
+Comparison helpers:
+
+- `is(self $enum): bool`
+- `isNot(self $enum): bool`
+- `isIn(array $enums): bool`
+- `isNotIn(array $enums): bool`
+
+```php
+if ($status->is(UserStatusEnum::Active)) { /* ... */ }
+```
+
+## `App\Enums\Utilities\HasTranslations`
+
+**File:** `app/Enums/Utilities/HasTranslations.php`
+
+Requires `getTranslatableKey(): string` and exposes `translated()` via Laravel `trans()`.
+
+**Current usage:** used by Classifieds enums `ElectronicConditionEnum`, `InstituteTypeEnum`, `StudyLevelEnum`, and `StudyTypeEnum`.
+
+## `App\Enums\Utilities\Stringable`
+
+**File:** `app/Enums/Utilities/Stringable.php`
+
+Adds `toString()` which translates `str($this->value)->lower()`.
+
+```php
+$status->toString();
+```
+
+---
+
+## Usage patterns
+
+**Model casts:**
+
+```php
+protected function casts(): array
+{
+    return [
+        'status' => UserStatusEnum::class,
+    ];
+}
+```
+
+**Validation:**
+
 ```php
 'status' => ['required', Rule::enum(OrderStatusEnum::class)],
 ```
 
-**In Database Queries:**
-```php
-$active_orders = Order::where('status', OrderStatusEnum::New->value)->get();
-// Or with enum directly (if using backed enums):
-$active_orders = Order::where('status', OrderStatusEnum::New)->get();
-```
+**Queries:**
 
----
+```php
+Order::where('status', OrderStatusEnum::New)->get();
+```
 
 ## Notes
 
-- All enums are in `app/Enums/` with subdirectories organized by domain (Advisements, Order, Payment, etc.)
-- Enums use backing values (strings or integers) to store in the database
-- The codebase relies heavily on enums for type safety instead of hardcoded status strings
-- ⚠️ Never hardcode status strings; always use the corresponding enum from `app/Enums/`
+- Prefer module-owned enums under `Modules/{Module}/Enums` for domain status/types; App Core keeps cross-cutting user/provider/job/operation enums.
+- Never hardcode status/type strings when an enum exists.
+- `Modules\Orders\Enums\OfferStatusEnum` and `Modules\Opportunity\Enums\OfferStatusEnum` are **distinct** classes that share a short name — always import the FQCN for the domain you mean.
