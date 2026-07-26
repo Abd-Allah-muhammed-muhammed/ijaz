@@ -8,7 +8,6 @@ use App\DTOs\User\UpdateUserStatusDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\UserRequest;
 use App\Http\Requests\Dashboard\UserStatusRequest;
-use App\Http\Resources\Api\V1\NationalityResource;
 use App\Http\Resources\Dashboard\UserCollection;
 use App\Http\Resources\Dashboard\UserResource;
 use App\Models\User;
@@ -18,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Modules\Geo\Http\Resources\Dashboard\NationalityResource;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
 use Throwable;
 

@@ -2,10 +2,10 @@
 
 namespace App\Http\Resources\Api\V1\User;
 
-use App\Http\Resources\Api\V1\NationalityResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Geo\Http\Resources\Api\V1\NationalityResource;
 
 /**
  * @see User

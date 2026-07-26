@@ -3,10 +3,10 @@
 namespace Modules\Jobs\Http\Resources;
 
 use App\Http\Resources\Api\V1\MediaResource;
-use App\Http\Resources\Api\V1\NationalityResource;
-use App\Http\Resources\Api\V1\RegionResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Geo\Http\Resources\Api\V1\NationalityResource;
+use Modules\Geo\Http\Resources\Api\V1\RegionResource;
 use Modules\Geo\Http\Resources\Dashboard\CityResource;
 use Modules\Jobs\Models\JobOffer;
 use Modules\Marketplace\Http\Resources\Api\V1\SkillResource;

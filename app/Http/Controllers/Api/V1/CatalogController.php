@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Api\V1\CityCollection;
-use App\Http\Resources\Api\V1\NationalityCollection;
 use App\Http\Resources\Api\V1\ProviderResource;
-use App\Http\Resources\Api\V1\RegionCollection;
 use App\Services\Provider\ProviderManagementService;
 use App\Support\Phone;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Geo\Http\Resources\Api\V1\CityCollection;
+use Modules\Geo\Http\Resources\Api\V1\NationalityCollection;
+use Modules\Geo\Http\Resources\Api\V1\RegionCollection;
 use Modules\Geo\Models\Region;
 use Modules\Geo\Services\CityService;
 use Modules\Geo\Services\NationalityService;

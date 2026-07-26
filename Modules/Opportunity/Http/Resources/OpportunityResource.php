@@ -2,11 +2,11 @@
 
 namespace Modules\Opportunity\Http\Resources;
 
-use App\Http\Resources\Api\V1\CityResource;
 use App\Http\Resources\Api\V1\MediaResource;
-use App\Http\Resources\Api\V1\RegionResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Geo\Http\Resources\Api\V1\CityResource;
+use Modules\Geo\Http\Resources\Api\V1\RegionResource;
 use Modules\Opportunity\Models\Opportunity;
 
 /** @mixin Opportunity */
