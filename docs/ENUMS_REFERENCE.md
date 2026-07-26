@@ -1,8 +1,26 @@
 # Enums Reference
 
-Last verified from source: 2026-04-16
+Last verified from source: 2026-04-16 (pre-module-extraction)
 
 Extracted from `app/Enums/` directory. All enums are backed enums unless otherwise noted.
+
+> **⚠️ Namespaces are stale and coverage is incomplete.** Of the 16 enums documented below,
+> only 6 still live under `App\Enums\` (`CategoryFeesTypeEnum`, `Jobs\JobTypeEnum`,
+> `OperationStatusEnum`, `Providers\ProviderStatusEnum`, `ProviderTypeFilesEnum`,
+> `Users\UserStatusEnum`). The other 10 moved into their owning modules:
+>
+> | Documented as | Now lives at |
+> |---|---|
+> | `App\Enums\Advisements\{AdvisementStatus,Operation,UsageStatus}Enum` | `Modules\Classifieds\Enums\*` |
+> | `App\Enums\Chat\ChatEventEnum` | `Modules\Chat\Enums\ChatEventEnum` |
+> | `App\Enums\Order\{OfferStatus,OrderStatus}Enum` | `Modules\Orders\Enums\*` |
+> | `App\Enums\Payment\{PaymentDriver,PaymentMethod,PaymentStatus}Enum` | `Modules\Payment\Enums\*` |
+> | `App\Enums\SupportTickets\TicketSupportStatusEnum` | `Modules\Support\Enums\TicketSupportStatusEnum` |
+>
+> A further 12 module enums are missing entirely (`Chat\ChatTypeEnum`, four
+> `Classifieds\*` enums, four `Guarantor\*` enums, two `Opportunity\*` enums, and
+> `Wallet\TransactionTypeEnum`). The case/value tables themselves are still accurate.
+> Needs a regeneration pass.
 
 ---
 

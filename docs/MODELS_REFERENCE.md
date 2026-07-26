@@ -2,7 +2,17 @@
 
 Generated from source files in app/Models. Field types are taken from casts/PHP types where available; otherwise marked Unknown.
 
-Last verified from source: 2026-04-16
+Last verified from source: 2026-04-16 (pre-module-extraction)
+
+> **⚠️ File paths are stale — field/relationship/trait content is still broadly usable.**
+> All 60 model entries below cite `app/Models/<Model>.php`, but only 9 models still live
+> there (`Admin`, `BlockHistory`, `Employee`, `Provider`, `RegisterVerificationCode`,
+> `Review`, `Setting`, `User`, `VerificationCode`). The other 51 moved into `Modules/*/Models/`
+> during the module extraction — for example `Banner` → `Modules/Cms/Models/Banner.php`,
+> `Order` → `Modules/Orders/Models/Order.php`, `Conversation` → `Modules/Chat/Models/Conversation.php`.
+>
+> Trait references were updated for the `App\Support` consolidation (2026-07-25); the rest of
+> the header metadata was not re-verified. Needs a regeneration pass.
 
 ---
 

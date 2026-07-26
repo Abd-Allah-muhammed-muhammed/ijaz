@@ -1,5 +1,10 @@
 # Wallet Module — Todo List
 
+> **Archived — superseded by `.cursor/rules/layered-architecture.mdc` and the completed
+> module extraction work (see git history).** Kept for historical reference only.
+>
+> Completed: 116 of 118 items. `Modules/Wallet/` is extracted and layered.
+
 > Branch: feature/wallet-module
 > Last updated: 2026-06-21
 > Goal: Move ALL wallet-related code into Modules/Wallet/ — completely self-contained.

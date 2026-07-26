@@ -1,5 +1,10 @@
 # Chat Module Refactor — Todo List
 
+> **Archived — superseded by `.cursor/rules/layered-architecture.mdc` and the completed
+> module extraction work (see git history).** Kept for historical reference only.
+>
+> Completed: 154 of 155 items. `Modules/Chat/` is extracted and layered.
+
 > Branch: refactor/chat-module
 > Last updated: 2026-06-19
 > Goal: Move all chat-related code into Modules/Chat/ with clean architecture

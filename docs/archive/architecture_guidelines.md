@@ -1,5 +1,11 @@
 # Architecture Guidelines: Single Actions vs Service Classes
 
+> **Archived — superseded by `.cursor/rules/layered-architecture.mdc` and the completed
+> module extraction work (see git history).** Kept for historical reference only.
+>
+> The Actions-vs-Services question this document debates is settled: the project uses
+> Controller → Service → Action → Repository, with both layers present by design.
+
 ## The Verdict: Use "Single Action Classes"
 
 For modern Laravel applications, **Single Action Classes** are generally preferred over massive Service Classes.

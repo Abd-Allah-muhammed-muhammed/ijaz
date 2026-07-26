@@ -1,5 +1,11 @@
 # Payment Module — Todo List
 
+> **Archived — superseded by `.cursor/rules/layered-architecture.mdc` and the completed
+> module extraction work (see git history).** Kept for historical reference only.
+>
+> Completed: all 50 items. `Modules/Payment/` is extracted, layered, and now also has a
+> read-side repository added during the Dashboard aggregation work.
+
 > Branch: feature/payment-module
 > Last updated: 2026-06-21
 > Goal: Move ALL payment-related code into Modules/Payment/ — completely self-contained.

@@ -1,5 +1,10 @@
 # Guarantor Module — Todo List
 
+> **Archived — superseded by `.cursor/rules/layered-architecture.mdc` and the completed
+> module extraction work (see git history).** Kept for historical reference only.
+>
+> Completed: 142 of 143 items. `Modules/Guarantor/` is extracted and layered.
+
 > Reference module: Modules/Opportunity/
 > Branch: feature/guarantor-module
 > Last updated: 2026-06-16

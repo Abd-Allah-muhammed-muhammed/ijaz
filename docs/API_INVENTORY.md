@@ -1,8 +1,22 @@
 # API Inventory
 
-Last verified from source: 2026-04-16
+Last verified from source: 2026-04-16 (pre-module-extraction)
 
 Generated from routes/api.php, routes/Api/V1/*.php, and controller/request/resource usage.
+
+> **⚠️ Controller column is stale; endpoint URIs are still accurate.** No API URI or route
+> name changed during the module extraction, so the Method/Endpoint/Request/Resource columns
+> remain a usable contract reference. The Controller column, however, mostly points at
+> classes that have moved — for example `Api\V1\CatalogController@categories` is now
+> `Modules\Marketplace\Http\Controllers\Api\V1\MarketplaceCatalogController@categories`, and
+> `@banners` / `@pages` / `@questions` are now on
+> `Modules\Cms\Http\Controllers\Api\V1\CmsController`. Only `nationalities`, `regions`,
+> `cities` and `providers` are still served by `app/Http/Controllers/Api/V1/CatalogController`.
+>
+> Endpoints added after 2026-04-16 (Guarantor, Opportunity, electronics/institute
+> advisements, the Catalog car/property lookups, Wallet) are not listed here at all. Use
+> `php artisan route:list --except-vendor` as the source of truth for controller mapping.
+> Needs a regeneration pass.
 
 Notes:
 - Auth column shows middleware guard requirements.

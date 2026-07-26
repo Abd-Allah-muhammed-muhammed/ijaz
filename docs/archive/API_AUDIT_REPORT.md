@@ -1,5 +1,11 @@
 # API Layer Audit Report - Comprehensive Findings
 
+> **Archived — superseded by `.cursor/rules/layered-architecture.mdc` and the completed
+> module extraction work (see git history).** Kept for historical reference only.
+>
+> This audit predates the extraction of all 11 modules; its controller paths and
+> layering findings no longer describe the current codebase.
+
 **Date:** April 17, 2026  
 **Status:** Complete Codebase Analysis  
 **Scope:** API v1 contracts, response payloads, request validation, documentation generation risks

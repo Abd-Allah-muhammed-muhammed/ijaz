@@ -42,7 +42,9 @@ Detailed references:
 - [docs/API_INVENTORY.md](docs/API_INVENTORY.md)
 - [docs/MODELS_REFERENCE.md](docs/MODELS_REFERENCE.md)
 - [docs/ENUMS_REFERENCE.md](docs/ENUMS_REFERENCE.md)
-- [docs/REFACTOR_NOTES.md](docs/REFACTOR_NOTES.md)
+
+Architecture rules live in `.cursor/rules/layered-architecture.mdc`. Superseded refactor
+notes and per-module TODO lists are kept in [docs/archive/](docs/archive/) for history.
 
 ## Common Commands
 

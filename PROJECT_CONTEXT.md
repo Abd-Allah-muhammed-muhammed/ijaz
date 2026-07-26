@@ -1,6 +1,23 @@
 # PROJECT CONTEXT
 
-Last verified from source: 2026-04-16
+Last verified from source: 2026-04-16 (pre-module-extraction)
+
+> **⚠️ Partially stale — needs a regeneration pass.** This file was written before the
+> codebase was split into `Modules/*` and before the Controller → Service → Action →
+> Repository layering was applied. Known-wrong sections as of 2026-07-26:
+>
+> - **Section 4 (Directory Structure)** does not mention `Modules/` at all. `app/Actions/Payment`,
+>   `app/Services/Normalize`, `app/Services/Sms`, `app/Guards`, `app/Observers` and `app/Jobs`
+>   no longer exist; shared utilities now live in `app/Support/`.
+> - **Section 6 (Services & Actions)** lists paths that have all moved: `Normalize`/`Phone`
+>   are now `App\Support\*`, `ChatService` is in `Modules/Chat`, and the payment actions are
+>   in `Modules/Payment`.
+> - **Section 8 (Known Issues)** is fully resolved — see `docs/archive/REFACTOR_NOTES.md`.
+> - The typo list in Section 7 is outdated (`walletTTransactions`, `lastMassage` were fixed).
+>
+> Sections 2, 3, 5 and 7 (conventions, guards, response format, "never do this") are still
+> broadly accurate. Treat `.cursor/rules/layered-architecture.mdc` as the authoritative
+> source for architecture rules.
 
 ---
 
@@ -10,8 +27,9 @@ This file is the entry point for understanding the project architecture and patt
 
 - **[docs/API_INVENTORY.md](docs/API_INVENTORY.md)** — All endpoints with request/response details, controllers, FormRequest classes, and resources
 - **[docs/MODELS_REFERENCE.md](docs/MODELS_REFERENCE.md)** — All models with fields, relationships, traits, enums, and notable features
-- **[docs/REFACTOR_NOTES.md](docs/REFACTOR_NOTES.md)** — Known issues, refactor priorities, and future improvements
 - **[docs/ENUMS_REFERENCE.md](docs/ENUMS_REFERENCE.md)** — All enums with their cases, values, and usage patterns
+- **[.cursor/rules/layered-architecture.mdc](.cursor/rules/layered-architecture.mdc)** — Authoritative architecture/layering rules
+- **[docs/archive/](docs/archive/)** — Superseded refactor notes and per-module TODO lists, kept for history
 
 ---
 
@@ -222,9 +240,11 @@ routes/
 
 ## Section 8 — Known Issues Summary
 
-Full issue list is in [docs/REFACTOR_NOTES.md](docs/REFACTOR_NOTES.md).
+> **Resolved.** Every issue in this section was fixed during the module extraction and
+> controller layering work. The original list is archived at
+> [docs/archive/REFACTOR_NOTES.md](docs/archive/REFACTOR_NOTES.md) for history.
 
-### Top Priorities
+### Top Priorities (historical)
 
 1. **Order & Guarantee payment/status flows** (High)
    - Controller mixes business rules, fee calculations, payment initiation, and media handling
@@ -281,10 +301,9 @@ Full issue list is in [docs/REFACTOR_NOTES.md](docs/REFACTOR_NOTES.md).
 
 ## When You Need to Update This File
 
-Add a new entry to [docs/REFACTOR_NOTES.md](docs/REFACTOR_NOTES.md) if:
-- A model, endpoint, or enum is added
+Update [.cursor/rules/layered-architecture.mdc](.cursor/rules/layered-architecture.mdc) if:
 - A pattern or convention changes
-- A known issue is resolved or new issues arise
+- A new architectural rule or exception is established
 
 Update [docs/API_INVENTORY.md](docs/API_INVENTORY.md) if:
 - A new API endpoint is added or modified

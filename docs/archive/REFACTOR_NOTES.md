@@ -1,5 +1,10 @@
 # Refactor Notes
 
+> **Archived — superseded by `.cursor/rules/layered-architecture.mdc` and the completed
+> module extraction work (see git history).** Kept for historical reference only.
+>
+> Every issue listed below has been resolved or the file it refers to no longer exists.
+
 Last verified from source: 2026-04-16
 
 ## Issues Found
