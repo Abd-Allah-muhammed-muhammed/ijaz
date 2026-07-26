@@ -12,7 +12,7 @@ class LoginUserAction
 {
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
-        private readonly SendLoginOtpAction $sendLoginOtpAction,
+        private readonly IssueOtpAction $issueOtpAction,
     ) {}
 
     /**
@@ -46,7 +46,7 @@ class LoginUserAction
             return UserLoginResult::failure($message, 400);
         }
 
-        $this->sendLoginOtpAction->handle($user);
+        $this->issueOtpAction->handle($user, 'login');
         $user->tokens()->delete();
 
         return UserLoginResult::success(

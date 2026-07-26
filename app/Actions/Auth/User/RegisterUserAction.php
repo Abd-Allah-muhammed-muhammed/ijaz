@@ -13,7 +13,7 @@ class RegisterUserAction
 {
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
-        private readonly SendLoginOtpAction $sendLoginOtpAction,
+        private readonly IssueOtpAction $issueOtpAction,
     ) {}
 
     /**
@@ -43,7 +43,7 @@ class RegisterUserAction
         }
 
         $user = $this->userRepository->create($validatedData);
-        $this->sendLoginOtpAction->handle($user);
+        $this->issueOtpAction->handle($user, 'login');
         $token = explode('|', $user->createToken('login', [], now()->addMinutes(15))->plainTextToken)[1];
         $user->load(['nationality.translation']);
 
