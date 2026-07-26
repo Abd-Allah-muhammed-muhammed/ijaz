@@ -798,5 +798,8 @@
     "error_503_message": "نقوم حالياً بأعمال صيانة مجدولة، يرجى العودة لاحقاً.",
     "error_generic_title": "خطأ غير متوقع",
     "error_generic_message": "حدث أمر غير متوقع.",
-    "back_to_home": "العودة إلى الرئيسية"
+    "back_to_home": "العودة إلى الرئيسية",
+    "general": "عام",
+    "payment": "الدفع",
+    "guarantor": "الكفيل"
 }

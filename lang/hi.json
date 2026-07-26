@@ -693,5 +693,8 @@
     "error_503_message": "हम निर्धारित रखरखाव कर रहे हैं, कृपया शीघ्र वापस आएँ।",
     "error_generic_title": "अप्रत्याशित त्रुटि",
     "error_generic_message": "कुछ अप्रत्याशित हुआ।",
-    "back_to_home": "होम पर वापस जाएँ"
+    "back_to_home": "होम पर वापस जाएँ",
+    "general": "सामान्य",
+    "payment": "भुगतान",
+    "guarantor": "गारंटर"
 }

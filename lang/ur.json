@@ -691,5 +691,8 @@
     "error_503_message": "ہم شیڈول شدہ دیکھ بھال کر رہے ہیں، براہ کرم جلد واپس آئیں۔",
     "error_generic_title": "غیر متوقع خرابی",
     "error_generic_message": "کچھ غیر متوقع پیش آ گیا۔",
-    "back_to_home": "ہوم پر واپس جائیں"
+    "back_to_home": "ہوم پر واپس جائیں",
+    "general": "عام",
+    "payment": "ادائیگی",
+    "guarantor": "ضامن"
 }

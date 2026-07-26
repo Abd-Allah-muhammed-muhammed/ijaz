@@ -36,6 +36,7 @@ import GuarantorDashboardController from '@/actions/Modules/Guarantor/Http/Contr
 import PropertyAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/PropertyAdvisementController';
 import CarAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/CarAdvisementController';
 import ElectronicAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/ElectronicAdvisementController';
+import SettingController from '@/actions/Modules/Settings/Http/Controllers/Dashboard/SettingController';
 
 const SidebarMenuMain = () => {
   const { matchUrl, matchComponents } = useActiveRoute();
@@ -401,6 +402,15 @@ const SidebarMenuMain = () => {
         icon="sms"
         fontIcon="bi-chat-dots"
         isActive={matchComponents('dashboard.messages.*')}
+      />
+
+      <SidebarMenuItem
+        to={SettingController.index().url}
+        title={t('settings')}
+        icon="setting-2"
+        fontIcon="bi-gear"
+        isActive={matchComponents('dashboard.settings.*')}
+        show={hasPermission('show settings')}
       />
 
       {hasPermission('show panAnalytics') && (

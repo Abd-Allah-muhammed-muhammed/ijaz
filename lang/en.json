@@ -901,5 +901,8 @@
     "error_503_message": "We're performing scheduled maintenance, please check back soon.",
     "error_generic_title": "Unexpected Error",
     "error_generic_message": "Something unexpected happened.",
-    "back_to_home": "Back to Home"
+    "back_to_home": "Back to Home",
+    "general": "General",
+    "payment": "Payment",
+    "guarantor": "Guarantor"
 }

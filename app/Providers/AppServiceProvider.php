@@ -10,7 +10,6 @@ use App\Contracts\Auth\ProviderRepositoryInterface;
 use App\Contracts\Auth\UserRepositoryInterface;
 use App\Contracts\Provider\ProviderManagementRepositoryInterface;
 use App\Contracts\User\UserManagementRepositoryInterface;
-use App\Models\Setting;
 use App\NotificationChannel\EventChannel;
 use App\NotificationChannel\FirebaseChannel;
 use App\Repositories\Account\AccountRepository;
@@ -35,6 +34,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Modules\Settings\Models\Setting;
 
 class AppServiceProvider extends ServiceProvider
 {
