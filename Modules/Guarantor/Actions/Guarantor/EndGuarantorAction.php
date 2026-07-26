@@ -4,6 +4,7 @@ namespace Modules\Guarantor\Actions\Guarantor;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Modules\Guarantor\Actions\Guarantor\NotifyGuarantorPartiesAction as NotifyBothGuarantorPartiesAction;
 use Modules\Guarantor\Actions\Installment\ReleaseInstallmentAction;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
@@ -11,7 +12,6 @@ use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
-use Modules\Guarantor\Notifications\GuarantorEndedNotification;
 use Modules\Wallet\Services\WalletService;
 use Throwable;
 
@@ -22,6 +22,7 @@ class EndGuarantorAction
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
         private readonly ReleaseInstallmentAction $releaseInstallmentAction,
         private readonly WalletService $walletService,
+        private readonly NotifyBothGuarantorPartiesAction $notifyGuarantorPartiesAction,
     ) {}
 
     /**
@@ -55,10 +56,7 @@ class EndGuarantorAction
                 reason: "{$actorRole} ended the guarantor request",
             );
 
-            $guarantorRequest->load(['requester', 'counterparty']);
-
-            collect([$guarantorRequest->requester, $guarantorRequest->counterparty])
-                ->each->notify(new GuarantorEndedNotification($guarantorRequest));
+            $this->notifyGuarantorPartiesAction->handle($guarantorRequest);
         });
     }
 

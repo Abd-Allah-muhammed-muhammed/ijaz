@@ -4,11 +4,11 @@ namespace Modules\Guarantor\Actions\Guarantor;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Modules\Guarantor\Actions\Guarantor\NotifyGuarantorPartiesAction as NotifyBothGuarantorPartiesAction;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
-use Modules\Guarantor\Notifications\GuarantorEndedNotification;
 use Modules\Wallet\Services\WalletService;
 use Throwable;
 
@@ -18,6 +18,7 @@ class CancelGuarantorAction
         private readonly GuarantorRepositoryInterface $guarantorRepository,
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
         private readonly WalletService $walletService,
+        private readonly NotifyBothGuarantorPartiesAction $notifyGuarantorPartiesAction,
     ) {}
 
     /**
@@ -54,10 +55,7 @@ class CancelGuarantorAction
                 $reason,
             );
 
-            $guarantorRequest->load(['requester', 'counterparty']);
-
-            collect([$guarantorRequest->requester, $guarantorRequest->counterparty])
-                ->each->notify(new GuarantorEndedNotification($guarantorRequest));
+            $this->notifyGuarantorPartiesAction->handle($guarantorRequest);
         });
     }
 
