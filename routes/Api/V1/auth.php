@@ -6,20 +6,20 @@ use App\Http\Controllers\Api\V1\User\AuthController;
 use App\Http\Controllers\Api\V1\User\ProviderController;
 use Illuminate\Support\Facades\Route;
 
-// --- OTP ---
+// Shared: routes requiring an authenticated Sanctum session (OTP + Account)
 Route::middleware('auth:sanctum')->group(static function () {
+
+    // --- OTP ---
     Route::controller(OtpController::class)->prefix('otp')->group(static function () {
         Route::post('send', 'send');
         Route::post('verify', 'verify');
     });
-});
 
-// --- Account (historical /api/v1/auth/* — NOT user login auth) ---
-/*
-| Distinct from /api/v1/user/auth/* (login/register/me/logout).
-| Do not unify without mobile coordination.
-*/
-Route::middleware('auth:sanctum')->group(static function () {
+    // --- Account (historical /api/v1/auth/* — NOT user login auth) ---
+    /*
+    | Distinct from /api/v1/user/auth/* (login/register/me/logout).
+    | Do not unify without mobile coordination.
+    */
     Route::controller(UserController::class)->prefix('auth')->group(static function () {
         Route::get('/counts', 'counts');
         Route::get('/notifications', 'notifications');
@@ -32,7 +32,7 @@ Route::middleware('auth:sanctum')->group(static function () {
     });
 });
 
-// --- User Auth ---
+// --- User Auth (own middleware shape: public login/register + nested user-api group) ---
 Route::group(['prefix' => 'user'], static function () {
     Route::controller(AuthController::class)->prefix('auth')->group(static function () {
         Route::post('login', 'login');
