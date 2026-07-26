@@ -11,6 +11,7 @@ use Inertia\Response;
 use Modules\Settings\DTOs\UpdateSettingsDTO;
 use Modules\Settings\Http\Requests\Dashboard\UpdateSettingsRequest;
 use Modules\Settings\Http\Resources\Dashboard\SettingResource;
+use Modules\Settings\Models\Setting;
 use Modules\Settings\Services\SettingService;
 use Throwable;
 
@@ -34,7 +35,7 @@ class SettingController extends Controller implements HasMiddleware
 
         return inertia('Dashboard/Settings/Index', [
             'groups' => $grouped->map(fn ($settings) => SettingResource::collection($settings)->resolve()),
-            'groupOrder' => config('settings.groups', []),
+            'groupOrder' => Setting::GROUPS,
             'prams' => $request->only('tab') ?: [],
         ]);
     }

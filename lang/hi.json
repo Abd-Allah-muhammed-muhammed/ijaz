@@ -696,5 +696,6 @@
     "back_to_home": "होम पर वापस जाएँ",
     "general": "सामान्य",
     "payment": "भुगतान",
-    "guarantor": "गारंटर"
+    "guarantor": "गारंटर",
+    "visible_in_public_api": "सार्वजनिक API में दिखाई दे"
 }

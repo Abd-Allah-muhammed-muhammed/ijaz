@@ -20,8 +20,6 @@ class SettingsServiceProvider extends ModuleServiceProvider
     {
         parent::register();
 
-        $this->mergeConfigFrom(module_path('Settings', 'config/settings.php'), 'settings');
-
         $this->app->bind(SettingRepositoryInterface::class, SettingRepository::class);
     }
 

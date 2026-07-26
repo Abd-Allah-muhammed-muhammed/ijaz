@@ -40,10 +40,14 @@ test('admin with edit settings can update settings and invalidate cache', functi
             'values' => [
                 'phone' => '966511111111',
             ],
+            'is_public' => [
+                'phone' => true,
+            ],
         ])
         ->assertRedirect();
 
     expect(Setting::query()->where('key', 'phone')->value('content'))->toBe('966511111111')
+        ->and((bool) Setting::query()->where('key', 'phone')->value('is_public'))->toBeTrue()
         ->and(cache()->get('settings'))->toBeNull()
         ->and(app('settings')->get('phone'))->toBe('966511111111');
 });

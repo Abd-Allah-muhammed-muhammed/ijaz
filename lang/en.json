@@ -904,5 +904,6 @@
     "back_to_home": "Back to Home",
     "general": "General",
     "payment": "Payment",
-    "guarantor": "Guarantor"
+    "guarantor": "Guarantor",
+    "visible_in_public_api": "Visible in public API"
 }

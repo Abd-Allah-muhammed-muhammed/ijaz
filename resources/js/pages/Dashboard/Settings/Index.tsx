@@ -6,7 +6,18 @@ import { Content } from '@/_metronic/layout/components/content';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { KTCard } from '@/_metronic/helpers';
 import { ReactElement, useMemo, useState } from 'react';
-import { Card, Col, Form as BTForm, FormControl, FormGroup, FormLabel, Nav, Row, Tab } from 'react-bootstrap';
+import {
+  Card,
+  Col,
+  Form as BTForm,
+  FormCheck,
+  FormControl,
+  FormGroup,
+  FormLabel,
+  Nav,
+  Row,
+  Tab,
+} from 'react-bootstrap';
 import SettingController from '@/actions/Modules/Settings/Http/Controllers/Dashboard/SettingController';
 import usePermissions from '@/hooks/use-permissions';
 import InputError from '@/components/inputs/InputError';
@@ -17,6 +28,7 @@ type SettingRow = {
   key: string;
   content: string;
   group: string;
+  is_public: boolean;
 };
 
 type Props = {
@@ -112,8 +124,22 @@ function SettingsGroupForm({ group, rows, canEdit, t }: FormProps) {
     [rows],
   );
 
-  const form = useForm<{ values: Record<string, string>; group: string }>({
+  const initialPublic = useMemo(
+    () =>
+      rows.reduce<Record<string, boolean>>((carry, row) => {
+        carry[row.key] = Boolean(row.is_public);
+        return carry;
+      }, {}),
+    [rows],
+  );
+
+  const form = useForm<{
+    values: Record<string, string>;
+    is_public: Record<string, boolean>;
+    group: string;
+  }>({
     values: initialValues,
+    is_public: initialPublic,
     group,
   });
 
@@ -136,6 +162,7 @@ function SettingsGroupForm({ group, rows, canEdit, t }: FormProps) {
         }
         form.transform((data) => ({
           values: data.values,
+          is_public: data.is_public,
           group: data.group,
         }));
         form.put(SettingController.update().url, {
@@ -166,6 +193,21 @@ function SettingsGroupForm({ group, rows, canEdit, t }: FormProps) {
                 }}
               />
               <InputError message={form.errors[`values.${row.key}`]} />
+              <FormCheck
+                className="mt-2"
+                type="switch"
+                id={`is-public-${row.key}`}
+                label={t('visible_in_public_api')}
+                disabled={!canEdit || form.processing}
+                checked={Boolean(form.data.is_public[row.key])}
+                onChange={(e) => {
+                  form.setData('is_public', {
+                    ...form.data.is_public,
+                    [row.key]: e.currentTarget.checked,
+                  });
+                }}
+              />
+              <InputError message={form.errors[`is_public.${row.key}`]} />
             </FormGroup>
           </Col>
         ))}

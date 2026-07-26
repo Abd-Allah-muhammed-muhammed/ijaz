@@ -22,7 +22,12 @@ interface SettingRepositoryInterface
     public function updateByKey(string $key, string $content): Setting;
 
     /**
-     * @param  array<string, string>  $keyValuePairs
+     * @param  array<string, array{content: string, is_public: bool}>  $updates
      */
-    public function updateMany(array $keyValuePairs): void;
+    public function updateMany(array $updates): void;
+
+    /**
+     * @return array<string, string>
+     */
+    public function pluckPublicContentByKey(): array;
 }

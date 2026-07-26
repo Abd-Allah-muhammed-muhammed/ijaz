@@ -21,7 +21,7 @@ class ListSettingsGroupedAction
         $grouped = $this->repository->allGroupedByGroup();
         $ordered = collect();
 
-        foreach (config('settings.groups', []) as $group) {
+        foreach (Setting::GROUPS as $group) {
             /** @var EloquentCollection<int, Setting> $bucket */
             $bucket = $grouped->get($group, new EloquentCollection);
             $ordered->put($group, $bucket);

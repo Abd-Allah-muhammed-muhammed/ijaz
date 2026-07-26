@@ -18,33 +18,33 @@ beforeEach(function () {
 
     Setting::query()->updateOrCreate(
         ['key' => 'min_withdraw_amount'],
-        ['content' => '200', 'group' => 'wallet'],
+        ['content' => '200', 'group' => 'wallet', 'is_public' => true],
     );
     Setting::query()->updateOrCreate(
         ['key' => 'provider_registration_bonus_enabled'],
-        ['content' => '1', 'group' => 'wallet'],
+        ['content' => '1', 'group' => 'wallet', 'is_public' => true],
     );
     Setting::query()->updateOrCreate(
         ['key' => 'provider_registration_bonus_amount'],
-        ['content' => '50', 'group' => 'wallet'],
+        ['content' => '50', 'group' => 'wallet', 'is_public' => true],
     );
     Setting::query()->updateOrCreate(
         ['key' => 'guarantee_fee'],
-        ['content' => '20', 'group' => 'guarantor'],
+        ['content' => '20', 'group' => 'guarantor', 'is_public' => true],
     );
     Setting::query()->updateOrCreate(
         ['key' => 'phone'],
-        ['content' => '966500000000', 'group' => 'general'],
+        ['content' => '966500000000', 'group' => 'general', 'is_public' => true],
     );
     Setting::query()->updateOrCreate(
         ['key' => 'email'],
-        ['content' => 'info@ijaz.sa', 'group' => 'general'],
+        ['content' => 'info@ijaz.sa', 'group' => 'general', 'is_public' => true],
     );
 
     $driverFeesKey = app(PaymentService::class)->getDefaultDriver().'_fees';
     Setting::query()->updateOrCreate(
         ['key' => $driverFeesKey],
-        ['content' => '15', 'group' => 'payment'],
+        ['content' => '15', 'group' => 'payment', 'is_public' => false],
     );
 
     cache()->forget('settings');
@@ -79,7 +79,7 @@ it('keeps catalog settings endpoint serving values sourced from app(settings)', 
         ->assertJsonPath('data.provider_registration_bonus_amount', '50')
         ->assertJsonPath('data.guarantee_fee', '20');
 
-    // Sensitive/dynamic payment fee keys are NOT on the public allowlist by design
+    // Sensitive/dynamic payment fee keys default to private (is_public = false)
     $driverFeesKey = app(PaymentService::class)->getDefaultDriver().'_fees';
     $response->assertJsonMissing([$driverFeesKey => '15']);
 });

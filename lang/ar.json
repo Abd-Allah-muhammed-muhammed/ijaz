@@ -801,5 +801,6 @@
     "back_to_home": "العودة إلى الرئيسية",
     "general": "عام",
     "payment": "الدفع",
-    "guarantor": "الكفيل"
+    "guarantor": "الكفيل",
+    "visible_in_public_api": "ظاهر في واجهة الـ API العامة"
 }

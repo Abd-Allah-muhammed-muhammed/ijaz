@@ -6,6 +6,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Settings\Contracts\Repositories\SettingRepositoryInterface;
+use Modules\Settings\Models\Setting;
 
 class UpdateSettingsRequest extends FormRequest
 {
@@ -22,7 +23,9 @@ class UpdateSettingsRequest extends FormRequest
         return [
             'values' => ['required', 'array', 'min:1'],
             'values.*' => ['nullable', 'string'],
-            'group' => ['nullable', 'string', Rule::in(config('settings.groups', []))],
+            'is_public' => ['nullable', 'array'],
+            'is_public.*' => ['nullable', 'boolean'],
+            'group' => ['nullable', 'string', Rule::in(Setting::GROUPS)],
         ];
     }
 

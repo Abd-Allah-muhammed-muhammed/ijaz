@@ -2,24 +2,26 @@
 
 namespace Modules\Settings\Actions\Setting;
 
+use Modules\Settings\Contracts\Repositories\SettingRepositoryInterface;
+
 /**
- * Filters the cached settings bag for the public catalog API.
+ * Public catalog settings — only rows with is_public = true.
  *
- * Only keys listed in config('settings.public_keys') are returned. The
- * singleton itself is unchanged — consumers that call app('settings')->get()
- * still see every key.
+ * The app('settings') singleton still caches every key→content pair for
+ * internal consumers; this action queries the DB flag so Dashboard toggles
+ * take effect immediately after cache invalidation on update.
  */
 class ListPublicSettingsAction
 {
+    public function __construct(
+        private readonly SettingRepositoryInterface $repository,
+    ) {}
+
     /**
      * @return array<string, string>
      */
     public function handle(): array
     {
-        /** @var list<string> $allowlist */
-        $allowlist = config('settings.public_keys', []);
-        $all = app('settings')->toArray();
-
-        return array_intersect_key($all, array_flip($allowlist));
+        return $this->repository->pluckPublicContentByKey();
     }
 }

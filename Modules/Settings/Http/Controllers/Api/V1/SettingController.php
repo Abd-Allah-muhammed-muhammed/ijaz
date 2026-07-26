@@ -20,13 +20,10 @@ class SettingController extends Controller
     /**
      * @unauthenticated
      *
-     * Public settings dump — allowlisted only.
+     * Public settings dump — only rows with is_public = true.
      *
-     * Historically this returned app('settings')->toArray() (every key). That is
-     * unsafe once admin-only keys land in the same table. SettingService::publicBag()
-     * filters to config('settings.public_keys'), which currently mirrors the full
-     * historical seed set (non-breaking). New sensitive keys stay private until
-     * deliberately added to that allowlist.
+     * New settings default to private; expose them deliberately from the
+     * Dashboard "Visible in public API" toggle.
      */
     public function settings(): JsonResponse
     {

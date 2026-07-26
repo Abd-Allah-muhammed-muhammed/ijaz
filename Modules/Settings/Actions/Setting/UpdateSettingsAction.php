@@ -13,7 +13,7 @@ class UpdateSettingsAction
 
     public function handle(UpdateSettingsDTO $dto): void
     {
-        $this->repository->updateMany($dto->values);
+        $this->repository->updateMany($dto->toRepositoryUpdates());
 
         cache()->forget('settings');
         app()->forgetInstance('settings');
