@@ -58,8 +58,7 @@
             "Modules\\Support\\Database\\Factories\\": "Modules/Support/database/factories/",
             "Modules\\Orders\\Database\\Factories\\": "Modules/Orders/database/factories/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/",
-            "Lib\\": "lib/"
+            "Database\\Seeders\\": "database/seeders/"
         }
     },
     "autoload-dev": {

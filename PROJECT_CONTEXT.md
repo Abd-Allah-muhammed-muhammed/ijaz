@@ -119,11 +119,6 @@ database/
 ├── migrations/               — Schema history (many versioned as separate create/alter migrations)
 └── seeders/                  — Categories, regions, settings, demo orders, admin permissions
 
-lib/                          — Custom wrappers around external services
-├── Payment/                  — PayTabs gateway integration
-├── SMS/                      — SMS provider integration
-└── WhatsApp/                 — WhatsApp messaging integration
-
 routes/
 ├── api.php                   — Main API routes v1
 ├── Api/V1/*.php              — V1 endpoint groups (users, orders, chats, jobs, etc.)
