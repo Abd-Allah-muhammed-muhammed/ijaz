@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->group(static function () {
 
     // --- OTP ---
-    Route::controller(OtpController::class)->prefix('otp')->group(static function () {
+    Route::group(['prefix' => 'otp', 'controller' => OtpController::class], static function () {
         Route::post('send', 'send');
         Route::post('verify', 'verify');
     });
@@ -20,31 +20,42 @@ Route::middleware('auth:sanctum')->group(static function () {
     | Distinct from /api/v1/user/auth/* (login/register/me/logout).
     | Do not unify without mobile coordination.
     */
-    Route::controller(UserController::class)->prefix('auth')->group(static function () {
+    Route::group(['prefix' => 'auth', 'controller' => UserController::class], static function () {
         Route::get('/counts', 'counts');
-        Route::get('/notifications', 'notifications');
-        Route::get('/notifications/mark-all-as-read', 'markAllNotificationsAsRead');
-        Route::get('/notifications/{notification}/mark-as-read', 'markAsRead');
-        Route::delete('/notifications/all', 'deleteAllNotification');
-        Route::delete('/notifications/{notification}', 'deleteNotification');
         Route::post('/update-settings', 'updateSettings');
         Route::get('/delete-account', 'deleteAccount');
+
+        Route::group(['prefix' => 'notifications'], static function () {
+            Route::get('/', 'notifications');
+            Route::get('/mark-all-as-read', 'markAllNotificationsAsRead');
+            Route::get('/{notification}/mark-as-read', 'markAsRead');
+            Route::delete('/all', 'deleteAllNotification');
+            Route::delete('/{notification}', 'deleteNotification');
+        });
     });
 });
 
 // --- User Auth (own middleware shape: public login/register + nested user-api group) ---
 Route::group(['prefix' => 'user'], static function () {
-    Route::controller(AuthController::class)->prefix('auth')->group(static function () {
+
+    // --- User Auth ---
+    Route::group(['prefix' => 'auth', 'controller' => AuthController::class], static function () {
+
+        // --- Login/Register ---
         Route::post('login', 'login');
         Route::post('register', 'register');
+
+        // --- User API ---
         Route::middleware(['auth:user-api', 'abilities:user-api'])->group(static function () {
             Route::post('profile/update', 'profileUpdate');
             Route::get('me', 'auth');
             Route::post('logout', 'logout');
         });
     });
+
+    // --- Providers ---
     Route::group(['middleware' => ['auth:user-api', 'abilities:user-api']], static function () {
-        Route::controller(ProviderController::class)->prefix('providers')->group(static function () {
+        Route::group(['prefix' => 'providers', 'controller' => ProviderController::class], static function () {
             Route::get('/get', 'get');
         });
     });
