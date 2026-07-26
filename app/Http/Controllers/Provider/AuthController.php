@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Provider;
 
+use App\Actions\Locale\SwitchLocaleAction;
 use App\Enums\ProviderTypeFilesEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Provider\Auth\LoginRequest;
@@ -13,7 +14,6 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Modules\Geo\Http\Resources\Dashboard\CityResource;
 use Modules\Geo\Http\Resources\Dashboard\RegionResource;
 use Modules\Geo\Models\City;
@@ -29,6 +29,7 @@ class AuthController extends Controller
 {
     public function __construct(
         private readonly ProviderAuthService $providerAuthService,
+        private readonly SwitchLocaleAction $switchLocaleAction,
     ) {}
 
     public function loginForm()
@@ -224,18 +225,18 @@ class AuthController extends Controller
         ]);
     }
 
-    public function switchLang(string $locale)
+    public function switchLang(string $locale): RedirectResponse
     {
-        if (in_array($locale, array_keys(config('laravellocalization.supportedLocales')))) {
-            LaravelLocalization::setLocale($locale);
-            $user = auth('provider')->user();
-            $user->update([
-                'language' => $locale,
-            ]);
+        $url = $this->switchLocaleAction->handle($locale);
 
-            return redirect()->to(LaravelLocalization::getLocalizedURL($locale, url()->previous()));
+        if ($url === null) {
+            return redirect()->back();
         }
 
-        return redirect()->back();
+        auth('provider')->user()->update([
+            'language' => $locale,
+        ]);
+
+        return redirect()->to($url);
     }
 }

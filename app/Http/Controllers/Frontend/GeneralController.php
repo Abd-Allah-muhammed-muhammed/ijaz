@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Actions\Locale\SwitchLocaleAction;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Modules\Payment\Actions\HandleCallbackAction;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Models\Payment;
@@ -15,6 +15,7 @@ class GeneralController extends Controller
 {
     public function __construct(
         private readonly HandleCallbackAction $handleCallbackAction,
+        private readonly SwitchLocaleAction $switchLocaleAction,
     ) {}
 
     public function index()
@@ -107,15 +108,14 @@ class GeneralController extends Controller
         return view('payment::failed');
     }
 
-    // Example in a controller
-    public function switchLang($locale)
+    public function switchLang($locale): RedirectResponse
     {
-        if (in_array($locale, array_keys(config('laravellocalization.supportedLocales')))) {
-            LaravelLocalization::setLocale($locale);
+        $url = $this->switchLocaleAction->handle((string) $locale);
 
-            return redirect()->to(LaravelLocalization::getLocalizedURL($locale, url()->previous()));
+        if ($url === null) {
+            return redirect()->back();
         }
 
-        return redirect()->back();
+        return redirect()->to($url);
     }
 }
