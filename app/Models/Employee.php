@@ -10,6 +10,21 @@ use Spatie\Permission\Traits\HasRoles;
 use Storage;
 
 /**
+ * PLANNED FEATURE — NOT YET IMPLEMENTED.
+ *
+ * This model, its `employee` auth guard (config/auth.php), and the `employee` provider
+ * exist as groundwork for a future staff/employee management feature. There is currently
+ * NO migration for this table, NO routes, NO controller, and NO CRUD anywhere in the
+ * project. Do not assume this is a working feature.
+ *
+ * Known live consumer: Modules\Marketplace\Models\Category checks `auth('employee')`
+ * for a permission gate — this works today (guard resolution doesn't require the table
+ * to exist unless actually authenticating), but no employee can currently log in since
+ * there's no auth flow built.
+ *
+ * If/when this feature is built: add the migration, a proper Controller/Service/Action/
+ * Repository layer (per .cursor/rules/layered-architecture.mdc), and routes.
+ *
  * @property string $name
  * @property string $id_image
  * @property string $phone

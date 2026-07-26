@@ -30,7 +30,7 @@ Ijaz is a multi-actor marketplace: users create service orders, providers respon
 | User | `App\Models\User` | Sanctum `user-api` (mobile) + session `web` |
 | Provider | `App\Models\Provider` | Session `provider` + Sanctum-shared API |
 | Admin | `App\Models\Admin` | Session `admin` (dashboard) |
-| Employee | `App\Models\Employee` | Session `employee` |
+| Employee | `App\Models\Employee` | Session `employee` — **planned, not implemented** (no migration/routes/CRUD; see §7) |
 
 **Tech stack (from manifests)**
 
@@ -53,7 +53,7 @@ Ijaz is a multi-actor marketplace: users create service orders, providers respon
 |---|---|---|---|
 | `web` | User | session | Frontend / shared web |
 | `admin` | Admin | session | `routes/dashboard.php` |
-| `employee` | Employee | session | Employee session auth |
+| `employee` | Employee | session | Planned staff auth — not implemented (see §7 / `Employee` model docblock) |
 | `provider` | Provider | session | `routes/provider.php` |
 | `user-api` | User | sanctum | Mobile-exclusive `/api/v1/user/*` (+ abilities) |
 | `sanctum` | Generic | sanctum | Shared API (chats, jobs, wallet, tickets, advisements, OTP, …) |
@@ -232,6 +232,10 @@ Also still true (non-breaking quirks, documented in models/API docs):
 
 - Some notification / account-mutation endpoints still use `GET` (verb debt).
 - A few Geo/catalog lookup endpoints remain on `App\Http\Controllers\Api\V1\CatalogController` (nationalities, regions, cities, providers, settings) while Marketplace/Cms/Catalog modules own the rest.
+
+**Planned but not implemented (not a bug, not dead code to remove):**
+
+- **`Employee`** (`App\Models\Employee`) — model + `employee` guard/provider in `config/auth.php` exist as groundwork for future staff management. No migration, routes, controller, or CRUD. One live consumer: `Modules\Marketplace\Models\Category` checks `auth('employee')` (guard resolution is fine; no employee can log in yet). Build-out later must follow layered architecture. See the model docblock.
 
 ---
 

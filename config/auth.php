@@ -49,6 +49,7 @@ return [
             'driver' => 'session',
             'provider' => 'admins',
         ],
+        // Planned-but-unimplemented — see App\Models\Employee docblock.
         'employee' => [
             'driver' => 'session',
             'provider' => 'employee',
@@ -90,6 +91,7 @@ return [
             'driver' => 'adminEloquent',
             'model' => Admin::class,
         ],
+        // Planned-but-unimplemented — see App\Models\Employee docblock.
         'employee' => [
             'driver' => 'eloquent',
             'model' => Employee::class,
