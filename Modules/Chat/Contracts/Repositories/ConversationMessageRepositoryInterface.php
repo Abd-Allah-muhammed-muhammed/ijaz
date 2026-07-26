@@ -17,4 +17,6 @@ interface ConversationMessageRepositoryInterface
         Conversation $conversation,
         Model $reader,
     ): void;
+
+    public function countUnreadFor(Model $receiver): int;
 }

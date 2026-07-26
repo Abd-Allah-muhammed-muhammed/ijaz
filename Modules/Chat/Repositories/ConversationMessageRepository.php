@@ -6,6 +6,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
 use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationMessage;
 
 class ConversationMessageRepository implements ConversationMessageRepositoryInterface
 {
@@ -32,5 +33,13 @@ class ConversationMessageRepository implements ConversationMessageRepositoryInte
                 'read_by_id' => $reader->getKey(),
                 'read_by_type' => $reader::class,
             ]);
+    }
+
+    public function countUnreadFor(Model $receiver): int
+    {
+        return ConversationMessage::query()
+            ->whereMorphedTo('receiver', $receiver)
+            ->whereNull('read_at')
+            ->count();
     }
 }

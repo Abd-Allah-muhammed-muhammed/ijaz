@@ -9,6 +9,7 @@ use Modules\Chat\Actions\ListMessagesAction;
 use Modules\Chat\Actions\OpenConversationAction;
 use Modules\Chat\Actions\SendMessageAction;
 use Modules\Chat\Contracts\ChatTypeHandlerInterface;
+use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
 use Modules\Chat\Contracts\Repositories\ConversationRepositoryInterface;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Enums\ChatTypeEnum;
@@ -25,6 +26,7 @@ class ConversationService
         private readonly ListMessagesAction $listMessagesAction,
         private readonly SendMessageAction $sendAction,
         private readonly ConversationRepositoryInterface $conversations,
+        private readonly ConversationMessageRepositoryInterface $messages,
     ) {}
 
     public function open(
@@ -93,5 +95,13 @@ class ConversationService
             $excludedOperationStatus,
             $perPage,
         );
+    }
+
+    /**
+     * Unread message count across all conversations where the actor is the receiver.
+     */
+    public function countUnreadFor(Model $actor): int
+    {
+        return $this->messages->countUnreadFor($actor);
     }
 }
