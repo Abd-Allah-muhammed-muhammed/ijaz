@@ -5,14 +5,19 @@ use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LocalizationMiddleware;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
+use Inertia\ExceptionResponse;
 use Laravel\Sanctum\Http\Middleware\CheckAbilities;
 use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
@@ -28,6 +33,7 @@ use Nwidart\Modules\Facades\Module;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -140,55 +146,48 @@ return Application::configure(basePath: dirname(__DIR__))
                 return $e->render();
             }
         });
-        //    if (request()->is('api/*') && app()->isProduction()) {
-        //      $exceptions->render(function (Exception $exception) {
-        //        return (new class implements Responsable {
-        //          use HasApiResponse;
-        //
-        //          protected ?Exception $exception = null;
-        //
-        //          public function setException(Exception $exception)
-        //          {
-        //            $this->exception = $exception;
-        //            return $this;
-        //          }
-        //
-        //          protected function findCode(): int
-        //          {
-        //            if (empty($this->exception)) {
-        //              return 500;
-        //            }
-        //
-        //            $code = (int)$this->exception->getCode();
-        //            if ($code >= 200 && $code < 600) {
-        //              return $code;
-        //            }
-        //
-        //            return match (get_class($this->exception)) {
-        //              Illuminate\Auth\AuthenticationException::class => 401,
-        //              Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException::class => 403,
-        //              default => 500,
-        //            };
-        //          }
-        //
-        //          public function toResponse($request)
-        //          {
-        //            return $this->failedMessageResponse(
-        //              $this->exception->getMessage(),
-        //              $this->findCode()
-        //            );
-        //          }
-        //        })
-        //          ->setException($exception);
-        //      });
-        //    }
-        //    $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response) {
-        //        return match ($response->getStatusCode()) {
-        //          401 => inertia('Errors/Unauthorized', []),
-        //          403 => inertia('Errors/Forbidden', []),
-        //          404 => inertia('Errors/NotFound', []),
-        //          500 => inertia('Errors/ServerError', []),
-        //          default => $response,
-        //        };
-        //    });
+
+        /*
+         * Inertia v3 error pages: use ExceptionResponse + withSharedData so 404s
+         * (which skip HandleInertiaRequests) still get shared props / root view.
+         * API/JSON and local debug (Ignition) are left untouched.
+         */
+        $exceptions->respond(function (Response $response, Throwable $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return $response;
+            }
+
+            if (app()->environment(['local', 'testing']) && config('app.debug')) {
+                return $response;
+            }
+
+            $statusCode = $response->getStatusCode();
+
+            if (! in_array($statusCode, [401, 403, 404, 419, 429, 500, 503], true)) {
+                return $response;
+            }
+
+            $segment = $request->segment(1);
+            $supportedLocales = LaravelLocalization::getSupportedLanguagesKeys();
+
+            if (is_string($segment) && in_array($segment, $supportedLocales, true)) {
+                app()->setLocale($segment);
+            }
+
+            return (new ExceptionResponse(
+                $e,
+                $request,
+                $response,
+                app(Router::class),
+                app(HttpKernel::class),
+            ))
+                ->render('Errors/ErrorPage', [
+                    'status' => $statusCode,
+                    'title' => __('error_'.$statusCode.'_title'),
+                    'message' => __('error_'.$statusCode.'_message'),
+                ])
+                ->usingMiddleware(HandleInertiaRequests::class)
+                ->withSharedData()
+                ->toResponse($request);
+        });
     })->create();
