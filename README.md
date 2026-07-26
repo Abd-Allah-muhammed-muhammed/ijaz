@@ -43,8 +43,8 @@ Detailed references:
 - [docs/MODELS_REFERENCE.md](docs/MODELS_REFERENCE.md)
 - [docs/ENUMS_REFERENCE.md](docs/ENUMS_REFERENCE.md)
 
-Architecture rules live in `.cursor/rules/layered-architecture.mdc`. Superseded refactor
-notes and per-module TODO lists are kept in [docs/archive/](docs/archive/) for history.
+Architecture rules live in `.cursor/rules/layered-architecture.mdc` (Claude Skill:
+`.claude/skills/layered-architecture/`).
 
 ## Common Commands
 

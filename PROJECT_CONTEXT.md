@@ -15,7 +15,6 @@ This is the entry-point map of the Ijaz codebase after the modularization and cl
 | **[docs/ENUMS_REFERENCE.md](docs/ENUMS_REFERENCE.md)** | All **29** enums, cases, backing types, model cast usage, utility traits |
 | **[.cursor/rules/layered-architecture.mdc](.cursor/rules/layered-architecture.mdc)** | **Authoritative** Controller → Service → Action → Repository / DTO / FormRequest rules |
 | **[docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](docs/DEFERRED_MOBILE_BREAKING_CHANGES.md)** | Mobile-breaking items deliberately deferred until post-MVP (15/8) |
-| **[docs/archive/](docs/archive/)** | Superseded refactor notes / per-module TODOs (history only) |
 | **[modules_statuses.json](modules_statuses.json)** | Enabled nwidart modules (all 14 currently `true`) |
 
 ---
@@ -216,7 +215,7 @@ Also note the rule’s **explicit `use` + Pint alias** guidance (same-namespace 
 
 ## 7 — Known Issues (current / deferred)
 
-> The old “Known Issues” list in pre-extraction docs is **resolved**. Historical detail: [docs/archive/REFACTOR_NOTES.md](docs/archive/REFACTOR_NOTES.md).
+> The old “Known Issues” list in pre-extraction docs is **resolved** (recoverable from git history if needed).
 
 **Open work lives in [docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](docs/DEFERRED_MOBILE_BREAKING_CHANGES.md)** — revisit after MVP ship (**15/8**). Do not land these on v1 without mobile coordination / versioning.
 
