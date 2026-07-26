@@ -33,6 +33,7 @@ class CarAdvisementController extends Controller
     /**
      * List own advisement's (authenticated user's advisement's)
      *
+     * @queryParam status string optional Filter by status (when includeStatus is on).
      * @queryParam operation string optional Filter by operation.
      * @queryParam usage_status string optional Filter by usage status.
      * @queryParam car_brand_id integer optional Filter by car brand.
@@ -51,7 +52,7 @@ class CarAdvisementController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $filters = new CarAdvisementFilters($request);
+        $filters = new CarAdvisementFilters($request, includeStatus: true);
 
         return $this->successResponse(
             CarAdvisementCollection::make(

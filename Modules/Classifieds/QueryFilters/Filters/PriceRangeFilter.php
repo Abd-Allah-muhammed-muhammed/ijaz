@@ -13,11 +13,11 @@ final class PriceRangeFilter
 
     public function apply(Builder $query): Builder
     {
-        if ($this->minPrice) {
+        if ($this->minPrice !== null) {
             $query = $query->where('price', '>=', $this->minPrice);
         }
 
-        if ($this->maxPrice) {
+        if ($this->maxPrice !== null) {
             $query = $query->where('price', '<=', $this->maxPrice);
         }
 
