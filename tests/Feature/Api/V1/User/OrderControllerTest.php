@@ -3,6 +3,8 @@
 use App\Models\User;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Http\Controllers\Api\V1\OrderController;
@@ -96,6 +98,30 @@ test('user can still view their own order', function () {
     $this->getJson(action([OrderController::class, 'show'], ['order' => $order]))
         ->assertOk()
         ->assertJsonPath('data.id', $order->id);
+});
+
+test('order show freezes exact nested city and region resource shapes', function () {
+    $owner = User::factory()->create();
+    $region = Region::query()->create([
+        'translations' => geoTitleTranslations('Order Region'),
+    ]);
+    $city = City::query()->create([
+        'region_id' => $region->id,
+        'translations' => geoTitleTranslations('Order City'),
+    ]);
+    $order = Order::factory()->create([
+        'user_id' => $owner->id,
+        'region_id' => $region->id,
+        'city_id' => $city->id,
+    ]);
+
+    Sanctum::actingAs($owner, ['user-api'], 'user-api');
+
+    $response = $this->getJson(action([OrderController::class, 'show'], ['order' => $order]))
+        ->assertOk();
+
+    expect(array_keys($response->json('data.city')))->toBe(['id', 'title'])
+        ->and(array_keys($response->json('data.region')))->toBe(['id', 'title']);
 });
 
 test('user cannot delete another users order', function () {

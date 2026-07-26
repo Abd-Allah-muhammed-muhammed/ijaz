@@ -25,7 +25,7 @@ test('catalog regions response shape contract', function () {
         ])
         ->and($json['data']['items'])->toBeArray()->not->toBeEmpty();
 
-    expect($json['data']['items'][0])->toHaveKeys(['id', 'title']);
+    expect(array_keys($json['data']['items'][0]))->toBe(['id', 'title', 'translations']);
 });
 
 test('catalog regions filters by search', function () {
@@ -59,7 +59,8 @@ test('catalog cities for region response shape contract', function () {
         'items', 'total', 'count', 'per_page', 'current_page', 'last_page', 'has_more_pages',
     ])
         ->and($titles)->toContain('Jeddah EN')
-        ->and($titles)->not->toContain('Dammam EN');
+        ->and($titles)->not->toContain('Dammam EN')
+        ->and(array_keys($response->json('data.items.0')))->toBe(['id', 'title', 'translations']);
 });
 
 test('catalog nationalities response shape contract', function () {
@@ -72,7 +73,7 @@ test('catalog nationalities response shape contract', function () {
     expect($json['data'])->toHaveKeys([
         'items', 'total', 'count', 'per_page', 'current_page', 'last_page', 'has_more_pages',
     ])
-        ->and($json['data']['items'][0])->toHaveKeys(['id', 'name']);
+        ->and(array_keys($json['data']['items'][0]))->toBe(['id', 'name', 'translations']);
 });
 
 test('catalog providers looks up by phone once and returns provider resource', function () {

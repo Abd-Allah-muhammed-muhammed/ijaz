@@ -112,7 +112,10 @@ test('jobs index response shape contract', function () {
     expect($item)->toHaveKeys([
         'id', 'title', 'description', 'expected_salary', 'expired_at', 'contact_number', 'created_at',
         'city_id', 'region_id', 'nationality_id', 'type', 'skills',
-    ]);
+    ])
+        ->and(array_keys($item['city']))->toBe(['id', 'region_id', 'title'])
+        ->and(array_keys($item['region']))->toBe(['id', 'title'])
+        ->and(array_keys($item['nationality']))->toBe(['id', 'name']);
     // index does not eager-load media — key absent unless loaded (preserve current behavior).
     expect($item)->not->toHaveKey('media');
 });
@@ -135,7 +138,10 @@ test('jobs show response shape contract', function () {
         ->and($json['data'])->toHaveKeys([
             'id', 'title', 'description', 'expected_salary', 'expired_at', 'contact_number', 'created_at',
             'city_id', 'region_id', 'nationality_id', 'type', 'skills', 'media',
-        ]);
+        ])
+        ->and(array_keys($json['data']['city']))->toBe(['id', 'region_id', 'title'])
+        ->and(array_keys($json['data']['region']))->toBe(['id', 'title'])
+        ->and(array_keys($json['data']['nationality']))->toBe(['id', 'name']);
 });
 
 test('jobs store response shape contract via POST with fixed phone validation', function () {
