@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\Api\User;
+namespace App\Http\Requests\Api\V1\User;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use MMAE\ApiResponse\Request\ApiRequest;
 
-class findProviderRequest extends ApiRequest
+class FindProviderRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
