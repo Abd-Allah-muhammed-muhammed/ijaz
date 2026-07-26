@@ -49,9 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware(config('modules.routes.api.middleware', ['api']))
                 ->prefix(config('modules.routes.api.prefix', 'api/v1'))
                 ->group(static function () {
-                    Route::group([], base_path('routes/Api/V1/user.php'));
-                    Route::group([], base_path('routes/Api/V1/otp.php'));
-                    Route::group([], base_path('routes/Api/V1/account.php'));
+                    Route::group([], base_path('routes/Api/V1/auth.php'));
                     Route::group([], base_path('routes/Api/V1/platform.php'));
 
                     if (! config('modules.routes.enabled', false)) {
