@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Classifieds\Actions\PropertyAdvisement\ListPropertyAdvisementsForDashboardAction;
 use Modules\Classifieds\Actions\PropertyAdvisement\ResolvePropertyAdvisementDashboardSelectsAction;
+use Modules\Classifieds\Actions\StoreAdvisementMediaAction;
 use Modules\Classifieds\Contracts\Repositories\PropertyAdvisementRepositoryInterface;
 use Modules\Classifieds\DTOs\PropertyAdvisementDTO;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -22,6 +23,7 @@ class PropertyAdvisementService
         private readonly PropertyAdvisementRepositoryInterface $repository,
         private readonly ListPropertyAdvisementsForDashboardAction $listForDashboardAction,
         private readonly ResolvePropertyAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
+        private readonly StoreAdvisementMediaAction $storeAdvisementMediaAction,
     ) {}
 
     public function listForDashboard(Request $request): LengthAwarePaginator
@@ -57,7 +59,7 @@ class PropertyAdvisementService
                 'status' => AdvisementStatusEnum::PENDING,
             ]);
 
-            $this->storeMedia($propertyAdvisement, $dto);
+            $this->storeAdvisementMediaAction->handle($propertyAdvisement, $dto->files);
 
             $propertyAdvisement->load([
                 'propertyType.translation',
@@ -78,7 +80,7 @@ class PropertyAdvisementService
         return DB::transaction(function () use ($model, $dto) {
             $propertyAdvisement = $this->repository->update($model, $dto->toPersistenceArray());
 
-            $this->storeMedia($propertyAdvisement, $dto);
+            $this->storeAdvisementMediaAction->handle($propertyAdvisement, $dto->files);
 
             $propertyAdvisement->load([
                 'propertyType.translation',
@@ -133,17 +135,6 @@ class PropertyAdvisementService
     {
         if ($model->user_type !== $user::class || $model->user_id !== $user->id) {
             throw new AccessDeniedHttpException('forbidden !!');
-        }
-    }
-
-    private function storeMedia(PropertyAdvisement $model, PropertyAdvisementDTO $dto): void
-    {
-        if ($dto->files === null || $dto->files === []) {
-            return;
-        }
-
-        foreach ($dto->files as $file) {
-            $model->addMedia($file)->toMediaCollection();
         }
     }
 }

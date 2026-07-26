@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Classifieds\Actions\InstituteAdvisement\ListInstituteAdvisementsForDashboardAction;
 use Modules\Classifieds\Actions\InstituteAdvisement\ResolveInstituteAdvisementDashboardSelectsAction;
+use Modules\Classifieds\Actions\StoreAdvisementMediaAction;
 use Modules\Classifieds\Contracts\Repositories\InstituteAdvisementRepositoryInterface;
 use Modules\Classifieds\DTOs\InstituteAdvisementDTO;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -23,6 +24,7 @@ final class InstituteAdvisementService
         private readonly InstituteAdvisementRepositoryInterface $repository,
         private readonly ListInstituteAdvisementsForDashboardAction $listForDashboardAction,
         private readonly ResolveInstituteAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
+        private readonly StoreAdvisementMediaAction $storeAdvisementMediaAction,
     ) {}
 
     public function listForDashboard(Request $request): LengthAwarePaginator
@@ -60,7 +62,7 @@ final class InstituteAdvisementService
                 ]);
             });
 
-            $this->storeMedia($instituteAdvisement, $dto);
+            $this->storeAdvisementMediaAction->handle($instituteAdvisement, $dto->files);
             $instituteAdvisement->load([
                 'specialization',
                 'city',
@@ -79,7 +81,7 @@ final class InstituteAdvisementService
 
         return DB::transaction(function () use ($model, $dto): InstituteAdvisement {
             $this->repository->update($model, $dto->toPersistenceArray());
-            $this->storeMedia($model, $dto);
+            $this->storeAdvisementMediaAction->handle($model, $dto->files);
             $model->load([
                 'specialization',
                 'city',
@@ -132,18 +134,6 @@ final class InstituteAdvisementService
     {
         if ($model->user_id !== $user->id || $model->user_type !== $user::class) {
             throw new AccessDeniedHttpException;
-        }
-    }
-
-    private function storeMedia(InstituteAdvisement $model, InstituteAdvisementDTO $dto): void
-    {
-        if (! $dto->files) {
-            return;
-        }
-
-        foreach ($dto->files as $file) {
-            $model->addMedia($file)
-                ->toMediaCollection();
         }
     }
 }

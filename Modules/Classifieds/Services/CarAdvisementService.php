@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Classifieds\Actions\CarAdvisement\ListCarAdvisementsForDashboardAction;
 use Modules\Classifieds\Actions\CarAdvisement\ResolveCarAdvisementDashboardSelectsAction;
+use Modules\Classifieds\Actions\StoreAdvisementMediaAction;
 use Modules\Classifieds\Contracts\Repositories\CarAdvisementRepositoryInterface;
 use Modules\Classifieds\DTOs\CarAdvisementDTO;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -23,6 +24,7 @@ final class CarAdvisementService
         private readonly CarAdvisementRepositoryInterface $repository,
         private readonly ListCarAdvisementsForDashboardAction $listForDashboardAction,
         private readonly ResolveCarAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
+        private readonly StoreAdvisementMediaAction $storeAdvisementMediaAction,
     ) {}
 
     public function listForDashboard(Request $request): LengthAwarePaginator
@@ -60,7 +62,7 @@ final class CarAdvisementService
                 ]);
             });
 
-            $this->storeMedia($carAdvisement, $dto);
+            $this->storeAdvisementMediaAction->handle($carAdvisement, $dto->files);
             $carAdvisement->load([
                 'carBrand',
                 'carType',
@@ -81,7 +83,7 @@ final class CarAdvisementService
 
         return DB::transaction(function () use ($model, $dto): CarAdvisement {
             $this->repository->update($model, $dto->toPersistenceArray());
-            $this->storeMedia($model, $dto);
+            $this->storeAdvisementMediaAction->handle($model, $dto->files);
             $model->load([
                 'carBrand',
                 'carType',
@@ -138,18 +140,6 @@ final class CarAdvisementService
     {
         if ($model->user_id !== $user->id || $model->user_type !== $user::class) {
             throw new AccessDeniedHttpException;
-        }
-    }
-
-    private function storeMedia(CarAdvisement $model, CarAdvisementDTO $dto): void
-    {
-        if (! $dto->files) {
-            return;
-        }
-
-        foreach ($dto->files as $file) {
-            $model->addMedia($file)
-                ->toMediaCollection();
         }
     }
 }
