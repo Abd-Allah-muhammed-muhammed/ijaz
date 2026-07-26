@@ -46,4 +46,20 @@ enum ProviderStatusEnum: string
             self::Suspended, self::Rejected, self::Blocked => 'danger',
         };
     }
+
+    /**
+     * Message shown when a provider with this status is denied authentication,
+     * or null when the status permits access. Shared by the login gate
+     * (LoginRequest) and the per-request session guard middleware.
+     */
+    public function authRejectionMessage(bool $isTemporaryBlock): ?string
+    {
+        return match ($this) {
+            self::Approved => null,
+            self::Pending => __('auth.pending'),
+            self::Suspended => __('auth.suspended'),
+            self::Rejected => __('auth.rejected'),
+            self::Blocked => $isTemporaryBlock ? __('auth.blocked') : __('auth.banned'),
+        };
+    }
 }

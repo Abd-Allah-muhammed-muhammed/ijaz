@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Provider\AuthController;
 use App\Http\Controllers\Provider\HomeController;
+use App\Http\Middleware\EnsureProviderIsApprovedMiddleware;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
@@ -17,7 +18,7 @@ Route::group(
                     Route::post('/login', 'login')->name('login.submit');
                     Route::get('/register', 'register')->name('register');
                 });
-                Route::group(['middleware' => ['auth:provider']], static function () {
+                Route::group(['middleware' => ['auth:provider', EnsureProviderIsApprovedMiddleware::class]], static function () {
                     Route::get('/profile', 'profile')->name('profile');
                     Route::post('/profile', 'updateProfile')->name('profile.update');
                     Route::get('/statements', 'statements')->name('statements');
@@ -25,7 +26,7 @@ Route::group(
                 });
 
             });
-            Route::middleware('auth:provider')->group(static function () {
+            Route::middleware(['auth:provider', EnsureProviderIsApprovedMiddleware::class])->group(static function () {
                 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
                 Route::prefix('dashboard')->group(static function () {
                     Route::get('/', HomeController::class)->name('home');
