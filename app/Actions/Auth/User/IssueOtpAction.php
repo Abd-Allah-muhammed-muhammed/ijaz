@@ -32,6 +32,6 @@ class IssueOtpAction
 
         $code = $user->updateOrCreateVerificationCode($this->generateOtpForPhone($phone), $type);
 
-        $this->sendOtpSmsAction->handle($user, $code->token, $normalizedPhone, $type);
+        $this->sendOtpSmsAction->handle($code->token, $normalizedPhone, $type, $user);
     }
 }

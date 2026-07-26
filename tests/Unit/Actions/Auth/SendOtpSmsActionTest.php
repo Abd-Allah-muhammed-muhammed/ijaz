@@ -25,7 +25,7 @@ test('handle sends otp via SmsService with correct token and phone', function ()
     Log::shouldReceive('channel')->with('sms')->once()->andReturnSelf();
     Log::shouldReceive('info')->once();
 
-    app(SendOtpSmsAction::class)->handle($user, '4829', '966512345678', 'login');
+    app(SendOtpSmsAction::class)->handle('4829', '966512345678', 'login', $user);
 });
 
 test('handle records cooldown only when send is successful', function () {
@@ -44,7 +44,7 @@ test('handle records cooldown only when send is successful', function () {
     Log::shouldReceive('channel')->with('sms')->once()->andReturnSelf();
     Log::shouldReceive('info')->once();
 
-    app(SendOtpSmsAction::class)->handle($user, '4829', '966512345678', 'login');
+    app(SendOtpSmsAction::class)->handle('4829', '966512345678', 'login', $user);
 });
 
 test('handle does not record cooldown when send fails', function () {
@@ -63,7 +63,7 @@ test('handle does not record cooldown when send fails', function () {
     Log::shouldReceive('channel')->with('sms')->once()->andReturnSelf();
     Log::shouldReceive('info')->once();
 
-    app(SendOtpSmsAction::class)->handle($user, '4829', '966512345678', 'login');
+    app(SendOtpSmsAction::class)->handle('4829', '966512345678', 'login', $user);
 });
 
 test('handle logs safe fields only, excludes result data', function () {
@@ -102,7 +102,7 @@ test('handle logs safe fields only, excludes result data', function () {
             return true;
         });
 
-    app(SendOtpSmsAction::class)->handle($user, '4829', '966512345678', 'email');
+    app(SendOtpSmsAction::class)->handle('4829', '966512345678', 'email', $user);
 });
 
 test('handle logs the otp type', function () {
@@ -128,7 +128,7 @@ test('handle logs the otp type', function () {
             'message' => 'Rejected',
         ]);
 
-    app(SendOtpSmsAction::class)->handle($user, '4829', '966512345678', 'password_reset');
+    app(SendOtpSmsAction::class)->handle('4829', '966512345678', 'password_reset', $user);
 });
 
 test('handle returns the SmsResult from the gateway', function () {
@@ -146,7 +146,31 @@ test('handle returns the SmsResult from the gateway', function () {
     Log::shouldReceive('channel')->with('sms')->once()->andReturnSelf();
     Log::shouldReceive('info')->once();
 
-    $actual = app(SendOtpSmsAction::class)->handle($user, '4829', '966512345678', 'phone');
+    $actual = app(SendOtpSmsAction::class)->handle('4829', '966512345678', 'phone', $user);
 
     expect($actual)->toBe($result);
+});
+
+test('handle without user preserves phone-only registration log shape', function () {
+    $sms = Mockery::mock(SmsService::class);
+    $sms->shouldReceive('sendOtp')
+        ->once()
+        ->with('4829', '966512345678')
+        ->andReturn(new SmsResult(status: 'success', driver: 'authentica', message: 'ok'));
+    app()->instance(SmsService::class, $sms);
+
+    $cooldown = Mockery::mock(EnsureOtpCooldownAction::class);
+    $cooldown->shouldReceive('recordSent')->once()->with('966512345678');
+    app()->instance(EnsureOtpCooldownAction::class, $cooldown);
+
+    Log::shouldReceive('channel')->with('sms')->once()->andReturnSelf();
+    Log::shouldReceive('info')
+        ->once()
+        ->with('Login OTP sent for number 966512345678', [
+            'status' => 'success',
+            'driver' => 'authentica',
+            'message' => 'ok',
+        ]);
+
+    app(SendOtpSmsAction::class)->handle('4829', '966512345678', 'login');
 });

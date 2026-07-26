@@ -3,11 +3,10 @@
 namespace App\Actions\Auth\Provider;
 
 use App\Actions\Auth\EnsureOtpCooldownAction;
+use App\Actions\Auth\SendOtpSmsAction;
 use App\Models\RegisterVerificationCode;
 use App\Support\Phone;
 use App\Traits\OTPGeneration;
-use Illuminate\Support\Facades\Log;
-use Modules\Sms\Services\SmsService;
 use Random\RandomException;
 
 class SendProviderRegistrationOtpAction
@@ -15,7 +14,7 @@ class SendProviderRegistrationOtpAction
     use OTPGeneration;
 
     public function __construct(
-        private readonly SmsService $smsService,
+        private readonly SendOtpSmsAction $sendOtpSmsAction,
         private readonly EnsureOtpCooldownAction $ensureOtpCooldownAction,
     ) {}
 
@@ -39,18 +38,7 @@ class SendProviderRegistrationOtpAction
             'expires_at' => now()->addMinutes(5),
         ]);
 
-        $result = $this->smsService->sendOtp($code->token, $phone);
-
-        if ($result->isSuccessful()) {
-            $this->ensureOtpCooldownAction->recordSent($phone);
-        }
-
-        // Do not log the OTP or $result->data: AuthenticaGateway nests the code
-        // in data.message.body (SmsMessage::toArray()), which would leak it.
-        Log::channel('sms')->info('Login OTP sent for number '.$phone, [
-            'status' => $result->status,
-            'driver' => $result->driver,
-            'message' => $result->message,
-        ]);
+        // No User yet — phone-only SMS path (preserves historical log shape).
+        $this->sendOtpSmsAction->handle($code->token, $phone, 'login');
     }
 }
