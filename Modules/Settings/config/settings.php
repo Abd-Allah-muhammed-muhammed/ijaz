@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Public API allowlist for PlatformController::settings().
+ * Public API allowlist for Modules\Settings Api\V1\SettingController::settings().
  *
  * The settings singleton caches every key→content pair. The unauthenticated
  * catalog/settings endpoint must NOT dump the full bag — only keys listed here

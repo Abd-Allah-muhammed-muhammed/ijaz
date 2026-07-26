@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\Api\V1\PlatformController;
 use Modules\Orders\Actions\CalculateOrderFeesAction;
 use Modules\Payment\Services\PaymentService;
+use Modules\Settings\Http\Controllers\Api\V1\SettingController;
 use Modules\Settings\Models\Setting;
 use Modules\Wallet\Actions\CreditProviderRegistrationBonusAction;
 use Modules\Wallet\Http\Requests\Provider\WithdrawRequestRequest;
@@ -63,14 +63,14 @@ it('resolves the same keys each of the five consumers read via app(settings)', f
     $driverFeesKey = app(PaymentService::class)->getDefaultDriver().'_fees';
     expect((float) app('settings')->get($driverFeesKey, 0))->toBe(15.0);
 
-    // PlatformController historically exposed the bag (allowlisted subset still includes these)
+    // Public settings API historically exposed the bag (allowlisted subset still includes these)
     expect(app('settings')->get('phone'))->toBe('966500000000')
         ->and(app('settings')->get('email'))->toBe('info@ijaz.sa')
         ->and(app('settings')->get('guarantee_fee'))->toBe('20');
 });
 
-it('keeps PlatformController::settings serving values sourced from app(settings)', function () {
-    $response = $this->getJson(action([PlatformController::class, 'settings']));
+it('keeps catalog settings endpoint serving values sourced from app(settings)', function () {
+    $response = $this->getJson(action([SettingController::class, 'settings']));
 
     $response->assertSuccessful()
         ->assertJsonPath('data.phone', '966500000000')

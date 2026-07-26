@@ -10,7 +10,6 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
-use Modules\Settings\Services\SettingService;
 
 #[Group('Catalog')]
 class PlatformController extends Controller
@@ -19,7 +18,6 @@ class PlatformController extends Controller
 
     public function __construct(
         private readonly ProviderManagementService $providerService,
-        private readonly SettingService $settingService,
     ) {}
 
     /**
@@ -50,21 +48,5 @@ class PlatformController extends Controller
         }
 
         return $this->successResponse(ProviderResource::make($provider));
-    }
-
-    /**
-     * @unauthenticated
-     *
-     * Public settings dump — allowlisted only.
-     *
-     * Historically this returned app('settings')->toArray() (every key). That is
-     * unsafe once admin-only keys land in the same table. SettingService::publicBag()
-     * filters to config('settings.public_keys'), which currently mirrors the full
-     * historical seed set (non-breaking). New sensitive keys stay private until
-     * deliberately added to that allowlist.
-     */
-    public function settings(): JsonResponse
-    {
-        return $this->successResponse($this->settingService->publicBag());
     }
 }
