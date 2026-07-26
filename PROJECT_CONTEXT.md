@@ -231,7 +231,7 @@ Also note the rule’s **explicit `use` + Pint alias** guidance (same-namespace 
 Also still true (non-breaking quirks, documented in models/API docs):
 
 - Some notification / account-mutation endpoints still use `GET` (verb debt).
-- A few Geo/catalog lookup endpoints remain on `App\Http\Controllers\Api\V1\CatalogController` (nationalities, regions, cities, providers, settings) while Marketplace/Cms/Catalog modules own the rest.
+- Geo catalog lookups (nationalities, regions, cities) live on `Modules\Geo\Http\Controllers\Api\V1\GeoController`; platform misc (`providers`, `settings`) on `App\Http\Controllers\Api\V1\PlatformController` — Marketplace/Cms/Catalog modules own the rest of `/api/v1/catalog/*`.
 
 **Planned but not implemented (not a bug, not dead code to remove):**
 

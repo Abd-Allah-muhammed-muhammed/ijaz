@@ -1,18 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\V1\CatalogController;
 use App\Http\Controllers\Api\V1\OtpController;
+use App\Http\Controllers\Api\V1\PlatformController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('catalog')->group(static function () {
-    Route::controller(CatalogController::class)->group(static function () {
-        Route::prefix('regions')->group(static function () {
-            Route::get('/', 'regions');
-            Route::get('/{region}/cities', 'cities');
-        });
-        Route::get('/nationalities', 'nationalities');
-
+    Route::controller(PlatformController::class)->group(static function () {
         Route::get('/providers', 'providers');
         Route::get('/settings', 'settings');
     });

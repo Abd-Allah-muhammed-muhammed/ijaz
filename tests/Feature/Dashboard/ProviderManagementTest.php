@@ -1,7 +1,7 @@
 <?php
 
 use App\Enums\Providers\ProviderStatusEnum;
-use App\Http\Controllers\Api\V1\CatalogController;
+use App\Http\Controllers\Api\V1\PlatformController;
 use App\Http\Controllers\Api\V1\User\ProviderController as ApiUserProviderController;
 use App\Http\Controllers\Dashboard\ProviderController;
 use App\Models\Admin;
@@ -268,7 +268,7 @@ it('looks up a catalog provider by phone through ProviderManagementService', fun
         'provider_type_id' => $deps['providerType']->id,
     ]);
 
-    $this->getJson(action([CatalogController::class, 'providers'], [
+    $this->getJson(action([PlatformController::class, 'providers'], [
         'phone' => '0501234567',
     ]))
         ->assertSuccessful()
