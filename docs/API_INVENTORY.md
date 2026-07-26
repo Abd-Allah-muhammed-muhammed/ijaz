@@ -1,227 +1,276 @@
 # API Inventory
 
-Last verified from source: 2026-04-16 (pre-module-extraction)
+Regenerated from `php artisan route:list --json` (ground truth for method, URI, name, middleware, controller) plus controller reflection for FormRequests and Resources.
 
-Generated from routes/api.php, routes/Api/V1/*.php, and controller/request/resource usage.
+**Last verified: 2026-07-26, post-full-module-extraction**
 
-> **⚠️ Controller column is stale; endpoint URIs are still accurate.** No API URI or route
-> name changed during the module extraction, so the Method/Endpoint/Request/Resource columns
-> remain a usable contract reference. The Controller column, however, mostly points at
-> classes that have moved — for example `Api\V1\CatalogController@categories` is now
-> `Modules\Marketplace\Http\Controllers\Api\V1\MarketplaceCatalogController@categories`, and
-> `@banners` / `@pages` / `@questions` are now on
-> `Modules\Cms\Http\Controllers\Api\V1\CmsController`. Only `nationalities`, `regions`,
-> `cities` and `providers` are still served by `app/Http/Controllers/Api/V1/CatalogController`.
->
-> Endpoints added after 2026-04-16 (Guarantor, Opportunity, electronics/institute
-> advisements, the Catalog car/property lookups, Wallet) are not listed here at all. Use
-> `php artisan route:list --except-vendor` as the source of truth for controller mapping.
-> Needs a regeneration pass.
+## Scope
 
-Notes:
-- Auth column shows middleware guard requirements.
-- Request fields are from FormRequest classes where used.
-- Response structure is from JsonResource/collection or response helper usage in controllers.
-- If a field/shape is not explicit in code, it is marked Unknown.
-- Response shapes: The actual response shape used by the code is not the simple `{ status, message, data }` shape. The project uses `MMAE\ApiResponse\Traits\HasApiResponse`, with controller calls showing shapes such as `successResponse(...)`, `successMessageResponse(...)`, `successResponseWithToken(...)`, and `failedMessageResponse(...)`.
+| Module | Endpoints |
+|---|---:|
+| App Core | 22 |
+| Catalog | 14 |
+| Chat | 12 |
+| Classifieds | 28 |
+| Cms | 5 |
+| Guarantor | 15 |
+| Jobs | 7 |
+| Marketplace | 5 |
+| Opportunity | 19 |
+| Orders | 9 |
+| Payment | 3 |
+| Support | 6 |
+| Wallet | 4 |
+| **Total `api/*` routes** | **149** |
 
-## Authentication
+## Reading this document
 
-| Method | Endpoint | Controller | Auth | Request | Resource | Description |
-|---|---|---|---|---|---|---|
-| POST | /api/v1/user/auth/login | `Api\V1\User\AuthController@login` | No | `LoginRequest` | none | Sends login OTP to a user phone, revokes prior tokens, creates a 15-minute login token. |
-| POST | /api/v1/user/auth/register | `Api\V1\User\AuthController@register` | No | `RegisterRequest` | `UserResource` | Creates the user, sends OTP, returns a token and user resource. |
-| GET | /api/v1/user/auth/me | `Api\V1\User\AuthController@auth` | Yes (`auth:user-api`) | none | `UserResource` | Returns authenticated user. |
-| POST | /api/v1/user/auth/profile/update | `Api\V1\User\AuthController@profileUpdate` | Yes (`auth:user-api`) | `UpdateRequest` | `UserResource` | Updates user profile and image. |
-| POST | /api/v1/user/auth/logout | `Api\V1\User\AuthController@logout` | Yes (`auth:user-api`) | none | none | Deletes all tokens for current user. |
-| POST | /api/v1/otp/send | `Api\V1\OtpController@send` | Yes (`auth:sanctum`) | `SendOTPRequest` | none | Generates and sends OTP. |
-| POST | /api/v1/otp/verify | `Api\V1\OtpController@verify` | Yes (`auth:sanctum`) | `VerifyOTPRequest` | user/provider resources | Verifies OTP and returns the verified actor. |
+- **Auth** comes from route middleware: `auth:user-api + abilities:user-api` = mobile-user-exclusive; `auth:sanctum` = any Sanctum token (user or provider); `No` = public.
+- **Audience**: `Mobile (user-api)` routes are the mobile-app-exclusive user API (`Api\V1\User\*` + Orders user routes). `Sanctum` routes serve both apps. `Public` routes are unauthenticated catalog/content lookups.
+- **Request** is the FormRequest type-hinted on the controller action (`none` = no FormRequest; inline validation or none).
+- **Resources** are Resource/Collection classes referenced in the action body; `(HasApiResponse helper / raw JSON)` means the `MMAE\ApiResponse` envelope (`success`, `data`, `message`, `errors`, sometimes `token`) with an ad-hoc payload.
+- All module API responses ride the same `HasApiResponse` envelope unless stated otherwise.
+- **Out of scope**: Dashboard (Inertia, `dashboard/*`) and Provider web routes are not `api/*` routes and are intentionally not listed here.
 
-### Request body fields:
-- POST /api/v1/user/auth/login: `LoginRequest` (phone)
-- POST /api/v1/user/auth/register: `RegisterRequest` (f_name, l_name, email, phone, nationality_id, image, latitude, longitude, password nullable)
-- POST /api/v1/user/auth/profile/update: `UpdateRequest` (f_name, l_name, email, password+confirmation, phone, nationality_id, image nullable)
-- POST /api/v1/otp/send: `SendOTPRequest`
-- POST /api/v1/otp/verify: `VerifyOTPRequest` (type, otp)
+## Contract-freeze cross-reference (authoritative shapes)
 
-### Response structures:
-- login/register: `HasApiResponse` helper payload, register includes token and `UserResource`
-- me/profile update: `UserResource`
-- otp verify: `UserResource` or `ProviderResource` depending verified actor type
-- logout: response helper message
+These Pest contract tests lock actual response shapes and take precedence over shapes re-derived from controller code:
 
-## Catalog
+| Area | Test | Locked shape highlights |
+|---|---|---|
+| Geo catalog | `Modules/Geo/tests/Feature/Api/V1/CatalogGeoApiContractTest.php` | region/city items: `id`, `title`, `translations` (city has **no** `cities_count`); nationality: `id`, `name`, `translations` |
+| Marketplace catalog | `Modules/Marketplace/tests/Feature/Api/V1/MarketplaceCatalogContractTest.php` | categories/skills/provider-types list shapes |
+| Property catalog | `Modules/Catalog/tests/Feature/PropertyCatalogResponseContractTest.php` | property-categories / property-types lookups |
+| Cms | `tests/Feature/Api/V1/CmsResponseContractTest.php` | banners / pages / questions |
+| Jobs | `tests/Feature/Api/V1/JobResponseContractTest.php` | job item: city `id`,`region_id`,`title`; region `id`,`title`; nationality `id`,`name` |
+| Orders (user) | `tests/Feature/Api/V1/User/OrderControllerTest.php` + `OrderControllerRegressionTest.php` | order city/region: `id`, `title` |
+| UserResource (mobile) | `tests/Feature/Api/V1/UserResourceMobileContractTest.php` | register/me/profile-update user payload |
+| UserResource (nested) | `tests/Feature/Api/V1/UserResourceNonMobileConsumersContractTest.php` | Wallet + Classifieds nested `user` |
+| OTP phone verify | `tests/Feature/Api/V1/OtpVerifyPhoneResponseTest.php` | envelope stays `success: false` (deferred Item 4) |
 
-| Method | Endpoint | Controller | Auth | Request | Resource | Description |
-|---|---|---|---|---|---|---|
-| GET | /api/v1/catalog/categories | `Api\V1\CatalogController@categories` | No | none | `CategoryCollection` | Lists root or filtered categories with children. |
-| GET | /api/v1/catalog/categories/with-no-children | `Api\V1\CatalogController@categoriesWithNoChildren` | No | none | `CategoryCollection` | Lists leaf categories. |
-| GET | /api/v1/catalog/categories/{category}/children | `Api\V1\CatalogController@categoryChildren` | No | none | `CategoryCollection` | Lists category children. |
-| GET | /api/v1/catalog/categories/{category}/skills | `Api\V1\CatalogController@categorySkills` | No | none | `SkillCollection` | Lists skills for a category or all skills when `id=0`. |
-| GET | /api/v1/catalog/regions | `Api\V1\CatalogController@regions` | No | none | `RegionCollection` | Lists regions. |
-| GET | /api/v1/catalog/regions/{region}/cities | `Api\V1\CatalogController@cities` | No | none | `CityCollection` | Lists cities for a region. |
-| GET | /api/v1/catalog/provider-types | `Api\V1\CatalogController@providerTypes` | No | none | raw/collection-like | Returns provider types. |
-| GET | /api/v1/catalog/nationalities | `Api\V1\CatalogController@nationalities` | No | none | `NationalityCollection` | Lists nationalities. |
-| GET | /api/v1/catalog/providers | `Api\V1\CatalogController@providers` | No | none | `ProviderResource` | Looks up provider by phone and optional category. |
-| GET | /api/v1/catalog/banners | `Api\V1\CatalogController@banners` | No | none | `BannerResource::collection` | Lists banners. |
-| GET | /api/v1/catalog/pages | `Api\V1\CatalogController@pages` | No | none | raw mapped array | Lists pages with `id`, `slug`, `title`. |
-| GET | /api/v1/catalog/pages/{page} | `Api\V1\CatalogController@page` | No | none | `PageResource` | Returns one page. |
-| GET | /api/v1/catalog/settings | `Api\V1\CatalogController@settings` | No | none | raw array | Returns `app('settings')->toArray()`. |
-| GET | /api/v1/catalog/questions | `Api\V1\CatalogController@questions` | No | none | `QuestionCollection` | Lists questions. |
+## Known deferred quirks (do NOT re-fix without mobile coordination)
 
-## User Orders
+See `docs/DEFERRED_MOBILE_BREAKING_CHANGES.md`:
 
-| Method | Endpoint | Controller | Auth | Request | Resource | Description |
-|---|---|---|---|---|---|---|
-| GET | /api/v1/user/orders | `Api\V1\User\OrderController@index` | Yes (`auth:user-api` + `abilities:user-api`) | none | `OrderCollection` | Lists current user's orders with offer counts. |
-| POST | /api/v1/user/orders | `Api\V1\User\OrderController@store` | Yes | `OrderRequest` | `OrderResource` | Creates a new order and dispatches notifications/events. |
-| GET | /api/v1/user/orders/{order} | `Api\V1\User\OrderController@show` | Yes | none | `OrderResource` | Returns order with offers/provider/media/skills. |
-| POST | /api/v1/user/orders/{order}/edit | `Api\V1\User\OrderController@edit` | Yes | `OrderRequest` | `OrderResource` | Updates an order only while status is `New`. |
-| POST | /api/v1/user/orders/{order}/{offer}/update-status | `Api\V1\User\OrderController@updateOfferStatus` | Yes | `UpdateOfferStatusRequest` | helper response | Updates offer status and may update order status, fees, and notifications. |
-| POST | /api/v1/user/orders/{order}/{offer}/pay | `Api\V1\User\OrderController@pay` | Yes | none | payment array | Creates a `Payment` for the accepted offer and triggers gateway processing. |
-| POST | /api/v1/user/orders/{order}/end-and-review | `Api\V1\User\OrderController@endAndReview` | Yes | `EndAndReviewRequest` | helper response | Marks order ended by client and writes review. |
-| DELETE | /api/v1/user/orders/{order}/{media:uuid}/delete | `Api\V1\User\OrderController@deleteMedia` | Yes | none | helper response | Deletes order media after ownership/status checks. |
-| DELETE | /api/v1/user/orders/{order} | `Api\V1\User\OrderController@destroy` | Yes | none | helper response | Deletes order if it has no offers. |
+1. Chat conversations emit deprecated typo key `last_massage_at` alongside `last_message_at`.
+2. **Pagination shape fragmentation**: flat meta (`BaseCollection`: `items` + top-level `total`/`count`/…) vs nested `paginate` (Chat `ConversationCollection`) vs nested `paginate` + page URLs (`ConversationMessageCollection`). Documented per-family, intentionally not unified on v1.
+3. Wallet `add-balance` leaks `PaymentInitResult` internals (`status`, `driver`, `url`, `payable`, `transaction_id`, `message` + nested `data`).
+4. `POST /api/v1/otp/verify` with `type=phone` persists verification but still returns `success: false`.
+5. `propertiy_categories` schema typo persists behind correctly-named `property-categories` endpoints.
 
-### Request body fields:
-- create/edit: `OrderRequest` (title, description nullable, budget_start, budget_end, category_id, files nullable array, provider_id nullable, expected_time nullable, skills array)
-- update-status: `UpdateOfferStatusRequest` (status enum)
-- end-and-review: `EndAndReviewRequest` (rating, comment)
-- pay: no dedicated FormRequest (inline checks)
+---
 
-## User Provider Lookup
+# App Core
 
-| Method | Endpoint | Controller | Auth | Request | Resource | Description |
-|---|---|---|---|---|---|---|
-| GET | /api/v1/user/providers/get | `Api\V1\User\ProviderController@get` | Yes (`auth:user-api` + `abilities:user-api`) | `findProviderRequest` | `ProviderResource` | Looks up a provider by request parameters. |
+| Method | URI | Name | Controller | Auth | Audience | Request | Resources |
+|---|---|---|---|---|---|---|---|
+| GET/POST | `/api/broadcasting/auth` | - | `Illuminate\Broadcasting\BroadcastController@authenticate` | auth:sanctum | Sanctum (user or provider) | none | none detected |
+| GET | `/api/v1/auth/counts` | - | `App\Http\Controllers\Api\UserController@counts` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/auth/delete-account` | - | `App\Http\Controllers\Api\UserController@deleteAccount` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| DELETE | `/api/v1/auth/notifications/all` | - | `App\Http\Controllers\Api\UserController@deleteAllNotification` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/auth/notifications/mark-all-as-read` | - | `App\Http\Controllers\Api\UserController@markAllNotificationsAsRead` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/auth/notifications/{notification}/mark-as-read` | - | `App\Http\Controllers\Api\UserController@markAsRead` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| DELETE | `/api/v1/auth/notifications/{notification}` | - | `App\Http\Controllers\Api\UserController@deleteNotification` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/auth/notifications` | - | `App\Http\Controllers\Api\UserController@notifications` | auth:sanctum | Sanctum (user or provider) | none | `NotificationCollection` |
+| POST | `/api/v1/auth/update-settings` | - | `App\Http\Controllers\Api\UserController@updateSettings` | auth:sanctum | Sanctum (user or provider) | `UpdateSettingsRequest` | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/catalog/nationalities` | - | `App\Http\Controllers\Api\V1\CatalogController@nationalities` | No | Public | none | `NationalityCollection` |
+| GET | `/api/v1/catalog/providers` | - | `App\Http\Controllers\Api\V1\CatalogController@providers` | No | Public | none | `ProviderResource` |
+| GET | `/api/v1/catalog/regions/{region}/cities` | - | `App\Http\Controllers\Api\V1\CatalogController@cities` | No | Public | none | `CityCollection` |
+| GET | `/api/v1/catalog/regions` | - | `App\Http\Controllers\Api\V1\CatalogController@regions` | No | Public | none | `RegionCollection` |
+| GET | `/api/v1/catalog/settings` | - | `App\Http\Controllers\Api\V1\CatalogController@settings` | No | Public | none | (HasApiResponse helper / raw JSON) |
+| POST | `/api/v1/otp/send` | - | `App\Http\Controllers\Api\V1\OtpController@send` | auth:sanctum | Sanctum (user or provider) | `SendOTPRequest` | (HasApiResponse helper / raw JSON) |
+| POST | `/api/v1/otp/verify` | - | `App\Http\Controllers\Api\V1\OtpController@verify` | auth:sanctum | Sanctum (user or provider) | `VerifyOTPRequest` | (HasApiResponse helper / raw JSON) |
+| POST | `/api/v1/user/auth/login` | - | `App\Http\Controllers\Api\V1\User\AuthController@login` | No | Public | `LoginRequest` | (HasApiResponse helper / raw JSON) |
+| POST | `/api/v1/user/auth/logout` | - | `App\Http\Controllers\Api\V1\User\AuthController@logout` | auth:user-api + abilities:user-api | Mobile (user-api) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/user/auth/me` | - | `App\Http\Controllers\Api\V1\User\AuthController@auth` | auth:user-api + abilities:user-api | Mobile (user-api) | none | `UserResource` |
+| POST | `/api/v1/user/auth/profile/update` | - | `App\Http\Controllers\Api\V1\User\AuthController@profileUpdate` | auth:user-api + abilities:user-api | Mobile (user-api) | `UpdateRequest` | `UserResource` |
+| POST | `/api/v1/user/auth/register` | - | `App\Http\Controllers\Api\V1\User\AuthController@register` | No | Public | `RegisterRequest` | `UserResource` |
+| GET | `/api/v1/user/providers/get` | - | `App\Http\Controllers\Api\V1\User\ProviderController@get` | auth:user-api + abilities:user-api | Mobile (user-api) | `FindProviderRequest` | `ProviderResource` |
 
-## Chats
+# Catalog
 
-| Method | Endpoint | Controller | Auth | Request | Resource | Description |
-|---|---|---|---|---|---|---|
-| GET | /api/v1/chats | `Api\V1\ChatController@index` | Yes (`auth:sanctum`) | none | `ConversationCollection` | Lists chats. |
-| POST | /api/v1/chats | `Api\V1\ChatController@store` | Yes | `StoreConversationRequest` | `ConversationResource` | Creates/open a direct conversation. |
-| POST | /api/v1/chats/send/{conversation} | `Api\V1\ChatController@send` | Yes | `SendMessageRequest` | `ConversationMessageResource` | Sends a direct chat message. |
-| GET | /api/v1/chats/{conversation} | `Api\V1\ChatController@show` | Yes | none | `ConversationMessageCollection` | Lists messages in a conversation. |
-| GET | /api/v1/chats/{conversation}/show | `Api\V1\ChatController@chat` | Yes | none | `ConversationResource` | Returns conversation detail variant. |
-| GET | /api/v1/chats/orders | `Api\V1\OrderChatController@index` | Yes | none | `ConversationCollection` | Lists order chats. |
-| POST | /api/v1/chats/orders | `Api\V1\OrderChatController@store` | Yes | inline validation | `ConversationResource` | Creates order conversation. ⚠️ Needs dedicated FormRequest |
-| POST | /api/v1/chats/orders/send/{conversation} | `Api\V1\OrderChatController@send` | Yes | `SendMessageRequest` | `ConversationMessageResource` | Sends order message. |
-| GET | /api/v1/chats/orders/{conversation} | `Api\V1\OrderChatController@show` | Yes | none | `ConversationMessageCollection` | Lists order conversation messages. |
-| GET | /api/v1/chats/tickets | `Api\V1\TicketSupportChatController@index` | Yes | none | `ConversationCollection` | Lists ticket chats. |
-| POST | /api/v1/chats/tickets/send/{conversation} | `Api\V1\TicketSupportChatController@send` | Yes | `SendMessageRequest` | `ConversationMessageResource` | Sends ticket message. |
-| GET | /api/v1/chats/tickets/{conversation} | `Api\V1\TicketSupportChatController@show` | Yes | none | `ConversationMessageCollection` | Lists ticket messages. |
+| Method | URI | Name | Controller | Auth | Audience | Request | Resources |
+|---|---|---|---|---|---|---|---|
+| GET | `/api/v1/catalog/car-brands/{carBrand}` | - | `Modules\Catalog\Http\Controllers\Api\V1\CarBrandController@show` | No | Public | none | `CarBrandResource` |
+| GET | `/api/v1/catalog/car-brands` | - | `Modules\Catalog\Http\Controllers\Api\V1\CarBrandController@index` | No | Public | none | `CarBrandCollection` |
+| GET | `/api/v1/catalog/car-categories/{carCategory}` | - | `Modules\Catalog\Http\Controllers\Api\V1\CarCategoryController@show` | No | Public | none | `CarCategoryResource` |
+| GET | `/api/v1/catalog/car-categories` | - | `Modules\Catalog\Http\Controllers\Api\V1\CarCategoryController@index` | No | Public | none | `CarCategoryCollection` |
+| GET | `/api/v1/catalog/car-types/{carType}` | - | `Modules\Catalog\Http\Controllers\Api\V1\CarTypeController@show` | No | Public | none | `CarTypeResource` |
+| GET | `/api/v1/catalog/car-types` | - | `Modules\Catalog\Http\Controllers\Api\V1\CarTypeController@index` | No | Public | none | `CarTypeCollection` |
+| GET | `/api/v1/catalog/device-categories/{deviceCategory}` | - | `Modules\Catalog\Http\Controllers\Api\V1\DeviceCategoryController@show` | No | Public | none | `DeviceCategoryResource` |
+| GET | `/api/v1/catalog/device-categories` | - | `Modules\Catalog\Http\Controllers\Api\V1\DeviceCategoryController@index` | No | Public | none | `DeviceCategoryResource` |
+| GET | `/api/v1/catalog/electronic-brands/{electronicBrand}` | - | `Modules\Catalog\Http\Controllers\Api\V1\ElectronicBrandController@show` | No | Public | none | `ElectronicBrandResource` |
+| GET | `/api/v1/catalog/electronic-brands` | - | `Modules\Catalog\Http\Controllers\Api\V1\ElectronicBrandController@index` | No | Public | none | `ElectronicBrandResource` |
+| GET | `/api/v1/catalog/property-categories` | - | `Modules\Catalog\Http\Controllers\Api\V1\PropertyCategoryController@index` | No | Public | none | `PropertyCategoryCollection` |
+| GET | `/api/v1/catalog/property-types` | - | `Modules\Catalog\Http\Controllers\Api\V1\PropertyTypeController@index` | No | Public | none | `PropertyTypeCollection` |
+| GET | `/api/v1/catalog/specializations/{specialization}` | - | `Modules\Catalog\Http\Controllers\Api\V1\SpecializationController@show` | No | Public | none | `SpecializationResource` |
+| GET | `/api/v1/catalog/specializations` | - | `Modules\Catalog\Http\Controllers\Api\V1\SpecializationController@index` | No | Public | none | `SpecializationResource` |
 
-## Jobs
+# Chat
 
-| Method | Endpoint | Controller | Auth | Request | Resource | Description |
-|---|---|---|---|---|---|---|
-| GET | /api/v1/jobs/all | `Api\V1\JobController@all` | Yes (`auth:sanctum`) | none | `JobCollection` | Lists all active jobs. |
-| GET | /api/v1/jobs | `Api\V1\JobController@index` | Yes (`auth:sanctum`) | none | `JobCollection` | Lists own jobs. |
-| POST | /api/v1/jobs | `Api\V1\JobController@store` | Yes | `JobRequest` | `JobResource` | Creates a new job. |
-| GET | /api/v1/jobs/{job} | `Api\V1\JobController@show` | Yes | none | `JobResource` | Returns job detail. |
-| PUT/PATCH | /api/v1/jobs/{job} | `Api\V1\JobController@update` | Yes | `JobRequest` | `JobResource` | Updates a job. |
-| DELETE | /api/v1/jobs/{job} | `Api\V1\JobController@destroy` | Yes | none | helper response | Deletes a job. |
-| DELETE | /api/v1/jobs/{job}/media/{media} | `Api\V1\JobController@destroyMedia` | Yes | none | helper response | Deletes job media. |
+| Method | URI | Name | Controller | Auth | Audience | Request | Resources |
+|---|---|---|---|---|---|---|---|
+| POST | `/api/v1/chats/orders/send/{conversation}` | - | `Modules\Chat\Http\Controllers\Api\V1\OrderChatController@send` | auth:sanctum | Sanctum (user or provider) | `SendMessageRequest` | `ConversationMessageResource` |
+| GET | `/api/v1/chats/orders/{conversation}` | - | `Modules\Chat\Http\Controllers\Api\V1\OrderChatController@show` | auth:sanctum | Sanctum (user or provider) | none | `ConversationMessageCollection` |
+| GET | `/api/v1/chats/orders` | - | `Modules\Chat\Http\Controllers\Api\V1\OrderChatController@index` | auth:sanctum | Sanctum (user or provider) | none | `ConversationCollection` |
+| POST | `/api/v1/chats/orders` | - | `Modules\Chat\Http\Controllers\Api\V1\OrderChatController@store` | auth:sanctum | Sanctum (user or provider) | `StoreOrderChatRequest` | `ConversationResource` |
+| POST | `/api/v1/chats/send/{conversation}` | - | `Modules\Chat\Http\Controllers\Api\V1\MemberChatController@send` | auth:sanctum | Sanctum (user or provider) | `SendMessageRequest` | `ConversationMessageResource` |
+| POST | `/api/v1/chats/tickets/send/{conversation}` | - | `Modules\Chat\Http\Controllers\Api\V1\TicketSupportChatController@send` | auth:sanctum | Sanctum (user or provider) | `SendMessageRequest` | `ConversationMessageResource` |
+| GET | `/api/v1/chats/tickets/{conversation}` | - | `Modules\Chat\Http\Controllers\Api\V1\TicketSupportChatController@show` | auth:sanctum | Sanctum (user or provider) | none | `ConversationMessageCollection` |
+| GET | `/api/v1/chats/tickets` | - | `Modules\Chat\Http\Controllers\Api\V1\TicketSupportChatController@index` | auth:sanctum | Sanctum (user or provider) | none | `ConversationCollection` |
+| GET | `/api/v1/chats/{conversation}/show` | - | `Modules\Chat\Http\Controllers\Api\V1\MemberChatController@chat` | auth:sanctum | Sanctum (user or provider) | none | `ConversationResource` |
+| GET | `/api/v1/chats/{conversation}` | - | `Modules\Chat\Http\Controllers\Api\V1\MemberChatController@show` | auth:sanctum | Sanctum (user or provider) | none | `ConversationMessageCollection` |
+| GET | `/api/v1/chats` | - | `Modules\Chat\Http\Controllers\Api\V1\MemberChatController@index` | auth:sanctum | Sanctum (user or provider) | none | `ConversationCollection` |
+| POST | `/api/v1/chats` | - | `Modules\Chat\Http\Controllers\Api\V1\MemberChatController@store` | auth:sanctum | Sanctum (user or provider) | `StoreConversationRequest` | `ConversationResource` |
 
-### Request body fields:
-- create/update: `JobRequest` (title, description, expected_salary, expired_at, contact_number, city_id, region_id, nationality_id, type enum, files nullable, skills nullable)
+# Classifieds
 
-## Advisements
+| Method | URI | Name | Controller | Auth | Audience | Request | Resources |
+|---|---|---|---|---|---|---|---|
+| GET | `/api/v1/classifieds/cars/all` | `api.v1.classifieds.cars.all` | `Modules\Classifieds\Http\Controllers\Api\V1\CarAdvisementController@all` | No | Public | none | `CarAdvisementCollection` |
+| DELETE | `/api/v1/classifieds/cars/{carAdvisement}/media/{media:uuid}` | `api.v1.classifieds.cars.deleteMedia` | `Modules\Classifieds\Http\Controllers\Api\V1\CarAdvisementController@deleteMedia` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| DELETE | `/api/v1/classifieds/cars/{carAdvisement}` | `api.v1.classifieds.cars.destroy` | `Modules\Classifieds\Http\Controllers\Api\V1\CarAdvisementController@destroy` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/classifieds/cars/{carAdvisement}` | `api.v1.classifieds.cars.show` | `Modules\Classifieds\Http\Controllers\Api\V1\CarAdvisementController@show` | auth:sanctum | Sanctum (user or provider) | none | `CarAdvisementResource` |
+| PUT/PATCH | `/api/v1/classifieds/cars/{carAdvisement}` | `api.v1.classifieds.cars.update` | `Modules\Classifieds\Http\Controllers\Api\V1\CarAdvisementController@update` | auth:sanctum | Sanctum (user or provider) | `CarAdvisementRequest` | `CarAdvisementResource` |
+| GET | `/api/v1/classifieds/cars` | `api.v1.classifieds.cars.index` | `Modules\Classifieds\Http\Controllers\Api\V1\CarAdvisementController@index` | auth:sanctum | Sanctum (user or provider) | none | `CarAdvisementCollection` |
+| POST | `/api/v1/classifieds/cars` | `api.v1.classifieds.cars.store` | `Modules\Classifieds\Http\Controllers\Api\V1\CarAdvisementController@store` | auth:sanctum | Sanctum (user or provider) | `CarAdvisementRequest` | `CarAdvisementResource` |
+| GET | `/api/v1/classifieds/electronics/all` | `api.v1.classifieds.electronics.all` | `Modules\Classifieds\Http\Controllers\Api\V1\ElectronicAdvisementController@all` | No | Public | none | `ElectronicAdvisementCollection` |
+| DELETE | `/api/v1/classifieds/electronics/{electronicAdvisement}/media/{media:uuid}` | `api.v1.classifieds.electronics.deleteMedia` | `Modules\Classifieds\Http\Controllers\Api\V1\ElectronicAdvisementController@deleteMedia` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| DELETE | `/api/v1/classifieds/electronics/{electronicAdvisement}` | `api.v1.classifieds.electronics.destroy` | `Modules\Classifieds\Http\Controllers\Api\V1\ElectronicAdvisementController@destroy` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/classifieds/electronics/{electronicAdvisement}` | `api.v1.classifieds.electronics.show` | `Modules\Classifieds\Http\Controllers\Api\V1\ElectronicAdvisementController@show` | auth:sanctum | Sanctum (user or provider) | none | `ElectronicAdvisementResource` |
+| PUT/PATCH | `/api/v1/classifieds/electronics/{electronicAdvisement}` | `api.v1.classifieds.electronics.update` | `Modules\Classifieds\Http\Controllers\Api\V1\ElectronicAdvisementController@update` | auth:sanctum | Sanctum (user or provider) | `ElectronicAdvisementRequest` | `ElectronicAdvisementResource` |
+| GET | `/api/v1/classifieds/electronics` | `api.v1.classifieds.electronics.index` | `Modules\Classifieds\Http\Controllers\Api\V1\ElectronicAdvisementController@index` | auth:sanctum | Sanctum (user or provider) | none | `ElectronicAdvisementCollection` |
+| POST | `/api/v1/classifieds/electronics` | `api.v1.classifieds.electronics.store` | `Modules\Classifieds\Http\Controllers\Api\V1\ElectronicAdvisementController@store` | auth:sanctum | Sanctum (user or provider) | `ElectronicAdvisementRequest` | `ElectronicAdvisementResource` |
+| GET | `/api/v1/classifieds/institutes/all` | `api.v1.classifieds.institutes.all` | `Modules\Classifieds\Http\Controllers\Api\V1\InstituteAdvisementController@all` | No | Public | none | `InstituteAdvisementCollection` |
+| DELETE | `/api/v1/classifieds/institutes/{instituteAdvisement}/media/{media:uuid}` | `api.v1.classifieds.institutes.deleteMedia` | `Modules\Classifieds\Http\Controllers\Api\V1\InstituteAdvisementController@deleteMedia` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| DELETE | `/api/v1/classifieds/institutes/{instituteAdvisement}` | `api.v1.classifieds.institutes.destroy` | `Modules\Classifieds\Http\Controllers\Api\V1\InstituteAdvisementController@destroy` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/classifieds/institutes/{instituteAdvisement}` | `api.v1.classifieds.institutes.show` | `Modules\Classifieds\Http\Controllers\Api\V1\InstituteAdvisementController@show` | auth:sanctum | Sanctum (user or provider) | none | `InstituteAdvisementResource` |
+| PUT/PATCH | `/api/v1/classifieds/institutes/{instituteAdvisement}` | `api.v1.classifieds.institutes.update` | `Modules\Classifieds\Http\Controllers\Api\V1\InstituteAdvisementController@update` | auth:sanctum | Sanctum (user or provider) | `InstituteAdvisementRequest` | `InstituteAdvisementResource` |
+| GET | `/api/v1/classifieds/institutes` | `api.v1.classifieds.institutes.index` | `Modules\Classifieds\Http\Controllers\Api\V1\InstituteAdvisementController@index` | auth:sanctum | Sanctum (user or provider) | none | `InstituteAdvisementCollection` |
+| POST | `/api/v1/classifieds/institutes` | `api.v1.classifieds.institutes.store` | `Modules\Classifieds\Http\Controllers\Api\V1\InstituteAdvisementController@store` | auth:sanctum | Sanctum (user or provider) | `InstituteAdvisementRequest` | `InstituteAdvisementResource` |
+| GET | `/api/v1/classifieds/properties/all` | `api.v1.classifieds.properties.all` | `Modules\Classifieds\Http\Controllers\Api\V1\PropertyAdvisementController@all` | No | Public | none | `PropertyAdvisementCollection` |
+| DELETE | `/api/v1/classifieds/properties/{propertyAdvisement}/media/{media:uuid}` | `api.v1.classifieds.properties.deleteMedia` | `Modules\Classifieds\Http\Controllers\Api\V1\PropertyAdvisementController@deleteMedia` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| DELETE | `/api/v1/classifieds/properties/{propertyAdvisement}` | `api.v1.classifieds.properties.destroy` | `Modules\Classifieds\Http\Controllers\Api\V1\PropertyAdvisementController@destroy` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/classifieds/properties/{propertyAdvisement}` | `api.v1.classifieds.properties.show` | `Modules\Classifieds\Http\Controllers\Api\V1\PropertyAdvisementController@show` | auth:sanctum | Sanctum (user or provider) | none | `PropertyAdvisementResource` |
+| PUT/PATCH | `/api/v1/classifieds/properties/{propertyAdvisement}` | `api.v1.classifieds.properties.update` | `Modules\Classifieds\Http\Controllers\Api\V1\PropertyAdvisementController@update` | auth:sanctum | Sanctum (user or provider) | `PropertyAdvisementRequest` | `PropertyAdvisementResource` |
+| GET | `/api/v1/classifieds/properties` | `api.v1.classifieds.properties.index` | `Modules\Classifieds\Http\Controllers\Api\V1\PropertyAdvisementController@index` | auth:sanctum | Sanctum (user or provider) | none | `PropertyAdvisementCollection` |
+| POST | `/api/v1/classifieds/properties` | `api.v1.classifieds.properties.store` | `Modules\Classifieds\Http\Controllers\Api\V1\PropertyAdvisementController@store` | auth:sanctum | Sanctum (user or provider) | `PropertyAdvisementRequest` | `PropertyAdvisementResource` |
 
-| Method | Endpoint | Controller | Auth | Request | Resource | Description |
-|---|---|---|---|---|---|---|
-| GET | /api/v1/property-advisements/all | `Api\V1\PropertyAdvisementController@all` | No | none | `PropertyAdvisementCollection` | Public property listings. |
-| GET | /api/v1/property-advisements | `Api\V1\PropertyAdvisementController@index` | Yes (`auth:sanctum`) | none | `PropertyAdvisementCollection` | Own property listings. |
-| POST | /api/v1/property-advisements | `Api\V1\PropertyAdvisementController@store` | Yes | `PropertyAdvisementRequest` | `PropertyAdvisementResource` | Creates property listing. |
-| GET | /api/v1/property-advisements/{propertyAdvisement} | `Api\V1\PropertyAdvisementController@show` | Yes | none | `PropertyAdvisementResource` | Property detail. |
-| POST | /api/v1/property-advisements/{propertyAdvisement}/edit | `Api\V1\PropertyAdvisementController@edit` | Yes | `PropertyAdvisementRequest` | `PropertyAdvisementResource` | Edits property listing. |
-| DELETE | /api/v1/property-advisements/{propertyAdvisement}/media/{media:uuid} | `Api\V1\PropertyAdvisementController@deleteMedia` | Yes | none | helper response | Deletes property media. |
-| DELETE | /api/v1/property-advisements/{propertyAdvisement} | `Api\V1\PropertyAdvisementController@destroy` | Yes | none | helper response | Deletes property listing. |
-| GET | /api/v1/car-advisements/all | `Api\V1\CarAdvisementController@all` | No | none | `CarAdvisementCollection` | Public car listings. |
-| GET | /api/v1/car-advisements | `Api\V1\CarAdvisementController@index` | Yes (`auth:sanctum`) | none | `CarAdvisementCollection` | Own car listings. |
-| POST | /api/v1/car-advisements | `Api\V1\CarAdvisementController@store` | Yes | `CarAdvisementRequest` | `CarAdvisementResource` | Creates car listing. |
-| GET | /api/v1/car-advisements/{carAdvisement} | `Api\V1\CarAdvisementController@show` | Yes | none | `CarAdvisementResource` | Car detail. |
-| POST | /api/v1/car-advisements/{carAdvisement}/edit | `Api\V1\CarAdvisementController@edit` | Yes | `CarAdvisementRequest` | `CarAdvisementResource` | Edits car listing. |
-| DELETE | /api/v1/car-advisements/{carAdvisement}/media/{media:uuid} | `Api\V1\CarAdvisementController@deleteMedia` | Yes | none | helper response | Deletes car media. |
-| DELETE | /api/v1/car-advisements/{carAdvisement} | `Api\V1\CarAdvisementController@destroy` | Yes | none | helper response | Deletes car listing. |
+# Cms
 
-### Request body fields:
-- property create/edit: `PropertyAdvisementRequest` (title, description, operation enum, property_type_id, city_id, region_id, category_id nullable, price, show_price, area, bedrooms_count, bathrooms_count, halls_count, age, facade, street_width, street_type, phone, license, address, latitude, longitude, options, files)
-- car create/edit: `CarAdvisementRequest` (title, description, operation enum, usage_status enum, car_brand_id, car_type_id, car_category_id nullable, city_id, region_id, year, mileage nullable, transmission, fuel_type, engine_size, color, price, show_price, phone, address, latitude, longitude, options, files)
+| Method | URI | Name | Controller | Auth | Audience | Request | Resources |
+|---|---|---|---|---|---|---|---|
+| GET | `/api/v1/catalog/banners` | - | `Modules\Cms\Http\Controllers\Api\V1\CmsController@banners` | No | Public | none | `BannerResource` |
+| GET | `/api/v1/catalog/pages/{page}` | - | `Modules\Cms\Http\Controllers\Api\V1\CmsController@page` | No | Public | none | `PageResource` |
+| GET | `/api/v1/catalog/pages` | - | `Modules\Cms\Http\Controllers\Api\V1\CmsController@pages` | No | Public | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/catalog/questions` | - | `Modules\Cms\Http\Controllers\Api\V1\CmsController@questions` | No | Public | none | `QuestionCollection` |
+| POST | `/api/v1/messages` | - | `Modules\Cms\Http\Controllers\Api\V1\MessageController@store` | auth:sanctum | Sanctum (user or provider) | `MessagRequest` | (HasApiResponse helper / raw JSON) |
 
-⚠️ Note: Filtering logic in `index()` and `all()` is duplicated between controllers.
+# Guarantor
 
-## Tickets
+| Method | URI | Name | Controller | Auth | Audience | Request | Resources |
+|---|---|---|---|---|---|---|---|
+| POST | `/api/v1/chats/guarantor/{conversation}/send` | `api.v1.chats.guarantor.send` | `Modules\Guarantor\Http\Controllers\Api\V1\GuarantorChatController@send` | auth:sanctum | Sanctum (user or provider) | `SendGuarantorMessageRequest` | `ConversationMessageResource` |
+| GET | `/api/v1/chats/guarantor/{conversation}` | `api.v1.chats.guarantor.show` | `Modules\Guarantor\Http\Controllers\Api\V1\GuarantorChatController@show` | auth:sanctum | Sanctum (user or provider) | none | `ConversationMessageCollection` |
+| GET | `/api/v1/chats/guarantor` | `api.v1.chats.guarantor.index` | `Modules\Guarantor\Http\Controllers\Api\V1\GuarantorChatController@index` | auth:sanctum | Sanctum (user or provider) | none | `GuarantorConversationCollection` |
+| POST | `/api/v1/chats/guarantor` | `api.v1.chats.guarantor.store` | `Modules\Guarantor\Http\Controllers\Api\V1\GuarantorChatController@store` | auth:sanctum | Sanctum (user or provider) | `StoreChatRequest` | `GuarantorConversationResource` |
+| POST | `/api/v1/guarantor/company` | `api.v1.guarantor.guarantor.store.company` | `Modules\Guarantor\Http\Controllers\Api\V1\GuarantorController@storeCompany` | auth:sanctum | Sanctum (user or provider) | `StoreCompanyGuarantorRequest` | `GuarantorResource` |
+| POST | `/api/v1/guarantor/individual` | `api.v1.guarantor.guarantor.store.individual` | `Modules\Guarantor\Http\Controllers\Api\V1\GuarantorController@storeIndividual` | auth:sanctum | Sanctum (user or provider) | `StoreIndividualGuarantorRequest` | `GuarantorResource` |
+| POST | `/api/v1/guarantor/{guarantorRequest}/installments/{installment}/pay` | `api.v1.guarantor.guarantor.installments.pay` | `Modules\Guarantor\Http\Controllers\Api\V1\InstallmentController@pay` | auth:sanctum | Sanctum (user or provider) | `PayInstallmentRequest` | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/guarantor/{guarantorRequest}/installments` | `api.v1.guarantor.guarantor.installments.index` | `Modules\Guarantor\Http\Controllers\Api\V1\InstallmentController@index` | auth:sanctum | Sanctum (user or provider) | none | `InstallmentResource` |
+| DELETE | `/api/v1/guarantor/{guarantorRequest}/media/{media:uuid}` | `api.v1.guarantor.guarantor.deleteMedia` | `Modules\Guarantor\Http\Controllers\Api\V1\GuarantorController@deleteMedia` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| POST | `/api/v1/guarantor/{guarantorRequest}/pay` | `api.v1.guarantor.guarantor.pay` | `Modules\Guarantor\Http\Controllers\Api\V1\GuarantorController@pay` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| POST | `/api/v1/guarantor/{guarantorRequest}/status` | `api.v1.guarantor.guarantor.updateStatus` | `Modules\Guarantor\Http\Controllers\Api\V1\GuarantorController@updateStatus` | auth:sanctum | Sanctum (user or provider) | `UpdateGuarantorStatusRequest` | `GuarantorResource` |
+| DELETE | `/api/v1/guarantor/{guarantorRequest}` | `api.v1.guarantor.guarantor.destroy` | `Modules\Guarantor\Http\Controllers\Api\V1\GuarantorController@destroy` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/guarantor/{guarantorRequest}` | `api.v1.guarantor.guarantor.show` | `Modules\Guarantor\Http\Controllers\Api\V1\GuarantorController@show` | auth:sanctum | Sanctum (user or provider) | none | `GuarantorResource` |
+| POST | `/api/v1/guarantor/{guarantorRequest}` | `api.v1.guarantor.guarantor.update` | `Modules\Guarantor\Http\Controllers\Api\V1\GuarantorController@update` | auth:sanctum | Sanctum (user or provider) | `UpdateGuarantorRequest` | `GuarantorResource` |
+| GET | `/api/v1/guarantor` | `api.v1.guarantor.guarantor.index` | `Modules\Guarantor\Http\Controllers\Api\V1\GuarantorController@index` | auth:sanctum | Sanctum (user or provider) | none | `GuarantorCollection` |
 
-| Method | Endpoint | Controller | Auth | Request | Resource | Description |
-|---|---|---|---|---|---|---|
-| GET | /api/v1/tickets | `Api\V1\TicketController@index` | Yes (`auth:sanctum`) | none | `TicketSupportCollection` | Lists support tickets. |
-| POST | /api/v1/tickets | `Api\V1\TicketController@store` | Yes | `TicketSupportRequest` | `TicketSupportResource` | Creates support ticket. |
-| GET | /api/v1/tickets/{ticketSupport} | `Api\V1\TicketController@show` | Yes | none | `TicketSupportResource` | Ticket detail. |
-| DELETE | /api/v1/tickets/{ticketSupport} | `Api\V1\TicketController@destroy` | Yes | none | helper response | Deletes ticket. |
-| GET | /api/v1/tickets/{ticketSupport}/conversation | `Api\V1\TicketController@conversation` | Yes | none | `ConversationMessageCollection` | Lists ticket conversation. |
-| POST | /api/v1/tickets/{ticketSupport}/conversation | `Api\V1\TicketController@sendConversation` | Yes | `SendSupportMessageRequest` | `ConversationMessageResource` | Sends ticket message. |
+# Jobs
 
-### Request body fields:
-- create ticket: `TicketSupportRequest` (title, message, operation_type nullable, operation_id nullable)
-- send conversation message: `SendSupportMessageRequest` (content, files nullable)
+| Method | URI | Name | Controller | Auth | Audience | Request | Resources |
+|---|---|---|---|---|---|---|---|
+| GET | `/api/v1/jobs/all` | - | `Modules\Jobs\Http\Controllers\Api\V1\JobController@all` | auth:sanctum | Sanctum (user or provider) | none | `JobCollection` |
+| DELETE | `/api/v1/jobs/{job}/media/{media}` | - | `Modules\Jobs\Http\Controllers\Api\V1\JobController@deleteMedia` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| DELETE | `/api/v1/jobs/{job}` | `jobs.destroy` | `Modules\Jobs\Http\Controllers\Api\V1\JobController@destroy` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/jobs/{job}` | - | `Modules\Jobs\Http\Controllers\Api\V1\JobController@show` | auth:sanctum | Sanctum (user or provider) | none | `JobResource` |
+| PUT/PATCH | `/api/v1/jobs/{job}` | `jobs.update` | `Modules\Jobs\Http\Controllers\Api\V1\JobController@update` | auth:sanctum | Sanctum (user or provider) | `JobRequest` | `JobResource` |
+| GET | `/api/v1/jobs` | `jobs.index` | `Modules\Jobs\Http\Controllers\Api\V1\JobController@index` | auth:sanctum | Sanctum (user or provider) | none | `JobCollection` |
+| POST | `/api/v1/jobs` | `jobs.store` | `Modules\Jobs\Http\Controllers\Api\V1\JobController@store` | auth:sanctum | Sanctum (user or provider) | `JobRequest` | `JobResource` |
 
-## Wallet
+# Marketplace
 
-| Method | Endpoint | Controller | Auth | Request | Resource | Description |
-|---|---|---|---|---|---|---|
-| GET | /api/v1/wallet/balance | `Api\V1\WalletController@balance` | Yes (`auth:sanctum`) | none | `WalletResource` | Wallet summary/balance. |
-| POST | /api/v1/wallet/add-balance | `Api\V1\WalletController@addBalance` | Yes | `StoreTopUpRequest` | mixed payload | Creates top-up request/payment initiation. |
-| POST | /api/v1/wallet/withdraw | `Api\V1\WalletController@withdraw` | Yes | `StoreWithdrawRequestRequest` | mixed payload | Creates withdraw request. |
-| GET | /api/v1/wallet/transaction | `Api\V1\WalletController@transaction` | Yes | none | `WalletTransactionCollection` | Lists wallet transactions. |
+| Method | URI | Name | Controller | Auth | Audience | Request | Resources |
+|---|---|---|---|---|---|---|---|
+| GET | `/api/v1/catalog/categories/with-no-children` | - | `Modules\Marketplace\Http\Controllers\Api\V1\MarketplaceCatalogController@categoriesWithNoChildren` | No | Public | none | `CategoryCollection` |
+| GET | `/api/v1/catalog/categories/{category}/children` | - | `Modules\Marketplace\Http\Controllers\Api\V1\MarketplaceCatalogController@categoryChildren` | No | Public | none | `CategoryCollection` |
+| GET | `/api/v1/catalog/categories/{category}/skills` | - | `Modules\Marketplace\Http\Controllers\Api\V1\MarketplaceCatalogController@categorySkills` | No | Public | none | `SkillCollection` |
+| GET | `/api/v1/catalog/categories` | - | `Modules\Marketplace\Http\Controllers\Api\V1\MarketplaceCatalogController@categories` | No | Public | none | `CategoryCollection` |
+| GET | `/api/v1/catalog/provider-types` | - | `Modules\Marketplace\Http\Controllers\Api\V1\MarketplaceCatalogController@providerTypes` | No | Public | none | `ProviderTypeCollection` |
 
-### Request body fields:
-- add-balance: `StoreTopUpRequest` (amount, payment_method enum, transaction_image required_if offline, user_notes)
-- withdraw: `StoreWithdrawRequestRequest` (amount, user_notes)
+# Opportunity
 
-### Response structures:
-- balance: `WalletResource`
-- add-balance: mixed payload (payment response fields + `TopUpResource`)
-- withdraw: mixed payload with `WithdrawRequestResource`
-- transactions: `WalletTransactionCollection`
+| Method | URI | Name | Controller | Auth | Audience | Request | Resources |
+|---|---|---|---|---|---|---|---|
+| POST | `/api/v1/chats/opportunities/{conversation}/send` | `api.v1.chats.opportunities.send` | `Modules\Opportunity\Http\Controllers\Api\V1\OpportunityChatController@send` | auth:sanctum | Sanctum (user or provider) | `SendOpportunityChatMessageRequest` | `ConversationMessageResource` |
+| GET | `/api/v1/chats/opportunities/{conversation}` | `api.v1.chats.opportunities.show` | `Modules\Opportunity\Http\Controllers\Api\V1\OpportunityChatController@show` | auth:sanctum | Sanctum (user or provider) | none | `ConversationMessageCollection` |
+| GET | `/api/v1/chats/opportunities` | `api.v1.chats.opportunities.index` | `Modules\Opportunity\Http\Controllers\Api\V1\OpportunityChatController@index` | auth:sanctum | Sanctum (user or provider) | none | `OpportunityConversationCollection` |
+| POST | `/api/v1/chats/opportunities` | `api.v1.chats.opportunities.store` | `Modules\Opportunity\Http\Controllers\Api\V1\OpportunityChatController@store` | auth:sanctum | Sanctum (user or provider) | `StoreChatRequest` | `OpportunityConversationResource` |
+| GET | `/api/v1/opportunities/all` | `api.v1.opportunity.opportunities.all` | `Modules\Opportunity\Http\Controllers\Api\V1\OpportunityController@all` | No | Public | none | `OpportunityCollection` |
+| DELETE | `/api/v1/opportunities/{opportunity}/comments/{comment}` | `api.v1.opportunity.opportunities.comments.destroy` | `Modules\Opportunity\Http\Controllers\Api\V1\CommentController@destroy` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/opportunities/{opportunity}/comments` | `api.v1.opportunity.opportunities.comments.index` | `Modules\Opportunity\Http\Controllers\Api\V1\CommentController@index` | No | Public | none | `CommentCollection` |
+| POST | `/api/v1/opportunities/{opportunity}/comments` | `api.v1.opportunity.opportunities.comments.store` | `Modules\Opportunity\Http\Controllers\Api\V1\CommentController@store` | auth:sanctum | Sanctum (user or provider) | `StoreCommentRequest` | `CommentResource` |
+| DELETE | `/api/v1/opportunities/{opportunity}/media/{media:uuid}` | `api.v1.opportunity.opportunities.deleteMedia` | `Modules\Opportunity\Http\Controllers\Api\V1\OpportunityController@deleteMedia` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| POST | `/api/v1/opportunities/{opportunity}/offers/{offer}/accept` | `api.v1.opportunity.opportunities.offers.accept` | `Modules\Opportunity\Http\Controllers\Api\V1\OfferController@accept` | auth:sanctum | Sanctum (user or provider) | none | `OpportunityResource` |
+| POST | `/api/v1/opportunities/{opportunity}/offers/{offer}/reject` | `api.v1.opportunity.opportunities.offers.reject` | `Modules\Opportunity\Http\Controllers\Api\V1\OfferController@reject` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/opportunities/{opportunity}/offers` | `api.v1.opportunity.opportunities.offers.index` | `Modules\Opportunity\Http\Controllers\Api\V1\OfferController@index` | auth:sanctum | Sanctum (user or provider) | none | `OfferCollection` |
+| POST | `/api/v1/opportunities/{opportunity}/offers` | `api.v1.opportunity.opportunities.offers.store` | `Modules\Opportunity\Http\Controllers\Api\V1\OfferController@store` | auth:sanctum | Sanctum (user or provider) | `StoreOfferRequest` | `OfferResource` |
+| POST | `/api/v1/opportunities/{opportunity}/renew` | `api.v1.opportunity.opportunities.renew` | `Modules\Opportunity\Http\Controllers\Api\V1\OpportunityController@renew` | auth:sanctum | Sanctum (user or provider) | `RenewOpportunityRequest` | `OpportunityResource` |
+| DELETE | `/api/v1/opportunities/{opportunity}` | `api.v1.opportunity.opportunities.destroy` | `Modules\Opportunity\Http\Controllers\Api\V1\OpportunityController@destroy` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/opportunities/{opportunity}` | `api.v1.opportunity.opportunities.show` | `Modules\Opportunity\Http\Controllers\Api\V1\OpportunityController@show` | No | Public | none | `OpportunityResource` |
+| POST | `/api/v1/opportunities/{opportunity}` | `api.v1.opportunity.opportunities.update` | `Modules\Opportunity\Http\Controllers\Api\V1\OpportunityController@update` | auth:sanctum | Sanctum (user or provider) | `UpdateOpportunityRequest` | `OpportunityResource` |
+| GET | `/api/v1/opportunities` | `api.v1.opportunity.opportunities.index` | `Modules\Opportunity\Http\Controllers\Api\V1\OpportunityController@index` | auth:sanctum | Sanctum (user or provider) | none | `OpportunityCollection` |
+| POST | `/api/v1/opportunities` | `api.v1.opportunity.opportunities.store` | `Modules\Opportunity\Http\Controllers\Api\V1\OpportunityController@store` | auth:sanctum | Sanctum (user or provider) | `StoreOpportunityRequest` | `OpportunityResource` |
 
-⚠️ Note: Add-balance and withdraw flows return different response shapes for similar operations.
+# Orders
 
-## Notifications and Settings
+| Method | URI | Name | Controller | Auth | Audience | Request | Resources |
+|---|---|---|---|---|---|---|---|
+| POST | `/api/v1/user/orders/{order}/edit` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@edit` | auth:user-api + abilities:user-api | Mobile (user-api) | `OrderRequest` | `OrderResource` |
+| POST | `/api/v1/user/orders/{order}/end-and-review` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@endAndReview` | auth:user-api + abilities:user-api | Mobile (user-api) | `EndAndReviewRequest` | (HasApiResponse helper / raw JSON) |
+| DELETE | `/api/v1/user/orders/{order}/{media:uuid}/delete` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@deleteMedia` | auth:user-api + abilities:user-api | Mobile (user-api) | none | (HasApiResponse helper / raw JSON) |
+| POST | `/api/v1/user/orders/{order}/{offer}/pay` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@pay` | auth:user-api + abilities:user-api | Mobile (user-api) | none | (HasApiResponse helper / raw JSON) |
+| POST | `/api/v1/user/orders/{order}/{offer}/update-status` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@updateOfferStatus` | auth:user-api + abilities:user-api | Mobile (user-api) | `UpdateOfferStatusRequest` | (HasApiResponse helper / raw JSON) |
+| DELETE | `/api/v1/user/orders/{order}` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@destroy` | auth:user-api + abilities:user-api | Mobile (user-api) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/user/orders/{order}` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@show` | auth:user-api + abilities:user-api | Mobile (user-api) | none | `OrderResource` |
+| GET | `/api/v1/user/orders` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@index` | auth:user-api + abilities:user-api | Mobile (user-api) | none | `OrderCollection` |
+| POST | `/api/v1/user/orders` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@store` | auth:user-api + abilities:user-api | Mobile (user-api) | `OrderRequest` | `OrderResource` |
 
-| Method | Endpoint | Controller | Auth | Request | Resource | Description |
-|---|---|---|---|---|---|---|
-| GET | /api/v1/auth/counts | `Api\UserController@counts` | Yes (`auth:sanctum`) | none | raw counters | Unread counts summary. |
-| GET | /api/v1/auth/notifications | `Api\UserController@notifications` | Yes | none | `NotificationCollection` | Lists notifications. |
-| GET | /api/v1/auth/notifications/mark-all-as-read | `Api\UserController@markAllNotificationsAsRead` | Yes | none | helper response | Mark all read. |
-| GET | /api/v1/auth/notifications/{notification}/mark-as-read | `Api\UserController@markNotificationAsRead` | Yes | none | helper response | Mark one read. |
-| DELETE | /api/v1/auth/notifications/all | `Api\UserController@deleteAllNotifications` | Yes | none | helper response | Delete all notifications. |
-| DELETE | /api/v1/auth/notifications/{notification} | `Api\UserController@deleteNotification` | Yes | none | helper response | Delete notification. |
-| POST | /api/v1/auth/update-settings | `Api\UserController@updateSettings` | Yes | `UpdateSettingsRequest` | helper response | Update user settings. |
-| GET | /api/v1/auth/delete-account | `Api\UserController@deleteAccount` | Yes | none | helper response | Delete account. |
+# Payment
 
-⚠️ Note: Notification and account deletion endpoints use `GET` for state-changing operations; should use mutation-safe HTTP verbs.
+| Method | URI | Name | Controller | Auth | Audience | Request | Resources |
+|---|---|---|---|---|---|---|---|
+| POST | `/api/payments/rajhi/webhook` | `payment.rajhi.webhook` | `Modules\Payment\Http\Controllers\RajhiWebhookController@handle` | No | Public | none | (HasApiResponse helper / raw JSON) |
+| GET/POST | `/api/payments/{driver}/{payment}/callback` | `payment.callback` | `Modules\Payment\Http\Controllers\PaymentCallbackController@callback` | No | Public | none | none detected |
+| GET/POST | `/api/payments/{driver}/{payment}/redirect` | `payment.redirect` | `Modules\Payment\Http\Controllers\PaymentCallbackController@redirect` | No | Public | none | none detected |
 
-## Messages
+# Support
 
-| Method | Endpoint | Controller | Auth | Request | Resource | Description |
-|---|---|---|---|---|---|---|
-| POST | /api/v1/messages | `Api\V1\MessageController@store` | Yes (`auth:sanctum`) | `MessagRequest` | helper response | Store contact/message record. |
+| Method | URI | Name | Controller | Auth | Audience | Request | Resources |
+|---|---|---|---|---|---|---|---|
+| GET | `/api/v1/tickets/{ticketSupport}/conversation` | - | `Modules\Support\Http\Controllers\Api\V1\TicketSupportController@conversation` | auth:sanctum | Sanctum (user or provider) | none | `ConversationMessageCollection` |
+| POST | `/api/v1/tickets/{ticketSupport}/conversation` | - | `Modules\Support\Http\Controllers\Api\V1\TicketSupportController@conversationStore` | auth:sanctum | Sanctum (user or provider) | `SendSupportMessageRequest` | `ConversationMessageResource` |
+| DELETE | `/api/v1/tickets/{ticketSupport}` | - | `Modules\Support\Http\Controllers\Api\V1\TicketSupportController@destroy` | auth:sanctum | Sanctum (user or provider) | none | (HasApiResponse helper / raw JSON) |
+| GET | `/api/v1/tickets/{ticketSupport}` | - | `Modules\Support\Http\Controllers\Api\V1\TicketSupportController@show` | auth:sanctum | Sanctum (user or provider) | none | `TicketSupportResource` |
+| GET | `/api/v1/tickets` | - | `Modules\Support\Http\Controllers\Api\V1\TicketSupportController@index` | auth:sanctum | Sanctum (user or provider) | none | `TicketSupportCollection` |
+| POST | `/api/v1/tickets` | - | `Modules\Support\Http\Controllers\Api\V1\TicketSupportController@store` | auth:sanctum | Sanctum (user or provider) | `TicketSupportRequest` | `TicketSupportResource` |
 
-### Request body fields:
-- `MessagRequest` (name, phone, title, content)
+# Wallet
 
-## Non-V1 API Endpoints
-
-| Method | Endpoint | Controller | Auth | Description |
-|---|---|---|---|---|
-| GET/POST | /api/payments/paytabs/{payment}/redirect | `Api\PaymentController@redirect` | No | Payment redirect endpoint |
-| GET/POST | /api/payments/paytabs/{payment}/callback | `Api\PaymentController@callback` | No | Payment callback endpoint |
-| GET | /api/categories | `Api\CatalogController@categories` | No | Dashboard filter categories |
-| GET | /api/skills | `Api\CatalogController@skills` | No | Dashboard filter skills |
-| GET | /api/regions | `Api\CatalogController@regions` | No | Dashboard filter regions |
-| GET | /api/cities | `Api\CatalogController@cities` | No | Dashboard filter cities |
-| GET | /api/provider-types | `Api\CatalogController@providerTypes` | No | Dashboard filter provider types |
-| GET/POST | /api/broadcasting/auth | Broadcasting auth route | Yes (`auth:sanctum`) | Broadcast authentication |
+| Method | URI | Name | Controller | Auth | Audience | Request | Resources |
+|---|---|---|---|---|---|---|---|
+| POST | `/api/v1/wallet/add-balance` | - | `Modules\Wallet\Http\Controllers\Api\V1\WalletController@addBalance` | auth:sanctum | Sanctum (user or provider) | `StoreTopUpRequest` | `TopUpResource` |
+| GET | `/api/v1/wallet/balance` | - | `Modules\Wallet\Http\Controllers\Api\V1\WalletController@balance` | auth:sanctum | Sanctum (user or provider) | none | `WalletResource` |
+| GET | `/api/v1/wallet/transaction` | - | `Modules\Wallet\Http\Controllers\Api\V1\WalletController@transactions` | auth:sanctum | Sanctum (user or provider) | none | `WalletTransactionCollection` |
+| POST | `/api/v1/wallet/withdraw` | - | `Modules\Wallet\Http\Controllers\Api\V1\WalletController@withdraw` | auth:sanctum | Sanctum (user or provider) | `StoreWithdrawRequest` | `WithdrawRequestResource` |
 
