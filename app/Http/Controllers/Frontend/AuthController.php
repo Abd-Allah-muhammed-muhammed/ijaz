@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProviderRegisterRequest;
+use App\Http\Requests\Frontend\ProviderRegisterRequest;
 use App\Models\Provider;
 use App\Rules\ValidPhoneRule;
 use App\Services\Auth\ProviderAuthService;
