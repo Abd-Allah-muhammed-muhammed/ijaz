@@ -7,6 +7,8 @@ use App\Http\Controllers\General\MediaController;
 use App\Http\Controllers\General\ReactSelectController;
 use Illuminate\Support\Facades\Route;
 use Modules\Catalog\Http\Controllers\General\CatalogSelectController;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+
 
 Route::group(['prefix' => 'media', 'as' => 'media.'], static function () {
     Route::controller(MediaController::class)->middleware('auth:admin,provider')->group(function () {

@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\V1\AccountController;
 use App\Http\Controllers\Api\V1\OtpController;
 use App\Http\Controllers\Api\V1\User\AuthController;
 use App\Http\Controllers\Api\V1\User\ProviderController;
@@ -20,7 +20,7 @@ Route::middleware('auth:sanctum')->group(static function () {
     | Distinct from /api/v1/user/auth/* (login/register/me/logout).
     | Do not unify without mobile coordination.
     */
-    Route::group(['prefix' => 'auth', 'controller' => UserController::class], static function () {
+    Route::group(['prefix' => 'auth', 'controller' => AccountController::class], static function () {
         Route::get('/counts', 'counts');
         Route::post('/update-settings', 'updateSettings');
         Route::get('/delete-account', 'deleteAccount');
