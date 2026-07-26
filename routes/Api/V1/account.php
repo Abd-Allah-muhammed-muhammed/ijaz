@@ -1,24 +1,14 @@
 <?php
 
 use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\V1\OtpController;
-use App\Http\Controllers\Api\V1\PlatformController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('catalog')->group(static function () {
-    Route::controller(PlatformController::class)->group(static function () {
-        Route::get('/providers', 'providers');
-        Route::get('/settings', 'settings');
-    });
-});
-
+/*
+| Historical URI prefix: /api/v1/auth/*
+| Distinct from user authentication under /api/v1/user/auth/*
+| (login/register/me/logout). Do not unify without mobile coordination.
+*/
 Route::middleware('auth:sanctum')->group(static function () {
-
-    Route::controller(OtpController::class)->prefix('otp')->group(static function () {
-        Route::post('send', 'send');
-        Route::post('verify', 'verify');
-    });
-
     Route::controller(UserController::class)->prefix('auth')->group(static function () {
         Route::get('/counts', 'counts');
         Route::get('/notifications', 'notifications');

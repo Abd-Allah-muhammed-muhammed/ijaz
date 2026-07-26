@@ -137,7 +137,7 @@ Typical module layout: `Actions/`, `Services/`, `Repositories/`, `Contracts/`, `
 | File / area | Role |
 |---|---|
 | `routes/api.php` | API entry; mounts app + module API route files |
-| `routes/Api/V1/user.php`, `catalog.php` | Remaining app-owned API groups (user auth, geo/settings leftovers) |
+| `routes/Api/V1/user.php`, `otp.php`, `account.php`, `platform.php` | Remaining app-owned API groups (user auth, OTP, `/auth/*` account/notifications, catalog platform leftovers) |
 | `Modules/*/Routes/V1/*` | Module API (orders, chat, wallet, jobs, …) |
 | `routes/web.php` | Frontend / public / auth |
 | `routes/dashboard.php` | Admin Inertia dashboard aggregator |
