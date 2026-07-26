@@ -4,11 +4,11 @@ namespace Modules\Geo\Models;
 
 use App\Contracts\Selects\IReactSelect;
 use Astrotomic\Translatable\Translatable;
-use Database\Factories\CityFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Geo\Database\Factories\CityFactory;
 
 class City extends Model implements IReactSelect
 {

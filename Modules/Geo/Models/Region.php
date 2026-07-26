@@ -4,11 +4,11 @@ namespace Modules\Geo\Models;
 
 use App\Contracts\Selects\IReactSelect;
 use Astrotomic\Translatable\Translatable;
-use Database\Factories\RegionFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Geo\Database\Factories\RegionFactory;
 
 class Region extends Model implements IReactSelect
 {

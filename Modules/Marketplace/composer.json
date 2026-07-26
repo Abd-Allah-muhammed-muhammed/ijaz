@@ -15,7 +15,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Modules\\Marketplace\\": "./"
+            "Modules\\Marketplace\\": "./",
+            "Modules\\Marketplace\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {

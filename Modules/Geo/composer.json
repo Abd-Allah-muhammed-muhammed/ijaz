@@ -15,7 +15,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Modules\\Geo\\": "./"
+            "Modules\\Geo\\": "./",
+            "Modules\\Geo\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {

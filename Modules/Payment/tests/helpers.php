@@ -2,8 +2,8 @@
 
 use App\Models\Provider;
 use App\Models\User;
-use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Marketplace\Database\Factories\CategoryFactory;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Models\Order;

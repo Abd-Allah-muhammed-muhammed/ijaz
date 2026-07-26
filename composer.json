@@ -52,6 +52,8 @@
             "Modules\\Opportunity\\Database\\Seeders\\": "Modules/Opportunity/database/seeders/",
             "Modules\\Guarantor\\Database\\Factories\\": "Modules/Guarantor/database/factories/",
             "Modules\\Guarantor\\Database\\Seeders\\": "Modules/Guarantor/database/seeders/",
+            "Modules\\Geo\\Database\\Factories\\": "Modules/Geo/database/factories/",
+            "Modules\\Marketplace\\Database\\Factories\\": "Modules/Marketplace/database/factories/",
             "Modules\\Payment\\Database\\Factories\\": "Modules/Payment/Database/Factories/",
             "Modules\\Support\\Database\\Factories\\": "Modules/Support/database/factories/",
             "Modules\\Orders\\Database\\Factories\\": "Modules/Orders/database/factories/",

@@ -5,7 +5,6 @@ namespace Modules\Marketplace\Models;
 use App\Contracts\Selects\IReactSelect;
 use App\Enums\CategoryFeesTypeEnum;
 use Astrotomic\Translatable\Translatable;
-use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Modules\Marketplace\Database\Factories\CategoryFactory;
 use Storage;
 
 class Category extends Model implements IReactSelect

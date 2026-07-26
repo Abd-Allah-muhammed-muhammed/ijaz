@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Factories;
+namespace Modules\Marketplace\Database\Factories;
 
 use App\Enums\CategoryFeesTypeEnum;
 use Illuminate\Database\Eloquent\Factories\Factory;
