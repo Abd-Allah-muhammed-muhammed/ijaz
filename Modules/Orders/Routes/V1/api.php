@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Orders\Http\Controllers\Api\V1\OrderController;
 
 /*
-| User API order routes — previously in routes/Api/V1/user.php.
+| User API order routes — previously in routes/api/V1/user.php.
 | Loaded under api/v1 with NO name prefix (routes stay unnamed).
 */
 Route::prefix('user')->group(static function () {

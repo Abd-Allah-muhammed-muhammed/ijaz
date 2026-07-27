@@ -142,7 +142,7 @@ Typical module layout: `Actions/`, `Services/`, `Repositories/`, `Contracts/`, `
 | File / area | Role |
 |---|---|
 | `routes/api.php` | API entry; mounts app + module API route files |
-| `routes/Api/V1/auth.php`, `platform.php` | Remaining app-owned API groups (OTP + `/auth/*` account/notifications + `/user/auth` in auth.php; catalog `providers` in platform.php) |
+| `routes/api/V1/auth.php`, `platform.php` | Remaining app-owned API groups (OTP + `/auth/*` account/notifications + `/user/auth` in auth.php; catalog `providers` in platform.php) |
 | Module `Routes/V1/api.php` | Domain API (including Settings `catalog/settings`, Geo catalog lookups) |
 | `routes/dashboard.php` + module dashboard routes | Admin Inertia |
 | `routes/provider.php` + module provider routes | Provider web |

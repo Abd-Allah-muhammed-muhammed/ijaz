@@ -5,7 +5,7 @@
 // private/presence channel. It does NOT contain REST API endpoints.
 //
 // Real API routes live under:
-//   - routes/Api/V1/{auth,platform}.php (core)
+//   - routes/api/V1/{auth,platform}.php (core)
 //   - Modules/*/Routes/V1/*.php (per-module)
 //
 // See routes/channels.php for the actual channel authorization rules

@@ -44,7 +44,7 @@ Work through this checklist in order. Read every file — do not skip.
 
 ### Routes — read every file fully
 - [ ] `routes/api.php`
-- [ ] Every file inside `routes/Api/` recursively
+- [ ] Every file inside `routes/api/` recursively
 - [ ] `routes/web.php`
 - [ ] `routes/dashboard.php`
 - [ ] `routes/provider.php`
