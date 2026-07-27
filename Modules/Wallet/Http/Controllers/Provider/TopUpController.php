@@ -3,7 +3,6 @@
 namespace Modules\Wallet\Http\Controllers\Provider;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\PaymentResponseResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +12,7 @@ use Inertia\Response;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Payment\DTOs\PaymentResponse;
 use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Http\Resources\PaymentResponseResource;
 use Modules\Payment\Services\PaymentService;
 use Modules\Wallet\DTOs\CreateTopUpData;
 use Modules\Wallet\Exceptions\WalletException;
