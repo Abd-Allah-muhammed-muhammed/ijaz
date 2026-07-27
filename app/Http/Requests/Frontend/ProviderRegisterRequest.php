@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Frontend;
 
 use App\Models\Provider;
-use App\Models\RegisterVerificationCode;
+use App\Rules\ValidProviderRegistrationOtpRule;
 use App\Support\Phone;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -54,15 +54,7 @@ class ProviderRegisterRequest extends FormRequest
             'categories.*.id' => ['required', 'exists:categories,id'],
             'categories.*.skills' => ['sometimes', 'array'],
             'categories.*.skills.*' => ['sometimes', 'exists:skills,id'],
-            'otp' => ['required', function ($attribute, $value, $fail) {
-                $x = Phone::make($this->input('phone'))->toString();
-                $otp = RegisterVerificationCode::where('queryable', $x)->first();
-                if (! $otp || $otp->isExpired()) {
-                    $fail(trans('auth.otp_expired'));
-                } elseif (! $otp->check($this->get('otp'))) {
-                    $fail(trans('auth.otp_invalid'));
-                }
-            }],
+            'otp' => ['required', new ValidProviderRegistrationOtpRule],
         ];
         $providerType = $this->get('provider_type_id') ? ProviderType::find($this->get('provider_type_id')) : null;
         if ($providerType) {

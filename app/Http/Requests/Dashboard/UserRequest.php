@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Dashboard;
 
-use App\Models\RegisterVerificationCode;
 use App\Models\User;
 use App\Support\Phone;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -53,16 +52,6 @@ class UserRequest extends FormRequest
             }],
             'nationality_id' => ['required', 'exists:nationalities,id'],
             'image' => [Rule::when($id, 'nullable', 'required'), 'image', 'max:2048'],
-
-            //      'otp' => ['required', function ($attribute, $value, $fail) {
-            //        $otp = RegisterVerificationCode::where('queryable', $this->get('phone'))->first();
-            //
-            //        if(!$otp || $otp->isExpired()) {
-            //          $fail(trans('auth.otp_expired'));
-            //        } else if(!$otp->check($this->get('otp'))) {
-            //          $fail(trans('auth.otp_invalid'));
-            //        }
-            //      }],
         ];
     }
 

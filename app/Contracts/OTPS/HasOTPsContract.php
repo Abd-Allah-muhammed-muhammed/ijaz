@@ -2,12 +2,15 @@
 
 namespace App\Contracts\OTPS;
 
-use App\Models\VerificationCode;
+use App\Enums\Auth\OtpPurposeEnum;
+use App\Models\Otp;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 interface HasOTPsContract
 {
+    public function otps(): MorphMany;
+
     public function verificationCodes(): MorphMany;
 
     public function emailVerificationCode(): MorphOne;
@@ -20,7 +23,7 @@ interface HasOTPsContract
 
     public function loginVerificationCode(): MorphOne;
 
-    public function updateOrCreateVerificationCode(string $token, string $type = 'email', int $ttl = 30): VerificationCode;
+    public function updateOrCreateVerificationCode(string $token, string|OtpPurposeEnum $type = 'email'): Otp;
 
     public function markEmailAsVerified();
 

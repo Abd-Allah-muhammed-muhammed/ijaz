@@ -6,6 +6,7 @@ use App\Contracts\Account\AccountRepositoryInterface;
 use App\Contracts\Admin\AdminManagementRepositoryInterface;
 use App\Contracts\Admin\RoleRepositoryInterface;
 use App\Contracts\Auth\AdminRepositoryInterface;
+use App\Contracts\Auth\OtpRepositoryInterface;
 use App\Contracts\Auth\ProviderRepositoryInterface;
 use App\Contracts\Auth\UserRepositoryInterface;
 use App\Contracts\Provider\ProviderManagementRepositoryInterface;
@@ -16,6 +17,7 @@ use App\Repositories\Account\AccountRepository;
 use App\Repositories\Admin\AdminManagementRepository;
 use App\Repositories\Admin\RoleRepository;
 use App\Repositories\Auth\AdminRepository;
+use App\Repositories\Auth\OtpRepository;
 use App\Repositories\Auth\ProviderRepository;
 use App\Repositories\Auth\UserRepository;
 use App\Repositories\Provider\ProviderManagementRepository;
@@ -83,6 +85,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             AccountRepositoryInterface::class,
             AccountRepository::class,
+        );
+
+        $this->app->bind(
+            OtpRepositoryInterface::class,
+            OtpRepository::class,
         );
     }
 

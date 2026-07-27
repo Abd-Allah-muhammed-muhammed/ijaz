@@ -1,8 +1,9 @@
 <?php
 
+use App\Enums\Auth\OtpPurposeEnum;
 use App\Enums\Providers\ProviderStatusEnum;
+use App\Models\Otp;
 use App\Models\Provider;
-use App\Models\RegisterVerificationCode;
 use App\Support\Phone;
 use Carbon\CarbonInterface;
 use Illuminate\Http\UploadedFile;
@@ -61,13 +62,18 @@ function registrationFixtures(): array
     return compact('type', 'region', 'city', 'category');
 }
 
-function seedRegistrationOtp(string $rawPhone, string $token = '1234', ?CarbonInterface $expiresAt = null): RegisterVerificationCode
+function seedRegistrationOtp(string $rawPhone, string $token = '1234', ?CarbonInterface $expiresAt = null): Otp
 {
     $phone = Phone::make($rawPhone)->toString();
 
-    return RegisterVerificationCode::query()->updateOrCreate(
-        ['queryable' => $phone],
+    return Otp::query()->updateOrCreate(
         [
+            'phone' => $phone,
+            'purpose' => OtpPurposeEnum::ProviderRegistration,
+        ],
+        [
+            'subject_type' => null,
+            'subject_id' => null,
             'token' => $token,
             'expires_at' => $expiresAt ?? now()->addMinutes(5),
         ],
@@ -148,7 +154,7 @@ test('provider can send otp before registering', function () {
     ])->assertSuccessful()
         ->assertExactJson([]);
 
-    expect(RegisterVerificationCode::query()->where('queryable', $phone)->exists())->toBeTrue();
+    expect(Otp::query()->where('phone', $phone)->where('purpose', OtpPurposeEnum::ProviderRegistration)->exists())->toBeTrue();
 
     RateLimiter::clear('otp-send:'.$phone);
 });

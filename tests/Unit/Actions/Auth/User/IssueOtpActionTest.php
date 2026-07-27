@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Auth\User\IssueOtpAction;
+use App\Enums\Auth\OtpPurposeEnum;
 use App\Exceptions\Auth\OtpCooldownException;
 use App\Models\User;
 use App\Support\Phone;
@@ -23,9 +24,9 @@ test('IssueOtpAction generates otp, stores it, dispatches sms, and logs result f
     Log::shouldReceive('channel')->with('sms')->once()->andReturnSelf();
     Log::shouldReceive('info')->once();
 
-    app(IssueOtpAction::class)->handle($user, 'login');
+    app(IssueOtpAction::class)->handle($user, OtpPurposeEnum::Login);
 
-    expect($user->verificationCodes()->where('type', 'login')->exists())->toBeTrue();
+    expect($user->otps()->where('purpose', OtpPurposeEnum::Login)->exists())->toBeTrue();
 });
 
 test('IssueOtpAction does not log the raw otp code', function () {
@@ -70,7 +71,7 @@ test('IssueOtpAction does not log the raw otp code', function () {
             return true;
         });
 
-    app(IssueOtpAction::class)->handle($user, 'login');
+    app(IssueOtpAction::class)->handle($user, OtpPurposeEnum::Login);
 });
 
 test('IssueOtpAction throws cooldown exception on rapid repeat calls', function () {
@@ -88,13 +89,13 @@ test('IssueOtpAction throws cooldown exception on rapid repeat calls', function 
     Log::shouldReceive('info')->once();
 
     $action = app(IssueOtpAction::class);
-    $action->handle($user, 'email');
+    $action->handle($user, OtpPurposeEnum::Email);
 
-    expect(fn () => $action->handle($user, 'phone'))
+    expect(fn () => $action->handle($user, OtpPurposeEnum::Phone))
         ->toThrow(OtpCooldownException::class);
 
-    expect($user->verificationCodes()->where('type', 'email')->exists())->toBeTrue()
-        ->and($user->verificationCodes()->where('type', 'phone')->exists())->toBeFalse();
+    expect($user->otps()->where('purpose', OtpPurposeEnum::Email)->exists())->toBeTrue()
+        ->and($user->otps()->where('purpose', OtpPurposeEnum::Phone)->exists())->toBeFalse();
 
     RateLimiter::clear('otp-send:'.$phone);
 });
@@ -114,8 +115,8 @@ test('IssueOtpAction does not record cooldown when gateway rejects the message',
     Log::shouldReceive('info')->twice();
 
     $action = app(IssueOtpAction::class);
-    $action->handle($user, 'login');
-    $action->handle($user, 'login');
+    $action->handle($user, OtpPurposeEnum::Login);
+    $action->handle($user, OtpPurposeEnum::Login);
 
     expect(RateLimiter::tooManyAttempts('otp-send:'.$phone, 1))->toBeFalse();
 });
@@ -147,9 +148,9 @@ test('IssueOtpAction dispatches SMS for non-login types', function () {
             'message' => '',
         ]);
 
-    app(IssueOtpAction::class)->handle($user, 'email');
+    app(IssueOtpAction::class)->handle($user, OtpPurposeEnum::Email);
 
-    expect($user->verificationCodes()->where('type', 'email')->where('token', '4829')->exists())->toBeTrue();
+    expect($user->otps()->where('purpose', OtpPurposeEnum::Email)->where('token', '4829')->exists())->toBeTrue();
 
     RateLimiter::clear('otp-send:'.$phone);
 });

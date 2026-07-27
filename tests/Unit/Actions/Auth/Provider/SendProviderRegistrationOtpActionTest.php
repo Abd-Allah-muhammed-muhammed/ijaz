@@ -1,8 +1,9 @@
 <?php
 
 use App\Actions\Auth\Provider\SendProviderRegistrationOtpAction;
+use App\Enums\Auth\OtpPurposeEnum;
 use App\Exceptions\Auth\OtpCooldownException;
-use App\Models\RegisterVerificationCode;
+use App\Models\Otp;
 use App\Support\Phone;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -51,7 +52,7 @@ test('SendProviderRegistrationOtpAction does not log the raw otp code', function
 
     app(SendProviderRegistrationOtpAction::class)->handle('512345678');
 
-    expect(RegisterVerificationCode::query()->where('queryable', $phone)->where('token', $otp)->exists())->toBeTrue();
+    expect(Otp::query()->where('phone', $phone)->where('purpose', OtpPurposeEnum::ProviderRegistration)->where('token', $otp)->exists())->toBeTrue();
 });
 
 test('SendProviderRegistrationOtpAction throws cooldown exception on rapid repeat calls', function () {

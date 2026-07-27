@@ -69,7 +69,8 @@ use Modules\Wallet\Traits\HasWallet;
  * @property-read Nationality|null $nationality
  * @property-read string $image_url
  * @property-read string $name
- * @property-read Collection<int, VerificationCode> $verificationCodes
+ * @property-read Collection<int, Otp> $otps
+ * @property-read Collection<int, Otp> $verificationCodes
  *
  * @method static UserFactory factory($count = null, $state = [])
  * @method static Builder|User newModelQuery()

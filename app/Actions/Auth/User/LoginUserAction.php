@@ -4,6 +4,7 @@ namespace App\Actions\Auth\User;
 
 use App\Contracts\Auth\UserRepositoryInterface;
 use App\DTOs\Auth\UserLoginResult;
+use App\Enums\Auth\OtpPurposeEnum;
 use App\Enums\Users\UserStatusEnum;
 use App\Support\Phone;
 use Random\RandomException;
@@ -46,7 +47,7 @@ class LoginUserAction
             return UserLoginResult::failure($message, 400);
         }
 
-        $this->issueOtpAction->handle($user, 'login');
+        $this->issueOtpAction->handle($user, OtpPurposeEnum::Login);
         $user->tokens()->delete();
 
         return UserLoginResult::success(

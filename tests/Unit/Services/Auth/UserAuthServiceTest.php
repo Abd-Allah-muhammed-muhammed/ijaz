@@ -1,8 +1,9 @@
 <?php
 
+use App\Enums\Auth\OtpPurposeEnum;
 use App\Enums\Users\UserStatusEnum;
+use App\Models\Otp;
 use App\Models\User;
-use App\Models\VerificationCode;
 use App\Services\Auth\UserAuthService;
 use App\Support\Phone;
 use Illuminate\Http\UploadedFile;
@@ -30,7 +31,7 @@ test('login returns token for existing active user', function () {
 
     expect($result->success)->toBeTrue()
         ->and($result->token)->not->toBe('')
-        ->and($user->verificationCodes()->where('type', 'login')->exists())->toBeTrue();
+        ->and($user->otps()->where('purpose', OtpPurposeEnum::Login)->exists())->toBeTrue();
 });
 
 test('login fails with user not found message when phone does not match', function () {
@@ -81,7 +82,7 @@ test('register creates user, sends otp, returns token and user', function () {
 
     expect($result->token)->not->toBe('')
         ->and(User::where('email', 'jane.register@example.com')->exists())->toBeTrue()
-        ->and($result->user->verificationCodes()->where('type', 'login')->exists())->toBeTrue();
+        ->and($result->user->otps()->where('purpose', OtpPurposeEnum::Login)->exists())->toBeTrue();
 });
 
 test('register rolls back transaction on failure', function () {
@@ -106,7 +107,7 @@ test('register rolls back transaction on failure', function () {
     expect($register)->toThrow(RuntimeException::class);
 
     expect(User::where('email', 'rollback@example.com')->exists())->toBeFalse()
-        ->and(VerificationCode::count())->toBe(0);
+        ->and(Otp::count())->toBe(0);
 });
 
 test('sendOtp stores code and dispatches sms', function () {
@@ -122,13 +123,13 @@ test('sendOtp stores code and dispatches sms', function () {
 
     app(UserAuthService::class)->sendOtp('login');
 
-    expect($user->verificationCodes()->where('type', 'login')->exists())->toBeTrue();
+    expect($user->otps()->where('purpose', OtpPurposeEnum::Login)->exists())->toBeTrue();
 });
 
 test('verifyOtp for login type elevates to full-abilities token', function () {
     $user = createUserAuthUser();
     $this->actingAs($user, 'user-api');
-    $user->updateOrCreateVerificationCode('1234', 'login');
+    $user->updateOrCreateVerificationCode('1234', OtpPurposeEnum::Login);
 
     $result = app(UserAuthService::class)->verifyOtp('login', '1234');
 
@@ -136,13 +137,13 @@ test('verifyOtp for login type elevates to full-abilities token', function () {
         ->and($result->success)->toBeTrue()
         ->and($result->token)->not->toBe('')
         ->and($user->tokens()->where('name', 'user-app')->exists())->toBeTrue()
-        ->and($user->verificationCodes()->where('type', 'login')->exists())->toBeFalse();
+        ->and($user->otps()->where('purpose', OtpPurposeEnum::Login)->exists())->toBeFalse();
 });
 
 test('verifyOtp for email type preserves current behavior (bool passed to getUserResource throws)', function () {
     $user = createUserAuthUser();
     $this->actingAs($user, 'user-api');
-    $user->updateOrCreateVerificationCode('1234', 'email');
+    $user->updateOrCreateVerificationCode('1234', OtpPurposeEnum::Email);
 
     expect(fn () => app(UserAuthService::class)->verifyOtp('email', '1234'))
         ->toThrow(TypeError::class);
@@ -153,7 +154,7 @@ test('verifyOtp for email type preserves current behavior (bool passed to getUse
 test('verifyOtp for phone type still returns success false while persisting phone_verified_at', function () {
     $user = createUserAuthUser();
     $this->actingAs($user, 'user-api');
-    $user->updateOrCreateVerificationCode('1234', 'phone');
+    $user->updateOrCreateVerificationCode('1234', OtpPurposeEnum::Phone);
 
     $result = app(UserAuthService::class)->verifyOtp('phone', '1234');
 
@@ -173,7 +174,7 @@ test('markPhoneAsVerified persists phone_verified_at timestamp', function () {
 test('verifyOtp with wrong code returns failure result', function () {
     $user = createUserAuthUser();
     $this->actingAs($user, 'user-api');
-    $user->updateOrCreateVerificationCode('1234', 'login');
+    $user->updateOrCreateVerificationCode('1234', OtpPurposeEnum::Login);
 
     $result = app(UserAuthService::class)->verifyOtp('login', '9999');
 

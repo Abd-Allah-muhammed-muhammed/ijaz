@@ -1,9 +1,10 @@
 <?php
 
+use App\Enums\Auth\OtpPurposeEnum;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Http\Requests\Provider\Auth\LoginRequest;
+use App\Models\Otp;
 use App\Models\Provider;
-use App\Models\RegisterVerificationCode;
 use App\Services\Auth\ProviderAuthService;
 use App\Support\Phone;
 use Illuminate\Http\Request;
@@ -87,7 +88,7 @@ test('sendRegistrationOtp stores code against phone and dispatches sms', functio
 
     app(ProviderAuthService::class)->sendRegistrationOtp('512345678');
 
-    expect(RegisterVerificationCode::query()->where('queryable', $phone)->exists())->toBeTrue();
+    expect(Otp::query()->where('phone', $phone)->where('purpose', OtpPurposeEnum::ProviderRegistration)->exists())->toBeTrue();
 });
 
 test('register creates provider with pending status inside a transaction', function () {
