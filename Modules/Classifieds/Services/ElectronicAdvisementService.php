@@ -53,18 +53,17 @@ final class ElectronicAdvisementService
     public function create(User $user, ElectronicAdvisementDTO $dto): ElectronicAdvisement
     {
         return DB::transaction(function () use ($user, $dto): ElectronicAdvisement {
-            $electronicAdvisement = ElectronicAdvisement::withoutEvents(function () use ($user, $dto): ElectronicAdvisement {
-                return $this->repository->create([
-                    ...$dto->toPersistenceArray(),
-                    'user_type' => $user::class,
-                    'user_id' => $user->id,
-                    'status' => AdvisementStatusEnum::PENDING,
-                ]);
-            });
+            $electronicAdvisement = $this->repository->create([
+                ...$dto->toPersistenceArray(),
+                'user_type' => $user::class,
+                'user_id' => $user->id,
+                'status' => AdvisementStatusEnum::PENDING,
+            ]);
 
             $this->storeAdvisementMediaAction->handle($electronicAdvisement, $dto->files);
             $electronicAdvisement->load([
                 'deviceCategory',
+                'electronicBrand',
                 'city',
                 'region',
                 'user',
@@ -84,6 +83,7 @@ final class ElectronicAdvisementService
             $this->storeAdvisementMediaAction->handle($model, $dto->files);
             $model->load([
                 'deviceCategory',
+                'electronicBrand',
                 'city',
                 'region',
                 'user',
@@ -123,6 +123,7 @@ final class ElectronicAdvisementService
     {
         return $model->load([
             'deviceCategory',
+            'electronicBrand',
             'city',
             'region',
             'user',

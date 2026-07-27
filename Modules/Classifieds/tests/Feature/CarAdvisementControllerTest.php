@@ -185,6 +185,15 @@ it('can create advisement', function () {
         'title' => 'Test Car',
         'status' => AdvisementStatusEnum::PENDING->value,
     ]);
+
+    $createdAdvisement = CarAdvisement::query()
+        ->where('user_id', $this->user->id)
+        ->latest('id')
+        ->first();
+
+    expect($createdAdvisement)->not->toBeNull()
+        ->and($createdAdvisement?->normalized_title)->not->toBeNull()
+        ->and($createdAdvisement?->normalized_description)->not->toBeNull();
 });
 
 it('validates required fields on create', function () {

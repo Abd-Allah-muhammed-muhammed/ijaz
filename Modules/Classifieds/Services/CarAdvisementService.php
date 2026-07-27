@@ -53,14 +53,12 @@ final class CarAdvisementService
     public function create(User $user, CarAdvisementDTO $dto): CarAdvisement
     {
         return DB::transaction(function () use ($user, $dto): CarAdvisement {
-            $carAdvisement = CarAdvisement::withoutEvents(function () use ($user, $dto): CarAdvisement {
-                return $this->repository->create([
-                    ...$dto->toPersistenceArray(),
-                    'user_type' => $user::class,
-                    'user_id' => $user->id,
-                    'status' => AdvisementStatusEnum::PENDING,
-                ]);
-            });
+            $carAdvisement = $this->repository->create([
+                ...$dto->toPersistenceArray(),
+                'user_type' => $user::class,
+                'user_id' => $user->id,
+                'status' => AdvisementStatusEnum::PENDING,
+            ]);
 
             $this->storeAdvisementMediaAction->handle($carAdvisement, $dto->files);
             $carAdvisement->load([
