@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Actions\DeviceCategory;
 
-use Illuminate\Support\Facades\DB;
+use Modules\Catalog\Concerns\HandlesTransactionalFileUpload;
 use Modules\Catalog\Contracts\Repositories\DeviceCategoryRepositoryInterface;
 use Modules\Catalog\DTOs\StoreDeviceCategoryDTO;
 use Modules\Catalog\Models\DeviceCategory;
@@ -10,6 +10,8 @@ use Throwable;
 
 class StoreDeviceCategoryAction
 {
+    use HandlesTransactionalFileUpload;
+
     public function __construct(
         private readonly DeviceCategoryRepositoryInterface $repository,
     ) {}
@@ -19,23 +21,19 @@ class StoreDeviceCategoryAction
      */
     public function handle(StoreDeviceCategoryDTO $dto): DeviceCategory
     {
-        DB::beginTransaction();
-        try {
-            $data = [
-                'parent_id' => $dto->parentId,
-                'icon' => $dto->icon,
-            ];
+        return $this->storeFileWithCleanup(
+            file: $dto->icon,
+            directory: 'device_categories',
+            disk: null,
+            dbWork: function (?string $iconPath) use ($dto): DeviceCategory {
+                $deviceCategory = $this->repository->create([
+                    'parent_id' => $dto->parentId,
+                    'icon' => $iconPath,
+                ]);
+                $deviceCategory->translations()->createMany($dto->translations);
 
-            $deviceCategory = $this->repository->create($data);
-            $deviceCategory->translations()->createMany($dto->translations);
-
-            DB::commit();
-
-            return $deviceCategory->load(['translation']);
-        } catch (Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+                return $deviceCategory->load(['translation']);
+            },
+        );
     }
 }

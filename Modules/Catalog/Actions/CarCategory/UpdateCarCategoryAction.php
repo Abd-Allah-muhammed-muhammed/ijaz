@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Actions\CarCategory;
 
-use Illuminate\Support\Facades\DB;
+use Modules\Catalog\Concerns\HandlesTransactionalFileUpload;
 use Modules\Catalog\Contracts\Repositories\CarCategoryRepositoryInterface;
 use Modules\Catalog\DTOs\UpdateCarCategoryDTO;
 use Modules\Catalog\Models\CarCategory;
@@ -10,6 +10,8 @@ use Throwable;
 
 class UpdateCarCategoryAction
 {
+    use HandlesTransactionalFileUpload;
+
     public function __construct(
         private readonly CarCategoryRepositoryInterface $repository,
     ) {}
@@ -19,28 +21,26 @@ class UpdateCarCategoryAction
      */
     public function handle(CarCategory $carCategory, UpdateCarCategoryDTO $dto): CarCategory
     {
-        DB::beginTransaction();
-        try {
-            $data = [
-                'parent_id' => $dto->parentId,
-            ];
+        return $this->storeFileWithCleanup(
+            file: $dto->icon,
+            directory: 'car_categories',
+            disk: null,
+            previousPath: $dto->icon !== null ? $carCategory->icon : null,
+            dbWork: function (?string $iconPath) use ($dto, $carCategory): CarCategory {
+                $data = [
+                    'parent_id' => $dto->parentId,
+                ];
 
-            if ($dto->icon) {
-                $carCategory->deleteIcon();
-                $data['icon'] = $dto->icon;
-            }
+                if ($iconPath !== null) {
+                    $data['icon'] = $iconPath;
+                }
 
-            $carCategory = $this->repository->update($carCategory, $data);
-            $carCategory->translations()->delete();
-            $carCategory->translations()->createMany($dto->translations);
+                $carCategory = $this->repository->update($carCategory, $data);
+                $carCategory->translations()->delete();
+                $carCategory->translations()->createMany($dto->translations);
 
-            DB::commit();
-
-            return $carCategory->load(['translation']);
-        } catch (Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+                return $carCategory->load(['translation']);
+            },
+        );
     }
 }

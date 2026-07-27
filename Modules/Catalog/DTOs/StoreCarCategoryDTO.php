@@ -3,12 +3,13 @@
 namespace Modules\Catalog\DTOs;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 
 class StoreCarCategoryDTO
 {
     public function __construct(
         public readonly array $translations,
-        public readonly ?string $icon,
+        public readonly ?UploadedFile $icon,
         public readonly ?int $parentId,
     ) {}
 
@@ -16,7 +17,7 @@ class StoreCarCategoryDTO
     {
         return new self(
             translations: $request->validated('translations'),
-            icon: $request->hasFile('icon') ? $request->file('icon')->store('car_categories') : null,
+            icon: $request->file('icon'),
             parentId: $request->validated('parent_id'),
         );
     }

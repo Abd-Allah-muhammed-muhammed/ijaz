@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\DTOs;
 
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Modules\Catalog\Http\Requests\Dashboard\ElectronicBrandRequest;
 
@@ -9,7 +10,7 @@ class StoreElectronicBrandDTO
 {
     public function __construct(
         public readonly array $translations,
-        public readonly ?string $image,
+        public readonly ?UploadedFile $image,
         public readonly bool $isActive,
     ) {}
 
@@ -20,7 +21,7 @@ class StoreElectronicBrandDTO
                 ->map(fn ($attrs, $locale) => array_merge($attrs, ['locale' => $locale]))
                 ->values()
                 ->all(),
-            image: $request->file('image')?->store('electronic_brands', 'public'),
+            image: $request->file('image'),
             isActive: $request->boolean('is_active', true),
         );
     }

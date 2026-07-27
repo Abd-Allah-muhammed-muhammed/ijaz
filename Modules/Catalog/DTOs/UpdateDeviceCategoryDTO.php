@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\DTOs;
 
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Modules\Catalog\Http\Requests\Dashboard\DeviceCategoryRequest;
 use Modules\Catalog\Models\DeviceCategory;
@@ -10,7 +11,7 @@ class UpdateDeviceCategoryDTO
 {
     public function __construct(
         public readonly array $translations,
-        public readonly ?string $icon,
+        public readonly ?UploadedFile $icon,
         public readonly ?int $parentId,
     ) {}
 
@@ -21,7 +22,7 @@ class UpdateDeviceCategoryDTO
                 ->map(fn ($attrs, $locale) => array_merge($attrs, ['locale' => $locale]))
                 ->values()
                 ->all(),
-            icon: $request->hasFile('icon') ? $request->file('icon')->store('device_categories') : null,
+            icon: $request->file('icon'),
             parentId: $request->validated('parent_id'),
         );
     }

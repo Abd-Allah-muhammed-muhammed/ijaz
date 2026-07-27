@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Actions\CarType;
 
-use Illuminate\Support\Facades\DB;
+use Modules\Catalog\Concerns\HandlesTransactionalFileUpload;
 use Modules\Catalog\Contracts\Repositories\CarTypeRepositoryInterface;
 use Modules\Catalog\DTOs\StoreCarTypeDTO;
 use Modules\Catalog\Models\CarType;
@@ -10,6 +10,8 @@ use Throwable;
 
 class StoreCarTypeAction
 {
+    use HandlesTransactionalFileUpload;
+
     public function __construct(
         private readonly CarTypeRepositoryInterface $repository,
     ) {}
@@ -19,24 +21,20 @@ class StoreCarTypeAction
      */
     public function handle(StoreCarTypeDTO $dto): CarType
     {
-        DB::beginTransaction();
-        try {
-            $data = [
-                'is_active' => $dto->isActive,
-                'image' => $dto->image,
-                'car_brand_id' => $dto->carBrandId,
-            ];
+        return $this->storeFileWithCleanup(
+            file: $dto->image,
+            directory: 'car_types',
+            disk: 'public',
+            dbWork: function (?string $imagePath) use ($dto): CarType {
+                $carType = $this->repository->create([
+                    'is_active' => $dto->isActive,
+                    'image' => $imagePath,
+                    'car_brand_id' => $dto->carBrandId,
+                ]);
+                $carType->translations()->createMany($dto->translations);
 
-            $carType = $this->repository->create($data);
-            $carType->translations()->createMany($dto->translations);
-
-            DB::commit();
-
-            return $carType->load(['translation', 'carBrand.translation']);
-        } catch (Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+                return $carType->load(['translation', 'carBrand.translation']);
+            },
+        );
     }
 }

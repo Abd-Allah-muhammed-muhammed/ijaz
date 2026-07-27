@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Actions\ElectronicBrand;
 
-use Illuminate\Support\Facades\DB;
+use Modules\Catalog\Concerns\HandlesTransactionalFileUpload;
 use Modules\Catalog\Contracts\Repositories\ElectronicBrandRepositoryInterface;
 use Modules\Catalog\DTOs\StoreElectronicBrandDTO;
 use Modules\Catalog\Models\ElectronicBrand;
@@ -10,6 +10,8 @@ use Throwable;
 
 class StoreElectronicBrandAction
 {
+    use HandlesTransactionalFileUpload;
+
     public function __construct(
         private readonly ElectronicBrandRepositoryInterface $repository,
     ) {}
@@ -19,23 +21,19 @@ class StoreElectronicBrandAction
      */
     public function handle(StoreElectronicBrandDTO $dto): ElectronicBrand
     {
-        DB::beginTransaction();
-        try {
-            $data = [
-                'image' => $dto->image,
-                'is_active' => $dto->isActive,
-            ];
+        return $this->storeFileWithCleanup(
+            file: $dto->image,
+            directory: 'electronic_brands',
+            disk: 'public',
+            dbWork: function (?string $imagePath) use ($dto): ElectronicBrand {
+                $electronicBrand = $this->repository->create([
+                    'image' => $imagePath,
+                    'is_active' => $dto->isActive,
+                ]);
+                $electronicBrand->translations()->createMany($dto->translations);
 
-            $electronicBrand = $this->repository->create($data);
-            $electronicBrand->translations()->createMany($dto->translations);
-
-            DB::commit();
-
-            return $electronicBrand->load(['translation']);
-        } catch (Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+                return $electronicBrand->load(['translation']);
+            },
+        );
     }
 }

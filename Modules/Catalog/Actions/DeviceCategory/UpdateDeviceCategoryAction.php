@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Actions\DeviceCategory;
 
-use Illuminate\Support\Facades\DB;
+use Modules\Catalog\Concerns\HandlesTransactionalFileUpload;
 use Modules\Catalog\Contracts\Repositories\DeviceCategoryRepositoryInterface;
 use Modules\Catalog\DTOs\UpdateDeviceCategoryDTO;
 use Modules\Catalog\Models\DeviceCategory;
@@ -10,6 +10,8 @@ use Throwable;
 
 class UpdateDeviceCategoryAction
 {
+    use HandlesTransactionalFileUpload;
+
     public function __construct(
         private readonly DeviceCategoryRepositoryInterface $repository,
     ) {}
@@ -19,28 +21,26 @@ class UpdateDeviceCategoryAction
      */
     public function handle(DeviceCategory $deviceCategory, UpdateDeviceCategoryDTO $dto): DeviceCategory
     {
-        DB::beginTransaction();
-        try {
-            $data = [
-                'parent_id' => $dto->parentId,
-            ];
+        return $this->storeFileWithCleanup(
+            file: $dto->icon,
+            directory: 'device_categories',
+            disk: null,
+            previousPath: $dto->icon !== null ? $deviceCategory->icon : null,
+            dbWork: function (?string $iconPath) use ($dto, $deviceCategory): DeviceCategory {
+                $data = [
+                    'parent_id' => $dto->parentId,
+                ];
 
-            if ($dto->icon) {
-                $deviceCategory->deleteIcon();
-                $data['icon'] = $dto->icon;
-            }
+                if ($iconPath !== null) {
+                    $data['icon'] = $iconPath;
+                }
 
-            $deviceCategory = $this->repository->update($deviceCategory, $data);
-            $deviceCategory->translations()->delete();
-            $deviceCategory->translations()->createMany($dto->translations);
+                $deviceCategory = $this->repository->update($deviceCategory, $data);
+                $deviceCategory->translations()->delete();
+                $deviceCategory->translations()->createMany($dto->translations);
 
-            DB::commit();
-
-            return $deviceCategory->load(['translation']);
-        } catch (Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+                return $deviceCategory->load(['translation']);
+            },
+        );
     }
 }

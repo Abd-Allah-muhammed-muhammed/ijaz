@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Actions\CarCategory;
 
-use Illuminate\Support\Facades\DB;
+use Modules\Catalog\Concerns\HandlesTransactionalFileUpload;
 use Modules\Catalog\Contracts\Repositories\CarCategoryRepositoryInterface;
 use Modules\Catalog\DTOs\StoreCarCategoryDTO;
 use Modules\Catalog\Models\CarCategory;
@@ -10,6 +10,8 @@ use Throwable;
 
 class StoreCarCategoryAction
 {
+    use HandlesTransactionalFileUpload;
+
     public function __construct(
         private readonly CarCategoryRepositoryInterface $repository,
     ) {}
@@ -19,23 +21,19 @@ class StoreCarCategoryAction
      */
     public function handle(StoreCarCategoryDTO $dto): CarCategory
     {
-        DB::beginTransaction();
-        try {
-            $data = [
-                'parent_id' => $dto->parentId,
-                'icon' => $dto->icon,
-            ];
+        return $this->storeFileWithCleanup(
+            file: $dto->icon,
+            directory: 'car_categories',
+            disk: null,
+            dbWork: function (?string $iconPath) use ($dto): CarCategory {
+                $carCategory = $this->repository->create([
+                    'parent_id' => $dto->parentId,
+                    'icon' => $iconPath,
+                ]);
+                $carCategory->translations()->createMany($dto->translations);
 
-            $carCategory = $this->repository->create($data);
-            $carCategory->translations()->createMany($dto->translations);
-
-            DB::commit();
-
-            return $carCategory->load(['translation']);
-        } catch (Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+                return $carCategory->load(['translation']);
+            },
+        );
     }
 }

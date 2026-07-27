@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Actions\CarType;
 
-use Illuminate\Support\Facades\DB;
+use Modules\Catalog\Concerns\HandlesTransactionalFileUpload;
 use Modules\Catalog\Contracts\Repositories\CarTypeRepositoryInterface;
 use Modules\Catalog\DTOs\UpdateCarTypeDTO;
 use Modules\Catalog\Models\CarType;
@@ -10,6 +10,8 @@ use Throwable;
 
 class UpdateCarTypeAction
 {
+    use HandlesTransactionalFileUpload;
+
     public function __construct(
         private readonly CarTypeRepositoryInterface $repository,
     ) {}
@@ -19,29 +21,27 @@ class UpdateCarTypeAction
      */
     public function handle(CarType $carType, UpdateCarTypeDTO $dto): CarType
     {
-        DB::beginTransaction();
-        try {
-            $data = [
-                'is_active' => $dto->isActive,
-                'car_brand_id' => $dto->carBrandId,
-            ];
+        return $this->storeFileWithCleanup(
+            file: $dto->image,
+            directory: 'car_types',
+            disk: 'public',
+            previousPath: $dto->image !== null ? $carType->image : null,
+            dbWork: function (?string $imagePath) use ($dto, $carType): CarType {
+                $data = [
+                    'is_active' => $dto->isActive,
+                    'car_brand_id' => $dto->carBrandId,
+                ];
 
-            if ($dto->image) {
-                $carType->deleteImage();
-                $data['image'] = $dto->image;
-            }
+                if ($imagePath !== null) {
+                    $data['image'] = $imagePath;
+                }
 
-            $carType = $this->repository->update($carType, $data);
-            $carType->translations()->delete();
-            $carType->translations()->createMany($dto->translations);
+                $carType = $this->repository->update($carType, $data);
+                $carType->translations()->delete();
+                $carType->translations()->createMany($dto->translations);
 
-            DB::commit();
-
-            return $carType->load(['translation', 'carBrand.translation']);
-        } catch (Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+                return $carType->load(['translation', 'carBrand.translation']);
+            },
+        );
     }
 }
