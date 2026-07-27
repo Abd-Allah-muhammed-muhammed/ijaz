@@ -6,7 +6,9 @@ use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use Modules\Classifieds\Actions\AuthorizeAdvisementOwnerAction;
+use Modules\Classifieds\Actions\DeleteAdvisementMediaAction;
+use Modules\Classifieds\Actions\DeleteAdvisementWithMediaAction;
 use Modules\Classifieds\Actions\InstituteAdvisement\ListInstituteAdvisementsForDashboardAction;
 use Modules\Classifieds\Actions\InstituteAdvisement\ResolveInstituteAdvisementDashboardSelectsAction;
 use Modules\Classifieds\Actions\StoreAdvisementMediaAction;
@@ -16,7 +18,6 @@ use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Models\InstituteAdvisement;
 use Modules\Classifieds\QueryFilters\InstituteAdvisementFilters;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 final class InstituteAdvisementService
 {
@@ -25,6 +26,9 @@ final class InstituteAdvisementService
         private readonly ListInstituteAdvisementsForDashboardAction $listForDashboardAction,
         private readonly ResolveInstituteAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
         private readonly StoreAdvisementMediaAction $storeAdvisementMediaAction,
+        private readonly AuthorizeAdvisementOwnerAction $authorizeAdvisementOwnerAction,
+        private readonly DeleteAdvisementWithMediaAction $deleteAdvisementWithMediaAction,
+        private readonly DeleteAdvisementMediaAction $deleteAdvisementMediaAction,
     ) {}
 
     public function listForDashboard(Request $request): LengthAwarePaginator
@@ -75,7 +79,7 @@ final class InstituteAdvisementService
 
     public function update(User $user, InstituteAdvisement $model, InstituteAdvisementDTO $dto): InstituteAdvisement
     {
-        $this->authorizeOwner($user, $model);
+        $this->authorizeAdvisementOwnerAction->handle($model, $user);
 
         return DB::transaction(function () use ($model, $dto): InstituteAdvisement {
             $this->repository->update($model, $dto->toPersistenceArray());
@@ -94,26 +98,19 @@ final class InstituteAdvisementService
 
     public function delete(User $user, InstituteAdvisement $model): void
     {
-        $this->authorizeOwner($user, $model);
+        $this->authorizeAdvisementOwnerAction->handle($model, $user);
 
         DB::transaction(function () use ($model): void {
-            if (Schema::hasTable('media')) {
-                $model->clearMediaCollection();
-            }
-            $model->delete();
+            $this->deleteAdvisementWithMediaAction->handle($model);
         });
     }
 
     public function deleteMedia(User $user, InstituteAdvisement $model, Media $media): void
     {
-        $this->authorizeOwner($user, $model);
+        $this->authorizeAdvisementOwnerAction->handle($model, $user);
 
-        if (! Schema::hasTable('media') || $media->model_id !== $model->id || $media->model_type !== $model::class) {
-            throw new AccessDeniedHttpException;
-        }
-
-        DB::transaction(function () use ($media): void {
-            $media->delete();
+        DB::transaction(function () use ($model, $media): void {
+            $this->deleteAdvisementMediaAction->handle($model, $media);
         });
     }
 
@@ -126,12 +123,5 @@ final class InstituteAdvisementService
             'user',
             'media',
         ]);
-    }
-
-    private function authorizeOwner(User $user, InstituteAdvisement $model): void
-    {
-        if ($model->user_id !== $user->id || $model->user_type !== $user::class) {
-            throw new AccessDeniedHttpException;
-        }
     }
 }

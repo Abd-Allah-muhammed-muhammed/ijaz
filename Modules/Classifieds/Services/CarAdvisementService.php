@@ -6,9 +6,11 @@ use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
+use Modules\Classifieds\Actions\AuthorizeAdvisementOwnerAction;
 use Modules\Classifieds\Actions\CarAdvisement\ListCarAdvisementsForDashboardAction;
 use Modules\Classifieds\Actions\CarAdvisement\ResolveCarAdvisementDashboardSelectsAction;
+use Modules\Classifieds\Actions\DeleteAdvisementMediaAction;
+use Modules\Classifieds\Actions\DeleteAdvisementWithMediaAction;
 use Modules\Classifieds\Actions\StoreAdvisementMediaAction;
 use Modules\Classifieds\Contracts\Repositories\CarAdvisementRepositoryInterface;
 use Modules\Classifieds\DTOs\CarAdvisementDTO;
@@ -16,7 +18,6 @@ use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Models\CarAdvisement;
 use Modules\Classifieds\QueryFilters\CarAdvisementFilters;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 final class CarAdvisementService
 {
@@ -25,6 +26,9 @@ final class CarAdvisementService
         private readonly ListCarAdvisementsForDashboardAction $listForDashboardAction,
         private readonly ResolveCarAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
         private readonly StoreAdvisementMediaAction $storeAdvisementMediaAction,
+        private readonly AuthorizeAdvisementOwnerAction $authorizeAdvisementOwnerAction,
+        private readonly DeleteAdvisementWithMediaAction $deleteAdvisementWithMediaAction,
+        private readonly DeleteAdvisementMediaAction $deleteAdvisementMediaAction,
     ) {}
 
     public function listForDashboard(Request $request): LengthAwarePaginator
@@ -77,7 +81,7 @@ final class CarAdvisementService
 
     public function update(User $user, CarAdvisement $model, CarAdvisementDTO $dto): CarAdvisement
     {
-        $this->authorizeOwner($user, $model);
+        $this->authorizeAdvisementOwnerAction->handle($model, $user);
 
         return DB::transaction(function () use ($model, $dto): CarAdvisement {
             $this->repository->update($model, $dto->toPersistenceArray());
@@ -98,26 +102,19 @@ final class CarAdvisementService
 
     public function delete(User $user, CarAdvisement $model): void
     {
-        $this->authorizeOwner($user, $model);
+        $this->authorizeAdvisementOwnerAction->handle($model, $user);
 
         DB::transaction(function () use ($model): void {
-            if (Schema::hasTable('media')) {
-                $model->clearMediaCollection();
-            }
-            $model->delete();
+            $this->deleteAdvisementWithMediaAction->handle($model);
         });
     }
 
     public function deleteMedia(User $user, CarAdvisement $model, Media $media): void
     {
-        $this->authorizeOwner($user, $model);
+        $this->authorizeAdvisementOwnerAction->handle($model, $user);
 
-        if (! Schema::hasTable('media') || $media->model_id !== $model->id || $media->model_type !== $model::class) {
-            throw new AccessDeniedHttpException;
-        }
-
-        DB::transaction(function () use ($media): void {
-            $media->delete();
+        DB::transaction(function () use ($model, $media): void {
+            $this->deleteAdvisementMediaAction->handle($model, $media);
         });
     }
 
@@ -132,12 +129,5 @@ final class CarAdvisementService
             'user',
             'media',
         ]);
-    }
-
-    private function authorizeOwner(User $user, CarAdvisement $model): void
-    {
-        if ($model->user_id !== $user->id || $model->user_type !== $user::class) {
-            throw new AccessDeniedHttpException;
-        }
     }
 }
