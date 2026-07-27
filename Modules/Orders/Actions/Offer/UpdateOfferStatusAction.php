@@ -3,9 +3,6 @@
 namespace Modules\Orders\Actions\Offer;
 
 use App\Models\User;
-use App\Notifications\Provider\OrderOfferAcceptedNotification;
-use App\Notifications\Provider\OrderOfferCanceledNotification;
-use App\Notifications\Provider\OrderOfferRejectedNotification;
 use Illuminate\Support\Facades\DB;
 use Modules\Orders\Actions\CalculateOrderFeesAction;
 use Modules\Orders\DTOs\UpdateOfferStatusDTO;
@@ -14,6 +11,9 @@ use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Exceptions\OrdersException;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Models\OrderOffer;
+use Modules\Orders\Notifications\OrderOfferAcceptedNotification;
+use Modules\Orders\Notifications\OrderOfferCanceledNotification;
+use Modules\Orders\Notifications\OrderOfferRejectedNotification;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 

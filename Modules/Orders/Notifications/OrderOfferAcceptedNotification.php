@@ -1,23 +1,24 @@
 <?php
 
-namespace App\Notifications\Provider;
+namespace Modules\Orders\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Modules\Orders\Models\Order;
+use Modules\Orders\Models\OrderOffer;
 
-class NewOrderAssignNotification extends Notification implements ShouldBroadcastNow, ShouldQueue
+class OrderOfferAcceptedNotification extends Notification implements ShouldBroadcastNow, ShouldDispatchAfterCommit, ShouldQueue
 {
     use Queueable;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(public Order $order)
+    public function __construct(public OrderOffer $offer)
     {
         //
     }
@@ -51,24 +52,26 @@ class NewOrderAssignNotification extends Notification implements ShouldBroadcast
     public function toArray(object $notifiable): array
     {
         return [
-            'title_translated_key' => 'new_order_assigned',
-            'body_translated_key' => 'you_have_been_assigned_a_new_order',
+            'title_translated_key' => 'order_offer_accepted',
+            'body_translated_key' => 'order_offer_has_been_accepted',
             'translated_attributes' => [],
-            'order_id' => $this->order->id,
+            'order_id' => $this->offer->order_id,
+            'offer_id' => $this->offer->id,
         ];
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
         return (new BroadcastMessage([
-            'title' => trans('new_order_assigned', locale: $notifiable->language),
-            'body' => trans('you_have_been_assigned_a_new_order', locale: $notifiable->language),
-            'order_id' => $this->order->id,
+            'title' => trans('order_offer_accepted', locale: $notifiable->language),
+            'body' => trans('order_offer_has_been_accepted', locale: $notifiable->language),
+            'order_id' => $this->offer->order_id,
+            'offer_id' => $this->offer->id,
         ]))->onConnection('sync');
     }
 
     public function broadcastType(): string
     {
-        return 'new assigned order';
+        return 'order offer accepted';
     }
 }

@@ -96,7 +96,6 @@ app/
 │   ├── Requests/
 │   └── Resources/
 ├── Models/            — 9 core actors/settings (Admin, User, Provider, Employee, …)
-├── Notifications/     — User / Provider notifications still owned by app
 ├── Providers/
 ├── Repositories/      — Admin, Auth, Provider, User
 ├── Rules/
@@ -109,7 +108,7 @@ app/
 └── UserProviders/     — Custom auth user providers
 ```
 
-**Intentionally gone from `app/` (do not resurrect):** `app/Actions/Payment`, `app/Services/Normalize`, `app/Services/Sms`, `app/Guards`, `app/Observers`, `app/Jobs`, `lib/` (including dead WhatsApp scaffolding). Payment → `Modules/Payment`; SMS → `Modules/Sms`; Normalize/Phone → `app/Support/`; Order observers → `Modules/Orders`.
+**Intentionally gone from `app/` (do not resurrect):** `app/Actions/Payment`, `app/Services/Normalize`, `app/Services/Sms`, `app/Guards`, `app/Observers`, `app/Jobs`, `app/Notifications` (Order User/Provider notification classes), `lib/` (including dead WhatsApp scaffolding). Payment → `Modules/Payment`; SMS → `Modules/Sms`; Normalize/Phone → `app/Support/`; Order observers + Order notifications → `Modules/Orders`.
 
 ### Modules (`modules_statuses.json` — all enabled)
 
@@ -124,7 +123,7 @@ app/
 | **Jobs** | Job offers / listings API |
 | **Marketplace** | Service categories, skills, provider types (catalog endpoints) |
 | **Opportunity** | Opportunity listings, offers, comments, opportunity chat |
-| **Orders** | User/provider/dashboard order flows, offers, payment hooks, observers |
+| **Orders** | User/provider/dashboard order flows, offers, payment hooks, observers, notifications |
 | **Payment** | Gateways (PayTabs, Rajhi, testing), callbacks/webhooks, payment pipeline |
 | **Sms** | SMS gateway drivers (Authentica, etc.) — no HTTP surface of its own |
 | **Support** | Ticket support API + Dashboard |

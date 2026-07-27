@@ -1,11 +1,11 @@
 <?php
 
-use App\Notifications\Provider\OrderOfferCanceledNotification;
 use Illuminate\Support\Facades\Notification;
 use Modules\Orders\Actions\Offer\UpdateOfferStatusAction;
 use Modules\Orders\DTOs\UpdateOfferStatusDTO;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Notifications\OrderOfferCanceledNotification;
 
 beforeEach(function () {
     Notification::fake();

@@ -3,7 +3,6 @@
 namespace Modules\Orders\Actions\Provider;
 
 use App\Models\Provider;
-use App\Notifications\User\OrderAcceptedOfferUpdatedNotification;
 use Illuminate\Support\Facades\DB;
 use Modules\Orders\Actions\CalculateOrderFeesAction;
 use Modules\Orders\DTOs\UpdateOrderOfferDTO;
@@ -11,6 +10,7 @@ use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Exceptions\OrdersException;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Models\OrderOffer;
+use Modules\Orders\Notifications\OrderAcceptedOfferUpdatedNotification;
 use Throwable;
 
 class UpdateProviderOfferAction

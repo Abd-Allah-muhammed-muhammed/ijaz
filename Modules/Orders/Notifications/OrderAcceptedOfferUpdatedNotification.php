@@ -1,24 +1,24 @@
 <?php
 
-namespace App\Notifications\Provider;
+namespace Modules\Orders\Notifications;
 
+use App\Services\Firebase\DTO\Message;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
-use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Modules\Orders\Models\OrderOffer;
+use Modules\Orders\Models\Order;
 
-class OrderOfferAcceptedNotification extends Notification implements ShouldBroadcastNow, ShouldDispatchAfterCommit, ShouldQueue
+class OrderAcceptedOfferUpdatedNotification extends Notification implements ShouldBroadcastNow, ShouldQueue
 {
     use Queueable;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(public OrderOffer $offer)
+    public function __construct(public Order $order)
     {
         //
     }
@@ -30,7 +30,7 @@ class OrderOfferAcceptedNotification extends Notification implements ShouldBroad
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', 'firebase'];
     }
 
     /**
@@ -52,26 +52,35 @@ class OrderOfferAcceptedNotification extends Notification implements ShouldBroad
     public function toArray(object $notifiable): array
     {
         return [
-            'title_translated_key' => 'order_offer_accepted',
-            'body_translated_key' => 'order_offer_has_been_accepted',
+            'title_translated_key' => 'order_accepted_offer_updated',
+            'body_translated_key' => 'the_order_accepted_offer_has_been_updated',
             'translated_attributes' => [],
-            'order_id' => $this->offer->order_id,
-            'offer_id' => $this->offer->id,
+            'order_id' => $this->order->id,
+            'offer_id' => $this->order->accepted_offer_id,
         ];
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
         return (new BroadcastMessage([
-            'title' => trans('order_offer_accepted', locale: $notifiable->language),
-            'body' => trans('order_offer_has_been_accepted', locale: $notifiable->language),
-            'order_id' => $this->offer->order_id,
-            'offer_id' => $this->offer->id,
+            'title' => trans('order_accepted_offer_updated', locale: $notifiable->language),
+            'body' => trans('the_order_accepted_offer_has_been_updated', locale: $notifiable->language),
+            'order_id' => $this->order->id,
+            'offer_id' => $this->order->accepted_offer_id,
         ]))->onConnection('sync');
     }
 
     public function broadcastType(): string
     {
-        return 'order offer accepted';
+        return 'new assigned order';
+    }
+
+    public function toFirebase(object $notifiable): Message
+    {
+        return new Message(
+            title: trans('order_accepted_offer_updated', locale: $notifiable->language),
+            body: trans('the_order_accepted_offer_has_been_updated', locale: $notifiable->language),
+            data: ['order_id' => $this->order->id],
+        );
     }
 }

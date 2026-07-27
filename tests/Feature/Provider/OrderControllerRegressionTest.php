@@ -3,14 +3,14 @@
 use App\Enums\CategoryFeesTypeEnum;
 use App\Models\Provider;
 use App\Models\User;
-use App\Notifications\User\OrderAcceptedOfferUpdatedNotification;
-use App\Notifications\User\OrderOfferCreatedNotification;
 use Illuminate\Support\Facades\Notification;
 use Modules\Marketplace\Models\Category;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Http\Controllers\Provider\OrderController;
 use Modules\Orders\Models\Order;
+use Modules\Orders\Notifications\OrderAcceptedOfferUpdatedNotification;
+use Modules\Orders\Notifications\OrderOfferCreatedNotification;
 use Modules\Reviews\Models\Review;
 
 beforeEach(function () {

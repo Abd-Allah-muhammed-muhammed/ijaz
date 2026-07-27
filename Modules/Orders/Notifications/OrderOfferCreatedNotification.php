@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Notifications\Provider;
+namespace Modules\Orders\Notifications;
 
+use App\Services\Firebase\DTO\Message;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
@@ -11,7 +12,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Modules\Orders\Models\OrderOffer;
 
-class OrderOfferCanceledNotification extends Notification implements ShouldBroadcastNow, ShouldDispatchAfterCommit, ShouldQueue
+class OrderOfferCreatedNotification extends Notification implements ShouldBroadcastNow, ShouldDispatchAfterCommit, ShouldQueue
 {
     use Queueable;
 
@@ -30,7 +31,7 @@ class OrderOfferCanceledNotification extends Notification implements ShouldBroad
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast', 'firebase'];
     }
 
     /**
@@ -52,8 +53,8 @@ class OrderOfferCanceledNotification extends Notification implements ShouldBroad
     public function toArray(object $notifiable): array
     {
         return [
-            'title_translated_key' => 'order_offer_canceled',
-            'body_translated_key' => 'order_offer_has_been_canceled',
+            'title_translated_key' => 'order_offer_created',
+            'body_translated_key' => 'order_offer_has_been_created',
             'translated_attributes' => [],
             'order_id' => $this->offer->order_id,
             'offer_id' => $this->offer->id,
@@ -63,8 +64,8 @@ class OrderOfferCanceledNotification extends Notification implements ShouldBroad
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
         return (new BroadcastMessage([
-            'title' => trans('order_offer_canceled', locale: $notifiable->language),
-            'body' => trans('order_offer_has_been_canceled', locale: $notifiable->language),
+            'title' => trans('order_offer_created', locale: $notifiable->language),
+            'body' => trans('order_offer_has_been_created', locale: $notifiable->language),
             'order_id' => $this->offer->order_id,
             'offer_id' => $this->offer->id,
         ]))->onConnection('sync');
@@ -72,6 +73,15 @@ class OrderOfferCanceledNotification extends Notification implements ShouldBroad
 
     public function broadcastType(): string
     {
-        return 'order offer canceled';
+        return 'order offer created';
+    }
+
+    public function toFirebase(object $notifiable): Message
+    {
+        return new Message(
+            title: trans('order_offer_created', locale: $notifiable->language),
+            body: trans('order_offer_has_been_created', locale: $notifiable->language),
+            data: ['order_id' => $this->offer->order_id],
+        );
     }
 }

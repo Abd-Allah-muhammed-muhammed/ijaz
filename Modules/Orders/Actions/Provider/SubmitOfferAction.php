@@ -3,12 +3,12 @@
 namespace Modules\Orders\Actions\Provider;
 
 use App\Models\Provider;
-use App\Notifications\User\OrderOfferCreatedNotification;
 use Illuminate\Support\Facades\DB;
 use Modules\Orders\Contracts\Repositories\OrderOfferRepositoryInterface;
 use Modules\Orders\DTOs\StoreOrderOfferDTO;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Models\OrderOffer;
+use Modules\Orders\Notifications\OrderOfferCreatedNotification;
 use Throwable;
 
 class SubmitOfferAction
