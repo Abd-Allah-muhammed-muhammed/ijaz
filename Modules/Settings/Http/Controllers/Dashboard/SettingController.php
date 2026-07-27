@@ -9,9 +9,9 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Response;
 use Modules\Settings\DTOs\UpdateSettingsDTO;
+use Modules\Settings\Enums\SettingGroupEnum;
 use Modules\Settings\Http\Requests\Dashboard\UpdateSettingsRequest;
 use Modules\Settings\Http\Resources\Dashboard\SettingResource;
-use Modules\Settings\Models\Setting;
 use Modules\Settings\Services\SettingService;
 use Throwable;
 
@@ -35,7 +35,7 @@ class SettingController extends Controller implements HasMiddleware
 
         return inertia('Dashboard/Settings/Index', [
             'groups' => $grouped->map(fn ($settings) => SettingResource::collection($settings)->resolve()),
-            'groupOrder' => Setting::GROUPS,
+            'groupOrder' => array_column(SettingGroupEnum::cases(), 'value'),
             'prams' => $request->only('tab') ?: [],
         ]);
     }

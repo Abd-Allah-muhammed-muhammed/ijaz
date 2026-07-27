@@ -3,22 +3,10 @@
 namespace Modules\Settings\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Settings\Enums\SettingGroupEnum;
 
 class Setting extends Model
 {
-    /**
-     * Canonical Dashboard tab order (UI taxonomy).
-     *
-     * @var list<string>
-     */
-    public const GROUPS = [
-        'general',
-        'wallet',
-        'payment',
-        'guarantor',
-        'chat',
-    ];
-
     protected $fillable = [
         'key',
         'content',
@@ -33,6 +21,7 @@ class Setting extends Model
     {
         return [
             'is_public' => 'boolean',
+            'group' => SettingGroupEnum::class,
         ];
     }
 }

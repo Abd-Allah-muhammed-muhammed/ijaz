@@ -4,6 +4,7 @@ namespace Modules\Settings\Http\Resources\Dashboard;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Settings\Enums\SettingGroupEnum;
 use Modules\Settings\Models\Setting;
 
 /** @mixin Setting */
@@ -15,7 +16,7 @@ class SettingResource extends JsonResource
             'id' => $this->id,
             'key' => $this->key,
             'content' => $this->content,
-            'group' => $this->group ?? 'general',
+            'group' => $this->group?->value ?? SettingGroupEnum::General->value,
             'is_public' => (bool) $this->is_public,
         ];
     }

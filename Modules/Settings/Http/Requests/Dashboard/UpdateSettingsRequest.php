@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Settings\Contracts\Repositories\SettingRepositoryInterface;
-use Modules\Settings\Models\Setting;
+use Modules\Settings\Enums\SettingGroupEnum;
 
 class UpdateSettingsRequest extends FormRequest
 {
@@ -25,7 +25,7 @@ class UpdateSettingsRequest extends FormRequest
             'values.*' => ['nullable', 'string'],
             'is_public' => ['nullable', 'array'],
             'is_public.*' => ['nullable', 'boolean'],
-            'group' => ['nullable', 'string', Rule::in(Setting::GROUPS)],
+            'group' => ['nullable', Rule::enum(SettingGroupEnum::class)],
         ];
     }
 

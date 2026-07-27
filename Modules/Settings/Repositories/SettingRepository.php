@@ -5,6 +5,7 @@ namespace Modules\Settings\Repositories;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Settings\Contracts\Repositories\SettingRepositoryInterface;
+use Modules\Settings\Enums\SettingGroupEnum;
 use Modules\Settings\Models\Setting;
 
 class SettingRepository implements SettingRepositoryInterface
@@ -25,7 +26,9 @@ class SettingRepository implements SettingRepositoryInterface
      */
     public function allGroupedByGroup(): Collection
     {
-        return $this->all()->groupBy(fn (Setting $setting): string => $setting->group ?? 'general');
+        return $this->all()->groupBy(
+            fn (Setting $setting): string => $setting->group?->value ?? SettingGroupEnum::General->value
+        );
     }
 
     public function findByKey(string $key): ?Setting
