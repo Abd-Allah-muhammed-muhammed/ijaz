@@ -232,6 +232,8 @@ Also still true (non-breaking quirks, documented in models/API docs):
 
 - Some notification / account-mutation endpoints still use `GET` (verb debt).
 - Geo catalog lookups (nationalities, regions, cities) live on `Modules\Geo\Http\Controllers\Api\V1\GeoController`; platform misc (`providers`, `settings`) on `App\Http\Controllers\Api\V1\PlatformController` — Marketplace/Cms/Catalog modules own the rest of `/api/v1/catalog/*`.
+- **`PropertiyCategoryTranslation.normalized_title` is never written on save** — column + filter exist (`TranslationSearchFilter` on `normalized_title`), but no model hook populates it (peer translations do). PropertyCategory Arabic-normalized search stays broken until a separate save-path fix; do not conflate with QueryFilters DRY. Comment on `PropertiyCategoryTranslation`.
+- **CarBrand / CarType / PropertyType lack `normalized_*` translation columns** — search correctly uses raw `name` (`normalize: false`). Adding Arabic-insensitive search needs a future schema + save-hook pass, not filter-side fake normalization.
 
 **Planned but not implemented (not a bug, not dead code to remove):**
 

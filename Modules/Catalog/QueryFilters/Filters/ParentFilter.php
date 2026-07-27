@@ -1,11 +1,11 @@
 <?php
 
-namespace Modules\Catalog\QueryFilters\DeviceCategory\Filters;
+namespace Modules\Catalog\QueryFilters\Filters;
 
 use App\Contracts\QueryFilters\QueryFilterInterface;
 use Illuminate\Database\Eloquent\Builder;
 
-class ParentFilter implements QueryFilterInterface
+final class ParentFilter implements QueryFilterInterface
 {
     public function __construct(private readonly ?int $parentId) {}
 

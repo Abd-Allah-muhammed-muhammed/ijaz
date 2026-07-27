@@ -5,7 +5,7 @@ namespace Modules\Catalog\QueryFilters\PropertyType;
 use App\Contracts\QueryFilters\QueryFilterInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Modules\Catalog\QueryFilters\PropertyType\Filters\SearchFilter;
+use Modules\Catalog\QueryFilters\Filters\TranslationSearchFilter;
 
 class PropertyTypeFilters
 {
@@ -31,7 +31,11 @@ class PropertyTypeFilters
     private function filters(): array
     {
         return [
-            new SearchFilter($this->request->filled('search') ? (string) $this->request->string('search') : null),
+            new TranslationSearchFilter(
+                $this->request->filled('search') ? (string) $this->request->string('search') : null,
+                'name',
+                normalize: false,
+            ),
         ];
     }
 }
