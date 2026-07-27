@@ -2,11 +2,11 @@
 
 namespace Modules\Orders\Actions\User;
 
-use App\Events\User\NewOrderCreated;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Modules\Orders\Contracts\Repositories\OrderRepositoryInterface;
 use Modules\Orders\DTOs\StoreOrderDTO;
+use Modules\Orders\Events\NewOrderCreated;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Notifications\NewOrderAssignNotification;
 use Throwable;

@@ -1,6 +1,5 @@
 <?php
 
-use App\Events\User\NewOrderCreated;
 use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -11,6 +10,7 @@ use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
 use Modules\Marketplace\Models\Category;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Events\NewOrderCreated;
 use Modules\Orders\Http\Controllers\Api\V1\OrderController;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Notifications\OrderOfferAcceptedNotification;
