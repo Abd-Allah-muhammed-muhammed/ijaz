@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\Classifieds\Actions\PropertyAdvisement\ListPropertyAdvisementsForDashboardAction;
 use Modules\Classifieds\Actions\PropertyAdvisement\ResolvePropertyAdvisementDashboardSelectsAction;
 use Modules\Classifieds\Actions\StoreAdvisementMediaAction;
@@ -17,7 +18,7 @@ use Modules\Classifieds\QueryFilters\PropertyAdvisementFilters;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
-class PropertyAdvisementService
+final class PropertyAdvisementService
 {
     public function __construct(
         private readonly PropertyAdvisementRepositoryInterface $repository,
@@ -51,7 +52,9 @@ class PropertyAdvisementService
 
     public function create(User $user, PropertyAdvisementDTO $dto): PropertyAdvisement
     {
-        return DB::transaction(function () use ($user, $dto) {
+        return DB::transaction(function () use ($user, $dto): PropertyAdvisement {
+            // Do NOT wrap in Model::withoutEvents — HasNormalizedAttributes relies on
+            // the saving event. Car/Electronic/Institute currently suppress it (latent bug).
             $propertyAdvisement = $this->repository->create([
                 ...$dto->toPersistenceArray(),
                 'user_type' => $user::class,
@@ -60,12 +63,14 @@ class PropertyAdvisementService
             ]);
 
             $this->storeAdvisementMediaAction->handle($propertyAdvisement, $dto->files);
-
+            // Keep `.translation` — CityResource/RegionResource only expose title when
+            // translation is loaded; PropertyType/Category are Astrotomic Translatable.
             $propertyAdvisement->load([
                 'propertyType.translation',
                 'city.translation',
                 'region.translation',
                 'category.translation',
+                'user',
                 'media',
             ]);
 
@@ -77,20 +82,20 @@ class PropertyAdvisementService
     {
         $this->authorizeOwner($user, $model);
 
-        return DB::transaction(function () use ($model, $dto) {
-            $propertyAdvisement = $this->repository->update($model, $dto->toPersistenceArray());
-
-            $this->storeAdvisementMediaAction->handle($propertyAdvisement, $dto->files);
-
-            $propertyAdvisement->load([
+        return DB::transaction(function () use ($model, $dto): PropertyAdvisement {
+            $this->repository->update($model, $dto->toPersistenceArray());
+            $this->storeAdvisementMediaAction->handle($model, $dto->files);
+            // Keep `.translation` — see create() comment.
+            $model->load([
                 'propertyType.translation',
                 'city.translation',
                 'region.translation',
                 'category.translation',
+                'user',
                 'media',
             ]);
 
-            return $propertyAdvisement;
+            return $model;
         });
     }
 
@@ -98,8 +103,10 @@ class PropertyAdvisementService
     {
         $this->authorizeOwner($user, $model);
 
-        DB::transaction(function () use ($model) {
-            $model->media->each->delete();
+        DB::transaction(function () use ($model): void {
+            if (Schema::hasTable('media')) {
+                $model->clearMediaCollection();
+            }
             $model->delete();
         });
     }
@@ -108,18 +115,19 @@ class PropertyAdvisementService
     {
         $this->authorizeOwner($user, $model);
 
-        if ($media->model()->isNot($model)) {
-            throw new AccessDeniedHttpException('forbidden !!');
+        if (! Schema::hasTable('media') || $media->model_id !== $model->id || $media->model_type !== $model::class) {
+            throw new AccessDeniedHttpException;
         }
 
-        DB::transaction(function () use ($media) {
+        DB::transaction(function () use ($media): void {
             $media->delete();
         });
     }
 
     public function loadForShow(PropertyAdvisement $model): PropertyAdvisement
     {
-        $model->load([
+        // Keep `.translation` — see create() comment.
+        return $model->load([
             'propertyType.translation',
             'city.translation',
             'region.translation',
@@ -127,14 +135,12 @@ class PropertyAdvisementService
             'user',
             'media',
         ]);
-
-        return $model;
     }
 
     private function authorizeOwner(User $user, PropertyAdvisement $model): void
     {
-        if ($model->user_type !== $user::class || $model->user_id !== $user->id) {
-            throw new AccessDeniedHttpException('forbidden !!');
+        if ($model->user_id !== $user->id || $model->user_type !== $user::class) {
+            throw new AccessDeniedHttpException;
         }
     }
 }

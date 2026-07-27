@@ -9,7 +9,7 @@ use Modules\Classifieds\Contracts\Repositories\PropertyAdvisementRepositoryInter
 use Modules\Classifieds\Models\PropertyAdvisement;
 use Modules\Classifieds\QueryFilters\PropertyAdvisementFilters;
 
-class PropertyAdvisementRepository implements PropertyAdvisementRepositoryInterface
+final class PropertyAdvisementRepository implements PropertyAdvisementRepositoryInterface
 {
     public function getUserAdvisements(User $user, PropertyAdvisementFilters $filters): LengthAwarePaginator
     {
