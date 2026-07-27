@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\CategoryFeesTypeEnum;
 use App\Events\User\NewOrderCreated;
 use App\Models\Provider;
 use App\Models\User;
@@ -8,6 +7,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
+use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
 use Modules\Marketplace\Models\Category;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;

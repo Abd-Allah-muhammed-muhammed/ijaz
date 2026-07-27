@@ -2,8 +2,8 @@
 
 namespace Modules\Marketplace\DTOs;
 
-use App\Enums\CategoryFeesTypeEnum;
 use Illuminate\Http\UploadedFile;
+use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
 
 final readonly class UpdateCategoryDTO
 {

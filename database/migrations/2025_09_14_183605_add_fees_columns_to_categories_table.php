@@ -1,9 +1,9 @@
 <?php
 
-use App\Enums\CategoryFeesTypeEnum;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
 
 return new class extends Migration
 {

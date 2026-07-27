@@ -2,9 +2,9 @@
 
 namespace Modules\Guarantor\Http\Requests;
 
-use App\Rules\CheckAuthenticatableId;
 use Illuminate\Contracts\Validation\ValidationRule;
 use MMAE\ApiResponse\Request\ApiRequest;
+use Modules\Guarantor\Rules\CheckAuthenticatableId;
 
 class StoreIndividualGuarantorRequest extends ApiRequest
 {

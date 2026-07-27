@@ -2,8 +2,8 @@
 
 namespace Modules\Jobs\DTOs;
 
-use App\Enums\Jobs\JobTypeEnum;
 use Illuminate\Support\Carbon;
+use Modules\Jobs\Enums\JobTypeEnum;
 
 final readonly class StoreJobDTO
 {

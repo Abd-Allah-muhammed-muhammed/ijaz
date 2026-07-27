@@ -2,7 +2,6 @@
 
 namespace Modules\Jobs\Models;
 
-use App\Enums\Jobs\JobTypeEnum;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Nationality;
 use Modules\Geo\Models\Region;
+use Modules\Jobs\Enums\JobTypeEnum;
 use Modules\Marketplace\Models\Skill;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;

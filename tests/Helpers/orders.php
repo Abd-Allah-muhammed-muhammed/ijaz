@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\CategoryFeesTypeEnum;
 use App\Models\Admin;
 use App\Models\Provider;
 use App\Models\User;
@@ -8,6 +7,7 @@ use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
+use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
 use Modules\Marketplace\Models\Category;
 use Modules\Orders\Database\Factories\OrderOfferFactory;
 use Modules\Orders\Enums\OfferStatusEnum;

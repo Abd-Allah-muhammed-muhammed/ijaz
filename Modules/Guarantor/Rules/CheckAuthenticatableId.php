@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Rules;
+namespace Modules\Guarantor\Rules;
 
 use App\Models\Provider;
 use App\Models\User;

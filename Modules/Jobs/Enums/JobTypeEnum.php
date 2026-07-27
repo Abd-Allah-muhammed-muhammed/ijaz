@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Enums\Jobs;
+namespace Modules\Jobs\Enums;
 
 enum JobTypeEnum: int
 {

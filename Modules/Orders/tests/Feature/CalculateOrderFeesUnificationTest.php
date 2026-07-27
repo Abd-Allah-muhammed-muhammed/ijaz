@@ -1,7 +1,7 @@
 <?php
 
-use App\Enums\CategoryFeesTypeEnum;
 use Illuminate\Support\Facades\Notification;
+use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
 use Modules\Orders\Actions\CalculateOrderFeesAction;
 use Modules\Orders\Actions\Offer\UpdateOfferStatusAction;
 use Modules\Orders\Actions\Provider\UpdateProviderOfferAction;

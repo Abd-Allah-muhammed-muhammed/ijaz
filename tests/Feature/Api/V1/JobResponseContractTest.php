@@ -1,12 +1,12 @@
 <?php
 
-use App\Enums\Jobs\JobTypeEnum;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Nationality;
 use Modules\Geo\Models\Region;
+use Modules\Jobs\Enums\JobTypeEnum;
 
 /**
  * Response-shape contract lock for mobile Jobs API.

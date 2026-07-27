@@ -2,7 +2,6 @@
 
 namespace Modules\Marketplace\Http\Controllers\Dashboard;
 
-use App\Enums\CategoryFeesTypeEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\General\ReactSelectResource;
 use Illuminate\Http\RedirectResponse;
@@ -12,6 +11,7 @@ use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Response;
 use Modules\Marketplace\DTOs\StoreCategoryDTO;
 use Modules\Marketplace\DTOs\UpdateCategoryDTO;
+use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
 use Modules\Marketplace\Exceptions\MarketplaceException;
 use Modules\Marketplace\Http\Requests\Dashboard\CategoryRequest;
 use Modules\Marketplace\Http\Resources\Dashboard\CategoryCollection;

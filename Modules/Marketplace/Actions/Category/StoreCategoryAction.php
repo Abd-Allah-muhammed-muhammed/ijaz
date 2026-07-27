@@ -2,10 +2,10 @@
 
 namespace Modules\Marketplace\Actions\Category;
 
-use App\Enums\CategoryFeesTypeEnum;
 use Illuminate\Support\Facades\DB;
 use Modules\Marketplace\Contracts\Repositories\CategoryRepositoryInterface;
 use Modules\Marketplace\DTOs\StoreCategoryDTO;
+use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
 use Modules\Marketplace\Models\Category;
 use Throwable;
 

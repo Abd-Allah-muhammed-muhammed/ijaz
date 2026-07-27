@@ -2,8 +2,8 @@
 
 namespace Modules\Marketplace\Database\Factories;
 
-use App\Enums\CategoryFeesTypeEnum;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
 use Modules\Marketplace\Models\Category;
 
 /**

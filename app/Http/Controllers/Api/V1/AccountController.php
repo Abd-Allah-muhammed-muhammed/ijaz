@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\DTOs\Account\UpdateAccountSettingsDTO;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\UpdateSettingsRequest;
+use App\Http\Requests\Auth\UpdateAccountLanguageRequest;
 use App\Http\Resources\Api\V1\NotificationCollection;
 use App\Models\Provider;
 use App\Models\User;
@@ -85,7 +85,7 @@ class AccountController extends Controller
         );
     }
 
-    public function updateSettings(UpdateSettingsRequest $request): JsonResponse
+    public function updateSettings(UpdateAccountLanguageRequest $request): JsonResponse
     {
         $this->accountService->updateSettings(
             auth()->user(),

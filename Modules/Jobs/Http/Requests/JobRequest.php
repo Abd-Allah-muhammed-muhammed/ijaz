@@ -2,12 +2,12 @@
 
 namespace Modules\Jobs\Http\Requests;
 
-use App\Enums\Jobs\JobTypeEnum;
 use App\Rules\ValidPhoneRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Enum;
 use JsonException;
 use MMAE\ApiResponse\Request\ApiRequest;
+use Modules\Jobs\Enums\JobTypeEnum;
 
 class JobRequest extends ApiRequest
 {

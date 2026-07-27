@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
-class UpdateSettingsRequest extends FormRequest
+class UpdateAccountLanguageRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

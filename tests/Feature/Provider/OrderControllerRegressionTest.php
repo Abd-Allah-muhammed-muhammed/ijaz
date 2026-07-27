@@ -1,9 +1,9 @@
 <?php
 
-use App\Enums\CategoryFeesTypeEnum;
 use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Support\Facades\Notification;
+use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
 use Modules\Marketplace\Models\Category;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;

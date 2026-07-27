@@ -1,11 +1,11 @@
 <?php
 
-use App\Enums\Jobs\JobTypeEnum;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Nationality;
 use Modules\Geo\Models\Region;
+use Modules\Jobs\Enums\JobTypeEnum;
 use Modules\Jobs\Models\JobOffer;
 use Modules\Marketplace\Models\Category;
 use Modules\Marketplace\Models\Skill;

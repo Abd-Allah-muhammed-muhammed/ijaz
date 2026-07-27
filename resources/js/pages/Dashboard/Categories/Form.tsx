@@ -8,7 +8,7 @@ import {getSupportedLocales} from "@/hooks/use-locales";
 import CategoryController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/CategoryController";
 import ImageInput from "@/components/inputs/ImageInput";
 import InputError from "@/components/inputs/InputError";
-import { CategoryFeesTypeEnum } from '@/Enums/Enums';
+import { CategoryFeesTypeEnum } from '@/Enums/Marketplace';
 
 type Props = {
   /**

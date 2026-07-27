@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Enums;
+namespace Modules\Marketplace\Enums;
 
 use App\Contracts\Selects\IReactSelect;
 use App\Enums\Utilities\Collectable;

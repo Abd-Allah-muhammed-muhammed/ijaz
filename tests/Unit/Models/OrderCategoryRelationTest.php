@@ -1,6 +1,6 @@
 <?php
 
-use App\Enums\CategoryFeesTypeEnum;
+use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
 use Modules\Marketplace\Models\Category;
 use Modules\Marketplace\Models\Skill;
 use Modules\Orders\Models\Order;

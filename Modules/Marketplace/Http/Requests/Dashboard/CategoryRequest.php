@@ -2,11 +2,11 @@
 
 namespace Modules\Marketplace\Http\Requests\Dashboard;
 
-use App\Enums\CategoryFeesTypeEnum;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
+use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
 
 class CategoryRequest extends FormRequest
 {

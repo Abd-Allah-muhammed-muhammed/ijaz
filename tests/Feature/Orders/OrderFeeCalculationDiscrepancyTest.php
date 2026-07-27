@@ -1,8 +1,8 @@
 <?php
 
-use App\Enums\CategoryFeesTypeEnum;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
+use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
 use Modules\Orders\Actions\CalculateOrderFeesAction;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;

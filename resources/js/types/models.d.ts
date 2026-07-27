@@ -1,4 +1,5 @@
-import { CategoryFeesTypeEnum, OperationStatusEnum, ProviderTypeFilesEnum } from "@/Enums/Enums";
+import { OperationStatusEnum, ProviderTypeFilesEnum } from "@/Enums/Enums";
+import { CategoryFeesTypeEnum } from "@/Enums/Marketplace";
 import { ProviderStatusEnum } from "@/Enums/Providers";
 import { OfferStatusEnum, OrderStatusEnum } from "@/Enums/Order";
 import { PaymentMethodEnum, PaymentStatusEnum } from "@/Enums/Payment";
