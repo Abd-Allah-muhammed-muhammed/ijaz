@@ -3,7 +3,6 @@
 namespace Modules\Chat\Providers;
 
 use Illuminate\Support\Facades\Gate;
-use Modules\Chat\Contracts\IChatService;
 use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
 use Modules\Chat\Contracts\Repositories\ConversationRepositoryInterface;
 use Modules\Chat\Enums\ChatTypeEnum;
@@ -14,7 +13,6 @@ use Modules\Chat\Policies\ConversationPolicy;
 use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Chat\Repositories\ConversationMessageRepository;
 use Modules\Chat\Repositories\ConversationRepository;
-use Modules\Chat\Services\ChatService;
 use Modules\Chat\Services\ConversationService;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
@@ -43,11 +41,6 @@ class ChatServiceProvider extends ModuleServiceProvider
         }
 
         $this->app->singleton(ConversationService::class);
-
-        $this->app->bind(
-            IChatService::class,
-            ChatService::class,
-        );
 
         $this->app->singleton(
             ChatTypeRegistry::class,

@@ -7,7 +7,6 @@ use App\Support\HasBroadcastChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Notifications\Events\BroadcastNotificationCreated;
 use Illuminate\Notifications\Notification;
-use Modules\Chat\Infrastructure\Events\NewNotificationSendEvent;
 use Modules\Chat\Models\System;
 
 it('applies HasBroadcastChannel to User, Provider, Admin, and System', function () {
@@ -59,15 +58,4 @@ it('uses receivesBroadcastNotificationsOn when Laravel builds broadcast notifica
             ->and($channels[0])->toBeInstanceOf(PrivateChannel::class)
             ->and($channels[0]->name)->toBe('private-'.$actor->receivesBroadcastNotificationsOn());
     }
-});
-
-it('uses receivesBroadcastNotificationsOn when NewNotificationSendEvent builds channels', function () {
-    $user = User::factory()->create();
-
-    $event = new NewNotificationSendEvent($user, 3);
-    $channels = $event->broadcastOn();
-
-    expect($channels)->toHaveCount(1)
-        ->and($channels[0])->toBeInstanceOf(PrivateChannel::class)
-        ->and($channels[0]->name)->toBe('private-'.$user->receivesBroadcastNotificationsOn());
 });
