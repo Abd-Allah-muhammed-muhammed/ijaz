@@ -3,7 +3,7 @@
 namespace Modules\Classifieds\Actions\PropertyAdvisement;
 
 use Illuminate\Http\Request;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 use Modules\Catalog\Models\PropertyType;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
@@ -34,7 +34,7 @@ class ResolvePropertyAdvisementDashboardSelectsAction
             $selects['region'] = ['value' => $region->id, 'label' => $region->title];
         }
 
-        if ($category = PropertiyCategory::find($request->category_id)) {
+        if ($category = PropertyCategory::find($request->category_id)) {
             $selects['category'] = ['value' => $category->id, 'label' => $category->title];
         }
 

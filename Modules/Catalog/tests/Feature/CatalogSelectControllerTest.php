@@ -10,7 +10,7 @@ use Modules\Catalog\Models\CarCategory;
 use Modules\Catalog\Models\CarType;
 use Modules\Catalog\Models\DeviceCategory;
 use Modules\Catalog\Models\ElectronicBrand;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 use Modules\Catalog\Models\PropertyType;
 use Modules\Catalog\Models\Specialization;
 use Tests\TestCase;
@@ -50,7 +50,7 @@ it('returns property types as react-select options', function (): void {
 
 it('returns property categories as react-select options', function (): void {
     /** @var TestCase $this */
-    $category = PropertiyCategory::factory()->create();
+    $category = PropertyCategory::factory()->create();
     $category->translations()->where('locale', 'en')->update(['title' => 'Residential Select']);
 
     $response = $this->getJson(action([CatalogSelectController::class, 'propertyCategories']));

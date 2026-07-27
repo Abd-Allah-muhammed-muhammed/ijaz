@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Storage;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 use Modules\Catalog\Models\PropertyType;
 use Modules\Classifieds\Database\Factories\PropertyAdvisementFactory;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -73,7 +73,7 @@ class PropertyAdvisement extends Model implements HasMedia
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(PropertiyCategory::class, 'category_id');
+        return $this->belongsTo(PropertyCategory::class, 'category_id');
     }
 
     public function propertyType(): BelongsTo

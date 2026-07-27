@@ -6,13 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * App\Models\PropertiyCategoryTranslation
+ * App\Models\PropertyCategoryTranslation
  *
  * @property string $title
  * @property string $locale
- * @property int $propertiy_category_id
+ * @property int $property_category_id
  */
-class PropertiyCategoryTranslation extends Model
+class PropertyCategoryTranslation extends Model
 {
     public $timestamps = false;
 
@@ -20,7 +20,7 @@ class PropertiyCategoryTranslation extends Model
 
     /*
      * TODO (deferred — not part of QueryFilters consolidation):
-     * `propertiy_category_translations.normalized_title` exists and is indexed, and
+     * `property_category_translations.normalized_title` exists and is indexed, and
      * PropertyCategory search filters against it via TranslationSearchFilter, but this
      * model never populates `normalized_title` on save (unlike Specialization /
      * CarCategory / DeviceCategory / ElectronicBrand translations). Until a saving
@@ -28,9 +28,9 @@ class PropertiyCategoryTranslation extends Model
      * PropertyCategory search will match nothing. See PROJECT_CONTEXT.md §7.
      */
 
-    public function propertiyCategory(): BelongsTo
+    public function propertyCategory(): BelongsTo
     {
-        return $this->belongsTo(PropertiyCategory::class);
+        return $this->belongsTo(PropertyCategory::class);
     }
 
     public function casts(): array

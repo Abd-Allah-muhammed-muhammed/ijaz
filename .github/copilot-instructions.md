@@ -71,7 +71,7 @@ Don't generate new code that repeats them:
 - ❌ No raw arrays in API responses
 - ❌ No hardcoded status strings
 - ❌ No business logic inside controllers
-- ❌ No new typos (see: `walletTTransactions`, `lastMassage`, `PropertiyCategory`)
+- ❌ No new typos (see: `walletTTransactions`, `lastMassage`)
 
 ---
 

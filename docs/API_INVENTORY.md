@@ -62,8 +62,6 @@ See `docs/DEFERRED_MOBILE_BREAKING_CHANGES.md`:
 2. **Pagination shape fragmentation**: flat meta (`BaseCollection`) vs nested Chat `paginate` ± page URLs.
 3. Wallet `add-balance` leaks `PaymentInitResult` internals.
 4. `POST /api/v1/otp/verify` with `type=phone` persists verification but still returns `success: false`.
-5. `propertiy_categories` schema typo persists behind correctly-named `property-categories` endpoints.
-
 ---
 
 # App Core

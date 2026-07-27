@@ -5,7 +5,7 @@ namespace Modules\Catalog\Actions\PropertyCategory;
 use Illuminate\Support\Facades\DB;
 use Modules\Catalog\Contracts\Repositories\PropertyCategoryRepositoryInterface;
 use Modules\Catalog\DTOs\UpdatePropertyCategoryDTO;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 use Throwable;
 
 class UpdatePropertyCategoryAction
@@ -17,9 +17,9 @@ class UpdatePropertyCategoryAction
     /**
      * @throws Throwable
      */
-    public function handle(PropertiyCategory $propertyCategory, UpdatePropertyCategoryDTO $dto): PropertiyCategory
+    public function handle(PropertyCategory $propertyCategory, UpdatePropertyCategoryDTO $dto): PropertyCategory
     {
-        return DB::transaction(function () use ($propertyCategory, $dto): PropertiyCategory {
+        return DB::transaction(function () use ($propertyCategory, $dto): PropertyCategory {
             $data = [
                 'translations' => $dto->translations,
                 'parent_id' => $dto->parentId,

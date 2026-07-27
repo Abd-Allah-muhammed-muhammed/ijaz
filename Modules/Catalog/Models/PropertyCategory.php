@@ -8,26 +8,26 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Catalog\Database\Factories\PropertiyCategoryFactory;
+use Modules\Catalog\Database\Factories\PropertyCategoryFactory;
 
 /**
- * App\Models\PropertiyCategory
+ * App\Models\PropertyCategory
  *
  * @property int $id
  * @property int|null $parent_id
  * @property bool $is_active
  * @property string|null $created_at
  * @property string|null $updated_at
- * @property-read PropertiyCategory|null $parent
- * @property-read Collection<int, PropertiyCategory> $children
+ * @property-read PropertyCategory|null $parent
+ * @property-read Collection<int, PropertyCategory> $children
  * @property-read int|null $children_count
- * @property-read Collection<int,PropertiyCategoryTranslation> $translations
- * @property-read PropertiyCategoryTranslation|null $translation
+ * @property-read Collection<int,PropertyCategoryTranslation> $translations
+ * @property-read PropertyCategoryTranslation|null $translation
  * @property-read int|null $translations_count
  */
-class PropertiyCategory extends Model implements IReactSelect
+class PropertyCategory extends Model implements IReactSelect
 {
-    /** @use HasFactory<PropertiyCategoryFactory> */
+    /** @use HasFactory<PropertyCategoryFactory> */
     use HasFactory, Translatable;
 
     protected $fillable = [
@@ -39,12 +39,12 @@ class PropertiyCategory extends Model implements IReactSelect
 
     public function parent()
     {
-        return $this->belongsTo(PropertiyCategory::class, 'parent_id');
+        return $this->belongsTo(PropertyCategory::class, 'parent_id');
     }
 
     public function children()
     {
-        return $this->hasMany(PropertiyCategory::class, 'parent_id');
+        return $this->hasMany(PropertyCategory::class, 'parent_id');
     }
 
     public function casts(): array
@@ -67,6 +67,6 @@ class PropertiyCategory extends Model implements IReactSelect
 
     protected static function newFactory(): Factory
     {
-        return PropertiyCategoryFactory::new();
+        return PropertyCategoryFactory::new();
     }
 }

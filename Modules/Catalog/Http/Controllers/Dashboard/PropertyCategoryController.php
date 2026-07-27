@@ -12,7 +12,7 @@ use Modules\Catalog\DTOs\UpdatePropertyCategoryDTO;
 use Modules\Catalog\Http\Requests\Dashboard\PropertyCategoryRequest;
 use Modules\Catalog\Http\Resources\Dashboard\PropertyCategoryCollection;
 use Modules\Catalog\Http\Resources\Dashboard\PropertyCategoryResource;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 use Throwable;
 
 class PropertyCategoryController extends Controller implements HasMiddleware
@@ -74,7 +74,7 @@ class PropertyCategoryController extends Controller implements HasMiddleware
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(PropertiyCategory $propertyCategory)
+    public function edit(PropertyCategory $propertyCategory)
     {
         return inertia('Dashboard/PropertyCategories/Edit', [
             'category' => PropertyCategoryResource::make($this->service->show($propertyCategory)),
@@ -87,7 +87,7 @@ class PropertyCategoryController extends Controller implements HasMiddleware
     /**
      * Update the specified resource in storage.
      */
-    public function update(PropertyCategoryRequest $request, PropertiyCategory $propertyCategory)
+    public function update(PropertyCategoryRequest $request, PropertyCategory $propertyCategory)
     {
         try {
             $this->service->update($propertyCategory, UpdatePropertyCategoryDTO::fromValidated($request->validated()));
@@ -103,7 +103,7 @@ class PropertyCategoryController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PropertiyCategory $propertyCategory)
+    public function destroy(PropertyCategory $propertyCategory)
     {
         try {
             $this->service->destroy($propertyCategory);

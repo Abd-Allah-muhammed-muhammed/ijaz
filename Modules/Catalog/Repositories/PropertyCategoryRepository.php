@@ -8,21 +8,21 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Contracts\Repositories\PropertyCategoryRepositoryInterface;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 use Modules\Catalog\QueryFilters\PropertyCategory\PropertyCategoryFilters;
 
 class PropertyCategoryRepository implements PropertyCategoryRepositoryInterface
 {
     public function paginate(PropertyCategoryFilters $filters): LengthAwarePaginator
     {
-        return $filters->apply(PropertiyCategory::query()->withCount(['children'])->with(['translations']))
+        return $filters->apply(PropertyCategory::query()->withCount(['children'])->with(['translations']))
             ->paginate($filters->perPage())
             ->withQueryString();
     }
 
     public function paginateForDashboard(Request $request): LengthAwarePaginator
     {
-        return PropertiyCategory::withCount(['children'])
+        return PropertyCategory::withCount(['children'])
             ->with(['translation'])
             ->when($request->input('search'), function ($query, $v) {
                 $v = Normalize::make($v, app()->getLocale());
@@ -38,24 +38,24 @@ class PropertyCategoryRepository implements PropertyCategoryRepositoryInterface
             ->withQueryString();
     }
 
-    public function findById(int $id): PropertiyCategory
+    public function findById(int $id): PropertyCategory
     {
-        return PropertiyCategory::query()->findOrFail($id);
+        return PropertyCategory::query()->findOrFail($id);
     }
 
-    public function create(array $data): PropertiyCategory
+    public function create(array $data): PropertyCategory
     {
-        return PropertiyCategory::query()->create($data);
+        return PropertyCategory::query()->create($data);
     }
 
-    public function update(PropertiyCategory $propertyCategory, array $data): PropertiyCategory
+    public function update(PropertyCategory $propertyCategory, array $data): PropertyCategory
     {
         $propertyCategory->update($data);
 
         return $propertyCategory->fresh(['translations', 'translation', 'parent']) ?? $propertyCategory;
     }
 
-    public function delete(PropertiyCategory $propertyCategory): void
+    public function delete(PropertyCategory $propertyCategory): void
     {
         if ($propertyCategory->children()->exists()) {
             throw new Exception(__('this category has subcategories'));
@@ -64,17 +64,17 @@ class PropertyCategoryRepository implements PropertyCategoryRepositoryInterface
         $propertyCategory->delete();
     }
 
-    public function loadForEdit(PropertiyCategory $propertyCategory): PropertiyCategory
+    public function loadForEdit(PropertyCategory $propertyCategory): PropertyCategory
     {
         return $propertyCategory->load(['translations', 'parent']);
     }
 
     /**
-     * @return Collection<int, PropertiyCategory>
+     * @return Collection<int, PropertyCategory>
      */
     public function getRootCategories(): Collection
     {
-        return PropertiyCategory::with(['translation'])
+        return PropertyCategory::with(['translation'])
             ->whereNull('parent_id')
             ->get();
     }

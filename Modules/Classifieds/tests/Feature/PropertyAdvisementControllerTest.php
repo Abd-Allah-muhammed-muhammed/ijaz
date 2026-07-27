@@ -2,7 +2,7 @@
 
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 use Modules\Catalog\Models\PropertyType;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;
@@ -16,7 +16,7 @@ beforeEach(function () {
     $this->propertyType = PropertyType::factory()->create();
     $this->region = Region::factory()->create();
     $this->city = City::factory()->create(['region_id' => $this->region->id]);
-    $this->category = PropertiyCategory::factory()->create();
+    $this->category = PropertyCategory::factory()->create();
 });
 
 it('returns 401 for unauthenticated user accessing own advisements', function () {

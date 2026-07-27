@@ -32,8 +32,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 
 - `Modules\Jobs\Concerns\HasJobs::jobs()` is **`MorphMany`** to `JobOffer` (not `MorphOne`). Used by `User` and `Provider`.
 - `Modules\Geo\Models\CityTranslation::city()` is a working **`BelongsTo`** `City` relation.
-- `Modules\Catalog\Models\PropertiyCategory` (and `PropertiyCategoryTranslation`, table `propertiy_categories`) — **intentional deferred typo** in class/table naming; do not "fix" without a planned rename migration.
-- `PropertiyCategoryTranslation.normalized_title` column exists but is **not populated on save** (documented deferred quirk) — PropertyCategory Arabic search via `TranslationSearchFilter` stays empty until a save-hook lands.
+- `PropertyCategoryTranslation.normalized_title` column exists but is **not populated on save** (documented deferred quirk) — PropertyCategory Arabic search via `TranslationSearchFilter` stays empty until a save-hook lands.
 - Unified `App\Models\Otp` (UUID PK) replaces deleted `VerificationCode` / `RegisterVerificationCode` models; purposes via `App\Enums\Auth\OtpPurposeEnum`.
 - `Modules\Settings\Models\Setting` owns platform settings (`is_public`, `SettingGroupEnum`); public catalog endpoint is `Modules\Settings\Http\Controllers\Api\V1\SettingController`.
 - `Modules\Reviews\Models\Review` is polymorphic (reviewer/reviewee/operation); `HasReviews` concern applied to User/Provider (and order review flows).
@@ -597,11 +596,11 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 
 ---
 
-## Model: PropertiyCategory
+## Model: PropertyCategory
 
 **Namespace:** `Modules\Catalog\Models`  
-**Table:** `propertiy_categories`  
-**File:** `Modules/Catalog/Models/PropertiyCategory.php`
+**Table:** `property_categories`  
+**File:** `Modules/Catalog/Models/PropertyCategory.php`
 
 ### Fields
 | Field | Type | Notes |
@@ -612,10 +611,10 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `parent` | `BelongsTo` | `Modules\Catalog\Models\PropertiyCategory` |
-| `children` | `HasMany` | `Modules\Catalog\Models\PropertiyCategory` |
-| `translation` | `HasOne` | `Modules\Catalog\Models\PropertiyCategoryTranslation` |
-| `translations` | `HasMany` | `Modules\Catalog\Models\PropertiyCategoryTranslation` |
+| `parent` | `BelongsTo` | `Modules\Catalog\Models\PropertyCategory` |
+| `children` | `HasMany` | `Modules\Catalog\Models\PropertyCategory` |
+| `translation` | `HasOne` | `Modules\Catalog\Models\PropertyCategoryTranslation` |
+| `translations` | `HasMany` | `Modules\Catalog\Models\PropertyCategoryTranslation` |
 
 ### Traits
 - `Astrotomic\Translatable\Translatable`
@@ -626,11 +625,11 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 
 ---
 
-## Model: PropertiyCategoryTranslation
+## Model: PropertyCategoryTranslation
 
 **Namespace:** `Modules\Catalog\Models`  
-**Table:** `propertiy_category_translations`  
-**File:** `Modules/Catalog/Models/PropertiyCategoryTranslation.php`
+**Table:** `property_category_translations`  
+**File:** `Modules/Catalog/Models/PropertyCategoryTranslation.php`
 
 ### Fields
 | Field | Type | Notes |
@@ -641,7 +640,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `propertiyCategory` | `BelongsTo` | `Modules\Catalog\Models\PropertiyCategory` |
+| `propertyCategory` | `BelongsTo` | `Modules\Catalog\Models\PropertyCategory` |
 
 ### Traits
 - None detected
@@ -1112,7 +1111,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `category` | `BelongsTo` | `Modules\Catalog\Models\PropertiyCategory` |
+| `category` | `BelongsTo` | `Modules\Catalog\Models\PropertyCategory` |
 | `propertyType` | `BelongsTo` | `Modules\Catalog\Models\PropertyType` |
 | `city` | `BelongsTo` | `Modules\Geo\Models\City` |
 | `region` | `BelongsTo` | `Modules\Geo\Models\Region` |

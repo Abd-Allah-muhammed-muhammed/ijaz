@@ -3,7 +3,7 @@
 namespace Modules\Catalog\Actions\PropertyCategory;
 
 use Modules\Catalog\Contracts\Repositories\PropertyCategoryRepositoryInterface;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 
 class DeletePropertyCategoryAction
 {
@@ -11,7 +11,7 @@ class DeletePropertyCategoryAction
         private readonly PropertyCategoryRepositoryInterface $repository,
     ) {}
 
-    public function handle(PropertiyCategory $propertyCategory): void
+    public function handle(PropertyCategory $propertyCategory): void
     {
         $this->repository->delete($propertyCategory);
     }

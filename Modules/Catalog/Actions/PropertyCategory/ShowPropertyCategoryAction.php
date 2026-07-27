@@ -3,7 +3,7 @@
 namespace Modules\Catalog\Actions\PropertyCategory;
 
 use Modules\Catalog\Contracts\Repositories\PropertyCategoryRepositoryInterface;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 
 class ShowPropertyCategoryAction
 {
@@ -11,7 +11,7 @@ class ShowPropertyCategoryAction
         private readonly PropertyCategoryRepositoryInterface $repository,
     ) {}
 
-    public function handle(PropertiyCategory $propertyCategory): PropertiyCategory
+    public function handle(PropertyCategory $propertyCategory): PropertyCategory
     {
         return $this->repository->loadForEdit($propertyCategory);
     }

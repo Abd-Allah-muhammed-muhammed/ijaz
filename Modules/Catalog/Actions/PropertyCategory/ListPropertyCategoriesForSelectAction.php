@@ -3,16 +3,16 @@
 namespace Modules\Catalog\Actions\PropertyCategory;
 
 use Illuminate\Database\Eloquent\Collection;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 
 class ListPropertyCategoriesForSelectAction
 {
     /**
-     * @return Collection<int, PropertiyCategory>
+     * @return Collection<int, PropertyCategory>
      */
     public function handle(?string $search = null): Collection
     {
-        return PropertiyCategory::query()->withTranslation()
+        return PropertyCategory::query()->withTranslation()
             ->when($search, fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%"))
             ->get();
     }

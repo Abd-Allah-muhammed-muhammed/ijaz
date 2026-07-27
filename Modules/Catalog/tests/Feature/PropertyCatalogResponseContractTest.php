@@ -1,6 +1,6 @@
 <?php
 
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 use Modules\Catalog\Models\PropertyType;
 
 /**
@@ -26,10 +26,10 @@ test('catalog property-types response shape contract', function () {
 });
 
 test('catalog property-categories response shape contract with parent_id filter', function () {
-    $parent = PropertiyCategory::factory()->create();
+    $parent = PropertyCategory::factory()->create();
     $parent->translations()->where('locale', 'en')->update(['title' => 'Residential']);
 
-    $child = PropertiyCategory::factory()->create(['parent_id' => $parent->id]);
+    $child = PropertyCategory::factory()->create(['parent_id' => $parent->id]);
     $child->translations()->where('locale', 'en')->update(['title' => 'Apartment']);
 
     $topLevel = $this->getJson('/api/v1/catalog/property-categories');

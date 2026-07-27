@@ -24,8 +24,8 @@ class PropertyCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'translations.*.title' => ['required', 'string', 'max:255', Rule::unique('propertiy_category_translations', 'title')->ignore($this->propertiy_category?->id, 'propertiy_category_id')],
-            'parent_id' => ['nullable', 'integer', 'exists:propertiy_categories,id'],
+            'translations.*.title' => ['required', 'string', 'max:255', Rule::unique('property_category_translations', 'title')->ignore($this->property_category?->id, 'property_category_id')],
+            'parent_id' => ['nullable', 'integer', 'exists:property_categories,id'],
             'is_active' => ['boolean'],
         ];
 

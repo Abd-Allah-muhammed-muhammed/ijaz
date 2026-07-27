@@ -5,7 +5,7 @@ namespace Modules\Classifieds\Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 use Modules\Catalog\Models\PropertyType;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;
@@ -24,14 +24,14 @@ class PropertyAdvisementsSeeder extends Seeder
         $cityIds = City::query()->pluck('id')->toArray();
         $regionIds = Region::query()->pluck('id')->toArray();
         $propertyTypeIds = PropertyType::query()->pluck('id')->toArray();
-        $categoryIds = PropertiyCategory::query()->whereNotNull('parent_id')->pluck('id')->toArray();
+        $categoryIds = PropertyCategory::query()->whereNotNull('parent_id')->pluck('id')->toArray();
 
         if (empty($userIds)) {
             $userIds = User::factory(3)->create()->pluck('id')->toArray();
         }
 
         if (empty($cityIds) || empty($regionIds) || empty($propertyTypeIds) || empty($categoryIds)) {
-            throw new \Exception('Missing required data. Please ensure cities, regions, property_types, and child propertiy_categories exist before running this seeder.');
+            throw new \Exception('Missing required data. Please ensure cities, regions, property_types, and child property_categories exist before running this seeder.');
         }
 
         $advisements = [

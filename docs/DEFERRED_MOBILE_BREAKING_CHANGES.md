@@ -18,7 +18,7 @@
 3. [Item 2 — Pagination response shape fragmentation](#item-2--pagination-response-shape-fragmentation)
 4. [Item 3 — Wallet `addBalance` leaking `PaymentInitResult` internals](#item-3--wallet-addbalance-leaking-paymentinitresult-internals)
 5. [Item 4 — Phone OTP verify returning `success: false` always](#item-4--phone-otp-verify-returning-success-false-always)
-6. [Item 5 — `PropertiyCategory` / `propertiy_categories` systemic naming typo](#item-5--propertiycategory--propertiy_categories-systemic-naming-typo)
+6. [Item 5 — ~~`PropertiyCategory` systemic naming typo~~ (RESOLVED)](#item-5--propertiycategory--propertiy_categories-systemic-naming-typo--resolved)
 7. [Item 6 — `markPhoneAsVerified()` response semantics](#item-6--markphoneasverified-response-semantics)
 
 ---
@@ -31,7 +31,7 @@
 | 2 | Pagination shapes | Breaks all list-consuming screens | Post-MVP, API version |
 | 3 | Wallet response leak | Breaks clients depending on exposed fields | Post-MVP, confirm usage first |
 | 4 | Phone OTP `success: false` | Currently misleading but not breaking (already `false` today) | Post-MVP, coordinate UI |
-| 5 | `PropertiyCategory` rename | Breaks any hardcoded references + requires data migration | Post-MVP, careful migration |
+| 5 | ~~`PropertiyCategory` rename~~ | **RESOLVED** — full class/table/FK rename shipped pre-launch | — |
 | 6 | Phone OTP semantics | Same as Item 4 (consolidated) | See Item 4 |
 
 ---
@@ -317,67 +317,9 @@ case 'phone':
 
 ---
 
-## Item 5 — `PropertiyCategory` / `propertiy_categories` systemic naming typo
+## Item 5 — `PropertiyCategory` / `propertiy_categories` systemic naming typo — RESOLVED
 
-### What's wrong
-
-“Property” was misspelled as **Propertiy** across the Catalog/Classifieds stack: PHP class names, table names, FK columns, factories, and seeders. Unlike Items 1–4, this is not only a JSON key issue — it is a **schema + codebase** rename. Public API resources often already say `PropertyCategory` in class names while Eloquent/tables still use the typo.
-
-### Current behavior
-
-**Tables / columns (from migrations):**
-
-- `propertiy_categories`
-- `propertiy_category_translations`
-- FK: `propertiy_category_id` (on translations; also referenced from property advisements)
-
-**Model:** `Modules\Catalog\Models\PropertiyCategory` (and `PropertiyCategoryTranslation`).
-
-### Full file list (19 PHP files referencing the typo — Pass 3 scope)
-
-1. `Modules/Catalog/Models/PropertiyCategory.php`
-2. `Modules/Catalog/Models/PropertiyCategoryTranslation.php`
-3. `Modules/Catalog/database/factories/PropertiyCategoryFactory.php`
-4. `Modules/Catalog/database/migrations/2026_02_18_214050_create_propertiy_categories_table.php`
-5. `Modules/Catalog/database/seeders/PropertyCategoriesSeeder.php`
-6. `Modules/Catalog/Repositories/PropertyCategoryRepository.php`
-7. `Modules/Catalog/Http/Controllers/Dashboard/PropertyCategoryController.php`
-8. `Modules/Catalog/Http/Controllers/General/CatalogSelectController.php`
-9. `Modules/Catalog/Http/Requests/Dashboard/PropertyCategoryRequest.php`
-10. `Modules/Catalog/Http/Resources/Api/PropertyCategoryResource.php`
-11. `Modules/Catalog/Http/Resources/Dashboard/PropertyCategoryResource.php`
-12. `Modules/Catalog/tests/Feature/PropertyCategoryControllerTest.php`
-13. `Modules/Classifieds/Models/PropertyAdvisement.php`
-14. `Modules/Classifieds/Http/Requests/Api/PropertyAdvisementRequest.php`
-15. `Modules/Classifieds/Http/Controllers/Dashboard/PropertyAdvisementController.php`
-16. `Modules/Classifieds/database/factories/PropertyAdvisementFactory.php`
-17. `Modules/Classifieds/database/seeders/PropertyAdvisementsSeeder.php`
-18. `Modules/Classifieds/database/migrations/2026_03_06_031831_create_property_advisements_table.php`
-19. `Modules/Classifieds/tests/Feature/PropertyAdvisementControllerTest.php`
-
-### Why it's deferred
-
-1. Renaming tables/columns without a careful migration loses or breaks FKs and production data.
-2. All 19 files (plus any generated Wayfinder/IDE aliases) must move together.
-3. Mobile (or caching layers) might hardcode the literal string `propertiy_categories` in error messages, offline caches, or analytics — **confirm before rename**. Even if JSON field names already say “property”, schema errors or raw SQL leaks could surface the typo string.
-
-### Proposed fix
-
-Rename to correct English spelling end-to-end:
-
-- Tables: `property_categories`, `property_category_translations`
-- Column: `property_category_id`
-- Classes: `PropertyCategory`, `PropertyCategoryTranslation`, matching factory
-
-### Suggested approach for a safe rollout
-
-1. **Additive migration (preferred for zero downtime):**
-   - Create correctly named tables (or `rename` in a maintenance window if acceptable).
-   - Backfill; dual-write or read-new/write-both during transition if needed.
-   - Swap app code to new names; drop old tables after verification.
-2. **Single maintenance window rename** (`Schema::rename` + FK rebuild) only if downtime is approved and mobile has no hardcoded typo strings.
-3. Confirm mobile does **not** key caches or display logic on `propertiy_*` literals.
-4. Treat as a dedicated post-MVP epic (schema + code + tests), not a drive-by cleanup PR.
+**Resolved pre-launch** on `refactor/property-category-rename`: classes, factories, create migrations, FKs, and consumers renamed to `PropertyCategory` / `property_categories` / `property_category_id`. Original create migrations were edited directly (`migrate:fresh`); no layered rename migration. API JSON keys were already correctly spelled and unchanged. Also fixed `PropertyCategoryRequest` unique-ignore using the wrong route param (`propertiy_category` → `property_category`).
 
 ---
 

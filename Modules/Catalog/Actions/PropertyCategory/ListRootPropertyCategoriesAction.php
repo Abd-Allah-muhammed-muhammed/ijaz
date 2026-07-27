@@ -4,7 +4,7 @@ namespace Modules\Catalog\Actions\PropertyCategory;
 
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Catalog\Contracts\Repositories\PropertyCategoryRepositoryInterface;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 
 class ListRootPropertyCategoriesAction
 {
@@ -13,7 +13,7 @@ class ListRootPropertyCategoriesAction
     ) {}
 
     /**
-     * @return Collection<int, PropertiyCategory>
+     * @return Collection<int, PropertyCategory>
      */
     public function handle(): Collection
     {

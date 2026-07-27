@@ -3,14 +3,14 @@
 namespace Modules\Catalog\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 
 /**
- * @extends Factory<PropertiyCategory>
+ * @extends Factory<PropertyCategory>
  */
-class PropertiyCategoryFactory extends Factory
+class PropertyCategoryFactory extends Factory
 {
-    protected $model = PropertiyCategory::class;
+    protected $model = PropertyCategory::class;
 
     /**
      * Define the model's default state.
@@ -30,7 +30,7 @@ class PropertiyCategoryFactory extends Factory
      */
     public function configure(): static
     {
-        return $this->afterCreating(function (PropertiyCategory $category) {
+        return $this->afterCreating(function (PropertyCategory $category) {
             $category->translations()->create([
                 'locale' => 'en',
                 'title' => fake()->randomElement(['Residential', 'Commercial', 'Industrial', 'Agricultural']),

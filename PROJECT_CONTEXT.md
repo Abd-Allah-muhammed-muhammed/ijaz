@@ -179,7 +179,7 @@ Shared notification shape: `App\Notifications\DomainNotification` — used by Or
 - ❌ Eloquent queries in Services (use Repositories)
 - ❌ FormRequest / Request objects inside Actions
 - ❌ Hardcoded status strings when an enum exists
-- ❌ “Fix” deferred typos (`PropertiyCategory`, `last_massage_at`) without mobile + migration plan — see Known Issues
+- ❌ “Fix” deferred typos (`last_massage_at`) without mobile + migration plan — see Known Issues
 - ❌ Reintroduce deleted `lib/` Payment/SMS/WhatsApp scaffolding or deleted OTP models
 - ❌ Put domain notification subclasses back under `app/Notifications/{Provider,User}`
 
@@ -197,14 +197,13 @@ Shared notification shape: `App\Notifications\DomainNotification` — used by Or
 | 2 | Pagination shape fragmentation (flat `BaseCollection` vs nested Chat `paginate` ± page URLs) | Unifying breaks list screens |
 | 3 | Wallet `add-balance` leaks `PaymentInitResult` fields | Clients may depend on exposed keys |
 | 4 | `POST /api/v1/otp/verify` `type=phone` still returns `success: false` (side-effect persists) | UI may key off `success` |
-| 5 | `PropertiyCategory` / `propertiy_categories` systemic rename | Schema + code migration epic |
-| 6 | Phone OTP response semantics | Consolidated into #4 |
+| 5 | Phone OTP response semantics | Consolidated into #4 |
 
 Also still true (non-breaking quirks, documented in models/API docs):
 
 - Some notification / account-mutation endpoints still use `GET` (verb debt).
 - Geo catalog lookups (nationalities, regions, cities) live on `Modules\Geo\Http\Controllers\Api\V1\GeoController`; platform `providers` on `App\Http\Controllers\Api\V1\PlatformController`; public settings on `Modules\Settings\Http\Controllers\Api\V1\SettingController`.
-- **`PropertiyCategoryTranslation.normalized_title` is never written on save** — column + filter exist (`TranslationSearchFilter` on `normalized_title`), but no model hook populates it (peer translations do). PropertyCategory Arabic-normalized search stays broken until a separate save-path fix.
+- **`PropertyCategoryTranslation.normalized_title` is never written on save** — column + filter exist (`TranslationSearchFilter` on `normalized_title`), but no model hook populates it (peer translations do). PropertyCategory Arabic-normalized search stays broken until a separate save-path fix.
 - **CarBrand / CarType / PropertyType lack `normalized_*` translation columns** — search correctly uses raw `name` (`normalize: false`). Adding Arabic-insensitive search needs a future schema + save-hook pass, not filter-side fake normalization.
 
 **Planned but not implemented (not a bug, not dead code to remove):**

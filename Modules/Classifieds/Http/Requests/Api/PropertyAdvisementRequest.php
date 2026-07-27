@@ -32,7 +32,7 @@ class PropertyAdvisementRequest extends ApiRequest
             'property_type_id' => ['required', 'exists:property_types,id'],
             'city_id' => ['required', 'exists:cities,id'],
             'region_id' => ['required', 'exists:regions,id'],
-            'category_id' => ['nullable', 'exists:propertiy_categories,id'],
+            'category_id' => ['nullable', 'exists:property_categories,id'],
             'price' => ['required', 'numeric', 'min:0'],
             'show_price' => ['sometimes', 'boolean'],
             'area' => ['nullable', 'numeric', 'min:0'],
