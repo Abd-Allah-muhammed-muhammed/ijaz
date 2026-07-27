@@ -3,7 +3,6 @@
 use App\Enums\CategoryFeesTypeEnum;
 use App\Events\User\NewOrderCreated;
 use App\Models\Provider;
-use App\Models\Review;
 use App\Models\User;
 use App\Notifications\Provider\OrderOfferAcceptedNotification;
 use App\Notifications\Provider\OrderOfferCanceledNotification;
@@ -19,6 +18,7 @@ use Modules\Orders\Http\Controllers\Api\V1\OrderController;
 use Modules\Orders\Models\Order;
 use Modules\Payment\DTOs\PaymentInitResult;
 use Modules\Payment\Services\PaymentService;
+use Modules\Reviews\Models\Review;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 beforeEach(function () {

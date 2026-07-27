@@ -35,6 +35,7 @@ use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Jobs\Concerns\HasJobs;
 use Modules\Orders\Models\Order;
 use Modules\Payment\Traits\HasPayments;
+use Modules\Reviews\Concerns\HasReviews;
 use Modules\Wallet\Traits\HasWallet;
 
 /**
@@ -98,7 +99,7 @@ use Modules\Wallet\Traits\HasWallet;
 class User extends Authenticatable implements HasConversation, HasOTPsContract, InteractWithFirebase
 {
     /** @use HasFactory<UserFactory> */
-    use Blockable, HasApiTokens, HasBroadcastChannel, HasFactory, HasJobs, HasOTPs, HasPayments, HasWallet, Notifiable;
+    use Blockable, HasApiTokens, HasBroadcastChannel, HasFactory, HasJobs, HasOTPs, HasPayments, HasReviews, HasWallet, Notifiable;
 
     /**
      * The attributes that are mass assignable.

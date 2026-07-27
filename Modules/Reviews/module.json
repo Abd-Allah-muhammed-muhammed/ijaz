@@ -1,0 +1,11 @@
+{
+    "name": "Reviews",
+    "alias": "reviews",
+    "description": "Polymorphic reviews — ratings and comments across orders and profiles",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Reviews\\Providers\\ReviewsServiceProvider"
+    ],
+    "files": []
+}

@@ -2,7 +2,6 @@
 
 use App\Enums\CategoryFeesTypeEnum;
 use App\Models\Provider;
-use App\Models\Review;
 use App\Models\User;
 use App\Notifications\User\OrderAcceptedOfferUpdatedNotification;
 use App\Notifications\User\OrderOfferCreatedNotification;
@@ -12,6 +11,7 @@ use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Http\Controllers\Provider\OrderController;
 use Modules\Orders\Models\Order;
+use Modules\Reviews\Models\Review;
 
 beforeEach(function () {
     Notification::fake();

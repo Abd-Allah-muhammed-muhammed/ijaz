@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Marketplace\Http\Resources\Dashboard\CategoryResource;
 use Modules\Marketplace\Http\Resources\Dashboard\ProviderTypeResource;
+use Modules\Reviews\Http\Resources\Dashboard\ReviewResource;
 use Modules\Wallet\Http\Resources\Dashboard\WalletResource;
 
 /** @mixin Provider */

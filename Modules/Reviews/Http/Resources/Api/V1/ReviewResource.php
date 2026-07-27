@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Resources\Api\V1;
+namespace Modules\Reviews\Http\Resources\Api\V1;
 
-use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Reviews\Models\Review;
 
 /** @mixin Review */
 class ReviewResource extends JsonResource

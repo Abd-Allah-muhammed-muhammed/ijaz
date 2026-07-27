@@ -13,5 +13,6 @@
     "Support": true,
     "Marketplace": true,
     "Orders": true,
-    "Settings": true
+    "Settings": true,
+    "Reviews": true
 }

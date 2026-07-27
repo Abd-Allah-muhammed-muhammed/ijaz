@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Traits;
+namespace Modules\Reviews\Concerns;
 
-use App\Models\Review;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Modules\Reviews\Models\Review;
 
 /**
  * @property Collection<int, Review> $reviews

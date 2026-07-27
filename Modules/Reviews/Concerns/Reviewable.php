@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Traits;
+namespace Modules\Reviews\Concerns;
 
-use App\Models\Review;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Modules\Reviews\Models\Review;
 
 trait Reviewable
 {

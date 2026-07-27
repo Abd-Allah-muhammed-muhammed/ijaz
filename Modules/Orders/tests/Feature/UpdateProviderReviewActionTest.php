@@ -1,12 +1,12 @@
 <?php
 
 use App\Models\Provider;
-use App\Models\Review;
 use App\Models\User;
 use Modules\Orders\Actions\Provider\UpdateProviderReviewAction;
 use Modules\Orders\DTOs\EndAndReviewDTO;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Models\Order;
+use Modules\Reviews\Models\Review;
 
 it('stores internally consistent provider reviewer and user reviewee on the Review row', function () {
     $owner = User::factory()->create();

@@ -4,7 +4,6 @@ namespace Modules\Orders\Models;
 
 use App\Models\Provider;
 use App\Models\User;
-use App\Traits\Reviewable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -23,6 +22,7 @@ use Modules\Marketplace\Models\Skill;
 use Modules\Orders\Database\Factories\OrderFactory;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Observers\OrderObserver;
+use Modules\Reviews\Concerns\Reviewable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 

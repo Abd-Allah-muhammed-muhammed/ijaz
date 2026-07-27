@@ -3,13 +3,13 @@
 namespace Modules\Orders\Actions\Provider;
 
 use App\Models\Provider;
-use App\Models\Review;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Modules\Orders\DTOs\EndAndReviewDTO;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Exceptions\OrdersException;
 use Modules\Orders\Models\Order;
+use Modules\Reviews\Models\Review;
 
 class UpdateProviderReviewAction
 {

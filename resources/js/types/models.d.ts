@@ -533,10 +533,13 @@ export interface Review extends Model {
   reviewer: Reviewer;
   reviewee_type: string;
   reviewee: Reviewer;
+  created_at?: string;
 }
 
 export interface Reviewer {
   name: string;
+  image?: string;
+  socket_id?: string;
 }
 
 export type TopUpRequestStatus = typeof OperationStatusEnum[keyof typeof OperationStatusEnum];

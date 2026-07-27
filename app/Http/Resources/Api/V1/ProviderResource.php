@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Marketplace\Http\Resources\Api\V1\CategoryResource;
 use Modules\Marketplace\Http\Resources\Api\V1\SkillResource;
+use Modules\Reviews\Http\Resources\Api\V1\ReviewResource;
 
 /**
  * @see Provider
@@ -33,7 +34,9 @@ class ProviderResource extends JsonResource
             'address' => $this->address,
             'skills' => SkillResource::collection($this->whenLoaded('skills')),
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
-            'rate' => $this->whenAggregated('reviews', 'avg', 'rate', $this->reviews_avg_rate),
+            // loadAvg('reviews', 'rating') sets reviews_avg_rating — whenAggregated args are (relation, column, aggregate).
+            // Previously swapped to ('reviews', 'avg', 'rate') which looked for reviews_rate_avg / reviews_avg_rate (broken).
+            'rate' => $this->whenAggregated('reviews', 'rating', 'avg'),
             'reviews_count' => $this->whenCounted('reviews', $this->reviews_count),
             'reviews' => ReviewResource::collection($this->whenLoaded('reviews')),
             'unread_notifications_count' => $this->whenCounted('unreadNotifications', $this->unread_notifications_count),

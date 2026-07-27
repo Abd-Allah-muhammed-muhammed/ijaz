@@ -37,6 +37,7 @@ import PropertyAdvisementController from '@/actions/Modules/Classifieds/Http/Con
 import CarAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/CarAdvisementController';
 import ElectronicAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/ElectronicAdvisementController';
 import SettingController from '@/actions/Modules/Settings/Http/Controllers/Dashboard/SettingController';
+import ReviewController from '@/actions/Modules/Reviews/Http/Controllers/Dashboard/ReviewController';
 
 const SidebarMenuMain = () => {
   const { matchUrl, matchComponents } = useActiveRoute();
@@ -411,6 +412,15 @@ const SidebarMenuMain = () => {
         fontIcon="bi-gear"
         isActive={matchComponents('dashboard.settings.*')}
         show={hasPermission('show settings')}
+      />
+
+      <SidebarMenuItem
+        to={ReviewController.index().url}
+        title={t('reviews')}
+        icon="star"
+        fontIcon="bi-star"
+        isActive={matchComponents('dashboard.reviews.*')}
+        show={hasPermission('show reviews')}
       />
 
       {hasPermission('show panAnalytics') && (

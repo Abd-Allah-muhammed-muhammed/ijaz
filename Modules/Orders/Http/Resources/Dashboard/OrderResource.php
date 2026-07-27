@@ -5,7 +5,6 @@ namespace Modules\Orders\Http\Resources\Dashboard;
 use App\Http\Resources\Api\V1\MediaResource;
 use App\Http\Resources\Api\V1\User\UserResource;
 use App\Http\Resources\Dashboard\ProviderResource;
-use App\Http\Resources\Dashboard\ReviewResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Geo\Http\Resources\Dashboard\CityResource;
@@ -13,6 +12,7 @@ use Modules\Geo\Http\Resources\Dashboard\RegionResource;
 use Modules\Marketplace\Http\Resources\Dashboard\CategoryResource;
 use Modules\Marketplace\Http\Resources\Dashboard\SkillResource;
 use Modules\Orders\Models\Order;
+use Modules\Reviews\Http\Resources\Dashboard\ReviewResource;
 
 /** @mixin Order */
 class OrderResource extends JsonResource
