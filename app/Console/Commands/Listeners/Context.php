@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\listeners;
+namespace App\Console\Commands\Listeners;
 
 use App\Console\Commands\ListenToOnline;
 

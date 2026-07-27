@@ -61,8 +61,6 @@ class WalletServiceProvider extends ModuleServiceProvider
     {
         parent::boot();
 
-        $this->loadMigrationsFrom(module_path('Wallet', 'Database/Migrations'));
-
         Event::listen(PaymentCompleted::class, HandleTopUpPaymentCompleted::class);
         Event::listen(PaymentFailed::class, HandleTopUpPaymentFailed::class);
         Event::listen(PaymentFailed::class, NotifyTopUpPaymentFailed::class);

@@ -37,7 +37,6 @@ class PaymentServiceProvider extends ModuleServiceProvider
     {
         parent::boot();
 
-        $this->loadMigrationsFrom(module_path('Payment', 'Database/Migrations'));
         $this->loadViewsFrom(module_path('Payment', 'Resources/views'), 'payment');
 
         Blade::anonymousComponentPath(module_path('Payment', 'Resources/views/components'), 'payment');

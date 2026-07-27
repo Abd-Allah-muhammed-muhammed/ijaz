@@ -7,12 +7,12 @@ use App\Actions\Auth\SendOtpSmsAction;
 use App\Contracts\Auth\OtpRepositoryInterface;
 use App\Enums\Auth\OtpPurposeEnum;
 use App\Support\Phone;
-use App\Traits\OTPGeneration;
+use App\Traits\OtpGeneration;
 use Random\RandomException;
 
 class SendProviderRegistrationOtpAction
 {
-    use OTPGeneration;
+    use OtpGeneration;
 
     public function __construct(
         private readonly SendOtpSmsAction $sendOtpSmsAction,

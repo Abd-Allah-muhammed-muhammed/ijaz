@@ -1,6 +1,6 @@
 <?php
 
-use App\Console\Commands\listeners\Context;
+use App\Console\Commands\Listeners\Context;
 use Illuminate\Broadcasting\PresenceChannel;
 use Ratchet\Client\WebSocket;
 

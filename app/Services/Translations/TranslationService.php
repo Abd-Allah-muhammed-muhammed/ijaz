@@ -7,7 +7,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use SplFileInfo;
 
-class TranslationServices
+class TranslationService
 {
     /**
      * @throws FileNotFoundException

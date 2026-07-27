@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Console\Commands\listeners\Context;
+use App\Console\Commands\Listeners\Context;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Console\Command;
 use Illuminate\Http\Client\ConnectionException;
@@ -54,7 +54,7 @@ class ListenToOnline extends Command
         );
         $context->setCommand($this);
         $DS = DIRECTORY_SEPARATOR;
-        $listeners = require app_path("Console{$DS}Commands{$DS}listeners{$DS}online.php");
+        $listeners = require app_path("Console{$DS}Commands{$DS}Listeners{$DS}online.php");
 
         $key = config('broadcasting.connections.reverb.key');
 

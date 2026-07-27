@@ -5,7 +5,7 @@ namespace App\Traits;
 use App\Support\Phone;
 use Random\RandomException;
 
-trait OTPGeneration
+trait OtpGeneration
 {
     /**
      * @throws RandomException

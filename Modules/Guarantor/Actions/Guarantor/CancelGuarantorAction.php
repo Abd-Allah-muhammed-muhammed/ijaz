@@ -4,7 +4,7 @@ namespace Modules\Guarantor\Actions\Guarantor;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Modules\Guarantor\Actions\Guarantor\NotifyGuarantorPartiesAction as NotifyBothGuarantorPartiesAction;
+use Modules\Guarantor\Actions\Guarantor\NotifyGuarantorPartiesAction as NotifyGuarantorParties;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
@@ -18,7 +18,7 @@ class CancelGuarantorAction
         private readonly GuarantorRepositoryInterface $guarantorRepository,
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
         private readonly WalletService $walletService,
-        private readonly NotifyBothGuarantorPartiesAction $notifyGuarantorPartiesAction,
+        private readonly NotifyGuarantorParties $notifyGuarantorPartiesAction,
     ) {}
 
     /**

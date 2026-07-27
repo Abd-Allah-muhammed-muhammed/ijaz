@@ -1,6 +1,6 @@
 <?php
 
-namespace App\NotificationChannel;
+namespace App\NotificationChannels;
 
 use App\Services\Firebase\Contract\InteractWithFirebase;
 use Arr;

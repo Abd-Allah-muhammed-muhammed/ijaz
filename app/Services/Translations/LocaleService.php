@@ -2,7 +2,7 @@
 
 namespace App\Services\Translations;
 
-class LocaleServices
+class LocaleService
 {
     public function render(): string
     {

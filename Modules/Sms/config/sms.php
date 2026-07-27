@@ -9,7 +9,7 @@ return [
     'default' => env('SMS_DRIVER', 'testing'),
 
     /*
-    | Fixed OTP for the configured test number (used by OTPGeneration).
+    | Fixed OTP for the configured test number (used by OtpGeneration).
     */
     'test_number' => env('SMS_TEST_NUMBER', '966555338296'),
 

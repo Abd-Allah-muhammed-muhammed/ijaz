@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Services\Translations\LocaleServices;
-use App\Services\Translations\TranslationServices;
+use App\Services\Translations\LocaleService;
+use App\Services\Translations\TranslationService;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\Compilers\BladeCompiler;
 
@@ -24,10 +24,10 @@ class BladeServiceProvider extends ServiceProvider
     {
         $this->app->afterResolving('blade.compiler', function (BladeCompiler $bladeCompiler) {
             $bladeCompiler->directive('translation', function () {
-                return '<?php echo app(\\'.TranslationServices::class.'::class)->render(app()->getLocale()); ?>';
+                return '<?php echo app(\\'.TranslationService::class.'::class)->render(app()->getLocale()); ?>';
             });
             $bladeCompiler->directive('locales', function () {
-                return '<?php echo app(\\'.LocaleServices::class.'::class)->render(); ?>';
+                return '<?php echo app(\\'.LocaleService::class.'::class)->render(); ?>';
             });
         });
     }
