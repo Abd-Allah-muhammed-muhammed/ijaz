@@ -83,7 +83,7 @@ const Index = ({ groups, groupOrder }: Props) => {
               {tabs.map((group) => (
                 <li className="nav-item" key={group}>
                   <Nav.Link className="nav-link text-active-primary py-5 me-6" eventKey={group}>
-                    {t(group)}
+                    {t(`settings_tab_${group}`)}
                   </Nav.Link>
                 </li>
               ))}

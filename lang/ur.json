@@ -698,5 +698,10 @@
     "general": "عام",
     "payment": "ادائیگی",
     "guarantor": "ضامن",
-    "visible_in_public_api": "عوامی API میں نظر آئے"
+    "visible_in_public_api": "عوامی API میں نظر آئے",
+    "settings_tab_general": "عام",
+    "settings_tab_wallet": "والٹ",
+    "settings_tab_payment": "ادائیگی",
+    "settings_tab_guarantor": "ضامن",
+    "settings_tab_chat": "چیٹ"
 }

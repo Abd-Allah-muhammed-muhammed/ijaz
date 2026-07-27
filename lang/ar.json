@@ -805,5 +805,10 @@
     "general": "عام",
     "payment": "الدفع",
     "guarantor": "الكفيل",
-    "visible_in_public_api": "ظاهر في واجهة الـ API العامة"
+    "visible_in_public_api": "ظاهر في واجهة الـ API العامة",
+    "settings_tab_general": "عام",
+    "settings_tab_wallet": "المحفظة",
+    "settings_tab_payment": "الدفع",
+    "settings_tab_guarantor": "الكفيل",
+    "settings_tab_chat": "الدردشة"
 }

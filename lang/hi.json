@@ -700,5 +700,10 @@
     "general": "सामान्य",
     "payment": "भुगतान",
     "guarantor": "गारंटर",
-    "visible_in_public_api": "सार्वजनिक API में दिखाई दे"
+    "visible_in_public_api": "सार्वजनिक API में दिखाई दे",
+    "settings_tab_general": "सामान्य",
+    "settings_tab_wallet": "वॉलेट",
+    "settings_tab_payment": "भुगतान",
+    "settings_tab_guarantor": "गारंटर",
+    "settings_tab_chat": "चैट"
 }
