@@ -3,40 +3,28 @@
 namespace Modules\Guarantor\Notifications;
 
 use App\Models\User;
-use App\Services\Firebase\DTO\Message;
-use Illuminate\Bus\Queueable;
+use App\Notifications\DomainNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\BroadcastMessage;
-use Illuminate\Notifications\Notification;
 use Modules\Guarantor\Models\GuarantorInstallment;
 
-class InstallmentDueNotification extends Notification implements ShouldBroadcastNow, ShouldDispatchAfterCommit, ShouldQueue
+class InstallmentDueNotification extends DomainNotification implements ShouldBroadcastNow, ShouldDispatchAfterCommit
 {
-    use Queueable;
-
     public function __construct(public GuarantorInstallment $installment) {}
 
-    /**
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    protected function titleKey(): string
     {
-        return $notifiable instanceof User
-            ? ['database', 'broadcast', 'firebase']
-            : ['database', 'broadcast'];
+        return 'installment_due';
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
+    protected function bodyKey(): string
+    {
+        return 'installment_due_body';
+    }
+
+    protected function payload(): array
     {
         return [
-            'title_translated_key' => 'installment_due',
-            'body_translated_key' => 'installment_due_body',
-            'translated_attributes' => [],
             'guarantor_request_id' => $this->installment->guarantor_request_id,
             'installment_id' => $this->installment->id,
             'installment_order' => $this->installment->order,
@@ -45,30 +33,26 @@ class InstallmentDueNotification extends Notification implements ShouldBroadcast
         ];
     }
 
-    public function toBroadcast(object $notifiable): BroadcastMessage
+    protected function broadcastData(object $notifiable): array
     {
-        return (new BroadcastMessage([
-            'title' => trans('installment_due', locale: $notifiable->language),
-            'body' => trans('installment_due_body', locale: $notifiable->language),
+        return $this->firebaseData($notifiable);
+    }
+
+    protected function firebaseData(object $notifiable): array
+    {
+        return [
             'guarantor_request_id' => $this->installment->guarantor_request_id,
             'installment_id' => $this->installment->id,
-        ]))->onConnection('sync');
+        ];
+    }
+
+    protected function sendsFirebase(object $notifiable): bool
+    {
+        return $notifiable instanceof User;
     }
 
     public function broadcastType(): string
     {
         return 'installment due';
-    }
-
-    public function toFirebase(object $notifiable): Message
-    {
-        return Message::make(
-            title: trans('installment_due', locale: $notifiable->language),
-            body: trans('installment_due_body', locale: $notifiable->language),
-            data: [
-                'guarantor_request_id' => $this->installment->guarantor_request_id,
-                'installment_id' => $this->installment->id,
-            ],
-        );
     }
 }

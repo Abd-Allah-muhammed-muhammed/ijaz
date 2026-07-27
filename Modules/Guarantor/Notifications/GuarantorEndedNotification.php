@@ -3,70 +3,54 @@
 namespace Modules\Guarantor\Notifications;
 
 use App\Models\User;
-use App\Services\Firebase\DTO\Message;
-use Illuminate\Bus\Queueable;
+use App\Notifications\DomainNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\BroadcastMessage;
-use Illuminate\Notifications\Notification;
 use Modules\Guarantor\Models\GuarantorRequest;
 
-class GuarantorEndedNotification extends Notification implements ShouldBroadcastNow, ShouldDispatchAfterCommit, ShouldQueue
+class GuarantorEndedNotification extends DomainNotification implements ShouldBroadcastNow, ShouldDispatchAfterCommit
 {
-    use Queueable;
-
     public function __construct(public GuarantorRequest $guarantorRequest) {}
 
-    /**
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    protected function titleKey(): string
     {
-        return $notifiable instanceof User
-            ? ['database', 'broadcast', 'firebase']
-            : ['database', 'broadcast'];
+        return 'guarantor_ended';
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
+    protected function bodyKey(): string
+    {
+        return 'guarantor_has_been_ended';
+    }
+
+    protected function payload(): array
     {
         return [
-            'title_translated_key' => 'guarantor_ended',
-            'body_translated_key' => 'guarantor_has_been_ended',
-            'translated_attributes' => [],
             'guarantor_request_id' => $this->guarantorRequest->id,
             'type' => $this->guarantorRequest->type->value,
             'final_status' => $this->guarantorRequest->status->value,
         ];
     }
 
-    public function toBroadcast(object $notifiable): BroadcastMessage
+    protected function broadcastData(object $notifiable): array
     {
-        return (new BroadcastMessage([
-            'title' => trans('guarantor_ended', locale: $notifiable->language),
-            'body' => trans('guarantor_has_been_ended', locale: $notifiable->language),
+        return $this->firebaseData($notifiable);
+    }
+
+    protected function firebaseData(object $notifiable): array
+    {
+        return [
             'guarantor_request_id' => $this->guarantorRequest->id,
             'final_status' => $this->guarantorRequest->status->value,
-        ]))->onConnection('sync');
+        ];
+    }
+
+    protected function sendsFirebase(object $notifiable): bool
+    {
+        return $notifiable instanceof User;
     }
 
     public function broadcastType(): string
     {
         return 'guarantor ended';
-    }
-
-    public function toFirebase(object $notifiable): Message
-    {
-        return Message::make(
-            title: trans('guarantor_ended', locale: $notifiable->language),
-            body: trans('guarantor_has_been_ended', locale: $notifiable->language),
-            data: [
-                'guarantor_request_id' => $this->guarantorRequest->id,
-                'final_status' => $this->guarantorRequest->status->value,
-            ],
-        );
     }
 }

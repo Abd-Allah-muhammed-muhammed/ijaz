@@ -3,65 +3,52 @@
 namespace Modules\Guarantor\Notifications;
 
 use App\Models\User;
-use App\Services\Firebase\DTO\Message;
-use Illuminate\Bus\Queueable;
+use App\Notifications\DomainNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\BroadcastMessage;
-use Illuminate\Notifications\Notification;
 use Modules\Guarantor\Models\GuarantorRequest;
 
-class GuarantorCreatedNotification extends Notification implements ShouldBroadcastNow, ShouldDispatchAfterCommit, ShouldQueue
+class GuarantorCreatedNotification extends DomainNotification implements ShouldBroadcastNow, ShouldDispatchAfterCommit
 {
-    use Queueable;
-
     public function __construct(public GuarantorRequest $guarantorRequest) {}
 
-    /**
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    protected function titleKey(): string
     {
-        return $notifiable instanceof User
-            ? ['database', 'broadcast', 'firebase']
-            : ['database', 'broadcast'];
+        return 'guarantor_created';
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
+    protected function bodyKey(): string
+    {
+        return 'guarantor_has_been_created';
+    }
+
+    protected function payload(): array
     {
         return [
-            'title_translated_key' => 'guarantor_created',
-            'body_translated_key' => 'guarantor_has_been_created',
-            'translated_attributes' => [],
             'guarantor_request_id' => $this->guarantorRequest->id,
             'type' => $this->guarantorRequest->type->value,
         ];
     }
 
-    public function toBroadcast(object $notifiable): BroadcastMessage
+    protected function broadcastData(object $notifiable): array
     {
-        return (new BroadcastMessage([
-            'title' => trans('guarantor_created', locale: $notifiable->language),
-            'body' => trans('guarantor_has_been_created', locale: $notifiable->language),
+        return $this->firebaseData($notifiable);
+    }
+
+    protected function firebaseData(object $notifiable): array
+    {
+        return [
             'guarantor_request_id' => $this->guarantorRequest->id,
-        ]))->onConnection('sync');
+        ];
+    }
+
+    protected function sendsFirebase(object $notifiable): bool
+    {
+        return $notifiable instanceof User;
     }
 
     public function broadcastType(): string
     {
         return 'guarantor created';
-    }
-
-    public function toFirebase(object $notifiable): Message
-    {
-        return Message::make(
-            title: trans('guarantor_created', locale: $notifiable->language),
-            body: trans('guarantor_has_been_created', locale: $notifiable->language),
-            data: ['guarantor_request_id' => $this->guarantorRequest->id],
-        );
     }
 }
