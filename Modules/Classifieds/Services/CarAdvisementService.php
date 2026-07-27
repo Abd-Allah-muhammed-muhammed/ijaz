@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Classifieds\Actions\AuthorizeAdvisementOwnerAction;
 use Modules\Classifieds\Actions\CarAdvisement\ListCarAdvisementsForDashboardAction;
 use Modules\Classifieds\Actions\CarAdvisement\ResolveCarAdvisementDashboardSelectsAction;
+use Modules\Classifieds\Actions\CarAdvisement\UpdateCarAdvisementStatusForDashboardAction;
 use Modules\Classifieds\Actions\DeleteAdvisementMediaAction;
 use Modules\Classifieds\Actions\DeleteAdvisementWithMediaAction;
 use Modules\Classifieds\Actions\StoreAdvisementMediaAction;
@@ -25,6 +26,7 @@ final class CarAdvisementService
         private readonly CarAdvisementRepositoryInterface $repository,
         private readonly ListCarAdvisementsForDashboardAction $listForDashboardAction,
         private readonly ResolveCarAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
+        private readonly UpdateCarAdvisementStatusForDashboardAction $updateStatusForDashboardAction,
         private readonly StoreAdvisementMediaAction $storeAdvisementMediaAction,
         private readonly AuthorizeAdvisementOwnerAction $authorizeAdvisementOwnerAction,
         private readonly DeleteAdvisementWithMediaAction $deleteAdvisementWithMediaAction,
@@ -42,6 +44,11 @@ final class CarAdvisementService
     public function resolveDashboardSelects(Request $request): array
     {
         return $this->resolveDashboardSelectsAction->handle($request);
+    }
+
+    public function updateStatusForDashboard(CarAdvisement $advisement, AdvisementStatusEnum $status): CarAdvisement
+    {
+        return $this->updateStatusForDashboardAction->handle($advisement, $status);
     }
 
     public function listUserAdvisements(User $user, CarAdvisementFilters $filters): LengthAwarePaginator

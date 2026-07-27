@@ -56,14 +56,17 @@ class InstituteAdvisementController extends Controller implements HasMiddleware
             'status' => ['required', 'string', Rule::enum(AdvisementStatusEnum::class)],
         ]);
 
-        $instituteAdvisement->update(['status' => $validated['status']]);
+        $this->service->updateStatusForDashboard(
+            $instituteAdvisement,
+            AdvisementStatusEnum::from($validated['status']),
+        );
 
         return redirect()->back()->with('success', __('advisement.status_updated_successfully'));
     }
 
     public function destroy(InstituteAdvisement $instituteAdvisement): RedirectResponse
     {
-        $instituteAdvisement->delete();
+        $this->service->deleteForDashboard($instituteAdvisement);
 
         return redirect()
             ->route('dashboard.institute-advisements.index')

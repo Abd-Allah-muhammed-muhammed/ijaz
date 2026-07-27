@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\DB;
 use Modules\Classifieds\Actions\AuthorizeAdvisementOwnerAction;
 use Modules\Classifieds\Actions\DeleteAdvisementMediaAction;
 use Modules\Classifieds\Actions\DeleteAdvisementWithMediaAction;
+use Modules\Classifieds\Actions\InstituteAdvisement\DeleteInstituteAdvisementForDashboardAction;
 use Modules\Classifieds\Actions\InstituteAdvisement\ListInstituteAdvisementsForDashboardAction;
 use Modules\Classifieds\Actions\InstituteAdvisement\ResolveInstituteAdvisementDashboardSelectsAction;
+use Modules\Classifieds\Actions\InstituteAdvisement\UpdateInstituteAdvisementStatusForDashboardAction;
 use Modules\Classifieds\Actions\StoreAdvisementMediaAction;
 use Modules\Classifieds\Contracts\Repositories\InstituteAdvisementRepositoryInterface;
 use Modules\Classifieds\DTOs\InstituteAdvisementDTO;
@@ -25,6 +27,8 @@ final class InstituteAdvisementService
         private readonly InstituteAdvisementRepositoryInterface $repository,
         private readonly ListInstituteAdvisementsForDashboardAction $listForDashboardAction,
         private readonly ResolveInstituteAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
+        private readonly UpdateInstituteAdvisementStatusForDashboardAction $updateStatusForDashboardAction,
+        private readonly DeleteInstituteAdvisementForDashboardAction $deleteForDashboardAction,
         private readonly StoreAdvisementMediaAction $storeAdvisementMediaAction,
         private readonly AuthorizeAdvisementOwnerAction $authorizeAdvisementOwnerAction,
         private readonly DeleteAdvisementWithMediaAction $deleteAdvisementWithMediaAction,
@@ -42,6 +46,16 @@ final class InstituteAdvisementService
     public function resolveDashboardSelects(Request $request): array
     {
         return $this->resolveDashboardSelectsAction->handle($request);
+    }
+
+    public function updateStatusForDashboard(InstituteAdvisement $advisement, AdvisementStatusEnum $status): InstituteAdvisement
+    {
+        return $this->updateStatusForDashboardAction->handle($advisement, $status);
+    }
+
+    public function deleteForDashboard(InstituteAdvisement $advisement): void
+    {
+        $this->deleteForDashboardAction->handle($advisement);
     }
 
     public function listUserAdvisements(User $user, InstituteAdvisementFilters $filters): LengthAwarePaginator

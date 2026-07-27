@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Validation\Rule;
 use Inertia\Response;
+use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Http\Resources\Dashboard\CarAdvisementCollection;
 use Modules\Classifieds\Http\Resources\Dashboard\CarAdvisementResource;
 use Modules\Classifieds\Models\CarAdvisement;
@@ -20,7 +23,10 @@ class CarAdvisementController extends Controller implements HasMiddleware
 
     public static function middleware(): array
     {
-        return [];
+        return [
+            new Middleware('permission:show carAdvisements', only: ['index', 'show']),
+            new Middleware('permission:edit carAdvisements', only: ['update']),
+        ];
     }
 
     public function index(Request $request): Response
@@ -46,10 +52,13 @@ class CarAdvisementController extends Controller implements HasMiddleware
     public function update(Request $request, CarAdvisement $carAdvisement): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => ['required', 'string'],
+            'status' => ['required', 'string', Rule::enum(AdvisementStatusEnum::class)],
         ]);
 
-        $carAdvisement->update(['status' => $validated['status']]);
+        $this->service->updateStatusForDashboard(
+            $carAdvisement,
+            AdvisementStatusEnum::from($validated['status']),
+        );
 
         return redirect()->back()->with('success', __('advisement.status_updated_successfully'));
     }

@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\DB;
 use Modules\Classifieds\Actions\AuthorizeAdvisementOwnerAction;
 use Modules\Classifieds\Actions\DeleteAdvisementMediaAction;
 use Modules\Classifieds\Actions\DeleteAdvisementWithMediaAction;
+use Modules\Classifieds\Actions\ElectronicAdvisement\DeleteElectronicAdvisementForDashboardAction;
 use Modules\Classifieds\Actions\ElectronicAdvisement\ListElectronicAdvisementsForDashboardAction;
 use Modules\Classifieds\Actions\ElectronicAdvisement\ResolveElectronicAdvisementDashboardSelectsAction;
+use Modules\Classifieds\Actions\ElectronicAdvisement\UpdateElectronicAdvisementStatusForDashboardAction;
 use Modules\Classifieds\Actions\StoreAdvisementMediaAction;
 use Modules\Classifieds\Contracts\Repositories\ElectronicAdvisementRepositoryInterface;
 use Modules\Classifieds\DTOs\ElectronicAdvisementDTO;
@@ -25,6 +27,8 @@ final class ElectronicAdvisementService
         private readonly ElectronicAdvisementRepositoryInterface $repository,
         private readonly ListElectronicAdvisementsForDashboardAction $listForDashboardAction,
         private readonly ResolveElectronicAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
+        private readonly UpdateElectronicAdvisementStatusForDashboardAction $updateStatusForDashboardAction,
+        private readonly DeleteElectronicAdvisementForDashboardAction $deleteForDashboardAction,
         private readonly StoreAdvisementMediaAction $storeAdvisementMediaAction,
         private readonly AuthorizeAdvisementOwnerAction $authorizeAdvisementOwnerAction,
         private readonly DeleteAdvisementWithMediaAction $deleteAdvisementWithMediaAction,
@@ -42,6 +46,16 @@ final class ElectronicAdvisementService
     public function resolveDashboardSelects(Request $request): array
     {
         return $this->resolveDashboardSelectsAction->handle($request);
+    }
+
+    public function updateStatusForDashboard(ElectronicAdvisement $advisement, AdvisementStatusEnum $status): ElectronicAdvisement
+    {
+        return $this->updateStatusForDashboardAction->handle($advisement, $status);
+    }
+
+    public function deleteForDashboard(ElectronicAdvisement $advisement): void
+    {
+        $this->deleteForDashboardAction->handle($advisement);
     }
 
     public function listUserAdvisements(User $user, ElectronicAdvisementFilters $filters): LengthAwarePaginator

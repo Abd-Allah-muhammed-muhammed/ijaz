@@ -68,6 +68,7 @@ require_once __DIR__.'/../Modules/Payment/tests/helpers.php';
 require_once __DIR__.'/../Modules/Geo/tests/helpers.php';
 require_once __DIR__.'/../Modules/Settings/tests/helpers.php';
 require_once __DIR__.'/../Modules/Reviews/tests/helpers.php';
+require_once __DIR__.'/../Modules/Classifieds/tests/helpers.php';
 require_once __DIR__.'/Helpers/orders.php';
 
 /*

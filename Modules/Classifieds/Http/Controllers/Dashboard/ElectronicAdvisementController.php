@@ -56,14 +56,17 @@ class ElectronicAdvisementController extends Controller implements HasMiddleware
             'status' => ['required', 'string', Rule::enum(AdvisementStatusEnum::class)],
         ]);
 
-        $electronicAdvisement->update(['status' => $validated['status']]);
+        $this->service->updateStatusForDashboard(
+            $electronicAdvisement,
+            AdvisementStatusEnum::from($validated['status']),
+        );
 
         return redirect()->back()->with('success', __('advisement.status_updated_successfully'));
     }
 
     public function destroy(ElectronicAdvisement $electronicAdvisement): RedirectResponse
     {
-        $electronicAdvisement->delete();
+        $this->service->deleteForDashboard($electronicAdvisement);
 
         return redirect()
             ->route('dashboard.electronic-advisements.index')
