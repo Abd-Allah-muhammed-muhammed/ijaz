@@ -50,7 +50,7 @@ trait HasOTPs
         return $this->morphOne(Otp::class, 'subject')->withAttributes(['purpose' => OtpPurposeEnum::Login]);
     }
 
-    public function passwordRestCode(): MorphOne
+    public function passwordResetCode(): MorphOne
     {
         return $this->morphOne(Otp::class, 'subject')->withAttributes(['purpose' => OtpPurposeEnum::PasswordReset]);
     }

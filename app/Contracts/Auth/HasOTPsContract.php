@@ -19,7 +19,7 @@ interface HasOTPsContract
 
     public function passwordVerificationCode(): MorphOne;
 
-    public function passwordRestCode(): MorphOne;
+    public function passwordResetCode(): MorphOne;
 
     public function loginVerificationCode(): MorphOne;
 
