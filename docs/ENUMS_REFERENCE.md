@@ -2,7 +2,7 @@
 
 Regenerated from the live codebase (`app/Enums` + `Modules/*/Enums`). Utility traits live under `app/Enums/Utilities/` and are documented separately below.
 
-**Last verified: 2026-07-26, post-full-module-extraction**
+**Last verified: 2026-07-27, post-Settings/Reviews/Otp consolidations**
 
 Model cast cross-references come from the regenerated `docs/MODELS_REFERENCE.md` plus a live scan of model `casts()` methods. Short-name collisions (e.g. two `OfferStatusEnum` classes) are disambiguated by module.
 
@@ -10,21 +10,45 @@ Model cast cross-references come from the regenerated `docs/MODELS_REFERENCE.md`
 
 | Group | Enums |
 |---|---:|
-| App Core | 6 |
+| App Core | 7 |
 | Chat | 2 |
 | Classifieds | 7 |
 | Guarantor | 4 |
 | Opportunity | 2 |
 | Orders | 2 |
 | Payment | 3 |
+| Settings | 1 |
 | Sms | 1 |
 | Support | 1 |
 | Wallet | 1 |
-| **Total** | **29** |
+| **Total** | **31** |
 
 ---
 
 # App Core
+
+## `App\Enums\Auth\OtpPurposeEnum`
+
+**File:** `app/Enums/Auth/OtpPurposeEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `Login` | `login` |
+| `Phone` | `phone` |
+| `Email` | `email` |
+| `Password` | `password` |
+| `PasswordReset` | `password_reset` |
+| `ProviderRegistration` | `provider_registration` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `Otp.purpose`
+
+---
 
 ## `App\Enums\CategoryFeesTypeEnum`
 
@@ -85,6 +109,27 @@ Model cast cross-references come from the regenerated `docs/MODELS_REFERENCE.md`
 
 ---
 
+## `App\Enums\ProviderTypeFilesEnum`
+
+**File:** `app/Enums/ProviderTypeFilesEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `ID_IMAGE` | `id_image` |
+| `COMMERCIAL_RECORD` | `commercial_record` |
+| `FREELANCER_CERTIFICATION` | `freelancer_certification` |
+| `IBAN_CERTIFICATION` | `iban_certification` |
+| `LICENSE_TO_PRACTICE_LAW` | `license_to_practice_law` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+
+### Used by models (casts)
+- None detected
+
+---
+
 ## `App\Enums\Providers\ProviderStatusEnum`
 
 **File:** `app/Enums/Providers/ProviderStatusEnum.php`  
@@ -105,27 +150,6 @@ Model cast cross-references come from the regenerated `docs/MODELS_REFERENCE.md`
 
 ### Used by models (casts)
 - `Provider.status`
-
----
-
-## `App\Enums\ProviderTypeFilesEnum`
-
-**File:** `app/Enums/ProviderTypeFilesEnum.php`  
-**Backing type:** `string`
-
-| Case | Value |
-|---|---|
-| `ID_IMAGE` | `id_image` |
-| `COMMERCIAL_RECORD` | `commercial_record` |
-| `FREELANCER_CERTIFICATION` | `freelancer_certification` |
-| `IBAN_CERTIFICATION` | `iban_certification` |
-| `LICENSE_TO_PRACTICE_LAW` | `license_to_practice_law` |
-
-### Utility traits
-- `App\Enums\Utilities\Collectable`
-
-### Used by models (casts)
-- None detected in model casts (may still be used in validation, events, DTOs, or JS enum generation)
 
 ---
 
@@ -166,7 +190,7 @@ Model cast cross-references come from the regenerated `docs/MODELS_REFERENCE.md`
 - `App\Enums\Utilities\HasOperations`
 
 ### Used by models (casts)
-- None detected in model casts (may still be used in validation, events, DTOs, or JS enum generation)
+- None detected
 
 ---
 
@@ -187,7 +211,7 @@ Model cast cross-references come from the regenerated `docs/MODELS_REFERENCE.md`
 - None
 
 ### Used by models (casts)
-- None detected in model casts (may still be used in validation, events, DTOs, or JS enum generation)
+- None detected
 
 ---
 
@@ -558,7 +582,7 @@ Model cast cross-references come from the regenerated `docs/MODELS_REFERENCE.md`
 - None
 
 ### Used by models (casts)
-- None detected in model casts (may still be used in validation, events, DTOs, or JS enum generation)
+- None detected
 
 ---
 
@@ -603,6 +627,31 @@ Model cast cross-references come from the regenerated `docs/MODELS_REFERENCE.md`
 
 ---
 
+# Settings
+
+## `Modules\Settings\Enums\SettingGroupEnum`
+
+**File:** `Modules/Settings/Enums/SettingGroupEnum.php`  
+**Backing type:** `string`
+
+| Case | Value |
+|---|---|
+| `General` | `general` |
+| `Wallet` | `wallet` |
+| `Payment` | `payment` |
+| `Guarantor` | `guarantor` |
+| `Chat` | `chat` |
+
+### Utility traits
+- `App\Enums\Utilities\Collectable`
+- `App\Enums\Utilities\HasOperations`
+- `App\Enums\Utilities\Stringable`
+
+### Used by models (casts)
+- `Setting.group`
+
+---
+
 # Sms
 
 ## `Modules\Sms\Enums\SmsMessageType`
@@ -619,7 +668,7 @@ Model cast cross-references come from the regenerated `docs/MODELS_REFERENCE.md`
 - None
 
 ### Used by models (casts)
-- None detected in model casts (may still be used in validation, events, DTOs, or JS enum generation)
+- None detected
 
 ---
 
@@ -662,86 +711,14 @@ Model cast cross-references come from the regenerated `docs/MODELS_REFERENCE.md`
 - None
 
 ### Used by models (casts)
-- None detected in model casts (may still be used in validation, events, DTOs, or JS enum generation)
+- None detected
 
 ---
 
-# Utility Enum Traits
+# Utility traits (`app/Enums/Utilities`)
 
-Located in `app/Enums/Utilities/`. Verified present and used by several App Core enums.
+- `App\Enums\Utilities\Collectable` — `D:/Projects/laragon/www/ijaz/app/Enums/Utilities/Collectable.php`
+- `App\Enums\Utilities\HasOperations` — `D:/Projects/laragon/www/ijaz/app/Enums/Utilities/HasOperations.php`
+- `App\Enums\Utilities\HasTranslations` — `D:/Projects/laragon/www/ijaz/app/Enums/Utilities/HasTranslations.php`
+- `App\Enums\Utilities\Stringable` — `D:/Projects/laragon/www/ijaz/app/Enums/Utilities/Stringable.php`
 
-## `App\Enums\Utilities\Collectable`
-
-**File:** `app/Enums/Utilities/Collectable.php`
-
-Adds `collect()` to return an `Illuminate\Support\Collection` of all enum cases.
-
-```php
-MyEnum::collect(); // Collection of cases
-```
-
-## `App\Enums\Utilities\HasOperations`
-
-**File:** `app/Enums/Utilities/HasOperations.php`
-
-Comparison helpers:
-
-- `is(self $enum): bool`
-- `isNot(self $enum): bool`
-- `isIn(array $enums): bool`
-- `isNotIn(array $enums): bool`
-
-```php
-if ($status->is(UserStatusEnum::Active)) { /* ... */ }
-```
-
-## `App\Enums\Utilities\HasTranslations`
-
-**File:** `app/Enums/Utilities/HasTranslations.php`
-
-Requires `getTranslatableKey(): string` and exposes `translated()` via Laravel `trans()`.
-
-**Current usage:** used by Classifieds enums `ElectronicConditionEnum`, `InstituteTypeEnum`, `StudyLevelEnum`, and `StudyTypeEnum`.
-
-## `App\Enums\Utilities\Stringable`
-
-**File:** `app/Enums/Utilities/Stringable.php`
-
-Adds `toString()` which translates `str($this->value)->lower()`.
-
-```php
-$status->toString();
-```
-
----
-
-## Usage patterns
-
-**Model casts:**
-
-```php
-protected function casts(): array
-{
-    return [
-        'status' => UserStatusEnum::class,
-    ];
-}
-```
-
-**Validation:**
-
-```php
-'status' => ['required', Rule::enum(OrderStatusEnum::class)],
-```
-
-**Queries:**
-
-```php
-Order::where('status', OrderStatusEnum::New)->get();
-```
-
-## Notes
-
-- Prefer module-owned enums under `Modules/{Module}/Enums` for domain status/types; App Core keeps cross-cutting user/provider/job/operation enums.
-- Never hardcode status/type strings when an enum exists.
-- `Modules\Orders\Enums\OfferStatusEnum` and `Modules\Opportunity\Enums\OfferStatusEnum` are **distinct** classes that share a short name — always import the FQCN for the domain you mean.

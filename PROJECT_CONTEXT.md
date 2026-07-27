@@ -1,6 +1,6 @@
 # PROJECT CONTEXT
 
-**Last verified: 2026-07-26, post-full-module-extraction**
+**Last verified: 2026-07-27, post-Settings/Reviews/Otp/Notification consolidations**
 
 This is the entry-point map of the Ijaz codebase after the modularization and cleanup session. For endpoint/model/enum detail, use the specialized docs listed below — do not duplicate them here.
 
@@ -10,18 +10,18 @@ This is the entry-point map of the Ijaz codebase after the modularization and cl
 
 | Doc | Purpose |
 |---|---|
-| **[docs/API_INVENTORY.md](docs/API_INVENTORY.md)** | All **149** `api/*` routes: method, URI, controller namespace, auth, FormRequest, Resources |
-| **[docs/MODELS_REFERENCE.md](docs/MODELS_REFERENCE.md)** | All **73** Eloquent models (App Core + Modules), fields, relations, traits, enum casts |
-| **[docs/ENUMS_REFERENCE.md](docs/ENUMS_REFERENCE.md)** | All **29** enums, cases, backing types, model cast usage, utility traits |
+| **[docs/API_INVENTORY.md](docs/API_INVENTORY.md)** | All **151** `api/*` routes: method, URI, controller namespace, auth, FormRequest, Resources |
+| **[docs/MODELS_REFERENCE.md](docs/MODELS_REFERENCE.md)** | All **72** Eloquent models (App Core + Modules), fields, relations, traits, enum casts |
+| **[docs/ENUMS_REFERENCE.md](docs/ENUMS_REFERENCE.md)** | All **31** enums, cases, backing types, model cast usage, utility traits |
 | **[.cursor/rules/layered-architecture.mdc](.cursor/rules/layered-architecture.mdc)** | **Authoritative** Controller → Service → Action → Repository / DTO / FormRequest rules |
 | **[docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](docs/DEFERRED_MOBILE_BREAKING_CHANGES.md)** | Mobile-breaking items deliberately deferred until post-MVP (15/8) |
-| **[modules_statuses.json](modules_statuses.json)** | Enabled nwidart modules (all 14 currently `true`) |
+| **[modules_statuses.json](modules_statuses.json)** | Enabled nwidart modules (all **16** currently `true`) |
 
 ---
 
 ## 2 — Project Overview
 
-Ijaz is a multi-actor marketplace: users create service orders, providers respond with offers, both actors chat and settle via payments/wallets, plus guarantor (escrow) requests, support tickets, job postings, classified advisements (cars / property / electronics / institutes), and opportunity listings.
+Ijaz is a multi-actor marketplace: users create service orders, providers respond with offers, both actors chat and settle via payments/wallets, plus guarantor (escrow) requests, support tickets, job postings, classified advisements (cars / property / electronics / institutes), opportunity listings, platform settings, and polymorphic reviews.
 
 **Main actors**
 
@@ -60,6 +60,8 @@ Ijaz is a multi-actor marketplace: users create service orders, providers respon
 
 **Broadcasting:** `routes/channels.php` private channels (`user-{id}`, `provider-{id}`, `admin-{id}`, `chats.{chat}`, …). API also mounts `Broadcast::routes(['middleware' => ['auth:sanctum']])`.
 
+**OTP:** Unified `App\Models\Otp` (UUID) + `App\Enums\Auth\OtpPurposeEnum` via `HasOTPs` / `HasOTPsContract`. Deleted models `VerificationCode` / `RegisterVerificationCode` must not be resurrected.
+
 ---
 
 ## 4 — Directory Structure
@@ -68,7 +70,7 @@ Ijaz is a multi-actor marketplace: users create service orders, providers respon
 
 ```
 app/                 — Core actors, Auth domains, Dashboard aggregator, Support utilities
-Modules/             — 14 domain modules (nwidart), each with own Http/Services/Actions/…
+Modules/             — 16 domain modules (nwidart), each with own Http/Services/Actions/…
 routes/              — App-level web/dashboard/provider/api entry + Api/V1 leftovers
 resources/js/        — Inertia React pages, Wayfinder-generated actions/routes
 docs/                — Reference docs + deferred mobile changes + archive
@@ -82,25 +84,27 @@ Core platform code that is **not** a product domain module (or not yet fully ext
 
 ```
 app/
-├── Actions/           — Admin, Auth (Admin/Provider/User), Dashboard, Provider, User
+├── Actions/           — Admin, Auth (Admin/Provider/User), Account, Dashboard, Provider, User
 ├── Console/Commands/
-├── Contracts/         — Admin, Auth, OTPS, Provider, QueryFilters, Selects, User
-├── DTOs/              — Admin, Auth, Dashboard, Provider, User
-├── Enums/             — Remaining app-level enums (+ Utilities traits)
+├── Contracts/         — Admin, Auth, Provider, QueryFilters, Selects, User, …
+├── DTOs/              — Admin, Auth, Account, Dashboard, Provider, User
+├── Enums/             — App-level enums (+ Auth/OtpPurposeEnum, Utilities traits)
 ├── Events/            — e.g. User domain events
 ├── Exceptions/Auth/
 ├── Helpers/
 ├── Http/
-│   ├── Controllers/   — Api (+ V1 leftovers), Dashboard, Frontend, General, Provider
+│   ├── Controllers/   — Api (+ V1 leftovers: Account, Otp, Platform, User auth), Dashboard, Frontend, General, Provider
 │   ├── Middleware/
 │   ├── Requests/
 │   └── Resources/
-├── Models/            — 9 core actors/settings (Admin, User, Provider, Employee, …)
+├── Models/            — 6 core actors: Admin, User, Provider, Employee, BlockHistory, Otp
+├── Notifications/     — DomainNotification shared base only (domain subclasses live in modules)
+├── NotificationChannel/ — FirebaseChannel, EventChannel
 ├── Providers/
-├── Repositories/      — Admin, Auth, Provider, User
+├── Repositories/      — Admin, Auth, Account, Provider, User
 ├── Rules/
 ├── Services/
-│   ├── Admin/ · Auth/ · Dashboard/ · Provider/ · User/
+│   ├── Admin/ · Auth/ · Account/ · Dashboard/ · Provider/ · User/
 │   ├── Firebase/      — Push notifications
 │   └── Translations/  — Locale rendering for frontend
 ├── Support/           — Shared utilities: Normalize, Phone, HasNormalizedAttributes, …
@@ -108,98 +112,66 @@ app/
 └── UserProviders/     — Custom auth user providers
 ```
 
-**Intentionally gone from `app/` (do not resurrect):** `app/Actions/Payment`, `app/Services/Normalize`, `app/Services/Sms`, `app/Guards`, `app/Observers`, `app/Jobs`, `app/Notifications` (Order User/Provider notification classes), `lib/` (including dead WhatsApp scaffolding). Payment → `Modules/Payment`; SMS → `Modules/Sms`; Normalize/Phone → `app/Support/`; Order observers + Order notifications → `Modules/Orders`.
+**Intentionally gone from `app/` (do not resurrect):** `app/Actions/Payment`, `app/Services/Normalize`, `app/Services/Sms`, `app/Guards`, `app/Observers`, `app/Jobs`, domain Order notification classes under old `app/Notifications/{Provider,User}`, `lib/` (including dead WhatsApp scaffolding), `VerificationCode` / `RegisterVerificationCode` models, `Setting` / `Review` models (moved to modules). Payment → `Modules/Payment`; SMS → `Modules/Sms`; Normalize/Phone → `app/Support/`; Order observers + Order notifications → `Modules/Orders`; Settings → `Modules/Settings`; Reviews → `Modules/Reviews`.
 
 ### Modules (`modules_statuses.json` — all enabled)
 
 | Module | Purpose (one line) |
 |---|---|
-| **Catalog** | Car/property/device/electronic/specialization lookup tables + Dashboard CRUD |
+| **Catalog** | Car/property/device/electronic/specialization lookup tables + Dashboard CRUD + shared QueryFilters |
 | **Chat** | Member / order / ticket conversations, realtime events, chat handlers |
-| **Classifieds** | Car / property / electronics / institute advisements (API + Dashboard) |
+| **Classifieds** | Car / property / electronics / institute advisements (API + Dashboard); shared advisement Actions |
 | **Cms** | Banners, pages, FAQ questions, contact messages |
 | **Geo** | Regions, cities, nationalities (Dashboard + Api/V1 resources) |
-| **Guarantor** | Escrow/guarantor requests, installments, guarantor chat |
+| **Guarantor** | Escrow/guarantor requests, installments, guarantor chat + notifications |
 | **Jobs** | Job offers / listings API |
 | **Marketplace** | Service categories, skills, provider types (catalog endpoints) |
-| **Opportunity** | Opportunity listings, offers, comments, opportunity chat |
+| **Opportunity** | Opportunity listings, offers, comments, opportunity chat + notifications |
 | **Orders** | User/provider/dashboard order flows, offers, payment hooks, observers, notifications |
 | **Payment** | Gateways (PayTabs, Rajhi, testing), callbacks/webhooks, payment pipeline |
+| **Reviews** | Polymorphic reviews; Dashboard CRUD; nested on Provider/User API resources |
+| **Settings** | Platform settings (`Setting` + `SettingGroupEnum`); public `GET /api/v1/catalog/settings` |
 | **Sms** | SMS gateway drivers (Authentica, etc.) — no HTTP surface of its own |
 | **Support** | Ticket support API + Dashboard |
 | **Wallet** | Balance, top-up, withdraw, transactions |
 
-Typical module layout: `Actions/`, `Services/`, `Repositories/`, `Contracts/`, `DTOs/`, `Http/`, `Models/`, `Routes/` (often `V1/` + `dashboard.php` / `provider.php`), `Providers/`, `tests/`.
+Typical module layout: `Actions/`, `Services/`, `Repositories/`, `Contracts/`, `DTOs/`, `Http/`, `Models/`, `Notifications/` (where applicable), `Routes/` (often `V1/` + `dashboard.php` / `provider.php`), `Providers/`, `tests/`.
 
 ### Routes
 
 | File / area | Role |
 |---|---|
 | `routes/api.php` | API entry; mounts app + module API route files |
-| `routes/Api/V1/auth.php`, `platform.php` | Remaining app-owned API groups (OTP + `/auth/*` account/notifications + `/user/auth` in auth.php; catalog platform leftovers in platform.php) |
-| `Modules/*/Routes/V1/*` | Module API (orders, chat, wallet, jobs, …) |
-| `routes/web.php` | Frontend / public / auth |
-| `routes/dashboard.php` | Admin Inertia dashboard aggregator |
-| `routes/provider.php` | Provider Inertia dashboard |
-| `routes/channels.php` | Reverb channel authorization |
+| `routes/Api/V1/auth.php`, `platform.php` | Remaining app-owned API groups (OTP + `/auth/*` account/notifications + `/user/auth` in auth.php; catalog `providers` in platform.php) |
+| Module `Routes/V1/api.php` | Domain API (including Settings `catalog/settings`, Geo catalog lookups) |
+| `routes/dashboard.php` + module dashboard routes | Admin Inertia |
+| `routes/provider.php` + module provider routes | Provider web |
+| `routes/channels.php` | Broadcast channel auth |
 
 ---
 
-## 5 — Architecture Patterns
+## 5 — Architecture (mandatory)
 
-### Mandatory layering
-
-**Authoritative source:** [`.cursor/rules/layered-architecture.mdc`](.cursor/rules/layered-architecture.mdc). Do not invent a parallel explanation — follow that file.
+**Authoritative rule:** [`.cursor/rules/layered-architecture.mdc`](.cursor/rules/layered-architecture.mdc)
 
 ```
 Controller → Service → Action → Repository / DTO / Contracts
                               ↘ FormRequest (validation only)
 ```
 
-Summary only:
+Skill shortcut: `.claude/skills/layered-architecture/`. Explicit `use` imports even for same-namespace classes (Pint-safe alias pattern when needed).
 
-1. Controllers: FormRequest in → one Service call → HTTP out. No business logic / Eloquent.
-2. Services: orchestrate Actions (+ transactions). No Eloquent / HTTP shaping.
-3. Actions: one `handle()` unit of work; may compose other Actions; return DTOs.
-4. Repositories: **only** layer that talks to Eloquent (via `*RepositoryInterface`).
-5. DTOs: `final readonly class` with promoted props between layers.
-6. FormRequests: validation only.
-
-**Reference implementations**
-
-| Pattern | Where |
-|---|---|
-| Simplest full chain | `app/Services/Auth/AdminAuthService` + `LoginAdminAction` + `AdminRepository` |
-| Multi-action service | `app/Services/Auth/UserAuthService` + `app/Actions/Auth/User/*` |
-| Driver / strategy service | `Modules/Payment/Services/PaymentService` + `Gateways/*` |
-| Same driver pattern | `Modules/Sms/Services/SmsService` + `Gateways/*` |
-| Domain modules | Geo, Orders, Chat, Wallet, etc. under `Modules/*` |
-
-Also note the rule’s **explicit `use` + Pint alias** guidance (same-namespace imports must use a distinct alias so Pint does not strip them).
-
-### Cross-cutting patterns still in force
-
-- **API envelope:** `MMAE\ApiResponse` / `HasApiResponse` (`successResponse`, `successMessageResponse`, `failedMessageResponse`, …). Shapes per endpoint: [API_INVENTORY.md](docs/API_INVENTORY.md).
-- **Payments:** initiate via domain controllers → Payment module gateway → callback/webhook updates payment + wallet side-effects.
-- **Realtime:** Reverb; chat events live under `Modules/Chat` (and related module handlers for guarantor/opportunity/support).
-- **Media:** Spatie MediaLibrary on orders, jobs, advisements, guarantor, opportunities.
-- **i18n:** Astrotomic on translatable models; flat JSON in `lang/{en,ar,hi,ur}.json`; `TranslationServices` for frontend bundles. Inertia error pages use the unified `Errors/ErrorPage` component.
+Shared notification shape: `App\Notifications\DomainNotification` — used by Orders / Guarantor / Opportunity. Chat `NewMessageSentNotification` stays independent.
 
 ---
 
-## 6 — Conventions & Rules
-
-### Naming
-
-- Prefer enums over raw status strings (`OrderStatusEnum`, payment/wallet enums in modules, …).
-- FormRequests end with `Request`; API Resources with `Resource` / `Collection`.
-- Module namespaces: `Modules\{Name}\…` — always explicit `use` statements.
-
-### Validation & responses
+## 6 — Conventions worth remembering
 
 - Prefer FormRequests; avoid inline controller validation except rare documented leftovers.
 - Prefer Resources over leaking Eloquent models / ad-hoc arrays from API controllers.
 - Never mix raw `response()->json()` and `HasApiResponse` in the same controller style without reason.
+- Catalog translation search: `TranslationSearchFilter` (`normalize: true` on `normalized_*`, `false` on raw `name` for brand/type).
+- Classifieds advisement services share owner-auth / delete / delete-media Actions.
 
 ### Never do this
 
@@ -208,7 +180,8 @@ Also note the rule’s **explicit `use` + Pint alias** guidance (same-namespace 
 - ❌ FormRequest / Request objects inside Actions
 - ❌ Hardcoded status strings when an enum exists
 - ❌ “Fix” deferred typos (`PropertiyCategory`, `last_massage_at`) without mobile + migration plan — see Known Issues
-- ❌ Reintroduce deleted `lib/` Payment/SMS/WhatsApp scaffolding
+- ❌ Reintroduce deleted `lib/` Payment/SMS/WhatsApp scaffolding or deleted OTP models
+- ❌ Put domain notification subclasses back under `app/Notifications/{Provider,User}`
 
 ---
 
@@ -216,7 +189,7 @@ Also note the rule’s **explicit `use` + Pint alias** guidance (same-namespace 
 
 > The old “Known Issues” list in pre-extraction docs is **resolved** (recoverable from git history if needed).
 
-**Open work lives in [docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](docs/DEFERRED_MOBILE_BREAKING_CHANGES.md)** — revisit after MVP ship (**15/8**). Do not land these on v1 without mobile coordination / versioning.
+**Open mobile-breaking work lives in [docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](docs/DEFERRED_MOBILE_BREAKING_CHANGES.md)** — revisit after MVP ship (**15/8**). Do not land these on v1 without mobile coordination / versioning.
 
 | # | Item | Why deferred |
 |---|---|---|
@@ -230,8 +203,8 @@ Also note the rule’s **explicit `use` + Pint alias** guidance (same-namespace 
 Also still true (non-breaking quirks, documented in models/API docs):
 
 - Some notification / account-mutation endpoints still use `GET` (verb debt).
-- Geo catalog lookups (nationalities, regions, cities) live on `Modules\Geo\Http\Controllers\Api\V1\GeoController`; platform misc (`providers`, `settings`) on `App\Http\Controllers\Api\V1\PlatformController` — Marketplace/Cms/Catalog modules own the rest of `/api/v1/catalog/*`.
-- **`PropertiyCategoryTranslation.normalized_title` is never written on save** — column + filter exist (`TranslationSearchFilter` on `normalized_title`), but no model hook populates it (peer translations do). PropertyCategory Arabic-normalized search stays broken until a separate save-path fix; do not conflate with QueryFilters DRY. Comment on `PropertiyCategoryTranslation`.
+- Geo catalog lookups (nationalities, regions, cities) live on `Modules\Geo\Http\Controllers\Api\V1\GeoController`; platform `providers` on `App\Http\Controllers\Api\V1\PlatformController`; public settings on `Modules\Settings\Http\Controllers\Api\V1\SettingController`.
+- **`PropertiyCategoryTranslation.normalized_title` is never written on save** — column + filter exist (`TranslationSearchFilter` on `normalized_title`), but no model hook populates it (peer translations do). PropertyCategory Arabic-normalized search stays broken until a separate save-path fix.
 - **CarBrand / CarType / PropertyType lack `normalized_*` translation columns** — search correctly uses raw `name` (`normalize: false`). Adding Arabic-insensitive search needs a future schema + save-hook pass, not filter-side fake normalization.
 
 **Planned but not implemented (not a bug, not dead code to remove):**
@@ -242,15 +215,18 @@ Also still true (non-breaking quirks, documented in models/API docs):
 
 ## 8 — Session summary (how we got here)
 
-This cleanup / modularization session turned a mostly-monolithic `app/` into a **14-module** Laravel app with a consistent layering rule. High-level outcomes:
+This cleanup / modularization effort turned a mostly-monolithic `app/` into a **16-module** Laravel app with a consistent layering rule. High-level outcomes through 2026-07-27:
 
-1. **Module extraction** — Chat, Geo, Jobs, Cms, Catalog, Support, Marketplace, Orders (plus existing Payment, Wallet, Sms, Guarantor, Opportunity, Classifieds) live under `Modules/*` with their own routes, services, actions, repositories, and tests.
-2. **`Api/V1` convention** — Mobile/shared API standardized; Geo Api resources relocated into `Modules/Geo`; contract-freeze tests lock response shapes for Jobs, Cms, Catalog, Geo, Orders, UserResource.
-3. **Shared utilities consolidation** — `Normalize` / `Phone` → `app/Support/`; dead `lib/WhatsApp` + `Lib\` PSR-4 removed.
-4. **Dashboard / Auth layering** — Admin/User/Provider management and Auth domains follow Controller → Service → Action → Repository in `app/` (Pass D / E1 / E2 style work).
-5. **Architecture rule** — `.cursor/rules/layered-architecture.mdc` is always-on; Pint-safe same-namespace import alias pattern documented.
-6. **Docs regen** — `MODELS_REFERENCE` (73), `ENUMS_REFERENCE` (29), `API_INVENTORY` (149 `api/*`), and this `PROJECT_CONTEXT` rewritten from live sources (not memory).
-7. **Other polish** — Unified Inertia `Errors/ErrorPage` + i18n; deferred mobile-breaking items captured rather than silently “fixed.”
+1. **Module extraction** — Chat, Geo, Jobs, Cms, Catalog, Support, Marketplace, Orders, Settings, Reviews (plus Payment, Wallet, Sms, Guarantor, Opportunity, Classifieds) under `Modules/*`.
+2. **`Api/V1` convention** — Mobile/shared API standardized; Geo/Settings catalog endpoints in their modules; contract-freeze tests lock response shapes (Jobs, Cms, Catalog, Geo, Orders, UserResource, Reviews, DomainNotification, TranslationSearchFilter).
+3. **Shared utilities** — `Normalize` / `Phone` → `app/Support/`; dead `lib/` scaffolding removed.
+4. **Dashboard / Auth layering** — Admin/User/Provider management and Auth domains follow Controller → Service → Action → Repository in `app/`.
+5. **Architecture rule** — `.cursor/rules/layered-architecture.mdc` always-on; Pint-safe same-namespace import alias pattern documented.
+6. **OTP unification** — Single `App\Models\Otp` + `OtpPurposeEnum`; `VerificationCode` / `RegisterVerificationCode` deleted.
+7. **Catalog / Classifieds DRY** — transactional file-upload concern; shared Classifieds Actions; shared `TranslationSearchFilter` + `ParentFilter`.
+8. **Notifications** — Order notifications moved to `Modules/Orders/Notifications`; shared `DomainNotification` base for Orders/Guarantor/Opportunity (Chat excluded).
+9. **Docs regen** — `MODELS_REFERENCE` (72), `ENUMS_REFERENCE` (31), `API_INVENTORY` (151 `api/*`), and this `PROJECT_CONTEXT` rewritten from live sources (not memory).
+10. **Other polish** — Unified Inertia `Errors/ErrorPage` + i18n; deferred mobile-breaking items captured rather than silently “fixed.”
 
 For exact inventory numbers and shapes, prefer the three reference docs over this summary.
 
@@ -264,15 +240,16 @@ For exact inventory numbers and shapes, prefer the three reference docs over thi
 - `config/auth.php` — guards / providers
 - `config/broadcasting.php` — Reverb
 - `config/firebase.php` — push
+- `config/otp.php` — OTP TTLs by purpose
 - `Modules/Payment/config` + app payment config — drivers / PayTabs
 - `Modules/Sms/config` — SMS gateways
 - `modules_statuses.json` — which modules are enabled
 
 ### Core models still in `app/Models`
 
-`Admin`, `User`, `Provider`, `Employee`, `Setting`, `Review`, `BlockHistory`, `VerificationCode`, `RegisterVerificationCode`
+`Admin`, `User`, `Provider`, `Employee`, `BlockHistory`, `Otp`
 
-(Domain models such as Order, Conversation, Payment, Wallet, GuarantorRequest, advisements, JobOffer, etc. live under their modules — see MODELS_REFERENCE.)
+(Domain models such as Order, Conversation, Payment, Wallet, GuarantorRequest, Setting, Review, advisements, JobOffer, etc. live under their modules — see MODELS_REFERENCE.)
 
 ### When You Need to Update This File
 

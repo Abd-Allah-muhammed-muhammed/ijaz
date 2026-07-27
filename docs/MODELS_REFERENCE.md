@@ -2,7 +2,7 @@
 
 Regenerated from the live codebase (`app/Models` + `Modules/*/Models`).
 
-**Last verified: 2026-07-26, post-full-module-extraction**
+**Last verified: 2026-07-27, post-Settings/Reviews/Otp/Notification consolidations**
 
 Field types come from `$casts` / `casts()` when present; fillable attributes without a cast are marked `Unknown`. Table names are resolved via Eloquent `getTable()` (including irregular plurals and intentional typos).
 
@@ -10,7 +10,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 
 | Group | Models |
 |---|---:|
-| App Core | 9 |
+| App Core | 6 |
 | Catalog | 16 |
 | Chat | 4 |
 | Classifieds | 4 |
@@ -22,15 +22,21 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Opportunity | 3 |
 | Orders | 5 |
 | Payment | 1 |
+| Reviews | 1 |
+| Settings | 1 |
 | Support | 1 |
 | Wallet | 4 |
-| **Total** | **73** |
+| **Total** | **72** |
 
 ## Notable post-refactor quirks (verified)
 
 - `Modules\Jobs\Concerns\HasJobs::jobs()` is **`MorphMany`** to `JobOffer` (not `MorphOne`). Used by `User` and `Provider`.
 - `Modules\Geo\Models\CityTranslation::city()` is a working **`BelongsTo`** `City` relation.
 - `Modules\Catalog\Models\PropertiyCategory` (and `PropertiyCategoryTranslation`, table `propertiy_categories`) — **intentional deferred typo** in class/table naming; do not "fix" without a planned rename migration.
+- `PropertiyCategoryTranslation.normalized_title` column exists but is **not populated on save** (documented deferred quirk) — PropertyCategory Arabic search via `TranslationSearchFilter` stays empty until a save-hook lands.
+- Unified `App\Models\Otp` (UUID PK) replaces deleted `VerificationCode` / `RegisterVerificationCode` models; purposes via `App\Enums\Auth\OtpPurposeEnum`.
+- `Modules\Settings\Models\Setting` owns platform settings (`is_public`, `SettingGroupEnum`); public catalog endpoint is `Modules\Settings\Http\Controllers\Api\V1\SettingController`.
+- `Modules\Reviews\Models\Review` is polymorphic (reviewer/reviewee/operation); `HasReviews` concern applied to User/Provider (and order review flows).
 - Several pivot-style models use singular table names (e.g. `job_offer_skill`, `category_skill`, `provider_category`, `order_skill`).
 
 ---
@@ -48,26 +54,29 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 |---|---|---|
 | `address` | `Unknown` | - |
 | `email` | `Unknown` | - |
-| `email_verified_at` | `'datetime'` | cast |
+| `email_verified_at` | `Unknown` | - |
 | `image` | `Unknown` | - |
 | `job` | `Unknown` | - |
 | `language` | `Unknown` | - |
 | `name` | `Unknown` | - |
-| `online` | `'boolean'` | cast |
-| `password` | `'hashed'` | cast |
+| `online` | `Unknown` | - |
+| `password` | `Unknown` | - |
 | `phone` | `Unknown` | - |
-| `root` | `'boolean'` | cast (not in $fillable) |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| (none detected) | - | - |
+| `roles` | `MorphToMany` | `Spatie\Permission\Models\Role` |
+| `permissions` | `MorphToMany` | `Spatie\Permission\Models\Permission` |
+| `notifications` | `MorphMany` | `Illuminate\Notifications\DatabaseNotification` |
+| `readNotifications` | `MorphMany` | `Illuminate\Notifications\DatabaseNotification` |
+| `unreadNotifications` | `MorphMany` | `Illuminate\Notifications\DatabaseNotification` |
 
 ### Traits
 - `App\Support\HasBroadcastChannel`
 - `Illuminate\Database\Eloquent\Factories\HasFactory`
-- `Spatie\Permission\Traits\HasRoles`
 - `Illuminate\Notifications\Notifiable`
+- `Spatie\Permission\Traits\HasRoles`
 
 ### Enums / class casts
 - None detected in casts
@@ -83,14 +92,14 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `blocked_at` | `'datetime'` | cast |
-| `blocked_until` | `'datetime'` | cast |
+| `blocked_at` | `datetime` | cast |
+| `blocked_until` | `datetime` | cast |
 | `reason` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `authenticatable()` | `MorphTo` | `(morph)` |
+| `authenticatable` | `MorphTo` | `App\Models\BlockHistory` |
 
 ### Traits
 - None detected
@@ -115,23 +124,56 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | `latitude` | `Unknown` | - |
 | `longitude` | `Unknown` | - |
 | `name` | `Unknown` | - |
-| `online` | `'boolean'` | cast (not in $fillable) |
-| `password` | `'hashed'` | cast |
+| `password` | `Unknown` | - |
 | `phone` | `Unknown` | - |
 | `profile_picture` | `Unknown` | - |
-| `provider_id` | `Unknown` | foreign key candidate |
+| `provider_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `provider()` | `BelongsTo` | `Provider` |
-| `company()` | `HasOne` | `Provider` |
+| `provider` | `BelongsTo` | `App\Models\Provider` |
+| `company` | `HasOne` | `App\Models\Provider` |
+| `roles` | `MorphToMany` | `Spatie\Permission\Models\Role` |
+| `permissions` | `MorphToMany` | `Spatie\Permission\Models\Permission` |
 
 ### Traits
 - `Spatie\Permission\Traits\HasRoles`
 
 ### Enums / class casts
 - None detected in casts
+
+---
+
+## Model: Otp
+
+**Namespace:** `App\Models`  
+**Table:** `otps`  
+**File:** `app/Models/Otp.php`
+
+### Fields
+| Field | Type | Notes |
+|---|---|---|
+| `expires_at` | `'datetime'` | cast |
+| `phone` | `Unknown` | - |
+| `purpose` | `App\Enums\Auth\OtpPurposeEnum` | cast |
+| `subject_id` | `Unknown` | - |
+| `subject_type` | `Unknown` | - |
+| `token` | `Unknown` | - |
+
+### Relationships
+| Method | Type | Related Model |
+|---|---|---|
+| `subject` | `MorphTo` | (polymorphic subject) |
+
+### Traits
+- `Illuminate\Database\Eloquent\Concerns\HasUuids`
+
+### Enums / class casts
+- `purpose` → `App\Enums\Auth\OtpPurposeEnum`
+- `expires_at` → `datetime`
+
+**Notes:** UUID primary key (`$incrementing = false`, `$keyType = 'string'`). Replaces deleted `VerificationCode` / `RegisterVerificationCode`. Helpers: `isExpired()`, `matches()`.
 
 ---
 
@@ -146,9 +188,9 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 |---|---|---|
 | `about` | `Unknown` | - |
 | `address` | `Unknown` | - |
-| `blocked_at` | `'datetime'` | cast |
-| `blocked_until` | `'datetime'` | cast |
-| `city_id` | `Unknown` | foreign key candidate |
+| `blocked_at` | `Unknown` | - |
+| `blocked_until` | `Unknown` | - |
+| `city_id` | `Unknown` | - |
 | `code` | `Unknown` | - |
 | `email` | `Unknown` | - |
 | `iban` | `Unknown` | - |
@@ -157,123 +199,53 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | `logo` | `Unknown` | - |
 | `longitude` | `Unknown` | - |
 | `name` | `Unknown` | - |
-| `password` | `'hashed'` | cast |
+| `password` | `Unknown` | - |
 | `phone` | `Unknown` | - |
-| `provider_type_id` | `Unknown` | foreign key candidate |
-| `region_id` | `Unknown` | foreign key candidate |
-| `status` | `ProviderStatusEnum` | cast |
+| `provider_type_id` | `Unknown` | - |
+| `region_id` | `Unknown` | - |
+| `status` | `Unknown` | - |
 | `tax_number` | `Unknown` | - |
 | `website` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `providerType()` | `BelongsTo` | `ProviderType` |
-| `city()` | `BelongsTo` | `City` |
-| `region()` | `BelongsTo` | `Region` |
-| `categorySkills()` | `HasMany` | `CategorySkill` |
-| `skills()` | `BelongsToMany` | `Skill` |
-| `providerCategories()` | `HasMany` | `ProviderCategory` |
-| `categories()` | `BelongsToMany` | `Category` |
-| `orders()` | `HasMany` | `Order` |
-| `orderOffers()` | `HasMany` | `OrderOffer` |
-| `jobs()` | `MorphMany` | `JobOffer` — via Modules\Jobs\Concerns\HasJobs (MorphMany, not MorphOne) |
+| `providerType` | `BelongsTo` | `Modules\Marketplace\Models\ProviderType` |
+| `city` | `BelongsTo` | `Modules\Geo\Models\City` |
+| `region` | `BelongsTo` | `Modules\Geo\Models\Region` |
+| `categorySkills` | `HasMany` | `Modules\Marketplace\Models\CategorySkill` |
+| `skills` | `BelongsToMany` | `Modules\Marketplace\Models\Skill` |
+| `providerCategories` | `HasMany` | `Modules\Marketplace\Models\ProviderCategory` |
+| `categories` | `BelongsToMany` | `Modules\Marketplace\Models\Category` |
+| `orders` | `HasMany` | `Modules\Orders\Models\Order` |
+| `orderOffers` | `HasMany` | `Modules\Orders\Models\OrderOffer` |
+| `blockHistories` | `MorphMany` | `App\Models\BlockHistory` |
+| `latestBlockHistory` | `MorphOne` | `App\Models\BlockHistory` |
+| `jobs` | `MorphMany` | `Modules\Jobs\Models\JobOffer` |
+| `payments` | `MorphMany` | `Modules\Payment\Models\Payment` |
+| `reviews` | `MorphMany` | `Modules\Reviews\Models\Review` |
+| `opinions` | `MorphMany` | `Modules\Reviews\Models\Review` |
+| `roles` | `MorphToMany` | `Spatie\Permission\Models\Role` |
+| `permissions` | `MorphToMany` | `Spatie\Permission\Models\Permission` |
+| `wallet` | `MorphOne` | `Modules\Wallet\Models\Wallet` |
+| `withdrawRequests` | `MorphMany` | `Modules\Wallet\Models\WithdrawRequest` |
+| `walletTransactions` | `MorphMany` | `Modules\Wallet\Models\WalletTransaction` |
+| `topUpRequests` | `MorphMany` | `Modules\Wallet\Models\TopUpRequest` |
+| `media` | `MorphMany` | `Spatie\MediaLibrary\MediaCollections\Models\Media` |
+| `notifications` | `MorphMany` | `Illuminate\Notifications\DatabaseNotification` |
+| `readNotifications` | `MorphMany` | `Illuminate\Notifications\DatabaseNotification` |
+| `unreadNotifications` | `MorphMany` | `Illuminate\Notifications\DatabaseNotification` |
 
 ### Traits
-- `App\Traits\Blockable`
 - `App\Support\HasBroadcastChannel`
+- `App\Traits\Blockable`
+- `Illuminate\Notifications\Notifiable`
 - `Modules\Jobs\Concerns\HasJobs`
 - `Modules\Payment\Traits\HasPayments`
-- `App\Traits\HasReviews`
-- `Spatie\Permission\Traits\HasRoles`
+- `Modules\Reviews\Concerns\HasReviews`
 - `Modules\Wallet\Traits\HasWallet`
 - `Spatie\MediaLibrary\InteractsWithMedia`
-- `Illuminate\Notifications\Notifiable`
-
-### Enums / class casts
-- `status` → `ProviderStatusEnum`
-
----
-
-## Model: RegisterVerificationCode
-
-**Namespace:** `App\Models`  
-**Table:** `register_verification_codes`  
-**File:** `app/Models/RegisterVerificationCode.php`
-
-### Fields
-| Field | Type | Notes |
-|---|---|---|
-| `expires_at` | `'datetime'` | cast |
-| `queryable` | `Unknown` | - |
-| `token` | `Unknown` | - |
-
-### Relationships
-| Method | Type | Related Model |
-|---|---|---|
-| (none detected) | - | - |
-
-### Traits
-- None detected
-
-### Enums / class casts
-- None detected in casts
-
----
-
-## Model: Review
-
-**Namespace:** `App\Models`  
-**Table:** `reviews`  
-**File:** `app/Models/Review.php`
-
-### Fields
-| Field | Type | Notes |
-|---|---|---|
-| `comment` | `Unknown` | - |
-| `operation_id` | `Unknown` | foreign key candidate |
-| `operation_type` | `Unknown` | - |
-| `rating` | `Unknown` | - |
-| `reviewee_id` | `Unknown` | foreign key candidate |
-| `reviewee_type` | `Unknown` | - |
-| `reviewer_id` | `Unknown` | foreign key candidate |
-| `reviewer_type` | `Unknown` | - |
-
-### Relationships
-| Method | Type | Related Model |
-|---|---|---|
-| `reviewer()` | `MorphTo` | `(morph)` |
-| `reviewee()` | `MorphTo` | `(morph)` |
-| `operation()` | `MorphTo` | `(morph)` |
-
-### Traits
-- None detected
-
-### Enums / class casts
-- None detected in casts
-
----
-
-## Model: Setting
-
-**Namespace:** `App\Models`  
-**Table:** `settings`  
-**File:** `app/Models/Setting.php`
-
-### Fields
-| Field | Type | Notes |
-|---|---|---|
-| `content` | `Unknown` | - |
-| `group` | `Unknown` | - |
-| `key` | `Unknown` | - |
-
-### Relationships
-| Method | Type | Related Model |
-|---|---|---|
-| (none detected) | - | - |
-
-### Traits
-- None detected
+- `Spatie\Permission\Traits\HasRoles`
 
 ### Enums / class casts
 - None detected in casts
@@ -289,79 +261,69 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `blocked_at` | `'datetime'` | cast |
-| `blocked_until` | `'datetime'` | cast |
+| `blocked_at` | `Unknown` | - |
+| `blocked_until` | `Unknown` | - |
 | `email` | `Unknown` | - |
-| `email_verified_at` | `'datetime'` | cast (not in $fillable) |
 | `f_name` | `Unknown` | - |
 | `image` | `Unknown` | - |
 | `l_name` | `Unknown` | - |
 | `language` | `Unknown` | - |
 | `latitude` | `Unknown` | - |
 | `longitude` | `Unknown` | - |
-| `nationality_id` | `Unknown` | foreign key candidate |
-| `password` | `'hashed'` | cast |
+| `nationality_id` | `Unknown` | - |
+| `password` | `Unknown` | - |
 | `phone` | `Unknown` | - |
-| `phone_verified_at` | `'datetime'` | cast (not in $fillable) |
-| `player_id` | `Unknown` | foreign key candidate |
-| `status` | `UserStatusEnum` | cast |
+| `player_id` | `Unknown` | - |
+| `status` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `nationality()` | `BelongsTo` | `Nationality` |
-| `orders()` | `HasMany` | `Order` |
-| `guarantorRequests()` | `MorphMany` | `GuarantorRequest` |
-| `assignedGuarantorRequests()` | `MorphMany` | `GuarantorRequest` |
-| `propertyAdvisements()` | `MorphMany` | `PropertyAdvisement` |
-| `carAdvisements()` | `MorphMany` | `CarAdvisement` |
-| `electronicAdvisements()` | `MorphMany` | `ElectronicAdvisement` |
-| `instituteAdvisements()` | `MorphMany` | `InstituteAdvisement` |
-| `receivedMessages()` | `MorphMany` | `ConversationMessage` |
-| `unreadReceivedMessages()` | `MorphMany` | `ConversationMessage` |
-| `sentMessages()` | `MorphMany` | `ConversationMessage` |
-| `unreadSentMessages()` | `MorphMany` | `ConversationMessage` |
-| `jobs()` | `MorphMany` | `JobOffer` — via Modules\Jobs\Concerns\HasJobs (MorphMany, not MorphOne) |
+| `nationality` | `BelongsTo` | `Modules\Geo\Models\Nationality` |
+| `orders` | `HasMany` | `Modules\Orders\Models\Order` |
+| `guarantorRequests` | `MorphMany` | `Modules\Guarantor\Models\GuarantorRequest` |
+| `assignedGuarantorRequests` | `MorphMany` | `Modules\Guarantor\Models\GuarantorRequest` |
+| `propertyAdvisements` | `MorphMany` | `Modules\Classifieds\Models\PropertyAdvisement` |
+| `carAdvisements` | `MorphMany` | `Modules\Classifieds\Models\CarAdvisement` |
+| `electronicAdvisements` | `MorphMany` | `Modules\Classifieds\Models\ElectronicAdvisement` |
+| `instituteAdvisements` | `MorphMany` | `Modules\Classifieds\Models\InstituteAdvisement` |
+| `receivedMessages` | `MorphMany` | `Modules\Chat\Models\ConversationMessage` |
+| `unreadReceivedMessages` | `MorphMany` | `Modules\Chat\Models\ConversationMessage` |
+| `sentMessages` | `MorphMany` | `Modules\Chat\Models\ConversationMessage` |
+| `unreadSentMessages` | `MorphMany` | `Modules\Chat\Models\ConversationMessage` |
+| `blockHistories` | `MorphMany` | `App\Models\BlockHistory` |
+| `latestBlockHistory` | `MorphOne` | `App\Models\BlockHistory` |
+| `tokens` | `MorphMany` | `Laravel\Sanctum\PersonalAccessToken` |
+| `jobs` | `MorphMany` | `Modules\Jobs\Models\JobOffer` |
+| `otps` | `MorphMany` | `App\Models\Otp` |
+| `verificationCodes` | `MorphMany` | `App\Models\Otp` |
+| `emailVerificationCode` | `MorphOne` | `App\Models\Otp` |
+| `phoneVerificationCode` | `MorphOne` | `App\Models\Otp` |
+| `passwordVerificationCode` | `MorphOne` | `App\Models\Otp` |
+| `loginVerificationCode` | `MorphOne` | `App\Models\Otp` |
+| `passwordRestCode` | `MorphOne` | `App\Models\Otp` |
+| `payments` | `MorphMany` | `Modules\Payment\Models\Payment` |
+| `reviews` | `MorphMany` | `Modules\Reviews\Models\Review` |
+| `opinions` | `MorphMany` | `Modules\Reviews\Models\Review` |
+| `wallet` | `MorphOne` | `Modules\Wallet\Models\Wallet` |
+| `withdrawRequests` | `MorphMany` | `Modules\Wallet\Models\WithdrawRequest` |
+| `walletTransactions` | `MorphMany` | `Modules\Wallet\Models\WalletTransaction` |
+| `topUpRequests` | `MorphMany` | `Modules\Wallet\Models\TopUpRequest` |
+| `notifications` | `MorphMany` | `Illuminate\Notifications\DatabaseNotification` |
+| `readNotifications` | `MorphMany` | `Illuminate\Notifications\DatabaseNotification` |
+| `unreadNotifications` | `MorphMany` | `Illuminate\Notifications\DatabaseNotification` |
 
 ### Traits
-- `App\Traits\Blockable`
-- `Laravel\Sanctum\HasApiTokens`
 - `App\Support\HasBroadcastChannel`
-- `Illuminate\Database\Eloquent\Factories\HasFactory`
-- `Modules\Jobs\Concerns\HasJobs`
+- `App\Traits\Blockable`
 - `App\Traits\HasOTPs`
-- `Modules\Payment\Traits\HasPayments`
-- `Modules\Wallet\Traits\HasWallet`
+- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `Illuminate\Notifications\Notifiable`
-
-### Enums / class casts
-- `status` → `UserStatusEnum`
-
----
-
-## Model: VerificationCode
-
-**Namespace:** `App\Models`  
-**Table:** `verification_codes`  
-**File:** `app/Models/VerificationCode.php`
-
-### Fields
-| Field | Type | Notes |
-|---|---|---|
-| `expiration_activated` | `'bool'` | cast |
-| `expire_at` | `'datetime'` | cast |
-| `token` | `Unknown` | - |
-| `type` | `Unknown` | - |
-| `user_id` | `Unknown` | foreign key candidate |
-| `user_type` | `Unknown` | - |
-
-### Relationships
-| Method | Type | Related Model |
-|---|---|---|
-| `user()` | `MorphTo` | `(morph)` |
-
-### Traits
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
+- `Laravel\Sanctum\HasApiTokens`
+- `Modules\Jobs\Concerns\HasJobs`
+- `Modules\Payment\Traits\HasPayments`
+- `Modules\Reviews\Concerns\HasReviews`
+- `Modules\Wallet\Traits\HasWallet`
 
 ### Enums / class casts
 - None detected in casts
@@ -380,16 +342,17 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Field | Type | Notes |
 |---|---|---|
 | `image` | `Unknown` | - |
-| `is_active` | `'boolean'` | cast |
+| `is_active` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| (none detected) | - | - |
+| `translation` | `HasOne` | `Modules\Catalog\Models\CarBrandTranslation` |
+| `translations` | `HasMany` | `Modules\Catalog\Models\CarBrandTranslation` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `Astrotomic\Translatable\Translatable`
+- `Illuminate\Database\Eloquent\Factories\HasFactory`
 
 ### Enums / class casts
 - None detected in casts
@@ -411,7 +374,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `carBrand()` | `BelongsTo` | `CarBrand` |
+| `carBrand` | `BelongsTo` | `Modules\Catalog\Models\CarBrand` |
 
 ### Traits
 - None detected
@@ -431,18 +394,20 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Field | Type | Notes |
 |---|---|---|
 | `icon` | `Unknown` | - |
-| `parent_id` | `Unknown` | foreign key candidate |
+| `parent_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `parent()` | `BelongsTo` | `__CLASS__` |
-| `children()` | `HasMany` | `__CLASS__` |
-| `childrenRecursive()` | `HasMany` | `__CLASS__` |
+| `parent` | `BelongsTo` | `Modules\Catalog\Models\CarCategory` |
+| `children` | `HasMany` | `Modules\Catalog\Models\CarCategory` |
+| `childrenRecursive` | `HasMany` | `Modules\Catalog\Models\CarCategory` |
+| `translation` | `HasOne` | `Modules\Catalog\Models\CarCategoryTranslation` |
+| `translations` | `HasMany` | `Modules\Catalog\Models\CarCategoryTranslation` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `Astrotomic\Translatable\Translatable`
+- `Illuminate\Database\Eloquent\Factories\HasFactory`
 
 ### Enums / class casts
 - None detected in casts
@@ -483,18 +448,20 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `car_brand_id` | `Unknown` | foreign key candidate |
+| `car_brand_id` | `Unknown` | - |
 | `image` | `Unknown` | - |
-| `is_active` | `'boolean'` | cast |
+| `is_active` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `carBrand()` | `BelongsTo` | `CarBrand` |
+| `carBrand` | `BelongsTo` | `Modules\Catalog\Models\CarBrand` |
+| `translation` | `HasOne` | `Modules\Catalog\Models\CarTypeTranslation` |
+| `translations` | `HasMany` | `Modules\Catalog\Models\CarTypeTranslation` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `Astrotomic\Translatable\Translatable`
+- `Illuminate\Database\Eloquent\Factories\HasFactory`
 
 ### Enums / class casts
 - None detected in casts
@@ -516,7 +483,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `carType()` | `BelongsTo` | `CarType` |
+| `carType` | `BelongsTo` | `Modules\Catalog\Models\CarType` |
 
 ### Traits
 - None detected
@@ -536,13 +503,15 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Field | Type | Notes |
 |---|---|---|
 | `icon` | `Unknown` | - |
-| `parent_id` | `Unknown` | foreign key candidate |
+| `parent_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `parent()` | `BelongsTo` | `DeviceCategory` |
-| `children()` | `HasMany` | `DeviceCategory` |
+| `parent` | `BelongsTo` | `Modules\Catalog\Models\DeviceCategory` |
+| `children` | `HasMany` | `Modules\Catalog\Models\DeviceCategory` |
+| `translation` | `HasOne` | `Modules\Catalog\Models\DeviceCategoryTranslation` |
+| `translations` | `HasMany` | `Modules\Catalog\Models\DeviceCategoryTranslation` |
 
 ### Traits
 - `Astrotomic\Translatable\Translatable`
@@ -567,7 +536,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `deviceCategory()` | `BelongsTo` | `DeviceCategory` |
+| `deviceCategory` | `BelongsTo` | `Modules\Catalog\Models\DeviceCategory` |
 
 ### Traits
 - None detected
@@ -587,12 +556,13 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Field | Type | Notes |
 |---|---|---|
 | `image` | `Unknown` | - |
-| `is_active` | `'boolean'` | cast |
+| `is_active` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| (none detected) | - | - |
+| `translation` | `HasOne` | `Modules\Catalog\Models\ElectronicBrandTranslation` |
+| `translations` | `HasMany` | `Modules\Catalog\Models\ElectronicBrandTranslation` |
 
 ### Traits
 - `Astrotomic\Translatable\Translatable`
@@ -617,7 +587,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `electronicBrand()` | `BelongsTo` | `ElectronicBrand` |
+| `electronicBrand` | `BelongsTo` | `Modules\Catalog\Models\ElectronicBrand` |
 
 ### Traits
 - None detected
@@ -636,18 +606,20 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `is_active` | `'boolean'` | cast |
-| `parent_id` | `'integer'` | cast; foreign key candidate |
+| `is_active` | `Unknown` | - |
+| `parent_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `parent()` | `BelongsTo` | `PropertiyCategory` |
-| `children()` | `HasMany` | `PropertiyCategory` |
+| `parent` | `BelongsTo` | `Modules\Catalog\Models\PropertiyCategory` |
+| `children` | `HasMany` | `Modules\Catalog\Models\PropertiyCategory` |
+| `translation` | `HasOne` | `Modules\Catalog\Models\PropertiyCategoryTranslation` |
+| `translations` | `HasMany` | `Modules\Catalog\Models\PropertiyCategoryTranslation` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `Astrotomic\Translatable\Translatable`
+- `Illuminate\Database\Eloquent\Factories\HasFactory`
 
 ### Enums / class casts
 - None detected in casts
@@ -664,12 +636,12 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Field | Type | Notes |
 |---|---|---|
 | `locale` | `Unknown` | - |
-| `title` | `'string'` | cast |
+| `title` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `propertiyCategory()` | `BelongsTo` | `PropertiyCategory` |
+| `propertiyCategory` | `BelongsTo` | `Modules\Catalog\Models\PropertiyCategory` |
 
 ### Traits
 - None detected
@@ -688,16 +660,17 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `is_active` | `'boolean'` | cast |
+| `is_active` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| (none detected) | - | - |
+| `translation` | `HasOne` | `Modules\Catalog\Models\PropertyTypeTranslation` |
+| `translations` | `HasMany` | `Modules\Catalog\Models\PropertyTypeTranslation` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `Astrotomic\Translatable\Translatable`
+- `Illuminate\Database\Eloquent\Factories\HasFactory`
 
 ### Enums / class casts
 - None detected in casts
@@ -719,7 +692,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `propertyType()` | `BelongsTo` | `PropertyType` |
+| `propertyType` | `BelongsTo` | `Modules\Catalog\Models\PropertyType` |
 
 ### Traits
 - None detected
@@ -739,17 +712,19 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Field | Type | Notes |
 |---|---|---|
 | `icon` | `Unknown` | - |
-| `parent_id` | `Unknown` | foreign key candidate |
+| `parent_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `parent()` | `BelongsTo` | `self` |
-| `children()` | `HasMany` | `self` |
+| `parent` | `BelongsTo` | `Modules\Catalog\Models\Specialization` |
+| `children` | `HasMany` | `Modules\Catalog\Models\Specialization` |
+| `translation` | `HasOne` | `Modules\Catalog\Models\SpecializationTranslation` |
+| `translations` | `HasMany` | `Modules\Catalog\Models\SpecializationTranslation` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `Astrotomic\Translatable\Translatable`
+- `Illuminate\Database\Eloquent\Factories\HasFactory`
 
 ### Enums / class casts
 - None detected in casts
@@ -771,7 +746,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `specialization()` | `BelongsTo` | `Specialization` |
+| `specialization` | `BelongsTo` | `Modules\Catalog\Models\Specialization` |
 
 ### Traits
 - None detected
@@ -792,26 +767,26 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `last_message_at` | `'datetime'` | cast |
-| `last_message_id` | `Unknown` | foreign key candidate |
-| `operation_id` | `Unknown` | foreign key candidate |
+| `last_message_at` | `Unknown` | - |
+| `last_message_id` | `Unknown` | - |
+| `operation_id` | `Unknown` | - |
 | `operation_type` | `Unknown` | - |
-| `user1_id` | `Unknown` | foreign key candidate |
+| `user1_id` | `Unknown` | - |
 | `user1_type` | `Unknown` | - |
-| `user2_id` | `Unknown` | foreign key candidate |
+| `user2_id` | `Unknown` | - |
 | `user2_type` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `messages()` | `HasMany` | `ConversationMessage` |
-| `lastMessage()` | `BelongsTo` | `ConversationMessage` |
-| `user1()` | `MorphTo` | `(morph)` |
-| `user2()` | `MorphTo` | `(morph)` |
-| `operation()` | `MorphTo` | `(morph)` |
+| `messages` | `HasMany` | `Modules\Chat\Models\ConversationMessage` |
+| `lastMessage` | `BelongsTo` | `Modules\Chat\Models\ConversationMessage` |
+| `user1` | `MorphTo` | `Modules\Chat\Models\Conversation` |
+| `user2` | `MorphTo` | `Modules\Chat\Models\Conversation` |
+| `operation` | `MorphTo` | `Modules\Chat\Models\Conversation` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
+- None detected
 
 ### Enums / class casts
 - None detected in casts
@@ -827,7 +802,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `conversation_message_id` | `Unknown` | foreign key candidate |
+| `conversation_message_id` | `Unknown` | - |
 | `filename` | `Unknown` | - |
 | `path` | `Unknown` | - |
 | `store` | `Unknown` | - |
@@ -836,10 +811,10 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `message()` | `BelongsTo` | `ConversationMessage` |
+| `message` | `BelongsTo` | `Modules\Chat\Models\ConversationMessage` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
+- None detected
 
 ### Enums / class casts
 - None detected in casts
@@ -856,31 +831,31 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Field | Type | Notes |
 |---|---|---|
 | `content` | `Unknown` | - |
-| `conversation_id` | `Unknown` | foreign key candidate |
+| `conversation_id` | `Unknown` | - |
 | `deleted_at` | `Unknown` | - |
 | `has_attachments` | `Unknown` | - |
 | `read_at` | `Unknown` | - |
-| `read_by_id` | `Unknown` | foreign key candidate |
+| `read_by_id` | `Unknown` | - |
 | `read_by_type` | `Unknown` | - |
-| `receiver_id` | `Unknown` | foreign key candidate |
+| `receiver_id` | `Unknown` | - |
 | `receiver_type` | `Unknown` | - |
-| `sender_id` | `Unknown` | foreign key candidate |
+| `sender_id` | `Unknown` | - |
 | `sender_type` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `chat()` | `BelongsTo` | `Conversation` |
-| `sender()` | `MorphTo` | `(morph)` |
-| `receiver()` | `MorphTo` | `(morph)` |
-| `attachments()` | `HasMany` | `ConversationAttachment` |
-| `lastAttachment()` | `HasOne` | `ConversationAttachment` |
-| `readBy()` | `MorphTo` | `(morph)` |
+| `chat` | `BelongsTo` | `Modules\Chat\Models\Conversation` |
+| `sender` | `MorphTo` | `Modules\Chat\Models\ConversationMessage` |
+| `receiver` | `MorphTo` | `Modules\Chat\Models\ConversationMessage` |
+| `attachments` | `HasMany` | `Modules\Chat\Models\ConversationAttachment` |
+| `lastAttachment` | `HasOne` | `Modules\Chat\Models\ConversationAttachment` |
+| `readBy` | `MorphTo` | `Modules\Chat\Models\ConversationMessage` |
+| `media` | `MorphMany` | `Spatie\MediaLibrary\MediaCollections\Models\Media` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
-- `Spatie\MediaLibrary\InteractsWithMedia`
 - `Illuminate\Database\Eloquent\SoftDeletes`
+- `Spatie\MediaLibrary\InteractsWithMedia`
 
 ### Enums / class casts
 - None detected in casts
@@ -902,11 +877,11 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| (none detected) | - | - |
+| `tokens` | `MorphMany` | `Laravel\Sanctum\PersonalAccessToken` |
 
 ### Traits
-- `Laravel\Sanctum\HasApiTokens`
 - `App\Support\HasBroadcastChannel`
+- `Laravel\Sanctum\HasApiTokens`
 
 ### Enums / class casts
 - None detected in casts
@@ -925,10 +900,10 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Field | Type | Notes |
 |---|---|---|
 | `address` | `Unknown` | - |
-| `car_brand_id` | `Unknown` | foreign key candidate |
-| `car_category_id` | `Unknown` | foreign key candidate |
-| `car_type_id` | `Unknown` | foreign key candidate |
-| `city_id` | `Unknown` | foreign key candidate |
+| `car_brand_id` | `Unknown` | - |
+| `car_category_id` | `Unknown` | - |
+| `car_type_id` | `Unknown` | - |
+| `city_id` | `Unknown` | - |
 | `color` | `Unknown` | - |
 | `description` | `Unknown` | - |
 | `engine_size` | `Unknown` | - |
@@ -936,42 +911,43 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | `image` | `Unknown` | - |
 | `latitude` | `Unknown` | - |
 | `longitude` | `Unknown` | - |
-| `mileage` | `'integer'` | cast |
+| `mileage` | `integer` | cast |
 | `normalized_description` | `Unknown` | - |
 | `normalized_title` | `Unknown` | - |
-| `operation` | `OperationEnum` | cast |
-| `options` | `'array'` | cast |
+| `operation` | `Modules\Classifieds\Enums\OperationEnum` | cast |
+| `options` | `array` | cast |
 | `phone` | `Unknown` | - |
-| `price` | `'float'` | cast |
-| `region_id` | `Unknown` | foreign key candidate |
-| `show_price` | `'boolean'` | cast |
-| `status` | `AdvisementStatusEnum` | cast |
+| `price` | `float` | cast |
+| `region_id` | `Unknown` | - |
+| `show_price` | `boolean` | cast |
+| `status` | `Modules\Classifieds\Enums\AdvisementStatusEnum` | cast |
 | `title` | `Unknown` | - |
 | `transmission` | `Unknown` | - |
-| `usage_status` | `UsageStatusEnum` | cast |
-| `user_id` | `Unknown` | foreign key candidate |
+| `usage_status` | `Modules\Classifieds\Enums\UsageStatusEnum` | cast |
+| `user_id` | `Unknown` | - |
 | `user_type` | `Unknown` | - |
-| `year` | `'integer'` | cast |
+| `year` | `integer` | cast |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `carBrand()` | `BelongsTo` | `CarBrand` |
-| `carType()` | `BelongsTo` | `CarType` |
-| `carCategory()` | `BelongsTo` | `CarCategory` |
-| `city()` | `BelongsTo` | `City` |
-| `region()` | `BelongsTo` | `Region` |
-| `user()` | `MorphTo` | `(morph)` |
+| `carBrand` | `BelongsTo` | `Modules\Catalog\Models\CarBrand` |
+| `carType` | `BelongsTo` | `Modules\Catalog\Models\CarType` |
+| `carCategory` | `BelongsTo` | `Modules\Catalog\Models\CarCategory` |
+| `city` | `BelongsTo` | `Modules\Geo\Models\City` |
+| `region` | `BelongsTo` | `Modules\Geo\Models\Region` |
+| `user` | `MorphTo` | `Modules\Classifieds\Models\CarAdvisement` |
+| `media` | `MorphMany` | `Spatie\MediaLibrary\MediaCollections\Models\Media` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `App\Support\HasNormalizedAttributes`
+- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `Spatie\MediaLibrary\InteractsWithMedia`
 
 ### Enums / class casts
-- `status` → `AdvisementStatusEnum`
-- `operation` → `OperationEnum`
-- `usage_status` → `UsageStatusEnum`
+- `status` → `Modules\Classifieds\Enums\AdvisementStatusEnum`
+- `operation` → `Modules\Classifieds\Enums\OperationEnum`
+- `usage_status` → `Modules\Classifieds\Enums\UsageStatusEnum`
 
 ---
 
@@ -985,46 +961,47 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Field | Type | Notes |
 |---|---|---|
 | `address` | `Unknown` | - |
-| `city_id` | `Unknown` | foreign key candidate |
+| `city_id` | `Unknown` | - |
 | `color` | `Unknown` | - |
-| `condition` | `ElectronicConditionEnum` | cast |
+| `condition` | `Modules\Classifieds\Enums\ElectronicConditionEnum` | cast |
 | `description` | `Unknown` | - |
-| `device_category_id` | `Unknown` | foreign key candidate |
-| `electronic_brand_id` | `Unknown` | foreign key candidate |
+| `device_category_id` | `Unknown` | - |
+| `electronic_brand_id` | `Unknown` | - |
 | `image` | `Unknown` | - |
 | `latitude` | `Unknown` | - |
 | `longitude` | `Unknown` | - |
 | `model_name` | `Unknown` | - |
 | `normalized_description` | `Unknown` | - |
 | `normalized_title` | `Unknown` | - |
-| `options` | `'array'` | cast |
+| `options` | `array` | cast |
 | `phone` | `Unknown` | - |
-| `price` | `'float'` | cast |
-| `region_id` | `Unknown` | foreign key candidate |
-| `show_price` | `'boolean'` | cast |
-| `status` | `AdvisementStatusEnum` | cast |
+| `price` | `float` | cast |
+| `region_id` | `Unknown` | - |
+| `show_price` | `boolean` | cast |
+| `status` | `Modules\Classifieds\Enums\AdvisementStatusEnum` | cast |
 | `storage` | `Unknown` | - |
 | `title` | `Unknown` | - |
-| `user_id` | `Unknown` | foreign key candidate |
+| `user_id` | `Unknown` | - |
 | `user_type` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `deviceCategory()` | `BelongsTo` | `DeviceCategory` |
-| `electronicBrand()` | `BelongsTo` | `ElectronicBrand` |
-| `city()` | `BelongsTo` | `City` |
-| `region()` | `BelongsTo` | `Region` |
-| `user()` | `MorphTo` | `(morph)` |
+| `deviceCategory` | `BelongsTo` | `Modules\Catalog\Models\DeviceCategory` |
+| `electronicBrand` | `BelongsTo` | `Modules\Catalog\Models\ElectronicBrand` |
+| `city` | `BelongsTo` | `Modules\Geo\Models\City` |
+| `region` | `BelongsTo` | `Modules\Geo\Models\Region` |
+| `user` | `MorphTo` | `Modules\Classifieds\Models\ElectronicAdvisement` |
+| `media` | `MorphMany` | `Spatie\MediaLibrary\MediaCollections\Models\Media` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `App\Support\HasNormalizedAttributes`
+- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `Spatie\MediaLibrary\InteractsWithMedia`
 
 ### Enums / class casts
-- `status` → `AdvisementStatusEnum`
-- `condition` → `ElectronicConditionEnum`
+- `status` → `Modules\Classifieds\Enums\AdvisementStatusEnum`
+- `condition` → `Modules\Classifieds\Enums\ElectronicConditionEnum`
 
 ---
 
@@ -1038,57 +1015,58 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Field | Type | Notes |
 |---|---|---|
 | `address` | `Unknown` | - |
-| `city_id` | `Unknown` | foreign key candidate |
+| `city_id` | `Unknown` | - |
 | `course_url` | `Unknown` | - |
-| `days_count` | `'integer'` | cast |
+| `days_count` | `integer` | cast |
 | `description` | `Unknown` | - |
-| `discounted_price` | `'float'` | cast |
+| `discounted_price` | `float` | cast |
 | `goals` | `Unknown` | - |
-| `hours_count` | `'integer'` | cast |
+| `hours_count` | `integer` | cast |
 | `image` | `Unknown` | - |
 | `latitude` | `Unknown` | - |
 | `longitude` | `Unknown` | - |
 | `normalized_description` | `Unknown` | - |
 | `normalized_title` | `Unknown` | - |
-| `options` | `'array'` | cast |
+| `options` | `array` | cast |
 | `payment_notes` | `Unknown` | - |
 | `phone` | `Unknown` | - |
-| `price` | `'float'` | cast |
+| `price` | `float` | cast |
 | `quality_url` | `Unknown` | - |
-| `region_id` | `Unknown` | foreign key candidate |
-| `registration_end` | `'date'` | cast |
-| `registration_start` | `'date'` | cast |
+| `region_id` | `Unknown` | - |
+| `registration_end` | `date` | cast |
+| `registration_start` | `date` | cast |
 | `registration_url` | `Unknown` | - |
-| `specialization_id` | `Unknown` | foreign key candidate |
-| `status` | `AdvisementStatusEnum` | cast |
-| `study_end` | `'date'` | cast |
-| `study_level` | `StudyLevelEnum` | cast |
-| `study_start` | `'date'` | cast |
-| `study_type` | `StudyTypeEnum` | cast |
+| `specialization_id` | `Unknown` | - |
+| `status` | `Modules\Classifieds\Enums\AdvisementStatusEnum` | cast |
+| `study_end` | `date` | cast |
+| `study_level` | `Modules\Classifieds\Enums\StudyLevelEnum` | cast |
+| `study_start` | `date` | cast |
+| `study_type` | `Modules\Classifieds\Enums\StudyTypeEnum` | cast |
 | `title` | `Unknown` | - |
-| `type` | `InstituteTypeEnum` | cast |
-| `user_id` | `Unknown` | foreign key candidate |
+| `type` | `Modules\Classifieds\Enums\InstituteTypeEnum` | cast |
+| `user_id` | `Unknown` | - |
 | `user_type` | `Unknown` | - |
 | `website` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `specialization()` | `BelongsTo` | `Specialization` |
-| `city()` | `BelongsTo` | `City` |
-| `region()` | `BelongsTo` | `Region` |
-| `user()` | `MorphTo` | `(morph)` |
+| `specialization` | `BelongsTo` | `Modules\Catalog\Models\Specialization` |
+| `city` | `BelongsTo` | `Modules\Geo\Models\City` |
+| `region` | `BelongsTo` | `Modules\Geo\Models\Region` |
+| `user` | `MorphTo` | `Modules\Classifieds\Models\InstituteAdvisement` |
+| `media` | `MorphMany` | `Spatie\MediaLibrary\MediaCollections\Models\Media` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `App\Support\HasNormalizedAttributes`
+- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `Spatie\MediaLibrary\InteractsWithMedia`
 
 ### Enums / class casts
-- `status` → `AdvisementStatusEnum`
-- `type` → `InstituteTypeEnum`
-- `study_type` → `StudyTypeEnum`
-- `study_level` → `StudyLevelEnum`
+- `status` → `Modules\Classifieds\Enums\AdvisementStatusEnum`
+- `type` → `Modules\Classifieds\Enums\InstituteTypeEnum`
+- `study_type` → `Modules\Classifieds\Enums\StudyTypeEnum`
+- `study_level` → `Modules\Classifieds\Enums\StudyLevelEnum`
 
 ---
 
@@ -1106,8 +1084,8 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | `area` | `Unknown` | - |
 | `bathrooms_count` | `Unknown` | - |
 | `bedrooms_count` | `Unknown` | - |
-| `category_id` | `Unknown` | foreign key candidate |
-| `city_id` | `Unknown` | foreign key candidate |
+| `category_id` | `Unknown` | - |
+| `city_id` | `Unknown` | - |
 | `description` | `Unknown` | - |
 | `facade` | `Unknown` | - |
 | `halls_count` | `Unknown` | - |
@@ -1117,37 +1095,38 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | `longitude` | `Unknown` | - |
 | `normalized_description` | `Unknown` | - |
 | `normalized_title` | `Unknown` | - |
-| `operation` | `OperationEnum` | cast |
-| `options` | `'array'` | cast |
+| `operation` | `Modules\Classifieds\Enums\OperationEnum` | cast |
+| `options` | `array` | cast |
 | `phone` | `Unknown` | - |
-| `price` | `'float'` | cast |
-| `property_type_id` | `Unknown` | foreign key candidate |
-| `region_id` | `Unknown` | foreign key candidate |
-| `show_price` | `'boolean'` | cast |
-| `status` | `AdvisementStatusEnum` | cast |
+| `price` | `float` | cast |
+| `property_type_id` | `Unknown` | - |
+| `region_id` | `Unknown` | - |
+| `show_price` | `boolean` | cast |
+| `status` | `Modules\Classifieds\Enums\AdvisementStatusEnum` | cast |
 | `street_type` | `Unknown` | - |
 | `street_width` | `Unknown` | - |
 | `title` | `Unknown` | - |
-| `user_id` | `Unknown` | foreign key candidate |
+| `user_id` | `Unknown` | - |
 | `user_type` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `category()` | `BelongsTo` | `PropertiyCategory` |
-| `propertyType()` | `BelongsTo` | `PropertyType` |
-| `city()` | `BelongsTo` | `City` |
-| `region()` | `BelongsTo` | `Region` |
-| `user()` | `MorphTo` | `(morph)` |
+| `category` | `BelongsTo` | `Modules\Catalog\Models\PropertiyCategory` |
+| `propertyType` | `BelongsTo` | `Modules\Catalog\Models\PropertyType` |
+| `city` | `BelongsTo` | `Modules\Geo\Models\City` |
+| `region` | `BelongsTo` | `Modules\Geo\Models\Region` |
+| `user` | `MorphTo` | `Modules\Classifieds\Models\PropertyAdvisement` |
+| `media` | `MorphMany` | `Spatie\MediaLibrary\MediaCollections\Models\Media` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `App\Support\HasNormalizedAttributes`
+- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `Spatie\MediaLibrary\InteractsWithMedia`
 
 ### Enums / class casts
-- `status` → `AdvisementStatusEnum`
-- `operation` → `OperationEnum`
+- `status` → `Modules\Classifieds\Enums\AdvisementStatusEnum`
+- `operation` → `Modules\Classifieds\Enums\OperationEnum`
 
 ---
 
@@ -1219,7 +1198,8 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| (none detected) | - | - |
+| `translation` | `HasOne` | `Modules\Cms\Models\PageTranslation` |
+| `translations` | `HasMany` | `Modules\Cms\Models\PageTranslation` |
 
 ### Traits
 - `Astrotomic\Translatable\Translatable`
@@ -1244,7 +1224,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `page()` | `BelongsTo` | `Page` |
+| `page` | `BelongsTo` | `Modules\Cms\Models\Page` |
 
 ### Traits
 - None detected
@@ -1263,12 +1243,13 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| _(none listed)_ | - | no `$fillable` / `casts()` detected |
+| (none in $fillable / notable casts) | - | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| (none detected) | - | - |
+| `translation` | `HasOne` | `Modules\Cms\Models\QuestionTranslation` |
+| `translations` | `HasMany` | `Modules\Cms\Models\QuestionTranslation` |
 
 ### Traits
 - `Astrotomic\Translatable\Translatable`
@@ -1293,7 +1274,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `question()` | `BelongsTo` | `Question` |
+| `question` | `BelongsTo` | `Modules\Cms\Models\Question` |
 
 ### Traits
 - None detected
@@ -1314,16 +1295,18 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `region_id` | `Unknown` | foreign key candidate |
+| `region_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `region()` | `BelongsTo` | `Region` |
+| `region` | `BelongsTo` | `Modules\Geo\Models\Region` |
+| `translation` | `HasOne` | `Modules\Geo\Models\CityTranslation` |
+| `translations` | `HasMany` | `Modules\Geo\Models\CityTranslation` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `Astrotomic\Translatable\Translatable`
+- `Illuminate\Database\Eloquent\Factories\HasFactory`
 
 ### Enums / class casts
 - None detected in casts
@@ -1339,7 +1322,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `city_id` | `Unknown` | foreign key candidate |
+| `city_id` | `Unknown` | - |
 | `locale` | `Unknown` | - |
 | `normalized_title` | `Unknown` | - |
 | `title` | `Unknown` | - |
@@ -1347,7 +1330,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `city()` | `BelongsTo` | `City` |
+| `city` | `BelongsTo` | `Modules\Geo\Models\City` |
 
 ### Traits
 - `App\Support\HasNormalizedAttributes`
@@ -1368,12 +1351,14 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 |---|---|---|
 | `code` | `Unknown` | - |
 | `icon` | `Unknown` | - |
-| `is_active` | `'boolean'` | cast |
+| `is_active` | `boolean` | cast |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `users()` | `HasMany` | `User` |
+| `users` | `HasMany` | `App\Models\User` |
+| `translation` | `HasOne` | `Modules\Geo\Models\NationalityTranslation` |
+| `translations` | `HasMany` | `Modules\Geo\Models\NationalityTranslation` |
 
 ### Traits
 - `Astrotomic\Translatable\Translatable`
@@ -1394,13 +1379,13 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 |---|---|---|
 | `locale` | `Unknown` | - |
 | `name` | `Unknown` | - |
-| `nationality_id` | `Unknown` | foreign key candidate |
+| `nationality_id` | `Unknown` | - |
 | `normalized_name` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `nationality()` | `BelongsTo` | `Nationality` |
+| `nationality` | `BelongsTo` | `Modules\Geo\Models\Nationality` |
 
 ### Traits
 - `App\Support\HasNormalizedAttributes`
@@ -1419,16 +1404,18 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| _(none listed)_ | - | no `$fillable` / `casts()` detected |
+| `` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `cities()` | `HasMany` | `City` |
+| `cities` | `HasMany` | `Modules\Geo\Models\City` |
+| `translation` | `HasOne` | `Modules\Geo\Models\RegionTranslation` |
+| `translations` | `HasMany` | `Modules\Geo\Models\RegionTranslation` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `Astrotomic\Translatable\Translatable`
+- `Illuminate\Database\Eloquent\Factories\HasFactory`
 
 ### Enums / class casts
 - None detected in casts
@@ -1446,13 +1433,13 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 |---|---|---|
 | `locale` | `Unknown` | - |
 | `normalized_title` | `Unknown` | - |
-| `region_id` | `Unknown` | foreign key candidate |
+| `region_id` | `Unknown` | - |
 | `title` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `region()` | `BelongsTo` | `Region` |
+| `region` | `BelongsTo` | `Modules\Geo\Models\Region` |
 
 ### Traits
 - `App\Support\HasNormalizedAttributes`
@@ -1473,32 +1460,32 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `authorization_type` | `AuthorizationTypeEnum` | cast |
+| `authorization_type` | `Unknown` | - |
 | `authorized_id_number` | `Unknown` | - |
 | `authorized_name` | `Unknown` | - |
-| `city_id` | `Unknown` | foreign key candidate |
+| `city_id` | `Unknown` | - |
 | `commercial_register` | `Unknown` | - |
 | `company_name` | `Unknown` | - |
-| `counterparty_account_holder` | `'encrypted'` | cast |
-| `counterparty_iban` | `'encrypted'` | cast |
-| `guarantor_request_id` | `Unknown` | foreign key candidate |
-| `region_id` | `Unknown` | foreign key candidate |
-| `requester_account_holder` | `'encrypted'` | cast |
-| `requester_iban` | `'encrypted'` | cast |
+| `counterparty_account_holder` | `Unknown` | - |
+| `counterparty_iban` | `Unknown` | - |
+| `guarantor_request_id` | `Unknown` | - |
+| `region_id` | `Unknown` | - |
+| `requester_account_holder` | `Unknown` | - |
+| `requester_iban` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `guarantorRequest()` | `BelongsTo` | `GuarantorRequest` |
-| `region()` | `BelongsTo` | `Region` |
-| `city()` | `BelongsTo` | `City` |
+| `guarantorRequest` | `BelongsTo` | `Modules\Guarantor\Models\GuarantorRequest` |
+| `region` | `BelongsTo` | `Modules\Geo\Models\Region` |
+| `city` | `BelongsTo` | `Modules\Geo\Models\City` |
+| `media` | `MorphMany` | `Spatie\MediaLibrary\MediaCollections\Models\Media` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
 - `Spatie\MediaLibrary\InteractsWithMedia`
 
 ### Enums / class casts
-- `authorization_type` → `AuthorizationTypeEnum`
+- None detected in casts
 
 ---
 
@@ -1511,26 +1498,25 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `amount` | `'decimal:2'` | cast |
-| `due_date` | `'date'` | cast |
-| `guarantor_request_id` | `Unknown` | foreign key candidate |
+| `amount` | `Unknown` | - |
+| `due_date` | `Unknown` | - |
+| `guarantor_request_id` | `Unknown` | - |
 | `order` | `Unknown` | - |
-| `overdue_notified_at` | `'datetime'` | cast |
-| `paid_at` | `'datetime'` | cast |
-| `released_at` | `'datetime'` | cast |
-| `status` | `InstallmentStatusEnum` | cast |
+| `overdue_notified_at` | `Unknown` | - |
+| `paid_at` | `Unknown` | - |
+| `released_at` | `Unknown` | - |
+| `status` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `guarantorRequest()` | `BelongsTo` | `GuarantorRequest` |
+| `guarantorRequest` | `BelongsTo` | `Modules\Guarantor\Models\GuarantorRequest` |
 
 ### Traits
 - `Illuminate\Database\Eloquent\Factories\HasFactory`
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
 
 ### Enums / class casts
-- `status` → `InstallmentStatusEnum`
+- None detected in casts
 
 ---
 
@@ -1544,45 +1530,43 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Field | Type | Notes |
 |---|---|---|
 | `admin_notes` | `Unknown` | - |
-| `amount` | `'decimal:2'` | cast |
+| `amount` | `Unknown` | - |
 | `cancellation_reason` | `Unknown` | - |
-| `cancelled_at` | `'datetime'` | cast |
-| `counterparty_id` | `Unknown` | foreign key candidate |
+| `cancelled_at` | `Unknown` | - |
+| `counterparty_id` | `Unknown` | - |
 | `counterparty_type` | `Unknown` | - |
 | `description` | `Unknown` | - |
-| `ended_at` | `'datetime'` | cast |
-| `fees` | `'decimal:2'` | cast |
-| `overdue_at` | `'datetime'` | cast |
+| `ended_at` | `Unknown` | - |
+| `fees` | `Unknown` | - |
+| `overdue_at` | `Unknown` | - |
 | `project_type` | `Unknown` | - |
-| `refunded_at` | `'datetime'` | cast |
-| `rejected_at` | `'datetime'` | cast |
-| `requester_id` | `Unknown` | foreign key candidate |
+| `refunded_at` | `Unknown` | - |
+| `rejected_at` | `Unknown` | - |
+| `requester_id` | `Unknown` | - |
 | `requester_signature` | `Unknown` | - |
 | `requester_type` | `Unknown` | - |
-| `status` | `GuarantorStatusEnum` | cast |
+| `status` | `Unknown` | - |
 | `title` | `Unknown` | - |
-| `total` | `'decimal:2'` | cast (not in $fillable) |
-| `type` | `GuarantorTypeEnum` | cast |
+| `type` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `requester()` | `MorphTo` | `(morph)` |
-| `counterparty()` | `MorphTo` | `(morph)` |
-| `installments()` | `HasMany` | `GuarantorInstallment` |
-| `companyDetail()` | `HasOne` | `GuarantorCompanyDetail` |
-| `statusHistories()` | `HasMany` | `GuarantorStatusHistory` |
-| `conversation()` | `MorphOne` | `Conversation` |
+| `requester` | `MorphTo` | `Modules\Guarantor\Models\GuarantorRequest` |
+| `counterparty` | `MorphTo` | `Modules\Guarantor\Models\GuarantorRequest` |
+| `installments` | `HasMany` | `Modules\Guarantor\Models\GuarantorInstallment` |
+| `companyDetail` | `HasOne` | `Modules\Guarantor\Models\GuarantorCompanyDetail` |
+| `statusHistories` | `HasMany` | `Modules\Guarantor\Models\GuarantorStatusHistory` |
+| `conversation` | `MorphOne` | `Modules\Chat\Models\Conversation` |
+| `media` | `MorphMany` | `Spatie\MediaLibrary\MediaCollections\Models\Media` |
 
 ### Traits
 - `Illuminate\Database\Eloquent\Factories\HasFactory`
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
-- `Spatie\MediaLibrary\InteractsWithMedia`
 - `Illuminate\Database\Eloquent\SoftDeletes`
+- `Spatie\MediaLibrary\InteractsWithMedia`
 
 ### Enums / class casts
-- `status` → `GuarantorStatusEnum`
-- `type` → `GuarantorTypeEnum`
+- None detected in casts
 
 ---
 
@@ -1595,10 +1579,10 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `actor_id` | `Unknown` | foreign key candidate |
+| `actor_id` | `Unknown` | - |
 | `actor_type` | `Unknown` | - |
 | `from_status` | `Unknown` | - |
-| `guarantor_request_id` | `Unknown` | foreign key candidate |
+| `guarantor_request_id` | `Unknown` | - |
 | `notes` | `Unknown` | - |
 | `reason` | `Unknown` | - |
 | `to_status` | `Unknown` | - |
@@ -1606,11 +1590,11 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `guarantorRequest()` | `BelongsTo` | `GuarantorRequest` |
-| `actor()` | `MorphTo` | `(morph)` |
+| `guarantorRequest` | `BelongsTo` | `Modules\Guarantor\Models\GuarantorRequest` |
+| `actor` | `MorphTo` | `Modules\Guarantor\Models\GuarantorStatusHistory` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
+- None detected
 
 ### Enums / class casts
 - None detected in casts
@@ -1628,33 +1612,34 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `city_id` | `Unknown` | foreign key candidate |
+| `city_id` | `Unknown` | - |
 | `contact_number` | `Unknown` | - |
 | `description` | `Unknown` | - |
 | `expected_salary` | `Unknown` | - |
-| `expired_at` | `'datetime'` | cast |
-| `nationality_id` | `Unknown` | foreign key candidate |
-| `region_id` | `Unknown` | foreign key candidate |
+| `expired_at` | `Unknown` | - |
+| `nationality_id` | `Unknown` | - |
+| `region_id` | `Unknown` | - |
 | `title` | `Unknown` | - |
-| `type` | `JobTypeEnum` | cast |
-| `user_id` | `Unknown` | foreign key candidate |
+| `type` | `Unknown` | - |
+| `user_id` | `Unknown` | - |
 | `user_type` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `user()` | `MorphTo` | `(morph)` |
-| `city()` | `BelongsTo` | `City` |
-| `region()` | `BelongsTo` | `Region` |
-| `nationality()` | `BelongsTo` | `Nationality` |
-| `jobOfferSkills()` | `HasMany` | `JobOfferSkill` |
-| `skills()` | `BelongsToMany` | `Skill` |
+| `user` | `MorphTo` | `Modules\Jobs\Models\JobOffer` |
+| `city` | `BelongsTo` | `Modules\Geo\Models\City` |
+| `region` | `BelongsTo` | `Modules\Geo\Models\Region` |
+| `nationality` | `BelongsTo` | `Modules\Geo\Models\Nationality` |
+| `jobOfferSkills` | `HasMany` | `Modules\Jobs\Models\JobOfferSkill` |
+| `skills` | `BelongsToMany` | `Modules\Marketplace\Models\Skill` |
+| `media` | `MorphMany` | `Spatie\MediaLibrary\MediaCollections\Models\Media` |
 
 ### Traits
 - `Spatie\MediaLibrary\InteractsWithMedia`
 
 ### Enums / class casts
-- `type` → `JobTypeEnum`
+- None detected in casts
 
 ---
 
@@ -1667,14 +1652,14 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `job_offer_id` | `Unknown` | foreign key candidate |
-| `skill_id` | `Unknown` | foreign key candidate |
+| `job_offer_id` | `Unknown` | - |
+| `skill_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `jobOffer()` | `BelongsTo` | `JobOffer` |
-| `skill()` | `BelongsTo` | `Skill` |
+| `jobOffer` | `BelongsTo` | `Modules\Jobs\Models\JobOffer` |
+| `skill` | `BelongsTo` | `Modules\Marketplace\Models\Skill` |
 
 ### Traits
 - None detected
@@ -1696,27 +1681,29 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Field | Type | Notes |
 |---|---|---|
 | `fees` | `Unknown` | - |
-| `fees_type` | `CategoryFeesTypeEnum` | cast |
+| `fees_type` | `App\Enums\CategoryFeesTypeEnum` | cast |
 | `icon` | `Unknown` | - |
-| `parent_id` | `Unknown` | foreign key candidate |
+| `parent_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `parent()` | `BelongsTo` | `self` |
-| `children()` | `HasMany` | `self` |
-| `childrenRecursive()` | `HasMany` | `self` |
-| `skills()` | `HasMany` | `Skill` |
-| `categorySkills()` | `HasMany` | `CategorySkill` |
-| `providerSkills()` | `HasManyThrough` | `Skill` |
-| `providerTypes()` | `BelongsToMany` | `ProviderType` |
+| `parent` | `BelongsTo` | `Modules\Marketplace\Models\Category` |
+| `children` | `HasMany` | `Modules\Marketplace\Models\Category` |
+| `childrenRecursive` | `HasMany` | `Modules\Marketplace\Models\Category` |
+| `skills` | `HasMany` | `Modules\Marketplace\Models\Skill` |
+| `categorySkills` | `HasMany` | `Modules\Marketplace\Models\CategorySkill` |
+| `providerSkills` | `HasManyThrough` | `Modules\Marketplace\Models\Skill` |
+| `providerTypes` | `BelongsToMany` | `Modules\Marketplace\Models\ProviderType` |
+| `translation` | `HasOne` | `Modules\Marketplace\Models\CategoryTranslation` |
+| `translations` | `HasMany` | `Modules\Marketplace\Models\CategoryTranslation` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Factories\HasFactory`
 - `Astrotomic\Translatable\Translatable`
+- `Illuminate\Database\Eloquent\Factories\HasFactory`
 
 ### Enums / class casts
-- `fees_type` → `CategoryFeesTypeEnum`
+- `fees_type` → `App\Enums\CategoryFeesTypeEnum`
 
 ---
 
@@ -1729,16 +1716,16 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `category_id` | `'integer'` | cast; foreign key candidate |
-| `provider_id` | `'integer'` | cast; foreign key candidate |
-| `skill_id` | `'integer'` | cast; foreign key candidate |
+| `category_id` | `integer` | cast |
+| `provider_id` | `integer` | cast |
+| `skill_id` | `integer` | cast |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `category()` | `BelongsTo` | `Category` |
-| `skill()` | `BelongsTo` | `Skill` |
-| `provider()` | `BelongsTo` | `Provider` |
+| `category` | `BelongsTo` | `Modules\Marketplace\Models\Category` |
+| `skill` | `BelongsTo` | `Modules\Marketplace\Models\Skill` |
+| `provider` | `BelongsTo` | `App\Models\Provider` |
 
 ### Traits
 - None detected
@@ -1765,7 +1752,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `category()` | `BelongsTo` | `Category` |
+| `category` | `BelongsTo` | `Modules\Marketplace\Models\Category` |
 
 ### Traits
 - `App\Support\HasNormalizedAttributes`
@@ -1784,14 +1771,14 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `category_id` | `'integer'` | cast; foreign key candidate |
-| `provider_id` | `'integer'` | cast; foreign key candidate |
+| `category_id` | `integer` | cast |
+| `provider_id` | `integer` | cast |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `category()` | `BelongsTo` | `Category` |
-| `provider()` | `BelongsTo` | `Provider` |
+| `category` | `BelongsTo` | `Modules\Marketplace\Models\Category` |
+| `provider` | `BelongsTo` | `App\Models\Provider` |
 
 ### Traits
 - None detected
@@ -1810,18 +1797,21 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `files` | `'array'` | cast |
+| `files` | `Unknown` | - |
 | `image` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `providers()` | `HasMany` | `Provider` |
-| `categories()` | `BelongsToMany` | `Category` |
+| `providers` | `HasMany` | `App\Models\Provider` |
+| `categories` | `BelongsToMany` | `Modules\Marketplace\Models\Category` |
+| `permissions` | `MorphToMany` | `Spatie\Permission\Models\Permission` |
+| `translation` | `HasOne` | `Modules\Marketplace\Models\ProviderTypeTranslation` |
+| `translations` | `HasMany` | `Modules\Marketplace\Models\ProviderTypeTranslation` |
 
 ### Traits
-- `Spatie\Permission\Traits\HasPermissions`
 - `Astrotomic\Translatable\Translatable`
+- `Spatie\Permission\Traits\HasPermissions`
 
 ### Enums / class casts
 - None detected in casts
@@ -1840,12 +1830,12 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | `description` | `Unknown` | - |
 | `locale` | `Unknown` | - |
 | `name` | `Unknown` | - |
-| `provider_type_id` | `Unknown` | foreign key candidate |
+| `provider_type_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `providerType()` | `BelongsTo` | `ProviderType` |
+| `providerType` | `BelongsTo` | `Modules\Marketplace\Models\ProviderType` |
 
 ### Traits
 - None detected
@@ -1864,12 +1854,14 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `category_id` | `Unknown` | foreign key candidate |
+| `category_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `category()` | `BelongsTo` | `Category` |
+| `category` | `BelongsTo` | `Modules\Marketplace\Models\Category` |
+| `translation` | `HasOne` | `Modules\Marketplace\Models\SkillTranslation` |
+| `translations` | `HasMany` | `Modules\Marketplace\Models\SkillTranslation` |
 
 ### Traits
 - `Astrotomic\Translatable\Translatable`
@@ -1890,13 +1882,13 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 |---|---|---|
 | `locale` | `Unknown` | - |
 | `normalized_title` | `Unknown` | - |
-| `skill_id` | `Unknown` | foreign key candidate |
+| `skill_id` | `Unknown` | - |
 | `title` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `skill()` | `BelongsTo` | `Skill` |
+| `skill` | `BelongsTo` | `Modules\Marketplace\Models\Skill` |
 
 ### Traits
 - `App\Support\HasNormalizedAttributes`
@@ -1917,38 +1909,38 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `accepted_offer_id` | `Unknown` | foreign key candidate |
-| `author_id` | `Unknown` | foreign key candidate |
+| `accepted_offer_id` | `Unknown` | - |
+| `author_id` | `Unknown` | - |
 | `author_type` | `Unknown` | - |
-| `budget` | `'decimal:2'` | cast |
-| `city_id` | `Unknown` | foreign key candidate |
+| `budget` | `Unknown` | - |
+| `city_id` | `Unknown` | - |
 | `description` | `Unknown` | - |
 | `email` | `Unknown` | - |
-| `expires_at` | `'datetime'` | cast |
+| `expires_at` | `Unknown` | - |
 | `phone` | `Unknown` | - |
-| `region_id` | `Unknown` | foreign key candidate |
-| `status` | `OpportunityStatusEnum` | cast |
+| `region_id` | `Unknown` | - |
+| `status` | `Unknown` | - |
 | `title` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `author()` | `MorphTo` | `(morph)` |
-| `offers()` | `HasMany` | `OpportunityOffer` |
-| `acceptedOffer()` | `BelongsTo` | `OpportunityOffer` |
-| `comments()` | `HasMany` | `OpportunityComment` |
-| `conversation()` | `MorphOne` | `Conversation` |
-| `region()` | `BelongsTo` | `Region` |
-| `city()` | `BelongsTo` | `City` |
+| `author` | `MorphTo` | `Modules\Opportunity\Models\Opportunity` |
+| `offers` | `HasMany` | `Modules\Opportunity\Models\OpportunityOffer` |
+| `acceptedOffer` | `BelongsTo` | `Modules\Opportunity\Models\OpportunityOffer` |
+| `comments` | `HasMany` | `Modules\Opportunity\Models\OpportunityComment` |
+| `conversation` | `MorphOne` | `Modules\Chat\Models\Conversation` |
+| `region` | `BelongsTo` | `Modules\Geo\Models\Region` |
+| `city` | `BelongsTo` | `Modules\Geo\Models\City` |
+| `media` | `MorphMany` | `Spatie\MediaLibrary\MediaCollections\Models\Media` |
 
 ### Traits
 - `Illuminate\Database\Eloquent\Factories\HasFactory`
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
-- `Spatie\MediaLibrary\InteractsWithMedia`
 - `Illuminate\Database\Eloquent\SoftDeletes`
+- `Spatie\MediaLibrary\InteractsWithMedia`
 
 ### Enums / class casts
-- `status` → `OpportunityStatusEnum`
+- None detected in casts
 
 ---
 
@@ -1961,20 +1953,19 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `author_id` | `Unknown` | foreign key candidate |
+| `author_id` | `Unknown` | - |
 | `author_type` | `Unknown` | - |
 | `body` | `Unknown` | - |
-| `opportunity_id` | `Unknown` | foreign key candidate |
+| `opportunity_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `opportunity()` | `BelongsTo` | `Opportunity` |
-| `author()` | `MorphTo` | `(morph)` |
+| `opportunity` | `BelongsTo` | `Modules\Opportunity\Models\Opportunity` |
+| `author` | `MorphTo` | `Modules\Opportunity\Models\OpportunityComment` |
 
 ### Traits
 - `Illuminate\Database\Eloquent\Factories\HasFactory`
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
 - `Illuminate\Database\Eloquent\SoftDeletes`
 
 ### Enums / class casts
@@ -1991,26 +1982,25 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `author_id` | `Unknown` | foreign key candidate |
+| `author_id` | `Unknown` | - |
 | `author_type` | `Unknown` | - |
 | `description` | `Unknown` | - |
-| `opportunity_id` | `Unknown` | foreign key candidate |
-| `price` | `'decimal:2'` | cast |
-| `status` | `OfferStatusEnum` | cast |
+| `opportunity_id` | `Unknown` | - |
+| `price` | `Unknown` | - |
+| `status` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `opportunity()` | `BelongsTo` | `Opportunity` |
-| `author()` | `MorphTo` | `(morph)` |
+| `opportunity` | `BelongsTo` | `Modules\Opportunity\Models\Opportunity` |
+| `author` | `MorphTo` | `Modules\Opportunity\Models\OpportunityOffer` |
 
 ### Traits
 - `Illuminate\Database\Eloquent\Factories\HasFactory`
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
 - `Illuminate\Database\Eloquent\SoftDeletes`
 
 ### Enums / class casts
-- `status` → `OfferStatusEnum`
+- None detected in casts
 
 ---
 
@@ -2025,48 +2015,49 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `accepted_offer_id` | `Unknown` | foreign key candidate |
+| `accepted_offer_id` | `Unknown` | - |
 | `budget_end` | `Unknown` | - |
 | `budget_start` | `Unknown` | - |
-| `category_id` | `Unknown` | foreign key candidate |
-| `city_id` | `Unknown` | foreign key candidate |
+| `category_id` | `Unknown` | - |
+| `city_id` | `Unknown` | - |
 | `description` | `Unknown` | - |
 | `expected_time` | `Unknown` | - |
 | `price` | `Unknown` | - |
 | `provider_fees` | `Unknown` | - |
-| `provider_id` | `Unknown` | foreign key candidate |
+| `provider_id` | `Unknown` | - |
 | `provider_total` | `Unknown` | - |
-| `region_id` | `Unknown` | foreign key candidate |
-| `status` | `OrderStatusEnum` | cast |
+| `region_id` | `Unknown` | - |
+| `status` | `Unknown` | - |
 | `title` | `Unknown` | - |
 | `total_fees` | `Unknown` | - |
 | `user_fees` | `Unknown` | - |
-| `user_id` | `Unknown` | foreign key candidate |
+| `user_id` | `Unknown` | - |
 | `user_total` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `user()` | `BelongsTo` | `User` |
-| `provider()` | `BelongsTo` | `Provider` |
-| `category()` | `BelongsTo` | `Category` |
-| `offers()` | `HasMany` | `OrderOffer` |
-| `histories()` | `HasMany` | `OrderStatusHistory` |
-| `acceptedOffer()` | `BelongsTo` | `OrderOffer` |
-| `city()` | `BelongsTo` | `City` |
-| `region()` | `BelongsTo` | `Region` |
-| `orderSkills()` | `HasMany` | `OrderSkill` |
-| `skills()` | `BelongsToMany` | `Skill` |
-| `conversation()` | `MorphOne` | `Conversation` |
+| `user` | `BelongsTo` | `App\Models\User` |
+| `provider` | `BelongsTo` | `App\Models\Provider` |
+| `category` | `BelongsTo` | `Modules\Marketplace\Models\Category` |
+| `offers` | `HasMany` | `Modules\Orders\Models\OrderOffer` |
+| `histories` | `HasMany` | `Modules\Orders\Models\OrderStatusHistory` |
+| `acceptedOffer` | `BelongsTo` | `Modules\Orders\Models\OrderOffer` |
+| `city` | `BelongsTo` | `Modules\Geo\Models\City` |
+| `region` | `BelongsTo` | `Modules\Geo\Models\Region` |
+| `orderSkills` | `HasMany` | `Modules\Orders\Models\OrderSkill` |
+| `skills` | `BelongsToMany` | `Modules\Marketplace\Models\Skill` |
+| `conversation` | `MorphOne` | `Modules\Chat\Models\Conversation` |
+| `media` | `MorphMany` | `Spatie\MediaLibrary\MediaCollections\Models\Media` |
+| `reviews` | `MorphMany` | `Modules\Reviews\Models\Review` |
 
 ### Traits
 - `Illuminate\Database\Eloquent\Factories\HasFactory`
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
+- `Modules\Reviews\Concerns\Reviewable`
 - `Spatie\MediaLibrary\InteractsWithMedia`
-- `App\Traits\Reviewable`
 
 ### Enums / class casts
-- `status` → `OrderStatusEnum`
+- None detected in casts
 
 ---
 
@@ -2079,27 +2070,27 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `category_id` | `Unknown` | foreign key candidate |
+| `category_id` | `Unknown` | - |
 | `description` | `Unknown` | - |
-| `order_id` | `Unknown` | foreign key candidate |
+| `order_id` | `Unknown` | - |
 | `price` | `Unknown` | - |
-| `provider_id` | `Unknown` | foreign key candidate |
-| `status` | `OfferStatusEnum` | cast |
-| `user_id` | `Unknown` | foreign key candidate |
+| `provider_id` | `Unknown` | - |
+| `status` | `Unknown` | - |
+| `user_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `order()` | `BelongsTo` | `Order` |
-| `user()` | `BelongsTo` | `User` |
-| `provider()` | `BelongsTo` | `Provider` |
-| `histories()` | `HasMany` | `OrderOfferHistory` |
+| `order` | `BelongsTo` | `Modules\Orders\Models\Order` |
+| `user` | `BelongsTo` | `App\Models\User` |
+| `provider` | `BelongsTo` | `App\Models\Provider` |
+| `histories` | `HasMany` | `Modules\Orders\Models\OrderOfferHistory` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
+- None detected
 
 ### Enums / class casts
-- `status` → `OfferStatusEnum`
+- None detected in casts
 
 ---
 
@@ -2113,22 +2104,22 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Field | Type | Notes |
 |---|---|---|
 | `description` | `Unknown` | - |
-| `order_id` | `Unknown` | foreign key candidate |
-| `order_offer_id` | `Unknown` | foreign key candidate |
+| `order_id` | `Unknown` | - |
+| `order_offer_id` | `Unknown` | - |
 | `price` | `Unknown` | - |
-| `status` | `OfferStatusEnum` | cast |
+| `status` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `order()` | `BelongsTo` | `Order` |
-| `orderOffer()` | `BelongsTo` | `OrderOffer` |
+| `order` | `BelongsTo` | `Modules\Orders\Models\Order` |
+| `orderOffer` | `BelongsTo` | `Modules\Orders\Models\OrderOffer` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
+- None detected
 
 ### Enums / class casts
-- `status` → `OfferStatusEnum`
+- None detected in casts
 
 ---
 
@@ -2141,7 +2132,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| _(none listed)_ | - | no `$fillable` / `casts()` detected |
+| (none in $fillable / notable casts) | - | - |
 
 ### Relationships
 | Method | Type | Related Model |
@@ -2165,19 +2156,19 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `order_id` | `Unknown` | foreign key candidate |
-| `status` | `OrderStatusEnum` | cast |
+| `order_id` | `Unknown` | - |
+| `status` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `order()` | `BelongsTo` | `Order` |
+| `order` | `BelongsTo` | `Modules\Orders\Models\Order` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
+- None detected
 
 ### Enums / class casts
-- `status` → `OrderStatusEnum`
+- None detected in casts
 
 ---
 
@@ -2195,28 +2186,96 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | `amount` | `Unknown` | - |
 | `driver` | `Unknown` | - |
 | `message` | `Unknown` | - |
-| `product_id` | `Unknown` | foreign key candidate |
+| `product_id` | `Unknown` | - |
 | `product_type` | `Unknown` | - |
-| `request` | `'array'` | cast |
-| `response` | `'array'` | cast |
-| `status` | `PaymentStatusEnum` | cast |
-| `transaction_id` | `Unknown` | foreign key candidate |
+| `request` | `array` | cast |
+| `response` | `array` | cast |
+| `status` | `Modules\Payment\Enums\PaymentStatusEnum` | cast |
+| `transaction_id` | `Unknown` | - |
 | `url` | `Unknown` | - |
-| `user_id` | `Unknown` | foreign key candidate |
+| `user_id` | `Unknown` | - |
 | `user_type` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `user()` | `MorphTo` | `(morph)` |
-| `product()` | `MorphTo` | `(morph)` |
+| `user` | `MorphTo` | `Modules\Payment\Models\Payment` |
+| `product` | `MorphTo` | `Modules\Payment\Models\Payment` |
 
 ### Traits
 - `Illuminate\Database\Eloquent\Factories\HasFactory`
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
 
 ### Enums / class casts
-- `status` → `PaymentStatusEnum`
+- `status` → `Modules\Payment\Enums\PaymentStatusEnum`
+
+---
+
+# Reviews
+
+## Model: Review
+
+**Namespace:** `Modules\Reviews\Models`  
+**Table:** `reviews`  
+**File:** `Modules/Reviews/Models/Review.php`
+
+### Fields
+| Field | Type | Notes |
+|---|---|---|
+| `comment` | `Unknown` | - |
+| `operation_id` | `Unknown` | - |
+| `operation_type` | `Unknown` | - |
+| `rating` | `Unknown` | - |
+| `reviewee_id` | `Unknown` | - |
+| `reviewee_type` | `Unknown` | - |
+| `reviewer_id` | `Unknown` | - |
+| `reviewer_type` | `Unknown` | - |
+
+### Relationships
+| Method | Type | Related Model |
+|---|---|---|
+| `reviewer` | `MorphTo` | (polymorphic reviewer) |
+| `reviewee` | `MorphTo` | (polymorphic reviewee) |
+| `operation` | `MorphTo` | (polymorphic operation, e.g. Order) |
+
+### Traits
+- None detected
+
+### Enums / class casts
+- None detected in casts
+
+**Notes:** Consumed via `Modules\Reviews\Concerns\HasReviews` on `User` / `Provider`. Dashboard routes under `Modules/Reviews/Routes/dashboard.php`. Nested on `ProviderResource` (contract: `ProviderReviewApiContractTest`).
+
+---
+
+# Settings
+
+## Model: Setting
+
+**Namespace:** `Modules\Settings\Models`  
+**Table:** `settings`  
+**File:** `Modules/Settings/Models/Setting.php`
+
+### Fields
+| Field | Type | Notes |
+|---|---|---|
+| `content` | `Unknown` | - |
+| `group` | `Modules\Settings\Enums\SettingGroupEnum` | cast |
+| `is_public` | `'boolean'` | cast |
+| `key` | `Unknown` | - |
+
+### Relationships
+| Method | Type | Related Model |
+|---|---|---|
+| (none detected) | - | - |
+
+### Traits
+- None detected
+
+### Enums / class casts
+- `group` → `Modules\Settings\Enums\SettingGroupEnum`
+- `is_public` → `boolean`
+
+**Notes:** Public catalog endpoint `GET /api/v1/catalog/settings` via `Modules\Settings\Http\Controllers\Api\V1\SettingController` (returns public settings only).
 
 ---
 
@@ -2232,25 +2291,25 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | Field | Type | Notes |
 |---|---|---|
 | `message` | `Unknown` | - |
-| `operation_id` | `Unknown` | foreign key candidate |
+| `operation_id` | `Unknown` | - |
 | `operation_type` | `Unknown` | - |
-| `status` | `TicketSupportStatusEnum` | cast |
+| `status` | `Unknown` | - |
 | `title` | `Unknown` | - |
-| `user_id` | `Unknown` | foreign key candidate |
+| `user_id` | `Unknown` | - |
 | `user_type` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `user()` | `MorphTo` | `(morph)` |
-| `operation()` | `MorphTo` | `(morph)` |
-| `chat()` | `MorphOne` | `Conversation` |
+| `user` | `MorphTo` | `Modules\Support\Models\TicketSupport` |
+| `operation` | `MorphTo` | `Modules\Support\Models\TicketSupport` |
+| `chat` | `MorphOne` | `Modules\Chat\Models\Conversation` |
 
 ### Traits
 - `Illuminate\Database\Eloquent\Factories\HasFactory`
 
 ### Enums / class casts
-- `status` → `TicketSupportStatusEnum`
+- None detected in casts
 
 ---
 
@@ -2265,36 +2324,33 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `admin_id` | `Unknown` | foreign key candidate |
+| `admin_id` | `Unknown` | - |
 | `admin_notes` | `Unknown` | - |
 | `amount` | `Unknown` | - |
 | `payment_driver` | `Unknown` | - |
-| `payment_method` | `PaymentMethodEnum` | cast |
-| `payment_status` | `PaymentStatusEnum` | cast |
-| `status` | `OperationStatusEnum` | cast |
-| `transaction_id` | `Unknown` | foreign key candidate |
+| `payment_method` | `Unknown` | - |
+| `payment_status` | `Unknown` | - |
+| `status` | `Unknown` | - |
+| `transaction_id` | `Unknown` | - |
 | `transaction_image` | `Unknown` | - |
-| `user_id` | `Unknown` | foreign key candidate |
+| `user_id` | `Unknown` | - |
 | `user_notes` | `Unknown` | - |
 | `user_type` | `Unknown` | - |
-| `wallet_id` | `Unknown` | foreign key candidate |
+| `wallet_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `user()` | `MorphTo` | `(morph)` |
-| `wallet()` | `BelongsTo` | `Wallet` |
-| `admin()` | `BelongsTo` | `Admin` |
-| `payment()` | `MorphOne` | `Payment` |
+| `user` | `MorphTo` | `Modules\Wallet\Models\TopUpRequest` |
+| `wallet` | `BelongsTo` | `Modules\Wallet\Models\Wallet` |
+| `admin` | `BelongsTo` | `App\Models\Admin` |
+| `payment` | `MorphOne` | `Modules\Payment\Models\Payment` |
 
 ### Traits
 - `Illuminate\Database\Eloquent\Factories\HasFactory`
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
 
 ### Enums / class casts
-- `payment_method` → `PaymentMethodEnum`
-- `payment_status` → `PaymentStatusEnum`
-- `status` → `OperationStatusEnum`
+- None detected in casts
 
 ---
 
@@ -2314,14 +2370,14 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | `pending_debit` | `Unknown` | - |
 | `total_earning` | `Unknown` | - |
 | `total_spent` | `Unknown` | - |
-| `user_id` | `Unknown` | foreign key candidate |
+| `user_id` | `Unknown` | - |
 | `user_type` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `transactions()` | `HasMany` | `WalletTransaction` |
-| `user()` | `MorphTo` | `(morph)` |
+| `transactions` | `HasMany` | `Modules\Wallet\Models\WalletTransaction` |
+| `user` | `MorphTo` | `Modules\Wallet\Models\Wallet` |
 
 ### Traits
 - None detected
@@ -2345,24 +2401,24 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | `credit` | `Unknown` | - |
 | `debit` | `Unknown` | - |
 | `description` | `Unknown` | - |
-| `operation_id` | `Unknown` | foreign key candidate |
+| `operation_id` | `Unknown` | - |
 | `operation_type` | `Unknown` | - |
-| `payment_id` | `Unknown` | foreign key candidate |
+| `payment_id` | `Unknown` | - |
 | `pending_credit` | `Unknown` | - |
 | `pending_debit` | `Unknown` | - |
-| `user_id` | `Unknown` | foreign key candidate |
+| `user_id` | `Unknown` | - |
 | `user_type` | `Unknown` | - |
-| `wallet_id` | `Unknown` | foreign key candidate |
+| `wallet_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `operation()` | `MorphTo` | `(morph)` |
-| `wallet()` | `BelongsTo` | `Wallet` |
-| `user()` | `MorphTo` | `(morph)` |
+| `operation` | `MorphTo` | `Modules\Wallet\Models\WalletTransaction` |
+| `wallet` | `BelongsTo` | `Modules\Wallet\Models\Wallet` |
+| `user` | `MorphTo` | `Modules\Wallet\Models\WalletTransaction` |
 
 ### Traits
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
+- None detected
 
 ### Enums / class casts
 - None detected in casts
@@ -2378,27 +2434,27 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 ### Fields
 | Field | Type | Notes |
 |---|---|---|
-| `admin_id` | `Unknown` | foreign key candidate |
+| `admin_id` | `Unknown` | - |
 | `admin_notes` | `Unknown` | - |
 | `amount` | `Unknown` | - |
-| `status` | `OperationStatusEnum` | cast |
-| `user_id` | `Unknown` | foreign key candidate |
+| `status` | `Unknown` | - |
+| `user_id` | `Unknown` | - |
 | `user_notes` | `Unknown` | - |
 | `user_type` | `Unknown` | - |
-| `wallet_id` | `Unknown` | foreign key candidate |
+| `wallet_id` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
-| `user()` | `MorphTo` | `(morph)` |
-| `wallet()` | `BelongsTo` | `Wallet` |
-| `admin()` | `BelongsTo` | `Admin` |
+| `user` | `MorphTo` | `Modules\Wallet\Models\WithdrawRequest` |
+| `wallet` | `BelongsTo` | `Modules\Wallet\Models\Wallet` |
+| `admin` | `BelongsTo` | `App\Models\Admin` |
 
 ### Traits
 - `Illuminate\Database\Eloquent\Factories\HasFactory`
-- `Illuminate\Database\Eloquent\Concerns\HasUuids`
 
 ### Enums / class casts
-- `status` → `OperationStatusEnum`
+- None detected in casts
 
 ---
+
