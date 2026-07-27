@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Contracts\OTPS;
+namespace App\Contracts\Auth;
 
 use App\Enums\Auth\OtpPurposeEnum;
 use App\Models\Otp;

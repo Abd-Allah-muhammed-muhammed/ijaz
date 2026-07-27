@@ -2,8 +2,8 @@
 
 namespace App\Actions\Auth\User;
 
+use App\Contracts\Auth\HasOTPsContract;
 use App\Contracts\Auth\OtpRepositoryInterface;
-use App\Contracts\OTPS\HasOTPsContract;
 use App\DTOs\Auth\OtpVerifyResult;
 use App\Enums\Auth\OtpPurposeEnum;
 use App\Http\Resources\Api\V1\User\UserResource;

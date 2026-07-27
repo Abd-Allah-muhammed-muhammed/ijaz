@@ -3,7 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Contracts\OTPS\HasOTPsContract;
+use App\Contracts\Auth\HasOTPsContract;
 use App\Enums\Users\UserStatusEnum;
 use App\Services\Firebase\Contract\InteractWithFirebase;
 use App\Services\Firebase\DTO\Target;
