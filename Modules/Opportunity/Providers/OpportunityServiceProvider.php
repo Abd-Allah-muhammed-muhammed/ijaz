@@ -19,6 +19,9 @@ use Modules\Opportunity\Policies\OpportunityPolicy;
 use Modules\Opportunity\Repositories\OpportunityCommentRepository;
 use Modules\Opportunity\Repositories\OpportunityOfferRepository;
 use Modules\Opportunity\Repositories\OpportunityRepository;
+use Modules\Opportunity\Services\CommentService;
+use Modules\Opportunity\Services\OfferService;
+use Modules\Opportunity\Services\OpportunityService;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class OpportunityServiceProvider extends ModuleServiceProvider
@@ -56,5 +59,9 @@ class OpportunityServiceProvider extends ModuleServiceProvider
         $this->app->bind(OpportunityRepositoryInterface::class, OpportunityRepository::class);
         $this->app->bind(OpportunityOfferRepositoryInterface::class, OpportunityOfferRepository::class);
         $this->app->bind(OpportunityCommentRepositoryInterface::class, OpportunityCommentRepository::class);
+
+        $this->app->bind(OpportunityService::class, OpportunityService::class);
+        $this->app->bind(OfferService::class, OfferService::class);
+        $this->app->bind(CommentService::class, CommentService::class);
     }
 }

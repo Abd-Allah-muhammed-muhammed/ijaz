@@ -72,4 +72,9 @@ class OpportunityRepository implements OpportunityRepositoryInterface
             ->with(['author'])
             ->lazyById($chunkSize);
     }
+
+    public function delete(Opportunity $opportunity): void
+    {
+        $opportunity->delete();
+    }
 }

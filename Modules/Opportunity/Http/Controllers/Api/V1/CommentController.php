@@ -7,8 +7,6 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
-use Modules\Opportunity\Actions\Comment\AddCommentAction;
-use Modules\Opportunity\Contracts\Repositories\OpportunityCommentRepositoryInterface;
 use Modules\Opportunity\DTOs\CommentData;
 use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Http\Controllers\Concerns\AuthorizesOpportunityRequests;
@@ -17,6 +15,7 @@ use Modules\Opportunity\Http\Resources\CommentCollection;
 use Modules\Opportunity\Http\Resources\CommentResource;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityComment;
+use Modules\Opportunity\Services\CommentService;
 use Throwable;
 
 #[Group('Opportunity Comments')]
@@ -26,8 +25,7 @@ class CommentController extends Controller
     use HasApiResponse;
 
     public function __construct(
-        private readonly OpportunityCommentRepositoryInterface $comments,
-        private readonly AddCommentAction $addCommentAction,
+        private readonly CommentService $service,
     ) {}
 
     /**
@@ -63,7 +61,7 @@ class CommentController extends Controller
     {
         return $this->successResponse(
             CommentCollection::make(
-                $this->comments->listByOpportunity($opportunity, $request->integer('per_page', 10))
+                $this->service->listByOpportunity($opportunity, $request->integer('per_page', 10))
             )
         );
     }
@@ -98,7 +96,7 @@ class CommentController extends Controller
             $this->authorize('create', [OpportunityComment::class, $opportunity]);
 
             $data = CommentData::fromRequest($request);
-            $comment = $this->addCommentAction->handle($opportunity, $data, auth()->user());
+            $comment = $this->service->add($opportunity, $data, auth()->user());
 
             return $this->successResponse(CommentResource::make($comment));
         } catch (OpportunityException $e) {
@@ -133,7 +131,7 @@ class CommentController extends Controller
     {
         $this->authorizeOrFail('delete', [$comment, $opportunity], 'opportunity.unauthorized');
 
-        $comment->delete();
+        $this->service->delete($comment);
 
         return $this->successMessageResponse(__('opportunity.comment_deleted_successfully'));
     }

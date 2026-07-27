@@ -14,4 +14,6 @@ interface OpportunityCommentRepositoryInterface
     public function create(array $data): OpportunityComment;
 
     public function listByOpportunity(Opportunity $opportunity, int $perPage = 10): LengthAwarePaginator;
+
+    public function delete(OpportunityComment $comment): void;
 }

@@ -7,10 +7,6 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
-use Modules\Opportunity\Actions\Offer\AcceptOfferAction;
-use Modules\Opportunity\Actions\Offer\RejectOfferAction;
-use Modules\Opportunity\Actions\Offer\SubmitOfferAction;
-use Modules\Opportunity\Contracts\Repositories\OpportunityOfferRepositoryInterface;
 use Modules\Opportunity\DTOs\OfferData;
 use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Http\Controllers\Concerns\AuthorizesOpportunityRequests;
@@ -20,6 +16,7 @@ use Modules\Opportunity\Http\Resources\OfferResource;
 use Modules\Opportunity\Http\Resources\OpportunityResource;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityOffer;
+use Modules\Opportunity\Services\OfferService;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
@@ -31,10 +28,7 @@ class OfferController extends Controller
     use HasApiResponse;
 
     public function __construct(
-        private readonly OpportunityOfferRepositoryInterface $offers,
-        private readonly SubmitOfferAction $submitOfferAction,
-        private readonly AcceptOfferAction $acceptOfferAction,
-        private readonly RejectOfferAction $rejectOfferAction,
+        private readonly OfferService $service,
     ) {}
 
     /**
@@ -72,7 +66,7 @@ class OfferController extends Controller
     {
         return $this->successResponse(
             OfferCollection::make(
-                $this->offers->listByOpportunity($opportunity, auth()->user(), $request->integer('per_page', 10))
+                $this->service->listByOpportunity($opportunity, auth()->user(), $request->integer('per_page', 10))
             )
         );
     }
@@ -117,7 +111,7 @@ class OfferController extends Controller
             $this->authorizeOrFail('create', [OpportunityOffer::class, $opportunity], 'opportunity.cannot_submit_offer_non_new', 422);
 
             $data = OfferData::fromRequest($request);
-            $offer = $this->submitOfferAction->handle($opportunity, $data, auth()->user());
+            $offer = $this->service->submit($opportunity, $data, auth()->user());
 
             return $this->successResponse(OfferResource::make($offer));
         } catch (OpportunityException $e) {
@@ -172,7 +166,7 @@ class OfferController extends Controller
             $this->authorizeOrFail('update', $opportunity, 'opportunity.unauthorized');
             $this->authorizeOrFail('acceptOffer', [$opportunity, $offer], 'opportunity.cannot_accept_offer', 422);
 
-            $opportunity = $this->acceptOfferAction->handle($opportunity, $offer);
+            $opportunity = $this->service->accept($opportunity, $offer);
 
             return $this->successResponse(OpportunityResource::make($opportunity));
         } catch (OpportunityException $e) {
@@ -215,7 +209,7 @@ class OfferController extends Controller
             $this->authorizeOrFail('update', $opportunity, 'opportunity.unauthorized');
             $this->authorizeOrFail('rejectOffer', [$opportunity, $offer], 'opportunity.offer_not_belong_to_opportunity');
 
-            $this->rejectOfferAction->handle($opportunity, $offer);
+            $this->service->reject($opportunity, $offer);
 
             return $this->successMessageResponse(__('opportunity.offer_rejected_successfully'));
         } catch (OpportunityException $e) {

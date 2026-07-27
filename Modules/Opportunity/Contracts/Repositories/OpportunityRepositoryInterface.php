@@ -29,4 +29,6 @@ interface OpportunityRepositoryInterface
     public function paginateForDashboard(Request $request): LengthAwarePaginator;
 
     public function getExpired(int $chunkSize = 100): LazyCollection;
+
+    public function delete(Opportunity $opportunity): void;
 }

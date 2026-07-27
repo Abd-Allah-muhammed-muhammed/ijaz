@@ -63,7 +63,7 @@ class OpportunityController extends Controller implements HasMiddleware
 
     public function destroy(Opportunity $opportunity): RedirectResponse
     {
-        $opportunity->delete();
+        $this->service->deleteForDashboard($opportunity);
 
         return back()->with('success', __('opportunity.deleted_successfully'));
     }
