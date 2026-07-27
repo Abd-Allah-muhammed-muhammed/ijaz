@@ -5,6 +5,7 @@ namespace Modules\Wallet\Services;
 use App\Enums\OperationStatusEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Modules\Wallet\DTOs\CreateWithdrawData;
 use Modules\Wallet\Exceptions\InsufficientBalanceException;
 use Modules\Wallet\Exceptions\WalletException;
@@ -62,6 +63,39 @@ class WithdrawRequestService
         );
 
         $withdrawRequest->delete();
+    }
+
+    /**
+     * Admin dashboard approve/reject. Always finalizes the pending debit hold
+     * (approve also debits balance; reject only clears pending).
+     */
+    public function updateStatusForDashboard(
+        WithdrawRequest $withdrawRequest,
+        string $status,
+        ?string $adminNotes,
+        int $adminId,
+    ): WithdrawRequest {
+        if ($withdrawRequest->status !== OperationStatusEnum::Pending) {
+            throw new WalletException('you can not update this withdraw request status');
+        }
+
+        $approved = $status === OperationStatusEnum::Approved->value;
+
+        return DB::transaction(function () use ($withdrawRequest, $status, $adminNotes, $adminId, $approved): WithdrawRequest {
+            $withdrawRequest->update([
+                'status' => $status,
+                'admin_notes' => $adminNotes,
+                'admin_id' => $adminId,
+            ]);
+
+            $this->walletService->finalizeWithdraw(
+                owner: $withdrawRequest->user,
+                request: $withdrawRequest,
+                approved: $approved,
+            );
+
+            return $withdrawRequest;
+        });
     }
 
     public function listForOwner(Model $owner, int $perPage = 16): LengthAwarePaginator

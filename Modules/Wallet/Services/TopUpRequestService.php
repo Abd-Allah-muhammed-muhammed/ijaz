@@ -5,6 +5,7 @@ namespace Modules\Wallet\Services;
 use App\Enums\OperationStatusEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Modules\Payment\DTOs\PaymentInitResult;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Services\PaymentService;
@@ -16,6 +17,7 @@ class TopUpRequestService
 {
     public function __construct(
         private readonly PaymentService $paymentService,
+        private readonly WalletService $walletService,
     ) {}
 
     /**
@@ -69,6 +71,43 @@ class TopUpRequestService
         }
 
         $topUpRequest->delete();
+    }
+
+    /**
+     * Admin dashboard approve/reject. Credits wallet only for Approved + Offline
+     * (online credit is handled by HandleTopUpPaymentCompleted).
+     */
+    public function updateStatusForDashboard(
+        TopUpRequest $topUpRequest,
+        string $status,
+        ?string $adminNotes,
+        int $adminId,
+    ): TopUpRequest {
+        if ($topUpRequest->status !== OperationStatusEnum::Pending) {
+            throw new WalletException('you can not update this top up request status');
+        }
+
+        return DB::transaction(function () use ($topUpRequest, $status, $adminNotes, $adminId): TopUpRequest {
+            $topUpRequest->update([
+                'status' => $status,
+                'admin_notes' => $adminNotes,
+                'admin_id' => $adminId,
+            ]);
+
+            if (
+                $topUpRequest->status === OperationStatusEnum::Approved
+                && $topUpRequest->payment_method->isOffline()
+            ) {
+                $this->walletService->credit(
+                    owner: $topUpRequest->user,
+                    amount: $topUpRequest->amount,
+                    operation: $topUpRequest,
+                    description: "Offline top-up approved #{$topUpRequest->id}",
+                );
+            }
+
+            return $topUpRequest;
+        });
     }
 
     public function listForOwner(Model $owner, int $perPage = 16): LengthAwarePaginator
