@@ -29,7 +29,7 @@
 
 When your change affects architecture or behavior, update docs in the same PR:
 
-- `PROJECT_CONTEXT.md` for architecture and conventions
+- `docs/PROJECT_CONTEXT.md` for architecture and conventions
 - `docs/API_INVENTORY.md` for endpoint or payload changes
 - `docs/MODELS_REFERENCE.md` for model changes
 - `docs/ENUMS_REFERENCE.md` for enum/case changes

@@ -10,12 +10,12 @@ This is the entry-point map of the Ijaz codebase after the modularization and cl
 
 | Doc | Purpose |
 |---|---|
-| **[docs/API_INVENTORY.md](docs/API_INVENTORY.md)** | All **151** `api/*` routes: method, URI, controller namespace, auth, FormRequest, Resources |
-| **[docs/MODELS_REFERENCE.md](docs/MODELS_REFERENCE.md)** | All **72** Eloquent models (App Core + Modules), fields, relations, traits, enum casts |
-| **[docs/ENUMS_REFERENCE.md](docs/ENUMS_REFERENCE.md)** | All **31** enums, cases, backing types, model cast usage, utility traits |
-| **[.cursor/rules/layered-architecture.mdc](.cursor/rules/layered-architecture.mdc)** | **Authoritative** Controller → Service → Action → Repository / DTO / FormRequest rules |
-| **[docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](docs/DEFERRED_MOBILE_BREAKING_CHANGES.md)** | Mobile-breaking items deliberately deferred until post-MVP (15/8) |
-| **[modules_statuses.json](modules_statuses.json)** | Enabled nwidart modules (all **16** currently `true`) |
+| **[docs/API_INVENTORY.md](API_INVENTORY.md)** | All **151** `api/*` routes: method, URI, controller namespace, auth, FormRequest, Resources |
+| **[docs/MODELS_REFERENCE.md](MODELS_REFERENCE.md)** | All **72** Eloquent models (App Core + Modules), fields, relations, traits, enum casts |
+| **[docs/ENUMS_REFERENCE.md](ENUMS_REFERENCE.md)** | All **31** enums, cases, backing types, model cast usage, utility traits |
+| **[.cursor/rules/layered-architecture.mdc](../.cursor/rules/layered-architecture.mdc)** | **Authoritative** Controller → Service → Action → Repository / DTO / FormRequest rules |
+| **[docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](DEFERRED_MOBILE_BREAKING_CHANGES.md)** | Mobile-breaking items deliberately deferred until post-MVP (15/8) |
+| **[modules_statuses.json](../modules_statuses.json)** | Enabled nwidart modules (all **16** currently `true`) |
 
 ---
 
@@ -152,7 +152,7 @@ Typical module layout: `Actions/`, `Services/`, `Repositories/`, `Contracts/`, `
 
 ## 5 — Architecture (mandatory)
 
-**Authoritative rule:** [`.cursor/rules/layered-architecture.mdc`](.cursor/rules/layered-architecture.mdc)
+**Authoritative rule:** [`.cursor/rules/layered-architecture.mdc`](../.cursor/rules/layered-architecture.mdc)
 
 ```
 Controller → Service → Action → Repository / DTO / Contracts
@@ -189,7 +189,7 @@ Shared notification shape: `App\Notifications\DomainNotification` — used by Or
 
 > The old “Known Issues” list in pre-extraction docs is **resolved** (recoverable from git history if needed).
 
-**Open mobile-breaking work lives in [docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](docs/DEFERRED_MOBILE_BREAKING_CHANGES.md)** — revisit after MVP ship (**15/8**). Do not land these on v1 without mobile coordination / versioning.
+**Open mobile-breaking work lives in [docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](DEFERRED_MOBILE_BREAKING_CHANGES.md)** — revisit after MVP ship (**15/8**). Do not land these on v1 without mobile coordination / versioning.
 
 | # | Item | Why deferred |
 |---|---|---|
@@ -255,11 +255,11 @@ For exact inventory numbers and shapes, prefer the three reference docs over thi
 | Change | Update |
 |---|---|
 | New module added / enabled, or a domain moves between `app/` and `Modules/` | This file §4 + `modules_statuses.json` |
-| Layering rule or exception established | **Only** [`.cursor/rules/layered-architecture.mdc`](.cursor/rules/layered-architecture.mdc) (link from here if needed) |
-| New / changed API endpoint or response shape | [docs/API_INVENTORY.md](docs/API_INVENTORY.md) (regen from `route:list --json` preferred) |
-| Model / relation / trait / enum cast change | [docs/MODELS_REFERENCE.md](docs/MODELS_REFERENCE.md) |
-| Enum cases or new enum | [docs/ENUMS_REFERENCE.md](docs/ENUMS_REFERENCE.md) |
-| Deferred mobile item fixed or newly deferred | [docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](docs/DEFERRED_MOBILE_BREAKING_CHANGES.md) + Known Issues §7 here |
+| Layering rule or exception established | **Only** [`.cursor/rules/layered-architecture.mdc`](../.cursor/rules/layered-architecture.mdc) (link from here if needed) |
+| New / changed API endpoint or response shape | [docs/API_INVENTORY.md](API_INVENTORY.md) (regen from `route:list --json` preferred) |
+| Model / relation / trait / enum cast change | [docs/MODELS_REFERENCE.md](MODELS_REFERENCE.md) |
+| Enum cases or new enum | [docs/ENUMS_REFERENCE.md](ENUMS_REFERENCE.md) |
+| Deferred mobile item fixed or newly deferred | [docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](DEFERRED_MOBILE_BREAKING_CHANGES.md) + Known Issues §7 here |
 | Auth guard / actor model change | This file §3 |
 
 Keep this file as the **map**, not a second copy of the inventories. When in doubt, regenerate the specialized docs from the live codebase and only refresh the sections here that would otherwise go stale (structure, modules table, known issues, session summary).

@@ -25,7 +25,7 @@ class PropertyCategoryTranslation extends Model
      * model never populates `normalized_title` on save (unlike Specialization /
      * CarCategory / DeviceCategory / ElectronicBrand translations). Until a saving
      * hook (or equivalent) writes Normalize::make($title, $locale), Arabic-normalized
-     * PropertyCategory search will match nothing. See PROJECT_CONTEXT.md §7.
+     * PropertyCategory search will match nothing. See docs/PROJECT_CONTEXT.md §7.
      */
 
     public function propertyCategory(): BelongsTo

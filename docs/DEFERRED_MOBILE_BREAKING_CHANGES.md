@@ -186,7 +186,7 @@ Online top-up success responses expose payment-driver DTO fields at the top leve
 
 ### Current behavior
 
-`Modules/Wallet/Http/Controllers/V1/WalletController.php` (online success path):
+`Modules/Wallet/Http/Controllers/Api/V1/WalletController.php` (online success path):
 
 ```php
 return $this->successResponse([

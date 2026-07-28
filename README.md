@@ -35,7 +35,7 @@ Note: In this environment, Laravel Herd serves the app; no manual `php artisan s
 
 Start with:
 
-- [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md)
+- [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md)
 
 Detailed references:
 

@@ -2,7 +2,7 @@
 
 ## First — Always Do This
 
-At the start of every session, read `PROJECT_CONTEXT.md` in the project root.
+At the start of every session, read `docs/PROJECT_CONTEXT.md`.
 That file is the lean entry point for architecture, patterns, and conventions.
 For detailed information, refer to these specialized documentation files:
 
@@ -50,7 +50,7 @@ return $this->failedMessageResponse(__('messages.error'), 422);
 **Services & Actions**
 - If logic touches more than one model → extract to `app/Services/`
 - If logic is a single self-contained operation → extract to `app/Actions/`
-- Full reference in `PROJECT_CONTEXT.md` Section 6
+- Full reference in `docs/PROJECT_CONTEXT.md` Section 6
 
 ---
 
@@ -58,7 +58,7 @@ return $this->failedMessageResponse(__('messages.error'), 422);
 
 1. Tell me which existing files are relevant
 2. Check if a Service, Action, FormRequest, or Resource already exists for this
-3. If anything contradicts `PROJECT_CONTEXT.md`, flag it — don't silently work around it
+3. If anything contradicts `docs/PROJECT_CONTEXT.md`, flag it — don't silently work around it
 
 ---
 
@@ -80,7 +80,7 @@ Don't generate new code that repeats them:
 After any session that adds a model, endpoint, enum, service, or changes a pattern —
 remind me to update the relevant documentation files so they stay accurate:
 
-- Update **`PROJECT_CONTEXT.md`** if: architecture or conventions change
+- Update **`docs/PROJECT_CONTEXT.md`** if: architecture or conventions change
 - Update **`docs/API_INVENTORY.md`** if: endpoints are added/modified
 - Update **`docs/MODELS_REFERENCE.md`** if: models are added/modified
 - Update **`docs/ENUMS_REFERENCE.md`** if: enums are added or cases change
