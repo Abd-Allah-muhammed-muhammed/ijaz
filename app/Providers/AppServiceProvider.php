@@ -129,8 +129,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $apiPrefix = app(ApiVersionRegistry::class)->default()->prefix;
+
         Scramble::configure()
-            ->routes(static fn (Route $route): bool => str_starts_with($route->uri, 'api/v1/'))
+            ->routes(static function (Route $route) use ($apiPrefix): bool {
+                return str_starts_with($route->uri, $apiPrefix.'/');
+            })
             ->expose(ui: '/docs/api', document: '/docs/api.json')
             ->withDocumentTransformers(static function (OpenApi $openApi): void {
                 $openApi->secure(SecurityScheme::http('bearer'));

@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureAcceptJsonMiddleware;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LocalizationMiddleware;
+use App\Support\Api\ApiVersionRegistry;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -29,7 +30,6 @@ use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityComment;
 use Modules\Opportunity\Models\OpportunityOffer;
-use Nwidart\Modules\Facades\Module;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
@@ -46,29 +46,13 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('web')->group(base_path('routes/dashboard.php'));
             Route::middleware('web')->group(base_path('routes/provider.php'));
 
-            Route::middleware(config('modules.routes.api.middleware', ['api']))
-                ->prefix(config('modules.routes.api.prefix', 'api/v1'))
-                ->group(static function () {
-                    Route::group([], base_path('routes/api/V1/auth.php'));
-                    Route::group([], base_path('routes/api/V1/platform.php'));
+            $version = app(ApiVersionRegistry::class)->default();
 
-                    if (! config('modules.routes.enabled', false)) {
-                        return;
-                    }
-
-                    $apiRoutesFile = config('modules.routes.api.file', 'Routes/V1/api.php');
-                    $namePrefix = config('modules.routes.api.name', 'api.v1.');
-
-                    foreach (Module::allEnabled() as $module) {
-                        $moduleName = $module->getLowerName();
-                        $routesPath = module_path($module->getName(), $apiRoutesFile);
-
-                        if (! is_file($routesPath)) {
-                            continue;
-                        }
-
-                        Route::name($namePrefix.$moduleName.'.')->group($routesPath);
-                    }
+            Route::middleware(['api'])
+                ->prefix($version->prefix)
+                ->group(static function () use ($version) {
+                    Route::group([], base_path('routes/api/'.$version->folder.'/auth.php'));
+                    Route::group([], base_path('routes/api/'.$version->folder.'/platform.php'));
                 });
         }
     )
