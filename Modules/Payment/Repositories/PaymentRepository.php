@@ -3,6 +3,7 @@
 namespace Modules\Payment\Repositories;
 
 use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Payment\Contracts\Repositories\PaymentRepositoryInterface;
@@ -11,6 +12,14 @@ use Modules\Payment\Models\Payment;
 
 class PaymentRepository implements PaymentRepositoryInterface
 {
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    public function createForOwner(Model $owner, array $attributes): Payment
+    {
+        return $owner->payments()->create($attributes);
+    }
+
     public function sumAcceptedAmount(): float|int|string
     {
         return Payment::query()

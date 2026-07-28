@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Modules\Payment\Actions\GetAcceptedDailyTotalsSinceAction;
 use Modules\Payment\Actions\SumAcceptedPaymentsAction;
 use Modules\Payment\Contracts\PaymentGatewayInterface;
+use Modules\Payment\Contracts\Repositories\PaymentRepositoryInterface;
 use Modules\Payment\DTOs\PaymentInitResult;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use RuntimeException;
@@ -15,6 +16,7 @@ use RuntimeException;
 class PaymentService
 {
     public function __construct(
+        private readonly PaymentRepositoryInterface $repository,
         private readonly SumAcceptedPaymentsAction $sumAcceptedPaymentsAction,
         private readonly GetAcceptedDailyTotalsSinceAction $acceptedDailyTotalsAction,
     ) {}
@@ -32,7 +34,7 @@ class PaymentService
         $driver = $driver ?? $this->getDefaultDriver();
         $gateway = $this->resolveGateway($driver);
 
-        $payment = $owner->payments()->create([
+        $payment = $this->repository->createForOwner($owner, [
             'product_type' => $product::class,
             'product_id' => $product->getKey(),
             'amount' => $amount,
