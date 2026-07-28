@@ -4,9 +4,9 @@ namespace App\Support;
 
 use Illuminate\Support\Facades\Storage;
 
-trait HasStoredPublicFileUrl
+trait HasStoredFileUrl
 {
-    protected function storedPublicFileUrl(?string $path): ?string
+    protected function storedFileUrl(?string $path): ?string
     {
         if (blank($path)) {
             return $this->defaultImagePlaceholder();
@@ -17,7 +17,7 @@ trait HasStoredPublicFileUrl
 
     protected function storedFileDisk(): string
     {
-        return 'public';
+        return (string) config('filesystems.default');
     }
 
     protected function defaultImagePlaceholder(): ?string

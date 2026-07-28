@@ -13,6 +13,9 @@ trait HandlesTransactionalFileUpload
      * Store an optional upload, run DB work inside a transaction, delete the new
      * file on any failure, and delete a previous path only after a successful commit.
      *
+     * When $disk is null, uses config('filesystems.default'). Explicit disk arguments
+     * (e.g. disk: 'public') are unchanged.
+     *
      * @template TReturn
      *
      * @param  callable(?string $storedPath): TReturn  $dbWork
@@ -24,7 +27,7 @@ trait HandlesTransactionalFileUpload
         ?UploadedFile $file,
         string $directory,
         callable $dbWork,
-        ?string $disk = 'public',
+        ?string $disk = null,
         ?string $previousPath = null,
     ): mixed {
         $storedPath = null;
@@ -34,9 +37,7 @@ trait HandlesTransactionalFileUpload
             DB::beginTransaction();
 
             if ($file !== null) {
-                $storedPath = $disk === null
-                    ? $file->store($directory)
-                    : $file->store($directory, $disk);
+                $storedPath = $file->store($directory, $resolvedDisk);
             }
 
             $result = $dbWork($storedPath);
