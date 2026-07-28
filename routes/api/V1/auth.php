@@ -52,7 +52,7 @@ Route::group(['prefix' => 'user'], static function () {
         Route::post('register', 'register');
 
         // --- User API ---
-        Route::middleware(['auth:user-api', 'abilities:user-api'])->group(static function () {
+        Route::middleware(['auth:user-api'])->group(static function () {
             Route::post('profile/update', 'profileUpdate');
             Route::get('me', 'auth');
             Route::post('logout', 'logout');
@@ -60,7 +60,7 @@ Route::group(['prefix' => 'user'], static function () {
     });
 
     // --- Providers ---
-    Route::group(['middleware' => ['auth:user-api', 'abilities:user-api']], static function () {
+    Route::group(['middleware' => ['auth:user-api']], static function () {
         Route::group(['prefix' => 'providers', 'controller' => ProviderController::class], static function () {
             Route::get('/get', 'get');
         });

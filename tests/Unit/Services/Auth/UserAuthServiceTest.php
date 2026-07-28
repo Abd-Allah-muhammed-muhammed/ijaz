@@ -134,7 +134,7 @@ test('sendOtp stores code and dispatches sms', function () {
     expect($user->otps()->where('purpose', OtpPurposeEnum::Login)->exists())->toBeTrue();
 });
 
-test('verifyOtpSession issues user-api token and deletes the session', function () {
+test('verifyOtpSession issues full-access token and deletes the session', function () {
     $user = createUserAuthUser();
     $challenge = app(UserAuthService::class)->login('512345678');
     $otp = $user->otps()->where('purpose', OtpPurposeEnum::Login)->value('token');
@@ -144,7 +144,7 @@ test('verifyOtpSession issues user-api token and deletes the session', function 
     expect($result->success)->toBeTrue()
         ->and($result->accessToken)->not->toBe('')
         ->and($user->tokens()->where('name', 'user-app')->exists())->toBeTrue()
-        ->and($user->tokens()->first()->abilities)->toBe(['user-api'])
+        ->and($user->tokens()->first()->abilities)->toBe(['*'])
         ->and($user->otps()->where('purpose', OtpPurposeEnum::Login)->exists())->toBeFalse()
         ->and(OtpSession::query()->whereKey($challenge->verificationId)->exists())->toBeFalse();
 });
@@ -193,7 +193,7 @@ test('verifyOtpSession with wrong code returns invalid_code', function () {
 
 test('logout deletes all user tokens', function () {
     $user = createUserAuthUser();
-    $user->createToken('user-app', ['user-api']);
+    $user->createToken('user-app', ['*']);
     $this->actingAs($user, 'user-api');
 
     app(UserAuthService::class)->logout();

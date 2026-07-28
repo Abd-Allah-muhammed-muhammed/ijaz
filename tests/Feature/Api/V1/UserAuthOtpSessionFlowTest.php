@@ -142,7 +142,7 @@ test('verify with correct code deletes otp session and returns access_token + us
         ->and($user->fresh()->tokens()->count())->toBe(1);
 });
 
-test('the issued access_token has ability user-api, not wildcard *', function () {
+test('the issued access_token has full-access * ability', function () {
     $user = otpSessionActiveUser();
 
     $login = $this->postJson('/api/v1/user/auth/login', ['phone' => '512345678'])
@@ -161,8 +161,7 @@ test('the issued access_token has ability user-api, not wildcard *', function ()
     $token = $user->fresh()->tokens()->first();
 
     expect($token->name)->toBe('user-app')
-        ->and($token->abilities)->toBe(['user-api'])
-        ->and($token->abilities)->not->toContain('*');
+        ->and($token->abilities)->toBe(['*']);
 
     $this->withToken($accessToken)
         ->getJson('/api/v1/user/auth/me')

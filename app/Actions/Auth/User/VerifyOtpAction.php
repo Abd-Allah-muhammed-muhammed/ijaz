@@ -98,7 +98,7 @@ class VerifyOtpAction
         $this->otpRepository->deleteForSubject($user, $purpose);
 
         $user->tokens()->delete();
-        $plainTextToken = $user->createToken('user-app', ['user-api'])->plainTextToken;
+        $plainTextToken = $user->createToken('user-app', ['*'])->plainTextToken;
         $accessToken = explode('|', $plainTextToken)[1];
 
         $user->load(['nationality.translation']);
