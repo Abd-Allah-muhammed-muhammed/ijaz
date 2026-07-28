@@ -4,6 +4,7 @@ namespace Modules\Wallet\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Modules\Wallet\Actions\Withdraw\CancelWithdrawRequestAction;
 use Modules\Wallet\Actions\Withdraw\CreateWithdrawRequestAction;
 use Modules\Wallet\Actions\Withdraw\ListAllWithdrawRequestsAction;
@@ -24,11 +25,10 @@ class WithdrawRequestService
 
     /**
      * Create a withdraw request and hold pending debit.
-     * Caller must wrap in DB::transaction().
      */
     public function create(Model $owner, CreateWithdrawData $data): WithdrawRequest
     {
-        return $this->createAction->handle($owner, $data);
+        return DB::transaction(fn (): WithdrawRequest => $this->createAction->handle($owner, $data));
     }
 
     /**

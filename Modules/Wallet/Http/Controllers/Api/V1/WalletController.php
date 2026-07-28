@@ -6,9 +6,7 @@ use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use MMAE\ApiResponse\Traits\HasApiResponse;
-use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
 use Modules\Wallet\DTOs\CreateTopUpData;
 use Modules\Wallet\DTOs\CreateWithdrawData;
 use Modules\Wallet\Exceptions\InsufficientBalanceException;
@@ -33,7 +31,6 @@ class WalletController extends Controller
         private readonly WalletService $walletService,
         private readonly TopUpRequestService $topUpRequestService,
         private readonly WithdrawRequestService $withdrawRequestService,
-        private readonly WalletTransactionRepositoryInterface $transactionRepository,
     ) {}
 
     public function balance(Request $request): JsonResponse
@@ -56,10 +53,8 @@ class WalletController extends Controller
 
         $data = CreateTopUpData::fromRequest($request->validated(), $imagePath);
 
-        DB::beginTransaction();
         try {
             $result = $this->topUpRequestService->create($user, $data);
-            DB::commit();
 
             $topUpRequest = $result['topUpRequest'];
             $paymentResult = $result['paymentResult'];
@@ -90,7 +85,6 @@ class WalletController extends Controller
                 'message' => trans('top up request created successfully, waiting for admin approval'),
             ]);
         } catch (Throwable $e) {
-            DB::rollBack();
             report($e);
 
             return $this->failedMessageResponse(trans('something went wrong'));
@@ -102,10 +96,8 @@ class WalletController extends Controller
         $user = auth()->user();
         $data = CreateWithdrawData::fromRequest($request->validated());
 
-        DB::beginTransaction();
         try {
             $withdrawRequest = $this->withdrawRequestService->create($user, $data);
-            DB::commit();
 
             return $this->successResponse([
                 'status' => 'pending',
@@ -113,11 +105,8 @@ class WalletController extends Controller
                 'message' => trans('Withdraw request created successfully and is pending admin approval.'),
             ]);
         } catch (InsufficientBalanceException $e) {
-            DB::rollBack();
-
             return $this->failedMessageResponse(__("You can't withdraw this amount."));
         } catch (Throwable $e) {
-            DB::rollBack();
             report($e);
 
             return $this->failedMessageResponse(trans('something went wrong'));
@@ -131,7 +120,7 @@ class WalletController extends Controller
 
         return $this->successResponse(
             WalletTransactionCollection::make(
-                $this->transactionRepository->listForOwner(
+                $this->walletService->listTransactionsForOwner(
                     $user,
                     $request->integer('per_page', 10),
                     $request->input('data_from'),

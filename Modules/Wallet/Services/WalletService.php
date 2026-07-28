@@ -98,4 +98,13 @@ class WalletService
     {
         return $this->transactionRepo->paginateForWallet($wallet, $search, $perPage);
     }
+
+    public function listTransactionsForOwner(
+        Model $owner,
+        int $perPage,
+        ?string $dateFrom = null,
+        ?string $dateTo = null,
+    ): LengthAwarePaginator {
+        return $this->transactionRepo->listForOwner($owner, $perPage, $dateFrom, $dateTo);
+    }
 }

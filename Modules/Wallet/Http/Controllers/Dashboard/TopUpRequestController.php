@@ -5,6 +5,8 @@ namespace Modules\Wallet\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Payment\DTOs\PaymentResponse;
@@ -18,12 +20,20 @@ use Modules\Wallet\Http\Resources\Dashboard\TopUpResource;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Services\TopUpRequestService;
 
-class TopUpRequestController extends Controller
+class TopUpRequestController extends Controller implements HasMiddleware
 {
     public function __construct(
         private readonly TopUpRequestService $topUpRequestService,
         private readonly PaymentService $paymentService,
     ) {}
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:show topUpRequests', only: ['index', 'show']),
+            new Middleware('permission:edit topUpRequests', only: ['updateStatus']),
+        ];
+    }
 
     public function index(Request $request): Response
     {

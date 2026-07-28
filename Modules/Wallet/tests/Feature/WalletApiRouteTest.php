@@ -102,6 +102,124 @@ test('wallet addBalance response shape is unchanged', function () {
         ->and($data['data'])->toHaveKeys(['id', 'amount', 'status', 'payment_method']);
 });
 
+test('wallet balance API response shape is unchanged', function () {
+    $user = createWalletUser();
+    fundWallet($user, 250);
+    $user->wallet->update(['pending_credit' => 20, 'pending_debit' => 50]);
+    Sanctum::actingAs($user);
+
+    $data = $this->getJson(action([WalletController::class, 'balance']))
+        ->assertSuccessful()
+        ->json('data');
+
+    expect(array_keys($data))->toBe([
+        'balance',
+        'pending_credit',
+        'pending_debit',
+        'available',
+        'total_earning',
+        'total_spent',
+    ])
+        ->and($data['pending_credit'])->toBe(20)
+        ->and($data['pending_debit'])->toBe(50)
+        ->and($data['available'])->toBe(200);
+});
+
+test('wallet transactions API response shape is unchanged', function () {
+    $user = createWalletUser();
+    fundWallet($user, 100);
+    Sanctum::actingAs($user);
+
+    $data = $this->getJson(action([WalletController::class, 'transactions'], ['per_page' => 10]))
+        ->assertSuccessful()
+        ->json('data');
+
+    expect(array_keys($data))->toBe([
+        'items',
+        'total',
+        'count',
+        'per_page',
+        'current_page',
+        'last_page',
+        'has_more_pages',
+    ])
+        ->and($data['per_page'])->toBe(10)
+        ->and($data['current_page'])->toBe(1)
+        ->and($data['items'])->toBeArray()
+        ->and($data['items'])->not->toBeEmpty();
+
+    expect(array_keys($data['items'][0]))->toBe([
+        'id',
+        'credit',
+        'debit',
+        'pending_credit',
+        'pending_debit',
+        'balance_before',
+        'balance_after',
+        'description',
+        'operation_type',
+        'operation_id',
+        'created_at',
+    ]);
+});
+
+test('add-balance and withdraw response envelopes are byte-identical after refactor', function () {
+    Storage::fake('public');
+    $user = createWalletUser();
+    fundWallet($user, 400);
+    Sanctum::actingAs($user);
+
+    $online = $this->postJson(action([WalletController::class, 'addBalance']), [
+        'amount' => 100,
+        'payment_method' => PaymentMethodEnum::Online->value,
+        'payment_driver' => PaymentDriverEnum::Testing->value,
+    ])->assertSuccessful()->json('data');
+
+    expect(array_keys($online))->toBe([
+        'status',
+        'driver',
+        'url',
+        'payable',
+        'transaction_id',
+        'message',
+        'data',
+    ]);
+
+    $offline = $this->postJson(action([WalletController::class, 'addBalance']), [
+        'amount' => 80,
+        'payment_method' => PaymentMethodEnum::Offline->value,
+        'transaction_image' => UploadedFile::fake()->image('receipt.jpg'),
+    ])->assertSuccessful()->json('data');
+
+    expect(array_keys($offline))->toBe([
+        'status',
+        'transaction_id',
+        'driver',
+        'url',
+        'payable',
+        'data',
+        'message',
+    ])
+        ->and($offline['status'])->toBe('pending')
+        ->and($offline['transaction_id'])->toBe('')
+        ->and($offline['driver'])->toBe('offline')
+        ->and($offline['url'])->toBe('')
+        ->and($offline['payable'])->toBeFalse();
+
+    $withdraw = $this->postJson(action([WalletController::class, 'withdraw']), [
+        'amount' => 200,
+    ])->assertSuccessful()->json('data');
+
+    expect(array_keys($withdraw))->toBe([
+        'status',
+        'data',
+        'message',
+    ])
+        ->and($withdraw['status'])->toBe('pending')
+        ->and($withdraw['data'])->toBeArray()
+        ->and($withdraw['data'])->toHaveKeys(['id', 'amount', 'status', 'admin_notes', 'user_notes', 'created_at']);
+});
+
 test('user api top-up accepts payment_driver field', function () {
     $user = createWalletUser();
     Sanctum::actingAs($user);

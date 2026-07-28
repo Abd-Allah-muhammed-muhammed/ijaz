@@ -20,6 +20,7 @@ use Modules\Settings\Models\Setting;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Models\WithdrawRequest;
 use Modules\Wallet\Services\WalletService;
+use Spatie\Permission\Models\Permission;
 
 function createWalletUser(array $attributes = []): User
 {
@@ -50,15 +51,34 @@ function createWalletProvider(array $attributes = []): Provider
     ]);
 }
 
-function createWalletAdmin(): Admin
+/**
+ * @param  list<string>  $permissions
+ */
+function createWalletAdmin(array $permissions = [
+    'show topUpRequests',
+    'edit topUpRequests',
+    'show withdrawRequests',
+    'edit withdrawRequests',
+]): Admin
 {
-    return Admin::query()->create([
+    foreach ($permissions as $permission) {
+        Permission::firstOrCreate([
+            'name' => $permission,
+            'guard_name' => 'admin',
+        ]);
+    }
+
+    $admin = Admin::query()->create([
         'name' => 'Wallet Admin',
         'phone' => fake()->unique()->phoneNumber(),
         'email' => fake()->unique()->safeEmail(),
         'password' => 'password',
         'language' => 'en',
     ]);
+
+    $admin->givePermissionTo($permissions);
+
+    return $admin;
 }
 
 function createTopUpFor(Model $owner, array $attributes = []): TopUpRequest

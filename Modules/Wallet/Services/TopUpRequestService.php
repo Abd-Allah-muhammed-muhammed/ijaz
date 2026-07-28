@@ -4,6 +4,7 @@ namespace Modules\Wallet\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Modules\Payment\DTOs\PaymentInitResult;
 use Modules\Wallet\Actions\TopUp\CancelTopUpRequestAction;
 use Modules\Wallet\Actions\TopUp\CreateTopUpRequestAction;
@@ -25,13 +26,12 @@ class TopUpRequestService
 
     /**
      * Create a top-up request (online or offline).
-     * Caller must wrap in DB::transaction().
      *
      * @return array{topUpRequest: TopUpRequest, paymentResult: PaymentInitResult|null}
      */
     public function create(Model $owner, CreateTopUpData $data): array
     {
-        return $this->createAction->handle($owner, $data);
+        return DB::transaction(fn (): array => $this->createAction->handle($owner, $data));
     }
 
     public function cancel(TopUpRequest $topUpRequest): void

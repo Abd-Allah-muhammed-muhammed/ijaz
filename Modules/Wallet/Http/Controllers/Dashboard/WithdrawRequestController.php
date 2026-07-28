@@ -5,6 +5,8 @@ namespace Modules\Wallet\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Response;
 use Modules\Wallet\Exceptions\WalletException;
 use Modules\Wallet\Http\Requests\Dashboard\UpdateWithdrawStatusRequest;
@@ -13,11 +15,19 @@ use Modules\Wallet\Http\Resources\Dashboard\WithdrawResource;
 use Modules\Wallet\Models\WithdrawRequest;
 use Modules\Wallet\Services\WithdrawRequestService;
 
-class WithdrawRequestController extends Controller
+class WithdrawRequestController extends Controller implements HasMiddleware
 {
     public function __construct(
         private readonly WithdrawRequestService $withdrawRequestService,
     ) {}
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:show withdrawRequests', only: ['index', 'show']),
+            new Middleware('permission:edit withdrawRequests', only: ['updateStatus']),
+        ];
+    }
 
     public function index(Request $request): Response
     {
