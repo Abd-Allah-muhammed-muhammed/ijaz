@@ -1,4 +1,3 @@
-import {useIntl} from 'react-intl'
 import {SidebarMenuItem} from './SidebarMenuItem'
 import useActiveRoute from "@/hooks/use-active-route";
 import HomeController from "@/actions/App/Http/Controllers/Provider/HomeController";
@@ -11,7 +10,6 @@ import WithdrawController from '@/actions/Modules/Wallet/Http/Controllers/Provid
 import { useTranslation } from 'react-i18next';
 
 const SidebarMenuMain = () => {
-  const intl = useIntl()
   const {matchUrl, matchComponents} = useActiveRoute();
   const { t } = useTranslation();
   return (
