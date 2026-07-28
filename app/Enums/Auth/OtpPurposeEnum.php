@@ -10,6 +10,7 @@ enum OtpPurposeEnum: string
     use Collectable, Stringable;
 
     case Login = 'login';
+    case Register = 'register';
     case Phone = 'phone';
     case Email = 'email';
     case Password = 'password';
@@ -40,6 +41,19 @@ enum OtpPurposeEnum: string
             self::Login->value,
             self::PasswordReset->value,
             self::Phone->value,
+        ];
+    }
+
+    /**
+     * Purposes that use the public OtpSession challenge flow (login / register).
+     *
+     * @return list<self>
+     */
+    public static function sessionChallengeCases(): array
+    {
+        return [
+            self::Login,
+            self::Register,
         ];
     }
 }

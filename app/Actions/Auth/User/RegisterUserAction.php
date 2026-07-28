@@ -2,8 +2,10 @@
 
 namespace App\Actions\Auth\User;
 
+use App\Contracts\Auth\OtpSessionRepositoryInterface;
 use App\Contracts\Auth\UserRepositoryInterface;
 use App\DTOs\Auth\UserRegisterResult;
+use App\Enums\Auth\OtpPurposeEnum;
 use App\Support\Phone;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
@@ -14,15 +16,13 @@ class RegisterUserAction
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
         private readonly IssueOtpAction $issueOtpAction,
+        private readonly OtpSessionRepositoryInterface $otpSessionRepository,
+        private readonly BuildOtpChallengeAction $buildOtpChallengeAction,
     ) {}
 
     /**
-     * Handles phone normalization, image storage, user creation, OTP dispatch,
-     * short-lived token issuance, and nationality eager loading.
-     *
-     * Transaction handling stays at the Service level (UserAuthService::register
-     * wraps this in DB::transaction), matching the current controller's
-     * DB::beginTransaction/commit/rollBack wrapping.
+     * Create the user, open an OtpSession (purpose Register), send OTP, and
+     * return the same challenge shape as login — no Sanctum token, no user payload.
      *
      * @throws RandomException
      */
@@ -43,10 +43,17 @@ class RegisterUserAction
         }
 
         $user = $this->userRepository->create($validatedData);
-        $this->issueOtpAction->handle($user, 'login');
-        $token = explode('|', $user->createToken('login', [], now()->addMinutes(15))->plainTextToken)[1];
-        $user->load(['nationality.translation']);
 
-        return new UserRegisterResult(user: $user, token: $token);
+        $session = $this->otpSessionRepository->createForUser(
+            $user,
+            OtpPurposeEnum::Register,
+            (int) config('otp.session_ttl_minutes', 15),
+        );
+
+        $this->issueOtpAction->handle($user, OtpPurposeEnum::Register);
+
+        return UserRegisterResult::fromChallenge(
+            $this->buildOtpChallengeAction->handle($session, $user),
+        );
     }
 }

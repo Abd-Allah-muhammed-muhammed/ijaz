@@ -3,6 +3,7 @@
 use App\Enums\Auth\OtpPurposeEnum;
 use App\Enums\Users\UserStatusEnum;
 use App\Models\Otp;
+use App\Models\OtpSession;
 use App\Models\User;
 use App\Services\Auth\UserAuthService;
 use App\Support\Phone;
@@ -24,14 +25,17 @@ function createUserAuthUser(array $attributes = []): User
     ]);
 }
 
-test('login returns token for existing active user', function () {
+test('login returns verification challenge for existing active user', function () {
     $user = createUserAuthUser();
 
     $result = app(UserAuthService::class)->login('512345678');
 
     expect($result->success)->toBeTrue()
-        ->and($result->token)->not->toBe('')
-        ->and($user->otps()->where('purpose', OtpPurposeEnum::Login)->exists())->toBeTrue();
+        ->and($result->verificationId)->not->toBe('')
+        ->and($result->expiresIn)->toBeGreaterThan(0)
+        ->and($user->tokens()->count())->toBe(0)
+        ->and($user->otps()->where('purpose', OtpPurposeEnum::Login)->exists())->toBeTrue()
+        ->and(OtpSession::query()->where('user_id', $user->id)->exists())->toBeTrue();
 });
 
 test('login fails with user not found message when phone does not match', function () {
@@ -65,7 +69,7 @@ test('login fails with appropriate message for blocked user', function () {
         ->and($result->statusCode)->toBe(400);
 });
 
-test('register creates user, sends otp, returns token and user', function () {
+test('register creates user, sends otp, returns verification challenge without token', function () {
     Storage::fake('local');
 
     $result = app(UserAuthService::class)->register([
@@ -80,9 +84,12 @@ test('register creates user, sends otp, returns token and user', function () {
         'password' => null,
     ]);
 
-    expect($result->token)->not->toBe('')
-        ->and(User::where('email', 'jane.register@example.com')->exists())->toBeTrue()
-        ->and($result->user->otps()->where('purpose', OtpPurposeEnum::Login)->exists())->toBeTrue();
+    $user = User::where('email', 'jane.register@example.com')->first();
+
+    expect($result->verificationId)->not->toBe('')
+        ->and($user)->not->toBeNull()
+        ->and($user->tokens()->count())->toBe(0)
+        ->and($user->otps()->where('purpose', OtpPurposeEnum::Register)->exists())->toBeTrue();
 });
 
 test('register rolls back transaction on failure', function () {
@@ -107,7 +114,8 @@ test('register rolls back transaction on failure', function () {
     expect($register)->toThrow(RuntimeException::class);
 
     expect(User::where('email', 'rollback@example.com')->exists())->toBeFalse()
-        ->and(Otp::count())->toBe(0);
+        ->and(Otp::count())->toBe(0)
+        ->and(OtpSession::count())->toBe(0);
 });
 
 test('sendOtp stores code and dispatches sms', function () {
@@ -126,18 +134,19 @@ test('sendOtp stores code and dispatches sms', function () {
     expect($user->otps()->where('purpose', OtpPurposeEnum::Login)->exists())->toBeTrue();
 });
 
-test('verifyOtp for login type elevates to full-abilities token', function () {
+test('verifyOtpSession issues user-api token and deletes the session', function () {
     $user = createUserAuthUser();
-    $this->actingAs($user, 'user-api');
-    $user->updateOrCreateVerificationCode('1234', OtpPurposeEnum::Login);
+    $challenge = app(UserAuthService::class)->login('512345678');
+    $otp = $user->otps()->where('purpose', OtpPurposeEnum::Login)->value('token');
 
-    $result = app(UserAuthService::class)->verifyOtp('login', '1234');
+    $result = app(UserAuthService::class)->verifyOtpSession($challenge->verificationId, $otp);
 
-    expect($result)->not->toBeNull()
-        ->and($result->success)->toBeTrue()
-        ->and($result->token)->not->toBe('')
+    expect($result->success)->toBeTrue()
+        ->and($result->accessToken)->not->toBe('')
         ->and($user->tokens()->where('name', 'user-app')->exists())->toBeTrue()
-        ->and($user->otps()->where('purpose', OtpPurposeEnum::Login)->exists())->toBeFalse();
+        ->and($user->tokens()->first()->abilities)->toBe(['user-api'])
+        ->and($user->otps()->where('purpose', OtpPurposeEnum::Login)->exists())->toBeFalse()
+        ->and(OtpSession::query()->whereKey($challenge->verificationId)->exists())->toBeFalse();
 });
 
 test('verifyOtp for email type preserves current behavior (bool passed to getUserResource throws)', function () {
@@ -171,19 +180,20 @@ test('markPhoneAsVerified persists phone_verified_at timestamp', function () {
         ->and($user->fresh()->phone_verified_at)->not->toBeNull();
 });
 
-test('verifyOtp with wrong code returns failure result', function () {
+test('verifyOtpSession with wrong code returns invalid_code', function () {
     $user = createUserAuthUser();
-    $this->actingAs($user, 'user-api');
-    $user->updateOrCreateVerificationCode('1234', OtpPurposeEnum::Login);
+    $challenge = app(UserAuthService::class)->login('512345678');
 
-    $result = app(UserAuthService::class)->verifyOtp('login', '9999');
+    $result = app(UserAuthService::class)->verifyOtpSession($challenge->verificationId, '9999');
 
-    expect($result)->toBeNull();
+    expect($result->success)->toBeFalse()
+        ->and($result->errorCode)->toBe('invalid_code')
+        ->and($result->attemptsRemaining)->toBe((int) config('otp.max_verification_attempts') - 1);
 });
 
 test('logout deletes all user tokens', function () {
     $user = createUserAuthUser();
-    $user->createToken('user-app', ['*']);
+    $user->createToken('user-app', ['user-api']);
     $this->actingAs($user, 'user-api');
 
     app(UserAuthService::class)->logout();

@@ -16,5 +16,7 @@ interface OtpSessionRepositoryInterface
 
     public function deleteForUser(Model $user, OtpPurposeEnum $purpose): void;
 
+    public function extendExpiry(OtpSession $session, int $ttlMinutes): OtpSession;
+
     public function deleteExpired(): int;
 }

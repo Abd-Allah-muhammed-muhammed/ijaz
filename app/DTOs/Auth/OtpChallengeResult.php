@@ -3,10 +3,10 @@
 namespace App\DTOs\Auth;
 
 /**
- * @deprecated Use OtpChallengeResult — kept as a type alias name during the auth overhaul.
- * Login now returns OtpChallengeResult from UserAuthService::login().
+ * Shared login/register challenge payload after an OtpSession is created.
+ * Structurally identical for both flows — no Sanctum token, no user resource.
  */
-final readonly class UserLoginResult
+final readonly class OtpChallengeResult
 {
     public function __construct(
         public bool $success,
@@ -17,15 +17,13 @@ final readonly class UserLoginResult
         public int $statusCode = 200,
     ) {}
 
-    public static function fromChallenge(OtpChallengeResult $challenge): self
+    public static function success(string $verificationId, int $expiresIn, string $resendAvailableAt): self
     {
         return new self(
-            success: $challenge->success,
-            verificationId: $challenge->verificationId,
-            expiresIn: $challenge->expiresIn,
-            resendAvailableAt: $challenge->resendAvailableAt,
-            message: $challenge->message,
-            statusCode: $challenge->statusCode,
+            success: true,
+            verificationId: $verificationId,
+            expiresIn: $expiresIn,
+            resendAvailableAt: $resendAvailableAt,
         );
     }
 

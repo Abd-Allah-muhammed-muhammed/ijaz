@@ -8,7 +8,7 @@ test('otp verify phone type still returns success false in response', function (
     $user->updateOrCreateVerificationCode('1234', 'phone');
     Sanctum::actingAs($user);
 
-    $this->postJson('/api/v1/otp/verify', [
+    $this->postJson('/api/v1/otp/verify-purpose', [
         'type' => 'phone',
         'otp' => '1234',
     ])->assertOk()

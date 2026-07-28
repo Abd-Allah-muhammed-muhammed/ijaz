@@ -6,13 +6,19 @@ use App\Http\Controllers\Api\V1\User\AuthController;
 use App\Http\Controllers\Api\V1\User\ProviderController;
 use Illuminate\Support\Facades\Route;
 
-// Shared: routes requiring an authenticated Sanctum session (OTP + Account)
+// Public OTP session endpoints (login/register — no pre-auth Sanctum token)
+Route::group(['prefix' => 'otp', 'controller' => OtpController::class], static function () {
+    Route::post('verify', 'verify');
+    Route::post('resend', 'resend');
+});
+
+// Shared: routes requiring an authenticated Sanctum session
 Route::middleware('auth:sanctum')->group(static function () {
 
-    // --- OTP ---
+    // --- OTP (authenticated purpose send + phone/email verify) ---
     Route::group(['prefix' => 'otp', 'controller' => OtpController::class], static function () {
         Route::post('send', 'send');
-        Route::post('verify', 'verify');
+        Route::post('verify-purpose', 'verifyPurpose');
     });
 
     // --- Account (historical /api/v1/auth/* — NOT user login auth) ---

@@ -40,6 +40,15 @@ class OtpSessionRepository implements OtpSessionRepositoryInterface
             ->delete();
     }
 
+    public function extendExpiry(OtpSession $session, int $ttlMinutes): OtpSession
+    {
+        $session->forceFill([
+            'expires_at' => now()->addMinutes($ttlMinutes),
+        ])->save();
+
+        return $session->refresh();
+    }
+
     public function deleteExpired(): int
     {
         return OtpSession::query()

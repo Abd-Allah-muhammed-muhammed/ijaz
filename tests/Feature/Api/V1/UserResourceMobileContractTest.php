@@ -52,7 +52,7 @@ test('me endpoint freezes UserResource shape without nationality eager load', fu
         'longitude' => '46.6753',
     ]);
 
-    Sanctum::actingAs($user, ['*'], 'user-api');
+    Sanctum::actingAs($user, ['user-api'], 'user-api');
 
     $response = $this->getJson('/api/v1/user/auth/me')->assertOk();
     $json = $response->json();
@@ -94,19 +94,23 @@ test('me endpoint freezes UserResource shape without nationality eager load', fu
 });
 
 test('otp verify login freezes UserResource shape with nested nationality object', function () {
+    config(['sms.default' => 'testing']);
     $nationality = createUserResourceNationality();
 
     $user = User::factory()->create([
-        'phone' => '966512345678',
+        'phone' => Phone::make('512345678')->toString(),
         'nationality_id' => $nationality->id,
     ]);
-    $user->updateOrCreateVerificationCode('1234', 'login');
 
-    Sanctum::actingAs($user);
+    $challenge = $this->postJson('/api/v1/user/auth/login', ['phone' => '512345678'])
+        ->assertOk()
+        ->json('data');
+
+    $otp = $user->otps()->where('purpose', 'login')->value('token');
 
     $response = $this->postJson('/api/v1/otp/verify', [
-        'type' => 'login',
-        'otp' => '1234',
+        'verification_id' => $challenge['verification_id'],
+        'code' => $otp,
     ])->assertOk();
 
     $json = $response->json();
@@ -115,27 +119,26 @@ test('otp verify login freezes UserResource shape with nested nationality object
         ->and($json['success'])->toBeTrue()
         ->and($json['errors'])->toBe([])
         ->and($json['message'])->toBe('')
+        ->and($json['data']['access_token'])->toBeString()->not->toBeEmpty()
+        ->and($json['data']['token_type'])->toBe('Bearer')
         ->and($json['token'])->toBeString()->not->toBeEmpty();
 
     // `nationality` MUST be present — nationality.translation is loaded on this path.
-    expect(array_keys($json['data']))->toBe(userResourceKeysWithNationality())
-        ->and(array_keys($json['data']['nationality']))->toBe(['id', 'name']);
+    expect(array_keys($json['data']['user']))->toBe(userResourceKeysWithNationality())
+        ->and(array_keys($json['data']['user']['nationality']))->toBe(['id', 'name']);
 
-    $response->assertJsonPath('data.id', $user->id)
-        ->assertJsonPath('data.socket_id', 'user-'.$user->id)
-        ->assertJsonPath('data.nationality_id', $nationality->id)
-        ->assertJsonPath('data.nationality.id', $nationality->id)
-        ->assertJsonPath('data.nationality.name', 'Saudi EN');
+    $response->assertJsonPath('data.user.id', $user->id)
+        ->assertJsonPath('data.user.socket_id', 'user-'.$user->id)
+        ->assertJsonPath('data.user.nationality_id', $nationality->id)
+        ->assertJsonPath('data.user.nationality.id', $nationality->id)
+        ->assertJsonPath('data.user.nationality.name', 'Saudi EN');
 });
 
-test('register freezes UserResource shape with nested nationality object', function () {
+test('register returns otp challenge shape without user payload', function () {
     Storage::fake('public');
-    // .env pins SMS_DRIVER=orbit (real gateway); use the module's TestingGateway so
-    // registration's OTP dispatch never leaves the process (same precedent as SmsServiceTest).
     config(['sms.default' => 'testing']);
 
     $nationality = createUserResourceNationality();
-    $normalizedPhone = Phone::make('512345678')->toString();
 
     $response = $this->postJson('/api/v1/user/auth/register', [
         'f_name' => 'Jane',
@@ -155,22 +158,9 @@ test('register freezes UserResource shape with nested nationality object', funct
         ->and($json['success'])->toBeTrue()
         ->and($json['errors'])->toBe([])
         ->and($json['message'])->toBe('')
-        ->and($json['token'])->toBeString()->not->toBeEmpty();
-
-    expect(array_keys($json['data']))->toBe(userResourceKeysWithNationality())
-        ->and(array_keys($json['data']['nationality']))->toBe(['id', 'name']);
-
-    $response->assertJsonPath('data.name', 'Jane Doe')
-        ->assertJsonPath('data.f_name', 'Jane')
-        ->assertJsonPath('data.l_name', 'Doe')
-        ->assertJsonPath('data.phone', $normalizedPhone)
-        ->assertJsonPath('data.email', 'jane.register@example.com')
-        ->assertJsonPath('data.nationality_id', $nationality->id)
-        ->assertJsonPath('data.nationality.name', 'Saudi EN');
-
-    expect($json['data']['id'])->toBeInt()
-        ->and($json['data']['socket_id'])->toBe('user-'.$json['data']['id'])
-        ->and($json['data']['image'])->toBeString()->toContain('users/');
+        ->and($json['token'])->toBe('')
+        ->and(array_keys($json['data']))->toBe(['verification_id', 'expires_in', 'resend_available_at'])
+        ->and($json['data']['verification_id'])->toBeString()->not->toBeEmpty();
 });
 
 test('profile update freezes UserResource shape with nested nationality object', function () {
@@ -181,7 +171,7 @@ test('profile update freezes UserResource shape with nested nationality object',
         'nationality_id' => $nationality->id,
     ]);
 
-    Sanctum::actingAs($user, ['*'], 'user-api');
+    Sanctum::actingAs($user, ['user-api'], 'user-api');
 
     $response = $this->postJson('/api/v1/user/auth/profile/update', [
         'f_name' => 'Updated',

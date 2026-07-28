@@ -68,7 +68,7 @@ trait HasOTPs
 
         if ($token) {
             $this->tokens()->delete();
-            $plainTextToken = $this->createToken('user-app', ['*'])->plainTextToken;
+            $plainTextToken = $this->createToken('user-app', ['user-api'])->plainTextToken;
 
             return explode('|', $plainTextToken)[1];
         }

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Auth\User;
 
+use App\Contracts\Auth\OtpSessionRepositoryInterface;
 use App\Contracts\Auth\UserRepositoryInterface;
 use App\DTOs\Auth\UserLoginResult;
 use App\Enums\Auth\OtpPurposeEnum;
@@ -14,17 +15,13 @@ class LoginUserAction
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
         private readonly IssueOtpAction $issueOtpAction,
+        private readonly OtpSessionRepositoryInterface $otpSessionRepository,
+        private readonly BuildOtpChallengeAction $buildOtpChallengeAction,
     ) {}
 
     /**
-     * Reproduces AuthController::login() exactly: resolve user by phone, apply
-     * the status gate, then generate+store+send the OTP, purge existing tokens,
-     * and issue a 15-minute empty-abilities "login" token.
-     *
-     * Failure cases ("user not found" / status blocked) are returned as a
-     * discriminated UserLoginResult with the verbatim messages and 400 status
-     * the controller currently produces — not thrown — so the response shape is
-     * preserved without side effects.
+     * Resolve the user, gate on status, create an OtpSession, send OTP, and
+     * return a challenge payload (verification_id) — no Sanctum token.
      *
      * @throws RandomException
      */
@@ -47,11 +44,18 @@ class LoginUserAction
             return UserLoginResult::failure($message, 400);
         }
 
-        $this->issueOtpAction->handle($user, OtpPurposeEnum::Login);
-        $user->tokens()->delete();
+        $this->otpSessionRepository->deleteForUser($user, OtpPurposeEnum::Login);
 
-        return UserLoginResult::success(
-            explode('|', $user->createToken('login', [], now()->addMinutes(15))->plainTextToken)[1],
+        $session = $this->otpSessionRepository->createForUser(
+            $user,
+            OtpPurposeEnum::Login,
+            (int) config('otp.session_ttl_minutes', 15),
+        );
+
+        $this->issueOtpAction->handle($user, OtpPurposeEnum::Login);
+
+        return UserLoginResult::fromChallenge(
+            $this->buildOtpChallengeAction->handle($session, $user),
         );
     }
 }

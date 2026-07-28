@@ -27,6 +27,14 @@ class EnsureOtpCooldownAction
         );
     }
 
+    /**
+     * Seconds until a new OTP may be sent for this phone (0 = available now).
+     */
+    public function availableIn(string $normalizedPhone): int
+    {
+        return RateLimiter::availableIn($this->key($normalizedPhone));
+    }
+
     private function key(string $normalizedPhone): string
     {
         return 'otp-send:'.$normalizedPhone;

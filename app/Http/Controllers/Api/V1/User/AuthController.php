@@ -25,7 +25,7 @@ class AuthController extends Controller
     ) {}
 
     /**
-     * Authenticate a user and return a short-lived login token.
+     * Start a login OTP challenge (returns verification_id — no Sanctum token).
      *
      * @unauthenticated
      *
@@ -39,7 +39,7 @@ class AuthController extends Controller
             return $this->failedMessageResponse($result->message, $result->statusCode);
         }
 
-        return $this->successResponseWithToken([], $result->token);
+        return $this->successResponse($result->toData());
     }
 
     public function logout(): JsonResponse
@@ -50,7 +50,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Register a user account and return login token with user payload.
+     * Register and start an OTP challenge (same shape as login — no token / user payload).
      *
      * @unauthenticated
      *
@@ -71,10 +71,7 @@ class AuthController extends Controller
             );
         }
 
-        return $this->successResponseWithToken(
-            UserResource::make($result->user),
-            $result->token
-        );
+        return $this->successResponse($result->toData());
     }
 
     public function profileUpdate(UpdateRequest $request): JsonResponse
