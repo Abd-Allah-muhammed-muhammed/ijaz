@@ -34,6 +34,6 @@ class SupportServiceProvider extends ModuleServiceProvider
         parent::boot();
 
         $this->app->make(ChatTypeRegistry::class)
-            ->register(ChatTypeEnum::TicketSupport, new TicketSupportChatHandler);
+            ->register(ChatTypeEnum::TicketSupport, $this->app->make(TicketSupportChatHandler::class));
     }
 }

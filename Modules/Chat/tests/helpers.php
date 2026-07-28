@@ -3,6 +3,7 @@
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Models\Provider;
 use App\Models\User;
+use Modules\Chat\Contracts\Repositories\SystemRepositoryInterface;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\System;
 use Modules\Marketplace\Models\Category;
@@ -14,10 +15,8 @@ use Modules\Support\Models\TicketSupport;
 
 function ensureSystemExists(): System
 {
-    return System::query()->firstOrCreate(
-        ['id' => 1],
-        ['name' => 'System', 'online' => false],
-    );
+    return app(SystemRepositoryInterface::class)
+        ->findOrCreateDefault();
 }
 
 function createTestCategory(): Category

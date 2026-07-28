@@ -5,6 +5,8 @@ namespace Modules\Support\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Validation\Rules\Enum;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
@@ -17,12 +19,20 @@ use Modules\Support\Http\Resources\Dashboard\TicketSupportResource;
 use Modules\Support\Models\TicketSupport;
 use Modules\Support\Services\TicketSupportChatService;
 
-class SupportController extends Controller
+class SupportController extends Controller implements HasMiddleware
 {
     public function __construct(
         private readonly TicketSupportServiceInterface $service,
         private readonly TicketSupportChatService $chatService,
     ) {}
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:show supportTicket', only: ['index', 'show']),
+            new Middleware('permission:edit supportTicket', only: ['updateStatus', 'openChat']),
+        ];
+    }
 
     public function index(Request $request)
     {
@@ -44,14 +54,7 @@ class SupportController extends Controller
             'chat.user2',
         ]);
 
-        $messages = $ticket->chat
-            ? $ticket->chat->messages()
-                ->with(['attachments', 'sender'])
-                ->latest()
-                ->take(20)
-                ->get()
-                ->reverse()
-            : collect();
+        $messages = $this->chatService->listRecentMessages($ticket);
 
         return inertia('Dashboard/Tickets/Show', [
             'row' => fn () => TicketSupportResource::make($ticket),

@@ -5,6 +5,7 @@ namespace Modules\Chat\Providers;
 use Illuminate\Support\Facades\Gate;
 use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
 use Modules\Chat\Contracts\Repositories\ConversationRepositoryInterface;
+use Modules\Chat\Contracts\Repositories\SystemRepositoryInterface;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Handlers\MemberChatHandler;
 use Modules\Chat\Infrastructure\Jobs\NotifyChatMessageReceiver;
@@ -13,6 +14,7 @@ use Modules\Chat\Policies\ConversationPolicy;
 use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Chat\Repositories\ConversationMessageRepository;
 use Modules\Chat\Repositories\ConversationRepository;
+use Modules\Chat\Repositories\SystemRepository;
 use Modules\Chat\Services\ConversationService;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
@@ -55,6 +57,11 @@ class ChatServiceProvider extends ModuleServiceProvider
         $this->app->bind(
             ConversationMessageRepositoryInterface::class,
             ConversationMessageRepository::class,
+        );
+
+        $this->app->bind(
+            SystemRepositoryInterface::class,
+            SystemRepository::class,
         );
     }
 

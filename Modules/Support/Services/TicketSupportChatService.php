@@ -5,6 +5,9 @@ namespace Modules\Support\Services;
 use App\Models\Admin;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
+use Modules\Chat\Contracts\Repositories\SystemRepositoryInterface;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\ConversationMessage;
@@ -17,6 +20,8 @@ class TicketSupportChatService
 {
     public function __construct(
         private readonly ConversationService $conversationService,
+        private readonly SystemRepositoryInterface $systemRepository,
+        private readonly ConversationMessageRepositoryInterface $messageRepository,
     ) {}
 
     public function ensureConversation(TicketSupport $ticket): Conversation
@@ -62,11 +67,22 @@ class TicketSupportChatService
         return $this->conversationService->messages($conversation, $actor, $perPage);
     }
 
+    /**
+     * Dashboard ticket show: last N messages in chronological order.
+     *
+     * @return Collection<int, ConversationMessage>
+     */
+    public function listRecentMessages(TicketSupport $ticket, int $limit = 20): Collection
+    {
+        if (! $ticket->chat) {
+            return collect();
+        }
+
+        return $this->messageRepository->listRecentForConversation($ticket->chat, $limit);
+    }
+
     private function systemParticipant(): System
     {
-        return System::query()->firstOrCreate(
-            ['id' => 1],
-            ['name' => 'System', 'online' => false],
-        );
+        return $this->systemRepository->findOrCreateDefault();
     }
 }

@@ -5,13 +5,17 @@ namespace Modules\Support\Handlers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Contracts\ChatTypeHandlerInterface;
+use Modules\Chat\Contracts\Repositories\SystemRepositoryInterface;
 use Modules\Chat\Models\Conversation;
-use Modules\Chat\Models\System;
 use Modules\Chat\Support\ParticipantConversationMessenger;
 use Modules\Support\Models\TicketSupport;
 
 class TicketSupportChatHandler implements ChatTypeHandlerInterface
 {
+    public function __construct(
+        private readonly SystemRepositoryInterface $systemRepository,
+    ) {}
+
     public function operationType(): ?string
     {
         return TicketSupport::class;
@@ -27,7 +31,9 @@ class TicketSupportChatHandler implements ChatTypeHandlerInterface
     public function participants(Model $operation): array
     {
         /** @var TicketSupport $operation */
-        return [System::first(), $operation->user];
+        // Previously System::first() (null if missing). findOrCreateDefault matches the
+        // Service/SupportChat singleton semantics and avoids a null participant.
+        return [$this->systemRepository->findOrCreateDefault(), $operation->user];
     }
 
     public function listQuery(Model $actor): Builder

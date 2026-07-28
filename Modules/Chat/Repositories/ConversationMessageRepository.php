@@ -4,6 +4,7 @@ namespace Modules\Chat\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\ConversationMessage;
@@ -18,6 +19,19 @@ class ConversationMessageRepository implements ConversationMessageRepositoryInte
             ->with(['sender', 'receiver', 'attachments'])
             ->latest()
             ->paginate($perPage);
+    }
+
+    public function listRecentForConversation(
+        Conversation $conversation,
+        int $limit = 20,
+    ): Collection {
+        return $conversation->messages()
+            ->with(['attachments', 'sender'])
+            ->latest()
+            ->take($limit)
+            ->get()
+            ->reverse()
+            ->values();
     }
 
     public function markAsRead(

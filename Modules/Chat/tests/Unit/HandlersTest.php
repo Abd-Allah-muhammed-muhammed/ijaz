@@ -88,14 +88,14 @@ test('TicketSupportChatHandler canOpen returns true for ticket owner', function 
     $user = User::factory()->create();
     $ticket = createTestTicketSupport($user);
 
-    expect((new TicketSupportChatHandler)->canOpen($user, $ticket))->toBeTrue();
+    expect(app(TicketSupportChatHandler::class)->canOpen($user, $ticket))->toBeTrue();
 });
 
 test('TicketSupportChatHandler canOpen returns false for other users', function () {
     $ticket = createTestTicketSupport();
     $stranger = User::factory()->create();
 
-    expect((new TicketSupportChatHandler)->canOpen($stranger, $ticket))->toBeFalse();
+    expect(app(TicketSupportChatHandler::class)->canOpen($stranger, $ticket))->toBeFalse();
 });
 
 test('TicketSupportChatHandler participants returns System and ticket user', function () {
@@ -103,7 +103,7 @@ test('TicketSupportChatHandler participants returns System and ticket user', fun
     $user = User::factory()->create();
     $ticket = createTestTicketSupport($user);
 
-    [$system, $ticketUser] = (new TicketSupportChatHandler)->participants($ticket);
+    [$system, $ticketUser] = app(TicketSupportChatHandler::class)->participants($ticket);
 
     expect($system)->toBeInstanceOf(System::class)
         ->and($ticketUser->is($user))->toBeTrue();

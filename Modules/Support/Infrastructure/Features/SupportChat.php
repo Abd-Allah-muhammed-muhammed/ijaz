@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Modules\Chat\Contracts\HasConversation;
+use Modules\Chat\Contracts\Repositories\SystemRepositoryInterface;
 use Modules\Chat\Exceptions\ChatException;
 use Modules\Chat\Exceptions\ChatMessageException;
 use Modules\Chat\Infrastructure\BaseChatService;
@@ -31,10 +32,7 @@ class SupportChat extends BaseChatService
      */
     protected function generateChat(): void
     {
-        $system = System::query()->firstOrCreate(
-            ['id' => 1],
-            ['name' => 'System', 'online' => false],
-        );
+        $system = app(SystemRepositoryInterface::class)->findOrCreateDefault();
 
         $this->chat = app(ConversationService::class)->ensureForOperation(
             $this->ticket,

@@ -57,5 +57,5 @@ test('OrderChatHandler operationType is Order::class', function () {
 });
 
 test('TicketSupportChatHandler operationType is TicketSupport::class', function () {
-    expect((new TicketSupportChatHandler)->operationType())->toBe(TicketSupport::class);
+    expect(app(TicketSupportChatHandler::class)->operationType())->toBe(TicketSupport::class);
 });

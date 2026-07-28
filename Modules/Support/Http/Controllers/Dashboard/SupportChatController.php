@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Http\Requests\SendSupportMessageRequest;
@@ -14,13 +16,20 @@ use Modules\Chat\Http\Resources\Dashboard\ConversationMessageCollection;
 use Modules\Support\Models\TicketSupport;
 use Modules\Support\Services\TicketSupportChatService;
 
-class SupportChatController extends Controller
+class SupportChatController extends Controller implements HasMiddleware
 {
     use HasApiResponse;
 
     public function __construct(
         private readonly TicketSupportChatService $service,
     ) {}
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:edit supportTicket', only: ['send', 'show']),
+        ];
+    }
 
     public function show(Request $request, TicketSupport $ticketSupport): JsonResponse
     {

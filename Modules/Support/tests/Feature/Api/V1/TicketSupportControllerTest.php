@@ -333,3 +333,31 @@ it('orders tickets by latest first', function () {
     expect($tickets[0]['id'])->toBe($newTicket->id)
         ->and($tickets[1]['id'])->toBe($oldTicket->id);
 });
+
+test('mobile ticket conversation endpoint still returns identical response after System repository extraction', function () {
+    Sanctum::actingAs($this->user);
+
+    $ticket = createTestTicketSupport($this->user);
+
+    $data = $this->getJson(action([TicketSupportController::class, 'conversation'], $ticket))
+        ->assertOk()
+        ->json('data');
+
+    expect(array_keys($data))->toBe(['chat_id', 'messages'])
+        ->and($data['chat_id'])->toBeString()->not->toBeEmpty()
+        ->and($data['messages'])->toBeArray()
+        ->and(array_keys($data['messages']))->toBe(['items', 'paginate'])
+        ->and(array_keys($data['messages']['paginate']))->toBe([
+            'total',
+            'count',
+            'per_page',
+            'next_page_url',
+            'prev_page_url',
+            'current_page',
+            'last_page',
+            'has_more_pages',
+        ])
+        ->and($data['messages']['items'])->toBeArray()
+        ->and($data['messages']['paginate']['per_page'])->toBe(15)
+        ->and($data['messages']['paginate']['current_page'])->toBe(1);
+});
