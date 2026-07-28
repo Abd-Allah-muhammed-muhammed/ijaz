@@ -30,6 +30,22 @@ class ConversationRepository implements ConversationRepositoryInterface
         return Conversation::firstOrCreate($where);
     }
 
+    public function findOrCreateForOperation(
+        Model $operation,
+        Model $user1,
+        Model $user2,
+    ): Conversation {
+        return Conversation::query()->firstOrCreate([
+            'operation_type' => $operation::class,
+            'operation_id' => $operation->getKey(),
+        ], [
+            'user1_type' => $user1::class,
+            'user1_id' => $user1->getKey(),
+            'user2_type' => $user2::class,
+            'user2_id' => $user2->getKey(),
+        ]);
+    }
+
     public function findById(string $id): Conversation
     {
         return Conversation::with([

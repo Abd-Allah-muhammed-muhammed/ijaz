@@ -13,6 +13,7 @@ use Modules\Chat\Exceptions\ChatMessageException;
 use Modules\Chat\Infrastructure\BaseChatService;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\System;
+use Modules\Chat\Services\ConversationService;
 use Modules\Support\Models\TicketSupport;
 use Pusher\ApiErrorException;
 
@@ -30,17 +31,17 @@ class SupportChat extends BaseChatService
      */
     protected function generateChat(): void
     {
-        $this->chat = $this->ticket->chat()->firstOrCreate([
-            'operation_id' => $this->ticket->getKey(),
-            'operation_type' => get_class($this->ticket),
-        ], [
-            'user1_type' => System::class,
-            'user1_id' => 1,
-            'user2_type' => get_class($this->ticket->user),
-            'user2_id' => $this->ticket->user->getKey(),
-        ]);
-        $this->supportable = $this->ticket->user;
+        $system = System::query()->firstOrCreate(
+            ['id' => 1],
+            ['name' => 'System', 'online' => false],
+        );
 
+        $this->chat = app(ConversationService::class)->ensureForOperation(
+            $this->ticket,
+            $system,
+            $this->ticket->user,
+        );
+        $this->supportable = $this->ticket->user;
     }
 
     public function getChat(): ?Conversation

@@ -44,6 +44,15 @@ class ConversationService
         return $this->openAction->handleMemberChat($user1, $user2);
     }
 
+    /**
+     * System/admin bootstrap for an operation conversation.
+     * Deliberately does NOT run canOpen() — distinct from actor-initiated open().
+     */
+    public function ensureForOperation(Model $operation, Model $user1, Model $user2): Conversation
+    {
+        return $this->conversations->findOrCreateForOperation($operation, $user1, $user2);
+    }
+
     public function list(
         Model $actor,
         ChatTypeEnum $type,

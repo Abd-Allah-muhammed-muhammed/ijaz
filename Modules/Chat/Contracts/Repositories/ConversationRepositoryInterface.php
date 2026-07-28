@@ -14,6 +14,15 @@ interface ConversationRepositoryInterface
         Model $user2,
     ): Conversation;
 
+    /**
+     * System/admin bootstrap path: keyed by operation only (does not run canOpen).
+     */
+    public function findOrCreateForOperation(
+        Model $operation,
+        Model $user1,
+        Model $user2,
+    ): Conversation;
+
     public function findById(string $id): Conversation;
 
     public function listForActor(

@@ -21,15 +21,11 @@ class TicketSupportChatService
 
     public function ensureConversation(TicketSupport $ticket): Conversation
     {
-        return Conversation::query()->firstOrCreate([
-            'operation_type' => TicketSupport::class,
-            'operation_id' => $ticket->getKey(),
-        ], [
-            'user1_type' => System::class,
-            'user1_id' => 1,
-            'user2_type' => $ticket->user_type,
-            'user2_id' => $ticket->user_id,
-        ]);
+        return $this->conversationService->ensureForOperation(
+            $ticket,
+            $this->systemParticipant(),
+            $ticket->user,
+        );
     }
 
     public function sendAsAdmin(
@@ -64,5 +60,13 @@ class TicketSupportChatService
         int $perPage = 20,
     ): LengthAwarePaginator {
         return $this->conversationService->messages($conversation, $actor, $perPage);
+    }
+
+    private function systemParticipant(): System
+    {
+        return System::query()->firstOrCreate(
+            ['id' => 1],
+            ['name' => 'System', 'online' => false],
+        );
     }
 }
