@@ -22,6 +22,6 @@ trait HasStoredFileUrl
 
     protected function defaultImagePlaceholder(): ?string
     {
-        return null;
+        return 'https://ui-avatars.com/api/?name=No+Image&format=svg&color=FFFFFF&background=%2309090b';
     }
 }
