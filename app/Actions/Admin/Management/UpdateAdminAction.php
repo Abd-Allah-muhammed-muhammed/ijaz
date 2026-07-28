@@ -5,35 +5,49 @@ namespace App\Actions\Admin\Management;
 use App\Contracts\Admin\AdminManagementRepositoryInterface;
 use App\DTOs\Admin\UpdateAdminDTO;
 use App\Models\Admin;
+use App\Support\HandlesTransactionalFileUpload;
+use Throwable;
 
 class UpdateAdminAction
 {
+    use HandlesTransactionalFileUpload;
+
     public function __construct(
         private readonly AdminManagementRepositoryInterface $repository,
     ) {}
 
+    /**
+     * @throws Throwable
+     */
     public function handle(Admin $admin, UpdateAdminDTO $dto): Admin
     {
-        $data = [
-            'name' => $dto->name,
-            'phone' => $dto->phone,
-            'email' => $dto->email,
-            'address' => $dto->address,
-            'job' => $dto->job,
-        ];
+        return $this->storeFileWithCleanup(
+            file: $dto->image,
+            directory: 'admins',
+            disk: 'public',
+            previousPath: $dto->image !== null ? $admin->image : null,
+            dbWork: function (?string $imagePath) use ($admin, $dto): Admin {
+                $data = [
+                    'name' => $dto->name,
+                    'phone' => $dto->phone,
+                    'email' => $dto->email,
+                    'address' => $dto->address,
+                    'job' => $dto->job,
+                ];
 
-        if ($dto->image !== null) {
-            $admin->deleteImage();
-            $data['image'] = $dto->image->store('admins', 'public');
-        }
+                if ($imagePath !== null) {
+                    $data['image'] = $imagePath;
+                }
 
-        if (filled($dto->password)) {
-            $data['password'] = $dto->password;
-        }
+                if (filled($dto->password)) {
+                    $data['password'] = $dto->password;
+                }
 
-        $admin = $this->repository->update($admin, $data);
-        $this->repository->syncRoles($admin, $dto->roles);
+                $admin = $this->repository->update($admin, $data);
+                $this->repository->syncRoles($admin, $dto->roles);
 
-        return $admin;
+                return $admin;
+            },
+        );
     }
 }

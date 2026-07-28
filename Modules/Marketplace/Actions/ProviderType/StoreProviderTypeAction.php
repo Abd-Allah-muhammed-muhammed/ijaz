@@ -2,7 +2,7 @@
 
 namespace Modules\Marketplace\Actions\ProviderType;
 
-use Illuminate\Support\Facades\DB;
+use App\Support\HandlesTransactionalFileUpload;
 use Modules\Marketplace\Contracts\Repositories\ProviderTypeRepositoryInterface;
 use Modules\Marketplace\DTOs\StoreProviderTypeDTO;
 use Modules\Marketplace\Models\ProviderType;
@@ -10,6 +10,8 @@ use Throwable;
 
 class StoreProviderTypeAction
 {
+    use HandlesTransactionalFileUpload;
+
     public function __construct(
         private readonly ProviderTypeRepositoryInterface $repository,
         private readonly SyncProviderTypeCategoriesAction $syncCategoriesAction,
@@ -18,16 +20,21 @@ class StoreProviderTypeAction
     /** @throws Throwable */
     public function handle(StoreProviderTypeDTO $dto): ProviderType
     {
-        return DB::transaction(function () use ($dto): ProviderType {
-            $providerType = $this->repository->create([
-                'files' => $dto->files,
-                'image' => $dto->image->store('provider-types', 'public'),
-                'translations' => $dto->translations,
-            ]);
+        return $this->storeFileWithCleanup(
+            file: $dto->image,
+            directory: 'provider-types',
+            disk: 'public',
+            dbWork: function (?string $imagePath) use ($dto): ProviderType {
+                $providerType = $this->repository->create([
+                    'files' => $dto->files,
+                    'image' => $imagePath,
+                    'translations' => $dto->translations,
+                ]);
 
-            $this->syncCategoriesAction->handle($providerType, $dto->categories);
+                $this->syncCategoriesAction->handle($providerType, $dto->categories);
 
-            return $providerType->fresh(['translations', 'translation', 'categories.translations']) ?? $providerType;
-        });
+                return $providerType->fresh(['translations', 'translation', 'categories.translations']) ?? $providerType;
+            },
+        );
     }
 }

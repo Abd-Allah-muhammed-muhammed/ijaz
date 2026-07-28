@@ -2,7 +2,7 @@
 
 namespace Modules\Cms\Actions\Banner;
 
-use Illuminate\Support\Facades\DB;
+use App\Support\HandlesTransactionalFileUpload;
 use Modules\Cms\Contracts\Repositories\BannerRepositoryInterface;
 use Modules\Cms\DTOs\StoreBannerDTO;
 use Modules\Cms\Models\Banner;
@@ -10,6 +10,8 @@ use Throwable;
 
 class StoreBannerAction
 {
+    use HandlesTransactionalFileUpload;
+
     public function __construct(
         private readonly BannerRepositoryInterface $repository,
     ) {}
@@ -19,11 +21,14 @@ class StoreBannerAction
      */
     public function handle(StoreBannerDTO $dto): Banner
     {
-        return DB::transaction(function () use ($dto): Banner {
-            return $this->repository->create([
+        return $this->storeFileWithCleanup(
+            file: $dto->image,
+            directory: 'banners',
+            disk: 'public',
+            dbWork: fn (?string $imagePath): Banner => $this->repository->create([
                 'link' => $dto->link,
-                'image' => $dto->image->store('banners', 'public'),
-            ]);
-        });
+                'image' => $imagePath,
+            ]),
+        );
     }
 }

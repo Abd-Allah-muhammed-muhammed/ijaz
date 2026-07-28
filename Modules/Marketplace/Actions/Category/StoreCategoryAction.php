@@ -2,7 +2,7 @@
 
 namespace Modules\Marketplace\Actions\Category;
 
-use Illuminate\Support\Facades\DB;
+use App\Support\HandlesTransactionalFileUpload;
 use Modules\Marketplace\Contracts\Repositories\CategoryRepositoryInterface;
 use Modules\Marketplace\DTOs\StoreCategoryDTO;
 use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
@@ -11,6 +11,8 @@ use Throwable;
 
 class StoreCategoryAction
 {
+    use HandlesTransactionalFileUpload;
+
     public function __construct(
         private readonly CategoryRepositoryInterface $repository,
     ) {}
@@ -18,19 +20,24 @@ class StoreCategoryAction
     /** @throws Throwable */
     public function handle(StoreCategoryDTO $dto): Category
     {
-        return DB::transaction(function () use ($dto): Category {
-            $data = [
-                'parent_id' => $dto->parentId,
-                'translations' => $dto->translations,
-                'fees_type' => $dto->feesType,
-                'icon' => $dto->icon->store('categories'),
-            ];
+        return $this->storeFileWithCleanup(
+            file: $dto->icon,
+            directory: 'categories',
+            disk: 'public',
+            dbWork: function (?string $iconPath) use ($dto): Category {
+                $data = [
+                    'parent_id' => $dto->parentId,
+                    'translations' => $dto->translations,
+                    'fees_type' => $dto->feesType,
+                    'icon' => $iconPath,
+                ];
 
-            if ($dto->feesType !== CategoryFeesTypeEnum::INHERITED) {
-                $data['fees'] = $dto->fees;
-            }
+                if ($dto->feesType !== CategoryFeesTypeEnum::INHERITED) {
+                    $data['fees'] = $dto->fees;
+                }
 
-            return $this->repository->create($data);
-        });
+                return $this->repository->create($data);
+            },
+        );
     }
 }

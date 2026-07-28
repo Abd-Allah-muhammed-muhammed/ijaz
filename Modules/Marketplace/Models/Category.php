@@ -3,6 +3,7 @@
 namespace Modules\Marketplace\Models;
 
 use App\Contracts\Selects\IReactSelect;
+use App\Support\HasStoredFileUrl;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -12,14 +13,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Facades\Storage;
 use Modules\Marketplace\Database\Factories\CategoryFactory;
 use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
-use Storage;
 
 class Category extends Model implements IReactSelect
 {
     /** @use HasFactory<CategoryFactory> */
-    use HasFactory, Translatable;
+    use HasFactory, HasStoredFileUrl, Translatable;
 
     public array $translatedAttributes = ['title', 'normalized_title', 'description'];
 
@@ -52,7 +53,7 @@ class Category extends Model implements IReactSelect
     public function deleteIcon(): void
     {
         if ($this->icon) {
-            Storage::disk('public')->delete($this->icon);
+            Storage::disk($this->storedFileDisk())->delete($this->icon);
         }
     }
 
@@ -99,13 +100,12 @@ class Category extends Model implements IReactSelect
 
     protected function iconUrl(): Attribute
     {
-        return Attribute::get(function () {
-            if ($this->icon) {
-                return Storage::disk('public')->url($this->icon);
-            }
+        return Attribute::get(fn () => $this->storedFileUrl($this->icon));
+    }
 
-            return null;
-        });
+    protected function storedFileDisk(): string
+    {
+        return 'public';
     }
 
     public function providerTypes(): BelongsToMany

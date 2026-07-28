@@ -8,6 +8,7 @@ use App\Enums\Users\UserStatusEnum;
 use App\Services\Firebase\Contract\InteractWithFirebase;
 use App\Services\Firebase\DTO\Target;
 use App\Support\HasBroadcastChannel;
+use App\Support\HasStoredFileUrl;
 use App\Traits\Blockable;
 use App\Traits\HasOTPs;
 use Database\Factories\UserFactory;
@@ -100,7 +101,7 @@ use Modules\Wallet\Traits\HasWallet;
 class User extends Authenticatable implements HasConversation, HasOTPsContract, InteractWithFirebase
 {
     /** @use HasFactory<UserFactory> */
-    use Blockable, HasApiTokens, HasBroadcastChannel, HasFactory, HasJobs, HasOTPs, HasPayments, HasReviews, HasWallet, Notifiable;
+    use Blockable, HasApiTokens, HasBroadcastChannel, HasFactory, HasJobs, HasOTPs, HasPayments, HasReviews, HasStoredFileUrl, HasWallet, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -124,8 +125,6 @@ class User extends Authenticatable implements HasConversation, HasOTPsContract, 
         'player_id',
     ];
 
-    protected string $default_image = 'media/avatars/blank.png';
-
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -144,7 +143,7 @@ class User extends Authenticatable implements HasConversation, HasOTPsContract, 
     public function deleteImage(): void
     {
         if ($this->image) {
-            Storage::disk('public')->delete($this->image);
+            Storage::disk($this->storedFileDisk())->delete($this->image);
         }
     }
 
@@ -248,8 +247,16 @@ class User extends Authenticatable implements HasConversation, HasOTPsContract, 
 
     protected function imageUrl(): Attribute
     {
-        return Attribute::get(function () {
-            return $this->image ? Storage::disk('public')->url($this->image) : asset($this->default_image);
-        });
+        return Attribute::get(fn () => $this->storedFileUrl($this->image));
+    }
+
+    protected function storedFileDisk(): string
+    {
+        return 'public';
+    }
+
+    protected function defaultImagePlaceholder(): ?string
+    {
+        return asset('media/avatars/blank.png');
     }
 }

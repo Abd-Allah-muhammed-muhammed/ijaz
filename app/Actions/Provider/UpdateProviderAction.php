@@ -6,45 +6,59 @@ use App\Contracts\Provider\ProviderManagementRepositoryInterface;
 use App\DTOs\Provider\UpdateProviderDTO;
 use App\Enums\ProviderTypeFilesEnum;
 use App\Models\Provider;
+use App\Support\HandlesTransactionalFileUpload;
 use App\Support\Phone;
 use Illuminate\Http\UploadedFile;
 use Modules\Marketplace\Models\CategorySkill;
 use Modules\Marketplace\Models\ProviderCategory;
+use Throwable;
 
 class UpdateProviderAction
 {
+    use HandlesTransactionalFileUpload;
+
     public function __construct(
         private readonly ProviderManagementRepositoryInterface $repository,
     ) {}
 
+    /**
+     * @throws Throwable
+     */
     public function handle(Provider $provider, UpdateProviderDTO $dto): Provider
     {
-        $data = [
-            'name' => $dto->name,
-            'provider_type_id' => $dto->provider_type_id,
-            'region_id' => $dto->region_id,
-            'city_id' => $dto->city_id,
-            'address' => $dto->address,
-            'phone' => Phone::make($dto->phone)->toString(),
-            'email' => $dto->email,
-            'iban' => $dto->iban,
-            'about' => $dto->about,
-        ];
+        return $this->storeFileWithCleanup(
+            file: $dto->logo,
+            directory: 'providers',
+            disk: 'public',
+            previousPath: $dto->logo !== null ? $provider->logo : null,
+            dbWork: function (?string $logoPath) use ($provider, $dto): Provider {
+                $data = [
+                    'name' => $dto->name,
+                    'provider_type_id' => $dto->provider_type_id,
+                    'region_id' => $dto->region_id,
+                    'city_id' => $dto->city_id,
+                    'address' => $dto->address,
+                    'phone' => Phone::make($dto->phone)->toString(),
+                    'email' => $dto->email,
+                    'iban' => $dto->iban,
+                    'about' => $dto->about,
+                ];
 
-        if ($dto->logo !== null) {
-            $data['logo'] = $dto->logo->store('providers', 'public');
-            $provider->deleteLogo();
-        }
+                if ($logoPath !== null) {
+                    $data['logo'] = $logoPath;
+                }
 
-        if (filled($dto->password)) {
-            $data['password'] = $dto->password;
-        }
+                if (filled($dto->password)) {
+                    $data['password'] = $dto->password;
+                }
 
-        $this->replaceMedia($provider, $dto->mediaFiles);
-        $this->repository->update($provider, $data);
-        $this->syncCategoriesAndSkills($provider, $dto->categories);
+                $this->replaceMedia($provider, $dto->mediaFiles);
+                $this->repository->update($provider, $data);
+                $this->syncCategoriesAndSkills($provider, $dto->categories);
 
-        return $provider;
+                return $provider;
+            },
+        );
     }
 
     /**
