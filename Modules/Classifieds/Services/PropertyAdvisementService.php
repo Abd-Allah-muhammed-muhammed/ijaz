@@ -9,10 +9,11 @@ use Illuminate\Support\Facades\DB;
 use Modules\Classifieds\Actions\AuthorizeAdvisementOwnerAction;
 use Modules\Classifieds\Actions\DeleteAdvisementMediaAction;
 use Modules\Classifieds\Actions\DeleteAdvisementWithMediaAction;
+use Modules\Classifieds\Actions\PropertyAdvisement\CreatePropertyAdvisementAction;
 use Modules\Classifieds\Actions\PropertyAdvisement\ListPropertyAdvisementsForDashboardAction;
 use Modules\Classifieds\Actions\PropertyAdvisement\ResolvePropertyAdvisementDashboardSelectsAction;
+use Modules\Classifieds\Actions\PropertyAdvisement\UpdatePropertyAdvisementAction;
 use Modules\Classifieds\Actions\PropertyAdvisement\UpdatePropertyAdvisementStatusForDashboardAction;
-use Modules\Classifieds\Actions\StoreAdvisementMediaAction;
 use Modules\Classifieds\Contracts\Repositories\PropertyAdvisementRepositoryInterface;
 use Modules\Classifieds\DTOs\PropertyAdvisementDTO;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -27,7 +28,8 @@ final class PropertyAdvisementService
         private readonly ListPropertyAdvisementsForDashboardAction $listForDashboardAction,
         private readonly ResolvePropertyAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
         private readonly UpdatePropertyAdvisementStatusForDashboardAction $updateStatusForDashboardAction,
-        private readonly StoreAdvisementMediaAction $storeAdvisementMediaAction,
+        private readonly CreatePropertyAdvisementAction $createPropertyAdvisementAction,
+        private readonly UpdatePropertyAdvisementAction $updatePropertyAdvisementAction,
         private readonly AuthorizeAdvisementOwnerAction $authorizeAdvisementOwnerAction,
         private readonly DeleteAdvisementWithMediaAction $deleteAdvisementWithMediaAction,
         private readonly DeleteAdvisementMediaAction $deleteAdvisementMediaAction,
@@ -63,49 +65,14 @@ final class PropertyAdvisementService
 
     public function create(User $user, PropertyAdvisementDTO $dto): PropertyAdvisement
     {
-        return DB::transaction(function () use ($user, $dto): PropertyAdvisement {
-            $propertyAdvisement = $this->repository->create([
-                ...$dto->toPersistenceArray(),
-                'user_type' => $user::class,
-                'user_id' => $user->id,
-                'status' => AdvisementStatusEnum::PENDING,
-            ]);
-
-            $this->storeAdvisementMediaAction->handle($propertyAdvisement, $dto->files);
-            // Keep `.translation` — CityResource/RegionResource only expose title when
-            // translation is loaded; PropertyType/Category are Astrotomic Translatable.
-            $propertyAdvisement->load([
-                'propertyType.translation',
-                'city.translation',
-                'region.translation',
-                'category.translation',
-                'user',
-                'media',
-            ]);
-
-            return $propertyAdvisement;
-        });
+        return $this->createPropertyAdvisementAction->handle($user, $dto);
     }
 
     public function update(User $user, PropertyAdvisement $model, PropertyAdvisementDTO $dto): PropertyAdvisement
     {
         $this->authorizeAdvisementOwnerAction->handle($model, $user);
 
-        return DB::transaction(function () use ($model, $dto): PropertyAdvisement {
-            $this->repository->update($model, $dto->toPersistenceArray());
-            $this->storeAdvisementMediaAction->handle($model, $dto->files);
-            // Keep `.translation` — see create() comment.
-            $model->load([
-                'propertyType.translation',
-                'city.translation',
-                'region.translation',
-                'category.translation',
-                'user',
-                'media',
-            ]);
-
-            return $model;
-        });
+        return $this->updatePropertyAdvisementAction->handle($model, $dto);
     }
 
     public function delete(User $user, PropertyAdvisement $model): void
@@ -128,7 +95,7 @@ final class PropertyAdvisementService
 
     public function loadForShow(PropertyAdvisement $model): PropertyAdvisement
     {
-        // Keep `.translation` — see create() comment.
+        // Keep `.translation` — see CreatePropertyAdvisementAction comment.
         return $model->load([
             'propertyType.translation',
             'city.translation',

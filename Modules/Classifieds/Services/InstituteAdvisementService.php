@@ -9,11 +9,12 @@ use Illuminate\Support\Facades\DB;
 use Modules\Classifieds\Actions\AuthorizeAdvisementOwnerAction;
 use Modules\Classifieds\Actions\DeleteAdvisementMediaAction;
 use Modules\Classifieds\Actions\DeleteAdvisementWithMediaAction;
+use Modules\Classifieds\Actions\InstituteAdvisement\CreateInstituteAdvisementAction;
 use Modules\Classifieds\Actions\InstituteAdvisement\DeleteInstituteAdvisementForDashboardAction;
 use Modules\Classifieds\Actions\InstituteAdvisement\ListInstituteAdvisementsForDashboardAction;
 use Modules\Classifieds\Actions\InstituteAdvisement\ResolveInstituteAdvisementDashboardSelectsAction;
+use Modules\Classifieds\Actions\InstituteAdvisement\UpdateInstituteAdvisementAction;
 use Modules\Classifieds\Actions\InstituteAdvisement\UpdateInstituteAdvisementStatusForDashboardAction;
-use Modules\Classifieds\Actions\StoreAdvisementMediaAction;
 use Modules\Classifieds\Contracts\Repositories\InstituteAdvisementRepositoryInterface;
 use Modules\Classifieds\DTOs\InstituteAdvisementDTO;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -29,7 +30,8 @@ final class InstituteAdvisementService
         private readonly ResolveInstituteAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
         private readonly UpdateInstituteAdvisementStatusForDashboardAction $updateStatusForDashboardAction,
         private readonly DeleteInstituteAdvisementForDashboardAction $deleteForDashboardAction,
-        private readonly StoreAdvisementMediaAction $storeAdvisementMediaAction,
+        private readonly CreateInstituteAdvisementAction $createInstituteAdvisementAction,
+        private readonly UpdateInstituteAdvisementAction $updateInstituteAdvisementAction,
         private readonly AuthorizeAdvisementOwnerAction $authorizeAdvisementOwnerAction,
         private readonly DeleteAdvisementWithMediaAction $deleteAdvisementWithMediaAction,
         private readonly DeleteAdvisementMediaAction $deleteAdvisementMediaAction,
@@ -70,44 +72,14 @@ final class InstituteAdvisementService
 
     public function create(User $user, InstituteAdvisementDTO $dto): InstituteAdvisement
     {
-        return DB::transaction(function () use ($user, $dto): InstituteAdvisement {
-            $instituteAdvisement = $this->repository->create([
-                ...$dto->toPersistenceArray(),
-                'user_type' => $user::class,
-                'user_id' => $user->id,
-                'status' => AdvisementStatusEnum::PENDING,
-            ]);
-
-            $this->storeAdvisementMediaAction->handle($instituteAdvisement, $dto->files);
-            $instituteAdvisement->load([
-                'specialization',
-                'city',
-                'region',
-                'user',
-                'media',
-            ]);
-
-            return $instituteAdvisement;
-        });
+        return $this->createInstituteAdvisementAction->handle($user, $dto);
     }
 
     public function update(User $user, InstituteAdvisement $model, InstituteAdvisementDTO $dto): InstituteAdvisement
     {
         $this->authorizeAdvisementOwnerAction->handle($model, $user);
 
-        return DB::transaction(function () use ($model, $dto): InstituteAdvisement {
-            $this->repository->update($model, $dto->toPersistenceArray());
-            $this->storeAdvisementMediaAction->handle($model, $dto->files);
-            $model->load([
-                'specialization',
-                'city',
-                'region',
-                'user',
-                'media',
-            ]);
-
-            return $model;
-        });
+        return $this->updateInstituteAdvisementAction->handle($model, $dto);
     }
 
     public function delete(User $user, InstituteAdvisement $model): void

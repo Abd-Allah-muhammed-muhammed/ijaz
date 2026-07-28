@@ -7,12 +7,13 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Classifieds\Actions\AuthorizeAdvisementOwnerAction;
+use Modules\Classifieds\Actions\CarAdvisement\CreateCarAdvisementAction;
 use Modules\Classifieds\Actions\CarAdvisement\ListCarAdvisementsForDashboardAction;
 use Modules\Classifieds\Actions\CarAdvisement\ResolveCarAdvisementDashboardSelectsAction;
+use Modules\Classifieds\Actions\CarAdvisement\UpdateCarAdvisementAction;
 use Modules\Classifieds\Actions\CarAdvisement\UpdateCarAdvisementStatusForDashboardAction;
 use Modules\Classifieds\Actions\DeleteAdvisementMediaAction;
 use Modules\Classifieds\Actions\DeleteAdvisementWithMediaAction;
-use Modules\Classifieds\Actions\StoreAdvisementMediaAction;
 use Modules\Classifieds\Contracts\Repositories\CarAdvisementRepositoryInterface;
 use Modules\Classifieds\DTOs\CarAdvisementDTO;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -27,7 +28,8 @@ final class CarAdvisementService
         private readonly ListCarAdvisementsForDashboardAction $listForDashboardAction,
         private readonly ResolveCarAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
         private readonly UpdateCarAdvisementStatusForDashboardAction $updateStatusForDashboardAction,
-        private readonly StoreAdvisementMediaAction $storeAdvisementMediaAction,
+        private readonly CreateCarAdvisementAction $createCarAdvisementAction,
+        private readonly UpdateCarAdvisementAction $updateCarAdvisementAction,
         private readonly AuthorizeAdvisementOwnerAction $authorizeAdvisementOwnerAction,
         private readonly DeleteAdvisementWithMediaAction $deleteAdvisementWithMediaAction,
         private readonly DeleteAdvisementMediaAction $deleteAdvisementMediaAction,
@@ -63,48 +65,14 @@ final class CarAdvisementService
 
     public function create(User $user, CarAdvisementDTO $dto): CarAdvisement
     {
-        return DB::transaction(function () use ($user, $dto): CarAdvisement {
-            $carAdvisement = $this->repository->create([
-                ...$dto->toPersistenceArray(),
-                'user_type' => $user::class,
-                'user_id' => $user->id,
-                'status' => AdvisementStatusEnum::PENDING,
-            ]);
-
-            $this->storeAdvisementMediaAction->handle($carAdvisement, $dto->files);
-            $carAdvisement->load([
-                'carBrand',
-                'carType',
-                'carCategory',
-                'city',
-                'region',
-                'user',
-                'media',
-            ]);
-
-            return $carAdvisement;
-        });
+        return $this->createCarAdvisementAction->handle($user, $dto);
     }
 
     public function update(User $user, CarAdvisement $model, CarAdvisementDTO $dto): CarAdvisement
     {
         $this->authorizeAdvisementOwnerAction->handle($model, $user);
 
-        return DB::transaction(function () use ($model, $dto): CarAdvisement {
-            $this->repository->update($model, $dto->toPersistenceArray());
-            $this->storeAdvisementMediaAction->handle($model, $dto->files);
-            $model->load([
-                'carBrand',
-                'carType',
-                'carCategory',
-                'city',
-                'region',
-                'user',
-                'media',
-            ]);
-
-            return $model;
-        });
+        return $this->updateCarAdvisementAction->handle($model, $dto);
     }
 
     public function delete(User $user, CarAdvisement $model): void

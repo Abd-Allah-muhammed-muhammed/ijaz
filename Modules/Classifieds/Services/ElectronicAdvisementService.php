@@ -9,11 +9,12 @@ use Illuminate\Support\Facades\DB;
 use Modules\Classifieds\Actions\AuthorizeAdvisementOwnerAction;
 use Modules\Classifieds\Actions\DeleteAdvisementMediaAction;
 use Modules\Classifieds\Actions\DeleteAdvisementWithMediaAction;
+use Modules\Classifieds\Actions\ElectronicAdvisement\CreateElectronicAdvisementAction;
 use Modules\Classifieds\Actions\ElectronicAdvisement\DeleteElectronicAdvisementForDashboardAction;
 use Modules\Classifieds\Actions\ElectronicAdvisement\ListElectronicAdvisementsForDashboardAction;
 use Modules\Classifieds\Actions\ElectronicAdvisement\ResolveElectronicAdvisementDashboardSelectsAction;
+use Modules\Classifieds\Actions\ElectronicAdvisement\UpdateElectronicAdvisementAction;
 use Modules\Classifieds\Actions\ElectronicAdvisement\UpdateElectronicAdvisementStatusForDashboardAction;
-use Modules\Classifieds\Actions\StoreAdvisementMediaAction;
 use Modules\Classifieds\Contracts\Repositories\ElectronicAdvisementRepositoryInterface;
 use Modules\Classifieds\DTOs\ElectronicAdvisementDTO;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -29,7 +30,8 @@ final class ElectronicAdvisementService
         private readonly ResolveElectronicAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
         private readonly UpdateElectronicAdvisementStatusForDashboardAction $updateStatusForDashboardAction,
         private readonly DeleteElectronicAdvisementForDashboardAction $deleteForDashboardAction,
-        private readonly StoreAdvisementMediaAction $storeAdvisementMediaAction,
+        private readonly CreateElectronicAdvisementAction $createElectronicAdvisementAction,
+        private readonly UpdateElectronicAdvisementAction $updateElectronicAdvisementAction,
         private readonly AuthorizeAdvisementOwnerAction $authorizeAdvisementOwnerAction,
         private readonly DeleteAdvisementWithMediaAction $deleteAdvisementWithMediaAction,
         private readonly DeleteAdvisementMediaAction $deleteAdvisementMediaAction,
@@ -70,46 +72,14 @@ final class ElectronicAdvisementService
 
     public function create(User $user, ElectronicAdvisementDTO $dto): ElectronicAdvisement
     {
-        return DB::transaction(function () use ($user, $dto): ElectronicAdvisement {
-            $electronicAdvisement = $this->repository->create([
-                ...$dto->toPersistenceArray(),
-                'user_type' => $user::class,
-                'user_id' => $user->id,
-                'status' => AdvisementStatusEnum::PENDING,
-            ]);
-
-            $this->storeAdvisementMediaAction->handle($electronicAdvisement, $dto->files);
-            $electronicAdvisement->load([
-                'deviceCategory',
-                'electronicBrand',
-                'city',
-                'region',
-                'user',
-                'media',
-            ]);
-
-            return $electronicAdvisement;
-        });
+        return $this->createElectronicAdvisementAction->handle($user, $dto);
     }
 
     public function update(User $user, ElectronicAdvisement $model, ElectronicAdvisementDTO $dto): ElectronicAdvisement
     {
         $this->authorizeAdvisementOwnerAction->handle($model, $user);
 
-        return DB::transaction(function () use ($model, $dto): ElectronicAdvisement {
-            $this->repository->update($model, $dto->toPersistenceArray());
-            $this->storeAdvisementMediaAction->handle($model, $dto->files);
-            $model->load([
-                'deviceCategory',
-                'electronicBrand',
-                'city',
-                'region',
-                'user',
-                'media',
-            ]);
-
-            return $model;
-        });
+        return $this->updateElectronicAdvisementAction->handle($model, $dto);
     }
 
     public function delete(User $user, ElectronicAdvisement $model): void
