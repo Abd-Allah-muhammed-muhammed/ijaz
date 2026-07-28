@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Actions\DeviceCategory;
 
-use Modules\Catalog\Concerns\HandlesTransactionalFileUpload;
+use App\Support\HandlesTransactionalFileUpload;
 use Modules\Catalog\Contracts\Repositories\DeviceCategoryRepositoryInterface;
 use Modules\Catalog\DTOs\StoreDeviceCategoryDTO;
 use Modules\Catalog\Models\DeviceCategory;

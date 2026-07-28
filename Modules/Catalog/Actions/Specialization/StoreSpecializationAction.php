@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Actions\Specialization;
 
-use Modules\Catalog\Concerns\HandlesTransactionalFileUpload;
+use App\Support\HandlesTransactionalFileUpload;
 use Modules\Catalog\Contracts\Repositories\SpecializationRepositoryInterface;
 use Modules\Catalog\DTOs\StoreSpecializationDTO;
 use Modules\Catalog\Models\Specialization;

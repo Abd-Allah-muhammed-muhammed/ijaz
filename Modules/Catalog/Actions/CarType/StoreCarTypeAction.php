@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Actions\CarType;
 
-use Modules\Catalog\Concerns\HandlesTransactionalFileUpload;
+use App\Support\HandlesTransactionalFileUpload;
 use Modules\Catalog\Contracts\Repositories\CarTypeRepositoryInterface;
 use Modules\Catalog\DTOs\StoreCarTypeDTO;
 use Modules\Catalog\Models\CarType;

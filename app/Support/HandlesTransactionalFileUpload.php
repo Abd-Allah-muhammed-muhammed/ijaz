@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Catalog\Concerns;
+namespace App\Support;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;

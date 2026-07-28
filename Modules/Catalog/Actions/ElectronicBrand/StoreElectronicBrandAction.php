@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Actions\ElectronicBrand;
 
-use Modules\Catalog\Concerns\HandlesTransactionalFileUpload;
+use App\Support\HandlesTransactionalFileUpload;
 use Modules\Catalog\Contracts\Repositories\ElectronicBrandRepositoryInterface;
 use Modules\Catalog\DTOs\StoreElectronicBrandDTO;
 use Modules\Catalog\Models\ElectronicBrand;
