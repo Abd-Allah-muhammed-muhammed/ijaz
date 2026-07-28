@@ -2,13 +2,13 @@
 
 Regenerated from `php artisan route:list --json` (ground truth for method, URI, name, middleware, controller) plus controller reflection for FormRequests and Resources.
 
-**Last verified: 2026-07-27, post-Settings/Reviews/Otp/Notification consolidations**
+**Last verified: 2026-07-29, post Sanctum auth-flow overhaul (OtpSession challenge + single post-verify token; `abilities:user-api` removed)**
 
 ## Scope
 
 | Module | Endpoints |
 |---|---:|
-| App Core | 20 |
+| App Core | 22 |
 | Catalog | 14 |
 | Chat | 12 |
 | Classifieds | 28 |
@@ -23,12 +23,13 @@ Regenerated from `php artisan route:list --json` (ground truth for method, URI, 
 | Settings | 1 |
 | Support | 6 |
 | Wallet | 4 |
-| **Total `api/*` routes** | **151** |
+| **Total `api/*` routes** | **153** |
 
 ## Reading this document
 
-- **Auth** comes from route middleware: `auth:user-api + abilities:user-api` = mobile-user-exclusive; `auth:sanctum` = any Sanctum token (user or provider); `No` = public.
+- **Auth** comes from route middleware: `auth:user-api` = mobile-user-exclusive (User Sanctum guard); `auth:sanctum` = any Sanctum-authenticated actor; `No` = public. Ability middleware (`abilities:user-api`) was removed — issued user tokens use Sanctum full-access `['*']`.
 - **Audience**: `Mobile (user-api)` routes are the mobile-app-exclusive user API. `Sanctum` routes serve both apps. `Public` routes are unauthenticated catalog/content lookups.
+- **Mobile login/register contract**: see `docs/mobile/AUTH_FLOW.md`. Login/register return an OtpSession challenge (`verification_id`, `expires_in`, `resend_available_at`) with **no** Sanctum token. `POST /api/v1/otp/verify` (public) exchanges `verification_id` + `code` for `access_token` + user. `POST /api/v1/otp/resend` reuses the same `verification_id`.
 - **Request** is the FormRequest type-hinted on the controller action (`none` = no FormRequest; inline validation or none).
 - **Resources** are Resource/Collection classes referenced in the action body; `(HasApiResponse helper / raw JSON)` means the `MMAE\ApiResponse` envelope with an ad-hoc payload.
 - All module API responses ride the same `HasApiResponse` envelope unless stated otherwise.
@@ -46,9 +47,10 @@ These Pest contract tests lock actual response shapes and take precedence over s
 | Cms | `tests/Feature/Api/V1/CmsResponseContractTest.php` | banners / pages / questions |
 | Jobs | `tests/Feature/Api/V1/JobResponseContractTest.php` | job item geo/nationality nested shapes |
 | Orders (user) | `tests/Feature/Api/V1/User/OrderControllerTest.php` + `OrderControllerRegressionTest.php` | order city/region + offer notification asserts |
-| UserResource (mobile) | `tests/Feature/Api/V1/UserResourceMobileContractTest.php` | register/me/profile-update user payload |
+| UserResource (mobile) | `tests/Feature/Api/V1/UserResourceMobileContractTest.php` | me/profile-update user payload; register = OTP challenge shape; login OTP verify = access_token + user |
 | UserResource (nested) | `tests/Feature/Api/V1/UserResourceNonMobileConsumersContractTest.php` | Wallet + Classifieds nested `user` |
-| OTP phone verify | `tests/Feature/Api/V1/OtpVerifyPhoneResponseTest.php` | envelope stays `success: false` (deferred Item 4) |
+| OTP phone verify | `tests/Feature/Api/V1/OtpVerifyPhoneResponseTest.php` | `POST /otp/verify-purpose` envelope stays `success: false` (deferred Item 4) |
+| User auth OTP session | `tests/Feature/Api/V1/UserAuthOtpSessionFlowTest.php` | login/register challenge; verify/resend; full-access `*` token after verify |
 | Provider reviews nested | `Modules/Reviews/tests/Feature/Contract/ProviderReviewApiContractTest.php` | `rate` from `reviews_avg_rating`; nested review shape |
 | Dashboard order reviews | `Modules/Reviews/tests/Feature/Contract/DashboardOrderReviewContractTest.php` | Dashboard review payload on orders |
 | Domain notifications | `tests/Feature/DomainNotificationContractTest.php` | Orders/Guarantor/Opportunity toArray/toBroadcast/toFirebase byte-locks |
@@ -61,7 +63,7 @@ See `docs/DEFERRED_MOBILE_BREAKING_CHANGES.md`:
 1. Chat conversations emit deprecated typo key `last_massage_at` alongside `last_message_at`.
 2. **Pagination shape fragmentation**: flat meta (`BaseCollection`) vs nested Chat `paginate` ± page URLs.
 3. Wallet `add-balance` leaks `PaymentInitResult` internals.
-4. `POST /api/v1/otp/verify` with `type=phone` persists verification but still returns `success: false`.
+4. `POST /api/v1/otp/verify-purpose` with `type=phone` persists verification but still returns `success: false`.
 ---
 
 # App Core
@@ -79,13 +81,15 @@ See `docs/DEFERRED_MOBILE_BREAKING_CHANGES.md`:
 | POST | `/api/v1/auth/update-settings` | - | `App\Http\Controllers\Api\V1\AccountController@updateSettings` | auth:sanctum | Sanctum (user or provider) | `UpdateSettingsRequest` | none detected |
 | GET | `/api/v1/catalog/providers` | - | `App\Http\Controllers\Api\V1\PlatformController@providers` | No | Public | `Request` | `ProviderResource` |
 | POST | `/api/v1/otp/send` | - | `App\Http\Controllers\Api\V1\OtpController@send` | auth:sanctum | Sanctum (user or provider) | `SendOTPRequest` | none detected |
-| POST | `/api/v1/otp/verify` | - | `App\Http\Controllers\Api\V1\OtpController@verify` | auth:sanctum | Sanctum (user or provider) | `VerifyOTPRequest` | none detected |
-| POST | `/api/v1/user/auth/login` | - | `App\Http\Controllers\Api\V1\User\AuthController@login` | No | Public | `LoginRequest` | (HasApiResponse helper / raw JSON) |
-| POST | `/api/v1/user/auth/logout` | - | `App\Http\Controllers\Api\V1\User\AuthController@logout` | auth:user-api + abilities:user-api | Mobile (user-api) | `none` | none detected |
-| GET | `/api/v1/user/auth/me` | - | `App\Http\Controllers\Api\V1\User\AuthController@auth` | auth:user-api + abilities:user-api | Mobile (user-api) | `none` | `UserResource` |
-| POST | `/api/v1/user/auth/profile/update` | - | `App\Http\Controllers\Api\V1\User\AuthController@profileUpdate` | auth:user-api + abilities:user-api | Mobile (user-api) | `UpdateRequest` | `UserResource` |
-| POST | `/api/v1/user/auth/register` | - | `App\Http\Controllers\Api\V1\User\AuthController@register` | No | Public | `RegisterRequest` | `UserResource` |
-| GET | `/api/v1/user/providers/get` | - | `App\Http\Controllers\Api\V1\User\ProviderController@get` | auth:user-api + abilities:user-api | Mobile (user-api) | `FindProviderRequest` | `ProviderResource` |
+| POST | `/api/v1/otp/verify` | - | `App\Http\Controllers\Api\V1\OtpController@verify` | No | Public (login/register challenge) | `VerifyOtpSessionRequest` | `UserResource` (on success, nested under `data.user`) |
+| POST | `/api/v1/otp/resend` | - | `App\Http\Controllers\Api\V1\OtpController@resend` | No | Public (login/register challenge) | `ResendOtpSessionRequest` | (HasApiResponse helper / raw JSON) |
+| POST | `/api/v1/otp/verify-purpose` | - | `App\Http\Controllers\Api\V1\OtpController@verifyPurpose` | auth:sanctum | Sanctum (user or provider) | `VerifyOTPRequest` | none detected |
+| POST | `/api/v1/user/auth/login` | - | `App\Http\Controllers\Api\V1\User\AuthController@login` | No | Public | `LoginRequest` | (HasApiResponse helper / raw JSON — OTP challenge) |
+| POST | `/api/v1/user/auth/logout` | - | `App\Http\Controllers\Api\V1\User\AuthController@logout` | auth:user-api | Mobile (user-api) | `none` | none detected |
+| GET | `/api/v1/user/auth/me` | - | `App\Http\Controllers\Api\V1\User\AuthController@auth` | auth:user-api | Mobile (user-api) | `none` | `UserResource` |
+| POST | `/api/v1/user/auth/profile/update` | - | `App\Http\Controllers\Api\V1\User\AuthController@profileUpdate` | auth:user-api | Mobile (user-api) | `UpdateRequest` | `UserResource` |
+| POST | `/api/v1/user/auth/register` | - | `App\Http\Controllers\Api\V1\User\AuthController@register` | No | Public | `RegisterRequest` | (HasApiResponse helper / raw JSON — OTP challenge) |
+| GET | `/api/v1/user/providers/get` | - | `App\Http\Controllers\Api\V1\User\ProviderController@get` | auth:user-api | Mobile (user-api) | `FindProviderRequest` | `ProviderResource` |
 | GET | `/docs/api` | - | `Closure` | No | Public | `none` | none detected |
 | GET | `/docs/api.json` | - | `Closure` | No | Public | `none` | none detected |
 
@@ -246,15 +250,15 @@ See `docs/DEFERRED_MOBILE_BREAKING_CHANGES.md`:
 
 | Method | URI | Name | Controller | Auth | Audience | Request | Resources |
 |---|---|---|---|---|---|---|---|
-| GET | `/api/v1/user/orders` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@index` | auth:user-api + abilities:user-api | Mobile (user-api) | `Request` | `OrderCollection` |
-| POST | `/api/v1/user/orders` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@store` | auth:user-api + abilities:user-api | Mobile (user-api) | `OrderRequest` | `OrderResource` |
-| DELETE | `/api/v1/user/orders/{order}` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@destroy` | auth:user-api + abilities:user-api | Mobile (user-api) | `none` | none detected |
-| GET | `/api/v1/user/orders/{order}` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@show` | auth:user-api + abilities:user-api | Mobile (user-api) | `none` | `OrderResource` |
-| POST | `/api/v1/user/orders/{order}/edit` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@edit` | auth:user-api + abilities:user-api | Mobile (user-api) | `OrderRequest` | `OrderResource` |
-| POST | `/api/v1/user/orders/{order}/end-and-review` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@endAndReview` | auth:user-api + abilities:user-api | Mobile (user-api) | `EndAndReviewRequest` | none detected |
-| DELETE | `/api/v1/user/orders/{order}/{media:uuid}/delete` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@deleteMedia` | auth:user-api + abilities:user-api | Mobile (user-api) | `none` | none detected |
-| POST | `/api/v1/user/orders/{order}/{offer}/pay` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@pay` | auth:user-api + abilities:user-api | Mobile (user-api) | `none` | (HasApiResponse helper / raw JSON) |
-| POST | `/api/v1/user/orders/{order}/{offer}/update-status` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@updateOfferStatus` | auth:user-api + abilities:user-api | Mobile (user-api) | `UpdateOfferStatusRequest` | none detected |
+| GET | `/api/v1/user/orders` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@index` | auth:user-api | Mobile (user-api) | `Request` | `OrderCollection` |
+| POST | `/api/v1/user/orders` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@store` | auth:user-api | Mobile (user-api) | `OrderRequest` | `OrderResource` |
+| DELETE | `/api/v1/user/orders/{order}` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@destroy` | auth:user-api | Mobile (user-api) | `none` | none detected |
+| GET | `/api/v1/user/orders/{order}` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@show` | auth:user-api | Mobile (user-api) | `none` | `OrderResource` |
+| POST | `/api/v1/user/orders/{order}/edit` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@edit` | auth:user-api | Mobile (user-api) | `OrderRequest` | `OrderResource` |
+| POST | `/api/v1/user/orders/{order}/end-and-review` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@endAndReview` | auth:user-api | Mobile (user-api) | `EndAndReviewRequest` | none detected |
+| DELETE | `/api/v1/user/orders/{order}/{media:uuid}/delete` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@deleteMedia` | auth:user-api | Mobile (user-api) | `none` | none detected |
+| POST | `/api/v1/user/orders/{order}/{offer}/pay` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@pay` | auth:user-api | Mobile (user-api) | `none` | (HasApiResponse helper / raw JSON) |
+| POST | `/api/v1/user/orders/{order}/{offer}/update-status` | - | `Modules\Orders\Http\Controllers\Api\V1\OrderController@updateOfferStatus` | auth:user-api | Mobile (user-api) | `UpdateOfferStatusRequest` | none detected |
 
 # Payment
 
