@@ -4,6 +4,7 @@ namespace Modules\Guarantor\Contracts\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\Models\GuarantorRequest;
 
@@ -28,4 +29,13 @@ interface GuarantorRepositoryInterface
     public function listForActor(Model $actor, GuarantorFiltersData $filters): LengthAwarePaginator;
 
     public function listAll(int $perPage = 10): LengthAwarePaginator;
+
+    public function paginateForDashboard(Request $request, int $perPage): LengthAwarePaginator;
+
+    /**
+     * @return array{total: int, pending_admin: int, in_progress: int, overdue: int, ended: int}
+     */
+    public function getDashboardStats(): array;
+
+    public function delete(GuarantorRequest $guarantorRequest): void;
 }
