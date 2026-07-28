@@ -6,11 +6,14 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Modules\Payment\Actions\GetAcceptedDailyTotalsSinceAction;
+use Modules\Payment\Actions\HandleCallbackAction;
+use Modules\Payment\Actions\HandleRajhiWebhookAction;
 use Modules\Payment\Actions\SumAcceptedPaymentsAction;
 use Modules\Payment\Contracts\PaymentGatewayInterface;
 use Modules\Payment\Contracts\Repositories\PaymentRepositoryInterface;
 use Modules\Payment\DTOs\PaymentInitResult;
 use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Models\Payment;
 use RuntimeException;
 
 class PaymentService
@@ -19,6 +22,7 @@ class PaymentService
         private readonly PaymentRepositoryInterface $repository,
         private readonly SumAcceptedPaymentsAction $sumAcceptedPaymentsAction,
         private readonly GetAcceptedDailyTotalsSinceAction $acceptedDailyTotalsAction,
+        private readonly HandleRajhiWebhookAction $handleRajhiWebhookAction,
     ) {}
 
     /**
@@ -65,6 +69,23 @@ class PaymentService
     public function getDefaultDriver(): string
     {
         return config('payment.default', 'paytabs');
+    }
+
+    /**
+     * Gateway redirect/IPN/testing checkout callback path.
+     * Resolves HandleCallbackAction via the container to avoid a constructor
+     * cycle (Action needs this Service for resolveGateway).
+     */
+    public function handleCallback(Payment $payment, array $payload): Payment
+    {
+        app(HandleCallbackAction::class)->handle($payment, $payload);
+
+        return $this->repository->refresh($payment);
+    }
+
+    public function handleRajhiWebhook(array $payload): void
+    {
+        $this->handleRajhiWebhookAction->handle($payload);
     }
 
     public function sumAcceptedAmount(): float|int|string

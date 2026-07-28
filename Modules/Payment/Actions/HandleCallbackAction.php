@@ -3,6 +3,7 @@
 namespace Modules\Payment\Actions;
 
 use Illuminate\Support\Facades\DB;
+use Modules\Payment\Contracts\Repositories\PaymentRepositoryInterface;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Events\PaymentCompleted;
 use Modules\Payment\Events\PaymentFailed;
@@ -13,6 +14,7 @@ class HandleCallbackAction
 {
     public function __construct(
         private readonly PaymentService $paymentService,
+        private readonly PaymentRepositoryInterface $paymentRepository,
     ) {}
 
     public function handle(Payment $payment, array $payload): void
@@ -25,16 +27,11 @@ class HandleCallbackAction
         $result = $gateway->verify($payment, $payload);
 
         DB::transaction(function () use ($payment, $result) {
-            $payment->update([
-                'status' => $result->status,
-                'transaction_id' => $result->transactionId,
-                'response' => $result->rawResponse,
-                'message' => $result->message,
-            ]);
+            $this->paymentRepository->updateFromVerifyResult($payment, $result);
         });
 
         DB::afterCommit(function () use ($payment, $result) {
-            $payment->refresh();
+            $this->paymentRepository->refresh($payment);
 
             if ($result->isAccepted()) {
                 event(new PaymentCompleted($payment));

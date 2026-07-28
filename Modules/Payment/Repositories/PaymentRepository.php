@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\Payment\Contracts\Repositories\PaymentRepositoryInterface;
+use Modules\Payment\DTOs\PaymentVerifyResult;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Models\Payment;
 
@@ -18,6 +19,28 @@ class PaymentRepository implements PaymentRepositoryInterface
     public function createForOwner(Model $owner, array $attributes): Payment
     {
         return $owner->payments()->create($attributes);
+    }
+
+    public function findById(string|int $id): ?Payment
+    {
+        return Payment::query()->find($id);
+    }
+
+    public function updateFromVerifyResult(Payment $payment, PaymentVerifyResult $result): Payment
+    {
+        $payment->update([
+            'status' => $result->status,
+            'transaction_id' => $result->transactionId,
+            'response' => $result->rawResponse,
+            'message' => $result->message,
+        ]);
+
+        return $payment;
+    }
+
+    public function refresh(Payment $payment): Payment
+    {
+        return $payment->refresh();
     }
 
     public function sumAcceptedAmount(): float|int|string

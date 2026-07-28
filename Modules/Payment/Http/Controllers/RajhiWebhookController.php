@@ -6,19 +6,19 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
-use Modules\Payment\Actions\HandleRajhiWebhookAction;
+use Modules\Payment\Services\PaymentService;
 use Throwable;
 
 class RajhiWebhookController extends Controller
 {
     public function __construct(
-        private readonly HandleRajhiWebhookAction $webhookAction,
+        private readonly PaymentService $paymentService,
     ) {}
 
     public function handle(Request $request): JsonResponse
     {
         try {
-            $this->webhookAction->handle($request->all());
+            $this->paymentService->handleRajhiWebhook($request->all());
 
             return response()->json([['status' => '1']]);
         } catch (Throwable $e) {

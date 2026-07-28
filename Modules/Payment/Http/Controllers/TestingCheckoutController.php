@@ -6,13 +6,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
-use Modules\Payment\Actions\HandleCallbackAction;
 use Modules\Payment\Models\Payment;
+use Modules\Payment\Services\PaymentService;
 
 class TestingCheckoutController extends Controller
 {
     public function __construct(
-        private readonly HandleCallbackAction $callbackAction,
+        private readonly PaymentService $paymentService,
     ) {}
 
     /**
@@ -38,7 +38,7 @@ class TestingCheckoutController extends Controller
 
         $status = $request->input('status', 'success');
 
-        $this->callbackAction->handle($payment, ['status' => $status]);
+        $this->paymentService->handleCallback($payment, ['status' => $status]);
 
         return redirect()->route('payment.redirect', [
             'driver' => 'testing',
