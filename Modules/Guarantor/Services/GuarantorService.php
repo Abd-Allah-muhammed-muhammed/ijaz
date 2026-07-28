@@ -4,7 +4,6 @@ namespace Modules\Guarantor\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateCompanyGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateIndividualGuarantorAction;
@@ -18,6 +17,7 @@ use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\DTOs\CompanyDetailData;
 use Modules\Guarantor\DTOs\GuarantorData;
 use Modules\Guarantor\DTOs\GuarantorFiltersData;
+use Modules\Guarantor\DTOs\GuarantorUploadData;
 use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Exceptions\GuarantorException;
@@ -46,9 +46,9 @@ class GuarantorService
     public function createIndividual(
         GuarantorData $data,
         Model $requester,
-        Request $request,
+        GuarantorUploadData $uploads,
     ): GuarantorRequest {
-        return $this->createIndividualAction->handle($data, $requester, $request);
+        return $this->createIndividualAction->handle($data, $requester, $uploads);
     }
 
     /**
@@ -61,14 +61,14 @@ class GuarantorService
         CompanyDetailData $companyData,
         array $installments,
         Model $requester,
-        Request $request,
+        GuarantorUploadData $uploads,
     ): GuarantorRequest {
         return $this->createCompanyAction->handle(
             $data,
             $companyData,
             $installments,
             $requester,
-            $request,
+            $uploads,
         );
     }
 
@@ -80,9 +80,9 @@ class GuarantorService
     public function update(
         GuarantorRequest $request,
         array $data,
-        Request $httpRequest,
+        GuarantorUploadData $uploads,
     ): GuarantorRequest {
-        return $this->updateAction->handle($request, $data, $httpRequest);
+        return $this->updateAction->handle($request, $data, $uploads);
     }
 
     /**

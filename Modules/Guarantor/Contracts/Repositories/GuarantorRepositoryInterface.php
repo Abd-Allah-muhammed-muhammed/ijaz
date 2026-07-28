@@ -2,11 +2,13 @@
 
 namespace Modules\Guarantor\Contracts\Repositories;
 
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 interface GuarantorRepositoryInterface
 {
@@ -21,6 +23,8 @@ interface GuarantorRepositoryInterface
     public function update(GuarantorRequest $guarantorRequest, array $data): GuarantorRequest;
 
     public function findById(string $id): GuarantorRequest;
+
+    public function findCounterpartyByPhone(string $phone): ?User;
 
     public function listByRequester(Model $requester, int $perPage = 10): LengthAwarePaginator;
 
@@ -38,4 +42,6 @@ interface GuarantorRepositoryInterface
     public function getDashboardStats(): array;
 
     public function delete(GuarantorRequest $guarantorRequest): void;
+
+    public function deleteMedia(Media $media): void;
 }

@@ -10,6 +10,7 @@ use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Guarantor\DTOs\CompanyDetailData;
 use Modules\Guarantor\DTOs\GuarantorData;
 use Modules\Guarantor\DTOs\GuarantorFiltersData;
+use Modules\Guarantor\DTOs\GuarantorUploadData;
 use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
@@ -119,7 +120,7 @@ class GuarantorController extends Controller
         $guarantorRequest = $this->service->createIndividual(
             $data,
             auth()->user(),
-            $request
+            GuarantorUploadData::fromIndividualRequest($request),
         );
 
         return $this->successResponse(
@@ -166,7 +167,7 @@ class GuarantorController extends Controller
             $companyData,
             $installments,
             auth()->user(),
-            $request
+            GuarantorUploadData::fromCompanyRequest($request),
         );
 
         return $this->successResponse(
@@ -231,7 +232,7 @@ class GuarantorController extends Controller
         $updated = $this->service->update(
             $guarantorRequest,
             $request->validated(),
-            $request
+            GuarantorUploadData::fromUpdateRequest($request),
         );
 
         return $this->successResponse(

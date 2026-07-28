@@ -2,6 +2,8 @@
 
 namespace Modules\Guarantor\Repositories;
 
+use App\Models\User;
+use App\Support\Phone;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -9,6 +11,7 @@ use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class GuarantorRepository implements GuarantorRepositoryInterface
 {
@@ -43,6 +46,13 @@ class GuarantorRepository implements GuarantorRepositoryInterface
                 'media',
             ])
             ->findOrFail($id);
+    }
+
+    public function findCounterpartyByPhone(string $phone): ?User
+    {
+        return User::query()
+            ->where('phone', (string) Phone::make($phone))
+            ->first();
     }
 
     public function listByRequester(Model $requester, int $perPage = 10): LengthAwarePaginator
@@ -135,5 +145,10 @@ class GuarantorRepository implements GuarantorRepositoryInterface
     public function delete(GuarantorRequest $guarantorRequest): void
     {
         $guarantorRequest->delete();
+    }
+
+    public function deleteMedia(Media $media): void
+    {
+        $media->delete();
     }
 }

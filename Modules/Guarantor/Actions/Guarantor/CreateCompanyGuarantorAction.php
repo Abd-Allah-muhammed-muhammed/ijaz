@@ -3,20 +3,19 @@
 namespace Modules\Guarantor\Actions\Guarantor;
 
 use App\Models\User;
-use App\Support\Phone;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Guarantor\Contracts\Repositories\CompanyDetailRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
 use Modules\Guarantor\DTOs\CompanyDetailData;
 use Modules\Guarantor\DTOs\GuarantorData;
+use Modules\Guarantor\DTOs\GuarantorUploadData;
 use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\Enums\AuthorizationTypeEnum;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
-use Modules\Guarantor\Models\GuarantorCompanyDetail;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Guarantor\Notifications\GuarantorCreatedNotification;
 use Throwable;
@@ -25,6 +24,7 @@ class CreateCompanyGuarantorAction
 {
     public function __construct(
         private readonly GuarantorRepositoryInterface $guarantorRepository,
+        private readonly CompanyDetailRepositoryInterface $companyDetailRepository,
         private readonly InstallmentRepositoryInterface $installmentRepository,
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
     ) {}
@@ -39,9 +39,9 @@ class CreateCompanyGuarantorAction
         CompanyDetailData $companyData,
         array $installments,
         Model $requester,
-        Request $request,
+        GuarantorUploadData $uploads,
     ): GuarantorRequest {
-        return DB::transaction(function () use ($data, $companyData, $installments, $requester, $request) {
+        return DB::transaction(function () use ($data, $companyData, $installments, $requester, $uploads) {
             $counterparty = $this->resolveCounterparty($data->counterparty_phone);
 
             if ($counterparty->getKey() === $requester->getKey() && $counterparty::class === $requester::class) {
@@ -61,8 +61,7 @@ class CreateCompanyGuarantorAction
                 'status' => GuarantorStatusEnum::PendingAdmin,
             ]);
 
-            /** @var GuarantorCompanyDetail $companyDetail */
-            $companyDetail = $guarantorRequest->companyDetail()->create([
+            $companyDetail = $this->companyDetailRepository->createForGuarantor($guarantorRequest, [
                 'company_name' => $companyData->company_name,
                 'commercial_register' => $companyData->commercial_register,
                 'region_id' => $companyData->region_id,
@@ -85,26 +84,26 @@ class CreateCompanyGuarantorAction
                 ]);
             }
 
-            if ($request->hasFile('signature')) {
-                $guarantorRequest->addMedia($request->file('signature'))
+            if ($uploads->signature !== null) {
+                $guarantorRequest->addMedia($uploads->signature)
                     ->toMediaCollection('signature');
             }
 
-            if ($request->hasFile('authorized_id')) {
-                $companyDetail->addMedia($request->file('authorized_id'))
+            if ($uploads->authorizedId !== null) {
+                $companyDetail->addMedia($uploads->authorizedId)
                     ->toMediaCollection('authorized_id');
             }
 
-            foreach ($request->file('contracts', []) as $contract) {
+            foreach ($uploads->contracts as $contract) {
                 $companyDetail->addMedia($contract)->toMediaCollection('contracts');
             }
 
-            if ($request->hasFile('iban_certificate')) {
-                $companyDetail->addMedia($request->file('iban_certificate'))
+            if ($uploads->ibanCertificate !== null) {
+                $companyDetail->addMedia($uploads->ibanCertificate)
                     ->toMediaCollection('iban_certificates');
             }
 
-            foreach ($request->file('company_documents', []) as $document) {
+            foreach ($uploads->companyDocuments as $document) {
                 $companyDetail->addMedia($document)->toMediaCollection('company_documents');
             }
 
@@ -133,9 +132,7 @@ class CreateCompanyGuarantorAction
 
     private function resolveCounterparty(string $phone): User
     {
-        $counterparty = User::query()
-            ->where('phone', (string) Phone::make($phone))
-            ->first();
+        $counterparty = $this->guarantorRepository->findCounterpartyByPhone($phone);
 
         if ($counterparty === null) {
             throw new GuarantorException('guarantor.counterparty_not_found', 422);

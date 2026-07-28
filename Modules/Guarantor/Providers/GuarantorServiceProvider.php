@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Gate;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Guarantor\Console\Commands\CheckOverdueInstallmentsCommand;
+use Modules\Guarantor\Contracts\Repositories\CompanyDetailRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\StatusHistoryRepositoryInterface;
@@ -18,6 +19,7 @@ use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Guarantor\Policies\GuarantorPolicy;
 use Modules\Guarantor\Policies\InstallmentPolicy;
+use Modules\Guarantor\Repositories\CompanyDetailRepository;
 use Modules\Guarantor\Repositories\GuarantorRepository;
 use Modules\Guarantor\Repositories\InstallmentRepository;
 use Modules\Guarantor\Repositories\StatusHistoryRepository;
@@ -52,6 +54,11 @@ class GuarantorServiceProvider extends ModuleServiceProvider
         $this->app->bind(
             StatusHistoryRepositoryInterface::class,
             StatusHistoryRepository::class,
+        );
+
+        $this->app->bind(
+            CompanyDetailRepositoryInterface::class,
+            CompanyDetailRepository::class,
         );
 
         // Services are resolved via constructor injection:

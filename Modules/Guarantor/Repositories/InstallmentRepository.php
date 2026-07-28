@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\LazyCollection;
 use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
+use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 
@@ -57,6 +58,21 @@ class InstallmentRepository implements InstallmentRepositoryInterface
             ->pending()
             ->orderBy('order')
             ->first();
+    }
+
+    public function findPreviousPaidInstallment(
+        GuarantorRequest $request,
+        int $currentOrder,
+    ): ?GuarantorInstallment {
+        return $request->installments()
+            ->where('order', $currentOrder - 1)
+            ->where('status', InstallmentStatusEnum::Paid)
+            ->first();
+    }
+
+    public function refresh(GuarantorInstallment $installment): GuarantorInstallment
+    {
+        return $installment->refresh();
     }
 
     public function getOverdue(): LazyCollection
