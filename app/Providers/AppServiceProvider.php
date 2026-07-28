@@ -22,6 +22,7 @@ use App\Repositories\Auth\ProviderRepository;
 use App\Repositories\Auth\UserRepository;
 use App\Repositories\Provider\ProviderManagementRepository;
 use App\Repositories\User\UserManagementRepository;
+use App\Services\Chat\AppParticipantResolver;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
@@ -36,6 +37,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Modules\Chat\Contracts\ParticipantResolverInterface;
 use Modules\Settings\Models\Setting;
 
 class AppServiceProvider extends ServiceProvider
@@ -90,6 +92,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             OtpRepositoryInterface::class,
             OtpRepository::class,
+        );
+
+        $this->app->bind(
+            ParticipantResolverInterface::class,
+            AppParticipantResolver::class,
         );
     }
 

@@ -67,4 +67,9 @@ class OpportunityChatHandler implements ChatTypeHandlerInterface
     {
         return new ParticipantConversationMessenger($conversation);
     }
+
+    public function findOperation(int|string $id): Model
+    {
+        return Opportunity::query()->findOrFail($id);
+    }
 }

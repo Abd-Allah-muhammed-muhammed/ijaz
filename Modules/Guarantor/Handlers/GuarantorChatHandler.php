@@ -65,4 +65,9 @@ class GuarantorChatHandler implements ChatTypeHandlerInterface
     {
         return new ParticipantConversationMessenger($conversation);
     }
+
+    public function findOperation(int|string $id): Model
+    {
+        return GuarantorRequest::query()->findOrFail($id);
+    }
 }

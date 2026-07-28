@@ -34,4 +34,10 @@ interface ChatTypeHandlerInterface
      * Return the messenger instance for sending messages.
      */
     public function messenger(Conversation $conversation): object;
+
+    /**
+     * Load the operation model for this chat type by id.
+     * Member (P2P) handlers should throw — they have no operation.
+     */
+    public function findOperation(int|string $id): Model;
 }

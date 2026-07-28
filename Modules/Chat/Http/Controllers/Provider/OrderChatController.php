@@ -43,8 +43,8 @@ class OrderChatController extends Controller
 
     public function store(StoreOrderChatRequest $request): JsonResponse
     {
-        $operationClass = $this->chatTypeRegistry->get(ChatTypeEnum::Order)->operationType();
-        $order = $operationClass::query()->findOrFail($request->validated('order_id'));
+        $order = $this->chatTypeRegistry->get(ChatTypeEnum::Order)
+            ->findOperation($request->validated('order_id'));
 
         try {
             $conversation = $this->service->open(auth('provider')->user(), $order, ChatTypeEnum::Order);

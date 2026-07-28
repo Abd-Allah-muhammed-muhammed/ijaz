@@ -51,4 +51,9 @@ class TicketSupportChatHandler implements ChatTypeHandlerInterface
     {
         return new ParticipantConversationMessenger($conversation);
     }
+
+    public function findOperation(int|string $id): Model
+    {
+        return TicketSupport::query()->findOrFail($id);
+    }
 }

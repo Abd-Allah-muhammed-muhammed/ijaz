@@ -3,12 +3,10 @@
 namespace Modules\Chat\Http\Controllers\Provider;
 
 use App\Http\Controllers\Controller;
-use App\Models\Provider;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Chat\Contracts\ParticipantResolverInterface;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Http\Requests\SendMessageRequest;
@@ -26,6 +24,7 @@ class MemberChatController extends Controller
 
     public function __construct(
         private readonly ConversationService $service,
+        private readonly ParticipantResolverInterface $participants,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -43,7 +42,7 @@ class MemberChatController extends Controller
 
     public function store(StoreConversationRequest $request): JsonResponse
     {
-        $receiver = $this->resolveReceiverFromSocketId($request->validated('socket_id'));
+        $receiver = $this->participants->resolveFromSocketId($request->validated('socket_id'));
 
         if ($receiver === null) {
             return $this->failedMessageResponse(trans('User Not Found'));
@@ -87,16 +86,5 @@ class MemberChatController extends Controller
         return $this->successResponse(
             ConversationMessageResource::make($message->loadMissing(['sender', 'attachments']))
         );
-    }
-
-    private function resolveReceiverFromSocketId(string $socketId): ?Model
-    {
-        [$type, $id] = explode('-', $socketId, 2);
-
-        return match ($type) {
-            'user' => User::query()->find($id),
-            'provider' => Provider::query()->find($id),
-            default => null,
-        };
     }
 }

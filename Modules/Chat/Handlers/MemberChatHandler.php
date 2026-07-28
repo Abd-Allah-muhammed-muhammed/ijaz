@@ -4,6 +4,7 @@ namespace Modules\Chat\Handlers;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use LogicException;
 use Modules\Chat\Contracts\ChatTypeHandlerInterface;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Support\ParticipantConversationMessenger;
@@ -45,5 +46,10 @@ class MemberChatHandler implements ChatTypeHandlerInterface
     public function messenger(Conversation $conversation): ParticipantConversationMessenger
     {
         return new ParticipantConversationMessenger($conversation);
+    }
+
+    public function findOperation(int|string $id): Model
+    {
+        throw new LogicException('Member chat has no operation model.');
     }
 }
