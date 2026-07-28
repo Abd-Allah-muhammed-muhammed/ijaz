@@ -5,9 +5,12 @@ namespace App\Services\Auth;
 use App\Actions\Auth\Provider\LoginProviderAction;
 use App\Actions\Auth\Provider\RegisterProviderAction;
 use App\Actions\Auth\Provider\SendProviderRegistrationOtpAction;
+use App\Actions\Provider\UpdateProviderAction;
 use App\DTOs\Auth\ProviderLoginResult;
 use App\DTOs\Auth\ProviderRegisterResult;
+use App\DTOs\Provider\UpdateProviderDTO;
 use App\Http\Requests\Provider\Auth\LoginRequest;
+use App\Models\Provider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Random\RandomException;
@@ -19,6 +22,7 @@ class ProviderAuthService
         private readonly LoginProviderAction $loginProviderAction,
         private readonly RegisterProviderAction $registerProviderAction,
         private readonly SendProviderRegistrationOtpAction $sendProviderRegistrationOtpAction,
+        private readonly UpdateProviderAction $updateProviderAction,
     ) {}
 
     public function login(LoginRequest $request): ProviderLoginResult
@@ -55,5 +59,18 @@ class ProviderAuthService
     public function register(array $validatedData, Request $request): ProviderRegisterResult
     {
         return DB::transaction(fn () => $this->registerProviderAction->handle($validatedData, $request));
+    }
+
+    /**
+     * Self-service profile update — reuses Pass E2 UpdateProviderAction
+     * (logo + all ProviderTypeFilesEnum media + category/skill sync).
+     *
+     * @throws Throwable
+     */
+    public function updateProfile(Provider $provider, UpdateProviderDTO $dto): void
+    {
+        DB::transaction(function () use ($provider, $dto): void {
+            $this->updateProviderAction->handle($provider, $dto);
+        });
     }
 }
