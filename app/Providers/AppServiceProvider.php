@@ -9,6 +9,7 @@ use App\Contracts\Auth\AdminRepositoryInterface;
 use App\Contracts\Auth\OtpRepositoryInterface;
 use App\Contracts\Auth\ProviderRepositoryInterface;
 use App\Contracts\Auth\UserRepositoryInterface;
+use App\Contracts\PanAnalytics\PanAnalyticsRepositoryInterface;
 use App\Contracts\Provider\ProviderManagementRepositoryInterface;
 use App\Contracts\User\UserManagementRepositoryInterface;
 use App\NotificationChannels\EventChannel;
@@ -20,6 +21,7 @@ use App\Repositories\Auth\AdminRepository;
 use App\Repositories\Auth\OtpRepository;
 use App\Repositories\Auth\ProviderRepository;
 use App\Repositories\Auth\UserRepository;
+use App\Repositories\PanAnalytics\PanAnalyticsRepository;
 use App\Repositories\Provider\ProviderManagementRepository;
 use App\Repositories\User\UserManagementRepository;
 use App\Services\Chat\AppParticipantResolver;
@@ -96,6 +98,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             OtpRepositoryInterface::class,
             OtpRepository::class,
+        );
+
+        $this->app->bind(
+            PanAnalyticsRepositoryInterface::class,
+            PanAnalyticsRepository::class,
         );
 
         $this->app->bind(
