@@ -199,8 +199,8 @@ test('profile update freezes UserResource shape with nested nationality object',
         ->assertJsonPath('data.name', 'Updated Person')
         ->assertJsonPath('data.f_name', 'Updated')
         ->assertJsonPath('data.l_name', 'Person')
-        // profileUpdate stores the phone as submitted (no normalization on this path).
-        ->assertJsonPath('data.phone', '0512345678')
+        // profileUpdate normalizes phone the same way as register / dashboard updates.
+        ->assertJsonPath('data.phone', '966512345678')
         ->assertJsonPath('data.email', 'updated.person@example.com')
         ->assertJsonPath('data.nationality.name', 'Saudi EN');
 });
