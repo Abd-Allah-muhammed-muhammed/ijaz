@@ -3,6 +3,7 @@
 namespace Modules\Chat\Providers;
 
 use App\Providers\BaseModuleRouteServiceProvider;
+use App\Support\Api\ApiVersionRegistry;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
@@ -19,11 +20,15 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
 
     protected function mapChatApiRoutes(): void
     {
-        $path = module_path('Chat', 'Routes/V1/chat.php');
+        foreach (app(ApiVersionRegistry::class)->enabled() as $version) {
+            $path = module_path('Chat', 'Routes/'.$version->folder.'/chat.php');
 
-        if (file_exists($path)) {
+            if (! file_exists($path)) {
+                continue;
+            }
+
             Route::middleware('api')
-                ->prefix('api/v1')
+                ->prefix($version->prefix)
                 ->group($path);
         }
     }
