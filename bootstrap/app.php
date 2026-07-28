@@ -92,6 +92,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule) {
         $schedule->command('opportunities:expire')->hourly();
         $schedule->command('guarantor:check-overdue')->dailyAt('00:00');
+        $schedule->command('auth:prune-expired-otp-sessions')->hourly();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $renderModelNotFound = function (ModelNotFoundException $e, $request) {
