@@ -9,6 +9,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Chat\Contracts\HasConversation;
+use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
+use Modules\Chat\Contracts\Repositories\ConversationRepositoryInterface;
 use Modules\Chat\Exceptions\ChatException;
 use Modules\Chat\Exceptions\ChatMessageException;
 use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
@@ -24,6 +26,21 @@ abstract class BaseChatService
     protected string $_attachment_storage = 'public';
 
     protected ?Conversation $chat = null;
+
+    /**
+     * Repositories resolved via container (not constructor) so subclasses that are
+     * instantiated with `new ParticipantConversationMessenger($conversation)` /
+     * `new SupportChat($ticket)` keep working without changing call sites.
+     */
+    protected function conversations(): ConversationRepositoryInterface
+    {
+        return app(ConversationRepositoryInterface::class);
+    }
+
+    protected function messages(): ConversationMessageRepositoryInterface
+    {
+        return app(ConversationMessageRepositoryInterface::class);
+    }
 
     /**
      * getting file system disk currently storing files
@@ -128,19 +145,14 @@ abstract class BaseChatService
      */
     protected function generateMessage(?string $message, HasConversation $sender, HasConversation $receiver, ?Carbon $read_at, Collection $attachments): ConversationMessage
     {
-        $lastMessage = $this->chat
-            ->messages()
-            ->create([
-                'content' => $message,
-                'sender_id' => $sender->getKey(),
-                'sender_type' => get_class($sender),
-                'read_at' => $read_at,
-                'receiver_id' => $receiver->getKey(),
-                'receiver_type' => get_class($receiver),
-                'has_attachments' => $attachments->isNotEmpty(),
-            ])
-            ->setRelation('sender', $sender)
-            ->setRelation('receiver', $receiver);
+        $lastMessage = $this->messages()->createForConversation(
+            $this->chat,
+            $message,
+            $sender,
+            $receiver,
+            $read_at,
+            $attachments->isNotEmpty(),
+        );
 
         if ($attachments->isNotEmpty()) {
             $files = $attachments->map(function (UploadedFile $file) use ($lastMessage) {
@@ -155,8 +167,7 @@ abstract class BaseChatService
                     'updated_at' => now(),
                 ];
             });
-            $lastMessage->attachments()->insert($files->toArray());
-            $lastMessage->load('attachments');
+            $this->messages()->insertAttachments($lastMessage, $files);
         }
 
         return $lastMessage;
@@ -164,11 +175,7 @@ abstract class BaseChatService
 
     public function attachLastMessage(ConversationMessage $lastMessage): void
     {
-        $this->chat->update([
-            'last_message_at' => $lastMessage->created_at,
-            'last_message_id' => $lastMessage->id,
-        ]);
-        $this->chat->setRelation('lastMessage', $lastMessage);
+        $this->conversations()->touchLastMessage($this->chat, $lastMessage);
     }
 
     /**
