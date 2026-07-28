@@ -23,6 +23,10 @@ use App\Repositories\Auth\UserRepository;
 use App\Repositories\Provider\ProviderManagementRepository;
 use App\Repositories\User\UserManagementRepository;
 use App\Services\Chat\AppParticipantResolver;
+use App\Support\Api\ApiVersionRegistry;
+use App\Support\Api\ApiVersionResolverChain;
+use App\Support\Api\ApiVersionService;
+use App\Support\Api\Contracts\ApiVersionResolverStrategy;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
@@ -98,6 +102,26 @@ class AppServiceProvider extends ServiceProvider
             ParticipantResolverInterface::class,
             AppParticipantResolver::class,
         );
+
+        $this->app->singleton(ApiVersionRegistry::class);
+
+        $this->app->singleton(ApiVersionResolverChain::class, function ($app): ApiVersionResolverChain {
+            /** @var list<class-string<ApiVersionResolverStrategy>> $strategyClasses */
+            $strategyClasses = config('api.negotiation.strategies', []);
+
+            $strategies = [];
+
+            foreach ($strategyClasses as $strategyClass) {
+                $strategies[] = $app->make($strategyClass);
+            }
+
+            return new ApiVersionResolverChain(
+                $strategies,
+                $app->make(ApiVersionRegistry::class),
+            );
+        });
+
+        $this->app->singleton(ApiVersionService::class);
     }
 
     /**

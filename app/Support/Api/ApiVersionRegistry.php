@@ -6,6 +6,10 @@ use InvalidArgumentException;
 
 /**
  * Typed access to config('api.versions') — no routing logic.
+ *
+ * Used by route providers to load enabled version folders/prefixes, and by the
+ * informational resolver chain to validate version keys. Validation here does
+ * not change which controller Laravel dispatches for a request.
  */
 final class ApiVersionRegistry
 {

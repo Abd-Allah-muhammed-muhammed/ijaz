@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\Api\Strategies\UrlPrefixResolver;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -38,17 +40,23 @@ return [
     |--------------------------------------------------------------------------
     | Version Negotiation
     |--------------------------------------------------------------------------
-    | The URL prefix (api/v1/...) is ALWAYS the source of truth and must never
-    | change for existing clients. This section adds an OPTIONAL alternative:
-    | clients MAY also send a version header; if present and valid, it's
-    | exposed to the app for logging/response purposes, but it does NOT
-    | change which routes are registered or matched (URL prefix still owns
-    | that) — this is metadata/negotiation-awareness, not URL-alternative
-    | routing, to guarantee zero risk to existing URL-based clients.
+    | INFORMATIONAL ONLY. The URL prefix (api/v1/...) is ALWAYS the source of
+    | truth for Laravel route matching and must never change for existing
+    | clients. The strategies below only detect which version key a request
+    | appears to refer to (for logging / optional response headers / future
+    | deprecation warnings). They do NOT redirect to different controllers.
+    |
+    | Only UrlPrefixResolver is active by default. Uncomment HeaderResolver /
+    | QueryStringResolver when those signals should participate in awareness.
     */
     'negotiation' => [
-        'header_enabled' => false, // feature-flagged off by default
+        'strategies' => [
+            UrlPrefixResolver::class,
+            // \App\Support\Api\Strategies\HeaderResolver::class,
+            // \App\Support\Api\Strategies\QueryStringResolver::class,
+        ],
         'header_name' => 'X-API-Version',
+        'query_param_name' => 'version',
         'expose_response_header' => false, // adds X-API-Version to every response
     ],
 

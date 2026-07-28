@@ -6,6 +6,11 @@ use InvalidArgumentException;
 
 /**
  * Immutable view of one entry under config('api.versions').
+ *
+ * The folder/prefix/name fields describe how that version's routes are
+ * registered. Separate informational resolvers (see ApiVersionResolverChain)
+ * may report a version key for logging/headers; they never rewrite these
+ * values or change which controller Laravel dispatches.
  */
 final readonly class ApiVersion
 {
