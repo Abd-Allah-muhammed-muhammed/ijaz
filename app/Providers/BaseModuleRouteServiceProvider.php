@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\Api\ApiVersionRegistry;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -75,7 +76,10 @@ abstract class BaseModuleRouteServiceProvider extends ServiceProvider
 
     public function map(): void
     {
-        $this->mapApiRoutes('V1', 'api/v1', 'api.v1.');
+        foreach (app(ApiVersionRegistry::class)->enabled() as $version) {
+            $this->mapApiRoutes($version->folder, $version->prefix, $version->name);
+        }
+
         $this->mapAdditionalApiRoutes();
         $this->mapDashboardRoutes();
     }
