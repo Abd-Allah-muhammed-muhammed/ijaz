@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Registry\ChatTypeRegistry;
+use Modules\Guarantor\Console\Commands\BackfillCompanyGuarantorAmountsCommand;
 use Modules\Guarantor\Console\Commands\CheckOverdueInstallmentsCommand;
 use Modules\Guarantor\Contracts\Repositories\CompanyDetailRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
@@ -85,6 +86,7 @@ class GuarantorServiceProvider extends ModuleServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 CheckOverdueInstallmentsCommand::class,
+                BackfillCompanyGuarantorAmountsCommand::class,
             ]);
         }
     }
