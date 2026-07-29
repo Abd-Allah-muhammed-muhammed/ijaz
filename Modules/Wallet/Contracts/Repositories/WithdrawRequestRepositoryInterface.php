@@ -3,6 +3,7 @@
 namespace Modules\Wallet\Contracts\Repositories;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Wallet\Models\WithdrawRequest;
 
@@ -22,5 +23,5 @@ interface WithdrawRequestRepositoryInterface
 
     public function paginateForOwner(Model $owner, int $perPage): LengthAwarePaginator;
 
-    public function paginateAll(int $perPage): LengthAwarePaginator;
+    public function paginateAll(Request $request): LengthAwarePaginator;
 }

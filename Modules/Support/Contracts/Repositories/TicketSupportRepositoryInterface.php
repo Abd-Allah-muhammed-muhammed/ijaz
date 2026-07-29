@@ -4,6 +4,7 @@ namespace Modules\Support\Contracts\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Modules\Support\Enums\TicketSupportStatusEnum;
 use Modules\Support\Models\TicketSupport;
 
@@ -11,7 +12,7 @@ interface TicketSupportRepositoryInterface
 {
     public function paginateForUser(Model $user, int $perPage): LengthAwarePaginator;
 
-    public function paginateAll(int $perPage): LengthAwarePaginator;
+    public function paginateAll(Request $request): LengthAwarePaginator;
 
     public function findById(int $id): TicketSupport;
 

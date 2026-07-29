@@ -3,7 +3,11 @@
 namespace Modules\Wallet\Repositories;
 
 use App\Enums\OperationStatusEnum;
+use App\Models\Provider;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Wallet\Contracts\Repositories\WithdrawRequestRepositoryInterface;
 use Modules\Wallet\Models\WithdrawRequest;
@@ -37,12 +41,36 @@ class WithdrawRequestRepository implements WithdrawRequestRepositoryInterface
             ->paginate($perPage);
     }
 
-    public function paginateAll(int $perPage): LengthAwarePaginator
+    public function paginateAll(Request $request): LengthAwarePaginator
     {
         return WithdrawRequest::query()
             ->with('user')
+            ->when($request->input('search'), function (Builder $query, mixed $search) {
+                $search = (string) $search;
+
+                return $query->whereHasMorph(
+                    'user',
+                    [User::class, Provider::class],
+                    function (Builder $q, string $type) use ($search): void {
+                        if ($type === User::class) {
+                            $q->where(function (Builder $inner) use ($search): void {
+                                $inner->where('f_name', 'like', "%{$search}%")
+                                    ->orWhere('l_name', 'like', "%{$search}%")
+                                    ->orWhere('phone', 'like', "%{$search}%");
+                            });
+
+                            return;
+                        }
+
+                        $q->where(function (Builder $inner) use ($search): void {
+                            $inner->where('name', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%");
+                        });
+                    },
+                );
+            })
             ->orderByRaw('status = ? DESC', [OperationStatusEnum::Pending->value])
             ->latest()
-            ->paginate($perPage);
+            ->paginate($request->integer('perPage', 16));
     }
 }

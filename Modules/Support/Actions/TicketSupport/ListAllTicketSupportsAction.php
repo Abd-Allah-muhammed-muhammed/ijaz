@@ -3,6 +3,7 @@
 namespace Modules\Support\Actions\TicketSupport;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Modules\Support\Contracts\Repositories\TicketSupportRepositoryInterface;
 
 class ListAllTicketSupportsAction
@@ -11,8 +12,8 @@ class ListAllTicketSupportsAction
         private readonly TicketSupportRepositoryInterface $repository,
     ) {}
 
-    public function handle(int $perPage): LengthAwarePaginator
+    public function handle(Request $request): LengthAwarePaginator
     {
-        return $this->repository->paginateAll($perPage);
+        return $this->repository->paginateAll($request);
     }
 }

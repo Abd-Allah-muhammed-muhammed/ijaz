@@ -38,7 +38,7 @@ class SupportController extends Controller implements HasMiddleware
     {
         return inertia('Dashboard/Tickets/Index', [
             'rows' => fn () => TicketSupportCollection::make(
-                $this->service->indexAll($request->integer('perPage', 10)),
+                $this->service->indexAll($request),
             ),
             'prams' => fn () => $request->all() ?: [],
         ]);

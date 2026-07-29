@@ -3,6 +3,7 @@
 namespace Modules\Wallet\Services;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Modules\Wallet\Actions\Withdraw\CancelWithdrawRequestAction;
@@ -63,8 +64,8 @@ class WithdrawRequestService
         return $this->listForOwnerAction->handle($owner, $perPage);
     }
 
-    public function listAll(int $perPage = 16): LengthAwarePaginator
+    public function listAll(Request $request): LengthAwarePaginator
     {
-        return $this->listAllAction->handle($perPage);
+        return $this->listAllAction->handle($request);
     }
 }

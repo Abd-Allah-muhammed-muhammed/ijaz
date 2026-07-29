@@ -37,9 +37,7 @@ class TopUpRequestController extends Controller implements HasMiddleware
 
     public function index(Request $request): Response
     {
-        $rows = $this->topUpRequestService->listAll(
-            $request->integer('perPage', 16),
-        );
+        $rows = $this->topUpRequestService->listAll($request);
 
         return inertia('Dashboard/TopUpRequests/Index', [
             'rows' => fn () => TopUpCollection::make($rows),

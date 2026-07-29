@@ -3,7 +3,9 @@
 namespace Modules\Support\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Modules\Support\Contracts\Repositories\TicketSupportRepositoryInterface;
 use Modules\Support\Enums\TicketSupportStatusEnum;
 use Modules\Support\Exceptions\TicketSupportNotDeletableException;
@@ -19,12 +21,15 @@ class TicketSupportRepository implements TicketSupportRepositoryInterface
             ->paginate($perPage);
     }
 
-    public function paginateAll(int $perPage): LengthAwarePaginator
+    public function paginateAll(Request $request): LengthAwarePaginator
     {
         return TicketSupport::query()
+            ->when($request->input('search'), function (Builder $query, mixed $search) {
+                return $query->where('title', 'like', '%'.((string) $search).'%');
+            })
             ->latest()
             ->with(['operation', 'user'])
-            ->paginate($perPage);
+            ->paginate($request->integer('perPage', 10));
     }
 
     public function findById(int $id): TicketSupport

@@ -4,6 +4,7 @@ namespace Modules\Support\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Modules\Support\Actions\TicketSupport\CreateTicketSupportAction;
 use Modules\Support\Actions\TicketSupport\DeleteTicketSupportAction;
 use Modules\Support\Actions\TicketSupport\ListAllTicketSupportsAction;
@@ -31,9 +32,9 @@ class TicketSupportService implements TicketSupportServiceInterface
         return $this->listAction->handle($user, $perPage);
     }
 
-    public function indexAll(int $perPage): LengthAwarePaginator
+    public function indexAll(Request $request): LengthAwarePaginator
     {
-        return $this->listAllAction->handle($perPage);
+        return $this->listAllAction->handle($request);
     }
 
     /**

@@ -31,9 +31,7 @@ class WithdrawRequestController extends Controller implements HasMiddleware
 
     public function index(Request $request): Response
     {
-        $rows = $this->withdrawRequestService->listAll(
-            $request->integer('perPage', 16),
-        );
+        $rows = $this->withdrawRequestService->listAll($request);
 
         return inertia('Dashboard/WithdrawRequests/Index', [
             'rows' => fn () => WithdrawCollection::make($rows),

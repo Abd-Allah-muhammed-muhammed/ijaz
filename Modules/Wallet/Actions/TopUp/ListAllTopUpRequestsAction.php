@@ -2,6 +2,7 @@
 
 namespace Modules\Wallet\Actions\TopUp;
 
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Wallet\Contracts\Repositories\TopUpRequestRepositoryInterface;
 
@@ -11,8 +12,8 @@ class ListAllTopUpRequestsAction
         private readonly TopUpRequestRepositoryInterface $repository,
     ) {}
 
-    public function handle(int $perPage = 16): LengthAwarePaginator
+    public function handle(Request $request): LengthAwarePaginator
     {
-        return $this->repository->paginateAll($perPage);
+        return $this->repository->paginateAll($request);
     }
 }
