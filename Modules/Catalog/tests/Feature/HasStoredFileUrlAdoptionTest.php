@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Modules\Catalog\Http\Resources\Dashboard\DeviceCategoryResource;
 use Modules\Catalog\Http\Resources\Dashboard\SpecializationResource;
@@ -7,7 +8,10 @@ use Modules\Catalog\Models\DeviceCategory;
 use Modules\Catalog\Models\Specialization;
 
 test('specialization dashboard resource icon_url matches previous Storage::url output', function () {
+    Storage::fake('public');
+
     $path = 'specializations/icon-test.png';
+    Storage::disk('public')->put($path, 'fake-icon');
 
     $specialization = Specialization::query()->create([
         'icon' => $path,
@@ -22,6 +26,17 @@ test('specialization dashboard resource icon_url matches previous Storage::url o
     expect($specialization->icon_url)->toBe($expected)
         ->and($resource['icon'])->toBe($expected)
         ->and($resource['icon'])->not->toContain('ui-avatars');
+});
+
+test('stored file url falls back to placeholder when path is set but file is missing', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create([
+        'image' => 'users/missing-avatar.png',
+    ]);
+
+    expect(Storage::disk('public')->exists('users/missing-avatar.png'))->toBeFalse()
+        ->and($user->image_url)->toBe(asset('media/avatars/blank.png'));
 });
 
 test('device category with no icon returns null, not a placeholder', function () {

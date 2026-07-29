@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { Link } from "@inertiajs/react";
 import { Order } from "@/types/models";
@@ -12,6 +12,9 @@ type Props = {
 
 const OrderCard = ({ order, url = '#' }: Props) => {
   const {t} = useTranslation();
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(order.user?.image) && !imageFailed;
+
   return (
     <Link href={url} className="text-decoration-none">
       <Card className="h-100 border-0 shadow-sm rounded-4 hover-elevate-up overflow-hidden position-relative">
@@ -25,8 +28,13 @@ const OrderCard = ({ order, url = '#' }: Props) => {
             {/* User Info */}
             <div className="d-flex align-items-center">
               <div className="symbol symbol-40px me-3">
-                {order.user?.image ? (
-                  <img src={order.user.image} alt={order.user.name} className="object-fit-cover rounded-circle" />
+                {showImage ? (
+                  <img
+                    src={order.user!.image}
+                    alt={order.user?.name}
+                    className="object-fit-cover rounded-circle"
+                    onError={() => setImageFailed(true)}
+                  />
                 ) : (
                   <div className={`symbol-label bg-light-${order.status.color} text-${order.status.color} fs-4 fw-bold rounded-circle`}>
                     {order.user?.name?.charAt(0).toUpperCase()}

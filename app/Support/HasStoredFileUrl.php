@@ -12,7 +12,13 @@ trait HasStoredFileUrl
             return $this->defaultImagePlaceholder();
         }
 
-        return Storage::disk($this->storedFileDisk())->url($path);
+        $disk = Storage::disk($this->storedFileDisk());
+
+        if (! $disk->exists($path)) {
+            return $this->defaultImagePlaceholder();
+        }
+
+        return $disk->url($path);
     }
 
     protected function storedFileDisk(): string
