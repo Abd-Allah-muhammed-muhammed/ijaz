@@ -168,6 +168,7 @@ return [
     'car_category_cannot_be_own_parent' => 'A car category cannot be set as its own parent.',
     'category_cannot_be_own_parent' => 'A category cannot be set as its own parent.',
     'specialization_cannot_be_own_parent' => 'A specialization cannot be set as its own parent.',
+    'invalid_authenticatable_id' => 'The selected :authenticatable could not be found.',
 
     /*
     |--------------------------------------------------------------------------

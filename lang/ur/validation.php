@@ -85,6 +85,7 @@ return [
     'car_category_cannot_be_own_parent' => 'کار کیٹیگری کو خود اپنا والدین مقرر نہیں کیا جا سکتا۔',
     'category_cannot_be_own_parent' => 'کیٹیگری کو خود اپنا والدین مقرر نہیں کیا جا سکتا۔',
     'specialization_cannot_be_own_parent' => 'تخصص کو خود اپنا والدین مقرر نہیں کیا جا سکتا۔',
+    'invalid_authenticatable_id' => 'منتخب شدہ :authenticatable نہیں ملا۔',
 
     /*
   |--------------------------------------------------------------------------

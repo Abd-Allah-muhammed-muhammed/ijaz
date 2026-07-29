@@ -81,6 +81,7 @@ return [
     'car_category_cannot_be_own_parent' => 'لا يمكن تعيين فئة السيارة كأصل لنفسها.',
     'category_cannot_be_own_parent' => 'لا يمكن تعيين الفئة كأصل لنفسها.',
     'specialization_cannot_be_own_parent' => 'لا يمكن تعيين التخصص كأصل لنفسه.',
+    'invalid_authenticatable_id' => 'تعذر العثور على :authenticatable المحدد.',
 
     /*
   |--------------------------------------------------------------------------
