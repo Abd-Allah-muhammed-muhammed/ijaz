@@ -70,6 +70,7 @@ require_once __DIR__.'/../Modules/Settings/tests/helpers.php';
 require_once __DIR__.'/../Modules/Reviews/tests/helpers.php';
 require_once __DIR__.'/../Modules/Classifieds/tests/helpers.php';
 require_once __DIR__.'/../Modules/Support/tests/helpers.php';
+require_once __DIR__.'/../Modules/Cms/tests/helpers.php';
 require_once __DIR__.'/Helpers/orders.php';
 
 /*

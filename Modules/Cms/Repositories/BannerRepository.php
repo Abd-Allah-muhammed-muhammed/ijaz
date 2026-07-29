@@ -3,6 +3,7 @@
 namespace Modules\Cms\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Cms\Contracts\Repositories\BannerRepositoryInterface;
@@ -13,6 +14,9 @@ class BannerRepository implements BannerRepositoryInterface
     public function paginate(Request $request): LengthAwarePaginator
     {
         return Banner::query()
+            ->when($request->input('search'), function (Builder $query, mixed $search) {
+                return $query->where('link', 'like', '%'.((string) $search).'%');
+            })
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();
     }
