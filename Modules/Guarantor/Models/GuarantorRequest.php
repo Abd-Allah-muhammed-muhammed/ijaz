@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Modules\Chat\Models\Conversation;
 use Modules\Guarantor\Database\Factories\GuarantorRequestFactory;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
@@ -130,9 +131,39 @@ class GuarantorRequest extends Model implements HasMedia
             ->useDisk('public');
     }
 
+    protected static function booted(): void
+    {
+        // MySQL uses a STORED GENERATED total column. SQLite uses a plain column
+        // defaulting to 0 — keep it in sync on write so Dashboard/API totals stay correct.
+        static::saving(function (GuarantorRequest $model): void {
+            if (DB::getDriverName() !== 'sqlite') {
+                return;
+            }
+
+            $model->attributes['total'] = number_format(
+                (float) ($model->attributes['amount'] ?? $model->amount ?? 0)
+                + (float) ($model->attributes['fees'] ?? $model->fees ?? 0),
+                2,
+                '.',
+                ''
+            );
+        });
+    }
+
     protected function total(): Attribute
     {
-        return Attribute::get(static fn ($value, array $attributes) => $value ?? (($attributes['amount'] ?? 0) + ($attributes['fees'] ?? 0)));
+        // Prefer derived amount+fees when the stored total is missing or a stale
+        // SQLite default of 0 while the contract principal implies a real total.
+        return Attribute::get(static function ($value, array $attributes): string {
+            $derived = (float) ($attributes['amount'] ?? 0) + (float) ($attributes['fees'] ?? 0);
+            $stored = $attributes['total'] ?? null;
+
+            if ($stored === null || ((float) $stored === 0.0 && $derived > 0.0)) {
+                return number_format($derived, 2, '.', '');
+            }
+
+            return number_format((float) $stored, 2, '.', '');
+        });
     }
 
     protected static function newFactory(): GuarantorRequestFactory
@@ -147,7 +178,6 @@ class GuarantorRequest extends Model implements HasMedia
             'type' => GuarantorTypeEnum::class,
             'amount' => 'decimal:2',
             'fees' => 'decimal:2',
-            'total' => 'decimal:2',
             'overdue_at' => 'datetime',
             'ended_at' => 'datetime',
             'cancelled_at' => 'datetime',
