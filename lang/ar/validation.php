@@ -77,6 +77,10 @@ return [
     'unique' => 'قيمة الحقل :attribute مستخدمة من قبل.',
     'url' => 'صيغة الحقل :attribute غير صالحة.',
     'device_category_cannot_be_own_parent' => 'لا يمكن تعيين فئة الجهاز كأصل لنفسها.',
+    'property_category_cannot_be_own_parent' => 'لا يمكن تعيين فئة العقار كأصل لنفسها.',
+    'car_category_cannot_be_own_parent' => 'لا يمكن تعيين فئة السيارة كأصل لنفسها.',
+    'category_cannot_be_own_parent' => 'لا يمكن تعيين الفئة كأصل لنفسها.',
+    'specialization_cannot_be_own_parent' => 'لا يمكن تعيين التخصص كأصل لنفسه.',
 
     /*
   |--------------------------------------------------------------------------

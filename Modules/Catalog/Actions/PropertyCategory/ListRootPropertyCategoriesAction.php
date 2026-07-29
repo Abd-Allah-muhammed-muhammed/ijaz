@@ -15,8 +15,8 @@ class ListRootPropertyCategoriesAction
     /**
      * @return Collection<int, PropertyCategory>
      */
-    public function handle(): Collection
+    public function handle(?int $excludeId = null): Collection
     {
-        return $this->repository->getRootCategories();
+        return $this->repository->getRootCategories($excludeId);
     }
 }

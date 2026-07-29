@@ -27,7 +27,17 @@ class CategoryRequest extends FormRequest
     {
         $supportedLocales = array_keys(config('laravellocalization.supportedLocales'));
         $rules = [
-            'parent_id' => 'nullable|exists:categories,id',
+            'parent_id' => [
+                'nullable',
+                'integer',
+                'exists:categories,id',
+                function ($attribute, $value, $fail) {
+                    $category = request()->route('category');
+                    if ($category && (int) $value === $category->id) {
+                        $fail(__('validation.category_cannot_be_own_parent'));
+                    }
+                },
+            ],
             'icon' => [Rule::when($this->route('category'), 'nullable', ['required', 'image', 'max:2048'])],
             'translations' => ['required', 'array'],
             'fees_type' => ['required', new Enum(CategoryFeesTypeEnum::class)],

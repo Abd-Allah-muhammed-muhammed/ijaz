@@ -61,7 +61,7 @@ class CarCategoryController extends Controller implements HasMiddleware
 
         return inertia('Dashboard/CarCategories/Edit', [
             'category' => CarCategoryResource::make($car_category),
-            'categories' => CarCategoryResource::collection($this->service->getRootCategories()),
+            'categories' => CarCategoryResource::collection($this->service->getRootCategories(excludeId: $car_category->id)),
         ]);
     }
 

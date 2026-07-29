@@ -25,7 +25,17 @@ class CarCategoryRequest extends FormRequest
     {
         $supportedLocales = array_keys(config('laravellocalization.supportedLocales'));
         $rules = [
-            'parent_id' => 'nullable|exists:car_categories,id',
+            'parent_id' => [
+                'nullable',
+                'integer',
+                'exists:car_categories,id',
+                function ($attribute, $value, $fail) {
+                    $carCategory = request()->route('car_category');
+                    if ($carCategory && (int) $value === $carCategory->id) {
+                        $fail(__('validation.car_category_cannot_be_own_parent'));
+                    }
+                },
+            ],
             'icon' => ['nullable', 'image', 'max:2048'],
             'translations' => ['required', 'array'],
         ];

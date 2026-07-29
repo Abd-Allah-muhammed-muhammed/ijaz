@@ -5,6 +5,7 @@ namespace Modules\Catalog\Repositories;
 use App\Support\Normalize;
 use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Contracts\Repositories\PropertyCategoryRepositoryInterface;
@@ -72,10 +73,11 @@ class PropertyCategoryRepository implements PropertyCategoryRepositoryInterface
     /**
      * @return Collection<int, PropertyCategory>
      */
-    public function getRootCategories(): Collection
+    public function getRootCategories(?int $excludeId = null): Collection
     {
         return PropertyCategory::with(['translation'])
             ->whereNull('parent_id')
+            ->when($excludeId, fn (Builder $query) => $query->where('id', '!=', $excludeId))
             ->get();
     }
 }

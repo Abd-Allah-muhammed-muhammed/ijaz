@@ -79,7 +79,7 @@ class PropertyCategoryController extends Controller implements HasMiddleware
         return inertia('Dashboard/PropertyCategories/Edit', [
             'category' => PropertyCategoryResource::make($this->service->show($propertyCategory)),
             'categories' => PropertyCategoryResource::collection(
-                $this->service->getRootCategories()
+                $this->service->getRootCategories(excludeId: $propertyCategory->id)
             ),
         ]);
     }

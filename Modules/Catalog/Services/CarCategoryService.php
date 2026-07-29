@@ -57,9 +57,9 @@ class CarCategoryService implements CarCategoryServiceInterface
     /**
      * @return Collection<int, CarCategory>
      */
-    public function getRootCategories(): Collection
+    public function getRootCategories(?int $excludeId = null): Collection
     {
-        return $this->listRootAction->handle();
+        return $this->listRootAction->handle($excludeId);
     }
 
     /**

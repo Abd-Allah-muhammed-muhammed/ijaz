@@ -81,6 +81,10 @@ return [
     'unique' => ':attribute پہلے سے موجود ہے۔',
     'url' => ':attribute کا فارمیٹ غلط ہے۔',
     'device_category_cannot_be_own_parent' => 'ڈیوائس کیٹیگری کو خود اپنا والدین مقرر نہیں کیا جا سکتا۔',
+    'property_category_cannot_be_own_parent' => 'پراپرٹی کیٹیگری کو خود اپنا والدین مقرر نہیں کیا جا سکتا۔',
+    'car_category_cannot_be_own_parent' => 'کار کیٹیگری کو خود اپنا والدین مقرر نہیں کیا جا سکتا۔',
+    'category_cannot_be_own_parent' => 'کیٹیگری کو خود اپنا والدین مقرر نہیں کیا جا سکتا۔',
+    'specialization_cannot_be_own_parent' => 'تخصص کو خود اپنا والدین مقرر نہیں کیا جا سکتا۔',
 
     /*
   |--------------------------------------------------------------------------

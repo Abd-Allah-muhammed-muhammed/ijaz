@@ -65,9 +65,9 @@ class PropertyCategoryService implements PropertyCategoryServiceInterface
     /**
      * @return Collection<int, PropertyCategory>
      */
-    public function getRootCategories(): Collection
+    public function getRootCategories(?int $excludeId = null): Collection
     {
-        return $this->listRootAction->handle();
+        return $this->listRootAction->handle($excludeId);
     }
 
     /**

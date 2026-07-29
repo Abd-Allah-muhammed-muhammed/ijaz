@@ -56,8 +56,11 @@ class CarCategoryRepository implements CarCategoryRepositoryInterface
     /**
      * @return Collection<int, CarCategory>
      */
-    public function getRootCategories(): Collection
+    public function getRootCategories(?int $excludeId = null): Collection
     {
-        return CarCategory::with(['translation'])->whereNull('parent_id')->get();
+        return CarCategory::with(['translation'])
+            ->whereNull('parent_id')
+            ->when($excludeId, fn (Builder $query) => $query->where('id', '!=', $excludeId))
+            ->get();
     }
 }

@@ -27,5 +27,5 @@ interface PropertyCategoryRepositoryInterface
     /**
      * @return Collection<int, PropertyCategory>
      */
-    public function getRootCategories(): Collection;
+    public function getRootCategories(?int $excludeId = null): Collection;
 }
