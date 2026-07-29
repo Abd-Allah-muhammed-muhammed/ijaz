@@ -1,12 +1,6 @@
 /*
-  Phase 0 Step 1 — Tailwind v4 wired WITHOUT Preflight.
-
-  Bootstrap/Metronic remain the visual source of truth for existing pages.
-  `@import "tailwindcss"` would inject preflight (margin/padding resets, border
-  resets, unstyled headings/lists, block images, etc.) and clash with Bootstrap.
-  Re-enable preflight only when pages migrate onto Tailwind as primary.
-
-  Equivalent of the default `@import "tailwindcss"` minus preflight.css:
+  Phase 0 — Tailwind v4 WITHOUT Preflight (Bootstrap/Metronic stay primary visuals).
+  Equivalent of `@import "tailwindcss"` minus preflight.css.
 */
 @layer theme, base, components, utilities;
 
@@ -21,9 +15,70 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ---------------------------------------------------------------------------
+   Fonts — IBM Plex Sans Arabic (local) + Inter (Google Fonts in Blade)
+   Replaces: Cairo, Iceland, typo family name "IMBPlex"
+--------------------------------------------------------------------------- */
+@font-face {
+    font-family: 'IBM Plex Sans Arabic';
+    src: url('/fonts/IBMPlexSansArabic-Thin.ttf') format('truetype');
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'IBM Plex Sans Arabic';
+    src: url('/fonts/IBMPlexSansArabic-ExtraLight.ttf') format('truetype');
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'IBM Plex Sans Arabic';
+    src: url('/fonts/IBMPlexSansArabic-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'IBM Plex Sans Arabic';
+    src: url('/fonts/IBMPlexSansArabic-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'IBM Plex Sans Arabic';
+    src: url('/fonts/IBMPlexSansArabic-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'IBM Plex Sans Arabic';
+    src: url('/fonts/IBMPlexSansArabic-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'IBM Plex Sans Arabic';
+    src: url('/fonts/IBMPlexSansArabic-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 @theme {
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        'IBM Plex Sans Arabic', Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -74,100 +129,151 @@
 }
 
 /*
-  Phase 0: deferred — these global base rules would override Bootstrap/Metronic
-  body colors and every element's border-color across ~184 pages.
-
-@layer base {
-    *,
-    ::after,
-    ::before,
-    ::backdrop,
-    ::file-selector-button {
-        border-color: var(--color-gray-200, currentColor);
-    }
-
-    * {
-        @apply border-border;
-    }
-
-    body {
-        @apply bg-background text-foreground;
-    }
-}
+  Shared neutrals + Website brand primary as the default (:root / data-app="web").
+  Website brand from layouts/style.css Bootstrap tokens:
+    primary #0c0f20 · secondary #102437 · success #00686D · warning #C4903C
 */
-
-:root {
+:root,
+:root[data-app='web'] {
     --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
+    --foreground: oklch(0.18 0.02 275);
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
+    --card-foreground: oklch(0.18 0.02 275);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.87 0 0);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
+    --popover-foreground: oklch(0.18 0.02 275);
+    /* #0c0f20 — Website / Ijaz navy-black */
+    --primary: oklch(0.18 0.03 275);
+    --primary-foreground: oklch(0.99 0 0);
+    /* #102437 */
+    --secondary: oklch(0.24 0.035 250);
+    --secondary-foreground: oklch(0.99 0 0);
+    --muted: oklch(0.96 0.005 275);
+    --muted-foreground: oklch(0.5 0.02 275);
+    --accent: oklch(0.96 0.005 275);
+    --accent-foreground: oklch(0.22 0.03 275);
+    --destructive: oklch(0.55 0.22 25);
+    --destructive-foreground: oklch(0.99 0 0);
+    --border: oklch(0.9 0.01 275);
+    --input: oklch(0.9 0.01 275);
+    --ring: oklch(0.18 0.03 275);
+    --chart-1: oklch(0.55 0.2 255);
+    --chart-2: oklch(0.55 0.12 160);
+    --chart-3: oklch(0.45 0.08 195);
+    --chart-4: oklch(0.7 0.12 75);
+    --chart-5: oklch(0.55 0.14 25);
     --radius: 0.625rem;
     --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.87 0 0);
+    --sidebar-foreground: oklch(0.18 0.02 275);
+    --sidebar-primary: oklch(0.18 0.03 275);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: oklch(0.96 0.005 275);
+    --sidebar-accent-foreground: oklch(0.22 0.03 275);
+    --sidebar-border: oklch(0.9 0.01 275);
+    --sidebar-ring: oklch(0.18 0.03 275);
+    /* Brand success teal #00686D — available for badges / accents */
+    --brand-success: oklch(0.45 0.075 195);
+    --brand-warning: oklch(0.68 0.12 75);
 }
 
-.dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.145 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.145 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.985 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.396 0.141 25.723);
-    --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.269 0 0);
-    --input: oklch(0.269 0 0);
-    --ring: oklch(0.439 0 0);
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.985 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.269 0 0);
-    --sidebar-ring: oklch(0.439 0 0);
+/* Admin Dashboard — violet (AA contrast on white for solid buttons) */
+:root[data-app='admin'] {
+    --primary: oklch(0.45 0.22 295);
+    --primary-foreground: oklch(0.99 0 0);
+    --ring: oklch(0.45 0.22 295);
+    --sidebar-primary: oklch(0.45 0.22 295);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-ring: oklch(0.45 0.22 295);
 }
 
-/* Custom Registration Completion Styles (scoped — unique selectors only) */
+/* Provider Dashboard — blue */
+:root[data-app='provider'] {
+    --primary: oklch(0.48 0.18 255);
+    --primary-foreground: oklch(0.99 0 0);
+    --ring: oklch(0.48 0.18 255);
+    --sidebar-primary: oklch(0.48 0.18 255);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-ring: oklch(0.48 0.18 255);
+}
+
+/* Marketer Dashboard (reserved) — green */
+:root[data-app='marketer'] {
+    --primary: oklch(0.5 0.14 155);
+    --primary-foreground: oklch(0.99 0 0);
+    --ring: oklch(0.5 0.14 155);
+    --sidebar-primary: oklch(0.5 0.14 155);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-ring: oklch(0.5 0.14 155);
+}
+
+/* Dark mode — shared neutrals; per-app primary lightened for contrast on dark surfaces */
+:root.dark,
+:root.dark[data-app='web'] {
+    --background: oklch(0.16 0.02 275);
+    --foreground: oklch(0.97 0.005 275);
+    --card: oklch(0.2 0.025 275);
+    --card-foreground: oklch(0.97 0.005 275);
+    --popover: oklch(0.2 0.025 275);
+    --popover-foreground: oklch(0.97 0.005 275);
+    --primary: oklch(0.78 0.04 275);
+    --primary-foreground: oklch(0.18 0.03 275);
+    --secondary: oklch(0.28 0.03 250);
+    --secondary-foreground: oklch(0.97 0.005 275);
+    --muted: oklch(0.28 0.02 275);
+    --muted-foreground: oklch(0.7 0.02 275);
+    --accent: oklch(0.28 0.02 275);
+    --accent-foreground: oklch(0.97 0.005 275);
+    --destructive: oklch(0.6 0.2 25);
+    --destructive-foreground: oklch(0.99 0 0);
+    --border: oklch(0.3 0.02 275);
+    --input: oklch(0.3 0.02 275);
+    --ring: oklch(0.78 0.04 275);
+    --sidebar: oklch(0.18 0.02 275);
+    --sidebar-foreground: oklch(0.97 0.005 275);
+    --sidebar-primary: oklch(0.78 0.04 275);
+    --sidebar-primary-foreground: oklch(0.18 0.03 275);
+    --sidebar-accent: oklch(0.28 0.02 275);
+    --sidebar-accent-foreground: oklch(0.97 0.005 275);
+    --sidebar-border: oklch(0.3 0.02 275);
+    --sidebar-ring: oklch(0.78 0.04 275);
+}
+
+:root.dark[data-app='admin'] {
+    --primary: oklch(0.72 0.16 295);
+    --primary-foreground: oklch(0.22 0.06 295);
+    --ring: oklch(0.72 0.16 295);
+    --sidebar-primary: oklch(0.72 0.16 295);
+    --sidebar-primary-foreground: oklch(0.22 0.06 295);
+    --sidebar-ring: oklch(0.72 0.16 295);
+}
+
+:root.dark[data-app='provider'] {
+    --primary: oklch(0.72 0.14 255);
+    --primary-foreground: oklch(0.22 0.05 255);
+    --ring: oklch(0.72 0.14 255);
+    --sidebar-primary: oklch(0.72 0.14 255);
+    --sidebar-primary-foreground: oklch(0.22 0.05 255);
+    --sidebar-ring: oklch(0.72 0.14 255);
+}
+
+:root.dark[data-app='marketer'] {
+    --primary: oklch(0.74 0.12 155);
+    --primary-foreground: oklch(0.22 0.05 155);
+    --ring: oklch(0.74 0.12 155);
+    --sidebar-primary: oklch(0.74 0.12 155);
+    --sidebar-primary-foreground: oklch(0.22 0.05 155);
+    --sidebar-ring: oklch(0.74 0.12 155);
+}
+
+/*
+  Apply the unified font stack without Tailwind Preflight.
+  Does not reset margins/borders — Bootstrap still owns those.
+*/
+html,
+body {
+    font-family: var(--font-sans);
+}
+
+/* Registration completion (scoped — unique selectors only) */
 .registration-content {
     line-height: 1.8;
 }
@@ -195,13 +301,13 @@
     border: 1px solid #bfdbfe !important;
 }
 
-/* Success Icon Animation */
 .ki-check-circle {
     animation: successPulse 2s infinite;
 }
 
 @keyframes successPulse {
-    0%, 100% {
+    0%,
+    100% {
         transform: scale(1);
         opacity: 1;
     }
@@ -211,43 +317,6 @@
     }
 }
 
-/*
-  Phase 0: deferred — these override Bootstrap utility class names globally
-  (.shadow-sm, .rounded-2/3, .lh-lg, .bg-opacity-10) and would visually change
-  every page that uses them. Revisit when registration/marketing CSS is owned.
-
-.shadow-sm {
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 4px 8px 0 rgba(0, 0, 0, 0.05) !important;
-}
-
-.bg-gradient-to-br {
-    background: linear-gradient(to bottom right, #dcfce7, #a7f3d0) !important;
-}
-
-.lh-lg {
-    line-height: 1.8 !important;
-}
-
-.bg-opacity-10 {
-    backdrop-filter: blur(4px);
-    transition: all 0.3s ease;
-}
-
-.bg-opacity-10:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.rounded-3 {
-    border-radius: 1rem !important;
-}
-
-.rounded-2 {
-    border-radius: 0.75rem !important;
-}
-*/
-
-/* Responsive Typography */
 @media (max-width: 768px) {
     .registration-content .fs-5 {
         font-size: 1rem !important;
@@ -258,42 +327,7 @@
     }
 }
 
-/* RTL Support for Arabic text */
-[dir="rtl"] .registration-content,
-[dir="rtl"] .summary-content {
+[dir='rtl'] .registration-content,
+[dir='rtl'] .summary-content {
     text-align: right;
-}
-
-.react-select-container {
-  .react-select__control {
-    background-color: var(--bg-secondary);
-    border-color: var(--border-color);
-    transition: none;
-
-    &:hover {
-      border-color: var(--border-color);
-    }
-  }
-
-  .react-select__menu {
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-  }
-
-  .react-select__option {
-    background-color: var(--bg-secondary);
-
-    &:hover {
-      background-color: var(--bg-primary);
-    }
-  }
-
-  .react-select__indicator-separator {
-    background-color: var(--border-color);
-  }
-
-  .react-select__placeholder,
-  .react-select__single-value {
-    color: var(--text-primary);
-  }
 }

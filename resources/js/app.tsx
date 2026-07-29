@@ -24,6 +24,8 @@ import './echo';
 import { initializeTheme } from './hooks/use-appearance';
 import './lang/i18next';
 import I18nextEffect from './lang/I18next-effect';
+import { initializeAppShell } from './lib/app-shell';
+import type { SharedData } from './types';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Ijaz';
 
@@ -33,8 +35,10 @@ createInertiaApp({
   title: (title) => `${title} - ${appName}`,
   resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
   setup({ el, App, props }) {
-    const locale = (props.initialPage.props.app as { locale: string })?.locale || 'en';
+    const shared = props.initialPage.props as SharedData;
+    const locale = shared.app?.locale || 'en';
     axios.defaults.headers.common['Accept-Language'] = locale;
+    initializeAppShell(shared.app?.shell);
 
     const appElement = (
       <I18nextEffect locale={locale}>

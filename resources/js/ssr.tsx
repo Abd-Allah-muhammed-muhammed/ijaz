@@ -19,7 +19,7 @@ createServer((page) =>
         title: (title) => `${title} - ${appName}`,
         resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
         setup({ App, props }) {
-            const locale = (props.initialPage.props.app as { locale: string })?.locale || 'en';
+            const locale = (props.initialPage.props as { app?: { locale?: string } }).app?.locale || 'en';
             const queryClient = new QueryClient();
 
             return (

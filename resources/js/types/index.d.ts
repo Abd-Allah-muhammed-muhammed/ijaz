@@ -34,6 +34,8 @@ export interface SharedData {
   sidebarOpen: boolean;
   app: {
     locale: string;
+    /** Design-system shell: drives <html data-app> color tokens */
+    shell: 'admin' | 'provider' | 'marketer' | 'web';
   }
   flash: {
     success: message | null;

@@ -1,8 +1,10 @@
 @php($locale = str_replace('_', '-', app()->getLocale()))
 @use(App\Services\Translations\TranslationService)
 @php($direction = in_array($locale, ['ar', 'ur']) ? 'rtl' : 'ltr')
+@php($appShell = $appShell ?? 'web')
 <!DOCTYPE html>
 <html lang="{{ $locale }}" @class(['dark' => ($appearance ?? 'system') === 'dark'])
+  data-app="{{ $appShell }}"
   data-bs-theme="{{$appearance ?? 'system'}}" dir="{{$direction}}" direction="{{$direction}}" data-inertia="true"
   data-direction="{{$direction}}" style="direction: {{$direction}};">
 
@@ -13,14 +15,13 @@
   <meta name="csrf" content="{{csrf_token()}}" />
   <meta name="theme-color" content="#000000" />
   <meta name="description" content="Ijaz" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
   <title inertia>{{ config('app.name', 'Ijaz') }}</title>
   <link rel="shortcut icon" href="{{asset('/media/logos/default.svg')}}" />
   <link rel="stylesheet" id="layout-styles-anchor" href="{{asset('splash-screen.css')}}" />
+  {{-- Inter for Latin; IBM Plex Sans Arabic loaded via @font-face in app.css from /public/fonts --}}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Iceland&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @viteReactRefresh
   {{-- {!!app(TranslationService::class)->render($locale)!!}--}}
   <script>
