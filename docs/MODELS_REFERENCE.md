@@ -32,7 +32,7 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 
 - `Modules\Jobs\Concerns\HasJobs::jobs()` is **`MorphMany`** to `JobOffer` (not `MorphOne`). Used by `User` and `Provider`.
 - `Modules\Geo\Models\CityTranslation::city()` is a working **`BelongsTo`** `City` relation.
-- `PropertyCategoryTranslation.normalized_title` column exists but is **not populated on save** (documented deferred quirk) — PropertyCategory Arabic search via `TranslationSearchFilter` stays empty until a save-hook lands.
+- ~~`PropertyCategoryTranslation.normalized_title` column exists but is **not populated on save**~~ — **RESOLVED**: saving hook + backfill migration on `fix/property-category-normalized-title`.
 - Unified `App\Models\Otp` (UUID PK) replaces deleted `VerificationCode` / `RegisterVerificationCode` models; purposes via `App\Enums\Auth\OtpPurposeEnum`.
 - `Modules\Settings\Models\Setting` owns platform settings (`is_public`, `SettingGroupEnum`); public catalog endpoint is `Modules\Settings\Http\Controllers\Api\V1\SettingController`.
 - `Modules\Reviews\Models\Review` is polymorphic (reviewer/reviewee/operation); `HasReviews` concern applied to User/Provider (and order review flows).

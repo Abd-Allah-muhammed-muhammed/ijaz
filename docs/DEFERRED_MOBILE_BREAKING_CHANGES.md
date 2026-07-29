@@ -321,6 +321,8 @@ case 'phone':
 
 **Resolved pre-launch** on `refactor/property-category-rename`: classes, factories, create migrations, FKs, and consumers renamed to `PropertyCategory` / `property_categories` / `property_category_id`. Original create migrations were edited directly (`migrate:fresh`); no layered rename migration. API JSON keys were already correctly spelled and unchanged. Also fixed `PropertyCategoryRequest` unique-ignore using the wrong route param (`propertiy_category` → `property_category`).
 
+**Related (non-mobile-breaking, also RESOLVED):** `PropertyCategoryTranslation.normalized_title` was never written on save (search always returned 0). Fixed on `fix/property-category-normalized-title` with the same Car/Device/Specialization saving-hook pattern plus a one-time NULL backfill migration. Documented historically under `docs/PROJECT_CONTEXT.md` §7 quirks — not a payload contract change.
+
 ---
 
 ## Item 6 — `HasOTPs::markPhoneAsVerified()` response semantics

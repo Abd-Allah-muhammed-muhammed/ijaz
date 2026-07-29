@@ -2,13 +2,13 @@
 
 namespace Modules\Catalog\Models;
 
+use App\Support\Normalize;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * App\Models\PropertyCategoryTranslation
- *
  * @property string $title
+ * @property string|null $normalized_title
  * @property string $locale
  * @property int $property_category_id
  */
@@ -18,15 +18,14 @@ class PropertyCategoryTranslation extends Model
 
     protected $fillable = ['title', 'locale'];
 
-    /*
-     * TODO (deferred — not part of QueryFilters consolidation):
-     * `property_category_translations.normalized_title` exists and is indexed, and
-     * PropertyCategory search filters against it via TranslationSearchFilter, but this
-     * model never populates `normalized_title` on save (unlike Specialization /
-     * CarCategory / DeviceCategory / ElectronicBrand translations). Until a saving
-     * hook (or equivalent) writes Normalize::make($title, $locale), Arabic-normalized
-     * PropertyCategory search will match nothing. See docs/PROJECT_CONTEXT.md §7.
-     */
+    protected static function booted(): void
+    {
+        static::saving(static function ($translation) {
+            if ($translation->isDirty('title') && ! empty($translation->locale)) {
+                $translation->normalized_title = Normalize::make($translation->title, $translation->locale)->toString();
+            }
+        });
+    }
 
     public function propertyCategory(): BelongsTo
     {
