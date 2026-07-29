@@ -86,6 +86,13 @@ final class PropertyAdvisementRepository implements PropertyAdvisementRepository
             ->when($request->city_id, fn ($query, $v) => $query->where('city_id', $v))
             ->when($request->region_id, fn ($query, $v) => $query->where('region_id', $v))
             ->when($request->category_id, fn ($query, $v) => $query->where('category_id', $v))
+            ->with([
+                'propertyType',
+                'city',
+                'region',
+                'category',
+                'user',
+            ])
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();
     }

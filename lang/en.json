@@ -173,6 +173,7 @@
     "help": "Help",
     "loading": "Loading...",
     "error": "Error",
+    "error_loading_data": "Error loading data. Please try again.",
     "success": "Success",
     "warning": "Warning",
     "info": "Info",

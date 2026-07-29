@@ -74,6 +74,13 @@ final class ElectronicAdvisementRepository implements ElectronicAdvisementReposi
             ->when($request->electronic_brand_id, fn ($query, $v) => $query->where('electronic_brand_id', $v))
             ->when($request->city_id, fn ($query, $v) => $query->where('city_id', $v))
             ->when($request->region_id, fn ($query, $v) => $query->where('region_id', $v))
+            ->with([
+                'deviceCategory',
+                'electronicBrand',
+                'city',
+                'region',
+                'user',
+            ])
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();
     }

@@ -73,6 +73,12 @@ final class InstituteAdvisementRepository implements InstituteAdvisementReposito
             ->when($request->specialization_id, fn ($query, $v) => $query->where('specialization_id', $v))
             ->when($request->city_id, fn ($query, $v) => $query->where('city_id', $v))
             ->when($request->region_id, fn ($query, $v) => $query->where('region_id', $v))
+            ->with([
+                'specialization',
+                'city',
+                'region',
+                'user',
+            ])
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();
     }
