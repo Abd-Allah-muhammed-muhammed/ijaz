@@ -5,7 +5,7 @@ import {InertiaFormProps, Link, useForm} from "@inertiajs/react";
 import RoleController from "@/actions/App/Http/Controllers/Dashboard/RoleController";
 import {FormInput, PermissionsGroup} from "./types";
 import ActionButton from "@/components/action-button";
-import InputError from "@/components/input-error";
+import InputError from "@/components/inputs/InputError";
 
 type Props = {
   /**

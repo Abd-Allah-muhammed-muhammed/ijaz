@@ -7,7 +7,7 @@ import ImageInput from "@/components/inputs/ImageInput";
 import ActionButton from "@/components/action-button";
 import {KTCard} from "@/_metronic/helpers";
 import React from "react";
-import InputError from "@/components/input-error";
+import InputError from "@/components/inputs/InputError";
 
 const calcColSize = (cols: number, factor: number = 1) => {
   const result = (12 / cols) * factor

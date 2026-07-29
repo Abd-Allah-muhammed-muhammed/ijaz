@@ -1,7 +1,8 @@
 import {APP_URL} from '@/constants';
-import {ZodObject} from "zod";
+import {zodErrorToFormErrors} from '@/lib/zod-form-errors';
 import {InertiaFormProps, usePage} from "@inertiajs/react";
-import {FormDataConvertible} from "@inertiajs/core";
+import {FormDataConvertible, FormDataErrors} from "@inertiajs/core";
+import type {z} from "zod";
 
 export const url = (path: string): string => {
   path = path || '';
@@ -39,16 +40,24 @@ export const scrollToDiv = (id: string) => {
     top: (element?.getBoundingClientRect().top || 0) + window.pageYOffset - 150,
   });
 }
-export const zodValidate = <T extends Record<string, FormDataConvertible>>(schema: ZodObject, form: InertiaFormProps<T>, extra: Record<string, unknown> = {}): boolean => {
+/**
+ * Apply a Zod schema to an Inertia form instance.
+ * Writes dotted-path field errors compatible with InputError / TranslatableInputs.
+ * Prefer `useAppForm` for new forms; this remains for existing call sites.
+ */
+export const zodValidate = <T extends Record<string, FormDataConvertible>>(
+  schema: z.ZodType,
+  form: InertiaFormProps<T>,
+  extra: Record<string, unknown> = {},
+): boolean => {
   const data = {...form.data, ...extra};
   const result = schema.safeParse(data);
   form.clearErrors();
+
   if (!result.success) {
-    result.error.issues.forEach(issue => {
-      //@ts-ignore
-      form.setError(issue.path.join('.'), issue.message);
-    })
+    form.setError(zodErrorToFormErrors(result.error) as FormDataErrors<T>);
   }
+
   return result.success;
 }
 

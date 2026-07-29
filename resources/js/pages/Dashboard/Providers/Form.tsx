@@ -8,7 +8,7 @@ import ActionButton from "@/components/action-button";
 import {KTCard, KTIcon} from "@/_metronic/helpers";
 import React, {useEffect, useState} from "react";
 import {SelectCategoryModal, Data as SelectCategoryModalData} from "@/components/categories/category-selector/select-category-modal";
-import InputError from "@/components/input-error";
+import InputError from "@/components/inputs/InputError";
 import {FormInputs} from "@/pages/Dashboard/Providers/Validation";
 
 
