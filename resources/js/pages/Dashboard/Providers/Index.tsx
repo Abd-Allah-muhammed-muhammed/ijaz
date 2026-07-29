@@ -16,6 +16,12 @@ import ProviderController from "@/actions/App/Http/Controllers/Dashboard/Provide
 type Props = {
   rows: PaginationResource<Provider>,
   prams: SearchPrams | null;
+  stats: {
+    total: number;
+    approved: number;
+    pending: number;
+    blocked: number;
+  };
 };
 
 type SearchPrams = {
@@ -27,6 +33,7 @@ const Index = (
   {
     rows,
     prams,
+    stats,
   }: Props
 ) => {
   const { t } = useTranslation();
@@ -47,12 +54,6 @@ const Index = (
     <>
       <Head title={t('providers')} />
       <PageTitle breadcrumbs={[
-        // {
-        //   title: 'User Management',
-        //   path: '/apps/user-management/users',
-        //   isSeparator: false,
-        //   isActive: false,
-        // },
         {
           title: '',
           path: '',
@@ -64,7 +65,7 @@ const Index = (
       </PageTitle>
       <ToolbarWrapper />
       <Content>
-        {/* Statistics Cards */}
+        {/* Statistics Cards — totals from backend statusCounts (not page-scoped rows.data) */}
         <div className='row g-6 g-xl-9 mb-6'>
           <div className='col-md-6 col-lg-4 col-xl-3'>
             <div className='card h-100 border-0 shadow-sm'>
@@ -76,7 +77,7 @@ const Index = (
                     </div>
                   </div>
                   <div className='d-flex flex-column'>
-                    <span className='fs-2hx fw-bold text-gray-900 me-2 lh-1 ls-n2'>{rows.meta.total}</span>
+                    <span className='fs-2hx fw-bold text-gray-900 me-2 lh-1 ls-n2'>{stats.total}</span>
                     <span className='text-muted fw-semibold fs-7'>{t('total_providers')}</span>
                   </div>
                 </div>
@@ -95,7 +96,7 @@ const Index = (
                   </div>
                   <div className='d-flex flex-column'>
                     <span className='fs-2hx fw-bold text-gray-900 me-2 lh-1 ls-n2'>
-                      {rows.data.filter(p => p.status?.value === 'active' || p.status?.value === 1).length}+
+                      {stats.approved}
                     </span>
                     <span className='text-muted fw-semibold fs-7'>{t('active_providers')}</span>
                   </div>
@@ -115,7 +116,7 @@ const Index = (
                   </div>
                   <div className='d-flex flex-column'>
                     <span className='fs-2hx fw-bold text-gray-900 me-2 lh-1 ls-n2'>
-                      {rows.data.filter(p => p.status?.value === 'pending' || p.status?.value === 0).length}+
+                      {stats.pending}
                     </span>
                     <span className='text-muted fw-semibold fs-7'>{t('pending_approval')}</span>
                   </div>
@@ -135,7 +136,7 @@ const Index = (
                   </div>
                   <div className='d-flex flex-column'>
                     <span className='fs-2hx fw-bold text-gray-900 me-2 lh-1 ls-n2'>
-                      {rows.data.filter(p => p.status?.value === 'blocked' || p.status?.value === 2).length}+
+                      {stats.blocked}
                     </span>
                     <span className='text-muted fw-semibold fs-7'>{t('blocked_providers')}</span>
                   </div>
@@ -148,7 +149,7 @@ const Index = (
         <div className='d-flex flex-wrap flex-stack mb-6'>
           <h3 className='fw-bolder my-2'>
             {t('providers')}
-            <span className='fs-6 text-gray-400 fw-bold ms-1'>({rows.meta.total})</span>
+            <span className='fs-6 text-gray-400 fw-bold ms-1'>({stats.total})</span>
           </h3>
 
           <div className='d-flex align-items-center my-2'>

@@ -3,6 +3,7 @@
 namespace App\Repositories\Provider;
 
 use App\Contracts\Provider\ProviderManagementRepositoryInterface;
+use App\Enums\Providers\ProviderStatusEnum;
 use App\Models\Provider;
 use App\Support\Phone;
 use Carbon\CarbonInterface;
@@ -124,6 +125,24 @@ class ProviderManagementRepository implements ProviderManagementRepositoryInterf
     public function countAll(): int
     {
         return Provider::query()->count('id');
+    }
+
+    /**
+     * @return array{total: int, approved: int, pending: int, blocked: int}
+     */
+    public function statusCounts(): array
+    {
+        $counts = Provider::query()
+            ->selectRaw('status, count(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        return [
+            'total' => (int) $counts->sum(),
+            'approved' => (int) ($counts[ProviderStatusEnum::Approved->value] ?? 0),
+            'pending' => (int) ($counts[ProviderStatusEnum::Pending->value] ?? 0),
+            'blocked' => (int) ($counts[ProviderStatusEnum::Blocked->value] ?? 0),
+        ];
     }
 
     /**

@@ -89,6 +89,30 @@ it('lists providers with the prams inertia prop', function (): void {
             ->component('Dashboard/Providers/Index')
             ->has('prams')
             ->has('rows.data', 1)
+            ->has('stats')
+            ->where('stats.total', fn ($total) => $total >= 1)
+        );
+});
+
+it('passes true provider status totals on the index, not page-scoped approximations', function (): void {
+    $admin = createProviderManagementAdmin(['show providers']);
+
+    createWalletProvider(['status' => ProviderStatusEnum::Approved]);
+    createWalletProvider(['status' => ProviderStatusEnum::Approved]);
+    createWalletProvider(['status' => ProviderStatusEnum::Pending]);
+    createWalletProvider(['status' => ProviderStatusEnum::Blocked]);
+
+    // Force pagination below the true total so page-scoped client filters would undercount.
+    $this->actingAs($admin, 'admin')
+        ->get(action([ProviderController::class, 'index'], ['per_page' => 1]))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Providers/Index')
+            ->has('rows.data', 1)
+            ->where('stats.total', 4)
+            ->where('stats.approved', 2)
+            ->where('stats.pending', 1)
+            ->where('stats.blocked', 1)
         );
 });
 

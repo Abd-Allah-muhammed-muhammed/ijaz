@@ -53,6 +53,13 @@ interface ProviderManagementRepositoryInterface
     public function countAll(): int;
 
     /**
+     * True totals for the Providers dashboard index stat cards (not page-scoped).
+     *
+     * @return array{total: int, approved: int, pending: int, blocked: int}
+     */
+    public function statusCounts(): array;
+
+    /**
      * @return SupportCollection<string, int>
      */
     public function registrationCountsSince(CarbonInterface $since): SupportCollection;

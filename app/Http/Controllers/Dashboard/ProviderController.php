@@ -51,6 +51,7 @@ class ProviderController extends Controller implements HasMiddleware
         return inertia('Dashboard/Providers/Index', [
             'prams' => $request->all() ?: [],
             'rows' => ProviderCollection::make($this->providerService->index($request)),
+            'stats' => $this->providerService->statusCounts(),
         ]);
     }
 

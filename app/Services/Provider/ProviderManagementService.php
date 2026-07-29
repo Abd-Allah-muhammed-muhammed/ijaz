@@ -8,6 +8,7 @@ use App\Actions\Provider\EditProviderAction;
 use App\Actions\Provider\FindProviderByPhoneAction;
 use App\Actions\Provider\FindProviderForApiAction;
 use App\Actions\Provider\GetProviderRegistrationCountsSinceAction;
+use App\Actions\Provider\GetProviderStatusCountsAction;
 use App\Actions\Provider\ListLatestProvidersForDashboardAction;
 use App\Actions\Provider\ListProvidersAction;
 use App\Actions\Provider\ListProviderWalletTransactionsAction;
@@ -47,6 +48,7 @@ class ProviderManagementService
         private readonly FindProviderForApiAction $findForApiAction,
         private readonly FindProviderByPhoneAction $findByPhoneAction,
         private readonly CountAllProvidersAction $countAllAction,
+        private readonly GetProviderStatusCountsAction $statusCountsAction,
         private readonly GetProviderRegistrationCountsSinceAction $registrationCountsAction,
         private readonly ListLatestProvidersForDashboardAction $latestForDashboardAction,
         private readonly ProviderTypeService $providerTypeService,
@@ -133,6 +135,14 @@ class ProviderManagementService
     public function countAll(): int
     {
         return $this->countAllAction->handle();
+    }
+
+    /**
+     * @return array{total: int, approved: int, pending: int, blocked: int}
+     */
+    public function statusCounts(): array
+    {
+        return $this->statusCountsAction->handle();
     }
 
     /**
