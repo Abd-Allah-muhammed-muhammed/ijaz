@@ -1,5 +1,5 @@
 import {FC} from 'react'
-import {Link, useForm, usePage} from '@inertiajs/react'
+import {useForm, usePage} from '@inertiajs/react'
 import {Languages} from './Languages'
 import AuthController from "@/actions/App/Http/Controllers/Dashboard/AuthController";
 import {Admin} from "@/types/models";
@@ -39,88 +39,6 @@ const HeaderUserMenu: FC = () => {
 
       <div className='separator my-2'></div>
 
-      <div className='menu-item px-5'>
-        <Link href={'/crafted/pages/profile'} className='menu-link px-5'>
-          My Profile
-        </Link>
-      </div>
-
-      <div className='menu-item px-5'>
-        <a href='#' className='menu-link px-5'>
-          <span className='menu-text'>My Projects</span>
-          <span className='menu-badge'>
-            <span className='badge badge-light-danger badge-circle fw-bolder fs-7'>3</span>
-          </span>
-        </a>
-      </div>
-
-      <div
-        className='menu-item px-5'
-        data-kt-menu-trigger='hover'
-        data-kt-menu-placement='left-start'
-        data-kt-menu-flip='bottom'
-      >
-        <a href='#' className='menu-link px-5'>
-          <span className='menu-title'>My Subscription</span>
-          <span className='menu-arrow'></span>
-        </a>
-
-        <div className='menu-sub menu-sub-dropdown w-175px py-4'>
-          <div className='menu-item px-3'>
-            <a href='#' className='menu-link px-5'>
-              Referrals
-            </a>
-          </div>
-
-          <div className='menu-item px-3'>
-            <a href='#' className='menu-link px-5'>
-              Billing
-            </a>
-          </div>
-
-          <div className='menu-item px-3'>
-            <a href='#' className='menu-link px-5'>
-              Payments
-            </a>
-          </div>
-
-          <div className='menu-item px-3'>
-            <a href='#' className='menu-link d-flex flex-stack px-5'>
-              Statements
-              <i
-                className='fas fa-exclamation-circle ms-2 fs-7'
-                data-bs-toggle='tooltip'
-                title='View your statements'
-              ></i>
-            </a>
-          </div>
-
-          <div className='separator my-2'></div>
-
-          <div className='menu-item px-3'>
-            <div className='menu-content px-3'>
-              <label className='form-check form-switch form-check-custom form-check-solid'>
-                <input
-                  className='form-check-input w-30px h-20px'
-                  type='checkbox'
-                  value='1'
-                  defaultChecked={true}
-                  name='notifications'
-                />
-                <span className='form-check-label text-muted fs-7'>Notifications</span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className='menu-item px-5'>
-        <a href='#' className='menu-link px-5'>
-          My Statements
-        </a>
-      </div>
-
-      <div className='separator my-2'></div>
       <div
         className='menu-item px-5'
         data-kt-menu-trigger='hover'
@@ -128,11 +46,6 @@ const HeaderUserMenu: FC = () => {
         data-kt-menu-flip='bottom'
       >
         <Languages/>
-      </ div>
-      <div className='menu-item px-5 my-1'>
-        <Link href='/crafted/account/settings' className='menu-link px-5'>
-          Account Settings
-        </Link>
       </div>
 
       <div className='menu-item px-5'>
