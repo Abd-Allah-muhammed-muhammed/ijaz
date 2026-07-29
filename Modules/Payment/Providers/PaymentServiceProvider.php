@@ -37,9 +37,9 @@ class PaymentServiceProvider extends ModuleServiceProvider
     {
         parent::boot();
 
-        $this->loadViewsFrom(module_path('Payment', 'Resources/views'), 'payment');
+        $this->loadViewsFrom(module_path('Payment', 'resources/views'), 'payment');
 
-        Blade::anonymousComponentPath(module_path('Payment', 'Resources/views/components'), 'payment');
+        Blade::anonymousComponentPath(module_path('Payment', 'resources/views/components'), 'payment');
     }
 
     private function bridgePaytabsConfig(): void
