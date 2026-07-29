@@ -32,7 +32,7 @@
   @else
     <link rel="stylesheet" href="{{asset('css/style.bundle.css')}}" />
   @endif
-  @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+  @vite(['resources/js/app.tsx', \App\Support\InertiaPagePath::viteEntry($page['component'])])
   @inertiaHead
   <style>
     #app,

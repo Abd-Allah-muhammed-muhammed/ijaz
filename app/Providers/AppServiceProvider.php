@@ -31,6 +31,7 @@ use App\Support\Api\ApiVersionRegistry;
 use App\Support\Api\ApiVersionResolverChain;
 use App\Support\Api\ApiVersionService;
 use App\Support\Api\Contracts\ApiVersionResolverStrategy;
+use App\Support\InertiaPageFinder;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
@@ -56,6 +57,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         require_once app_path('Helpers/arrays.php');
+
+        $this->app->bind('inertia.view-finder', fn (): InertiaPageFinder => new InertiaPageFinder);
 
         $this->app->bind(
             AdminRepositoryInterface::class,

@@ -1,7 +1,7 @@
 
 import {ReactNode, useEffect} from 'react'
 import {Link} from '@inertiajs/react'
-import {toAbsoluteUrl} from '@/_metronic/helpers'
+import {toAbsoluteUrl} from '@/vendor/metronic/helpers'
 
 type Props = {
   children?: ReactNode

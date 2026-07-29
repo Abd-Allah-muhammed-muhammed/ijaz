@@ -2,7 +2,7 @@ import * as Yup from 'yup'
 import clsx from 'clsx'
 import {Link, useForm} from '@inertiajs/react'
 import AuthController from "@/actions/App/Http/Controllers/Dashboard/AuthController";
-import ActionButton from "@/components/action-button";
+import ActionButton from "@/shared/components/action-button";
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';

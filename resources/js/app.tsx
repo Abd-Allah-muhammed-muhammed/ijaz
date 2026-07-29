@@ -1,31 +1,31 @@
 // Tailwind v4 (theme + utilities only — preflight disabled; see resources/css/app.css)
 import '../css/app.css';
-// import './_metronic/assets/sass/style.react.scss'
-// import './_metronic/assets/fonticon/fonticon.css'
-import './_metronic/assets/keenicons/duotone/style.css';
-import './_metronic/assets/keenicons/outline/style.css';
-import './_metronic/assets/keenicons/solid/style.css';
+// import './vendor/metronic/assets/sass/style.react.scss'
+// import './vendor/metronic/assets/fonticon/fonticon.css'
+import './vendor/metronic/assets/keenicons/duotone/style.css';
+import './vendor/metronic/assets/keenicons/outline/style.css';
+import './vendor/metronic/assets/keenicons/solid/style.css';
 // import './selects.css';
-// import './_metronic/assets/sass/style.scss'
-import { MasterInit } from '@/_metronic/layout/MasterInit';
-import { ThemeModeProvider } from '@/_metronic/partials';
+// import './vendor/metronic/assets/sass/style.scss'
+import { MasterInit } from '@/vendor/metronic/layout/MasterInit';
+import { ThemeModeProvider } from '@/vendor/metronic/partials';
 import { RecommendedOrdersProvider } from '@/store/recommend-orders-context';
 import { ConversationProvider } from '@/store/use-chat';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import { createInertiaApp } from '@inertiajs/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { Suspense } from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
-import { LayoutProvider, LayoutSplashScreen } from './_metronic/layout/core';
+import { LayoutProvider, LayoutSplashScreen } from './vendor/metronic/layout/core';
 import './echo';
-import { initializeTheme } from './hooks/use-appearance';
+import { initializeTheme } from './shared/hooks/use-appearance';
 import './lang/i18next';
 import I18nextEffect from './lang/I18next-effect';
-import { setApiLocale } from './lib/api-client';
-import { initializeAppShell } from './lib/app-shell';
-import type { SharedData } from './types';
+import { setApiLocale } from './shared/lib/api-client';
+import { initializeAppShell } from './shared/lib/app-shell';
+import { resolveInertiaPage } from './shared/lib/resolve-inertia-page';
+import type { SharedData } from './shared/types';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Ijaz';
 
@@ -33,7 +33,7 @@ const queryClient = new QueryClient();
 
 createInertiaApp({
   title: (title) => `${title} - ${appName}`,
-  resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
+  resolve: (name) => resolveInertiaPage(name),
   setup({ el, App, props }) {
     const shared = props.initialPage.props as SharedData;
     const locale = shared.app?.locale || 'en';

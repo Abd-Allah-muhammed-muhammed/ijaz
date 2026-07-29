@@ -1,0 +1,103 @@
+import ElectronicBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/ElectronicBrandController';
+import ActionButton from '@/shared/components/action-button';
+import ImageInput from '@/shared/components/inputs/ImageInput';
+import InputError from '@/shared/components/inputs/InputError';
+import TranslatableInputs from '@/shared/components/inputs/TranslatableInputs';
+import { getSupportedLocales } from '@/shared/hooks/use-locales';
+import { ElectronicBrand } from '@/shared/types/models';
+import { InertiaFormProps, Link, useForm } from '@inertiajs/react';
+import { Form as BTForm, Col, FormCheck, FormGroup, FormLabel, Row } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
+import { FormInput, TranslatedAttributes } from './types';
+
+type Props = {
+  electronicBrand?: ElectronicBrand;
+  image: string;
+  callback?: (form: InertiaFormProps<FormInput>) => void;
+};
+
+export default function Form({ callback, electronicBrand, image }: Props) {
+  const { t } = useTranslation();
+  const locales = getSupportedLocales();
+
+  const form = useForm<FormInput>({
+    translations: Object.keys(locales).reduce<Record<string, TranslatedAttributes>>(
+      (previousValue: Record<string, TranslatedAttributes>, currentValue) => {
+        const electronicBrandTranslation = electronicBrand?.translations?.[currentValue];
+        previousValue[currentValue] = {
+          name: electronicBrandTranslation?.name || '',
+        };
+        return previousValue;
+      },
+      {},
+    ),
+    image: undefined,
+    is_active: electronicBrand?.is_active ?? true,
+  });
+
+  return (
+    <BTForm
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (callback) {
+          callback(form);
+        }
+      }}
+    >
+      <Row>
+        <Col sm={12} md={2}>
+          <ImageInput
+            url={image}
+            callback={(data) => {
+              form.setData('image', data.currentTarget.files![0]);
+            }}
+          />
+          <InputError message={form.errors.image} />
+        </Col>
+        <Col sm={12} md={10} className="mb-3">
+          <TranslatableInputs
+            field="name"
+            values={form.data.translations}
+            errors={form.errors}
+            onChange={(locale, value) => {
+              form.setData((previousData) => ({
+                ...previousData,
+                translations: {
+                  ...previousData.translations,
+                  [locale]: {
+                    ...previousData.translations[locale],
+                    name: value,
+                  },
+                },
+              }));
+            }}
+          />
+
+          <Row>
+            <Col sm={12} md={6} className="mb-3">
+              <FormGroup>
+                <FormLabel>{t('is_active')}</FormLabel>
+                <FormCheck
+                  type="switch"
+                  id="is_active_switch"
+                  label={form.data.is_active ? t('active') : t('inactive')}
+                  checked={form.data.is_active}
+                  onChange={(e) => form.setData('is_active', e.target.checked)}
+                />
+                <InputError message={form.errors.is_active} />
+              </FormGroup>
+            </Col>
+          </Row>
+        </Col>
+      </Row>
+      <Row>
+        <Col sm={12} className="d-flex justify-content-end mb-3 gap-3">
+          <ActionButton type="submit" isProcessing={form.processing} text={t('save')} />
+          <Link href={ElectronicBrandController.index().url} className="btn btn-light">
+            {t('cancel')}
+          </Link>
+        </Col>
+      </Row>
+    </BTForm>
+  );
+}

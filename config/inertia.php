@@ -66,9 +66,10 @@ return [
         'ensure_pages_exist' => false,
 
         'paths' => [
-
-            resource_path('js/pages'),
-
+            resource_path('js/apps/admin/pages'),
+            resource_path('js/apps/provider/pages'),
+            resource_path('js/apps/web/pages'),
+            resource_path('js/shared/pages'),
         ],
 
         'extensions' => [

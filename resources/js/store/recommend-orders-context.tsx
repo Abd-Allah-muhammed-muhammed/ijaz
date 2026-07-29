@@ -1,5 +1,5 @@
 import {createContext, Dispatch, ReactElement, SetStateAction, useContext, useState} from "react";
-import {Order} from "@/types/models";
+import {Order} from "@/shared/types/models";
 
 export type RecommendedOrdersContextType = {
   orders: Order[];
