@@ -3,69 +3,48 @@
 namespace Modules\Opportunity\Notifications;
 
 use App\Models\User;
-use App\Services\Firebase\DTO\Message;
-use Illuminate\Bus\Queueable;
+use App\Notifications\DomainNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\BroadcastMessage;
-use Illuminate\Notifications\Notification;
 use Modules\Opportunity\Models\OpportunityOffer;
 
-class OpportunityOfferSubmittedNotification extends Notification implements ShouldBroadcastNow, ShouldDispatchAfterCommit, ShouldQueue
+class OpportunityOfferSubmittedNotification extends DomainNotification implements ShouldBroadcastNow, ShouldDispatchAfterCommit
 {
-    use Queueable;
-
     public function __construct(public OpportunityOffer $offer) {}
 
-    /**
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    protected function titleKey(): string
     {
-        return $notifiable instanceof User
-            ? ['database', 'broadcast', 'firebase']
-            : ['database', 'broadcast'];
+        return 'opportunity_offer_submitted';
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
+    protected function bodyKey(): string
+    {
+        return 'opportunity_offer_has_been_submitted';
+    }
+
+    protected function payload(): array
     {
         return [
-            'title_translated_key' => 'opportunity_offer_submitted',
-            'body_translated_key' => 'opportunity_offer_has_been_submitted',
-            'translated_attributes' => [],
             'opportunity_id' => $this->offer->opportunity_id,
             'offer_id' => $this->offer->id,
         ];
     }
 
-    public function toBroadcast(object $notifiable): BroadcastMessage
+    protected function firebaseData(object $notifiable): array
     {
-        return (new BroadcastMessage([
-            'title' => trans($this->toArray($notifiable)['title_translated_key'], locale: $notifiable->language),
-            'body' => trans($this->toArray($notifiable)['body_translated_key'], locale: $notifiable->language),
+        return [
             'opportunity_id' => $this->offer->opportunity_id,
             'offer_id' => $this->offer->id,
-        ]))->onConnection('sync');
+        ];
+    }
+
+    protected function sendsFirebase(object $notifiable): bool
+    {
+        return $notifiable instanceof User;
     }
 
     public function broadcastType(): string
     {
         return 'opportunity offer submitted';
-    }
-
-    public function toFirebase(object $notifiable): Message
-    {
-        return Message::make(
-            title: trans($this->toArray($notifiable)['title_translated_key'], locale: $notifiable->language),
-            body: trans($this->toArray($notifiable)['body_translated_key'], locale: $notifiable->language),
-            data: [
-                'opportunity_id' => $this->offer->opportunity_id,
-                'offer_id' => $this->offer->id,
-            ],
-        );
     }
 }

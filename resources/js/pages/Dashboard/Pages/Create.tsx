@@ -7,10 +7,10 @@ import {Head} from "@inertiajs/react";
 import {KTCard} from "@/_metronic/helpers";
 import Form from "./Form";
 import {ReactNode} from "react";
-import NationalityController from "@/actions/App/Http/Controllers/Dashboard/NationalityController";
+import NationalityController from "@/actions/Modules/Geo/Http/Controllers/Dashboard/NationalityController";
 import {zodValidate} from "@/helpers/general";
 import {Inputs} from "@/pages/Dashboard/Pages/validation";
-import PageController from "@/actions/App/Http/Controllers/Dashboard/PageController";
+import PageController from "@/actions/Modules/Cms/Http/Controllers/Dashboard/PageController";
 
 
 type Props = {};

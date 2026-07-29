@@ -12,6 +12,7 @@ use Modules\Classifieds\QueryFilters\Filters\OperationFilter;
 use Modules\Classifieds\QueryFilters\Filters\PriceRangeFilter;
 use Modules\Classifieds\QueryFilters\Filters\RegionFilter;
 use Modules\Classifieds\QueryFilters\Filters\SearchFilter;
+use Modules\Classifieds\QueryFilters\Filters\StatusFilter;
 use Modules\Classifieds\QueryFilters\Filters\UsageStatusFilter;
 use Modules\Classifieds\QueryFilters\Filters\YearRangeFilter;
 
@@ -41,7 +42,7 @@ final class CarAdvisementFilters
      */
     private function filters(): array
     {
-        return [
+        $filters = [
             new OperationFilter($this->request->filled('operation') ? (string) $this->request->string('operation') : null),
             new UsageStatusFilter($this->request->filled('usage_status') ? (string) $this->request->string('usage_status') : null),
             new CarBrandFilter($this->request->filled('car_brand_id') ? $this->request->integer('car_brand_id') : null),
@@ -59,5 +60,14 @@ final class CarAdvisementFilters
             ),
             new SearchFilter($this->request->filled('search') ? (string) $this->request->string('search') : null),
         ];
+
+        if ($this->includeStatus) {
+            array_unshift(
+                $filters,
+                new StatusFilter($this->request->filled('status') ? (string) $this->request->string('status') : null),
+            );
+        }
+
+        return $filters;
     }
 }

@@ -6,13 +6,15 @@ use App\Http\Controllers\General\AjaxController;
 use App\Http\Controllers\General\MediaController;
 use App\Http\Controllers\General\ReactSelectController;
 use Illuminate\Support\Facades\Route;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Modules\Catalog\Http\Controllers\General\CatalogSelectController;
 
 Route::group(['prefix' => 'media', 'as' => 'media.'], static function () {
     Route::controller(MediaController::class)->middleware('auth:admin,provider')->group(function () {
         Route::get('file/{media}', 'file')->name('file-path');
-        Route::get('/{media}', 'media')->name('media');
+        // chat must be registered before /{media} or "chat" is captured as the media id
         Route::get('/chat/{media}', 'chatMedia')->name('chat.media');
+        Route::get('/{media}', 'media')->name('media');
     });
 });
 
@@ -34,11 +36,6 @@ Route::group(
             Route::get('/service-provider-authorization-terms-and-conditions', 'serviceProviderAuthorizationTermsAndConditions')->name('service-provider-authorization-terms-and-conditions');
             Route::get('/how-to-use-agency', 'howToUseAgency')->name('how-to-use-agency');
             Route::get('/real-estate-marketplace-terms-of-use', 'realEstateMarketplaceTermsOfUse')->name('real-estate-marketplace-terms-of-use');
-            Route::get('payment/test/{payment}/callback', 'paymentTestCallback')->name('payment.test.callback');
-            Route::get('payment/test/callback/{payment}/success', 'paymentTestSuccess')->name('payment.test.success');
-            Route::get('payment/test/callback//{payment}/failed', 'paymentTestFailed')->name('payment.test.failed');
-            Route::get('payment/test/{payment}', 'paymentTest')->name('payment.test');
-            Route::post('payment/test/{payment}', 'paymentTestSubmit')->name('payment.test.submit');
             //    Route::get('/contact', 'contact')->name('contact');
             //    Route::post('/contact', 'sendContactMessage')->name('contact.send');
             //    Route::get('/privacy-policy', 'privacyPolicy')->name('privacy.policy');

@@ -3,7 +3,7 @@
 namespace Modules\Wallet\Http\Resources;
 
 use App\Http\Resources\Api\V1\ProviderResource;
-use App\Http\Resources\Api\V1\UserResource;
+use App\Http\Resources\Api\V1\User\UserResource;
 use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Http\Request;

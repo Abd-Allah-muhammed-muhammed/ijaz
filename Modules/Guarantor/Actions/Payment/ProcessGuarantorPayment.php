@@ -4,6 +4,8 @@ namespace Modules\Guarantor\Actions\Payment;
 
 use Closure;
 use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction;
+use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
+use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Jobs\ReleaseInstallmentJob;
@@ -17,6 +19,8 @@ class ProcessGuarantorPayment
 {
     public function __construct(
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
+        private readonly GuarantorRepositoryInterface $guarantorRepository,
+        private readonly InstallmentRepositoryInterface $installmentRepository,
     ) {}
 
     public function handle(Payment $payment): void
@@ -45,7 +49,9 @@ class ProcessGuarantorPayment
         $request = $payment->product;
         $request->loadMissing('counterparty');
 
-        $request->update(['status' => GuarantorStatusEnum::InProgress]);
+        $this->guarantorRepository->update($request, [
+            'status' => GuarantorStatusEnum::InProgress,
+        ]);
 
         $this->logStatusHistory->handle(
             request: $request,
@@ -62,7 +68,7 @@ class ProcessGuarantorPayment
         $installment = $payment->product;
         $installment->loadMissing('guarantorRequest');
 
-        $installment->update([
+        $this->installmentRepository->update($installment, [
             'status' => InstallmentStatusEnum::Paid,
             'paid_at' => now(),
         ]);
@@ -71,7 +77,7 @@ class ProcessGuarantorPayment
         $request = $installment->guarantorRequest;
 
         if ($request->status->is(GuarantorStatusEnum::Overdue)) {
-            $request->update([
+            $this->guarantorRepository->update($request, [
                 'status' => GuarantorStatusEnum::InProgress,
                 'overdue_at' => null,
             ]);
@@ -81,10 +87,10 @@ class ProcessGuarantorPayment
             return;
         }
 
-        $previousInstallment = $request->installments()
-            ->where('order', $installment->order - 1)
-            ->where('status', InstallmentStatusEnum::Paid)
-            ->first();
+        $previousInstallment = $this->installmentRepository->findPreviousPaidInstallment(
+            $request,
+            (int) $installment->order,
+        );
 
         if ($previousInstallment !== null) {
             ReleaseInstallmentJob::dispatch($previousInstallment, 'payment');

@@ -122,8 +122,4 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
-
-    'whatsapp' => [
-        'driver' => env('WHATSAPP_DRIVER', 'testing'),
-    ],
 ];

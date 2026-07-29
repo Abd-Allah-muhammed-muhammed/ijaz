@@ -24,4 +24,9 @@ class OpportunityCommentRepository implements OpportunityCommentRepositoryInterf
             ->latest()
             ->paginate($perPage);
     }
+
+    public function delete(OpportunityComment $comment): void
+    {
+        $comment->delete();
+    }
 }

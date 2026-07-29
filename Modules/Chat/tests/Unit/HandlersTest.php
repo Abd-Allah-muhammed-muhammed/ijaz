@@ -1,16 +1,14 @@
 <?php
 
-use App\Models\Conversation;
-use App\Models\Order;
 use App\Models\Provider;
-use App\Models\System;
 use App\Models\User;
-use Modules\Chat\Handlers\GuarantorChatHandler;
 use Modules\Chat\Handlers\MemberChatHandler;
-use Modules\Chat\Handlers\OpportunityChatHandler;
-use Modules\Chat\Handlers\OrderChatHandler;
-use Modules\Chat\Handlers\TicketSupportChatHandler;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\System;
 use Modules\Chat\Support\ParticipantConversationMessenger;
+use Modules\Orders\Handlers\OrderChatHandler;
+use Modules\Orders\Models\Order;
+use Modules\Support\Handlers\TicketSupportChatHandler;
 
 test('MemberChatHandler listQuery returns only P2P conversations', function () {
     $user = User::factory()->create();
@@ -90,14 +88,14 @@ test('TicketSupportChatHandler canOpen returns true for ticket owner', function 
     $user = User::factory()->create();
     $ticket = createTestTicketSupport($user);
 
-    expect((new TicketSupportChatHandler)->canOpen($user, $ticket))->toBeTrue();
+    expect(app(TicketSupportChatHandler::class)->canOpen($user, $ticket))->toBeTrue();
 });
 
 test('TicketSupportChatHandler canOpen returns false for other users', function () {
     $ticket = createTestTicketSupport();
     $stranger = User::factory()->create();
 
-    expect((new TicketSupportChatHandler)->canOpen($stranger, $ticket))->toBeFalse();
+    expect(app(TicketSupportChatHandler::class)->canOpen($stranger, $ticket))->toBeFalse();
 });
 
 test('TicketSupportChatHandler participants returns System and ticket user', function () {
@@ -105,40 +103,8 @@ test('TicketSupportChatHandler participants returns System and ticket user', fun
     $user = User::factory()->create();
     $ticket = createTestTicketSupport($user);
 
-    [$system, $ticketUser] = (new TicketSupportChatHandler)->participants($ticket);
+    [$system, $ticketUser] = app(TicketSupportChatHandler::class)->participants($ticket);
 
     expect($system)->toBeInstanceOf(System::class)
         ->and($ticketUser->is($user))->toBeTrue();
-});
-
-test('OpportunityChatHandler canOpen returns true for opportunity author', function () {
-    ['author' => $author, 'opportunity' => $opportunity] = createOpportunityForChatHandler();
-
-    expect((new OpportunityChatHandler)->canOpen($author, $opportunity))->toBeTrue();
-});
-
-test('OpportunityChatHandler canOpen returns false for unrelated user', function () {
-    ['opportunity' => $opportunity] = createOpportunityForChatHandler();
-    $stranger = User::factory()->create();
-
-    expect((new OpportunityChatHandler)->canOpen($stranger, $opportunity))->toBeFalse();
-});
-
-test('GuarantorChatHandler canOpen returns true for requester', function () {
-    $guarantorRequest = createGuarantorForChatHandler();
-
-    expect((new GuarantorChatHandler)->canOpen($guarantorRequest->requester, $guarantorRequest))->toBeTrue();
-});
-
-test('GuarantorChatHandler canOpen returns true for counterparty', function () {
-    $guarantorRequest = createGuarantorForChatHandler();
-
-    expect((new GuarantorChatHandler)->canOpen($guarantorRequest->counterparty, $guarantorRequest))->toBeTrue();
-});
-
-test('GuarantorChatHandler canOpen returns false for unrelated user', function () {
-    $guarantorRequest = createGuarantorForChatHandler();
-    $stranger = User::factory()->create();
-
-    expect((new GuarantorChatHandler)->canOpen($stranger, $guarantorRequest))->toBeFalse();
 });

@@ -1,7 +1,7 @@
 <?php
 
+use App\Actions\Auth\User\IssueOtpAction;
 use App\Actions\Auth\User\RegisterUserAction;
-use App\Actions\Auth\User\SendLoginOtpAction;
 use App\Contracts\Auth\UserRepositoryInterface;
 use App\Models\User;
 
@@ -24,9 +24,9 @@ beforeEach(function () {
         });
     app()->instance(UserRepositoryInterface::class, $repository);
 
-    $sendLoginOtpAction = Mockery::mock(SendLoginOtpAction::class);
-    $sendLoginOtpAction->shouldReceive('handle')->zeroOrMoreTimes();
-    app()->instance(SendLoginOtpAction::class, $sendLoginOtpAction);
+    $issueOtpAction = Mockery::mock(IssueOtpAction::class);
+    $issueOtpAction->shouldReceive('handle')->zeroOrMoreTimes();
+    app()->instance(IssueOtpAction::class, $issueOtpAction);
 });
 
 function registerUserActionPayload(string $email, string $phone, ?string $password = null): array

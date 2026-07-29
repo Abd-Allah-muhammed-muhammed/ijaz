@@ -1,15 +1,15 @@
 <?php
 
 use App\Models\Admin;
-use App\Models\Conversation;
 use App\Models\User;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\Sanctum;
+use Modules\Chat\Models\Conversation;
 use Modules\Guarantor\Actions\Chat\OpenGuarantorChatAction;
 use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateCompanyGuarantorAction;
@@ -25,6 +25,7 @@ use Modules\Guarantor\Actions\Payment\PayIndividualGuarantorAction;
 use Modules\Guarantor\Actions\Payment\ProcessGuarantorPayment;
 use Modules\Guarantor\DTOs\CompanyDetailData;
 use Modules\Guarantor\DTOs\GuarantorData;
+use Modules\Guarantor\DTOs\GuarantorUploadData;
 use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
@@ -68,22 +69,22 @@ function createGuarantorActors(): array
     return compact('requester', 'counterparty');
 }
 
-function individualGuarantorHttpRequest(): Request
+function individualGuarantorUploads(): GuarantorUploadData
 {
-    return Request::create('/', 'POST', [], [], [
+    return GuarantorUploadData::fromIndividualRequest(Request::create('/', 'POST', [], [], [
         'signature' => UploadedFile::fake()->create('signature.pdf', 100, 'application/pdf'),
-    ]);
+    ]));
 }
 
-function companyGuarantorHttpRequest(): Request
+function companyGuarantorUploads(): GuarantorUploadData
 {
-    return Request::create('/', 'POST', [], [], [
+    return GuarantorUploadData::fromCompanyRequest(Request::create('/', 'POST', [], [], [
         'signature' => UploadedFile::fake()->create('signature.pdf', 100, 'application/pdf'),
         'authorized_id' => UploadedFile::fake()->create('authorized_id.pdf', 100, 'application/pdf'),
         'contracts' => [
             UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf'),
         ],
-    ]);
+    ]));
 }
 
 test('CreateIndividualGuarantorAction creates request and uploads signature', function () {
@@ -98,7 +99,7 @@ test('CreateIndividualGuarantorAction creates request and uploads signature', fu
             counterparty_phone: TEST_COUNTERPARTY_PHONE,
         ),
         $requester,
-        individualGuarantorHttpRequest(),
+        individualGuarantorUploads(),
     );
 
     expect($guarantorRequest->type)->toBe(GuarantorTypeEnum::Individual)
@@ -119,7 +120,7 @@ test('CreateIndividualGuarantorAction fails if counterparty not found', function
             counterparty_phone: '0509999999',
         ),
         $requester,
-        individualGuarantorHttpRequest(),
+        individualGuarantorUploads(),
     );
 })->throws(GuarantorException::class);
 
@@ -135,7 +136,7 @@ test('CreateIndividualGuarantorAction fails if counterparty is same as requester
             counterparty_phone: TEST_COUNTERPARTY_PHONE,
         ),
         $requester,
-        individualGuarantorHttpRequest(),
+        individualGuarantorUploads(),
     );
 })->throws(GuarantorException::class);
 
@@ -168,7 +169,7 @@ test('CreateCompanyGuarantorAction creates request with installments and company
             new InstallmentData(2, 500, now()->addDays(60)->toDateString()),
         ],
         $requester,
-        companyGuarantorHttpRequest(),
+        companyGuarantorUploads(),
     );
 
     expect($guarantorRequest->type)->toBe(GuarantorTypeEnum::Company)
@@ -543,7 +544,7 @@ test('creating individual guarantor notifies requester', function () {
             counterparty_phone: TEST_COUNTERPARTY_PHONE,
         ),
         $requester,
-        individualGuarantorHttpRequest(),
+        individualGuarantorUploads(),
     );
 
     Notification::assertSentTo($requester, GuarantorCreatedNotification::class);

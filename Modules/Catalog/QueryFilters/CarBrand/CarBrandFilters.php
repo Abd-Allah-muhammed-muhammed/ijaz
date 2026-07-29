@@ -5,7 +5,7 @@ namespace Modules\Catalog\QueryFilters\CarBrand;
 use App\Contracts\QueryFilters\QueryFilterInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Modules\Catalog\QueryFilters\CarBrand\Filters\SearchFilter;
+use Modules\Catalog\QueryFilters\Filters\TranslationSearchFilter;
 
 class CarBrandFilters
 {
@@ -33,7 +33,11 @@ class CarBrandFilters
     private function filters(): array
     {
         return [
-            new SearchFilter($this->request->filled('search') ? (string) $this->request->string('search') : null),
+            new TranslationSearchFilter(
+                $this->request->filled('search') ? (string) $this->request->string('search') : null,
+                'name',
+                normalize: false,
+            ),
         ];
     }
 }

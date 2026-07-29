@@ -111,7 +111,7 @@ Always check this file, even for small changes.
 
 ---
 
-## STEP 6 — Update `PROJECT_CONTEXT.md`
+## STEP 6 — Update `docs/PROJECT_CONTEXT.md`
 
 Only update the sections that are actually affected.
 
@@ -156,4 +156,4 @@ Context is current as of: [today's date]
 2. Never remove information that is still accurate
 3. If you find something unrelated that looks wrong, add it to REFACTOR_NOTES.md but do not fix it
 4. If the change contradicts something in the existing context, update the context and note the contradiction
-5. Always update the "Last verified" date in PROJECT_CONTEXT.md
+5. Always update the "Last verified" date in `docs/PROJECT_CONTEXT.md`

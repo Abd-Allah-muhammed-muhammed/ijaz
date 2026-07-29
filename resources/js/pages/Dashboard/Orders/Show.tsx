@@ -19,6 +19,8 @@ type Props = {
 const Show = ({ order }: Props) => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('details');
+  const [imageFailed, setImageFailed] = useState(false);
+  const showUserImage = Boolean(order.user?.image) && !imageFailed;
 
   // Status Badge Helper
   const getStatusBadge = (statusColor: string, statusLabel: string) => (
@@ -44,8 +46,15 @@ const Show = ({ order }: Props) => {
               {/* User Avatar Section */}
               <div className="me-7 mb-4">
                 <div className="symbol symbol-75px symbol-lg-100px symbol-fixed position-relative bg-white p-2 rounded-circle shadow-sm">
-                  {order.user?.image ? (
-                    <img src={order.user.image} alt="User" className=" object-fit-cover rounded-circle" height={100} width={100} />
+                  {showUserImage ? (
+                    <img
+                      src={order.user!.image}
+                      alt="User"
+                      className=" object-fit-cover rounded-circle"
+                      height={100}
+                      width={100}
+                      onError={() => setImageFailed(true)}
+                    />
                   ) : (
                     <div className="symbol-label fs-1 bg-light-info text-info fw-bold rounded-circle w-100 h-100 d-flex align-items-center justify-content-center">
                       {order.user?.name?.charAt(0) || 'U'}

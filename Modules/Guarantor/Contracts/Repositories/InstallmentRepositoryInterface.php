@@ -27,5 +27,12 @@ interface InstallmentRepositoryInterface
 
     public function getNextPendingForRequest(GuarantorRequest $request): ?GuarantorInstallment;
 
+    public function findPreviousPaidInstallment(
+        GuarantorRequest $request,
+        int $currentOrder,
+    ): ?GuarantorInstallment;
+
+    public function refresh(GuarantorInstallment $installment): GuarantorInstallment;
+
     public function getOverdue(): LazyCollection;
 }

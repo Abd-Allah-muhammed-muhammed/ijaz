@@ -12,9 +12,14 @@ use Modules\Opportunity\Enums\OpportunityStatusEnum;
 use Modules\Opportunity\Http\Resources\Dashboard\OpportunityDashboardCollection;
 use Modules\Opportunity\Http\Resources\Dashboard\OpportunityDashboardResource;
 use Modules\Opportunity\Models\Opportunity;
+use Modules\Opportunity\Services\OpportunityService;
 
 class OpportunityController extends Controller implements HasMiddleware
 {
+    public function __construct(
+        private readonly OpportunityService $service,
+    ) {}
+
     public static function middleware(): array
     {
         return [
@@ -27,14 +32,7 @@ class OpportunityController extends Controller implements HasMiddleware
     {
         return inertia('Dashboard/Opportunity/Index', [
             'rows' => fn () => OpportunityDashboardCollection::make(
-                Opportunity::query()
-                    ->with(['author', 'region.translation', 'city.translation'])
-                    ->withCount(['offers', 'comments'])
-                    ->when($request->search, fn ($query) => $query->where('title', 'like', "%{$request->search}%"))
-                    ->when($request->status, fn ($query) => $query->where('status', $request->status))
-                    ->latest()
-                    ->paginate($request->integer('per_page', 10))
-                    ->withQueryString()
+                $this->service->listForDashboard($request)
             ),
             'prams' => fn () => $request->all() ?: [],
             'selects' => fn () => [
@@ -65,7 +63,7 @@ class OpportunityController extends Controller implements HasMiddleware
 
     public function destroy(Opportunity $opportunity): RedirectResponse
     {
-        $opportunity->delete();
+        $this->service->deleteForDashboard($opportunity);
 
         return back()->with('success', __('opportunity.deleted_successfully'));
     }

@@ -5,8 +5,8 @@ namespace Modules\Catalog\QueryFilters\PropertyCategory;
 use App\Contracts\QueryFilters\QueryFilterInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Modules\Catalog\QueryFilters\PropertyCategory\Filters\ParentFilter;
-use Modules\Catalog\QueryFilters\PropertyCategory\Filters\SearchFilter;
+use Modules\Catalog\QueryFilters\Filters\ParentFilter;
+use Modules\Catalog\QueryFilters\Filters\TranslationSearchFilter;
 
 class PropertyCategoryFilters
 {
@@ -32,7 +32,10 @@ class PropertyCategoryFilters
     private function filters(): array
     {
         return [
-            new SearchFilter($this->request->filled('search') ? (string) $this->request->string('search') : null),
+            new TranslationSearchFilter(
+                $this->request->filled('search') ? (string) $this->request->string('search') : null,
+                'normalized_title',
+            ),
             new ParentFilter($this->request->integer('parent_id')),
         ];
     }

@@ -37,4 +37,9 @@ class OpportunityOfferRepository implements OpportunityOfferRepositoryInterface
     {
         return OpportunityOffer::query()->findOrFail($id);
     }
+
+    public function delete(OpportunityOffer $offer): void
+    {
+        $offer->delete();
+    }
 }

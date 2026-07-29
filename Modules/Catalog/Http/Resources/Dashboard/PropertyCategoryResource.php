@@ -4,10 +4,10 @@ namespace Modules\Catalog\Http\Resources\Dashboard;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 
 /**
- * @mixin PropertiyCategory
+ * @mixin PropertyCategory
  */
 class PropertyCategoryResource extends JsonResource
 {

@@ -86,7 +86,7 @@ const PropertyAdvisementCard = ({ row }: Props) => {
                 onClick={(e) => {
                   e.stopPropagation();
                   if (window.confirm(t('are_you_sure'))) {
-                    router.delete(PropertyAdvisementController.show(row.id as number).url);
+                    router.delete(PropertyAdvisementController.destroy(row.id as number).url);
                   }
                 }}
                 title={t('delete')}

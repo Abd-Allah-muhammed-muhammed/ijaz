@@ -2,8 +2,6 @@
 
 use App\Models\User;
 use Modules\Chat\Support\ParticipantConversationMessenger;
-use Modules\Guarantor\Support\GuarantorConversationMessenger;
-use Modules\Opportunity\Support\OpportunityConversationMessenger;
 
 test('getReceiver returns user2 when sender is user1', function () {
     $user1 = User::factory()->create();
@@ -46,12 +44,4 @@ test('getReceiver works with UUID comparison', function () {
     $method->setAccessible(true);
 
     expect($method->invoke($messenger, $user1)->is($user2))->toBeTrue();
-});
-
-test('OpportunityConversationMessenger extends ParticipantConversationMessenger', function () {
-    expect(is_subclass_of(OpportunityConversationMessenger::class, ParticipantConversationMessenger::class))->toBeTrue();
-});
-
-test('GuarantorConversationMessenger extends ParticipantConversationMessenger', function () {
-    expect(is_subclass_of(GuarantorConversationMessenger::class, ParticipantConversationMessenger::class))->toBeTrue();
 });

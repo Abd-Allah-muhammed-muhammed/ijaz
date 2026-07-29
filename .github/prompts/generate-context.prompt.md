@@ -18,7 +18,7 @@ For smaller updates after a single feature, use `.github/prompts/update-context.
 ## WHAT THIS PRODUCES
 
 ```
-PROJECT_CONTEXT.md              ← lean master (architecture + patterns + pointers)
+docs/PROJECT_CONTEXT.md         ← lean master (architecture + patterns + pointers)
 docs/API_INVENTORY.md           ← all endpoints with full request/response details
 docs/MODELS_REFERENCE.md        ← all models, fields, relationships, traits
 docs/REFACTOR_NOTES.md          ← all issues and refactor risks
@@ -44,7 +44,7 @@ Work through this checklist in order. Read every file — do not skip.
 
 ### Routes — read every file fully
 - [ ] `routes/api.php`
-- [ ] Every file inside `routes/Api/` recursively
+- [ ] Every file inside `routes/api/` recursively
 - [ ] `routes/web.php`
 - [ ] `routes/dashboard.php`
 - [ ] `routes/provider.php`
@@ -157,7 +157,7 @@ Flag patterns to watch for:
 
 ---
 
-## STEP 6 — Generate `PROJECT_CONTEXT.md` (lean master)
+## STEP 6 — Generate `docs/PROJECT_CONTEXT.md` (lean master)
 
 Write this last — after all docs/ files are complete.
 
@@ -216,7 +216,7 @@ Top 3 priorities:
 2. If a file is a stub or empty, note it explicitly
 3. If unsure about something, prefix with `⚠️ Unverified:`
 4. Write files in this order: API_INVENTORY → MODELS_REFERENCE → ENUMS_REFERENCE → REFACTOR_NOTES → PROJECT_CONTEXT
-5. PROJECT_CONTEXT.md is always written last
+5. `docs/PROJECT_CONTEXT.md` is always written last
 6. After finishing, output a summary:
    - Date of generation
    - Count: endpoints / models / enums / issues found

@@ -3,48 +3,34 @@
 namespace App\Http\Controllers\General;
 
 use App\Http\Controllers\Controller;
-use App\Models\ConversationMessage;
-use Illuminate\Support\Facades\Storage;
+use App\Services\Media\MediaAccessService;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class MediaController extends Controller
 {
-    public function media(Media $media)
+    public function __construct(
+        private readonly MediaAccessService $mediaAccessService,
+    ) {}
+
+    public function media(Media $media): BinaryFileResponse
     {
-        /**
-         *  validation checks
-         */
-        return response()->file($media->getPath());
+        $path = $this->mediaAccessService->authorizeAndResolvePath($media, 'generic');
+
+        return response()->file($path);
     }
 
-    public function file(Media $media): ?BinaryFileResponse
+    public function file(Media $media): BinaryFileResponse
     {
-        $storage = Storage::disk('local');
-        $filePath = $media->getPathRelativeToRoot();
-        abort_unless($storage->exists($filePath), 404);
-        if (auth('admin')->check()) {
-            //    if (auth('admin')->check() && auth('admin')->user()->can('view all media')) {
-            return response()->file($media->getPath());
-        }
-        if (auth('provider')->check() && $media->model()->is(auth('provider')->user())) {
-            return response()->file($media->getPath());
-        }
+        $path = $this->mediaAccessService->authorizeAndResolvePath($media, 'owned');
 
-        abort(404);
+        return response()->file($path);
     }
 
     public function chatMedia(Media $media): BinaryFileResponse
     {
-        /**
-         *  validation checks
-         */
-        $auth = auth()->user();
-        if (! $media->model instanceof ConversationMessage || ! ($media->model->sender()->is($auth) || $media->model->receiver()->is($auth))) {
-            abort(404);
-        }
+        $path = $this->mediaAccessService->authorizeAndResolvePath($media, 'chat');
 
-        return response()->file($media->getPath());
-
+        return response()->file($path);
     }
 }

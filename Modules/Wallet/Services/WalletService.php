@@ -2,6 +2,7 @@
 
 namespace Modules\Wallet\Services;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Wallet\Actions\AddPendingCreditAction;
 use Modules\Wallet\Actions\AddPendingDebitAction;
@@ -13,13 +14,16 @@ use Modules\Wallet\Actions\ReleasePendingCreditToBalanceAction;
 use Modules\Wallet\Actions\ReversePendingCreditAction;
 use Modules\Wallet\Actions\ReversePendingDebitAction;
 use Modules\Wallet\Contracts\Repositories\WalletRepositoryInterface;
+use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
 use Modules\Wallet\DTOs\WalletBalanceData;
+use Modules\Wallet\Models\Wallet;
 use Modules\Wallet\Models\WithdrawRequest;
 
 class WalletService
 {
     public function __construct(
         private readonly WalletRepositoryInterface $walletRepo,
+        private readonly WalletTransactionRepositoryInterface $transactionRepo,
         private readonly CreditWalletAction $creditAction,
         private readonly DebitWalletAction $debitAction,
         private readonly AddPendingCreditAction $addPendingCreditAction,
@@ -88,5 +92,19 @@ class WalletService
         $wallet = $this->walletRepo->findOrCreate($owner);
 
         return WalletBalanceData::fromWallet($wallet);
+    }
+
+    public function listTransactionsForWallet(Wallet $wallet, ?string $search = null, int $perPage = 25): LengthAwarePaginator
+    {
+        return $this->transactionRepo->paginateForWallet($wallet, $search, $perPage);
+    }
+
+    public function listTransactionsForOwner(
+        Model $owner,
+        int $perPage,
+        ?string $dateFrom = null,
+        ?string $dateTo = null,
+    ): LengthAwarePaginator {
+        return $this->transactionRepo->listForOwner($owner, $perPage, $dateFrom, $dateTo);
     }
 }

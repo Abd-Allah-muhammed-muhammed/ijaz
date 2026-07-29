@@ -8,6 +8,7 @@ use App\Http\Requests\Api\V1\User\RegisterRequest;
 use App\Http\Requests\Api\V1\User\UpdateRequest;
 use App\Http\Resources\Api\V1\User\UserResource;
 use App\Services\Auth\UserAuthService;
+use App\Support\Phone;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
@@ -25,7 +26,7 @@ class AuthController extends Controller
     ) {}
 
     /**
-     * Authenticate a user and return a short-lived login token.
+     * Start a login OTP challenge (returns verification_id — no Sanctum token).
      *
      * @unauthenticated
      *
@@ -39,7 +40,7 @@ class AuthController extends Controller
             return $this->failedMessageResponse($result->message, $result->statusCode);
         }
 
-        return $this->successResponseWithToken([], $result->token);
+        return $this->successResponse($result->toData());
     }
 
     public function logout(): JsonResponse
@@ -50,7 +51,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Register a user account and return login token with user payload.
+     * Register and start an OTP challenge (same shape as login — no token / user payload).
      *
      * @unauthenticated
      *
@@ -71,21 +72,32 @@ class AuthController extends Controller
             );
         }
 
-        return $this->successResponseWithToken(
-            UserResource::make($result->user),
-            $result->token
-        );
+        return $this->successResponse($result->toData());
     }
 
     public function profileUpdate(UpdateRequest $request): JsonResponse
     {
-        $data = $request->validated();
+        // validated() only includes keys present under `sometimes` rules — never nulls omitted fields.
+        $data = $request->safe()->except(['password_confirmation', 'image']);
         $user = auth()->user();
+
+        if (array_key_exists('password', $data) && blank($data['password'])) {
+            unset($data['password']);
+        }
+
+        if (array_key_exists('phone', $data)) {
+            $data['phone'] = Phone::make($data['phone'])->toString();
+        }
+
         if ($request->hasFile('image')) {
             $user->deleteImage();
-            $data['image'] = $request->file('image')->store('users');
+            $data['image'] = $request->file('image')->store('users', 'public');
         }
-        $user->update($data);
+
+        if ($data !== []) {
+            $user->update($data);
+        }
+
         $user->load(['nationality.translation']);
 
         return $this->successResponse(UserResource::make($user));

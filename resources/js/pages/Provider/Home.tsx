@@ -8,7 +8,7 @@ import { Card, Col, Image, Nav, Row, Tab } from 'react-bootstrap';
 import {useRecommendedOrdersContext} from "@/store/recommend-orders-context";
 import { Banner, Order } from '@/types/models';
 import {useEffect} from "react";
-import OrderController from "@/actions/App/Http/Controllers/Provider/OrderController";
+import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/OrderController";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
 

@@ -3,12 +3,11 @@
 namespace Modules\Guarantor\Actions\Guarantor;
 
 use App\Models\User;
-use App\Services\Sms\Phone;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\DTOs\GuarantorData;
+use Modules\Guarantor\DTOs\GuarantorUploadData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
@@ -26,9 +25,12 @@ class CreateIndividualGuarantorAction
     /**
      * @throws Throwable
      */
-    public function handle(GuarantorData $data, Model $requester, Request $request): GuarantorRequest
-    {
-        return DB::transaction(function () use ($data, $requester, $request) {
+    public function handle(
+        GuarantorData $data,
+        Model $requester,
+        GuarantorUploadData $uploads,
+    ): GuarantorRequest {
+        return DB::transaction(function () use ($data, $requester, $uploads) {
             $counterparty = $this->resolveCounterparty($data->counterparty_phone);
 
             if ($counterparty->getKey() === $requester->getKey() && $counterparty::class === $requester::class) {
@@ -47,8 +49,8 @@ class CreateIndividualGuarantorAction
                 'status' => GuarantorStatusEnum::PendingAdmin,
             ]);
 
-            if ($request->hasFile('signature')) {
-                $guarantorRequest->addMedia($request->file('signature'))
+            if ($uploads->signature !== null) {
+                $guarantorRequest->addMedia($uploads->signature)
                     ->toMediaCollection('signature');
             }
 
@@ -71,9 +73,7 @@ class CreateIndividualGuarantorAction
 
     private function resolveCounterparty(string $phone): User
     {
-        $counterparty = User::query()
-            ->where('phone', (string) Phone::make($phone))
-            ->first();
+        $counterparty = $this->guarantorRepository->findCounterpartyByPhone($phone);
 
         if ($counterparty === null) {
             throw new GuarantorException('guarantor.counterparty_not_found', 422);

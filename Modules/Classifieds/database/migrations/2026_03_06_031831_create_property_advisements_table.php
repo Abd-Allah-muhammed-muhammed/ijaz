@@ -44,7 +44,7 @@ return new class extends Migration
             $table->foreignId('property_type_id')->constrained('property_types')->cascadeOnDelete();
             $table->foreignId('city_id')->constrained('cities')->cascadeOnDelete();
             $table->foreignId('region_id')->constrained('regions')->cascadeOnDelete();
-            $table->foreignId('category_id')->constrained('propertiy_categories')->cascadeOnDelete();
+            $table->foreignId('category_id')->constrained('property_categories')->cascadeOnDelete();
             $table->timestamps();
         });
     }

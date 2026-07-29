@@ -5,6 +5,7 @@ namespace Modules\Guarantor\Actions\Guarantor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Actions\Chat\OpenGuarantorChatAction;
+use Modules\Guarantor\Actions\Guarantor\NotifyGuarantorPartiesAction as NotifyGuarantorParties;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
@@ -14,7 +15,6 @@ use Modules\Guarantor\Notifications\GuarantorAcceptedNotification;
 use Modules\Guarantor\Notifications\GuarantorAdminApprovedNotification;
 use Modules\Guarantor\Notifications\GuarantorAdminRejectedNotification;
 use Modules\Guarantor\Notifications\GuarantorCounterpartyRejectedNotification;
-use Modules\Guarantor\Notifications\GuarantorEndedNotification;
 use Throwable;
 
 class UpdateGuarantorStatusAction
@@ -23,6 +23,7 @@ class UpdateGuarantorStatusAction
         private readonly GuarantorRepositoryInterface $guarantorRepository,
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
         private readonly OpenGuarantorChatAction $openGuarantorChatAction,
+        private readonly NotifyGuarantorParties $notifyGuarantorPartiesAction,
     ) {}
 
     /**
@@ -100,10 +101,7 @@ class UpdateGuarantorStatusAction
                     new GuarantorCounterpartyRejectedNotification($guarantorRequest)
                 ),
                 GuarantorStatusEnum::Ended,
-                GuarantorStatusEnum::Cancelled => collect([
-                    $guarantorRequest->requester,
-                    $guarantorRequest->counterparty,
-                ])->each->notify(new GuarantorEndedNotification($guarantorRequest)),
+                GuarantorStatusEnum::Cancelled => $this->notifyGuarantorPartiesAction->handle($guarantorRequest),
                 default => null,
             };
 

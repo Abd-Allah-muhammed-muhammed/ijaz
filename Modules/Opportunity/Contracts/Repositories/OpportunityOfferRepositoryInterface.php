@@ -17,4 +17,6 @@ interface OpportunityOfferRepositoryInterface
     public function listByOpportunity(Opportunity $opportunity, Model $actor, int $perPage = 10): LengthAwarePaginator;
 
     public function findById(string $id): OpportunityOffer;
+
+    public function delete(OpportunityOffer $offer): void;
 }

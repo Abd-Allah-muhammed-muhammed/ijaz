@@ -2,88 +2,69 @@
 
 namespace Modules\Wallet\Services;
 
-use App\Enums\OperationStatusEnum;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Modules\Payment\DTOs\PaymentInitResult;
-use Modules\Payment\Enums\PaymentStatusEnum;
-use Modules\Payment\Services\PaymentService;
+use Modules\Wallet\Actions\TopUp\CancelTopUpRequestAction;
+use Modules\Wallet\Actions\TopUp\CreateTopUpRequestAction;
+use Modules\Wallet\Actions\TopUp\ListAllTopUpRequestsAction;
+use Modules\Wallet\Actions\TopUp\ListTopUpRequestsForOwnerAction;
+use Modules\Wallet\Actions\TopUp\UpdateTopUpStatusForDashboardAction;
 use Modules\Wallet\DTOs\CreateTopUpData;
-use Modules\Wallet\Exceptions\WalletException;
 use Modules\Wallet\Models\TopUpRequest;
 
 class TopUpRequestService
 {
     public function __construct(
-        private readonly PaymentService $paymentService,
+        private readonly CreateTopUpRequestAction $createAction,
+        private readonly CancelTopUpRequestAction $cancelAction,
+        private readonly UpdateTopUpStatusForDashboardAction $updateStatusForDashboardAction,
+        private readonly ListTopUpRequestsForOwnerAction $listForOwnerAction,
+        private readonly ListAllTopUpRequestsAction $listAllAction,
     ) {}
 
     /**
      * Create a top-up request (online or offline).
-     * Caller must wrap in DB::transaction().
      *
      * @return array{topUpRequest: TopUpRequest, paymentResult: PaymentInitResult|null}
      */
     public function create(Model $owner, CreateTopUpData $data): array
     {
-        $attributes = [
-            'amount' => $data->amount,
-            'payment_method' => $data->paymentMethod->value,
-            'status' => OperationStatusEnum::Pending,
-            'wallet_id' => $owner->wallet->id,
-            'user_notes' => $data->userNotes,
-            'transaction_image' => $data->transactionImage,
-        ];
-
-        if ($data->paymentMethod->isOnline()) {
-            $attributes['payment_status'] = PaymentStatusEnum::Pending;
-        }
-
-        /** @var TopUpRequest $topUpRequest */
-        $topUpRequest = $owner->topUpRequests()->create($attributes);
-
-        if ($data->paymentMethod->isOnline()) {
-            $result = $this->paymentService->initiate(
-                owner: $owner,
-                product: $topUpRequest,
-                amount: $topUpRequest->amount,
-                driver: $data->paymentDriver,
-            );
-
-            return [
-                'topUpRequest' => $topUpRequest,
-                'paymentResult' => $result,
-            ];
-        }
-
-        return [
-            'topUpRequest' => $topUpRequest,
-            'paymentResult' => null,
-        ];
+        return DB::transaction(fn (): array => $this->createAction->handle($owner, $data));
     }
 
     public function cancel(TopUpRequest $topUpRequest): void
     {
-        if (! $topUpRequest->status->isPending()) {
-            throw new WalletException('Only pending top-up requests can be cancelled.');
-        }
+        $this->cancelAction->handle($topUpRequest);
+    }
 
-        $topUpRequest->delete();
+    /**
+     * Admin dashboard approve/reject. Credits wallet only for Approved + Offline
+     * (online credit is handled by HandleTopUpPaymentCompleted).
+     */
+    public function updateStatusForDashboard(
+        TopUpRequest $topUpRequest,
+        string $status,
+        ?string $adminNotes,
+        int $adminId,
+    ): TopUpRequest {
+        return $this->updateStatusForDashboardAction->handle(
+            $topUpRequest,
+            $status,
+            $adminNotes,
+            $adminId,
+        );
     }
 
     public function listForOwner(Model $owner, int $perPage = 16): LengthAwarePaginator
     {
-        return $owner->topUpRequests()
-            ->latest()
-            ->paginate($perPage);
+        return $this->listForOwnerAction->handle($owner, $perPage);
     }
 
-    public function listAll(int $perPage = 16): LengthAwarePaginator
+    public function listAll(Request $request): LengthAwarePaginator
     {
-        return TopUpRequest::query()
-            ->with('user')
-            ->orderByRaw('status = ? DESC', [OperationStatusEnum::Pending->value])
-            ->latest()
-            ->paginate($perPage);
+        return $this->listAllAction->handle($request);
     }
 }

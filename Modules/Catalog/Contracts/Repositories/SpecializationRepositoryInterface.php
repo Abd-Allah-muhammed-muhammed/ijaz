@@ -27,6 +27,8 @@ interface SpecializationRepositoryInterface
 
     public function findById(int $id): Specialization;
 
+    public function find(int $id): ?Specialization;
+
     /**
      * @return Collection<int, Specialization>
      */

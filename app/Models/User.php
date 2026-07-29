@@ -3,13 +3,13 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Contracts\OTPS\HasOTPsContract;
+use App\Contracts\Auth\HasOTPsContract;
 use App\Enums\Users\UserStatusEnum;
 use App\Services\Firebase\Contract\InteractWithFirebase;
 use App\Services\Firebase\DTO\Target;
+use App\Support\HasBroadcastChannel;
+use App\Support\HasStoredFileUrl;
 use App\Traits\Blockable;
-use App\Traits\HasBroadcastChanel;
-use App\Traits\HasJobs;
 use App\Traits\HasOTPs;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -26,12 +26,17 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Chat\Contracts\HasConversation;
+use Modules\Chat\Models\ConversationMessage;
 use Modules\Classifieds\Models\CarAdvisement;
 use Modules\Classifieds\Models\ElectronicAdvisement;
 use Modules\Classifieds\Models\InstituteAdvisement;
 use Modules\Classifieds\Models\PropertyAdvisement;
+use Modules\Geo\Models\Nationality;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Jobs\Concerns\HasJobs;
+use Modules\Orders\Models\Order;
 use Modules\Payment\Traits\HasPayments;
+use Modules\Reviews\Concerns\HasReviews;
 use Modules\Wallet\Traits\HasWallet;
 
 /**
@@ -65,7 +70,8 @@ use Modules\Wallet\Traits\HasWallet;
  * @property-read Nationality|null $nationality
  * @property-read string $image_url
  * @property-read string $name
- * @property-read Collection<int, VerificationCode> $verificationCodes
+ * @property-read Collection<int, Otp> $otps
+ * @property-read Collection<int, Otp> $verificationCodes
  *
  * @method static UserFactory factory($count = null, $state = [])
  * @method static Builder|User newModelQuery()
@@ -95,7 +101,7 @@ use Modules\Wallet\Traits\HasWallet;
 class User extends Authenticatable implements HasConversation, HasOTPsContract, InteractWithFirebase
 {
     /** @use HasFactory<UserFactory> */
-    use Blockable, HasApiTokens, HasBroadcastChanel, HasFactory, HasJobs, HasOTPs, HasPayments, HasWallet, Notifiable;
+    use Blockable, HasApiTokens, HasBroadcastChannel, HasFactory, HasJobs, HasOTPs, HasPayments, HasReviews, HasStoredFileUrl, HasWallet, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -119,8 +125,6 @@ class User extends Authenticatable implements HasConversation, HasOTPsContract, 
         'player_id',
     ];
 
-    protected string $default_image = 'media/avatars/blank.png';
-
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -139,7 +143,7 @@ class User extends Authenticatable implements HasConversation, HasOTPsContract, 
     public function deleteImage(): void
     {
         if ($this->image) {
-            Storage::disk('public')->delete($this->image);
+            Storage::disk($this->storedFileDisk())->delete($this->image);
         }
     }
 
@@ -243,8 +247,16 @@ class User extends Authenticatable implements HasConversation, HasOTPsContract, 
 
     protected function imageUrl(): Attribute
     {
-        return Attribute::get(function () {
-            return $this->image ? Storage::disk('public')->url($this->image) : asset($this->default_image);
-        });
+        return Attribute::get(fn () => $this->storedFileUrl($this->image));
+    }
+
+    protected function storedFileDisk(): string
+    {
+        return 'public';
+    }
+
+    protected function defaultImagePlaceholder(): ?string
+    {
+        return asset('media/avatars/blank.png');
     }
 }

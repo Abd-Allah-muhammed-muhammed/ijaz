@@ -9,10 +9,10 @@ use Modules\Classifieds\Http\Controllers\Dashboard\PropertyAdvisementController;
 Route::middleware(['localeSessionRedirect', 'localizationRedirect', 'localeViewPath', 'auth:admin'])
     ->group(function () {
         Route::resource('property-advisements', PropertyAdvisementController::class)
-            ->only(['index', 'show', 'update']);
+            ->only(['index', 'show', 'update', 'destroy']);
 
         Route::resource('car-advisements', CarAdvisementController::class)
-            ->only(['index', 'show', 'update']);
+            ->only(['index', 'show', 'update', 'destroy']);
 
         Route::resource('electronic-advisements', ElectronicAdvisementController::class)
             ->only(['index', 'show', 'update', 'destroy']);

@@ -28,14 +28,8 @@ jobs:
             git reset --hard origin/main
 
             # 2. Remove sensitive docs — never leave on server
+            # All project docs (including PROJECT_CONTEXT, API_INVENTORY, etc.) live under docs/
             rm -rf docs/
-            rm -f PROJECT_CONTEXT.md
-            rm -f api-documentation-notes.md
-            rm -f API_AUDIT_REPORT.md
-            rm -f API_INVENTORY.md
-            rm -f ENUMS_REFERENCE.md
-            rm -f MODELS_REFERENCE.md
-            rm -f REFACTOR_NOTES.md
 
             # 3. PHP dependencies
             composer install --no-dev --optimize-autoloader --no-interaction

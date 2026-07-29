@@ -3,11 +3,10 @@
 namespace Modules\Catalog\QueryFilters\DeviceCategory;
 
 use App\Contracts\QueryFilters\QueryFilterInterface;
-use App\Services\Normalize\Normalize;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Modules\Catalog\QueryFilters\DeviceCategory\Filters\ParentFilter;
-use Modules\Catalog\QueryFilters\DeviceCategory\Filters\SearchFilter;
+use Modules\Catalog\QueryFilters\Filters\ParentFilter;
+use Modules\Catalog\QueryFilters\Filters\TranslationSearchFilter;
 
 class DeviceCategoryFilters
 {
@@ -35,8 +34,9 @@ class DeviceCategoryFilters
     private function filters(): array
     {
         return [
-            new SearchFilter(
-                $this->request->filled('search') ? Normalize::make($this->request->string('search'), app()->getLocale()) : null
+            new TranslationSearchFilter(
+                $this->request->filled('search') ? (string) $this->request->string('search') : null,
+                'normalized_title',
             ),
             new ParentFilter($this->request->integer('parent_id')),
         ];

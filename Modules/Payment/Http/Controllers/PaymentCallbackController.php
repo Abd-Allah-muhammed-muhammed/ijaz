@@ -6,14 +6,14 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
-use Modules\Payment\Actions\HandleCallbackAction;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Models\Payment;
+use Modules\Payment\Services\PaymentService;
 
 class PaymentCallbackController extends Controller
 {
     public function __construct(
-        private readonly HandleCallbackAction $handleCallbackAction,
+        private readonly PaymentService $paymentService,
     ) {}
 
     /**
@@ -24,9 +24,7 @@ class PaymentCallbackController extends Controller
     {
         abort_if($payment->driver !== $driver, 404);
 
-        $this->handleCallbackAction->handle($payment, $request->all());
-
-        $payment->refresh();
+        $payment = $this->paymentService->handleCallback($payment, $request->all());
 
         return match ($payment->status) {
             PaymentStatusEnum::Accepted => redirect()->route('payment.success', $payment),
@@ -42,7 +40,7 @@ class PaymentCallbackController extends Controller
     {
         abort_if($payment->driver !== $driver, 404);
 
-        $this->handleCallbackAction->handle($payment, $request->all());
+        $this->paymentService->handleCallback($payment, $request->all());
 
         return response('OK', 200);
     }

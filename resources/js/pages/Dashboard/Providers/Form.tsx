@@ -7,7 +7,7 @@ import ImageInput from "@/components/inputs/ImageInput";
 import ActionButton from "@/components/action-button";
 import {KTCard, KTIcon} from "@/_metronic/helpers";
 import React, {useEffect, useState} from "react";
-import {SelectCategoryModal} from "@/components/categories/category-selector/select-category-modal";
+import {SelectCategoryModal, Data as SelectCategoryModalData} from "@/components/categories/category-selector/select-category-modal";
 import InputError from "@/components/input-error";
 import {FormInputs} from "@/pages/Dashboard/Providers/Validation";
 
@@ -372,21 +372,37 @@ export default function Form({callback, row, types, cities, regions, backUrl,}: 
               handleClose={() => {
                 setShowCateModal(false)
               }}
-              submitCallback={(data) => {
+              submitCallback={(data: SelectCategoryModalData[]) => {
+                // Match Register_.tsx addCategory: modal always passes Data[].
                 setSelectingCategory((previousData) => {
-                  let categories = previousData.filter((x) => x.category.id !== data.category!.id);
-                  return [data as CategoryFormData, ...categories]
-                })
-                setShowCateModal(false)
+                  const map = new Map(previousData.map((c) => [c.category.id as number, c]));
+                  data.forEach((c) => {
+                    if (!c.category) {
+                      return;
+                    }
+                    map.set(c.category.id as number, {
+                      category: c.category,
+                      skills: c.skills,
+                    });
+                  });
+                  return Array.from(map.values());
+                });
+                setShowCateModal(false);
                 form.setData((previousData) => {
-                  let categories = previousData.categories?.filter((x) => x.id !== data.category!.id);
+                  const map = new Map((previousData.categories ?? []).map((c) => [c.id, c]));
+                  data.forEach((c) => {
+                    if (!c.category) {
+                      return;
+                    }
+                    map.set(c.category.id as number, {
+                      id: c.category.id as number,
+                      skills: c.skills.map((s) => parseInt(String(s.value))),
+                    });
+                  });
                   return {
                     ...previousData,
-                    categories: [{
-                      id: data.category!.id as number,
-                      skills: data.skills.map(s => parseInt(s.value))
-                    }, ...categories!]
-                  }
+                    categories: Array.from(map.values()),
+                  };
                 });
               }}
               provider_type_id={form.data.provider_type_id as unknown as string}
@@ -423,11 +439,15 @@ export default function Form({callback, row, types, cities, regions, backUrl,}: 
                     <span className='form-check form-check-custom form-check-solid'>
                         <button
                           className='btn btn-sm btn-danger'
+                          type='button'
                           onClick={() => {
                             setSelectingCategory((previousData) => {
-                              let categories = previousData.filter((x) => x.category.id !== $c.category.id);
-                              return [...categories]
-                            })
+                              return previousData.filter((x) => x.category.id !== $c.category.id);
+                            });
+                            form.setData((previousData) => ({
+                              ...previousData,
+                              categories: (previousData.categories ?? []).filter((x) => x.id !== $c.category.id),
+                            }));
                           }}
                         >
                           <KTIcon className='fs-1' iconName='cross'/>

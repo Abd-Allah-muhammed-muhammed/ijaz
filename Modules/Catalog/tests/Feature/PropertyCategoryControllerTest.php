@@ -1,14 +1,14 @@
 <?php
 
-use Modules\Catalog\Http\Controllers\V1\PropertyCategoryController;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Http\Controllers\Api\V1\PropertyCategoryController;
+use Modules\Catalog\Models\PropertyCategory;
 use Tests\TestCase;
 
 it('lists top level property categories with children count', function (): void {
     /** @var TestCase $this */
-    $parent = PropertiyCategory::factory()->create();
-    PropertiyCategory::factory()->count(2)->create(['parent_id' => $parent->id]);
-    PropertiyCategory::factory()->create();
+    $parent = PropertyCategory::factory()->create();
+    PropertyCategory::factory()->count(2)->create(['parent_id' => $parent->id]);
+    PropertyCategory::factory()->create();
 
     $response = $this->getJson(action([PropertyCategoryController::class, 'index']));
 
@@ -38,8 +38,8 @@ it('lists top level property categories with children count', function (): void 
 
 it('filters property categories by parent id', function (): void {
     /** @var TestCase $this */
-    $parent = PropertiyCategory::factory()->create();
-    PropertiyCategory::factory()->create(['parent_id' => $parent->id]);
+    $parent = PropertyCategory::factory()->create();
+    PropertyCategory::factory()->create(['parent_id' => $parent->id]);
 
     $response = $this->getJson(action([PropertyCategoryController::class, 'index'], ['parent_id' => $parent->id]));
 

@@ -164,6 +164,11 @@ return [
     'ulid' => 'The :attribute field must be a valid ULID.',
     'uuid' => 'The :attribute field must be a valid UUID.',
     'device_category_cannot_be_own_parent' => 'A device category cannot be set as its own parent.',
+    'property_category_cannot_be_own_parent' => 'A property category cannot be set as its own parent.',
+    'car_category_cannot_be_own_parent' => 'A car category cannot be set as its own parent.',
+    'category_cannot_be_own_parent' => 'A category cannot be set as its own parent.',
+    'specialization_cannot_be_own_parent' => 'A specialization cannot be set as its own parent.',
+    'invalid_authenticatable_id' => 'The selected :authenticatable could not be found.',
 
     /*
     |--------------------------------------------------------------------------

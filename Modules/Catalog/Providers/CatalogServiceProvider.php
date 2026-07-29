@@ -15,6 +15,8 @@ use Modules\Catalog\Contracts\Services\CarCategoryServiceInterface;
 use Modules\Catalog\Contracts\Services\CarTypeServiceInterface;
 use Modules\Catalog\Contracts\Services\DeviceCategoryServiceInterface;
 use Modules\Catalog\Contracts\Services\ElectronicBrandServiceInterface;
+use Modules\Catalog\Contracts\Services\PropertyCategoryServiceInterface;
+use Modules\Catalog\Contracts\Services\PropertyTypeServiceInterface;
 use Modules\Catalog\Contracts\Services\SpecializationServiceInterface;
 use Modules\Catalog\Repositories\CarBrandRepository;
 use Modules\Catalog\Repositories\CarCategoryRepository;
@@ -29,6 +31,8 @@ use Modules\Catalog\Services\CarCategoryService;
 use Modules\Catalog\Services\CarTypeService;
 use Modules\Catalog\Services\DeviceCategoryService;
 use Modules\Catalog\Services\ElectronicBrandService;
+use Modules\Catalog\Services\PropertyCategoryService;
+use Modules\Catalog\Services\PropertyTypeService;
 use Modules\Catalog\Services\SpecializationService;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
@@ -55,6 +59,8 @@ class CatalogServiceProvider extends ModuleServiceProvider
         $this->app->bind(ElectronicBrandRepositoryInterface::class, ElectronicBrandRepository::class);
         $this->app->bind(SpecializationRepositoryInterface::class, SpecializationRepository::class);
 
+        $this->app->bind(PropertyTypeServiceInterface::class, PropertyTypeService::class);
+        $this->app->bind(PropertyCategoryServiceInterface::class, PropertyCategoryService::class);
         $this->app->bind(CarBrandServiceInterface::class, CarBrandService::class);
         $this->app->bind(CarTypeServiceInterface::class, CarTypeService::class);
         $this->app->bind(CarCategoryServiceInterface::class, CarCategoryService::class);

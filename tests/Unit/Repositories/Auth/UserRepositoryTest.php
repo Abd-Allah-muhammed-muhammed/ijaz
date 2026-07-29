@@ -2,7 +2,7 @@
 
 use App\Contracts\Auth\UserRepositoryInterface;
 use App\Models\User;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 
 test('findByPhone returns matching user', function () {
     $phone = Phone::make('512345678')->toString();

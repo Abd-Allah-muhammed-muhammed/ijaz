@@ -3,9 +3,15 @@
 namespace Modules\Catalog\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Modules\Catalog\Contracts\Repositories\CarBrandRepositoryInterface;
+use Modules\Catalog\Actions\CarBrand\DeleteCarBrandAction;
+use Modules\Catalog\Actions\CarBrand\ListCarBrandsAction;
+use Modules\Catalog\Actions\CarBrand\ListCarBrandsForSelectAction;
+use Modules\Catalog\Actions\CarBrand\ShowCarBrandAction;
+use Modules\Catalog\Actions\CarBrand\StoreCarBrandAction;
+use Modules\Catalog\Actions\CarBrand\UpdateCarBrandAction;
+use Modules\Catalog\Actions\CarBrand\UpdateStatusCarBrandAction;
 use Modules\Catalog\Contracts\Services\CarBrandServiceInterface;
 use Modules\Catalog\DTOs\StoreCarBrandDTO;
 use Modules\Catalog\DTOs\UpdateCarBrandDTO;
@@ -14,85 +20,50 @@ use Modules\Catalog\Models\CarBrand;
 class CarBrandService implements CarBrandServiceInterface
 {
     public function __construct(
-        private readonly CarBrandRepositoryInterface $repository,
+        private readonly ListCarBrandsAction $listAction,
+        private readonly ListCarBrandsForSelectAction $listForSelectAction,
+        private readonly StoreCarBrandAction $storeAction,
+        private readonly UpdateCarBrandAction $updateAction,
+        private readonly UpdateStatusCarBrandAction $updateStatusAction,
+        private readonly DeleteCarBrandAction $deleteAction,
+        private readonly ShowCarBrandAction $showAction,
     ) {}
 
     public function index(Request $request): LengthAwarePaginator
     {
-        return $this->repository->paginate($request);
+        return $this->listAction->handle($request);
     }
 
     public function store(StoreCarBrandDTO $dto): CarBrand
     {
-        DB::beginTransaction();
-        try {
-            $data = [
-                'is_active' => $dto->isActive,
-                'image' => $dto->image,
-            ];
-
-            $carBrand = $this->repository->create($data);
-            $carBrand->translations()->createMany($dto->translations);
-
-            DB::commit();
-
-            return $carBrand->load(['translation']);
-        } catch (\Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+        return $this->storeAction->handle($dto);
     }
 
     public function update(CarBrand $carBrand, UpdateCarBrandDTO $dto): CarBrand
     {
-        DB::beginTransaction();
-        try {
-            $data = [
-                'is_active' => $dto->isActive,
-            ];
-
-            if ($dto->image) {
-                $carBrand->deleteImage();
-                $data['image'] = $dto->image;
-            }
-
-            $carBrand = $this->repository->update($carBrand, $data);
-            $carBrand->translations()->delete();
-            $carBrand->translations()->createMany($dto->translations);
-
-            DB::commit();
-
-            return $carBrand->load(['translation']);
-        } catch (\Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+        return $this->updateAction->handle($carBrand, $dto);
     }
 
     public function updateStatus(CarBrand $carBrand, bool $isActive): CarBrand
     {
-        DB::beginTransaction();
-        try {
-            $carBrand = $this->repository->update($carBrand, ['is_active' => $isActive]);
-            DB::commit();
-
-            return $carBrand;
-        } catch (\Throwable $throwable) {
-            DB::rollBack();
-            report($throwable);
-            throw $throwable;
-        }
+        return $this->updateStatusAction->handle($carBrand, $isActive);
     }
 
     public function destroy(CarBrand $carBrand): void
     {
-        $this->repository->delete($carBrand);
+        $this->deleteAction->handle($carBrand);
     }
 
     public function show(CarBrand $carBrand): CarBrand
     {
-        return $carBrand->load(['translation']);
+        return $this->showAction->handle($carBrand);
+    }
+
+    /**
+     * @return Collection<int, CarBrand>
+     */
+    public function listForSelect(?string $search = null): Collection
+    {
+        return $this->listForSelectAction->handle($search);
     }
 }

@@ -6,7 +6,7 @@ import {FormInput, ProviderTypeFilesEnumValues, TranslatedAttributes} from "./ty
 import ActionButton from "@/components/action-button";
 import {getSupportedLocales} from "@/hooks/use-locales";
 import InputError from "@/components/inputs/InputError";
-import ProviderTypeController from "@/actions/App/Http/Controllers/Dashboard/ProviderTypeController";
+import ProviderTypeController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/ProviderTypeController";
 import {ProviderTypeFilesEnum} from "@/Enums/Enums";
 import ImageInput from "@/components/inputs/ImageInput";
 import Select from 'react-select';
@@ -98,7 +98,7 @@ export default function Form({callback, row, categories}: Props) {
             {Object.keys(locales).map((locale => (
               <Col sm={12} md={6} className="mb-3" key={locale}>
                 <FormGroup>
-                  <FormLabel aria-required={true} className="required">
+                  <FormLabel>
                     {t(`description in ${locale}`)}
                   </FormLabel>
                   <FormControl

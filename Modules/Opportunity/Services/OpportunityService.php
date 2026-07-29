@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Modules\Opportunity\Actions\Opportunity\CreateOpportunityAction;
 use Modules\Opportunity\Actions\Opportunity\DeleteOpportunityAction;
+use Modules\Opportunity\Actions\Opportunity\DeleteOpportunityForDashboardAction;
+use Modules\Opportunity\Actions\Opportunity\ListOpportunitiesForDashboardAction;
 use Modules\Opportunity\Actions\Opportunity\RenewOpportunityAction;
 use Modules\Opportunity\Actions\Opportunity\UpdateOpportunityAction;
 use Modules\Opportunity\Contracts\Repositories\OpportunityRepositoryInterface;
@@ -23,8 +25,15 @@ class OpportunityService
         private readonly CreateOpportunityAction $createAction,
         private readonly UpdateOpportunityAction $updateAction,
         private readonly DeleteOpportunityAction $deleteAction,
+        private readonly DeleteOpportunityForDashboardAction $deleteForDashboardAction,
         private readonly RenewOpportunityAction $renewAction,
+        private readonly ListOpportunitiesForDashboardAction $listForDashboardAction,
     ) {}
+
+    public function listForDashboard(Request $request): LengthAwarePaginator
+    {
+        return $this->listForDashboardAction->handle($request);
+    }
 
     public function listPublic(int $perPage = 10): LengthAwarePaginator
     {
@@ -72,6 +81,15 @@ class OpportunityService
     public function delete(Opportunity $opportunity): void
     {
         $this->deleteAction->handle($opportunity);
+    }
+
+    /**
+     * Admin dashboard soft-delete — no status restriction.
+     * Distinct from delete() (API New-only path).
+     */
+    public function deleteForDashboard(Opportunity $opportunity): void
+    {
+        $this->deleteForDashboardAction->handle($opportunity);
     }
 
     /**

@@ -4,6 +4,7 @@ namespace Modules\Guarantor\Actions\Guarantor;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Modules\Guarantor\Actions\Guarantor\NotifyGuarantorPartiesAction as NotifyGuarantorParties;
 use Modules\Guarantor\Actions\Installment\ReleaseInstallmentAction;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
@@ -11,7 +12,6 @@ use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
-use Modules\Guarantor\Notifications\GuarantorEndedNotification;
 use Modules\Wallet\Services\WalletService;
 use Throwable;
 
@@ -22,14 +22,15 @@ class EndGuarantorAction
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
         private readonly ReleaseInstallmentAction $releaseInstallmentAction,
         private readonly WalletService $walletService,
+        private readonly NotifyGuarantorParties $notifyGuarantorPartiesAction,
     ) {}
 
     /**
      * @throws Throwable
      */
-    public function handle(GuarantorRequest $request, Model $actor, string $actorRole): void
+    public function handle(GuarantorRequest $request, Model $actor, string $actorRole): GuarantorRequest
     {
-        DB::transaction(function () use ($request, $actor, $actorRole) {
+        return DB::transaction(function () use ($request, $actor, $actorRole) {
             if (! GuarantorStatusEnum::isAllowed($request->status, GuarantorStatusEnum::Ended, $actorRole)) {
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }
@@ -55,10 +56,9 @@ class EndGuarantorAction
                 reason: "{$actorRole} ended the guarantor request",
             );
 
-            $guarantorRequest->load(['requester', 'counterparty']);
+            $this->notifyGuarantorPartiesAction->handle($guarantorRequest);
 
-            collect([$guarantorRequest->requester, $guarantorRequest->counterparty])
-                ->each->notify(new GuarantorEndedNotification($guarantorRequest));
+            return $guarantorRequest->load(['requester', 'counterparty', 'installments', 'companyDetail', 'media']);
         });
     }
 

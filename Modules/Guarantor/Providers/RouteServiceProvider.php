@@ -3,20 +3,23 @@
 namespace Modules\Guarantor\Providers;
 
 use App\Providers\BaseModuleRouteServiceProvider;
+use App\Support\Api\ApiVersionRegistry;
 
 class RouteServiceProvider extends BaseModuleRouteServiceProvider
 {
     protected string $moduleName = 'Guarantor';
 
-    protected array $additionalApiRoutes = [
-        'Routes/V1/chat.php' => [
-            'prefix' => 'api/v1/chats/guarantor',
-            'name' => 'api.v1.chats.guarantor.',
-        ],
-    ];
-
     public function boot(): void
     {
+        $version = app(ApiVersionRegistry::class)->default();
+
+        $this->additionalApiRoutes = [
+            'Routes/'.$version->folder.'/chat.php' => [
+                'prefix' => $version->prefix.'/chats/guarantor',
+                'name' => $version->name.'chats.guarantor.',
+            ],
+        ];
+
         $this->map();
     }
 }

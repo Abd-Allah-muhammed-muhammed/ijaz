@@ -4,6 +4,7 @@ namespace Modules\Classifieds\Repositories;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Modules\Classifieds\Contracts\Repositories\ElectronicAdvisementRepositoryInterface;
 use Modules\Classifieds\Models\ElectronicAdvisement;
 use Modules\Classifieds\QueryFilters\ElectronicAdvisementFilters;
@@ -55,5 +56,32 @@ final class ElectronicAdvisementRepository implements ElectronicAdvisementReposi
         $model->update($data);
 
         return $model;
+    }
+
+    public function paginateForDashboard(Request $request): LengthAwarePaginator
+    {
+        return ElectronicAdvisement::query()
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('normalized_title', 'like', "%{$search}%")
+                        ->orWhere('normalized_description', 'like', "%{$search}%")
+                        ->orWhere('id', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->status, fn ($query, $v) => $query->where('status', $v))
+            ->when($request->condition, fn ($query, $v) => $query->where('condition', $v))
+            ->when($request->device_category_id, fn ($query, $v) => $query->where('device_category_id', $v))
+            ->when($request->electronic_brand_id, fn ($query, $v) => $query->where('electronic_brand_id', $v))
+            ->when($request->city_id, fn ($query, $v) => $query->where('city_id', $v))
+            ->when($request->region_id, fn ($query, $v) => $query->where('region_id', $v))
+            ->with([
+                'deviceCategory',
+                'electronicBrand',
+                'city',
+                'region',
+                'user',
+            ])
+            ->paginate($request->integer('per_page', 10))
+            ->withQueryString();
     }
 }

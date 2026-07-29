@@ -2,16 +2,16 @@
 
 namespace Modules\Classifieds\Database\Factories;
 
-use App\Models\City;
-use App\Models\Region;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 use Modules\Catalog\Models\PropertyType;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;
 use Modules\Classifieds\Models\PropertyAdvisement;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 /**
  * @extends Factory<PropertyAdvisement>
@@ -64,7 +64,7 @@ class PropertyAdvisementFactory extends Factory
             'property_type_id' => PropertyType::query()->inRandomOrder()->value('id') ?? PropertyType::factory(),
             'city_id' => City::query()->inRandomOrder()->value('id') ?? City::factory(),
             'region_id' => Region::query()->inRandomOrder()->value('id') ?? Region::factory(),
-            'category_id' => PropertiyCategory::query()->inRandomOrder()->value('id') ?? PropertiyCategory::factory(),
+            'category_id' => PropertyCategory::query()->inRandomOrder()->value('id') ?? PropertyCategory::factory(),
         ];
     }
 

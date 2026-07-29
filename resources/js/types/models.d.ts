@@ -1,4 +1,5 @@
-import { CategoryFeesTypeEnum, OperationStatusEnum, ProviderTypeFilesEnum } from "@/Enums/Enums";
+import { OperationStatusEnum, ProviderTypeFilesEnum } from "@/Enums/Enums";
+import { CategoryFeesTypeEnum } from "@/Enums/Marketplace";
 import { ProviderStatusEnum } from "@/Enums/Providers";
 import { OfferStatusEnum, OrderStatusEnum } from "@/Enums/Order";
 import { PaymentMethodEnum, PaymentStatusEnum } from "@/Enums/Payment";
@@ -533,10 +534,13 @@ export interface Review extends Model {
   reviewer: Reviewer;
   reviewee_type: string;
   reviewee: Reviewer;
+  created_at?: string;
 }
 
 export interface Reviewer {
   name: string;
+  image?: string;
+  socket_id?: string;
 }
 
 export type TopUpRequestStatus = typeof OperationStatusEnum[keyof typeof OperationStatusEnum];

@@ -2,9 +2,9 @@
 
 namespace Modules\Chat\Http\Resources;
 
-use App\Models\ConversationMessage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Chat\Models\ConversationMessage;
 
 /**
  * @mixin ConversationMessage

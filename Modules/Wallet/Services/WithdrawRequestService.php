@@ -2,46 +2,34 @@
 
 namespace Modules\Wallet\Services;
 
-use App\Enums\OperationStatusEnum;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Modules\Wallet\Actions\Withdraw\CancelWithdrawRequestAction;
+use Modules\Wallet\Actions\Withdraw\CreateWithdrawRequestAction;
+use Modules\Wallet\Actions\Withdraw\ListAllWithdrawRequestsAction;
+use Modules\Wallet\Actions\Withdraw\ListWithdrawRequestsForOwnerAction;
+use Modules\Wallet\Actions\Withdraw\UpdateWithdrawStatusForDashboardAction;
 use Modules\Wallet\DTOs\CreateWithdrawData;
-use Modules\Wallet\Exceptions\InsufficientBalanceException;
-use Modules\Wallet\Exceptions\WalletException;
 use Modules\Wallet\Models\WithdrawRequest;
 
 class WithdrawRequestService
 {
     public function __construct(
-        private readonly WalletService $walletService,
+        private readonly CreateWithdrawRequestAction $createAction,
+        private readonly CancelWithdrawRequestAction $cancelAction,
+        private readonly UpdateWithdrawStatusForDashboardAction $updateStatusForDashboardAction,
+        private readonly ListWithdrawRequestsForOwnerAction $listForOwnerAction,
+        private readonly ListAllWithdrawRequestsAction $listAllAction,
     ) {}
 
     /**
      * Create a withdraw request and hold pending debit.
-     * Caller must wrap in DB::transaction().
      */
     public function create(Model $owner, CreateWithdrawData $data): WithdrawRequest
     {
-        if (! $this->walletService->canWithdraw($owner, $data->amount)) {
-            throw new InsufficientBalanceException(
-                available: $this->walletService->getBalance($owner)->available,
-                requested: $data->amount,
-            );
-        }
-
-        $withdrawRequest = $owner->withdrawRequests()->create([
-            'amount' => $data->amount,
-            'user_notes' => $data->userNotes,
-        ]);
-
-        $this->walletService->addPendingDebit(
-            owner: $owner,
-            amount: $data->amount,
-            operation: $withdrawRequest,
-            description: "Withdraw Request Created #{$withdrawRequest->id}",
-        );
-
-        return $withdrawRequest;
+        return DB::transaction(fn (): WithdrawRequest => $this->createAction->handle($owner, $data));
     }
 
     /**
@@ -50,33 +38,34 @@ class WithdrawRequestService
      */
     public function cancel(Model $owner, WithdrawRequest $withdrawRequest): void
     {
-        if (! $withdrawRequest->status->isPending()) {
-            throw new WalletException('Only pending withdraw requests can be cancelled.');
-        }
+        $this->cancelAction->handle($owner, $withdrawRequest);
+    }
 
-        $this->walletService->reversePendingDebit(
-            owner: $owner,
-            amount: (float) $withdrawRequest->amount,
-            operation: $withdrawRequest,
-            description: "Withdraw Request Cancelled #{$withdrawRequest->id}",
+    /**
+     * Admin dashboard approve/reject. Always finalizes the pending debit hold
+     * (approve also debits balance; reject only clears pending).
+     */
+    public function updateStatusForDashboard(
+        WithdrawRequest $withdrawRequest,
+        string $status,
+        ?string $adminNotes,
+        int $adminId,
+    ): WithdrawRequest {
+        return $this->updateStatusForDashboardAction->handle(
+            $withdrawRequest,
+            $status,
+            $adminNotes,
+            $adminId,
         );
-
-        $withdrawRequest->delete();
     }
 
     public function listForOwner(Model $owner, int $perPage = 16): LengthAwarePaginator
     {
-        return $owner->withdrawRequests()
-            ->latest()
-            ->paginate($perPage);
+        return $this->listForOwnerAction->handle($owner, $perPage);
     }
 
-    public function listAll(int $perPage = 16): LengthAwarePaginator
+    public function listAll(Request $request): LengthAwarePaginator
     {
-        return WithdrawRequest::query()
-            ->with('user')
-            ->orderByRaw('status = ? DESC', [OperationStatusEnum::Pending->value])
-            ->latest()
-            ->paginate($perPage);
+        return $this->listAllAction->handle($request);
     }
 }

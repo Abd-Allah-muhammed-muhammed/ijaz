@@ -123,6 +123,10 @@ class AdminPermissionSeeder extends Seeder
                 'show settings',
                 'edit settings',
             ],
+            'reviews' => [
+                'show reviews',
+                'delete reviews',
+            ],
             'panAnalytics' => [
                 'show panAnalytics',
                 'export panAnalytics',

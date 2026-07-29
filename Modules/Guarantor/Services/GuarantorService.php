@@ -4,7 +4,6 @@ namespace Modules\Guarantor\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateCompanyGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateIndividualGuarantorAction;
@@ -18,8 +17,10 @@ use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\DTOs\CompanyDetailData;
 use Modules\Guarantor\DTOs\GuarantorData;
 use Modules\Guarantor\DTOs\GuarantorFiltersData;
+use Modules\Guarantor\DTOs\GuarantorUploadData;
 use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
+use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -46,9 +47,9 @@ class GuarantorService
     public function createIndividual(
         GuarantorData $data,
         Model $requester,
-        Request $request,
+        GuarantorUploadData $uploads,
     ): GuarantorRequest {
-        return $this->createIndividualAction->handle($data, $requester, $request);
+        return $this->createIndividualAction->handle($data, $requester, $uploads);
     }
 
     /**
@@ -61,14 +62,14 @@ class GuarantorService
         CompanyDetailData $companyData,
         array $installments,
         Model $requester,
-        Request $request,
+        GuarantorUploadData $uploads,
     ): GuarantorRequest {
         return $this->createCompanyAction->handle(
             $data,
             $companyData,
             $installments,
             $requester,
-            $request,
+            $uploads,
         );
     }
 
@@ -80,9 +81,9 @@ class GuarantorService
     public function update(
         GuarantorRequest $request,
         array $data,
-        Request $httpRequest,
+        GuarantorUploadData $uploads,
     ): GuarantorRequest {
-        return $this->updateAction->handle($request, $data, $httpRequest);
+        return $this->updateAction->handle($request, $data, $uploads);
     }
 
     /**
@@ -102,6 +103,10 @@ class GuarantorService
         Model $actor,
         string $actorRole,
     ): GuarantorRequest {
+        if ($data->status === GuarantorStatusEnum::Ended) {
+            return $this->endAction->handle($request, $actor, $actorRole);
+        }
+
         return $this->updateStatusAction->handle($request, $data, $actor, $actorRole);
     }
 
@@ -132,8 +137,8 @@ class GuarantorService
         GuarantorRequest $request,
         Model $actor,
         string $actorRole,
-    ): void {
-        $this->endAction->handle($request, $actor, $actorRole);
+    ): GuarantorRequest {
+        return $this->endAction->handle($request, $actor, $actorRole);
     }
 
     /**
@@ -146,6 +151,11 @@ class GuarantorService
         string $actorRole,
     ): void {
         $this->cancelAction->handle($request, $reason, $actor, $actorRole);
+    }
+
+    public function findById(string $id): GuarantorRequest
+    {
+        return $this->repository->findById($id);
     }
 
     public function loadForShow(GuarantorRequest $request): GuarantorRequest

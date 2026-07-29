@@ -2,11 +2,6 @@
 
 namespace Modules\Chat\Services;
 
-use App\Models\Admin;
-use App\Models\Conversation;
-use App\Models\ConversationMessage;
-use App\Models\System;
-use App\Models\TicketSupport;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Actions\ListConversationsAction;
@@ -14,8 +9,12 @@ use Modules\Chat\Actions\ListMessagesAction;
 use Modules\Chat\Actions\OpenConversationAction;
 use Modules\Chat\Actions\SendMessageAction;
 use Modules\Chat\Contracts\ChatTypeHandlerInterface;
+use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
+use Modules\Chat\Contracts\Repositories\ConversationRepositoryInterface;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Enums\ChatTypeEnum;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationMessage;
 use Modules\Chat\Registry\ChatTypeRegistry;
 
 class ConversationService
@@ -26,7 +25,8 @@ class ConversationService
         private readonly ListConversationsAction $listAction,
         private readonly ListMessagesAction $listMessagesAction,
         private readonly SendMessageAction $sendAction,
-        private readonly ChatService $chatService,
+        private readonly ConversationRepositoryInterface $conversations,
+        private readonly ConversationMessageRepositoryInterface $messages,
     ) {}
 
     public function open(
@@ -42,6 +42,15 @@ class ConversationService
     public function openMemberChat(Model $user1, Model $user2): Conversation
     {
         return $this->openAction->handleMemberChat($user1, $user2);
+    }
+
+    /**
+     * System/admin bootstrap for an operation conversation.
+     * Deliberately does NOT run canOpen() — distinct from actor-initiated open().
+     */
+    public function ensureForOperation(Model $operation, Model $user1, Model $user2): Conversation
+    {
+        return $this->conversations->findOrCreateForOperation($operation, $user1, $user2);
     }
 
     public function list(
@@ -78,42 +87,30 @@ class ConversationService
         return $this->registry->get($type);
     }
 
-    public function ensureTicketSupportConversation(TicketSupport $ticket): Conversation
+    /**
+     * Provider dashboard listing of order conversations, excluding an operation status via join.
+     */
+    public function listForProviderOrderOperations(
+        Model $provider,
+        string $operationType,
+        string $operationsTable,
+        string|int $excludedOperationStatus,
+        int $perPage = 10,
+    ): LengthAwarePaginator {
+        return $this->conversations->paginateForProviderOrderOperations(
+            $provider,
+            $operationType,
+            $operationsTable,
+            $excludedOperationStatus,
+            $perPage,
+        );
+    }
+
+    /**
+     * Unread message count across all conversations where the actor is the receiver.
+     */
+    public function countUnreadFor(Model $actor): int
     {
-        return Conversation::query()->firstOrCreate([
-            'operation_type' => TicketSupport::class,
-            'operation_id' => $ticket->getKey(),
-        ], [
-            'user1_type' => System::class,
-            'user1_id' => 1,
-            'user2_type' => $ticket->user_type,
-            'user2_id' => $ticket->user_id,
-        ]);
-    }
-
-    public function sendTicketSupportAsAdmin(
-        TicketSupport $ticket,
-        Admin $admin,
-        ChatMessageData $data,
-    ): ConversationMessage {
-        $conversation = $this->chatService->support($ticket)->replyAsAdmin(
-            $admin,
-            $data->content,
-            $data->files ?? [],
-        );
-
-        return $conversation->lastMessage->loadMissing(['sender', 'attachments']);
-    }
-
-    public function sendTicketSupportAsUser(
-        TicketSupport $ticket,
-        ChatMessageData $data,
-    ): ConversationMessage {
-        $conversation = $this->chatService->support($ticket)->replyAsSupportable(
-            $data->content,
-            $data->files ?? [],
-        );
-
-        return $conversation->lastMessage->loadMissing(['sender', 'attachments']);
+        return $this->messages->countUnreadFor($actor);
     }
 }

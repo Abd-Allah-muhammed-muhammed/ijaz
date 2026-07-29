@@ -8,11 +8,12 @@ import Pagination from '@/components/Table/partials/Pagination';
 import { CitiesSelect, PropertyCategoriesSelect, PropertyTypesSelect, RegionsSelect } from '@/components/selects';
 import { PaginationResource, SelectOption } from '@/types';
 import { PropertyAdvisement } from '@/types/models';
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { ReactElement, useState } from 'react';
 import { Col, Row } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import PropertyAdvisementCard from './components/PropertyAdvisementCard';
+import { applyFilterParam, visitWithFilters } from '@/lib/filters';
 
 type Props = {
   rows: PaginationResource<PropertyAdvisement>;
@@ -45,15 +46,12 @@ const Index = ({ rows, prams ,selects}: Props) => {
 
   console.log(selectsData);
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    if (value) {
-      searchPrams[name] = value as never;
-    } else {
-      delete searchPrams[name];
-    }
-    router.reload({
-      only: ['rows'],
-      data: searchPrams,
-    });
+    const next = applyFilterParam(
+      { ...searchPrams } as Record<string, unknown>,
+      name,
+      value,
+    );
+    visitWithFilters(window.location.pathname, next, { only: ['rows'] });
   };
 
   const publishedCount = rows.data.filter((r) => r.status?.value === AdvisementStatusEnum.PUBLISHED).length;

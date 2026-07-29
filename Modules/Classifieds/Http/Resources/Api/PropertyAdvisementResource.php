@@ -2,15 +2,15 @@
 
 namespace Modules\Classifieds\Http\Resources\Api;
 
-use App\Http\Resources\Api\V1\CityResource;
 use App\Http\Resources\Api\V1\MediaResource;
-use App\Http\Resources\Api\V1\RegionResource;
-use App\Http\Resources\Api\V1\UserResource;
+use App\Http\Resources\Api\V1\User\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Catalog\Http\Resources\Api\PropertyCategoryResource;
 use Modules\Catalog\Http\Resources\Api\PropertyTypeResource;
 use Modules\Classifieds\Models\PropertyAdvisement;
+use Modules\Geo\Http\Resources\Api\V1\CityResource;
+use Modules\Geo\Http\Resources\Api\V1\RegionResource;
 
 /** @mixin PropertyAdvisement */
 class PropertyAdvisementResource extends JsonResource

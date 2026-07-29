@@ -3,6 +3,7 @@
 namespace Modules\Wallet\Providers;
 
 use App\Providers\BaseModuleRouteServiceProvider;
+use App\Support\Api\ApiVersionRegistry;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
@@ -12,7 +13,10 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
 
     public function boot(): void
     {
-        $this->mapApiRoutes('V1', 'api/v1', 'api.v1.');
+        foreach (app(ApiVersionRegistry::class)->enabled() as $version) {
+            $this->mapApiRoutes($version->folder, $version->prefix, $version->name);
+        }
+
         $this->mapProviderRoutes();
         $this->mapDashboardRoutes();
     }

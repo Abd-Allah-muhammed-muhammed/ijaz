@@ -3,6 +3,8 @@
 namespace Modules\Payment\Providers;
 
 use Illuminate\Support\Facades\Blade;
+use Modules\Payment\Contracts\Repositories\PaymentRepositoryInterface;
+use Modules\Payment\Repositories\PaymentRepository;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
 class PaymentServiceProvider extends ModuleServiceProvider
@@ -21,6 +23,11 @@ class PaymentServiceProvider extends ModuleServiceProvider
 
         $this->mergeConfigFrom(module_path('Payment', 'config/payment.php'), 'payment');
 
+        $this->app->bind(
+            PaymentRepositoryInterface::class,
+            PaymentRepository::class,
+        );
+
         $this->app->booting(function () {
             $this->bridgePaytabsConfig();
         });
@@ -30,7 +37,6 @@ class PaymentServiceProvider extends ModuleServiceProvider
     {
         parent::boot();
 
-        $this->loadMigrationsFrom(module_path('Payment', 'Database/Migrations'));
         $this->loadViewsFrom(module_path('Payment', 'Resources/views'), 'payment');
 
         Blade::anonymousComponentPath(module_path('Payment', 'Resources/views/components'), 'payment');

@@ -3,64 +3,46 @@
 namespace Modules\Opportunity\Notifications;
 
 use App\Models\User;
-use App\Services\Firebase\DTO\Message;
-use Illuminate\Bus\Queueable;
+use App\Notifications\DomainNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\BroadcastMessage;
-use Illuminate\Notifications\Notification;
 use Modules\Opportunity\Models\Opportunity;
 
-class OpportunityExpiredNotification extends Notification implements ShouldBroadcastNow, ShouldDispatchAfterCommit, ShouldQueue
+class OpportunityExpiredNotification extends DomainNotification implements ShouldBroadcastNow, ShouldDispatchAfterCommit
 {
-    use Queueable;
-
     public function __construct(public Opportunity $opportunity) {}
 
-    /**
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    protected function titleKey(): string
     {
-        return $notifiable instanceof User
-            ? ['database', 'broadcast', 'firebase']
-            : ['database', 'broadcast'];
+        return 'opportunity_expired';
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
+    protected function bodyKey(): string
+    {
+        return 'opportunity_has_expired';
+    }
+
+    protected function payload(): array
     {
         return [
-            'title_translated_key' => 'opportunity_expired',
-            'body_translated_key' => 'opportunity_has_expired',
-            'translated_attributes' => [],
             'opportunity_id' => $this->opportunity->id,
         ];
     }
 
-    public function toBroadcast(object $notifiable): BroadcastMessage
+    protected function firebaseData(object $notifiable): array
     {
-        return (new BroadcastMessage([
-            'title' => trans('opportunity_expired', locale: $notifiable->language),
-            'body' => trans('opportunity_has_expired', locale: $notifiable->language),
+        return [
             'opportunity_id' => $this->opportunity->id,
-        ]))->onConnection('sync');
+        ];
+    }
+
+    protected function sendsFirebase(object $notifiable): bool
+    {
+        return $notifiable instanceof User;
     }
 
     public function broadcastType(): string
     {
         return 'opportunity expired';
-    }
-
-    public function toFirebase(object $notifiable): Message
-    {
-        return Message::make(
-            title: trans('opportunity_expired', locale: $notifiable->language),
-            body: trans('opportunity_has_expired', locale: $notifiable->language),
-            data: ['opportunity_id' => $this->opportunity->id],
-        );
     }
 }

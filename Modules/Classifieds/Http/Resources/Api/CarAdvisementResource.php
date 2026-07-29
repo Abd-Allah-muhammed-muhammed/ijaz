@@ -2,16 +2,16 @@
 
 namespace Modules\Classifieds\Http\Resources\Api;
 
-use App\Http\Resources\Api\V1\CityResource;
 use App\Http\Resources\Api\V1\MediaResource;
-use App\Http\Resources\Api\V1\RegionResource;
-use App\Http\Resources\Api\V1\UserResource;
+use App\Http\Resources\Api\V1\User\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Catalog\Http\Resources\Api\CarBrandResource;
 use Modules\Catalog\Http\Resources\Api\CarCategoryResource;
 use Modules\Catalog\Http\Resources\Api\CarTypeResource;
 use Modules\Classifieds\Models\CarAdvisement;
+use Modules\Geo\Http\Resources\Api\V1\CityResource;
+use Modules\Geo\Http\Resources\Api\V1\RegionResource;
 
 /** @mixin CarAdvisement */
 class CarAdvisementResource extends JsonResource

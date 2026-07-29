@@ -1,10 +1,10 @@
 <?php
 
-use App\Models\Setting;
 use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\Sanctum;
+use Modules\Settings\Models\Setting;
 use Modules\Wallet\Actions\CreditProviderRegistrationBonusAction;
-use Modules\Wallet\Http\Controllers\V1\WalletController;
+use Modules\Wallet\Http\Controllers\Api\V1\WalletController;
 use Modules\Wallet\Models\WalletTransaction;
 use Modules\Wallet\Models\WithdrawRequest;
 

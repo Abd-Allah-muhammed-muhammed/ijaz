@@ -1,12 +1,18 @@
 <?php
 
-use App\Models\Conversation;
 use App\Models\User;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
+use Modules\Chat\Models\Conversation;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\GuarantorTypeEnum;
+use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
+
+beforeEach(function (): void {
+    Notification::fake();
+});
 
 test('unauthenticated cannot access guarantor index', function () {
     $this->getJson(route('api.v1.guarantor.guarantor.index'))
@@ -281,4 +287,82 @@ test('guarantor index returns all when no filters', function () {
 
     expect($ids)->toContain($asRequester->id, $asCounterparty->id)
         ->and($ids)->toHaveCount(2);
+});
+
+test('mobile ending a guarantor via status update actually releases wallet/installment holds', function () {
+    $requester = User::factory()->create();
+    $counterparty = User::factory()->create();
+
+    $individual = GuarantorRequest::factory()->inProgress()->create([
+        'requester_type' => User::class,
+        'requester_id' => $requester->getKey(),
+        'counterparty_type' => User::class,
+        'counterparty_id' => $counterparty->getKey(),
+        'amount' => 1000,
+        'fees' => 10,
+    ]);
+
+    $requester->wallet->update(['pending_credit' => 1010, 'balance' => 0]);
+    $counterparty->wallet->update(['pending_debit' => 1010, 'balance' => 0]);
+
+    $this->actingAs($requester, 'sanctum')
+        ->postJson(route('api.v1.guarantor.guarantor.updateStatus', $individual), [
+            'status' => GuarantorStatusEnum::Ended->value,
+        ])
+        ->assertSuccessful();
+
+    expect($individual->fresh()->status)->toBe(GuarantorStatusEnum::Ended)
+        ->and((float) $requester->wallet->fresh()->pending_credit)->toBe(0.0)
+        ->and((float) $counterparty->wallet->fresh()->pending_debit)->toBe(0.0)
+        ->and((float) $requester->wallet->fresh()->balance)->toBeGreaterThan(0)
+        ->and((float) $counterparty->wallet->fresh()->balance)->toBe(0.0);
+
+    $companyRequester = User::factory()->create();
+    $companyCounterparty = User::factory()->create();
+
+    $company = GuarantorRequest::factory()->company()->inProgress()->create([
+        'requester_type' => User::class,
+        'requester_id' => $companyRequester->getKey(),
+        'counterparty_type' => User::class,
+        'counterparty_id' => $companyCounterparty->getKey(),
+        'amount' => 1000,
+        'fees' => 10,
+    ]);
+
+    $paidInstallment = GuarantorInstallment::factory()->for($company, 'guarantorRequest')->paid()->create([
+        'order' => 1,
+        'amount' => 500,
+    ]);
+
+    $companyRequester->wallet->update(['pending_credit' => 500, 'balance' => 0]);
+
+    $this->actingAs($companyRequester, 'sanctum')
+        ->postJson(route('api.v1.guarantor.guarantor.updateStatus', $company), [
+            'status' => GuarantorStatusEnum::Ended->value,
+        ])
+        ->assertSuccessful();
+
+    expect($paidInstallment->fresh()->status)->toBe(InstallmentStatusEnum::Released)
+        ->and((float) $companyRequester->wallet->fresh()->pending_credit)->toBe(0.0)
+        ->and((float) $companyRequester->wallet->fresh()->balance)->toBeGreaterThan(0);
+});
+
+test('guarantor status update with an invalid status value returns a clean validation error, not raw JSON', function () {
+    $requester = User::factory()->create();
+    $counterparty = User::factory()->create();
+
+    $guarantorRequest = GuarantorRequest::factory()->pendingAdmin()->create([
+        'requester_type' => User::class,
+        'requester_id' => $requester->getKey(),
+        'counterparty_type' => User::class,
+        'counterparty_id' => $counterparty->getKey(),
+    ]);
+
+    $this->actingAs($requester, 'sanctum')
+        ->postJson(route('api.v1.guarantor.guarantor.updateStatus', $guarantorRequest), [
+            'status' => 'approved',
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['status'])
+        ->assertJsonMissing(['exception' => true]);
 });

@@ -3,16 +3,17 @@
 namespace Modules\Payment\Actions;
 
 use Illuminate\Support\Facades\DB;
+use Modules\Payment\Contracts\Repositories\PaymentRepositoryInterface;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Events\PaymentCompleted;
 use Modules\Payment\Events\PaymentFailed;
-use Modules\Payment\Models\Payment;
 use RuntimeException;
 
 class HandleRajhiWebhookAction
 {
     public function __construct(
         private readonly HandleRajhiCallbackAction $callbackAction,
+        private readonly PaymentRepositoryInterface $paymentRepository,
     ) {}
 
     public function handle(array $payload): void
@@ -30,7 +31,7 @@ class HandleRajhiWebhookAction
             throw new RuntimeException('Rajhi webhook: missing trackId');
         }
 
-        $payment = Payment::find($trackId);
+        $payment = $this->paymentRepository->findById($trackId);
 
         if (! $payment) {
             throw new RuntimeException("Rajhi webhook: payment not found [{$trackId}]");
@@ -44,16 +45,11 @@ class HandleRajhiWebhookAction
         $result = $this->callbackAction->handleWebhookPayload($payLoad, $topLevelResult);
 
         DB::transaction(function () use ($payment, $result) {
-            $payment->update([
-                'status' => $result->status,
-                'transaction_id' => $result->transactionId,
-                'response' => $result->rawResponse,
-                'message' => $result->message,
-            ]);
+            $this->paymentRepository->updateFromVerifyResult($payment, $result);
         });
 
         DB::afterCommit(function () use ($payment, $result) {
-            $payment->refresh();
+            $this->paymentRepository->refresh($payment);
 
             if ($result->isAccepted()) {
                 event(new PaymentCompleted($payment));

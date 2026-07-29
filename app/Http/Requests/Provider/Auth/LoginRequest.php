@@ -54,14 +54,8 @@ class LoginRequest extends FormRequest
 
         if ($provider->status !== ProviderStatusEnum::Approved) {
             Auth::guard('provider')->logout();
-            $message = match ($provider->status) {
-                ProviderStatusEnum::Pending => __('auth.pending'),
-                ProviderStatusEnum::Suspended => __('auth.suspended'),
-                ProviderStatusEnum::Rejected => __('auth.rejected'),
-                ProviderStatusEnum::Blocked => $provider->blocked_until ? __('auth.blocked') : __('auth.banned'),
-            };
             throw ValidationException::withMessages([
-                'email' => $message,
+                'email' => $provider->status->authRejectionMessage((bool) $provider->blocked_until),
             ]);
         }
 

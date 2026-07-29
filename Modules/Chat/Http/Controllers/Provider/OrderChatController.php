@@ -3,8 +3,6 @@
 namespace Modules\Chat\Http\Controllers\Provider;
 
 use App\Http\Controllers\Controller;
-use App\Models\Conversation;
-use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
@@ -17,6 +15,8 @@ use Modules\Chat\Http\Resources\ConversationCollection;
 use Modules\Chat\Http\Resources\ConversationMessageCollection;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\ConversationResource;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Chat\Services\ConversationService;
 
 class OrderChatController extends Controller
@@ -25,6 +25,7 @@ class OrderChatController extends Controller
 
     public function __construct(
         private readonly ConversationService $service,
+        private readonly ChatTypeRegistry $chatTypeRegistry,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -42,7 +43,8 @@ class OrderChatController extends Controller
 
     public function store(StoreOrderChatRequest $request): JsonResponse
     {
-        $order = Order::query()->findOrFail($request->validated('order_id'));
+        $order = $this->chatTypeRegistry->get(ChatTypeEnum::Order)
+            ->findOperation($request->validated('order_id'));
 
         try {
             $conversation = $this->service->open(auth('provider')->user(), $order, ChatTypeEnum::Order);

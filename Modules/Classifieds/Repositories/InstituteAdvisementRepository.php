@@ -4,6 +4,7 @@ namespace Modules\Classifieds\Repositories;
 
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Modules\Classifieds\Contracts\Repositories\InstituteAdvisementRepositoryInterface;
 use Modules\Classifieds\Models\InstituteAdvisement;
 use Modules\Classifieds\QueryFilters\InstituteAdvisementFilters;
@@ -53,5 +54,32 @@ final class InstituteAdvisementRepository implements InstituteAdvisementReposito
         $model->update($data);
 
         return $model;
+    }
+
+    public function paginateForDashboard(Request $request): LengthAwarePaginator
+    {
+        return InstituteAdvisement::query()
+            ->when($request->search, function ($query, $search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('normalized_title', 'like', "%{$search}%")
+                        ->orWhere('normalized_description', 'like', "%{$search}%")
+                        ->orWhere('id', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->status, fn ($query, $v) => $query->where('status', $v))
+            ->when($request->type, fn ($query, $v) => $query->where('type', $v))
+            ->when($request->study_type, fn ($query, $v) => $query->where('study_type', $v))
+            ->when($request->study_level, fn ($query, $v) => $query->where('study_level', $v))
+            ->when($request->specialization_id, fn ($query, $v) => $query->where('specialization_id', $v))
+            ->when($request->city_id, fn ($query, $v) => $query->where('city_id', $v))
+            ->when($request->region_id, fn ($query, $v) => $query->where('region_id', $v))
+            ->with([
+                'specialization',
+                'city',
+                'region',
+                'user',
+            ])
+            ->paginate($request->integer('per_page', 10))
+            ->withQueryString();
     }
 }

@@ -7,7 +7,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Support\Facades\DB;
+use Modules\Catalog\Contracts\Services\PropertyTypeServiceInterface;
+use Modules\Catalog\DTOs\StorePropertyTypeDTO;
+use Modules\Catalog\DTOs\UpdatePropertyTypeDTO;
 use Modules\Catalog\Http\Requests\Dashboard\PropertyTypeRequest;
 use Modules\Catalog\Http\Resources\Dashboard\PropertyTypeCollection;
 use Modules\Catalog\Http\Resources\Dashboard\PropertyTypeResource;
@@ -16,6 +18,10 @@ use Throwable;
 
 class PropertyTypeController extends Controller implements HasMiddleware
 {
+    public function __construct(
+        private readonly PropertyTypeServiceInterface $service,
+    ) {}
+
     public static function middleware(): array
     {
         return [
@@ -31,16 +37,9 @@ class PropertyTypeController extends Controller implements HasMiddleware
      */
     public function index(Request $request)
     {
-        $propertyTypes = PropertyType::with(['translation'])
-            ->when($request->input('search'), function ($query, $v) {
-                return $query->whereTranslationLike('name', "%{$v}%");
-            })
-            ->paginate($request->integer('per_page', 10))
-            ->withQueryString();
-
         return inertia('Dashboard/PropertyTypes/Index', [
             'prams' => fn () => $request->all() ?: [],
-            'rows' => fn () => PropertyTypeCollection::make($propertyTypes),
+            'rows' => fn () => PropertyTypeCollection::make($this->service->index($request)),
         ]);
     }
 
@@ -57,15 +56,11 @@ class PropertyTypeController extends Controller implements HasMiddleware
      */
     public function store(PropertyTypeRequest $request): ?RedirectResponse
     {
-        DB::beginTransaction();
         try {
-            $data = $request->validated();
-            PropertyType::create($data);
-            DB::commit();
+            $this->service->store(StorePropertyTypeDTO::fromValidated($request->validated()));
 
             return redirect()->route('dashboard.property-types.index')->with('success', __('data saved successfully'));
         } catch (Throwable $throwable) {
-            DB::rollBack();
             report($throwable);
 
             return redirect()->back()->with('error', __('something went wrong'));
@@ -77,10 +72,8 @@ class PropertyTypeController extends Controller implements HasMiddleware
      */
     public function edit(PropertyType $propertyType)
     {
-        $propertyType->load(['translations']);
-
         return inertia('Dashboard/PropertyTypes/Edit', [
-            'propertyType' => PropertyTypeResource::make($propertyType),
+            'propertyType' => PropertyTypeResource::make($this->service->show($propertyType)),
         ]);
     }
 
@@ -89,15 +82,11 @@ class PropertyTypeController extends Controller implements HasMiddleware
      */
     public function update(PropertyTypeRequest $request, PropertyType $propertyType)
     {
-        DB::beginTransaction();
         try {
-            $data = $request->validated();
-            $propertyType->update($data);
-            DB::commit();
+            $this->service->update($propertyType, UpdatePropertyTypeDTO::fromValidated($request->validated()));
 
             return redirect()->route('dashboard.property-types.index')->with('success', __('data updated successfully'));
         } catch (Throwable $throwable) {
-            DB::rollBack();
             report($throwable);
 
             return redirect()->back()->with('error', __('something went wrong'));
@@ -106,16 +95,11 @@ class PropertyTypeController extends Controller implements HasMiddleware
 
     public function updateStatus(Request $request, PropertyType $propertyType)
     {
-        DB::beginTransaction();
         try {
-            $propertyType->update([
-                'is_active' => $request->boolean('is_active'),
-            ]);
-            DB::commit();
+            $this->service->updateStatus($propertyType, $request->boolean('is_active'));
 
             return redirect()->route('dashboard.property-types.index')->with('success', __('data updated successfully'));
         } catch (Throwable $throwable) {
-            DB::rollBack();
             report($throwable);
 
             return redirect()->back()->with('error', __('something went wrong'));
@@ -127,7 +111,7 @@ class PropertyTypeController extends Controller implements HasMiddleware
      */
     public function destroy(PropertyType $propertyType)
     {
-        $propertyType->delete();
+        $this->service->destroy($propertyType);
 
         return redirect()->route('dashboard.property-types.index')->with('success', __('data deleted successfully'));
     }

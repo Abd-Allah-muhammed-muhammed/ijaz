@@ -50,7 +50,8 @@ export const Inputs = z.object({
 
   categories: z.array(z.object({
     id: z.number(i18next.t('validation.required', {attribute: i18next.t('category')})),
-    skills: z.array(z.number()).min(1, i18next.t('validation.required', {attribute: i18next.t('skills')}))
+    // Match Register providerSchema: Step2 (skills UI) is disabled; backend allows nullable skills.
+    skills: z.array(z.number()).nullish(),
   }))
     .min(1, i18next.t('validation.required', {attribute: i18next.t('categories')})),
 

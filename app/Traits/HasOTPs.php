@@ -2,7 +2,9 @@
 
 namespace App\Traits;
 
-use App\Models\VerificationCode;
+use App\Contracts\Auth\OtpRepositoryInterface;
+use App\Enums\Auth\OtpPurposeEnum;
+use App\Models\Otp;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
@@ -11,59 +13,64 @@ trait HasOTPs
     public static function bootHasOTPs(): void
     {
         static::deleted(function ($model) {
-            $model->verificationCodes()->delete();
+            $model->otps()->delete();
         });
-
     }
 
+    public function otps(): MorphMany
+    {
+        return $this->morphMany(Otp::class, 'subject');
+    }
+
+    /**
+     * @deprecated Use otps() — kept for call-site compatibility during OTP unification.
+     */
     public function verificationCodes(): MorphMany
     {
-        return $this->morphMany(VerificationCode::class, 'user');
+        return $this->otps();
     }
 
     public function emailVerificationCode(): MorphOne
     {
-        return $this->morphOne(VerificationCode::class, 'user')->withAttributes(['type' => 'email']);
+        return $this->morphOne(Otp::class, 'subject')->withAttributes(['purpose' => OtpPurposeEnum::Email]);
     }
 
     public function phoneVerificationCode(): MorphOne
     {
-        return $this->morphOne(VerificationCode::class, 'user')->withAttributes(['type' => 'phone']);
+        return $this->morphOne(Otp::class, 'subject')->withAttributes(['purpose' => OtpPurposeEnum::Phone]);
     }
 
     public function passwordVerificationCode(): MorphOne
     {
-        return $this->morphOne(VerificationCode::class, 'user')->withAttributes(['type' => 'password']);
+        return $this->morphOne(Otp::class, 'subject')->withAttributes(['purpose' => OtpPurposeEnum::Password]);
     }
 
     public function loginVerificationCode(): MorphOne
     {
-        return $this->morphOne(VerificationCode::class, 'user')->withAttributes(['type' => 'login']);
+        return $this->morphOne(Otp::class, 'subject')->withAttributes(['purpose' => OtpPurposeEnum::Login]);
     }
 
-    public function passwordRestCode(): MorphOne
+    public function passwordResetCode(): MorphOne
     {
-        return $this->morphOne(VerificationCode::class, 'user')->withAttributes(['type' => 'password_reset']);
+        return $this->morphOne(Otp::class, 'subject')->withAttributes(['purpose' => OtpPurposeEnum::PasswordReset]);
     }
 
-    public function updateOrCreateVerificationCode(string $token, string $type = 'email', int $ttl = 30): VerificationCode
+    public function updateOrCreateVerificationCode(string $token, string|OtpPurposeEnum $type = 'email'): Otp
     {
-        $data = [
-            'token' => $token,
-            'expire_at' => now()->addMinutes($ttl),
-        ];
+        $purpose = $type instanceof OtpPurposeEnum ? $type : OtpPurposeEnum::from($type);
 
-        return $this->verificationCodes()->updateOrCreate(['type' => $type], $data);
+        return app(OtpRepositoryInterface::class)->issueForSubject($this, $purpose, $token);
     }
 
     public function markLoginAsVerified(bool $token = true): ?string
     {
-        $this->loginVerificationCode()->delete(); // Delete previous login verification code
-        if ($token) {
-            $this->tokens()->delete(); // Delete all previous tokens
-            $token = $this->createToken('user-app', ['*'])->plainTextToken;
+        app(OtpRepositoryInterface::class)->deleteForSubject($this, OtpPurposeEnum::Login);
 
-            return explode('|', $token)[1];
+        if ($token) {
+            $this->tokens()->delete();
+            $plainTextToken = $this->createToken('user-app', ['*'])->plainTextToken;
+
+            return explode('|', $plainTextToken)[1];
         }
 
         return null;

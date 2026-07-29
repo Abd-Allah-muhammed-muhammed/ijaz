@@ -10,7 +10,7 @@ import {PaginationResource} from "@/types";
 import {ProviderType} from "@/types/models";
 import ConfirmAction from "@/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
-import ProviderTypeController from "@/actions/App/Http/Controllers/Dashboard/ProviderTypeController";
+import ProviderTypeController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/ProviderTypeController";
 
 
 type Props = {

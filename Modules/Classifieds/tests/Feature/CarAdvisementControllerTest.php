@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\City;
-use App\Models\Region;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 use Modules\Catalog\Models\CarBrand;
@@ -10,8 +8,10 @@ use Modules\Catalog\Models\CarType;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;
 use Modules\Classifieds\Enums\UsageStatusEnum;
-use Modules\Classifieds\Http\Controllers\V1\CarAdvisementController;
+use Modules\Classifieds\Http\Controllers\Api\V1\CarAdvisementController;
 use Modules\Classifieds\Models\CarAdvisement;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
@@ -185,6 +185,15 @@ it('can create advisement', function () {
         'title' => 'Test Car',
         'status' => AdvisementStatusEnum::PENDING->value,
     ]);
+
+    $createdAdvisement = CarAdvisement::query()
+        ->where('user_id', $this->user->id)
+        ->latest('id')
+        ->first();
+
+    expect($createdAdvisement)->not->toBeNull()
+        ->and($createdAdvisement?->normalized_title)->not->toBeNull()
+        ->and($createdAdvisement?->normalized_description)->not->toBeNull();
 });
 
 it('validates required fields on create', function () {

@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Admin;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -8,6 +7,8 @@ use Modules\Classifieds\Http\Controllers\Dashboard\CarAdvisementController as Da
 use Modules\Classifieds\Models\CarAdvisement;
 
 test('admin can update car advisement status', function () {
+    withoutClassifiedsDashboardLocaleMiddleware();
+
     if (! Schema::hasTable('media')) {
         Schema::create('media', function (Blueprint $table): void {
             $table->id();
@@ -29,12 +30,9 @@ test('admin can update car advisement status', function () {
         });
     }
 
-    $admin = Admin::query()->create([
-        'name' => 'Test Admin',
-        'phone' => fake()->unique()->phoneNumber(),
-        'email' => fake()->unique()->safeEmail(),
-        'password' => 'password',
-        'language' => 'en',
+    $admin = createClassifiedsDashboardAdmin([
+        'show carAdvisements',
+        'edit carAdvisements',
     ]);
 
     $carAdvisement = CarAdvisement::factory()->pending()->create();

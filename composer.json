@@ -1,114 +1,117 @@
 {
-  "$schema": "https://getcomposer.org/schema.json",
-  "name": "laravel/react-starter-kit",
-  "type": "project",
-  "description": "The skeleton application for the Laravel framework.",
-  "keywords": [
-    "laravel",
-    "framework"
-  ],
-  "license": "MIT",
-  "require": {
-    "php": "^8.2",
-    "ext-curl": "*",
-    "ext-openssl": "*",
-    "ext-sockets": "*",
-    "astrotomic/laravel-translatable": "^11.16",
-    "dedoc/scramble": "^0.13.20",
-    "inertiajs/inertia-laravel": "^3.0",
-    "laravel/framework": "^13.0",
-    "laravel/reverb": "^1.0",
-    "laravel/sanctum": "^4.0",
-    "laravel/tinker": "^3.0",
-    "laravel/wayfinder": "^0.1.4",
-    "mcamara/laravel-localization": "^2.3",
-    "mmae/apiresponse": "^1.0",
-    "nwidart/laravel-modules": "^13.0",
-    "panphp/pan": "^0.1.8",
-    "paytabscom/laravel_paytabs": "^1.9",
-    "ratchet/pawl": "^0.4.3",
-    "spatie/laravel-medialibrary": "^11.13",
-    "spatie/laravel-permission": "^6.17"
-  },
-  "require-dev": {
-    "fakerphp/faker": "^1.23",
-    "laravel/boost": "^2.4",
-    "laravel/pail": "^1.2.2",
-    "laravel/pint": "^1.18",
-    "laravel/sail": "^1.41",
-    "mockery/mockery": "^1.6",
-    "nunomaduro/collision": "^8.6",
-    "pestphp/pest": "^4.0",
-    "pestphp/pest-plugin-laravel": "^4.0",
-    "roave/security-advisories": "dev-latest"
-  },
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "laravel/react-starter-kit",
+    "type": "project",
+    "description": "The skeleton application for the Laravel framework.",
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "ext-curl": "*",
+        "ext-openssl": "*",
+        "ext-sockets": "*",
+        "astrotomic/laravel-translatable": "^11.16",
+        "dedoc/scramble": "^0.13.20",
+        "inertiajs/inertia-laravel": "^3.0",
+        "laravel/framework": "^13.0",
+        "laravel/reverb": "^1.0",
+        "laravel/sanctum": "^4.0",
+        "laravel/tinker": "^3.0",
+        "laravel/wayfinder": "^0.1.4",
+        "mcamara/laravel-localization": "^2.3",
+        "mmae/apiresponse": "^1.0",
+        "nwidart/laravel-modules": "^13.0",
+        "panphp/pan": "^0.1.8",
+        "paytabscom/laravel_paytabs": "^1.9",
+        "ratchet/pawl": "^0.4.3",
+        "spatie/laravel-medialibrary": "^11.13",
+        "spatie/laravel-permission": "^6.17"
+    },
+    "require-dev": {
+        "fakerphp/faker": "^1.23",
+        "laravel/boost": "^2.4",
+        "laravel/pail": "^1.2.2",
+        "laravel/pint": "^1.18",
+        "laravel/sail": "^1.41",
+        "mockery/mockery": "^1.6",
+        "nunomaduro/collision": "^8.6",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "roave/security-advisories": "dev-latest"
+    },
     "autoload": {
-    "psr-4": {
-      "App\\": "app/",
-      "Modules\\": "Modules/",
-      "Modules\\Catalog\\Database\\Factories\\": "Modules/Catalog/database/factories/",
-      "Modules\\Catalog\\Database\\Seeders\\": "Modules/Catalog/database/seeders/",
-      "Modules\\Opportunity\\Database\\Factories\\": "Modules/Opportunity/database/factories/",
-      "Modules\\Opportunity\\Database\\Seeders\\": "Modules/Opportunity/database/seeders/",
-      "Modules\\Guarantor\\Database\\Factories\\": "Modules/Guarantor/database/factories/",
-      "Modules\\Guarantor\\Database\\Seeders\\": "Modules/Guarantor/database/seeders/",
-      "Modules\\Payment\\Database\\Factories\\": "Modules/Payment/Database/Factories/",
-      "Database\\Factories\\": "database/factories/",
-      "Database\\Seeders\\": "database/seeders/",
-      "Lib\\": "lib/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Tests\\": "tests/"
-    }
-  },
-  "scripts": {
-    "post-autoload-dump": [
-      "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-      "@php artisan package:discover --ansi"
-    ],
-    "post-update-cmd": [
-      "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
-    ],
-    "post-root-package-install": [
-      "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
-    ],
-    "post-create-project-cmd": [
-      "@php artisan key:generate --ansi",
-      "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
-      "@php artisan migrate --graceful --ansi"
-    ],
-    "dev": [
-      "Composer\\Config::disableProcessTimeout",
-      "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"npm run dev\" --names='server,queue,vite'"
-    ],
-    "dev:ssr": [
-      "npm run build",
-      "Composer\\Config::disableProcessTimeout",
-      "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"php artisan inertia:start-ssr\" --names=server,queue,logs,ssr"
-    ],
-    "test": [
-      "@php artisan config:clear --ansi",
-      "@php artisan test"
-    ]
-  },
-  "extra": {
-    "laravel": {
-      "dont-discover": []
-    }
-  },
-  "config": {
-    "optimize-autoloader": true,
-    "preferred-install": "dist",
-    "sort-packages": true,
-    "allow-plugins": {
-      "dealerdirect/phpcodesniffer-composer-installer": true,
-      "wikimedia/composer-merge-plugin": true,
-      "pestphp/pest-plugin": true,
-      "php-http/discovery": true
-    }
-  },
-  "minimum-stability": "stable",
-  "prefer-stable": true
+        "psr-4": {
+            "App\\": "app/",
+            "Modules\\": "Modules/",
+            "Modules\\Catalog\\Database\\Factories\\": "Modules/Catalog/database/factories/",
+            "Modules\\Catalog\\Database\\Seeders\\": "Modules/Catalog/database/seeders/",
+            "Modules\\Opportunity\\Database\\Factories\\": "Modules/Opportunity/database/factories/",
+            "Modules\\Opportunity\\Database\\Seeders\\": "Modules/Opportunity/database/seeders/",
+            "Modules\\Guarantor\\Database\\Factories\\": "Modules/Guarantor/database/factories/",
+            "Modules\\Guarantor\\Database\\Seeders\\": "Modules/Guarantor/database/seeders/",
+            "Modules\\Geo\\Database\\Factories\\": "Modules/Geo/database/factories/",
+            "Modules\\Marketplace\\Database\\Factories\\": "Modules/Marketplace/database/factories/",
+            "Modules\\Payment\\Database\\Factories\\": "Modules/Payment/Database/Factories/",
+            "Modules\\Support\\Database\\Factories\\": "Modules/Support/database/factories/",
+            "Modules\\Orders\\Database\\Factories\\": "Modules/Orders/database/factories/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi",
+            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
+            "@php artisan migrate --graceful --ansi"
+        ],
+        "dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"npm run dev\" --names='server,queue,vite'"
+        ],
+        "dev:ssr": [
+            "npm run build",
+            "Composer\\Config::disableProcessTimeout",
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"php artisan inertia:start-ssr\" --names=server,queue,logs,ssr"
+        ],
+        "test": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "wikimedia/composer-merge-plugin": true,
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }

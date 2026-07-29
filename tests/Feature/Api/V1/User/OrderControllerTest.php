@@ -1,13 +1,15 @@
 <?php
 
-use App\Enums\Order\OfferStatusEnum;
-use App\Enums\Order\OrderStatusEnum;
-use App\Http\Controllers\Api\V1\User\OrderController;
-use App\Models\Order;
-use App\Models\OrderOffer;
 use App\Models\User;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
+use Modules\Orders\Enums\OfferStatusEnum;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Http\Controllers\Api\V1\OrderController;
+use Modules\Orders\Models\Order;
+use Modules\Orders\Models\OrderOffer;
 
 beforeEach(function () {
     Notification::fake();
@@ -76,4 +78,83 @@ test('user can update offer status on their own order', function () {
 
     expect($offer->fresh()->status)->toBe(OfferStatusEnum::Rejected)
         ->and($order->fresh()->status)->toBe(OrderStatusEnum::New);
+});
+
+test('user cannot view another users order', function () {
+    ['order' => $order] = createOwnedOrderWithPendingOffer();
+    $attacker = User::factory()->create();
+
+    Sanctum::actingAs($attacker, ['user-api'], 'user-api');
+
+    $this->getJson(action([OrderController::class, 'show'], ['order' => $order]))
+        ->assertNotFound();
+});
+
+test('user can still view their own order', function () {
+    ['owner' => $owner, 'order' => $order] = createOwnedOrderWithPendingOffer();
+
+    Sanctum::actingAs($owner, ['user-api'], 'user-api');
+
+    $this->getJson(action([OrderController::class, 'show'], ['order' => $order]))
+        ->assertOk()
+        ->assertJsonPath('data.id', $order->id);
+});
+
+test('order show freezes exact nested city and region resource shapes', function () {
+    $owner = User::factory()->create();
+    $region = Region::query()->create([
+        'translations' => geoTitleTranslations('Order Region'),
+    ]);
+    $city = City::query()->create([
+        'region_id' => $region->id,
+        'translations' => geoTitleTranslations('Order City'),
+    ]);
+    $order = Order::factory()->create([
+        'user_id' => $owner->id,
+        'region_id' => $region->id,
+        'city_id' => $city->id,
+    ]);
+
+    Sanctum::actingAs($owner, ['user-api'], 'user-api');
+
+    $response = $this->getJson(action([OrderController::class, 'show'], ['order' => $order]))
+        ->assertOk();
+
+    expect(array_keys($response->json('data.city')))->toBe(['id', 'title'])
+        ->and(array_keys($response->json('data.region')))->toBe(['id', 'title']);
+});
+
+test('user cannot delete another users order', function () {
+    $owner = User::factory()->create();
+    $attacker = User::factory()->create();
+    $order = Order::factory()->create([
+        'user_id' => $owner->id,
+        'status' => OrderStatusEnum::New,
+        'provider_id' => null,
+        'accepted_offer_id' => null,
+    ]);
+
+    Sanctum::actingAs($attacker, ['user-api'], 'user-api');
+
+    $this->deleteJson(action([OrderController::class, 'destroy'], ['order' => $order]))
+        ->assertNotFound();
+
+    expect(Order::query()->find($order->id))->not->toBeNull();
+});
+
+test('user can still delete their own order without offers', function () {
+    $owner = User::factory()->create();
+    $order = Order::factory()->create([
+        'user_id' => $owner->id,
+        'status' => OrderStatusEnum::New,
+        'provider_id' => null,
+        'accepted_offer_id' => null,
+    ]);
+
+    Sanctum::actingAs($owner, ['user-api'], 'user-api');
+
+    $this->deleteJson(action([OrderController::class, 'destroy'], ['order' => $order]))
+        ->assertOk();
+
+    expect(Order::query()->find($order->id))->toBeNull();
 });

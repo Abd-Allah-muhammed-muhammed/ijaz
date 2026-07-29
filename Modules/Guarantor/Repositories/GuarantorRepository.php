@@ -2,11 +2,16 @@
 
 namespace Modules\Guarantor\Repositories;
 
+use App\Models\User;
+use App\Support\Phone;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\DTOs\GuarantorFiltersData;
+use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class GuarantorRepository implements GuarantorRepositoryInterface
 {
@@ -41,6 +46,13 @@ class GuarantorRepository implements GuarantorRepositoryInterface
                 'media',
             ])
             ->findOrFail($id);
+    }
+
+    public function findCounterpartyByPhone(string $phone): ?User
+    {
+        return User::query()
+            ->where('phone', (string) Phone::make($phone))
+            ->first();
     }
 
     public function listByRequester(Model $requester, int $perPage = 10): LengthAwarePaginator
@@ -99,5 +111,44 @@ class GuarantorRepository implements GuarantorRepositoryInterface
             ->withCount(['installments'])
             ->latest()
             ->paginate($perPage);
+    }
+
+    public function paginateForDashboard(Request $request, int $perPage): LengthAwarePaginator
+    {
+        return GuarantorRequest::query()
+            ->with(['requester', 'counterparty', 'media'])
+            ->withCount(['installments'])
+            ->when($request->search, fn ($q) => $q->where('title', 'like', "%{$request->search}%"))
+            ->when($request->status, fn ($q) => $q->where('status', $request->status))
+            ->when($request->type, fn ($q) => $q->where('type', $request->type))
+            ->when($request->date_from, fn ($q) => $q->whereDate('created_at', '>=', $request->date_from))
+            ->when($request->date_to, fn ($q) => $q->whereDate('created_at', '<=', $request->date_to))
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+
+    /**
+     * @return array{total: int, pending_admin: int, in_progress: int, overdue: int, ended: int}
+     */
+    public function getDashboardStats(): array
+    {
+        return [
+            'total' => GuarantorRequest::count(),
+            'pending_admin' => GuarantorRequest::where('status', GuarantorStatusEnum::PendingAdmin)->count(),
+            'in_progress' => GuarantorRequest::where('status', GuarantorStatusEnum::InProgress)->count(),
+            'overdue' => GuarantorRequest::where('status', GuarantorStatusEnum::Overdue)->count(),
+            'ended' => GuarantorRequest::where('status', GuarantorStatusEnum::Ended)->count(),
+        ];
+    }
+
+    public function delete(GuarantorRequest $guarantorRequest): void
+    {
+        $guarantorRequest->delete();
+    }
+
+    public function deleteMedia(Media $media): void
+    {
+        $media->delete();
     }
 }

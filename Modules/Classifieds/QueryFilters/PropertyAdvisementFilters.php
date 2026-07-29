@@ -16,7 +16,7 @@ use Modules\Classifieds\QueryFilters\Filters\RegionFilter;
 use Modules\Classifieds\QueryFilters\Filters\SearchFilter;
 use Modules\Classifieds\QueryFilters\Filters\StatusFilter;
 
-class PropertyAdvisementFilters
+final class PropertyAdvisementFilters
 {
     public function __construct(
         private readonly Request $request,

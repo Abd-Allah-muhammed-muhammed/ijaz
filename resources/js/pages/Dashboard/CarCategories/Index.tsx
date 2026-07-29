@@ -66,6 +66,15 @@ const Index = ({ rows, prams }: Props) => {
             }}
             headers={[
               {
+                title: t('icon'),
+                property: 'icon',
+                render: (row) => (
+                  <div className="symbol symbol-50px me-2">
+                    <img src={row.icon || '/media/avatars/blank.png'} alt="" />
+                  </div>
+                ),
+              },
+              {
                 title: t('title'),
                 property: 'title',
               },

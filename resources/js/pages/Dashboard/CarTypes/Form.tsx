@@ -184,7 +184,7 @@ export default function Form({ carType, callback }: Props) {
                                                   },
                                               }));
                                           }}
-                                          defaultValue={form.data.translations[locale]?.name}
+                                          value={form.data.translations[locale]?.name ?? ''}
                                       />
                                       <InputError message={form.errors[`translations.${locale}.name`]} />
                                   </FormGroup>

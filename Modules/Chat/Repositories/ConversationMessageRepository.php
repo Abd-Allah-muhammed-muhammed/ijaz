@@ -2,13 +2,48 @@
 
 namespace Modules\Chat\Repositories;
 
-use App\Models\Conversation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Modules\Chat\Contracts\HasConversation;
 use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationMessage;
 
 class ConversationMessageRepository implements ConversationMessageRepositoryInterface
 {
+    public function createForConversation(
+        Conversation $conversation,
+        ?string $content,
+        HasConversation $sender,
+        HasConversation $receiver,
+        ?Carbon $readAt,
+        bool $hasAttachments,
+    ): ConversationMessage {
+        return $conversation
+            ->messages()
+            ->create([
+                'content' => $content,
+                'sender_id' => $sender->getKey(),
+                'sender_type' => get_class($sender),
+                'read_at' => $readAt,
+                'receiver_id' => $receiver->getKey(),
+                'receiver_type' => get_class($receiver),
+                'has_attachments' => $hasAttachments,
+            ])
+            ->setRelation('sender', $sender)
+            ->setRelation('receiver', $receiver);
+    }
+
+    public function insertAttachments(
+        ConversationMessage $message,
+        Collection $rows,
+    ): void {
+        $message->attachments()->insert($rows->toArray());
+        $message->load('attachments');
+    }
+
     public function listForConversation(
         Conversation $conversation,
         int $perPage = 20,
@@ -17,6 +52,19 @@ class ConversationMessageRepository implements ConversationMessageRepositoryInte
             ->with(['sender', 'receiver', 'attachments'])
             ->latest()
             ->paginate($perPage);
+    }
+
+    public function listRecentForConversation(
+        Conversation $conversation,
+        int $limit = 20,
+    ): Collection {
+        return $conversation->messages()
+            ->with(['attachments', 'sender'])
+            ->latest()
+            ->take($limit)
+            ->get()
+            ->reverse()
+            ->values();
     }
 
     public function markAsRead(
@@ -32,5 +80,13 @@ class ConversationMessageRepository implements ConversationMessageRepositoryInte
                 'read_by_id' => $reader->getKey(),
                 'read_by_type' => $reader::class,
             ]);
+    }
+
+    public function countUnreadFor(Model $receiver): int
+    {
+        return ConversationMessage::query()
+            ->whereMorphedTo('receiver', $receiver)
+            ->whereNull('read_at')
+            ->count();
     }
 }

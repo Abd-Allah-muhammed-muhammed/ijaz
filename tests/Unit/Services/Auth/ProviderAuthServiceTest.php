@@ -1,17 +1,18 @@
 <?php
 
+use App\Enums\Auth\OtpPurposeEnum;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Http\Requests\Provider\Auth\LoginRequest;
-use App\Models\City;
+use App\Models\Otp;
 use App\Models\Provider;
-use App\Models\ProviderType;
-use App\Models\Region;
-use App\Models\RegisterVerificationCode;
 use App\Services\Auth\ProviderAuthService;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
+use Modules\Marketplace\Models\ProviderType;
 use Modules\Sms\DTOs\SmsResult;
 use Modules\Sms\Services\SmsService;
 use Modules\Wallet\Actions\CreditProviderRegistrationBonusAction;
@@ -87,7 +88,7 @@ test('sendRegistrationOtp stores code against phone and dispatches sms', functio
 
     app(ProviderAuthService::class)->sendRegistrationOtp('512345678');
 
-    expect(RegisterVerificationCode::query()->where('queryable', $phone)->exists())->toBeTrue();
+    expect(Otp::query()->where('phone', $phone)->where('purpose', OtpPurposeEnum::ProviderRegistration)->exists())->toBeTrue();
 });
 
 test('register creates provider with pending status inside a transaction', function () {

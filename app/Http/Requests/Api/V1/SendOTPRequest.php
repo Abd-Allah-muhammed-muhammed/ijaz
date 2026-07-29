@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Enums\Auth\OtpPurposeEnum;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Validation\Rule;
 use MMAE\ApiResponse\Request\ApiRequest;
 
 class SendOTPRequest extends ApiRequest
@@ -23,7 +25,7 @@ class SendOTPRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'type' => ['required', 'in:email,password,login,password_reset,phone'],
+            'type' => ['required', Rule::in(OtpPurposeEnum::userApiValues())],
         ];
     }
 }

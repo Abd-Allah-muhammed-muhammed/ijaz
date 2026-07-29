@@ -67,7 +67,7 @@ class ReleaseInstallmentAction
                 notes: "Installment {$installment->order} released via {$trigger}",
             );
 
-            $installment->refresh();
+            $this->installmentRepository->refresh($installment);
 
             $requester->notify(new InstallmentReleasedNotification($installment));
         });

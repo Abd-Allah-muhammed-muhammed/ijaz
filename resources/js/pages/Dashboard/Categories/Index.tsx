@@ -9,9 +9,9 @@ import Table, {LinkAction} from "@/components/Table";
 import {PaginationResource} from "@/types";
 import {Category} from "@/types/models";
 import ConfirmAction from "@/components/Table/partials/confirm-action";
-import CategoryController from "@/actions/App/Http/Controllers/Dashboard/CategoryController";
+import CategoryController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/CategoryController";
 import {ReactElement} from "react";
-import {CategoryFeesTypeEnum} from '@/Enums/Enums';
+import {CategoryFeesTypeEnum} from '@/Enums/Marketplace';
 
 
 type Props = {

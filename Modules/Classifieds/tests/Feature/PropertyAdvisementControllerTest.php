@@ -1,22 +1,22 @@
 <?php
 
-use App\Models\City;
-use App\Models\Region;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 use Modules\Catalog\Models\PropertyType;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;
-use Modules\Classifieds\Http\Controllers\V1\PropertyAdvisementController;
+use Modules\Classifieds\Http\Controllers\Api\V1\PropertyAdvisementController;
 use Modules\Classifieds\Models\PropertyAdvisement;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
     $this->propertyType = PropertyType::factory()->create();
     $this->region = Region::factory()->create();
     $this->city = City::factory()->create(['region_id' => $this->region->id]);
-    $this->category = PropertiyCategory::factory()->create();
+    $this->category = PropertyCategory::factory()->create();
 });
 
 it('returns 401 for unauthenticated user accessing own advisements', function () {

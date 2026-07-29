@@ -2,90 +2,149 @@
 
 namespace App\Actions\Auth\User;
 
-use App\Contracts\OTPS\HasOTPsContract;
+use App\Contracts\Auth\HasOTPsContract;
+use App\Contracts\Auth\OtpRepositoryInterface;
+use App\Contracts\Auth\OtpSessionRepositoryInterface;
 use App\DTOs\Auth\OtpVerifyResult;
+use App\Enums\Auth\OtpPurposeEnum;
 use App\Http\Resources\Api\V1\User\UserResource;
 use App\Http\Resources\Dashboard\ProviderResource;
+use App\Models\Otp;
+use App\Models\OtpSession;
 use App\Models\Provider;
 use App\Models\User;
-use App\Models\VerificationCode;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class VerifyOtpAction
 {
+    public function __construct(
+        private readonly OtpRepositoryInterface $otpRepository,
+        private readonly OtpSessionRepositoryInterface $otpSessionRepository,
+    ) {}
+
     /**
-     * Reproduces OtpController::verify() + processCode() + getUserResource()
-     * EXACTLY. Returns null for the "wrong OTP" case (invalid/expired/missing
-     * code) which the controller maps to failedMessageResponse('wrong OTP');
-     * otherwise returns the processCode()-shaped result.
+     * Public OtpSession-based verify for login/register challenges.
      *
-     * The full switch (email/phone/password_reset/login/default->throw) is kept
-     * verbatim, including phone's deliberate success:false response contract, the
-     * login-case player_id update + unreadNotifications count, and the User/Provider
-     * resource match (Provider arm kept even though it is dead code in practice).
+     * Missing and expired sessions both return verification_expired (no
+     * distinct not_found) to avoid leaking whether a verification_id existed.
      *
      * @throws Exception
      */
-    public function handle(User $user, string $type, string $otp): ?OtpVerifyResult
+    public function handleSession(string $verificationId, string $code, ?string $playerId = null): OtpVerifyResult
     {
-        $code = $user->verificationCodes()->where('type', $type)->first();
+        $session = $this->otpSessionRepository->findById($verificationId);
 
-        if (! $code?->verify($otp)) {
+        if (! $session || $session->isExpired()) {
+            return OtpVerifyResult::failure('verification_expired', trans('verification expired'));
+        }
+
+        if ($session->hasExceededAttempts()) {
+            return OtpVerifyResult::failure('max_attempts_exceeded', trans('max attempts exceeded'));
+        }
+
+        /** @var User $user */
+        $user = $session->user;
+        $otp = $this->otpRepository->findForSubject($user, $session->purpose);
+
+        if (! $otp?->matches($code)) {
+            $session = $this->otpSessionRepository->incrementAttempts($session);
+            $remaining = max(0, $session->max_attempts - $session->attempts_count);
+
+            if ($session->hasExceededAttempts()) {
+                return OtpVerifyResult::failure('max_attempts_exceeded', trans('max attempts exceeded'));
+            }
+
+            return OtpVerifyResult::failure(
+                'invalid_code',
+                trans('wrong OTP'),
+                $remaining,
+            );
+        }
+
+        return $this->completeSession($session, $user, $playerId);
+    }
+
+    /**
+     * Authenticated purpose-based verify (phone / email / password_reset / …).
+     *
+     * @throws Exception
+     */
+    public function handle(User $user, OtpPurposeEnum|string $purpose, string $otp): ?OtpVerifyResult
+    {
+        $purpose = $purpose instanceof OtpPurposeEnum
+            ? $purpose
+            : OtpPurposeEnum::from($purpose);
+
+        if (in_array($purpose, OtpPurposeEnum::sessionChallengeCases(), true)) {
+            return null;
+        }
+
+        $code = $this->otpRepository->findForSubject($user, $purpose);
+
+        if (! $code?->matches($otp)) {
             return null;
         }
 
         return $this->processCode($code, $user);
     }
 
+    protected function completeSession(OtpSession $session, User $user, ?string $playerId): OtpVerifyResult
+    {
+        $purpose = $session->purpose;
+
+        $this->otpSessionRepository->deleteForUser($user, $purpose);
+        $this->otpRepository->deleteForSubject($user, $purpose);
+
+        $user->tokens()->delete();
+        $plainTextToken = $user->createToken('user-app', ['*'])->plainTextToken;
+        $accessToken = explode('|', $plainTextToken)[1];
+
+        $user->load(['nationality.translation']);
+        $user->loadCount('unreadNotifications');
+        $user->update([
+            'player_id' => $playerId,
+        ]);
+
+        return OtpVerifyResult::sessionSuccess(
+            $accessToken,
+            new UserResource($user->fresh()->load(['nationality.translation'])),
+        );
+    }
+
     /**
      * @throws Exception
      */
-    protected function processCode(VerificationCode $code, HasOTPsContract $model): OtpVerifyResult
+    protected function processCode(Otp $code, HasOTPsContract $model): OtpVerifyResult
     {
-        switch ($code->type) {
-            case 'email':
+        return match ($code->purpose) {
+            OtpPurposeEnum::Email => $this->processEmail($model),
+            OtpPurposeEnum::Phone => $this->processPhone($model),
+            OtpPurposeEnum::PasswordReset => new OtpVerifyResult(success: false),
+            OtpPurposeEnum::Login, OtpPurposeEnum::Register => throw new Exception(
+                'Session-challenge purposes must use handleSession()'
+            ),
+            default => throw new Exception('Unknown OTP type: '.$code->purpose->value),
+        };
+    }
 
-                $model = $model->markEmailAsVerified();
+    protected function processEmail(HasOTPsContract $model): OtpVerifyResult
+    {
+        $model = $model->markEmailAsVerified();
 
-                return new OtpVerifyResult(
-                    success: true,
-                    data: $this->getUserResource($model),
-                );
+        return new OtpVerifyResult(
+            success: true,
+            data: $this->getUserResource($model),
+        );
+    }
 
-            case 'phone':
-                // Side-effect now actually persists (previously a no-op stub), but the
-                // response contract is deliberately UNCHANGED (still success: false) to
-                // avoid a mobile-breaking change. Making this endpoint return success:true
-                // is a deferred product decision — see docs/DEFERRED_MOBILE_BREAKING_CHANGES.md
-                $model->markPhoneAsVerified();
+    protected function processPhone(HasOTPsContract $model): OtpVerifyResult
+    {
+        // Side-effect persists; response contract stays success:false (deferred Item 4).
+        $model->markPhoneAsVerified();
 
-                return new OtpVerifyResult(success: false);
-
-            case 'password_reset':
-
-                return new OtpVerifyResult(success: false);
-
-            case 'login':
-
-                $token = $model->markLoginAsVerified();
-                $model->load(['nationality.translation']);
-                $model->loadCount('unreadNotifications');
-                $model->update([
-                    'player_id' => request()->input('player_id', null),
-                ]);
-
-                return new OtpVerifyResult(
-                    success: true,
-                    data: $this->getUserResource($model),
-                    token: $token ?? '',
-                );
-
-            default:
-
-                throw new Exception('Unknown OTP type: '.$code->type);
-        }
+        return new OtpVerifyResult(success: false);
     }
 
     protected function getUserResource(Model $model): ?JsonResource

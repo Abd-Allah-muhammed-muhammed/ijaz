@@ -8,7 +8,7 @@ import {Content} from "@/_metronic/layout/components/content";
 import React from "react";
 import {PaginationResource} from "@/types";
 import Pagination from "../../../components/Table/partials/Pagination";
-import OrderController from '@/actions/App/Http/Controllers/Provider/OrderController';
+import OrderController from '@/actions/Modules/Orders/Http/Controllers/Provider/OrderController';
 
 type Props = {
   rows: PaginationResource<OrderOffer>,

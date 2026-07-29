@@ -7,7 +7,7 @@ import { Content } from '@/_metronic/layout/components/content'
 import { useTranslation } from 'react-i18next';
 import { Head, Link } from '@inertiajs/react';
 import { Card, Col, Nav, Row, Tab } from 'react-bootstrap';
-import OrderController from '@/actions/App/Http/Controllers/Dashboard/OrderController';
+import OrderController from '@/actions/Modules/Orders/Http/Controllers/Dashboard/OrderController';
 import { Order, Provider, User } from '@/types/models';
 import UserController from '@/actions/App/Http/Controllers/Dashboard/UserController';
 import ProviderController from '@/actions/App/Http/Controllers/Dashboard/ProviderController';

@@ -3,7 +3,7 @@
 namespace Modules\Catalog\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 
 class PropertyCategoriesSeeder extends Seeder
 {
@@ -39,7 +39,7 @@ class PropertyCategoriesSeeder extends Seeder
         ];
 
         foreach ($categories as $categoryData) {
-            $category = PropertiyCategory::query()->create([
+            $category = PropertyCategory::query()->create([
                 'parent_id' => null,
                 'is_active' => true,
             ]);
@@ -49,7 +49,7 @@ class PropertyCategoriesSeeder extends Seeder
             $category->save();
 
             foreach ($categoryData['children'] as $childData) {
-                $child = PropertiyCategory::query()->create([
+                $child = PropertyCategory::query()->create([
                     'parent_id' => $category->id,
                     'is_active' => true,
                 ]);

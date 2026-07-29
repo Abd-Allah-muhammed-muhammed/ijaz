@@ -2,9 +2,7 @@
 
 namespace Modules\Classifieds\Models;
 
-use App\Models\City;
-use App\Models\Region;
-use App\Traits\HasNormalizedAttributes;
+use App\Support\HasNormalizedAttributes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +14,8 @@ use Modules\Catalog\Models\DeviceCategory;
 use Modules\Catalog\Models\ElectronicBrand;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\ElectronicConditionEnum;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 

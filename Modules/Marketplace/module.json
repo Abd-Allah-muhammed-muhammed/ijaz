@@ -1,0 +1,11 @@
+{
+    "name": "Marketplace",
+    "alias": "marketplace",
+    "description": "Marketplace catalog data — categories, skills, and provider types",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Marketplace\\Providers\\MarketplaceServiceProvider"
+    ],
+    "files": []
+}

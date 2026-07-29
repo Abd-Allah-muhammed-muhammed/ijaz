@@ -13,8 +13,8 @@ import {
 } from "@/types/models";
 import {KTCard} from "@/_metronic/helpers";
 import React, {ReactNode, useEffect, useRef, useState} from "react";
-import SupportController from "@/actions/App/Http/Controllers/Dashboard/SupportController";
-import SupportChatController from "@/actions/Modules/Chat/Http/Controllers/Dashboard/SupportChatController";
+import SupportController from "@/actions/Modules/Support/Http/Controllers/Dashboard/SupportController";
+import SupportChatController from "@/actions/Modules/Support/Http/Controllers/Dashboard/SupportChatController";
 import MessageIn from "@/components/chat/components/message-in";
 import MessageOut from "@/components/chat/components/message-out";
 import ActionButton from "@/components/action-button";

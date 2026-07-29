@@ -2,12 +2,12 @@
 
 namespace Modules\Chat\Support;
 
-use App\Models\Conversation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Modules\Chat\Contracts\HasConversation;
 use Modules\Chat\Infrastructure\BaseChatService;
+use Modules\Chat\Models\Conversation;
 use RuntimeException;
 
 class ParticipantConversationMessenger extends BaseChatService

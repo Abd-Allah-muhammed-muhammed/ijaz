@@ -8,7 +8,7 @@ import { Category, ProviderType } from '@/types/models';
 import {KTCard} from "@/_metronic/helpers";
 import Form from "./Form";
 import {ReactNode} from "react";
-import ProviderTypeController from "@/actions/App/Http/Controllers/Dashboard/ProviderTypeController";
+import ProviderTypeController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/ProviderTypeController";
 
 
 type Props = {

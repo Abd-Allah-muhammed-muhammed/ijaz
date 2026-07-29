@@ -9,9 +9,9 @@ import Table, {LinkAction} from "@/components/Table";
 import {PaginationResource} from "@/types";
 import {Skill} from "@/types/models";
 import ConfirmAction from "@/components/Table/partials/confirm-action";
-import CategoryController from "@/actions/App/Http/Controllers/Dashboard/CategoryController";
+import CategoryController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/CategoryController";
 import {ReactElement} from "react";
-import SkillController from "@/actions/App/Http/Controllers/Dashboard/SkillController";
+import SkillController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/SkillController";
 
 
 type Props = {

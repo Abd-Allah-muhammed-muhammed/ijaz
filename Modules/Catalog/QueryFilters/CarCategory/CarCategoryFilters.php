@@ -5,9 +5,8 @@ namespace Modules\Catalog\QueryFilters\CarCategory;
 use App\Contracts\QueryFilters\QueryFilterInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Modules\Catalog\QueryFilters\CarCategory\Filters\ParentFilter;
-use Modules\Catalog\QueryFilters\CarCategory\Filters\SearchFilter;
-use Modules\Catalog\Services\Normalize\Normalize;
+use Modules\Catalog\QueryFilters\Filters\ParentFilter;
+use Modules\Catalog\QueryFilters\Filters\TranslationSearchFilter;
 
 class CarCategoryFilters
 {
@@ -35,8 +34,9 @@ class CarCategoryFilters
     private function filters(): array
     {
         return [
-            new SearchFilter(
-                $this->request->filled('search') ? Normalize::make($this->request->string('search'), app()->getLocale()) : null
+            new TranslationSearchFilter(
+                $this->request->filled('search') ? (string) $this->request->string('search') : null,
+                'normalized_title',
             ),
             new ParentFilter($this->request->integer('parent_id')),
         ];

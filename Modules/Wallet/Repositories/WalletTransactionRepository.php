@@ -2,6 +2,7 @@
 
 namespace Modules\Wallet\Repositories;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
@@ -40,5 +41,19 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
             ->with(['operation'])
             ->latest()
             ->paginate($perPage);
+    }
+
+    public function paginateForWallet(
+        Wallet $wallet,
+        ?string $search = null,
+        int $perPage = 25,
+    ): LengthAwarePaginator {
+        return $wallet->transactions()
+            ->latest()
+            ->when($search, function ($query, $value) {
+                $query->where(fn (Builder $q) => $q->where('id', 'like', "%{$value}%")->orWhere('operation_id', 'like', "%{$value}%"));
+            })
+            ->paginate($perPage)
+            ->withQueryString();
     }
 }

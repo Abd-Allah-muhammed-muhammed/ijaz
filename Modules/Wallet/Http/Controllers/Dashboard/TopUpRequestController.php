@@ -2,37 +2,42 @@
 
 namespace Modules\Wallet\Http\Controllers\Dashboard;
 
-use App\Enums\OperationStatusEnum;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\PaymentResponseResource;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Payment\DTOs\PaymentResponse;
 use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Http\Resources\PaymentResponseResource;
 use Modules\Payment\Services\PaymentService;
+use Modules\Wallet\Exceptions\WalletException;
 use Modules\Wallet\Http\Requests\Dashboard\UpdateTopUpStatusRequest;
 use Modules\Wallet\Http\Resources\Dashboard\TopUpCollection;
 use Modules\Wallet\Http\Resources\Dashboard\TopUpResource;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Services\TopUpRequestService;
-use Modules\Wallet\Services\WalletService;
 
-class TopUpRequestController extends Controller
+class TopUpRequestController extends Controller implements HasMiddleware
 {
     public function __construct(
         private readonly TopUpRequestService $topUpRequestService,
-        private readonly WalletService $walletService,
         private readonly PaymentService $paymentService,
     ) {}
 
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:show topUpRequests', only: ['index', 'show']),
+            new Middleware('permission:edit topUpRequests', only: ['updateStatus']),
+        ];
+    }
+
     public function index(Request $request): Response
     {
-        $rows = $this->topUpRequestService->listAll(
-            $request->integer('perPage', 16),
-        );
+        $rows = $this->topUpRequestService->listAll($request);
 
         return inertia('Dashboard/TopUpRequests/Index', [
             'rows' => fn () => TopUpCollection::make($rows),
@@ -54,29 +59,16 @@ class TopUpRequestController extends Controller
         TopUpRequest $topUpRequest,
         UpdateTopUpStatusRequest $request,
     ): RedirectResponse {
-        if ($topUpRequest->status !== OperationStatusEnum::Pending) {
-            return redirect()->back()->with('error', __('you can not update this top up request status'));
+        try {
+            $this->topUpRequestService->updateStatusForDashboard(
+                $topUpRequest,
+                $request->validated('status'),
+                $request->validated('admin_notes'),
+                (int) auth('admin')->id(),
+            );
+        } catch (WalletException $e) {
+            return redirect()->back()->with('error', __($e->getMessage()));
         }
-
-        DB::transaction(function () use ($request, $topUpRequest) {
-            $topUpRequest->update([
-                'status' => $request->validated('status'),
-                'admin_notes' => $request->validated('admin_notes'),
-                'admin_id' => auth('admin')->id(),
-            ]);
-
-            if (
-                $topUpRequest->status === OperationStatusEnum::Approved
-                && $topUpRequest->payment_method->isOffline()
-            ) {
-                $this->walletService->credit(
-                    owner: $topUpRequest->user,
-                    amount: $topUpRequest->amount,
-                    operation: $topUpRequest,
-                    description: "Offline top-up approved #{$topUpRequest->id}",
-                );
-            }
-        });
 
         return redirect()->route('dashboard.top-up-requests.index')->with('success', __('data saved successfully'));
     }

@@ -2,21 +2,28 @@
 
 namespace App\Http\Controllers\Dashboard;
 
+use App\DTOs\Admin\StoreRoleDTO;
+use App\DTOs\Admin\UpdateRoleDTO;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Dashboard\RoleRequest;
 use App\Http\Resources\Dashboard\PermissionResource;
 use App\Http\Resources\Dashboard\RoleCollection;
 use App\Http\Resources\Dashboard\RoleResource;
-use Illuminate\Contracts\Database\Eloquent\Builder;
+use App\Services\Admin\RoleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Collection;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller implements HasMiddleware
 {
+    public function __construct(
+        private readonly RoleService $roleService,
+    ) {}
+
     public static function middleware(): array
     {
         return [
@@ -29,70 +36,60 @@ class RoleController extends Controller implements HasMiddleware
 
     public function index(Request $request)
     {
-        $rows = Role::query()
-            ->when($request->search, fn (Builder $q, $v) => $q->where('name', 'like', "%$v%"))
-            ->paginate($request->integer('per_page', 10))
-            ->withQueryString();
-
         return inertia('Dashboard/Roles/Index', [
             'prams' => fn () => $request->all() ?: [],
-            'rows' => fn () => RoleCollection::make($rows),
+            'rows' => fn () => RoleCollection::make($this->roleService->index($request)),
         ]);
     }
 
-    public function edit(Role $role)
+    public function create()
     {
-        $permissions = Permission::where('guard_name', 'admin')->get()->map(function (Permission $permission) {
-            return PermissionResource::make($permission)
-                ->only('id', 'name', 'group');
-        })->groupBy('group');
-        $role->load('permissions');
-
-        return inertia('Dashboard/Roles/Edit', [
-            'permissions' => $permissions,
-            'role' => RoleResource::make($role),
+        return inertia('Dashboard/Roles/Create', [
+            'permissions' => $this->groupedAdminPermissions(),
         ]);
     }
 
     public function store(RoleRequest $request): RedirectResponse
     {
-        $data = $request->validated();
-        $role = Role::create([
-            'name' => $data['name'],
-            'guard_name' => 'admin',
-        ]);
-        $role->syncPermissions($data['permissions']);
+        $this->roleService->store(StoreRoleDTO::fromValidated($request->validated()));
 
         return redirect()->route('dashboard.roles.index')->with('success', __('data saved successfully'));
     }
 
-    public function create()
+    public function edit(Role $role)
     {
-        $permissions = Permission::where('guard_name', 'admin')->get()->map(function (Permission $permission) {
-            return PermissionResource::make($permission)
-                ->only('id', 'name', 'group');
-        })->groupBy('group');
+        $role = $this->roleService->show($role);
 
-        return inertia('Dashboard/Roles/Create', [
-            'permissions' => $permissions,
+        return inertia('Dashboard/Roles/Edit', [
+            'permissions' => $this->groupedAdminPermissions(),
+            'role' => RoleResource::make($role),
         ]);
-    }
-
-    public function destroy(Role $role)
-    {
-        $role->delete();
-
-        return redirect()->route('dashboard.roles.index')->with('success', __('data deleted successfully '));
     }
 
     public function update(RoleRequest $request, Role $role)
     {
-        $data = $request->validated();
-        $role->update([
-            'name' => $data['name'],
-        ]);
-        $role->syncPermissions($data['permissions']);
+        $this->roleService->update($role, UpdateRoleDTO::fromValidated($request->validated()));
 
         return redirect()->route('dashboard.roles.index')->with('success', __('data updated successfully '));
+    }
+
+    public function destroy(Role $role)
+    {
+        $this->roleService->destroy($role);
+
+        return redirect()->route('dashboard.roles.index')->with('success', __('data deleted successfully '));
+    }
+
+    /**
+     * @return Collection<string, Collection<int, array{id: mixed, name: mixed, group: mixed}>>
+     */
+    private function groupedAdminPermissions()
+    {
+        return $this->roleService->listAdminPermissions()
+            ->map(function (Permission $permission) {
+                return PermissionResource::make($permission)
+                    ->only('id', 'name', 'group');
+            })
+            ->groupBy('group');
     }
 }

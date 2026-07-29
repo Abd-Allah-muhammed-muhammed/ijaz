@@ -2,20 +2,20 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Order\OfferStatusEnum;
-use App\Enums\Order\OrderStatusEnum;
-use App\Models\Category;
-use App\Models\City;
-use App\Models\Conversation;
-use App\Models\ConversationMessage;
-use App\Models\Order;
-use App\Models\OrderOffer;
 use App\Models\Provider;
-use App\Models\Region;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationMessage;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
+use Modules\Marketplace\Models\Category;
+use Modules\Orders\Enums\OfferStatusEnum;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Models\Order;
+use Modules\Orders\Models\OrderOffer;
 
 class TestOrdersAndConversationsSeeder extends Seeder
 {

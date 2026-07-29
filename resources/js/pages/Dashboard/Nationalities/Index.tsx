@@ -10,7 +10,7 @@ import {PaginationResource} from "@/types";
 import {Nationality} from "@/types/models";
 import ConfirmAction from "@/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
-import NationalityController from "@/actions/App/Http/Controllers/Dashboard/NationalityController";
+import NationalityController from "@/actions/Modules/Geo/Http/Controllers/Dashboard/NationalityController";
 
 
 type Props = {

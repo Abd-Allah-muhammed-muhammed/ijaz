@@ -3,19 +3,19 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ProviderRegisterRequest;
-use App\Http\Resources\Dashboard\CityResource;
-use App\Http\Resources\Dashboard\ProviderTypeResource;
-use App\Http\Resources\Dashboard\RegionResource;
-use App\Models\City;
+use App\Http\Requests\Frontend\ProviderRegisterRequest;
 use App\Models\Provider;
-use App\Models\ProviderType;
-use App\Models\Region;
 use App\Rules\ValidPhoneRule;
 use App\Services\Auth\ProviderAuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Modules\Geo\Http\Resources\Dashboard\CityResource;
+use Modules\Geo\Http\Resources\Dashboard\RegionResource;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
+use Modules\Marketplace\Http\Resources\Dashboard\ProviderTypeResource;
+use Modules\Marketplace\Models\ProviderType;
 use Random\RandomException;
 use Throwable;
 

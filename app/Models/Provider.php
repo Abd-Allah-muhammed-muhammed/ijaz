@@ -5,10 +5,9 @@ namespace App\Models;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Services\Firebase\Contract\InteractWithFirebase;
 use App\Services\Firebase\DTO\Target;
+use App\Support\HasBroadcastChannel;
+use App\Support\HasStoredFileUrl;
 use App\Traits\Blockable;
-use App\Traits\HasBroadcastChanel;
-use App\Traits\HasJobs;
-use App\Traits\HasReviews;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -16,7 +15,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Modules\Chat\Contracts\HasConversation;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
+use Modules\Jobs\Concerns\HasJobs;
+use Modules\Marketplace\Models\Category;
+use Modules\Marketplace\Models\CategorySkill;
+use Modules\Marketplace\Models\ProviderCategory;
+use Modules\Marketplace\Models\ProviderType;
+use Modules\Marketplace\Models\Skill;
+use Modules\Orders\Models\Order;
+use Modules\Orders\Models\OrderOffer;
 use Modules\Payment\Traits\HasPayments;
+use Modules\Reviews\Concerns\HasReviews;
 use Modules\Wallet\Traits\HasWallet;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -53,9 +63,7 @@ use Storage;
  */
 class Provider extends Authenticatable implements HasConversation, HasMedia, InteractWithFirebase
 {
-    use Blockable, HasBroadcastChanel, HasJobs, HasPayments, HasReviews, HasRoles, HasWallet, InteractsWithMedia, Notifiable;
-
-    protected string $default_image = 'media/avatars/blank.png';
+    use Blockable, HasBroadcastChannel, HasJobs, HasPayments, HasReviews, HasRoles, HasStoredFileUrl, HasWallet, InteractsWithMedia, Notifiable;
 
     protected $fillable = [
         'name', 'code', 'iban', 'about', 'logo', 'tax_number', 'phone', 'email', 'website', 'address',
@@ -107,8 +115,8 @@ class Provider extends Authenticatable implements HasConversation, HasMedia, Int
 
     public function deleteLogo(): void
     {
-        if ($this->logo && Storage::disk('public')->exists($this->logo)) {
-            Storage::disk('public')->delete($this->logo);
+        if ($this->logo && Storage::disk($this->storedFileDisk())->exists($this->logo)) {
+            Storage::disk($this->storedFileDisk())->delete($this->logo);
         }
     }
 
@@ -157,13 +165,17 @@ class Provider extends Authenticatable implements HasConversation, HasMedia, Int
 
     protected function logoUrl(): Attribute
     {
-        return Attribute::get(function () {
-            if (empty($this->logo)) {
-                return asset($this->default_image);
-            }
+        return Attribute::get(fn () => $this->storedFileUrl($this->logo));
+    }
 
-            return Storage::disk('public')->url($this->logo) ?: asset($this->default_image);
-        });
+    protected function storedFileDisk(): string
+    {
+        return 'public';
+    }
+
+    protected function defaultImagePlaceholder(): ?string
+    {
+        return asset('media/avatars/blank.png');
     }
 
     protected function paddedCode(): Attribute

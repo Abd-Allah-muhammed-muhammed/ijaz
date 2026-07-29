@@ -9,7 +9,7 @@ import Form from "./Form";
 import {Banner} from "@/types/models";
 
 import {ReactNode} from "react";
-import BannerController from "@/actions/App/Http/Controllers/Dashboard/BannerController";
+import BannerController from "@/actions/Modules/Cms/Http/Controllers/Dashboard/BannerController";
 
 
 type Props = {

@@ -35,14 +35,16 @@ Note: In this environment, Laravel Herd serves the app; no manual `php artisan s
 
 Start with:
 
-- [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md)
+- [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md)
 
 Detailed references:
 
 - [docs/API_INVENTORY.md](docs/API_INVENTORY.md)
 - [docs/MODELS_REFERENCE.md](docs/MODELS_REFERENCE.md)
 - [docs/ENUMS_REFERENCE.md](docs/ENUMS_REFERENCE.md)
-- [docs/REFACTOR_NOTES.md](docs/REFACTOR_NOTES.md)
+
+Architecture rules live in `.cursor/rules/layered-architecture.mdc` (Claude Skill:
+`.claude/skills/layered-architecture/`).
 
 ## Common Commands
 

@@ -10,14 +10,14 @@ import {KTIcon} from "@/_metronic/helpers";
 import React, {ChangeEvent, useState} from 'react';
 import {OfferSchema, OfferSchemaType} from "@/pages/Provider/Orders/offer-schema";
 import {ReviewSchema, ReviewSchemaType} from "@/pages/Provider/Orders/review-schema";
-import OrderController from "@/actions/App/Http/Controllers/Provider/OrderController";
+import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/OrderController";
 import InputError from "@/components/inputs/InputError";
 import {OfferStatusEnum, OrderStatusEnum} from "@/Enums/Order";
 import ActionButton from "@/components/action-button";
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faStar} from '@fortawesome/free-solid-svg-icons';
 import axios from '@/helpers/axios';
-import ProviderChatIndexController from '@/actions/Modules/Chat/Http/Controllers/Provider/ProviderChatIndexController';
+import ProviderChatIndexController from '@/actions/Modules/Orders/Http/Controllers/Provider/ProviderChatIndexController';
 import ProviderOrderChatController from '@/actions/Modules/Chat/Http/Controllers/Provider/OrderChatController';
 
 type Props = {

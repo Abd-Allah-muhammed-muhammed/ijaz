@@ -2,20 +2,21 @@
 
 namespace App\Models;
 
-use App\Traits\HasBroadcastChanel;
+use App\Support\HasBroadcastChannel;
+use App\Support\HasStoredFileUrl;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Modules\Chat\Contracts\HasConversation;
 use Spatie\Permission\Traits\HasRoles;
-use Storage;
 
 class Admin extends Authenticatable implements HasConversation
 {
     /** @use HasFactory<UserFactory> */
-    use HasBroadcastChanel, HasFactory, HasRoles, Notifiable;
+    use HasBroadcastChannel, HasFactory, HasRoles, HasStoredFileUrl, Notifiable;
 
     public string $guard_name = 'admin';
 
@@ -48,8 +49,6 @@ class Admin extends Authenticatable implements HasConversation
         'root',
     ];
 
-    protected string $default_image = 'media/avatars/blank.png';
-
     protected $appends = [
         'image_url',
     ];
@@ -57,7 +56,7 @@ class Admin extends Authenticatable implements HasConversation
     public function deleteImage(): void
     {
         if ($this->image) {
-            Storage::disk('public')->delete($this->image);
+            Storage::disk($this->storedFileDisk())->delete($this->image);
         }
 
     }
@@ -84,9 +83,17 @@ class Admin extends Authenticatable implements HasConversation
 
     protected function imageUrl(): Attribute
     {
-        return Attribute::get(function () {
-            return $this->image ? Storage::disk('public')->url($this->image) : asset($this->default_image);
-        });
+        return Attribute::get(fn () => $this->storedFileUrl($this->image));
+    }
+
+    protected function storedFileDisk(): string
+    {
+        return 'public';
+    }
+
+    protected function defaultImagePlaceholder(): ?string
+    {
+        return asset('media/avatars/blank.png');
     }
 
     public function getImageUrl(): string

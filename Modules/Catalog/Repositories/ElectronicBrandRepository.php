@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Repositories;
 
-use App\Services\Normalize\Normalize;
+use App\Support\Normalize;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -64,6 +64,11 @@ class ElectronicBrandRepository implements ElectronicBrandRepositoryInterface
     public function findById(int $id): ElectronicBrand
     {
         return ElectronicBrand::findOrFail($id);
+    }
+
+    public function find(int $id): ?ElectronicBrand
+    {
+        return ElectronicBrand::find($id);
     }
 
     public function updateStatus(ElectronicBrand $electronicBrand, bool $isActive): ElectronicBrand

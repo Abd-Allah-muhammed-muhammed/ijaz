@@ -5,13 +5,17 @@ namespace Modules\Wallet\Providers;
 use Illuminate\Support\Facades\Event;
 use Modules\Payment\Events\PaymentCompleted;
 use Modules\Payment\Events\PaymentFailed;
+use Modules\Wallet\Contracts\Repositories\TopUpRequestRepositoryInterface;
 use Modules\Wallet\Contracts\Repositories\WalletRepositoryInterface;
 use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
+use Modules\Wallet\Contracts\Repositories\WithdrawRequestRepositoryInterface;
 use Modules\Wallet\Listeners\HandleTopUpPaymentCompleted;
 use Modules\Wallet\Listeners\HandleTopUpPaymentFailed;
 use Modules\Wallet\Listeners\NotifyTopUpPaymentFailed;
+use Modules\Wallet\Repositories\TopUpRequestRepository;
 use Modules\Wallet\Repositories\WalletRepository;
 use Modules\Wallet\Repositories\WalletTransactionRepository;
+use Modules\Wallet\Repositories\WithdrawRequestRepository;
 use Modules\Wallet\Services\TopUpRequestService;
 use Modules\Wallet\Services\WalletService;
 use Modules\Wallet\Services\WithdrawRequestService;
@@ -42,6 +46,16 @@ class WalletServiceProvider extends ModuleServiceProvider
         );
 
         $this->app->bind(
+            TopUpRequestRepositoryInterface::class,
+            TopUpRequestRepository::class,
+        );
+
+        $this->app->bind(
+            WithdrawRequestRepositoryInterface::class,
+            WithdrawRequestRepository::class,
+        );
+
+        $this->app->bind(
             WalletService::class,
             WalletService::class,
         );
@@ -60,8 +74,6 @@ class WalletServiceProvider extends ModuleServiceProvider
     public function boot(): void
     {
         parent::boot();
-
-        $this->loadMigrationsFrom(module_path('Wallet', 'Database/Migrations'));
 
         Event::listen(PaymentCompleted::class, HandleTopUpPaymentCompleted::class);
         Event::listen(PaymentFailed::class, HandleTopUpPaymentFailed::class);

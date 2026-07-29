@@ -1,0 +1,11 @@
+{
+    "name": "Geo",
+    "alias": "geo",
+    "description": "Geographic lookup data — regions, cities, and nationalities",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Geo\\Providers\\GeoServiceProvider"
+    ],
+    "files": []
+}

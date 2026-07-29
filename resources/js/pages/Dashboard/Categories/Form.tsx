@@ -1,132 +1,115 @@
-import { useTranslation } from 'react-i18next';
+import CategoryController from '@/actions/Modules/Marketplace/Http/Controllers/Dashboard/CategoryController';
+import ActionButton from '@/components/action-button';
+import ImageInput from '@/components/inputs/ImageInput';
+import InputError from '@/components/inputs/InputError';
+import TranslatableInputs from '@/components/inputs/TranslatableInputs';
+import { CategoryFeesTypeEnum } from '@/Enums/Marketplace';
+import { getSupportedLocales } from '@/hooks/use-locales';
 import { Category, CategoryFeesType } from '@/types/models';
-import {Col, Form as BTForm, FormControl, FormGroup, FormLabel, FormSelect, Row} from "react-bootstrap";
-import {InertiaFormProps, Link, useForm} from "@inertiajs/react";
-import {FormInput, TranslatedAttributes} from "./types";
-import ActionButton from "@/components/action-button";
-import {getSupportedLocales} from "@/hooks/use-locales";
-import CategoryController from "@/actions/App/Http/Controllers/Dashboard/CategoryController";
-import ImageInput from "@/components/inputs/ImageInput";
-import InputError from "@/components/inputs/InputError";
-import { CategoryFeesTypeEnum } from '@/Enums/Enums';
+import { InertiaFormProps, Link, useForm } from '@inertiajs/react';
+import { Col, Form as BTForm, FormControl, FormGroup, FormLabel, FormSelect, Row } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
+import { FormInput, TranslatedAttributes } from './types';
 
 type Props = {
   /**
    * The role to be edited
    */
-  category?: Category
-  categories: Category[]
-  image: string
+  category?: Category;
+  categories: Category[];
+  image: string;
   /**
    * The callback function to be called when the form is submitted
    * @param form
    */
-  callback?: (form: InertiaFormProps<FormInput>) => void,
-  fees_types: CategoryFeesType[],
-
+  callback?: (form: InertiaFormProps<FormInput>) => void;
+  fees_types: CategoryFeesType[];
 };
 
-export default function Form({callback, category, categories, image, fees_types}: Props) {
+export default function Form({ callback, category, categories, image, fees_types }: Props) {
   const { t } = useTranslation();
   const locales = getSupportedLocales();
 
   const form = useForm<FormInput>({
-    translations: Object.keys(locales).reduce<Record<string, TranslatedAttributes>>((previousValue: Record<string, TranslatedAttributes>, currentValue) => {
-      const categoryTranslation = category?.translations?.[currentValue];
-      previousValue[currentValue] = {
-        title: categoryTranslation?.title || '',
-        description: categoryTranslation?.description || '',
-      };
-      return previousValue;
-    }, {}),
+    translations: Object.keys(locales).reduce<Record<string, TranslatedAttributes>>(
+      (previousValue: Record<string, TranslatedAttributes>, currentValue) => {
+        const categoryTranslation = category?.translations?.[currentValue];
+        previousValue[currentValue] = {
+          title: categoryTranslation?.title || '',
+          description: categoryTranslation?.description || '',
+        };
+        return previousValue;
+      },
+      {},
+    ),
     icon: undefined,
-    parent_id: category?.parent_id as unknown as string || '',
+    parent_id: (category?.parent_id as unknown as string) || '',
     fees_type: 'inherited',
   });
   return (
-    <BTForm onSubmit={(e) => {
-      e.preventDefault();
-      if (callback) {
-        callback(form);
-      }
-    }}>
+    <BTForm
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (callback) {
+          callback(form);
+        }
+      }}
+    >
       <Row>
         <Col sm={12} md={2}>
           <ImageInput
             url={image}
             callback={(data) => {
               form.setData('icon', data.currentTarget.files![0]);
-            }}/>
-          <InputError message={form.errors.icon}/>
+            }}
+          />
+          <InputError message={form.errors.icon} />
         </Col>
         <Col sm={12} md={10} className="mb-3">
-          <Row>
-            {Object.keys(locales).map((locale => (
-              <Col sm={12} md={6} className="mb-3" key={locale}>
-                <FormGroup>
-                  <FormLabel aria-required={true} className="required">
-                    {t(`title in ${locale}`)}
-                  </FormLabel>
-                  <FormControl
-                    placeholder={t(`title in ${locale}`)}
-                    type='text'
-                    onChange={(e) => {
-                      const value = e.currentTarget.value;
-                      form.setData((previousData) => ({
-                        ...previousData,
-                        translations: {
-                          ...previousData.translations,
-                          [locale]: {
-                            ...previousData.translations[locale],
-                            title: value,
-                          },
-                        },
-                      }));
-                    }}
-                    defaultValue={form.data.translations?.[locale as unknown as number]?.title}
-                  />
-                  <InputError message={form.errors[`translations.${locale}.title`]}/>
-                </FormGroup>
-              </Col>
-            )))}
-          </Row>
+          <TranslatableInputs
+            field="title"
+            values={form.data.translations}
+            errors={form.errors}
+            onChange={(locale, value) => {
+              form.setData((previousData) => ({
+                ...previousData,
+                translations: {
+                  ...previousData.translations,
+                  [locale]: {
+                    ...previousData.translations[locale],
+                    title: value,
+                  },
+                },
+              }));
+            }}
+          />
 
-          <Row>
-            {Object.keys(locales).map((locale => (
-              <Col sm={12} md={6} className="mb-3" key={locale}>
-                <FormGroup>
-                  <FormLabel aria-required={true} className="required">
-                    {t(`description in ${locale}`)}
-                  </FormLabel>
-                  <FormControl
-                    as="textarea"
-                    placeholder={t(`description in ${locale}`)}
-                    type='textarea'
-                    onChange={(e) => {
-                      const value = e.currentTarget.value;
-                      form.setData((previousData) => ({
-                        ...previousData,
-                        translations: {
-                          ...previousData.translations,
-                          [locale]: {
-                            ...previousData.translations[locale],
-                            description: value,
-                          },
-                        },
-                      }));
-                    }}
-                    defaultValue={form.data.translations?.[locale as unknown as number]?.description}
-                  />
-                  <InputError message={form.errors[`translations.${locale}.description`]}/>
-                </FormGroup>
-              </Col>
-            )))}
-          </Row>
-          <br/>
+          <TranslatableInputs
+            field="description"
+            as="textarea"
+            values={form.data.translations}
+            errors={form.errors}
+            onChange={(locale, value) => {
+              form.setData((previousData) => ({
+                ...previousData,
+                translations: {
+                  ...previousData.translations,
+                  [locale]: {
+                    ...previousData.translations[locale],
+                    description: value,
+                  },
+                },
+              }));
+            }}
+          />
+          <br />
           <Row>
             <Col sm={12} md={6} className="mb-3">
               <FormGroup>
-                <FormLabel aria-required={true} className='required'> {t('category')} </FormLabel>
+                <FormLabel aria-required={true} className="required">
+                  {' '}
+                  {t('category')}{' '}
+                </FormLabel>
                 <FormSelect
                   defaultValue={form.data.parent_id}
                   onChange={(e) => {
@@ -141,7 +124,6 @@ export default function Form({callback, category, categories, image, fees_types}
                     </option>
                   ))}
                 </FormSelect>
-                {/*<InputError message={form.errors.translations ?. [locale as unknown as number]}/>*/}
               </FormGroup>
             </Col>
           </Row>
@@ -149,7 +131,10 @@ export default function Form({callback, category, categories, image, fees_types}
           <Row>
             <Col sm={12} md={6} className="mb-3">
               <FormGroup>
-                <FormLabel aria-required={true} className='required'> {t('fees_type')} </FormLabel>
+                <FormLabel aria-required={true} className="required">
+                  {' '}
+                  {t('fees_type')}{' '}
+                </FormLabel>
                 <FormSelect
                   defaultValue={form.data.fees_type}
                   onChange={(e) => {
@@ -158,22 +143,28 @@ export default function Form({callback, category, categories, image, fees_types}
                   }}
                 >
                   <option value={''}>{t('choose')}</option>
-                  {fees_types.map(type => (
+                  {fees_types.map((type) => (
                     <option key={`category-${type.value}`} value={type.value}>
                       {type.label}
                     </option>
                   ))}
                 </FormSelect>
-                <InputError message={form.errors.fees_type}/>
+                <InputError message={form.errors.fees_type} />
               </FormGroup>
             </Col>
           </Row>
           <Row>
             <Col sm={12} md={6} className="mb-3">
               <FormGroup>
-                <FormLabel aria-required={true} className={form.data.fees_type !== CategoryFeesTypeEnum.INHERITED ? "required" : ""}> {t('fees')} </FormLabel>
+                <FormLabel
+                  aria-required={true}
+                  className={form.data.fees_type !== CategoryFeesTypeEnum.INHERITED ? 'required' : ''}
+                >
+                  {' '}
+                  {t('fees')}{' '}
+                </FormLabel>
                 <FormControl
-                  type='number'
+                  type="number"
                   defaultValue={form.data.fees}
                   onChange={(e) => {
                     const value = e.currentTarget.value;
@@ -181,7 +172,7 @@ export default function Form({callback, category, categories, image, fees_types}
                   }}
                   disabled={form.data.fees_type === CategoryFeesTypeEnum.INHERITED}
                 />
-                <InputError message={form.errors.fees}/>
+                <InputError message={form.errors.fees} />
               </FormGroup>
             </Col>
           </Row>
@@ -189,11 +180,7 @@ export default function Form({callback, category, categories, image, fees_types}
       </Row>
       <Row>
         <Col sm={12} className="mb-3 d-flex gap-3 justify-content-end">
-          <ActionButton
-            type="submit"
-            isProcessing={form.processing}
-            text={t('save')}
-          />
+          <ActionButton type="submit" isProcessing={form.processing} text={t('save')} />
           <Link href={CategoryController.index().url} className="btn btn-light">
             {t('cancel')}
           </Link>

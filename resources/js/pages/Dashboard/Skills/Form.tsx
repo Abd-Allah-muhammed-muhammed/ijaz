@@ -5,7 +5,7 @@ import {InertiaFormProps, Link, useForm} from "@inertiajs/react";
 import {FormInput, TranslatedAttributes} from "./types";
 import ActionButton from "@/components/action-button";
 import {getSupportedLocales} from "@/hooks/use-locales";
-import CategoryController from "@/actions/App/Http/Controllers/Dashboard/CategoryController";
+import CategoryController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/CategoryController";
 import ImageInput from "@/components/inputs/ImageInput";
 import InputError from "@/components/inputs/InputError";
 
@@ -95,7 +95,7 @@ export default function Form({callback, row, categories}: Props) {
                     </option>
                   ))}
                 </FormSelect>
-                {/*<InputError message={form.errors.translations ?. [locale as unknown as number]}/>*/}
+                <InputError message={form.errors.category_id}/>
               </FormGroup>
             </Col>
           </Row>

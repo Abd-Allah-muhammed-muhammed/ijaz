@@ -4,6 +4,7 @@ namespace Modules\Opportunity\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\LazyCollection;
 use Modules\Opportunity\Contracts\Repositories\OpportunityRepositoryInterface;
 use Modules\Opportunity\Models\Opportunity;
@@ -53,10 +54,27 @@ class OpportunityRepository implements OpportunityRepositoryInterface
             ->paginate($perPage);
     }
 
+    public function paginateForDashboard(Request $request): LengthAwarePaginator
+    {
+        return Opportunity::query()
+            ->with(['author', 'region.translation', 'city.translation'])
+            ->withCount(['offers', 'comments'])
+            ->when($request->search, fn ($query) => $query->where('title', 'like', "%{$request->search}%"))
+            ->when($request->status, fn ($query) => $query->where('status', $request->status))
+            ->latest()
+            ->paginate($request->integer('per_page', 10))
+            ->withQueryString();
+    }
+
     public function getExpired(int $chunkSize = 100): LazyCollection
     {
         return Opportunity::expired()
             ->with(['author'])
             ->lazyById($chunkSize);
+    }
+
+    public function delete(Opportunity $opportunity): void
+    {
+        $opportunity->delete();
     }
 }

@@ -3,31 +3,46 @@
 namespace App\DTOs\Auth;
 
 /**
- * Discriminated result of a User login attempt.
- *
- * The current AuthController::login() returns either a token-bearing success
- * response or a failedMessageResponse($message, $statusCode) for the
- * "user not found" / "status blocked" domain cases. Since HasApiResponse's
- * response builders live on (and are private to) the controller, the Action
- * returns this discriminated result and the controller maps it to the exact
- * same response shape/status codes.
+ * @deprecated Use OtpChallengeResult — kept as a type alias name during the auth overhaul.
+ * Login now returns OtpChallengeResult from UserAuthService::login().
  */
 final readonly class UserLoginResult
 {
     public function __construct(
         public bool $success,
-        public string $token = '',
+        public string $verificationId = '',
+        public int $expiresIn = 0,
+        public string $resendAvailableAt = '',
         public string $message = '',
         public int $statusCode = 200,
     ) {}
 
-    public static function success(string $token): self
+    public static function fromChallenge(OtpChallengeResult $challenge): self
     {
-        return new self(success: true, token: $token);
+        return new self(
+            success: $challenge->success,
+            verificationId: $challenge->verificationId,
+            expiresIn: $challenge->expiresIn,
+            resendAvailableAt: $challenge->resendAvailableAt,
+            message: $challenge->message,
+            statusCode: $challenge->statusCode,
+        );
     }
 
     public static function failure(string $message, int $statusCode): self
     {
         return new self(success: false, message: $message, statusCode: $statusCode);
+    }
+
+    /**
+     * @return array{verification_id: string, expires_in: int, resend_available_at: string}
+     */
+    public function toData(): array
+    {
+        return [
+            'verification_id' => $this->verificationId,
+            'expires_in' => $this->expiresIn,
+            'resend_available_at' => $this->resendAvailableAt,
+        ];
     }
 }

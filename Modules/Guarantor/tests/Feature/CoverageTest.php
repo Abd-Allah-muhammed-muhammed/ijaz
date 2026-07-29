@@ -2,7 +2,7 @@
 
 use App\Http\Resources\Api\V1\MediaResource;
 use App\Models\User;
-use App\Services\Sms\Phone;
+use App\Support\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
@@ -14,6 +14,7 @@ use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorStatusAction;
 use Modules\Guarantor\Actions\Payment\PayIndividualGuarantorAction;
 use Modules\Guarantor\DTOs\CompanyDetailData;
 use Modules\Guarantor\DTOs\GuarantorData;
+use Modules\Guarantor\DTOs\GuarantorUploadData;
 use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
@@ -43,22 +44,22 @@ function coverageGuarantorActors(): array
     return compact('requester', 'counterparty');
 }
 
-function coverageIndividualRequest(): Request
+function coverageIndividualUploads(): GuarantorUploadData
 {
-    return Request::create('/', 'POST', [], [], [
+    return GuarantorUploadData::fromIndividualRequest(Request::create('/', 'POST', [], [], [
         'signature' => UploadedFile::fake()->create('signature.pdf', 100, 'application/pdf'),
-    ]);
+    ]));
 }
 
-function coverageCompanyRequest(): Request
+function coverageCompanyUploads(): GuarantorUploadData
 {
-    return Request::create('/', 'POST', [], [], [
+    return GuarantorUploadData::fromCompanyRequest(Request::create('/', 'POST', [], [], [
         'signature' => UploadedFile::fake()->create('signature.pdf', 100, 'application/pdf'),
         'authorized_id' => UploadedFile::fake()->create('authorized_id.pdf', 100, 'application/pdf'),
         'contracts' => [
             UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf'),
         ],
-    ]);
+    ]));
 }
 
 test('individual create resource includes uploaded media', function () {
@@ -72,7 +73,7 @@ test('individual create resource includes uploaded media', function () {
             counterparty_phone: COVERAGE_COUNTERPARTY_PHONE,
         ),
         $requester,
-        coverageIndividualRequest(),
+        coverageIndividualUploads(),
     );
 
     $guarantorRequest->load('media');
@@ -146,7 +147,7 @@ test('company create persists installments with correct order and amounts', func
             new InstallmentData(2, 400, now()->addDays(60)->toDateString()),
         ],
         $requester,
-        coverageCompanyRequest(),
+        coverageCompanyUploads(),
     );
 
     $installments = $guarantorRequest->installments()->orderBy('order')->get();

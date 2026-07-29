@@ -3,11 +3,10 @@
 namespace Modules\Catalog\QueryFilters\ElectronicBrand;
 
 use App\Contracts\QueryFilters\QueryFilterInterface;
-use App\Services\Normalize\Normalize;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Modules\Catalog\QueryFilters\ElectronicBrand\Filters\IsActiveFilter;
-use Modules\Catalog\QueryFilters\ElectronicBrand\Filters\SearchFilter;
+use Modules\Catalog\QueryFilters\Filters\TranslationSearchFilter;
 
 class ElectronicBrandFilters
 {
@@ -35,8 +34,9 @@ class ElectronicBrandFilters
     private function filters(): array
     {
         return [
-            new SearchFilter(
-                $this->request->filled('search') ? Normalize::make($this->request->string('search'), app()->getLocale()) : null
+            new TranslationSearchFilter(
+                $this->request->filled('search') ? (string) $this->request->string('search') : null,
+                'normalized_name',
             ),
             new IsActiveFilter(
                 $this->request->has('is_active') ? $this->request->boolean('is_active') : null

@@ -5,8 +5,10 @@ namespace App\Services\Auth;
 use App\Actions\Auth\User\IssueOtpAction;
 use App\Actions\Auth\User\LoginUserAction;
 use App\Actions\Auth\User\RegisterUserAction;
+use App\Actions\Auth\User\ResendOtpSessionAction;
 use App\Actions\Auth\User\VerifyOtpAction;
 use App\Contracts\Auth\UserRepositoryInterface;
+use App\DTOs\Auth\OtpChallengeResult;
 use App\DTOs\Auth\OtpVerifyResult;
 use App\DTOs\Auth\UserLoginResult;
 use App\DTOs\Auth\UserRegisterResult;
@@ -22,6 +24,7 @@ class UserAuthService
         private readonly RegisterUserAction $registerUserAction,
         private readonly IssueOtpAction $issueOtpAction,
         private readonly VerifyOtpAction $verifyOtpAction,
+        private readonly ResendOtpSessionAction $resendOtpSessionAction,
     ) {}
 
     public function login(string $phone): UserLoginResult
@@ -30,11 +33,6 @@ class UserAuthService
     }
 
     /**
-     * Wraps registration in a transaction, mirroring the controller's original
-     * DB::beginTransaction/commit/rollBack. On failure the transaction rolls
-     * back and the throwable is re-thrown for the controller to report() and
-     * map to the generic failure response.
-     *
      * @throws Throwable
      */
     public function register(array $validatedData): UserRegisterResult
@@ -52,8 +50,18 @@ class UserAuthService
     }
 
     /**
-     * Returns null for the "wrong OTP" case (invalid/expired/missing code),
-     * otherwise the processCode()-shaped result.
+     * Public session-based verify (login / register).
+     *
+     * @throws \Exception
+     */
+    public function verifyOtpSession(string $verificationId, string $code, ?string $playerId = null): OtpVerifyResult
+    {
+        return $this->verifyOtpAction->handleSession($verificationId, $code, $playerId);
+    }
+
+    /**
+     * Authenticated purpose-based verify (phone / email / …).
+     * Returns null for the "wrong OTP" case.
      *
      * @throws \Exception
      */
@@ -62,6 +70,14 @@ class UserAuthService
         $user = $this->userRepository->findAuthenticated();
 
         return $this->verifyOtpAction->handle($user, $type, $otp);
+    }
+
+    /**
+     * @throws RandomException
+     */
+    public function resendOtpSession(string $verificationId): OtpChallengeResult|OtpVerifyResult
+    {
+        return $this->resendOtpSessionAction->handle($verificationId);
     }
 
     public function logout(): void

@@ -7,7 +7,7 @@ import {Head} from "@inertiajs/react";
 import {KTCard} from "@/_metronic/helpers";
 import Form from "./Form";
 import {ReactNode} from "react";
-import ProviderTypeController from "@/actions/App/Http/Controllers/Dashboard/ProviderTypeController";
+import ProviderTypeController from "@/actions/Modules/Marketplace/Http/Controllers/Dashboard/ProviderTypeController";
 import {PermissionsGroup} from "@/pages/Dashboard/Roles/types";
 import { Category } from '@/types/models';
 

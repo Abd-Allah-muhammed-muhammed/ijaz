@@ -1,5 +1,5 @@
 @php($locale = str_replace('_', '-', app()->getLocale()))
-@use(App\Services\Translations\TranslationServices)
+@use(App\Services\Translations\TranslationService)
 @php($direction = in_array($locale, ['ar', 'ur']) ? 'rtl' : 'ltr')
 <!DOCTYPE html>
 <html lang="{{ $locale }}" @class(['dark' => ($appearance ?? 'system') === 'dark'])
@@ -22,7 +22,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Iceland&display=swap"
     rel="stylesheet">
   @viteReactRefresh
-  {{-- {!!app(TranslationServices::class)->render($locale)!!}--}}
+  {{-- {!!app(TranslationService::class)->render($locale)!!}--}}
   <script>
     window._locales = {!! json_encode(config('laravellocalization.supportedLocales')) !!};
   </script>

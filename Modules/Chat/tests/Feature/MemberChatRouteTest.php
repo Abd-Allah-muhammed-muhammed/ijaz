@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
-use Modules\Chat\Http\Controllers\V1\MemberChatController;
+use Modules\Chat\Http\Controllers\Api\V1\MemberChatController;
 use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
 use Modules\Chat\Infrastructure\Events\NewMessageEvent;
 

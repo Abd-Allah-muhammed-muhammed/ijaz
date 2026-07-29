@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Conversation;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -13,13 +12,14 @@ use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
 use Modules\Chat\Infrastructure\Events\NewMessageEvent;
+use Modules\Chat\Models\Conversation;
 use Modules\Opportunity\Actions\Opportunity\ExpireOpportunityAction;
 use Modules\Opportunity\Enums\OfferStatusEnum;
 use Modules\Opportunity\Enums\OpportunityStatusEnum;
-use Modules\Opportunity\Http\Controllers\V1\CommentController;
-use Modules\Opportunity\Http\Controllers\V1\OfferController;
-use Modules\Opportunity\Http\Controllers\V1\OpportunityChatController;
-use Modules\Opportunity\Http\Controllers\V1\OpportunityController;
+use Modules\Opportunity\Http\Controllers\Api\V1\CommentController;
+use Modules\Opportunity\Http\Controllers\Api\V1\OfferController;
+use Modules\Opportunity\Http\Controllers\Api\V1\OpportunityChatController;
+use Modules\Opportunity\Http\Controllers\Api\V1\OpportunityController;
 use Modules\Opportunity\Jobs\ExpireOpportunityJob;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityComment;

@@ -2,7 +2,6 @@
 
 namespace Modules\Chat\Infrastructure\Events;
 
-use App\Models\ConversationMessage;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -11,6 +10,7 @@ use Illuminate\Contracts\Events\ShouldHandleEventsAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Modules\Chat\Enums\ChatEventEnum;
+use Modules\Chat\Models\ConversationMessage;
 
 class NewMessageEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterCommit
 {

@@ -3,8 +3,10 @@
 namespace Modules\Catalog\Models;
 
 use App\Contracts\Selects\IReactSelect;
+use App\Support\HasStoredFileUrl;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Astrotomic\Translatable\Translatable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,7 +17,7 @@ use Modules\Catalog\Database\Factories\SpecializationFactory;
 class Specialization extends Model implements IReactSelect, TranslatableContract
 {
     /** @use HasFactory<SpecializationFactory> */
-    use HasFactory, Translatable;
+    use HasFactory, HasStoredFileUrl, Translatable;
 
     protected $fillable = [
         'icon',
@@ -49,6 +51,21 @@ class Specialization extends Model implements IReactSelect, TranslatableContract
     public function getValue(): string
     {
         return (string) $this->id;
+    }
+
+    protected function iconUrl(): Attribute
+    {
+        return Attribute::get(fn () => $this->storedFileUrl($this->icon));
+    }
+
+    protected function storedFileDisk(): string
+    {
+        return 'public';
+    }
+
+    protected function defaultImagePlaceholder(): ?string
+    {
+        return null;
     }
 
     protected static function newFactory(): SpecializationFactory

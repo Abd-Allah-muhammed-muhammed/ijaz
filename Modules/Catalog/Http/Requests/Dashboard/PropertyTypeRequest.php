@@ -25,7 +25,7 @@ class PropertyTypeRequest extends FormRequest
     {
         return [
             'translations' => ['required', 'array'],
-            'translations.*.name' => ['required', 'string', 'max:255', Rule::unique('property_type_translations', 'name')->ignore($this->property_type)],
+            'translations.*.name' => ['required', 'string', 'max:255', Rule::unique('property_type_translations', 'name')->ignore($this->property_type?->id, 'property_type_id')],
             'is_active' => ['boolean'],
         ];
     }

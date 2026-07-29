@@ -18,4 +18,13 @@ interface WalletTransactionRepositoryInterface
         ?string $dateFrom = null,
         ?string $dateTo = null,
     ): LengthAwarePaginator;
+
+    /**
+     * Wallet-scoped listing used by the dashboard, searchable by transaction or operation id.
+     */
+    public function paginateForWallet(
+        Wallet $wallet,
+        ?string $search = null,
+        int $perPage = 25,
+    ): LengthAwarePaginator;
 }

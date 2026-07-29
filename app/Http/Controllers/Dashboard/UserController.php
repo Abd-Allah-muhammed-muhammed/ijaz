@@ -2,28 +2,31 @@
 
 namespace App\Http\Controllers\Dashboard;
 
-use App\Enums\Users\UserStatusEnum;
+use App\DTOs\User\StoreUserDTO;
+use App\DTOs\User\UpdateUserDTO;
+use App\DTOs\User\UpdateUserStatusDTO;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UserRequest;
-use App\Http\Resources\Api\V1\NationalityResource;
+use App\Http\Requests\Dashboard\UserRequest;
+use App\Http\Requests\Dashboard\UserStatusRequest;
 use App\Http\Resources\Dashboard\UserCollection;
 use App\Http\Resources\Dashboard\UserResource;
-use App\Models\Nationality;
 use App\Models\User;
-use App\Services\Sms\Phone;
+use App\Services\User\UserManagementService;
 use Exception;
-use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rules\Enum;
+use Modules\Geo\Http\Resources\Dashboard\NationalityResource;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
 use Throwable;
 
 class UserController extends Controller implements HasMiddleware
 {
+    public function __construct(
+        private readonly UserManagementService $userService,
+    ) {}
+
     public static function middleware(): array
     {
         return [
@@ -39,20 +42,10 @@ class UserController extends Controller implements HasMiddleware
      */
     public function index(Request $request)
     {
-        $rows = User::with(['wallet', 'latestBlockHistory'])
-            ->when($request->input('search'), function ($query, $v) {
-                return $query->where(function (Builder $q) use ($v) {
-                    $q->where(DB::raw('CONCAT(f_name, " ", l_name)'), 'like', "%{$v}%")
-                        ->orWhere('phone', 'like', "%{$v}%");
-                });
-            })
-            ->latest()
-            ->paginate($request->integer('per_page', 10))
-            ->withQueryString();
-
         return inertia('Dashboard/Users/Index', [
             'prams' => $request->all() ?: [],
-            'rows' => UserCollection::make($rows),
+            'rows' => UserCollection::make($this->userService->index($request)),
+            'stats' => $this->userService->statusCounts(),
         ]);
     }
 
@@ -61,25 +54,18 @@ class UserController extends Controller implements HasMiddleware
      */
     public function show(Request $request, User $user)
     {
-        $user->load([
-            'wallet',
-            'nationality',
-        ]);
+        $user = $this->userService->show($user);
 
         return inertia('Dashboard/Users/Show', [
             'user' => function () use ($user) {
                 return UserResource::make($user);
             },
             'transactions' => WalletTransactionCollection::make(
-                $user
-                    ->wallet
-                    ->transactions()
-                    ->latest()
-                    ->when($request->input('search'), function ($query, $v) {
-                        $query->where(fn (Builder $q) => $q->where('id', 'like', "%{$v}%")->orWhere('operation_id', 'like', "%{$v}%"));
-                    })
-                    ->paginate($request->integer('per_page', 25))
-                    ->withQueryString()
+                $this->userService->listWalletTransactions(
+                    $user,
+                    $request->input('search'),
+                    $request->integer('per_page', 25),
+                )
             ),
             'prams' => fn () => $request->all() ?: [],
         ]);
@@ -90,15 +76,9 @@ class UserController extends Controller implements HasMiddleware
      */
     public function edit(User $user)
     {
-        $user->load([
-            'nationality' => function ($query) {
-                $query->withTranslation();
-            },
-        ]);
-
         return inertia('Dashboard/Users/Edit', [
-            'row' => UserResource::make($user),
-            'nationalities' => NationalityResource::collection(Nationality::withTranslation()->get()),
+            'row' => UserResource::make($this->userService->edit($user)),
+            'nationalities' => NationalityResource::collection($this->userService->getNationalitiesForDropdown()),
         ]);
     }
 
@@ -111,32 +91,18 @@ class UserController extends Controller implements HasMiddleware
      */
     public function update(UserRequest $request, User $user)
     {
-        $data = $request->validated();
-
-        DB::beginTransaction();
         try {
-            if ($request->hasFile('image')) {
-                $data['image'] = $request->file('image')->store('users', 'public');
-                $user->deleteImage();
-            } else {
-                unset($data['image']);
-            }
-            if (! $request->filled('password')) {
-                unset($data['password']);
-            }
-
-            $data['phone'] = Phone::make($data['phone'])->toString();
-
-            $user->update($data);
-            DB::commit();
-
-            return to_route('dashboard.users.index')->with('success', __('data updated successfully'));
+            $this->userService->update($user, UpdateUserDTO::fromValidated(
+                $request->validated(),
+                $request->file('image'),
+            ));
         } catch (Throwable $e) {
-            DB::rollBack();
             report($e);
 
             return redirect()->back()->with('error', __('something went wrong'));
         }
+
+        return to_route('dashboard.users.index')->with('success', __('data updated successfully'));
     }
 
     /**
@@ -146,21 +112,18 @@ class UserController extends Controller implements HasMiddleware
      */
     public function store(UserRequest $request)
     {
-        $data = $request->validated();
-        DB::beginTransaction();
         try {
-            $data['image'] = $request->file('image')?->store('users', 'public');
-            $data['phone'] = Phone::make($data['phone'])->toString();
-            User::create($data);
-            DB::commit();
-
-            return to_route('dashboard.users.index')->with('success', __('data saved successfully'));
+            $this->userService->store(StoreUserDTO::fromValidated(
+                $request->validated(),
+                $request->file('image'),
+            ));
         } catch (Exception $e) {
-            DB::rollBack();
             report($e);
 
             return redirect()->back()->with('error', __('something went wrong'));
         }
+
+        return to_route('dashboard.users.index')->with('success', __('data saved successfully'));
     }
 
     /**
@@ -169,7 +132,7 @@ class UserController extends Controller implements HasMiddleware
     public function create()
     {
         return inertia('Dashboard/Users/Create', [
-            'nationalities' => NationalityResource::collection(Nationality::withTranslation()->get()),
+            'nationalities' => NationalityResource::collection($this->userService->getNationalitiesForDropdown()),
         ]);
     }
 
@@ -180,35 +143,21 @@ class UserController extends Controller implements HasMiddleware
      */
     public function destroy(User $user)
     {
-        DB::beginTransaction();
         try {
-            $user->delete();
-            DB::commit();
-
-            return redirect()->route('dashboard.users.index')
-                ->with('success', __('data deleted successfully'));
+            $this->userService->destroy($user);
         } catch (Throwable $e) {
-            DB::rollBack();
             report($e);
 
             return redirect()->back()->with('error', __('something went wrong'));
         }
 
+        return redirect()->route('dashboard.users.index')
+            ->with('success', __('data deleted successfully'));
     }
 
-    public function updateStatus(Request $request, User $user): RedirectResponse
+    public function updateStatus(UserStatusRequest $request, User $user): RedirectResponse
     {
-        $request->validate([
-            'status' => ['required', new Enum(UserStatusEnum::class)],
-            'block_days' => 'nullable|integer',
-            'block_reason' => 'nullable|string',
-        ]);
-        $user->status = $request->status;
-        $user->save();
-        if ($request->status == UserStatusEnum::Blocked->value) {
-            $user->block($request->block_days ?: 0, $request->block_reason);
-            $user->tokens()->delete(); // Delete previous login token
-        }
+        $this->userService->updateStatus($user, UpdateUserStatusDTO::fromValidated($request->validated()));
 
         return to_route('dashboard.users.index')->with('success', __('data saved successfully'));
     }

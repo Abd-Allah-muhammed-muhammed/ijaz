@@ -3,6 +3,7 @@
 namespace Modules\Guarantor\Actions\Guarantor;
 
 use Illuminate\Support\Facades\DB;
+use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
@@ -11,6 +12,10 @@ use Throwable;
 
 class DeleteGuarantorMediaAction
 {
+    public function __construct(
+        private readonly GuarantorRepositoryInterface $guarantorRepository,
+    ) {}
+
     /**
      * @throws Throwable
      */
@@ -21,7 +26,7 @@ class DeleteGuarantorMediaAction
                 throw new GuarantorException('guarantor.cannot_delete_media_non_new', 422);
             }
 
-            $media->delete();
+            $this->guarantorRepository->deleteMedia($media);
         });
     }
 }

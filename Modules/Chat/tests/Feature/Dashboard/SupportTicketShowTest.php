@@ -1,13 +1,12 @@
 <?php
 
-use App\Http\Controllers\Dashboard\SupportController;
-use App\Models\Admin;
-use App\Models\ConversationMessage;
 use App\Models\User;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
+use Modules\Chat\Models\ConversationMessage;
+use Modules\Support\Http\Controllers\Dashboard\SupportController;
 
 function withoutDashboardLocaleMiddlewareForSupportTicketShow(): void
 {
@@ -23,12 +22,9 @@ function withoutDashboardLocaleMiddlewareForSupportTicketShow(): void
 test('dashboard support ticket show includes chat and messages when conversation exists', function () {
     withoutDashboardLocaleMiddlewareForSupportTicketShow();
 
-    $admin = Admin::query()->create([
-        'name' => 'Dashboard Admin',
-        'phone' => fake()->unique()->phoneNumber(),
-        'email' => fake()->unique()->safeEmail(),
-        'password' => 'password',
-        'language' => 'en',
+    $admin = createSupportDashboardAdmin([
+        'show supportTicket',
+        'edit supportTicket',
     ]);
 
     ['ticket' => $ticket, 'conversation' => $conversation, 'user' => $user] = createTicketSupportConversation();
@@ -56,12 +52,9 @@ test('dashboard support ticket show includes chat and messages when conversation
 test('dashboard support ticket show returns empty chat messages when conversation does not exist', function () {
     withoutDashboardLocaleMiddlewareForSupportTicketShow();
 
-    $admin = Admin::query()->create([
-        'name' => 'Dashboard Admin',
-        'phone' => fake()->unique()->phoneNumber(),
-        'email' => fake()->unique()->safeEmail(),
-        'password' => 'password',
-        'language' => 'en',
+    $admin = createSupportDashboardAdmin([
+        'show supportTicket',
+        'edit supportTicket',
     ]);
 
     $ticket = createTestTicketSupport();

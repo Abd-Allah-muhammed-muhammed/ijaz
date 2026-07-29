@@ -1,29 +1,22 @@
 <?php
 
-use App\Enums\Order\OrderStatusEnum;
 use App\Enums\Providers\ProviderStatusEnum;
-use App\Enums\SupportTickets\TicketSupportStatusEnum;
-use App\Models\Category;
-use App\Models\Conversation;
-use App\Models\Order;
 use App\Models\Provider;
-use App\Models\ProviderType;
-use App\Models\System;
-use App\Models\TicketSupport;
 use App\Models\User;
-use Modules\Guarantor\Enums\GuarantorStatusEnum;
-use Modules\Guarantor\Models\GuarantorRequest;
-use Modules\Opportunity\Enums\OfferStatusEnum;
-use Modules\Opportunity\Enums\OpportunityStatusEnum;
-use Modules\Opportunity\Models\Opportunity;
-use Modules\Opportunity\Models\OpportunityOffer;
+use Modules\Chat\Contracts\Repositories\SystemRepositoryInterface;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\System;
+use Modules\Marketplace\Models\Category;
+use Modules\Marketplace\Models\ProviderType;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Models\Order;
+use Modules\Support\Enums\TicketSupportStatusEnum;
+use Modules\Support\Models\TicketSupport;
 
 function ensureSystemExists(): System
 {
-    return System::query()->firstOrCreate(
-        ['id' => 1],
-        ['name' => 'System', 'online' => false],
-    );
+    return app(SystemRepositoryInterface::class)
+        ->findOrCreateDefault();
 }
 
 function createTestCategory(): Category
@@ -120,29 +113,6 @@ function createTicketSupportConversation(?User $user = null): array
     return compact('user', 'ticket', 'conversation');
 }
 
-/**
- * @return array{author: User, offerer: User, opportunity: Opportunity}
- */
-function createOpportunityForChatHandler(): array
-{
-    $author = User::factory()->create();
-    $offerer = User::factory()->create();
-    $opportunity = Opportunity::factory()->create([
-        'author_type' => User::class,
-        'author_id' => $author->id,
-        'status' => OpportunityStatusEnum::OfferAccepted,
-    ]);
-    $offer = OpportunityOffer::factory()->create([
-        'opportunity_id' => $opportunity->id,
-        'author_type' => User::class,
-        'author_id' => $offerer->id,
-        'status' => OfferStatusEnum::Accepted,
-    ]);
-    $opportunity->update(['accepted_offer_id' => $offer->id]);
-
-    return compact('author', 'offerer', 'opportunity');
-}
-
 function createTestTicketSupport(?User $user = null): TicketSupport
 {
     $user ??= User::factory()->create();
@@ -153,12 +123,5 @@ function createTestTicketSupport(?User $user = null): TicketSupport
         'title' => fake()->sentence(),
         'message' => fake()->paragraph(),
         'status' => TicketSupportStatusEnum::Pending,
-    ]);
-}
-
-function createGuarantorForChatHandler(?GuarantorStatusEnum $status = null): GuarantorRequest
-{
-    return GuarantorRequest::factory()->create([
-        'status' => $status ?? GuarantorStatusEnum::InProgress,
     ]);
 }

@@ -164,7 +164,7 @@ export default function Form({ carBrand, onSubmit }: Props) {
                               },
                             }));
                           }}
-                          defaultValue={form.data.translations[locale]?.name}
+                          value={form.data.translations[locale]?.name ?? ''}
                         />
                         <InputError message={form.errors[`translations.${locale}.name`]} />
                       </FormGroup>

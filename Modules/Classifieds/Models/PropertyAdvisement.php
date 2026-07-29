@@ -2,9 +2,7 @@
 
 namespace Modules\Classifieds\Models;
 
-use App\Models\City;
-use App\Models\Region;
-use App\Traits\HasNormalizedAttributes;
+use App\Support\HasNormalizedAttributes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,11 +10,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Storage;
-use Modules\Catalog\Models\PropertiyCategory;
+use Modules\Catalog\Models\PropertyCategory;
 use Modules\Catalog\Models\PropertyType;
 use Modules\Classifieds\Database\Factories\PropertyAdvisementFactory;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\OperationEnum;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -73,7 +73,7 @@ class PropertyAdvisement extends Model implements HasMedia
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(PropertiyCategory::class, 'category_id');
+        return $this->belongsTo(PropertyCategory::class, 'category_id');
     }
 
     public function propertyType(): BelongsTo

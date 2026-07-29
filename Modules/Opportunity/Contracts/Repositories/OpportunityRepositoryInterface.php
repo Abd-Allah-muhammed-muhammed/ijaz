@@ -4,6 +4,7 @@ namespace Modules\Opportunity\Contracts\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\LazyCollection;
 use Modules\Opportunity\Models\Opportunity;
 
@@ -25,5 +26,9 @@ interface OpportunityRepositoryInterface
 
     public function listByActor(Model $actor, int $perPage = 10): LengthAwarePaginator;
 
+    public function paginateForDashboard(Request $request): LengthAwarePaginator;
+
     public function getExpired(int $chunkSize = 100): LazyCollection;
+
+    public function delete(Opportunity $opportunity): void;
 }

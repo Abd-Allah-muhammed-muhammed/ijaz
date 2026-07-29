@@ -2,15 +2,14 @@
 
 namespace Modules\Chat\Contracts;
 
-use App\Models\Conversation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Chat\Models\Conversation;
 
 interface ChatTypeHandlerInterface
 {
     /**
-     * The operation_type value stored in conversations table.
-     * e.g. App\Models\Order::class
+     * The morph class stored on conversations.operation_type (null for P2P member chat).
      */
     public function operationType(): ?string;
 
@@ -35,4 +34,10 @@ interface ChatTypeHandlerInterface
      * Return the messenger instance for sending messages.
      */
     public function messenger(Conversation $conversation): object;
+
+    /**
+     * Load the operation model for this chat type by id.
+     * Member (P2P) handlers should throw — they have no operation.
+     */
+    public function findOperation(int|string $id): Model;
 }

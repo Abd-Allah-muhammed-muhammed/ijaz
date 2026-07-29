@@ -2,8 +2,8 @@
 
 namespace Modules\Chat\Policies;
 
-use App\Models\Conversation;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Chat\Models\Conversation;
 
 class ConversationPolicy
 {
