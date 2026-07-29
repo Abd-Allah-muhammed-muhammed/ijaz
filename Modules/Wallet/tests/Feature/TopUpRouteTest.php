@@ -154,7 +154,7 @@ test('admin cannot approve already-processed top-up', function () {
         ->put(action([DashboardTopUpRequestController::class, 'updateStatus'], ['topUpRequest' => $topUp->id]), [
             'status' => OperationStatusEnum::Rejected->value,
         ])->assertRedirect()
-        ->assertSessionHas('error');
+        ->assertSessionHas('error', __('wallet.cannot_update_top_up_request_status'));
 });
 
 test('admin can reject top-up → no wallet change', function () {

@@ -384,6 +384,8 @@
     "withdraw_request_details": "رقم نکالنے کی درخواست کی تفصیلات",
     "withdraw_requests": "رقم نکالنے کی درخواستیں",
     "withdraw_request": "رقم نکالنے کی درخواست",
+    "wallet.cannot_update_withdraw_request_status": "آپ اس رقم نکالنے کی درخواست کی حالت تبدیل نہیں کر سکتے",
+    "wallet.cannot_update_top_up_request_status": "آپ اس ٹاپ اپ درخواست کی حالت تبدیل نہیں کر سکتے",
     "from": "سے",
     "to": "تک",
     "new_order_assigned": "نیا آرڈر تفویض کیا گیا",

@@ -95,7 +95,7 @@ const Show = ({row,paymentResponse}: Props) => {
                   <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('status')}</dt>
                   <dd>
                     <span className={`px-2 py-1 rounded text-xs font-semibold`} style={{backgroundColor: row.status?.color || '#eee', color: '#222'}}>
-                      {t(row.status?.label || 'not_available')}
+                      {row.status?.label ?? t('not_available')}
                     </span>
                   </dd>
                 </div>

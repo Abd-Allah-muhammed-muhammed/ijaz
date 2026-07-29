@@ -23,7 +23,7 @@ class UpdateWithdrawStatusForDashboardAction
         int $adminId,
     ): WithdrawRequest {
         if ($withdrawRequest->status !== OperationStatusEnum::Pending) {
-            throw new WalletException('you can not update this withdraw request status');
+            throw new WalletException('wallet.cannot_update_withdraw_request_status');
         }
 
         $approved = $status === OperationStatusEnum::Approved->value;

@@ -385,6 +385,8 @@
     "withdraw_request_details": "निकासी अनुरोध विवरण",
     "withdraw_requests": "निकासी अनुरोध",
     "withdraw_request": "निकासी अनुरोध",
+    "wallet.cannot_update_withdraw_request_status": "आप इस निकासी अनुरोध की स्थिति अपडेट नहीं कर सकते",
+    "wallet.cannot_update_top_up_request_status": "आप इस टॉप-अप अनुरोध की स्थिति अपडेट नहीं कर सकते",
     "from": "से",
     "to": "तक",
     "new_order_assigned": "नया ऑर्डर असाइन किया गया",

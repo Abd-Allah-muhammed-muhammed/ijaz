@@ -521,6 +521,8 @@
     "withdraw_request_details": "Withdraw Request Details",
     "withdraw_requests": "Withdraw Requests",
     "withdraw_request": "Withdraw Request",
+    "wallet.cannot_update_withdraw_request_status": "You cannot update this withdraw request status",
+    "wallet.cannot_update_top_up_request_status": "You cannot update this top-up request status",
     "from": "From",
     "to": "To",
     "new_order_assigned": "New Order Assigned",

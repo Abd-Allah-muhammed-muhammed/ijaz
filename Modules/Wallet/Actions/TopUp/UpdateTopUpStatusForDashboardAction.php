@@ -23,7 +23,7 @@ class UpdateTopUpStatusForDashboardAction
         int $adminId,
     ): TopUpRequest {
         if ($topUpRequest->status !== OperationStatusEnum::Pending) {
-            throw new WalletException('you can not update this top up request status');
+            throw new WalletException('wallet.cannot_update_top_up_request_status');
         }
 
         return DB::transaction(function () use ($topUpRequest, $status, $adminNotes, $adminId): TopUpRequest {

@@ -95,7 +95,7 @@ const Show = ({row,paymentResponse}: Props) => {
                   <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('status')}</dt>
                   <dd>
                     <span className={`px-2 py-1 rounded text-xs font-semibold`} style={{backgroundColor: row.status?.color || '#eee', color: '#222'}}>
-                      {t(row.status?.label || 'not_available')}
+                      {row.status?.label ?? t('not_available')}
                     </span>
                   </dd>
                 </div>
@@ -104,7 +104,7 @@ const Show = ({row,paymentResponse}: Props) => {
                   <dd>
                     {row.payment_status ? (
                       <span className={`px-2 py-1 rounded text-xs font-semibold`} style={{backgroundColor: row.payment_status.color || '#eee', color: '#222'}}>
-                        {t(row.payment_status.label)}
+                        {row.payment_status.label}
                       </span>
                     ) : (
                       <span className="text-gray-400">{t('not_available')}</span>
@@ -113,7 +113,7 @@ const Show = ({row,paymentResponse}: Props) => {
                 </div>
                 <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
                   <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('payment_method')}</dt>
-                  <dd className="text-gray-900 dark:text-white">{t(row.payment_method?.label || 'not_available')}</dd>
+                  <dd className="text-gray-900 dark:text-white">{row.payment_method?.label ?? t('not_available')}</dd>
                 </div>
                 <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
                   <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('attachment')}</dt>

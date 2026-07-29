@@ -148,5 +148,5 @@ test('admin cannot process already-processed withdraw', function () {
         ->put(action([DashboardWithdrawRequestController::class, 'updateStatus'], ['withdrawRequest' => $withdrawRequest->id]), [
             'status' => OperationStatusEnum::Rejected->value,
         ])->assertRedirect()
-        ->assertSessionHas('error');
+        ->assertSessionHas('error', __('wallet.cannot_update_withdraw_request_status'));
 });

@@ -421,6 +421,8 @@
     "withdraw_request_details": "تفاصيل طلب السحب",
     "withdraw_requests": "طلبات السحب",
     "withdraw_request": "طلب السحب",
+    "wallet.cannot_update_withdraw_request_status": "لا يمكنك تحديث حالة طلب السحب هذا",
+    "wallet.cannot_update_top_up_request_status": "لا يمكنك تحديث حالة طلب الشحن هذا",
     "minimum_withdrawal_amount": "الحد الأدنى للسحب هو :amount ريال",
     "Registration bonus": "مكافأة التسجيل",
     "logo upload failed, please try again": "فشل رفع الشعار، يرجى المحاولة مرة أخرى",
