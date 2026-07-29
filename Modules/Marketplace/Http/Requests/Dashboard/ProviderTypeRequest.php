@@ -34,8 +34,9 @@ class ProviderTypeRequest extends FormRequest
                 'mimetypes:image/jpeg,image/png,image/webp,image/jpg,image/gif,image/svg+xml',
                 'max:2048', // 2MB
             ],
-            'categories' => ['nullable', 'array'],
-            'categories.*' => ['nullable', 'exists:categories,id'],
+            'categories' => ['required', 'array', 'min:1'],
+            'categories.*' => ['required', 'exists:categories,id'],
+            'translations' => ['required', 'array'],
         ];
         foreach ($fils as $file) {
             $rules['files.'.$file->value] = [

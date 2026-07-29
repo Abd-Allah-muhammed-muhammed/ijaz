@@ -95,7 +95,7 @@ export default function Form({callback, row, categories}: Props) {
                     </option>
                   ))}
                 </FormSelect>
-                {/*<InputError message={form.errors.translations ?. [locale as unknown as number]}/>*/}
+                <InputError message={form.errors.category_id}/>
               </FormGroup>
             </Col>
           </Row>

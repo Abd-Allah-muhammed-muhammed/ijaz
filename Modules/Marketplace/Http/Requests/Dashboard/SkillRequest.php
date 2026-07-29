@@ -25,7 +25,7 @@ class SkillRequest extends FormRequest
     {
         $supportedLocales = array_keys(config('laravellocalization.supportedLocales'));
         $rules = [
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
             'translations' => ['required', 'array'],
         ];
         foreach ($supportedLocales as $locale) {

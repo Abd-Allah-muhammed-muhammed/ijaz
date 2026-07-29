@@ -98,7 +98,7 @@ export default function Form({callback, row, categories}: Props) {
             {Object.keys(locales).map((locale => (
               <Col sm={12} md={6} className="mb-3" key={locale}>
                 <FormGroup>
-                  <FormLabel aria-required={true} className="required">
+                  <FormLabel>
                     {t(`description in ${locale}`)}
                   </FormLabel>
                   <FormControl
