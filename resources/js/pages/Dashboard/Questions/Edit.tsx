@@ -4,13 +4,12 @@ import {PageTitle} from "@/_metronic/layout/core";
 import {ToolbarWrapper} from "@/_metronic/layout/components/toolbar";
 import {Content} from "@/_metronic/layout/components/content";
 import {Head} from "@inertiajs/react";
-import {Page, Question} from "@/types/models";
+import {Question} from "@/types/models";
 import {KTCard} from "@/_metronic/helpers";
 import Form from "./Form";
 import {ReactNode} from "react";
-import PageController from "@/actions/Modules/Cms/Http/Controllers/Dashboard/PageController";
 import {zodValidate} from "@/helpers/general";
-import {Inputs} from "@/pages/Dashboard/Pages/validation";
+import {Inputs} from "@/pages/Dashboard/Questions/validation";
 import QuestionController from "@/actions/Modules/Cms/Http/Controllers/Dashboard/QuestionController";
 
 
@@ -28,7 +27,7 @@ const Edit = ({row}: Props) => {
       <PageTitle breadcrumbs={[
         {
           title: t('questions'),
-          path: PageController.index().url,
+          path: QuestionController.index().url,
           isSeparator: false,
           isActive: false,
         },
