@@ -70,7 +70,7 @@ export default function Form({callback, admin, roles, image}: Props) {
             <Col sm={12} md={4} className="mb-3">
               <FormGroup>
                 <FormControl
-                  placeholder={t('email.prop')}
+                  placeholder={t('email')}
                   type='email'
                   onChange={(e) => {
                     form.setData('email', e.currentTarget.value);
@@ -122,7 +122,7 @@ export default function Form({callback, admin, roles, image}: Props) {
             <Col sm={12} md={4} className="mb-3">
               <FormGroup>
                 <FormControl
-                  placeholder={t('password.prop')}
+                  placeholder={t('password')}
                   type='password'
                   onChange={(e) => {
                     form.setData('password', e.currentTarget.value);
