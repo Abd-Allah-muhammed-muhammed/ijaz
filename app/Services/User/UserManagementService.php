@@ -6,6 +6,7 @@ use App\Actions\User\CountAllUsersAction;
 use App\Actions\User\DeleteUserAction;
 use App\Actions\User\EditUserAction;
 use App\Actions\User\GetUserRegistrationCountsSinceAction;
+use App\Actions\User\GetUserStatusCountsAction;
 use App\Actions\User\ListLatestUsersForDashboardAction;
 use App\Actions\User\ListUsersAction;
 use App\Actions\User\ListUserWalletTransactionsAction;
@@ -38,6 +39,7 @@ class UserManagementService
         private readonly UpdateUserStatusAction $updateStatusAction,
         private readonly ListUserWalletTransactionsAction $walletTransactionsAction,
         private readonly CountAllUsersAction $countAllAction,
+        private readonly GetUserStatusCountsAction $statusCountsAction,
         private readonly GetUserRegistrationCountsSinceAction $registrationCountsAction,
         private readonly ListLatestUsersForDashboardAction $latestForDashboardAction,
         private readonly NationalityService $nationalityService,
@@ -96,6 +98,14 @@ class UserManagementService
     public function countAll(): int
     {
         return $this->countAllAction->handle();
+    }
+
+    /**
+     * @return array{total: int, active: int, blocked: int}
+     */
+    public function statusCounts(): array
+    {
+        return $this->statusCountsAction->handle();
     }
 
     /**

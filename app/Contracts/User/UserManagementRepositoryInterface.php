@@ -38,6 +38,11 @@ interface UserManagementRepositoryInterface
     public function countAll(): int;
 
     /**
+     * @return array{total: int, active: int, blocked: int}
+     */
+    public function statusCounts(): array;
+
+    /**
      * @return SupportCollection<string, int>
      */
     public function registrationCountsSince(CarbonInterface $since): SupportCollection;

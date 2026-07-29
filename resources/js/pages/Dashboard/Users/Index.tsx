@@ -15,9 +15,11 @@ import UserController from "@/actions/App/Http/Controllers/Dashboard/UserControl
 type Props = {
   rows: PaginationResource<User>,
   prams: SearchPrams | null;
-  total_count: number;
-  active_count: number;
-  blocked_count: number;
+  stats: {
+    total: number;
+    active: number;
+    blocked: number;
+  };
 };
 
 type SearchPrams = {
@@ -28,9 +30,7 @@ type SearchPrams = {
 const Index = ({
   rows,
   prams,
-  total_count,
-  active_count,
-  blocked_count
+  stats,
 }: Props) => {
   const { t } = useTranslation();
   const searchPrams: SearchPrams = prams || {
@@ -55,7 +55,7 @@ const Index = ({
       </PageTitle>
       <ToolbarWrapper />
       <Content>
-        {/* Statistics Cards */}
+        {/* Statistics Cards — totals from backend statusCounts (not page-scoped rows.data) */}
         <div className='row g-6 g-xl-9 mb-6'>
           <div className='col-md-4'>
             <div className='card h-100 shadow-sm border-0'>
@@ -66,7 +66,7 @@ const Index = ({
                   </span>
                 </div>
                 <div className='d-flex flex-column'>
-                  <span className='fs-2hx fw-bold text-gray-900'>{total_count || 0}</span>
+                  <span className='fs-2hx fw-bold text-gray-900'>{stats.total}</span>
                   <span className='text-muted fw-semibold fs-6'>{t('total_users')}</span>
                 </div>
               </div>
@@ -81,7 +81,7 @@ const Index = ({
                   </span>
                 </div>
                 <div className='d-flex flex-column'>
-                  <span className='fs-2hx fw-bold text-gray-900'>{active_count || 0}</span>
+                  <span className='fs-2hx fw-bold text-gray-900'>{stats.active}</span>
                   <span className='text-muted fw-semibold fs-6'>{t('active_users')}</span>
                 </div>
               </div>
@@ -96,7 +96,7 @@ const Index = ({
                   </span>
                 </div>
                 <div className='d-flex flex-column'>
-                  <span className='fs-2hx fw-bold text-gray-900'>{blocked_count || 0}</span>
+                  <span className='fs-2hx fw-bold text-gray-900'>{stats.blocked}</span>
                   <span className='text-muted fw-semibold fs-6'>{t('blocked_users')}</span>
                 </div>
               </div>

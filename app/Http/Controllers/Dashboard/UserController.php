@@ -45,6 +45,7 @@ class UserController extends Controller implements HasMiddleware
         return inertia('Dashboard/Users/Index', [
             'prams' => $request->all() ?: [],
             'rows' => UserCollection::make($this->userService->index($request)),
+            'stats' => $this->userService->statusCounts(),
         ]);
     }
 

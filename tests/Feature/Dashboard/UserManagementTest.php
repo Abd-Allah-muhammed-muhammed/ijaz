@@ -66,6 +66,29 @@ it('lists users with the prams inertia prop', function (): void {
         );
 });
 
+test('users index page receives accurate status counts', function (): void {
+    $admin = createUserManagementAdmin(['show users']);
+
+    User::factory()->create(['status' => UserStatusEnum::Active]);
+    User::factory()->create(['status' => UserStatusEnum::Active]);
+    User::factory()->create(['status' => UserStatusEnum::Blocked]);
+    User::factory()->create(['status' => UserStatusEnum::Deleted]);
+
+    // Force pagination below the true total so page-scoped client filters would undercount.
+    $this->actingAs($admin, 'admin')
+        ->get(action([UserController::class, 'index'], ['per_page' => 1]))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Users/Index')
+            ->has('rows.data', 1)
+            ->has('stats')
+            ->where('stats.total', 4)
+            ->where('stats.active', 2)
+            ->where('stats.blocked', 1)
+            ->missing('stats.deleted')
+        );
+});
+
 it('serves the nationality dropdown through Geo on the create form', function (): void {
     $admin = createUserManagementAdmin(['create users']);
     createUserManagementNationality();

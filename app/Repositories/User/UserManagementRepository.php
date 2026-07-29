@@ -3,6 +3,7 @@
 namespace App\Repositories\User;
 
 use App\Contracts\User\UserManagementRepositoryInterface;
+use App\Enums\Users\UserStatusEnum;
 use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Database\Eloquent\Builder;
@@ -84,6 +85,23 @@ class UserManagementRepository implements UserManagementRepositoryInterface
     public function countAll(): int
     {
         return User::query()->count('id');
+    }
+
+    /**
+     * @return array{total: int, active: int, blocked: int}
+     */
+    public function statusCounts(): array
+    {
+        $counts = User::query()
+            ->selectRaw('status, count(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        return [
+            'total' => (int) $counts->sum(),
+            'active' => (int) ($counts[UserStatusEnum::Active->value] ?? 0),
+            'blocked' => (int) ($counts[UserStatusEnum::Blocked->value] ?? 0),
+        ];
     }
 
     /**
