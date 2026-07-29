@@ -1,8 +1,22 @@
-@import 'tailwindcss';
+/*
+  Phase 0 Step 1 — Tailwind v4 wired WITHOUT Preflight.
+
+  Bootstrap/Metronic remain the visual source of truth for existing pages.
+  `@import "tailwindcss"` would inject preflight (margin/padding resets, border
+  resets, unstyled headings/lists, block images, etc.) and clash with Bootstrap.
+  Re-enable preflight only when pages migrate onto Tailwind as primary.
+
+  Equivalent of the default `@import "tailwindcss"` minus preflight.css:
+*/
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
 
 @plugin 'tailwindcss-animate';
 
 @source '../views';
+@source '../js/**/*.{tsx,ts,jsx,js}';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));
@@ -60,13 +74,9 @@
 }
 
 /*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
+  Phase 0: deferred — these global base rules would override Bootstrap/Metronic
+  body colors and every element's border-color across ~184 pages.
 
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
     *,
     ::after,
@@ -75,7 +85,16 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
 }
+*/
 
 :root {
     --background: oklch(1 0 0);
@@ -148,17 +167,7 @@
     --sidebar-ring: oklch(0.439 0 0);
 }
 
-@layer base {
-    * {
-        @apply border-border;
-    }
-
-    body {
-        @apply bg-background text-foreground;
-    }
-}
-
-/* Custom Registration Completion Styles */
+/* Custom Registration Completion Styles (scoped — unique selectors only) */
 .registration-content {
     line-height: 1.8;
 }
@@ -202,22 +211,23 @@
     }
 }
 
-/* Enhanced Box Shadows */
+/*
+  Phase 0: deferred — these override Bootstrap utility class names globally
+  (.shadow-sm, .rounded-2/3, .lh-lg, .bg-opacity-10) and would visually change
+  every page that uses them. Revisit when registration/marketing CSS is owned.
+
 .shadow-sm {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05), 0 4px 8px 0 rgba(0, 0, 0, 0.05) !important;
 }
 
-/* Custom Gradient Backgrounds */
 .bg-gradient-to-br {
     background: linear-gradient(to bottom right, #dcfce7, #a7f3d0) !important;
 }
 
-/* Better Text Spacing */
 .lh-lg {
     line-height: 1.8 !important;
 }
 
-/* Icon Container Styles */
 .bg-opacity-10 {
     backdrop-filter: blur(4px);
     transition: all 0.3s ease;
@@ -227,6 +237,15 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
+
+.rounded-3 {
+    border-radius: 1rem !important;
+}
+
+.rounded-2 {
+    border-radius: 0.75rem !important;
+}
+*/
 
 /* Responsive Typography */
 @media (max-width: 768px) {
@@ -244,16 +263,6 @@
 [dir="rtl"] .summary-content {
     text-align: right;
 }
-
-/* Enhanced card styling */
-.rounded-3 {
-    border-radius: 1rem !important;
-}
-
-.rounded-2 {
-    border-radius: 0.75rem !important;
-}
-
 
 .react-select-container {
   .react-select__control {

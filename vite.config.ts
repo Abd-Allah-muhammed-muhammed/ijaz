@@ -7,7 +7,8 @@ import {run} from "vite-plugin-run";
 export default defineConfig({
   plugins: [
     laravel({
-      input: ['resources/css/app.css', 'resources/js/app.tsx'],
+      // CSS enters via import from app.tsx (same pattern as Keenicons / FontAwesome)
+      input: ['resources/js/app.tsx'],
       ssr: 'resources/js/ssr.tsx',
       refresh: true,
     }),

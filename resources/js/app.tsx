@@ -1,3 +1,5 @@
+// Tailwind v4 (theme + utilities only — preflight disabled; see resources/css/app.css)
+import '../css/app.css';
 // import './_metronic/assets/sass/style.react.scss'
 // import './_metronic/assets/fonticon/fonticon.css'
 import './_metronic/assets/keenicons/duotone/style.css';
