@@ -11,8 +11,8 @@ class ShowSpecializationAction
         return $specialization
             ->loadCount('children')
             ->load([
-                'translation',
-                'children.translation',
+                'translations',
+                'children.translations',
             ]);
     }
 }

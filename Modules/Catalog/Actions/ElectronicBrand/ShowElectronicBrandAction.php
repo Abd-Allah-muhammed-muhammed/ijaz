@@ -8,6 +8,6 @@ class ShowElectronicBrandAction
 {
     public function handle(ElectronicBrand $electronicBrand): ElectronicBrand
     {
-        return $electronicBrand->load(['translation']);
+        return $electronicBrand->load(['translations']);
     }
 }

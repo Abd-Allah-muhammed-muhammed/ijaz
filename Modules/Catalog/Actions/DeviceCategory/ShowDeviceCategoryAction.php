@@ -11,8 +11,8 @@ class ShowDeviceCategoryAction
         return $deviceCategory
             ->loadCount('children')
             ->load([
-                'translation',
-                'children.translation',
+                'translations',
+                'children.translations',
             ]);
     }
 }
