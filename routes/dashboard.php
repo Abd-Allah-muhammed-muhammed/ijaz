@@ -24,6 +24,8 @@ Route::group(
             Route::middleware('auth:admin')->group(function () {
                 Route::get('/', HomeController::class)->name('home');
                 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+                Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
+                Route::post('/profile', [AuthController::class, 'updateProfile'])->name('profile.update');
                 Route::resource('roles', RoleController::class)->except(['show']);
                 Route::resource('admins', AdminController::class)->except(['show']);
                 Route::controller(ProviderController::class)->prefix('providers')->as('providers.')->group(function () {

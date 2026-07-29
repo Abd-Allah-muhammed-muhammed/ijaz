@@ -1,5 +1,5 @@
 import {FC} from 'react'
-import {useForm, usePage} from '@inertiajs/react'
+import {Link, useForm, usePage} from '@inertiajs/react'
 import {Languages} from './Languages'
 import AuthController from "@/actions/App/Http/Controllers/Dashboard/AuthController";
 import {Admin} from "@/types/models";
@@ -38,6 +38,12 @@ const HeaderUserMenu: FC = () => {
       </div>
 
       <div className='separator my-2'></div>
+
+      <div className='menu-item px-5'>
+        <Link href={AuthController.profile().url} className='menu-link px-5'>
+          My Profile
+        </Link>
+      </div>
 
       <div
         className='menu-item px-5'
