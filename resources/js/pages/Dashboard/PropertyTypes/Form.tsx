@@ -1,10 +1,11 @@
 import PropertyTypeController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/PropertyTypeController';
 import ActionButton from '@/components/action-button';
 import InputError from '@/components/inputs/InputError';
+import TranslatableInputs from '@/components/inputs/TranslatableInputs';
 import { getSupportedLocales } from '@/hooks/use-locales';
 import { PropertyType } from '@/types/models';
 import { InertiaFormProps, Link, useForm } from '@inertiajs/react';
-import { Form as BTForm, Col, FormCheck, FormControl, FormGroup, FormLabel, Row } from 'react-bootstrap';
+import { Form as BTForm, Col, FormCheck, FormGroup, FormLabel, Row } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { FormInput, TranslatedAttributes } from './types';
 
@@ -48,36 +49,23 @@ export default function Form({ callback, propertyType }: Props) {
     >
       <Row>
         <Col sm={12} className="mb-3">
-          <Row>
-            {Object.keys(locales).map((locale) => (
-              <Col sm={12} md={6} className="mb-3" key={locale}>
-                <FormGroup>
-                  <FormLabel aria-required={true} className="required">
-                    {t(`name in ${locale}`)}
-                  </FormLabel>
-                  <FormControl
-                    placeholder={t(`name in ${locale}`)}
-                    type="text"
-                    onChange={(e) => {
-                      const value = e.currentTarget.value;
-                      form.setData((previousData) => ({
-                        ...previousData,
-                        translations: {
-                          ...previousData.translations,
-                          [locale]: {
-                            ...previousData.translations[locale],
-                            name: value,
-                          },
-                        },
-                      }));
-                    }}
-                    defaultValue={form.data.translations?.[locale as unknown as number]?.name}
-                  />
-                  <InputError message={form.errors[`translations.${locale}.name`]} />
-                </FormGroup>
-              </Col>
-            ))}
-          </Row>
+          <TranslatableInputs
+            field="name"
+            values={form.data.translations}
+            errors={form.errors}
+            onChange={(locale, value) => {
+              form.setData((previousData) => ({
+                ...previousData,
+                translations: {
+                  ...previousData.translations,
+                  [locale]: {
+                    ...previousData.translations[locale],
+                    name: value,
+                  },
+                },
+              }));
+            }}
+          />
 
           <br />
           <Row>
