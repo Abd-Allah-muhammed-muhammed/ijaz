@@ -10,6 +10,7 @@ use Modules\Classifieds\Actions\AuthorizeAdvisementOwnerAction;
 use Modules\Classifieds\Actions\DeleteAdvisementMediaAction;
 use Modules\Classifieds\Actions\DeleteAdvisementWithMediaAction;
 use Modules\Classifieds\Actions\PropertyAdvisement\CreatePropertyAdvisementAction;
+use Modules\Classifieds\Actions\PropertyAdvisement\DeletePropertyAdvisementForDashboardAction;
 use Modules\Classifieds\Actions\PropertyAdvisement\ListPropertyAdvisementsForDashboardAction;
 use Modules\Classifieds\Actions\PropertyAdvisement\ResolvePropertyAdvisementDashboardSelectsAction;
 use Modules\Classifieds\Actions\PropertyAdvisement\UpdatePropertyAdvisementAction;
@@ -28,6 +29,7 @@ final class PropertyAdvisementService
         private readonly ListPropertyAdvisementsForDashboardAction $listForDashboardAction,
         private readonly ResolvePropertyAdvisementDashboardSelectsAction $resolveDashboardSelectsAction,
         private readonly UpdatePropertyAdvisementStatusForDashboardAction $updateStatusForDashboardAction,
+        private readonly DeletePropertyAdvisementForDashboardAction $deleteForDashboardAction,
         private readonly CreatePropertyAdvisementAction $createPropertyAdvisementAction,
         private readonly UpdatePropertyAdvisementAction $updatePropertyAdvisementAction,
         private readonly AuthorizeAdvisementOwnerAction $authorizeAdvisementOwnerAction,
@@ -51,6 +53,11 @@ final class PropertyAdvisementService
     public function updateStatusForDashboard(PropertyAdvisement $advisement, AdvisementStatusEnum $status): PropertyAdvisement
     {
         return $this->updateStatusForDashboardAction->handle($advisement, $status);
+    }
+
+    public function deleteForDashboard(PropertyAdvisement $advisement): void
+    {
+        $this->deleteForDashboardAction->handle($advisement);
     }
 
     public function listUserAdvisements(User $user, PropertyAdvisementFilters $filters): LengthAwarePaginator

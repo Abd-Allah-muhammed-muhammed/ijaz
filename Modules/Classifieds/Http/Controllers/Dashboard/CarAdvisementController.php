@@ -26,6 +26,7 @@ class CarAdvisementController extends Controller implements HasMiddleware
         return [
             new Middleware('permission:show carAdvisements', only: ['index', 'show']),
             new Middleware('permission:edit carAdvisements', only: ['update']),
+            new Middleware('permission:delete carAdvisements', only: ['destroy']),
         ];
     }
 
@@ -61,5 +62,14 @@ class CarAdvisementController extends Controller implements HasMiddleware
         );
 
         return redirect()->back()->with('success', __('advisement.status_updated_successfully'));
+    }
+
+    public function destroy(CarAdvisement $carAdvisement): RedirectResponse
+    {
+        $this->service->deleteForDashboard($carAdvisement);
+
+        return redirect()
+            ->route('dashboard.car-advisements.index')
+            ->with('success', __('data deleted successfully'));
     }
 }

@@ -116,7 +116,7 @@ const ShowCarAdvisement = ({ row }: Props) => {
                       className="btn btn-sm btn-icon btn-light-danger"
                       onClick={() => {
                         if (window.confirm(t('are_you_sure_delete'))) {
-                          router.delete(CarAdvisementController.show(row.id as number).url);
+                          router.delete(CarAdvisementController.destroy(row.id as number).url);
                         }
                       }}
                     >

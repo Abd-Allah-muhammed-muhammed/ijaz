@@ -26,6 +26,7 @@ class PropertyAdvisementController extends Controller implements HasMiddleware
         return [
             new Middleware('permission:show propertyAdvisements', only: ['index', 'show']),
             new Middleware('permission:edit propertyAdvisements', only: ['update']),
+            new Middleware('permission:delete propertyAdvisements', only: ['destroy']),
         ];
     }
 
@@ -61,5 +62,14 @@ class PropertyAdvisementController extends Controller implements HasMiddleware
         );
 
         return redirect()->back()->with('success', __('advisement.status_updated_successfully'));
+    }
+
+    public function destroy(PropertyAdvisement $propertyAdvisement): RedirectResponse
+    {
+        $this->service->deleteForDashboard($propertyAdvisement);
+
+        return redirect()
+            ->route('dashboard.property-advisements.index')
+            ->with('success', __('data deleted successfully'));
     }
 }
