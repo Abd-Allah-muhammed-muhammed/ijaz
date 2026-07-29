@@ -20,6 +20,7 @@ use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\DTOs\GuarantorUploadData;
 use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
+use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -102,6 +103,10 @@ class GuarantorService
         Model $actor,
         string $actorRole,
     ): GuarantorRequest {
+        if ($data->status === GuarantorStatusEnum::Ended) {
+            return $this->endAction->handle($request, $actor, $actorRole);
+        }
+
         return $this->updateStatusAction->handle($request, $data, $actor, $actorRole);
     }
 
@@ -132,8 +137,8 @@ class GuarantorService
         GuarantorRequest $request,
         Model $actor,
         string $actorRole,
-    ): void {
-        $this->endAction->handle($request, $actor, $actorRole);
+    ): GuarantorRequest {
+        return $this->endAction->handle($request, $actor, $actorRole);
     }
 
     /**

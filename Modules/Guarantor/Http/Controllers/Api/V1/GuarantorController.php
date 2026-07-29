@@ -187,7 +187,7 @@ class GuarantorController extends Controller
      *   "data": {
      *     "id": "01234567-89ab-cdef-0123-456789abcdef",
      *     "type": { "value": "individual", "label": "Individual", "color": "#3b82f6" },
-     *     "status": { "value": "approved", "label": "Approved", "color": "#3b82f6" },
+     *     "status": { "value": "approved_by_admin", "label": "Approved by admin", "color": "#3b82f6" },
      *     "title": "Project guarantee",
      *     "installments": [],
      *     "status_histories": [],
@@ -271,7 +271,7 @@ class GuarantorController extends Controller
      *
      * @urlParam guarantorRequest string required Guarantor request UUID.
      *
-     * @bodyParam status string required New status. Example: approved
+     * @bodyParam status string required New status. Valid values: new, pending_admin, approved_by_admin, rejected_by_admin, accepted, rejected, in_progress, overdue, ended, cancelled, refunded. Example: accepted
      * @bodyParam reason string Reason (required when rejected or cancelled).
      * @bodyParam notes string optional Additional notes.
      *
@@ -304,7 +304,7 @@ class GuarantorController extends Controller
     /**
      * Pay individual guarantor request.
      *
-     * Initiates payment for an individual guarantor request. Counterparty only, status must be `approved`.
+     * Initiates payment for an individual guarantor request. Counterparty only, status must be `accepted`.
      *
      * @authenticated
      *

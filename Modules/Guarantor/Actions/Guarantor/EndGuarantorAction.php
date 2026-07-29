@@ -28,9 +28,9 @@ class EndGuarantorAction
     /**
      * @throws Throwable
      */
-    public function handle(GuarantorRequest $request, Model $actor, string $actorRole): void
+    public function handle(GuarantorRequest $request, Model $actor, string $actorRole): GuarantorRequest
     {
-        DB::transaction(function () use ($request, $actor, $actorRole) {
+        return DB::transaction(function () use ($request, $actor, $actorRole) {
             if (! GuarantorStatusEnum::isAllowed($request->status, GuarantorStatusEnum::Ended, $actorRole)) {
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }
@@ -57,6 +57,8 @@ class EndGuarantorAction
             );
 
             $this->notifyGuarantorPartiesAction->handle($guarantorRequest);
+
+            return $guarantorRequest->load(['requester', 'counterparty', 'installments', 'companyDetail', 'media']);
         });
     }
 
