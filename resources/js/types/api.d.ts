@@ -1,15 +1,15 @@
 import { ConversationMessage } from '@/types/models';
 
-type BaseResponse = {
+export type BaseResponse = {
   success: boolean;
   errors: Record<string, string[]>;
   message: string;
   token: string;
-}
+};
 
-type SingleApiResponse<T> = BaseResponse & {
+export type SingleApiResponse<T> = BaseResponse & {
   data: T;
-}
+};
 
 export type ApiResponse<T> = BaseResponse & {
   data: T[];

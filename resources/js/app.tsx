@@ -15,7 +15,6 @@ import '@fortawesome/fontawesome-svg-core/styles.css';
 import { createInertiaApp } from '@inertiajs/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import axios from 'axios';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { Suspense } from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
@@ -24,6 +23,7 @@ import './echo';
 import { initializeTheme } from './hooks/use-appearance';
 import './lang/i18next';
 import I18nextEffect from './lang/I18next-effect';
+import { setApiLocale } from './lib/api-client';
 import { initializeAppShell } from './lib/app-shell';
 import type { SharedData } from './types';
 
@@ -37,7 +37,8 @@ createInertiaApp({
   setup({ el, App, props }) {
     const shared = props.initialPage.props as SharedData;
     const locale = shared.app?.locale || 'en';
-    axios.defaults.headers.common['Accept-Language'] = locale;
+    // Must set on the shared apiClient instance — query hooks do not use global axios.
+    setApiLocale(locale);
     initializeAppShell(shared.app?.shell);
 
     const appElement = (

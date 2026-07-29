@@ -61,10 +61,8 @@ export const zodValidate = <T extends Record<string, FormDataConvertible>>(
   return result.success;
 }
 
-export const build_date = (date: string | Date) => {
-  const d = new Date(date);
-  return d.toLocaleDateString() + ' : ' + d.toLocaleTimeString();
-}
+/** @deprecated Prefer `formatDateTime` / `build_date` from `@/lib/formatters`. */
+export { build_date } from '@/lib/formatters';
 export const when = <T>(condition: Boolean, callback: T | (() => T), fallback: unknown):T =>{
 
   if (condition) {
