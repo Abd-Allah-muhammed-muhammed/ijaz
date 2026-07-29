@@ -17,7 +17,7 @@ Route::prefix('chat')->as('chat.')->group(function () {
 Route::prefix('/orders')->controller(OrderController::class)->as('orders.')->group(static function () {
     Route::get('/', 'index')->name('index');
     Route::get('/offers', 'offers')->name('offers');
-    Route::get('/new', 'new')->name('index');
+    Route::get('/new', 'new')->name('new');
     Route::group(['prefix' => '/{order}/offers', 'as' => 'offers.'], static function () {
         Route::post('submit', 'submitOffer')->name('offers.store');
         Route::post('{offer}/update', 'updateOffer')->name('offers.update');
