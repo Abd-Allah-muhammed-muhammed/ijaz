@@ -708,5 +708,18 @@
     "settings_tab_wallet": "वॉलेट",
     "settings_tab_payment": "भुगतान",
     "settings_tab_guarantor": "गारंटर",
-    "settings_tab_chat": "चैट"
+    "settings_tab_chat": "चैट",
+    "administration": "प्रशासन",
+    "support": "सहायता",
+    "marketplace": "मार्केटप्लेस",
+    "geo": "भूगोल",
+    "catalog_properties": "कैटलॉग — संपत्तियां",
+    "catalog_cars": "कैटलॉग — कारें",
+    "catalog_devices": "कैटलॉग — उपकरण",
+    "catalog_institutes": "कैटलॉग — संस्थान",
+    "classifieds": "वर्गीकृत विज्ञापन",
+    "opportunities_guarantor": "अवसर और गारंटर",
+    "finance": "वित्त",
+    "content_cms": "सामग्री / CMS",
+    "quality_system": "गुणवत्ता और सिस्टम"
 }

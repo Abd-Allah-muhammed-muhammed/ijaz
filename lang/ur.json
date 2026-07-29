@@ -706,5 +706,18 @@
     "settings_tab_wallet": "والٹ",
     "settings_tab_payment": "ادائیگی",
     "settings_tab_guarantor": "ضامن",
-    "settings_tab_chat": "چیٹ"
+    "settings_tab_chat": "چیٹ",
+    "administration": "انتظامیہ",
+    "support": "سپورٹ",
+    "marketplace": "مارکیٹ پلیس",
+    "geo": "جغرافیہ",
+    "catalog_properties": "کیٹلاگ — پراپرٹیز",
+    "catalog_cars": "کیٹلاگ — کاریں",
+    "catalog_devices": "کیٹلاگ — آلات",
+    "catalog_institutes": "کیٹلاگ — ادارے",
+    "classifieds": "درجہ بندی اشتہارات",
+    "opportunities_guarantor": "مواقع اور ضامن",
+    "finance": "مالیات",
+    "content_cms": "مواد / CMS",
+    "quality_system": "معیار اور نظام"
 }

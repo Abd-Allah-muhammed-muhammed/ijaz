@@ -813,5 +813,17 @@
     "settings_tab_wallet": "المحفظة",
     "settings_tab_payment": "الدفع",
     "settings_tab_guarantor": "الكفيل",
-    "settings_tab_chat": "الدردشة"
+    "settings_tab_chat": "الدردشة",
+    "administration": "الإدارة",
+    "support": "الدعم",
+    "marketplace": "السوق",
+    "geo": "الجغرافيا",
+    "catalog_properties": "الكتالوج — العقارات",
+    "catalog_cars": "الكتالوج — السيارات",
+    "catalog_devices": "الكتالوج — الأجهزة",
+    "catalog_institutes": "الكتالوج — المعاهد",
+    "classifieds": "الإعلانات المبوبة",
+    "opportunities_guarantor": "الفرص والضامن",
+    "content_cms": "المحتوى / إدارة المحتوى",
+    "quality_system": "الجودة والنظام"
 }

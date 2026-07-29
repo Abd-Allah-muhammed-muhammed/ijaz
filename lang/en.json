@@ -916,5 +916,17 @@
     "settings_tab_wallet": "Wallet",
     "settings_tab_payment": "Payment",
     "settings_tab_guarantor": "Guarantor",
-    "settings_tab_chat": "Chat"
+    "settings_tab_chat": "Chat",
+    "administration": "Administration",
+    "support": "Support",
+    "marketplace": "Marketplace",
+    "geo": "Geo",
+    "catalog_properties": "Catalog — Properties",
+    "catalog_cars": "Catalog — Cars",
+    "catalog_devices": "Catalog — Devices",
+    "catalog_institutes": "Catalog — Institutes",
+    "classifieds": "Classifieds (Listings)",
+    "opportunities_guarantor": "Opportunities & Guarantor",
+    "content_cms": "Content / CMS",
+    "quality_system": "Quality & System"
 }

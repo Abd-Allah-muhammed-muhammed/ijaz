@@ -45,6 +45,7 @@ const SidebarMenuMain = () => {
   const { t } = useTranslation();
   return (
     <>
+      {/* 1. Dashboard (standalone) */}
       <SidebarMenuItem
         isActive={matchUrl(HomeController.url())}
         to={HomeController.url()}
@@ -52,6 +53,8 @@ const SidebarMenuMain = () => {
         title={t('dashboard')}
         fontIcon="bi-app-indicator"
       />
+
+      {/* 2. Orders */}
       {hasPermission('show orders') && (
         <>
           <div className="menu-item">
@@ -69,14 +72,15 @@ const SidebarMenuMain = () => {
           />
         </>
       )}
-      {hasAnyPermission(['show roles', 'show admins']) && (
+
+      {/* 3. Administration → Roles, Admins, Users, Providers */}
+      {hasAnyPermission(['show roles', 'show admins', 'show users', 'show providers']) && (
         <div className="menu-item">
           <div className="menu-content pt-8 pb-2">
             <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('administration')}</span>
           </div>
         </div>
       )}
-
       <SidebarMenuItem
         to={RoleController.index().url}
         title={t('roles')}
@@ -93,14 +97,31 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.admins.*')}
         show={hasPermission('show admins')}
       />
-      {hasAnyPermission(['show categories', 'show skills', 'show regions', 'show cities', 'show nationalities']) && (
+      <SidebarMenuItem
+        to={UserController.index().url}
+        title={t('users')}
+        icon="profile-user"
+        fontIcon="bi-people"
+        isActive={matchComponents('dashboard.users.*')}
+        show={hasPermission('show users')}
+      />
+      <SidebarMenuItem
+        to={ProviderController.index().url}
+        title={t('providers')}
+        icon="briefcase"
+        fontIcon="bi-briefcase"
+        isActive={matchComponents('dashboard.providers.*')}
+        show={hasPermission('show providers')}
+      />
+
+      {/* 4. Marketplace → Categories, Skills, Provider Types */}
+      {hasAnyPermission(['show categories', 'show skills', 'show providerTypes']) && (
         <div className="menu-item">
           <div className="menu-content pt-8 pb-2">
-            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('data_entry')}</span>
+            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('marketplace')}</span>
           </div>
         </div>
       )}
-
       <SidebarMenuItem
         to={CategoryController.index().url}
         title={t('categories')}
@@ -109,7 +130,6 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.categories.*')}
         show={hasPermission('show categories')}
       />
-
       <SidebarMenuItem
         to={SkillController.index().url}
         title={t('skills')}
@@ -118,6 +138,23 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.skills.*')}
         show={hasPermission('show skills')}
       />
+      <SidebarMenuItem
+        to={ProviderTypeController.index().url}
+        title={t('provider_types')}
+        icon="tag"
+        fontIcon="bi-tags"
+        isActive={matchComponents('dashboard.providerTypes.*')}
+        show={hasPermission('show providerTypes')}
+      />
+
+      {/* 5. Geo → Regions, Cities, Nationalities */}
+      {hasAnyPermission(['show regions', 'show cities', 'show nationalities']) && (
+        <div className="menu-item">
+          <div className="menu-content pt-8 pb-2">
+            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('geo')}</span>
+          </div>
+        </div>
+      )}
       <SidebarMenuItem
         to={RegionController.index().url}
         title={t('regions')}
@@ -142,10 +179,12 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.nationalities.*')}
         show={hasPermission('show nationalities')}
       />
+
+      {/* 6. Catalog — Properties → Property Categories, Property Types */}
       {hasAnyPermission(['show propertyCategories', 'show propertyTypes']) && (
         <div className="menu-item">
           <div className="menu-content pt-8 pb-2">
-            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('properties')}</span>
+            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('catalog_properties')}</span>
           </div>
         </div>
       )}
@@ -157,7 +196,6 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.propertyCategories.*')}
         show={hasPermission('show propertyCategories')}
       />
-
       <SidebarMenuItem
         to={PropertyTypeController.index().url}
         title={t('property_types')}
@@ -166,19 +204,12 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.property-types.*')}
         show={hasPermission('show propertyTypes')}
       />
-      <SidebarMenuItem
-        to={PropertyAdvisementController.index().url}
-        title={t('property_advisements')}
-        icon="notepad-bookmark"
-        fontIcon="bi-file-earmark-text"
-        isActive={matchComponents('dashboard.property-advisements.*')}
-        show={hasPermission('show propertyAdvisements')}
-      />
 
+      {/* 7. Catalog — Cars → Car Categories, Car Types, Car Brands */}
       {hasAnyPermission(['show carBrands', 'show carTypes', 'show carCategories']) && (
         <div className="menu-item">
           <div className="menu-content pt-8 pb-2">
-            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('cars')}</span>
+            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('catalog_cars')}</span>
           </div>
         </div>
       )}
@@ -206,18 +237,12 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.car-brands.*')}
         show={hasPermission('show carBrands')}
       />
-      <SidebarMenuItem
-        to={CarAdvisementController.index().url}
-        title={t('car_advisements')}
-        icon="notepad-bookmark"
-        fontIcon="bi-file-earmark-text"
-        isActive={matchComponents('dashboard.car-advisements.*')}
-        show={hasPermission('show carAdvisements')}
-      />
-      {hasAnyPermission(['show deviceCategories', 'show electronicAdvisements', 'show electronicBrands']) && (
+
+      {/* 8. Catalog — Devices → Device Categories, Electronic Brands */}
+      {hasAnyPermission(['show deviceCategories', 'show electronicBrands']) && (
         <div className="menu-item">
           <div className="menu-content pt-8 pb-2">
-            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('devices')}</span>
+            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('catalog_devices')}</span>
           </div>
         </div>
       )}
@@ -230,14 +255,6 @@ const SidebarMenuMain = () => {
         show={hasPermission('show deviceCategories')}
       />
       <SidebarMenuItem
-        to={ElectronicAdvisementController.index().url}
-        title={t('electronic_advisements')}
-        icon="devices"
-        fontIcon="bi-laptop"
-        isActive={matchComponents('dashboard.electronic-advisements.*')}
-        show={hasPermission('show electronicAdvisements')}
-      />
-      <SidebarMenuItem
         to={ElectronicBrandController.index().url}
         title={t('electronic_brands')}
         icon="star"
@@ -245,10 +262,12 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.electronic-brands.*')}
         show={hasPermission('show electronicBrands')}
       />
-      {hasAnyPermission(['show specializations', 'show instituteAdvisements']) && (
+
+      {/* 9. Catalog — Institutes → Specializations */}
+      {hasPermission('show specializations') && (
         <div className="menu-item">
           <div className="menu-content pt-8 pb-2">
-            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('institutes')}</span>
+            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('catalog_institutes')}</span>
           </div>
         </div>
       )}
@@ -260,6 +279,44 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.specializations.*')}
         show={hasPermission('show specializations')}
       />
+
+      {/* 10. Classifieds (Listings) */}
+      {hasAnyPermission([
+        'show propertyAdvisements',
+        'show carAdvisements',
+        'show electronicAdvisements',
+        'show instituteAdvisements',
+      ]) && (
+        <div className="menu-item">
+          <div className="menu-content pt-8 pb-2">
+            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('classifieds')}</span>
+          </div>
+        </div>
+      )}
+      <SidebarMenuItem
+        to={PropertyAdvisementController.index().url}
+        title={t('property_advisements')}
+        icon="notepad-bookmark"
+        fontIcon="bi-file-earmark-text"
+        isActive={matchComponents('dashboard.property-advisements.*')}
+        show={hasPermission('show propertyAdvisements')}
+      />
+      <SidebarMenuItem
+        to={CarAdvisementController.index().url}
+        title={t('car_advisements')}
+        icon="notepad-bookmark"
+        fontIcon="bi-file-earmark-text"
+        isActive={matchComponents('dashboard.car-advisements.*')}
+        show={hasPermission('show carAdvisements')}
+      />
+      <SidebarMenuItem
+        to={ElectronicAdvisementController.index().url}
+        title={t('electronic_advisements')}
+        icon="devices"
+        fontIcon="bi-laptop"
+        isActive={matchComponents('dashboard.electronic-advisements.*')}
+        show={hasPermission('show electronicAdvisements')}
+      />
       <SidebarMenuItem
         to={InstituteAdvisementController.index().url}
         title={t('institute_advisements')}
@@ -268,10 +325,12 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.institute-advisements.*')}
         show={hasPermission('show instituteAdvisements')}
       />
-      {hasPermission('show opportunities') && (
+
+      {/* 11. Opportunities & Guarantor */}
+      {hasAnyPermission(['show opportunities', 'show guarantors']) && (
         <div className="menu-item">
           <div className="menu-content pt-8 pb-2">
-            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('opportunities')}</span>
+            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('opportunities_guarantor')}</span>
           </div>
         </div>
       )}
@@ -291,44 +350,8 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.guarantor.*')}
         show={hasPermission('show guarantors')}
       />
-      {hasAnyPermission(['show providerTypes', 'show providers']) && (
-        <div className="menu-item">
-          <div className="menu-content pt-8 pb-2">
-            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('providers')}</span>
-          </div>
-        </div>
-      )}
-      <SidebarMenuItem
-        to={ProviderTypeController.index().url}
-        title={t('provider_types')}
-        icon="tag"
-        fontIcon="bi-tags"
-        isActive={matchComponents('dashboard.providerTypes.*')}
-        show={hasPermission('show providerTypes')}
-      />
-      <SidebarMenuItem
-        to={ProviderController.index().url}
-        title={t('providers')}
-        icon="briefcase"
-        fontIcon="bi-briefcase"
-        isActive={matchComponents('dashboard.providers.*')}
-        show={hasPermission('show providers')}
-      />
-      {hasAnyPermission(['show users']) && (
-        <div className="menu-item">
-          <div className="menu-content pt-8 pb-2">
-            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('users')}</span>
-          </div>
-        </div>
-      )}
-      <SidebarMenuItem
-        to={UserController.index().url}
-        title={t('users')}
-        icon="profile-user"
-        fontIcon="bi-people"
-        isActive={matchComponents('dashboard.users.*')}
-        show={hasPermission('show users')}
-      />
+
+      {/* 12. Finance */}
       {hasAnyPermission(['show topUpRequests', 'show withdrawRequests']) && (
         <div className="menu-item">
           <div className="menu-content pt-8 pb-2">
@@ -336,7 +359,6 @@ const SidebarMenuMain = () => {
           </div>
         </div>
       )}
-
       <SidebarMenuItem
         to={TopUpRequestController.index().url}
         title={t('top_up_requests')}
@@ -353,14 +375,13 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.withdraw-requests.*')}
         show={hasPermission('show withdrawRequests')}
       />
-      {hasAnyPermission(['show banners']) && (
-        <div className="menu-item">
-          <div className="menu-content pt-8 pb-2">
-            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('marketing')}</span>
-          </div>
-        </div>
-      )}
 
+      {/* 13. Content / CMS → Banners, Pages, Questions, Messages */}
+      <div className="menu-item">
+        <div className="menu-content pt-8 pb-2">
+          <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('content_cms')}</span>
+        </div>
+      </div>
       <SidebarMenuItem
         to={BannerController.index().url}
         title={t('banners')}
@@ -369,19 +390,6 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.banners.*')}
         show={hasPermission('show banners')}
       />
-      <div className="menu-item">
-        <div className="menu-content pt-8 pb-2">
-          <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('support')}</span>
-        </div>
-      </div>
-      <SidebarMenuItem
-        to={SupportController.index().url}
-        title={t('tickets')}
-        icon="message-question"
-        fontIcon="bi-headset"
-        isActive={matchComponents('dashboard.tickets.*')}
-      />
-
       <SidebarMenuItem
         to={PageController.index().url}
         title={t('pages')}
@@ -396,7 +404,6 @@ const SidebarMenuMain = () => {
         fontIcon="bi-question-circle"
         isActive={matchComponents('dashboard.questions.*')}
       />
-
       <SidebarMenuItem
         to={MessageController.index().url}
         title={t('messages')}
@@ -405,15 +412,28 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.messages.*')}
       />
 
+      {/* 14. Support → Tickets */}
+      <div className="menu-item">
+        <div className="menu-content pt-8 pb-2">
+          <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('support')}</span>
+        </div>
+      </div>
       <SidebarMenuItem
-        to={SettingController.index().url}
-        title={t('settings')}
-        icon="setting-2"
-        fontIcon="bi-gear"
-        isActive={matchComponents('dashboard.settings.*')}
-        show={hasPermission('show settings')}
+        to={SupportController.index().url}
+        title={t('tickets')}
+        icon="message-question"
+        fontIcon="bi-headset"
+        isActive={matchComponents('dashboard.tickets.*')}
       />
 
+      {/* 15. Quality & System → Reviews, Settings, Pan Analytics */}
+      {hasAnyPermission(['show reviews', 'show settings', 'show panAnalytics']) && (
+        <div className="menu-item">
+          <div className="menu-content pt-8 pb-2">
+            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('quality_system')}</span>
+          </div>
+        </div>
+      )}
       <SidebarMenuItem
         to={ReviewController.index().url}
         title={t('reviews')}
@@ -422,41 +442,22 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.reviews.*')}
         show={hasPermission('show reviews')}
       />
-
-      {hasPermission('show panAnalytics') && (
-        <>
-          <div className="menu-item">
-            <div className="menu-content pt-8 pb-2">
-              <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('analytics')}</span>
-            </div>
-          </div>
-          <SidebarMenuItem
-            to={PanAnalyticsController.index().url}
-            title={t('pan_analytics')}
-            icon="chart-simple"
-            fontIcon="bi-bar-chart"
-            isActive={matchComponents('dashboard.pan-analytics.*')}
-            show={hasPermission('show panAnalytics')}
-          />
-        </>
-      )}
-
-      {/*<SidebarMenuItemWithSub*/}
-      {/*  to='/apps/chat'*/}
-      {/*  title={trans('chat')}*/}
-      {/*  fontIcon='bi-chat-left'*/}
-      {/*  icon='message-text-2'*/}
-      {/*>*/}
-      {/*  <SidebarMenuItem to='/apps/chat/private-chat' title='Private Chat' hasBullet={true}/>*/}
-      {/*  <SidebarMenuItem to='/apps/chat/group-chat' title='Group Chart' hasBullet={true}/>*/}
-      {/*  <SidebarMenuItem to='/apps/chat/drawer-chat' title='Drawer Chart' hasBullet={true}/>*/}
-      {/*</SidebarMenuItemWithSub>*/}
-      {/*<SidebarMenuItem*/}
-      {/*  to='/apps/user-management/users'*/}
-      {/*  icon='abstract-28'*/}
-      {/*  title='User management'*/}
-      {/*  fontIcon='bi-layers'*/}
-      {/*/>*/}
+      <SidebarMenuItem
+        to={SettingController.index().url}
+        title={t('settings')}
+        icon="setting-2"
+        fontIcon="bi-gear"
+        isActive={matchComponents('dashboard.settings.*')}
+        show={hasPermission('show settings')}
+      />
+      <SidebarMenuItem
+        to={PanAnalyticsController.index().url}
+        title={t('pan_analytics')}
+        icon="chart-simple"
+        fontIcon="bi-bar-chart"
+        isActive={matchComponents('dashboard.pan-analytics.*')}
+        show={hasPermission('show panAnalytics')}
+      />
     </>
   );
 };
