@@ -94,7 +94,7 @@ const Index = ({ admin }: Props) => {
                   <Col sm={12} md={4} className="mb-3">
                     <FormGroup>
                       <FormControl
-                        placeholder={t('email.prop')}
+                        placeholder={t('email')}
                         type="email"
                         value={form.data.email}
                         onChange={(e) => form.setData('email', e.currentTarget.value)}
@@ -138,7 +138,7 @@ const Index = ({ admin }: Props) => {
                   <Col sm={12} md={4} className="mb-3">
                     <FormGroup>
                       <FormControl
-                        placeholder={t('password.prop')}
+                        placeholder={t('password')}
                         type="password"
                         value={form.data.password}
                         onChange={(e) => form.setData('password', e.currentTarget.value)}
