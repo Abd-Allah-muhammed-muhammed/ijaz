@@ -190,7 +190,7 @@ class OrderService
     }
 
     /**
-     * @param  array{status?: mixed, date_from?: mixed, date_to?: mixed}  $filters
+     * @param  array{status?: mixed, date_from?: mixed, date_to?: mixed, search?: mixed}  $filters
      */
     public function listForDashboard(array $filters, int $perPage): LengthAwarePaginator
     {

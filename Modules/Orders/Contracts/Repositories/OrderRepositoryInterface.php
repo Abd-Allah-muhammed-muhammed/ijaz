@@ -50,7 +50,7 @@ interface OrderRepositoryInterface
     public function providerHomeStats(Provider $provider): array;
 
     /**
-     * @param  array{status?: mixed, date_from?: mixed, date_to?: mixed}  $filters
+     * @param  array{status?: mixed, date_from?: mixed, date_to?: mixed, search?: mixed}  $filters
      */
     public function paginateForDashboard(array $filters, int $perPage): LengthAwarePaginator;
 

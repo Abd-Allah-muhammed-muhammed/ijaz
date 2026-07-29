@@ -12,7 +12,7 @@ class ListDashboardOrdersAction
     ) {}
 
     /**
-     * @param  array{status?: mixed, date_from?: mixed, date_to?: mixed}  $filters
+     * @param  array{status?: mixed, date_from?: mixed, date_to?: mixed, search?: mixed}  $filters
      */
     public function handle(array $filters, int $perPage): LengthAwarePaginator
     {

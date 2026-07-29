@@ -32,6 +32,9 @@ class OrderController extends Controller
         if ($request->filled('date_to')) {
             $filters['date_to'] = $request->date_to;
         }
+        if ($request->filled('search')) {
+            $filters['search'] = $request->search;
+        }
 
         $rows = $this->orderService->listForDashboard($filters, $request->integer('perPage', 16));
 
