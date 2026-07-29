@@ -3,13 +3,14 @@ import MasterLayout from "@/_metronic/layout/MasterLayout";
 import {PageTitle} from "@/_metronic/layout/core";
 import {ToolbarWrapper} from "@/_metronic/layout/components/toolbar";
 import {Content} from "@/_metronic/layout/components/content";
-import {Head, router} from "@inertiajs/react";
+import {Head} from "@inertiajs/react";
 import {KTCard} from "@/_metronic/helpers";
 import Table, {LinkAction} from "@/components/Table";
 import {PaginationResource} from "@/types";
 import {WithdrawRequest} from "@/types/models";
 import {ReactElement} from "react";
 import WithdrawRequestController from "@/actions/Modules/Wallet/Http/Controllers/Dashboard/WithdrawRequestController";
+import {applyFilterParam, visitWithFilters} from "@/lib/filters";
 
 
 type Props = {
@@ -34,15 +35,12 @@ const Index = (
   };
 
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    if (value) {
-      searchPrams[name] = value as never;
-    } else {
-      delete searchPrams[name];
-    }
-    router.reload({
-      only: ['rows'],
-      data: searchPrams,
-    });
+    const next = applyFilterParam(
+      { ...searchPrams } as Record<string, unknown>,
+      name,
+      value,
+    );
+    visitWithFilters(WithdrawRequestController.index().url, next, { only: ['rows'] });
   };
   return (
     <>

@@ -3,13 +3,14 @@ import MasterLayout from "@/_metronic/layout/MasterLayout";
 import {PageTitle} from "@/_metronic/layout/core";
 import {ToolbarWrapper} from "@/_metronic/layout/components/toolbar";
 import {Content} from "@/_metronic/layout/components/content";
-import {Head, Link, router} from "@inertiajs/react";
+import {Head, Link} from "@inertiajs/react";
 import {KTCard} from "@/_metronic/helpers";
 import Table, {LinkAction} from "@/components/Table";
 import {PaginationResource} from "@/types";
 import {Order, TicketSupport} from "@/types/models";
 import {ReactElement} from "react";
 import SupportController from "@/actions/Modules/Support/Http/Controllers/Dashboard/SupportController";
+import {applyFilterParam, visitWithFilters} from "@/lib/filters";
 
 
 type Props = {
@@ -34,17 +35,12 @@ const Index = (
   };
 
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    if (value) {
-      searchPrams[name] = value as never;
-    } else {
-      delete searchPrams[name];
-    }
-    router.reload({
-      data: searchPrams,
-      only: ['rows'],
-      // @ts-ignore
-      "preserveState": true,
-    });
+    const next = applyFilterParam(
+      { ...searchPrams } as Record<string, unknown>,
+      name,
+      value,
+    );
+    visitWithFilters(SupportController.index().url, next, { only: ['rows'] });
   };
   return (
     <>

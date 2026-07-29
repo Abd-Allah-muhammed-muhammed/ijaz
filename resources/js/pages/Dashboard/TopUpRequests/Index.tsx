@@ -3,7 +3,7 @@ import MasterLayout from "@/_metronic/layout/MasterLayout";
 import {PageTitle} from "@/_metronic/layout/core";
 import {ToolbarWrapper} from "@/_metronic/layout/components/toolbar";
 import {Content} from "@/_metronic/layout/components/content";
-import {Head, router} from "@inertiajs/react";
+import {Head} from "@inertiajs/react";
 import {KTCard} from "@/_metronic/helpers";
 import Table, {LinkAction} from "@/components/Table";
 import {PaginationResource} from "@/types";
@@ -12,6 +12,7 @@ import ConfirmAction from "@/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
 import {OperationStatusEnum} from "@/Enums/Enums";
 import TopUpRequestController from "@/actions/Modules/Wallet/Http/Controllers/Dashboard/TopUpRequestController";
+import {applyFilterParam, visitWithFilters} from "@/lib/filters";
 
 
 type Props = {
@@ -36,15 +37,12 @@ const Index = (
   };
 
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    if (value) {
-      searchPrams[name] = value as never;
-    } else {
-      delete searchPrams[name];
-    }
-    router.reload({
-      only: ['rows'],
-      data: searchPrams,
-    });
+    const next = applyFilterParam(
+      { ...searchPrams } as Record<string, unknown>,
+      name,
+      value,
+    );
+    visitWithFilters(TopUpRequestController.index().url, next, { only: ['rows'] });
   };
   return (
     <>

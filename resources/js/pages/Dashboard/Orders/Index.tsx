@@ -1,4 +1,4 @@
-import { Head, router } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 import { useTranslation } from 'react-i18next';
 import { PageTitle } from "@/_metronic/layout/core";
 import { ToolbarWrapper } from "@/_metronic/layout/components/toolbar";
@@ -13,6 +13,7 @@ import OrderStats from "@/components/order/OrderStats";
 import { Col, Row } from "react-bootstrap";
 import MasterLayout from '@/_metronic/layout/MasterLayout';
 import { OrderStatusEnum } from "@/Enums/Order";
+import { applyFilterParam, visitWithFilters } from "@/lib/filters";
 
 
 type Props = {
@@ -47,19 +48,12 @@ const Index = (
     search: '',
   };
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    if (value) {
-      searchPrams[name] = value as never;
-    } else {
-      delete searchPrams[name];
-    }
-
-    router.reload<SearchPrams>({
-      only: ['rows', 'prams'],
-      data: searchPrams,
-      // @ts-expect-error: inertia preserveState type mismatch
-      preserveState: true,
-      preserveScroll: true,
-    });
+    const next = applyFilterParam(
+      { ...searchPrams } as Record<string, unknown>,
+      name,
+      value,
+    );
+    visitWithFilters(OrderController.index().url, next, { only: ['rows', 'prams'] });
   };
   return (
     <>

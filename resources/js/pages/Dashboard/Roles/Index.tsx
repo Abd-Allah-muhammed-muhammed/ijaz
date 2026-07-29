@@ -3,7 +3,7 @@ import MasterLayout from "@/_metronic/layout/MasterLayout";
 import {PageTitle} from "@/_metronic/layout/core";
 import {ToolbarWrapper} from "@/_metronic/layout/components/toolbar";
 import {Content} from "@/_metronic/layout/components/content";
-import {Head, Link, router} from "@inertiajs/react";
+import {Head, Link} from "@inertiajs/react";
 import {KTCard, KTIcon} from "@/_metronic/helpers";
 import Table, {LinkAction} from "@/components/Table";
 import {PaginationResource} from "@/types";
@@ -12,6 +12,7 @@ import RoleController from "@/actions/App/Http/Controllers/Dashboard/RoleControl
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import ConfirmAction from "@/components/Table/partials/confirm-action";
+import {applyFilterParam, visitWithFilters} from "@/lib/filters";
 
 type Props = {
   rows: PaginationResource<Role>,
@@ -34,15 +35,12 @@ const Index = (
     search: '',
   };
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    if (value) {
-      searchPrams[name] = value as never;
-    } else {
-      delete searchPrams[name];
-    }
-    router.reload({
-      data:searchPrams,
-      only: ['rows'],
-    });
+    const next = applyFilterParam(
+      { ...searchPrams } as Record<string, unknown>,
+      name,
+      value,
+    );
+    visitWithFilters(RoleController.index().url, next, { only: ['rows'] });
   };
   return (
     <>

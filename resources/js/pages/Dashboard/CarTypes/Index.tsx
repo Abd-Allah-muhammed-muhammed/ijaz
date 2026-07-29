@@ -8,11 +8,12 @@ import ConfirmAction from '@/components/Table/partials/confirm-action';
 import usePermissions from '@/hooks/use-permissions';
 import { PaginationResource } from '@/types';
 import { CarType } from '@/types/models';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { ReactElement, ReactNode } from 'react';
 import FormCheckInput from 'react-bootstrap/FormCheck';
 import { useTranslation } from 'react-i18next';
 import {ToolbarWrapper} from "@/_metronic/layout/components/toolbar";
+import { applyFilterParam, visitWithFilters } from '@/lib/filters';
 
 type Props = {
   rows: PaginationResource<CarType>;
@@ -30,14 +31,12 @@ const Index = ({ rows, prams }: Props) => {
     search: '',
   };
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    if (value) {
-      searchPrams[name] = value as never;
-    } else {
-      delete searchPrams[name];
-    }
-    router.reload({
-      data: searchPrams,
-    });
+    const next = applyFilterParam(
+      { ...searchPrams } as Record<string, unknown>,
+      name,
+      value,
+    );
+    visitWithFilters(CarTypeController.index().url, next);
   };
   return (
     <>

@@ -5,11 +5,12 @@ import { ToolbarWrapper } from '@/_metronic/layout/components/toolbar';
 import { PageTitle } from '@/_metronic/layout/core';
 import Pagination from '@/components/Table/partials/Pagination';
 import { PaginationResource } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { ReactElement, useEffect, useRef, useState } from 'react';
 import { Col, Row } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import OpportunityCard, { OpportunityListItem } from './components/OpportunityCard';
+import { applyFilterParam, visitWithFilters } from '@/lib/filters';
 
 type StatusOption = {
   value: string;
@@ -36,17 +37,12 @@ const Index = ({ rows, prams, selects }: Props) => {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number | undefined) => {
-    const updatedPrams = { ...searchPrams };
-    if (value) {
-      updatedPrams[name] = value as never;
-    } else {
-      delete updatedPrams[name];
-    }
-    router.reload({
-      only: ['rows', 'prams'],
-      data: updatedPrams,
-      preserveScroll: true,
-    });
+    const next = applyFilterParam(
+      { ...searchPrams } as Record<string, unknown>,
+      name,
+      value,
+    );
+    visitWithFilters(window.location.pathname, next, { only: ['rows', 'prams'] });
   };
 
   useEffect(() => {

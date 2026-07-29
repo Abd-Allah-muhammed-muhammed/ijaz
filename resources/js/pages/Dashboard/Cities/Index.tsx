@@ -3,7 +3,7 @@ import MasterLayout from "@/_metronic/layout/MasterLayout";
 import {PageTitle} from "@/_metronic/layout/core";
 import {ToolbarWrapper} from "@/_metronic/layout/components/toolbar";
 import {Content} from "@/_metronic/layout/components/content";
-import {Head, Link, router} from "@inertiajs/react";
+import {Head, Link} from "@inertiajs/react";
 import {KTCard, KTIcon} from "@/_metronic/helpers";
 import Table, {LinkAction} from "@/components/Table";
 import {PaginationResource} from "@/types";
@@ -11,6 +11,7 @@ import {City} from "@/types/models";
 import ConfirmAction from "@/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
 import CityController from "@/actions/Modules/Geo/Http/Controllers/Dashboard/CityController";
+import {applyFilterParam, visitWithFilters} from "@/lib/filters";
 
 
 type Props = {
@@ -37,12 +38,12 @@ const Index = (
   };
 
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    if (value) {
-      searchPrams[name] = value as never;
-    } else {
-      delete searchPrams[name];
-    }
-    router.get(CityController.index().url, searchPrams);
+    const next = applyFilterParam(
+      { ...searchPrams } as Record<string, unknown>,
+      name,
+      value,
+    );
+    visitWithFilters(CityController.index().url, next);
   };
   return (
     <>

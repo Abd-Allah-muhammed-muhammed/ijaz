@@ -8,11 +8,12 @@ import Pagination from '@/components/Table/partials/Pagination';
 import { CitiesSelect, RegionsSelect, SpecializationsSelect } from '@/components/selects';
 import { PaginationResource, SelectOption } from '@/types';
 import { InstituteAdvisement } from '@/types/models';
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { ReactElement, useState } from 'react';
 import { Col, Row } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import InstituteAdvisementCard from './components/InstituteAdvisementCard';
+import { applyFilterParam, visitWithFilters } from '@/lib/filters';
 
 type Props = {
   rows: PaginationResource<InstituteAdvisement>;
@@ -48,16 +49,12 @@ const Index = ({ rows, prams, selects }: Props) => {
   const [selectsData, setSelectsData] = useState<Selects>(selects);
 
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number | undefined) => {
-    const updatedPrams = { ...searchPrams };
-    if (value) {
-      updatedPrams[name] = value as never;
-    } else {
-      delete updatedPrams[name];
-    }
-    router.reload({
-      only: ['rows'],
-      data: updatedPrams,
-    });
+    const next = applyFilterParam(
+      { ...searchPrams } as Record<string, unknown>,
+      name,
+      value,
+    );
+    visitWithFilters(window.location.pathname, next, { only: ['rows'] });
   };
 
   const publishedCount = rows.data.filter((r) => r.status?.value === AdvisementStatusEnum.PUBLISHED).length;
