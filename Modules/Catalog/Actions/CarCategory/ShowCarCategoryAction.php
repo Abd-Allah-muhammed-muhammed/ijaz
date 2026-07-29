@@ -8,6 +8,6 @@ class ShowCarCategoryAction
 {
     public function handle(CarCategory $carCategory): CarCategory
     {
-        return $carCategory->load(['translation']);
+        return $carCategory->load(['translations']);
     }
 }

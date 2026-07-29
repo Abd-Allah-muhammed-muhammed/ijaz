@@ -4,6 +4,7 @@ namespace Modules\Catalog\DTOs;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 
 class StoreCarCategoryDTO
 {
@@ -16,7 +17,10 @@ class StoreCarCategoryDTO
     public static function fromRequest(Request $request): self
     {
         return new self(
-            translations: $request->validated('translations'),
+            translations: Collection::make($request->validated('translations'))
+                ->map(fn ($attrs, $locale) => array_merge($attrs, ['locale' => $locale]))
+                ->values()
+                ->all(),
             icon: $request->file('icon'),
             parentId: $request->validated('parent_id'),
         );

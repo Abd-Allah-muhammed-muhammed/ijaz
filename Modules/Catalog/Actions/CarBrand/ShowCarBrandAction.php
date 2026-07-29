@@ -8,6 +8,6 @@ class ShowCarBrandAction
 {
     public function handle(CarBrand $carBrand): CarBrand
     {
-        return $carBrand->load(['translation']);
+        return $carBrand->load(['translations']);
     }
 }

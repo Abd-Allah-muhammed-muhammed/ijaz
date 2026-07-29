@@ -72,7 +72,7 @@ const Index = ({ rows, prams }: Props) => {
                 title: t('image'),
                 render: (row) => (
                   <div className="symbol symbol-50px me-2">
-                    <img src={row.image_url} alt="" />
+                    <img src={row.image_url || '/media/avatars/blank.png'} alt="" />
                   </div>
                 ),
               },
