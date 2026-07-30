@@ -2,8 +2,9 @@ import { Badge, type BadgeProps } from '@/shared/components/ui/badge';
 import { cn } from '@/shared/lib/utils';
 
 /**
- * Maps common Bootstrap/Metronic status color tokens used across Orders/Guarantor
- * onto shadcn Badge variants + optional tint classes.
+ * Maps Bootstrap/Metronic status color keys onto semantic design tokens
+ * (--primary / --success / --warning / --info / --destructive).
+ * Soft fills use token opacity so badges respond to light/dark + data-app primary.
  */
 const colorToBadge: Record<
   string,
@@ -12,16 +13,16 @@ const colorToBadge: Record<
   primary: { variant: 'default' },
   success: {
     variant: 'outline',
-    className: 'border-transparent bg-emerald-100 text-emerald-800',
+    className: 'border-transparent bg-success/15 text-success',
   },
   danger: { variant: 'destructive' },
   warning: {
     variant: 'outline',
-    className: 'border-transparent bg-amber-100 text-amber-900',
+    className: 'border-transparent bg-warning/20 text-warning-foreground',
   },
   info: {
     variant: 'outline',
-    className: 'border-transparent bg-sky-100 text-sky-900',
+    className: 'border-transparent bg-info/15 text-info',
   },
   secondary: { variant: 'secondary' },
 };
@@ -35,7 +36,7 @@ type StatusBadgeCellProps = {
 };
 
 /**
- * Status / type badge cell — Guarantor status+type and Order status strip condensed.
+ * Status / type badge cell — token-based (no hardcoded emerald/amber/sky palette).
  */
 export function StatusBadgeCell({
   label,

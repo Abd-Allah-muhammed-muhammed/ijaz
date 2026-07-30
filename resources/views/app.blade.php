@@ -34,6 +34,18 @@
   @endif
   @vite(['resources/js/app.tsx', \App\Support\InertiaPagePath::viteEntry($page['component'])])
   @inertiaHead
+  <!--begin::Theme mode setup before paint (Bootstrap + Tailwind .dark sync)-->
+  <script>
+    (function () {
+      let themeMode = localStorage.getItem('kt_theme_mode_value') || '{{$appearance ?? 'system'}}'
+      if (themeMode === 'system') {
+        themeMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      }
+      document.documentElement.setAttribute('data-bs-theme', themeMode)
+      document.documentElement.classList.toggle('dark', themeMode === 'dark')
+    })()
+  </script>
+  <!--end::Theme mode setup-->
   <style>
     #app,
     body {
@@ -82,19 +94,6 @@
 
   <body id="kt_body" class="page-loading">--}}
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <!--begin::Theme mode setup on page load-->
-    <script>
-      let themeMode = '{{$appearance ?? 'system'}}'
-      if (themeMode === 'system') {
-        themeMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      }
-      document.documentElement.setAttribute('data-bs-theme', themeMode)
-    </script>
-
-
-    {{--
-    <script src="{{asset('pan.iife.js')}}"></script>--}}
-    <!--end::Theme mode setup on page load-->
     @inertia
     {{--
     <script src="{{asset('')}}"></script>--}}

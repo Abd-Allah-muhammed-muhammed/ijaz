@@ -1,4 +1,5 @@
 import {EventHandlerUtil} from '../_utils'
+import {syncHtmlDarkClass} from '@/shared/lib/sync-html-dark-class'
 
 type Mode = 'light' | 'dark' | 'system'
 
@@ -70,8 +71,10 @@ class ThemeMode {
     // Enable switching state
     this.element?.setAttribute('data-kt-theme-mode-switching', 'true')
 
-    // Set mode to the target element
+    // Set mode to the target element (Bootstrap/Metronic)
     this.element?.setAttribute('data-bs-theme', mode)
+    // Keep Tailwind design tokens in sync (app.css :root.dark / @custom-variant dark)
+    syncHtmlDarkClass(mode)
 
     // Disable switching state
     const self = this

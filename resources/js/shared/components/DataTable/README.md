@@ -169,7 +169,7 @@ Compose **inside** `column.cell` — they never replace the table row:
 | Cell | Use for |
 | --- | --- |
 | `AvatarCell` | User / requester identity (image + name + email/phone) |
-| `StatusBadgeCell` | Order / Guarantor status or type badges |
+| `StatusBadgeCell` | Order / Guarantor status or type badges (semantic `--success` / `--warning` / `--info` / `--primary`) |
 | `CurrencyCell` | Amounts and budget ranges (`value` + optional `endValue`) |
 | `DateCell` | `created_at` and other date-only fields |
 
