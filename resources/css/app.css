@@ -7,6 +7,20 @@
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 
+/*
+  Bootstrap / react-bootstrap compatibility:
+  Tailwind ships `.collapse { visibility: collapse }` (table-row hiding).
+  Bootstrap Navbar.Collapse / Collapse components use the same class name and
+  control visibility via `display` + `.show`. Tailwind's rule wins in the
+  utilities layer and hides the entire navbar menu (nav links + Login/Register)
+  on every viewport. Restore visibility so Bootstrap owns show/hide.
+*/
+@layer utilities {
+  .collapse {
+    visibility: visible;
+  }
+}
+
 @plugin 'tailwindcss-animate';
 
 @source '../views';
