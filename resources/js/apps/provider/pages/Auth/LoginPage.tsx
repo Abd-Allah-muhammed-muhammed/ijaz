@@ -1,5 +1,4 @@
 import {AuthLayout} from "@/apps/provider/layouts/AuthLayout";
-import {Login} from "@/app/modules/auth/components/Login";
 import {Head, Link, useForm} from "@inertiajs/react";
 import React, {ReactElement} from "react";
 import { useTranslation } from 'react-i18next';

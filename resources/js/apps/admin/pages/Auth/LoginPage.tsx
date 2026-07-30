@@ -1,5 +1,5 @@
-import {AuthLayout} from "@/app/modules/auth/AuthLayout";
-import {Login} from "@/app/modules/auth/components/Login";
+import {AuthLayout} from "@/apps/admin/layouts/AuthLayout";
+import {Login} from "@/apps/admin/pages/Auth/components/Login";
 import {Head} from "@inertiajs/react";
 
 export default function () {

@@ -189,14 +189,15 @@
     --brand-warning: oklch(0.68 0.12 75);
 }
 
-/* Admin Dashboard — violet (AA contrast on white for solid buttons) */
+/* Admin Dashboard — dark purple (AA for white text on solid buttons) */
 :root[data-app='admin'] {
-    --primary: oklch(0.45 0.22 295);
+    /* Deep royal purple #380473 — L=0.30; white text ~14.7:1 (WCAG AA/AAA) */
+    --primary: oklch(0.30 0.16 295);
     --primary-foreground: oklch(0.99 0 0);
-    --ring: oklch(0.45 0.22 295);
-    --sidebar-primary: oklch(0.45 0.22 295);
+    --ring: oklch(0.30 0.16 295);
+    --sidebar-primary: oklch(0.30 0.16 295);
     --sidebar-primary-foreground: oklch(0.99 0 0);
-    --sidebar-ring: oklch(0.45 0.22 295);
+    --sidebar-ring: oklch(0.30 0.16 295);
 }
 
 /* Provider Dashboard — blue */
