@@ -203,35 +203,37 @@
     --brand-warning: oklch(0.68 0.12 75);
 }
 
-/* Admin Dashboard — dark purple (AA for white text on solid buttons) */
+/* Admin Dashboard — professional blue (AA white text on solid buttons) */
 :root[data-app='admin'] {
-    /* Deep royal purple #380473 — L=0.30; white text ~14.7:1 (WCAG AA/AAA) */
-    --primary: oklch(0.30 0.16 295);
+    /* Deep professional blue — L=0.42 / C=0.14 / H=255; white text comfortably above AA */
+    --primary: oklch(0.42 0.14 255);
     --primary-foreground: oklch(0.99 0 0);
-    --ring: oklch(0.30 0.16 295);
-    --sidebar-primary: oklch(0.30 0.16 295);
+    --ring: oklch(0.42 0.14 255);
+    --sidebar-primary: oklch(0.42 0.14 255);
     --sidebar-primary-foreground: oklch(0.99 0 0);
-    --sidebar-ring: oklch(0.30 0.16 295);
+    --sidebar-ring: oklch(0.42 0.14 255);
 }
 
-/* Provider Dashboard — blue */
+/* Provider Dashboard — growth green (not neon, not olive) */
 :root[data-app='provider'] {
-    --primary: oklch(0.48 0.18 255);
+    /* Steady growth green — L=0.42 / C=0.12 / H=155; white text AA on solid fills */
+    --primary: oklch(0.42 0.12 155);
     --primary-foreground: oklch(0.99 0 0);
-    --ring: oklch(0.48 0.18 255);
-    --sidebar-primary: oklch(0.48 0.18 255);
+    --ring: oklch(0.42 0.12 155);
+    --sidebar-primary: oklch(0.42 0.12 155);
     --sidebar-primary-foreground: oklch(0.99 0 0);
-    --sidebar-ring: oklch(0.48 0.18 255);
+    --sidebar-ring: oklch(0.42 0.12 155);
 }
 
-/* Marketer Dashboard (reserved) — green */
+/* Marketer Dashboard (reserved) — warm energetic orange */
 :root[data-app='marketer'] {
-    --primary: oklch(0.5 0.14 155);
+    /* Burnished orange — L=0.52 / C=0.15 / H=48; dark enough for white-text AA, not traffic-cone */
+    --primary: oklch(0.52 0.15 48);
     --primary-foreground: oklch(0.99 0 0);
-    --ring: oklch(0.5 0.14 155);
-    --sidebar-primary: oklch(0.5 0.14 155);
+    --ring: oklch(0.52 0.15 48);
+    --sidebar-primary: oklch(0.52 0.15 48);
     --sidebar-primary-foreground: oklch(0.99 0 0);
-    --sidebar-ring: oklch(0.5 0.14 155);
+    --sidebar-ring: oklch(0.52 0.15 48);
 }
 
 /* Dark mode — shared neutrals; per-app primary lightened for contrast on dark surfaces */
@@ -273,30 +275,33 @@
 }
 
 :root.dark[data-app='admin'] {
-    --primary: oklch(0.72 0.16 295);
-    --primary-foreground: oklch(0.22 0.06 295);
-    --ring: oklch(0.72 0.16 295);
-    --sidebar-primary: oklch(0.72 0.16 295);
-    --sidebar-primary-foreground: oklch(0.22 0.06 295);
-    --sidebar-ring: oklch(0.72 0.16 295);
+    /* Softened professional blue on dark surfaces — clear, not electric */
+    --primary: oklch(0.72 0.12 255);
+    --primary-foreground: oklch(0.22 0.05 255);
+    --ring: oklch(0.72 0.12 255);
+    --sidebar-primary: oklch(0.72 0.12 255);
+    --sidebar-primary-foreground: oklch(0.22 0.05 255);
+    --sidebar-ring: oklch(0.72 0.12 255);
 }
 
 :root.dark[data-app='provider'] {
-    --primary: oklch(0.72 0.14 255);
-    --primary-foreground: oklch(0.22 0.05 255);
-    --ring: oklch(0.72 0.14 255);
-    --sidebar-primary: oklch(0.72 0.14 255);
-    --sidebar-primary-foreground: oklch(0.22 0.05 255);
-    --sidebar-ring: oklch(0.72 0.14 255);
+    /* Soft growth green on dark — readable without neon glow */
+    --primary: oklch(0.72 0.11 155);
+    --primary-foreground: oklch(0.22 0.05 155);
+    --ring: oklch(0.72 0.11 155);
+    --sidebar-primary: oklch(0.72 0.11 155);
+    --sidebar-primary-foreground: oklch(0.22 0.05 155);
+    --sidebar-ring: oklch(0.72 0.11 155);
 }
 
 :root.dark[data-app='marketer'] {
-    --primary: oklch(0.74 0.12 155);
-    --primary-foreground: oklch(0.22 0.05 155);
-    --ring: oklch(0.74 0.12 155);
-    --sidebar-primary: oklch(0.74 0.12 155);
-    --sidebar-primary-foreground: oklch(0.22 0.05 155);
-    --sidebar-ring: oklch(0.74 0.12 155);
+    /* Soft amber-orange on dark — energetic, not alarming */
+    --primary: oklch(0.76 0.13 55);
+    --primary-foreground: oklch(0.25 0.05 55);
+    --ring: oklch(0.76 0.13 55);
+    --sidebar-primary: oklch(0.76 0.13 55);
+    --sidebar-primary-foreground: oklch(0.25 0.05 55);
+    --sidebar-ring: oklch(0.76 0.13 55);
 }
 
 /*
