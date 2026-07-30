@@ -1,7 +1,7 @@
 import { type ReactElement, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Head, router } from '@inertiajs/react';
-import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
+import MasterLayout from '@/apps/admin/layouts/MasterLayout';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
 import { Content } from '@/vendor/metronic/layout/components/content';

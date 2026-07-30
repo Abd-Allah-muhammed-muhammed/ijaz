@@ -9,7 +9,7 @@ import {ReactNode} from "react";
 import {PaymentResponse} from "@/shared/types/api";
 import {build_date} from "@/shared/helpers/general";
 import BankCardBootstrap from "@/shared/components/BankCardBootstrap";
-import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
+import MasterLayout from '@/apps/admin/layouts/MasterLayout';
 import { Button } from 'react-bootstrap';
 import { OperationStatusEnum } from '@/Enums/Enums';
 import { FormInput } from '@/apps/admin/pages/TopUpRequests/types';

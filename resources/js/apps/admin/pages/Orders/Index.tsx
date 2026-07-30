@@ -11,7 +11,7 @@ import OrderController from "@/actions/Modules/Orders/Http/Controllers/Dashboard
 import OrderCard from "@/shared/components/order/order-card";
 import OrderStats from "@/shared/components/order/OrderStats";
 import { Col, Row } from "react-bootstrap";
-import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
+import MasterLayout from '@/apps/admin/layouts/MasterLayout';
 import { OrderStatusEnum } from "@/Enums/Order";
 import { applyFilterParam, visitWithFilters } from "@/shared/lib/filters";
 

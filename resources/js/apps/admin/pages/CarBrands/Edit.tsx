@@ -1,5 +1,5 @@
 import { PageTitle } from '@/vendor/metronic/layout/core';
-import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
+import MasterLayout from '@/apps/admin/layouts/MasterLayout';
 import CarBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarBrandController';
 import { CarBrand } from '@/shared/types/models';
 import { Head } from '@inertiajs/react';

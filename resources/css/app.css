@@ -311,8 +311,44 @@ body {
 /*
   Bridge design-system --primary into Metronic/Bootstrap accents used by
   create (+) buttons and DataTable pagination (legacy .btn-primary / .pagination).
-  Sidebar remains Metronic-owned (layoutType dark-sidebar) — see dedicated pass.
 */
+
+/*
+  Tailwind-native Admin Sidebar (`.ds-sidebar`) — overrides Metronic dark-sidebar
+  paint so `bg-sidebar` / light-dark / data-app tokens win. Geometry (`app-sidebar`,
+  `data-kt-app-sidebar-*`) stays for header/content shell compatibility.
+*/
+#kt_app_sidebar.ds-sidebar {
+    background-color: var(--sidebar) !important;
+    border-inline-end: 1px solid var(--sidebar-border);
+    color: var(--sidebar-foreground);
+}
+
+#kt_app_sidebar.ds-sidebar .app-sidebar-logo {
+    border-bottom: 1px dashed var(--sidebar-border);
+}
+
+/* Minimize: hide labels (Metronic geometry still collapses width via body attrs) */
+[data-kt-app-sidebar-minimize='on'] #kt_app_sidebar.ds-sidebar .ds-sidebar-label,
+[data-kt-app-sidebar-minimize='on'] #kt_app_sidebar.ds-sidebar .ds-sidebar-section-title {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+[data-kt-app-sidebar-hoverable='true'][data-kt-app-sidebar-minimize='on']
+    #kt_app_sidebar.ds-sidebar:hover:not(.animating)
+    .ds-sidebar-label,
+[data-kt-app-sidebar-hoverable='true'][data-kt-app-sidebar-minimize='on']
+    #kt_app_sidebar.ds-sidebar:hover:not(.animating)
+    .ds-sidebar-section-title {
+    opacity: 1;
+    width: auto;
+    pointer-events: auto;
+}
 .btn-primary {
     --bs-btn-color: var(--primary-foreground);
     --bs-btn-bg: var(--primary);

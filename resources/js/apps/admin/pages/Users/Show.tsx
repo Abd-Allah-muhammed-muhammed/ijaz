@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import MasterLayout from "@/vendor/metronic/layout/MasterLayout";
+import MasterLayout from "@/apps/admin/layouts/MasterLayout";
 import {Content} from "@/vendor/metronic/layout/components/content";
 import {router} from "@inertiajs/react";
 import { User, WalletTransaction } from '@/shared/types/models';
