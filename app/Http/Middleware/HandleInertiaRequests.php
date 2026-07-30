@@ -2,11 +2,13 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\FrontendShell;
 use App\Http\Resources\Dashboard\AdminResource;
 use App\Http\Resources\Dashboard\ProviderResource;
 use App\Models\Admin;
 use App\Models\Provider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use Inertia\Middleware;
 
@@ -43,6 +45,9 @@ class HandleInertiaRequests extends Middleware
 
         $success = session('success');
         $error = session('error');
+        $shell = FrontendShell::fromRequest($request);
+
+        View::share('appShell', $shell->value);
 
         return [
             ...parent::share($request),
@@ -54,6 +59,7 @@ class HandleInertiaRequests extends Middleware
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'app' => [
                 'locale' => app()->getLocale(),
+                'shell' => $shell->value,
             ],
             'flash' => [
                 'success' => $this->makeMessage($success),

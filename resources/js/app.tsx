@@ -1,27 +1,28 @@
-// import './_metronic/assets/sass/style.react.scss'
-// import './_metronic/assets/fonticon/fonticon.css'
-import './_metronic/assets/keenicons/duotone/style.css';
-import './_metronic/assets/keenicons/outline/style.css';
-import './_metronic/assets/keenicons/solid/style.css';
+// import './vendor/metronic/assets/sass/style.react.scss'
+// import './vendor/metronic/assets/fonticon/fonticon.css'
+import './vendor/metronic/assets/keenicons/duotone/style.css';
+import './vendor/metronic/assets/keenicons/outline/style.css';
+import './vendor/metronic/assets/keenicons/solid/style.css';
 // import './selects.css';
-// import './_metronic/assets/sass/style.scss'
-import { MasterInit } from '@/_metronic/layout/MasterInit';
-import { ThemeModeProvider } from '@/_metronic/partials';
+// import './vendor/metronic/assets/sass/style.scss'
+import { MasterInit } from '@/vendor/metronic/layout/MasterInit';
+import { ThemeModeProvider } from '@/vendor/metronic/partials';
 import { RecommendedOrdersProvider } from '@/store/recommend-orders-context';
 import { ConversationProvider } from '@/store/use-chat';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import { createInertiaApp } from '@inertiajs/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import axios from 'axios';
-import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { Suspense } from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
-import { LayoutProvider, LayoutSplashScreen } from './_metronic/layout/core';
+import { LayoutProvider, LayoutSplashScreen } from './vendor/metronic/layout/core';
 import './echo';
-import { initializeTheme } from './hooks/use-appearance';
+import { initializeTheme } from './shared/hooks/use-appearance';
 import './lang/i18next';
 import I18nextEffect from './lang/I18next-effect';
+import { setApiLocale } from './shared/lib/api-client';
+import { resolveInertiaPage } from './shared/lib/resolve-inertia-page';
+import type { SharedData } from './shared/types';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Ijaz';
 
@@ -29,10 +30,12 @@ const queryClient = new QueryClient();
 
 createInertiaApp({
   title: (title) => `${title} - ${appName}`,
-  resolve: (name) => resolvePageComponent(`./pages/${name}.tsx`, import.meta.glob('./pages/**/*.tsx')),
+  resolve: (name) => resolveInertiaPage(name),
   setup({ el, App, props }) {
-    const locale = (props.initialPage.props.app as { locale: string })?.locale || 'en';
-    axios.defaults.headers.common['Accept-Language'] = locale;
+    const shared = props.initialPage.props as SharedData;
+    const locale = shared.app?.locale || 'en';
+    // Must set on the shared apiClient instance — query hooks do not use global axios.
+    setApiLocale(locale);
 
     const appElement = (
       <I18nextEffect locale={locale}>

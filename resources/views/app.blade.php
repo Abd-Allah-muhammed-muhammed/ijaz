@@ -13,14 +13,12 @@
   <meta name="csrf" content="{{csrf_token()}}" />
   <meta name="theme-color" content="#000000" />
   <meta name="description" content="Ijaz" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
   <title inertia>{{ config('app.name', 'Ijaz') }}</title>
   <link rel="shortcut icon" href="{{asset('/media/logos/default.svg')}}" />
   <link rel="stylesheet" id="layout-styles-anchor" href="{{asset('splash-screen.css')}}" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Iceland&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   @viteReactRefresh
   {{-- {!!app(TranslationService::class)->render($locale)!!}--}}
   <script>
@@ -31,8 +29,20 @@
   @else
     <link rel="stylesheet" href="{{asset('css/style.bundle.css')}}" />
   @endif
-  @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+  @vite(['resources/js/app.tsx', \App\Support\InertiaPagePath::viteEntry($page['component'])])
   @inertiaHead
+  <!--begin::Theme mode setup before paint-->
+  <script>
+    (function () {
+      let themeMode = localStorage.getItem('kt_theme_mode_value') || '{{$appearance ?? 'system'}}'
+      if (themeMode === 'system') {
+        themeMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      }
+      document.documentElement.setAttribute('data-bs-theme', themeMode)
+      document.documentElement.classList.toggle('dark', themeMode === 'dark')
+    })()
+  </script>
+  <!--end::Theme mode setup-->
   <style>
     #app,
     body {
@@ -81,19 +91,6 @@
 
   <body id="kt_body" class="page-loading">--}}
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <!--begin::Theme mode setup on page load-->
-    <script>
-      let themeMode = '{{$appearance ?? 'system'}}'
-      if (themeMode === 'system') {
-        themeMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      }
-      document.documentElement.setAttribute('data-bs-theme', themeMode)
-    </script>
-
-
-    {{--
-    <script src="{{asset('pan.iife.js')}}"></script>--}}
-    <!--end::Theme mode setup on page load-->
     @inertia
     {{--
     <script src="{{asset('')}}"></script>--}}

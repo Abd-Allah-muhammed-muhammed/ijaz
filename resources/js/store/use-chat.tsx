@@ -1,5 +1,5 @@
 import {createContext, ReactElement, useContext, useState} from "react";
-import {Conversation} from "@/types/models";
+import {Conversation} from "@/shared/types/models";
 
 type ConversationContextType = {
   conversations: Conversation[],
