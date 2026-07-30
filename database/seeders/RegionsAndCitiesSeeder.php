@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Support\Normalize;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -67,12 +68,14 @@ class RegionsAndCitiesSeeder extends Seeder
                 'region_id' => $regionId,
                 'locale' => 'en',
                 'title' => $region['en'],
+                'normalized_title' => Normalize::make($region['en'], 'en')->toString(),
             ];
 
             $translationsData[] = [
                 'region_id' => $regionId,
                 'locale' => 'ar',
                 'title' => $region['ar'],
+                'normalized_title' => Normalize::make($region['ar'], 'ar')->toString(),
             ];
         }
 
@@ -219,12 +222,14 @@ class RegionsAndCitiesSeeder extends Seeder
                 'city_id' => $cityId,
                 'locale' => 'en',
                 'title' => $city['en'],
+                'normalized_title' => Normalize::make($city['en'], 'en')->toString(),
             ];
 
             $translationsData[] = [
                 'city_id' => $cityId,
                 'locale' => 'ar',
                 'title' => $city['ar'],
+                'normalized_title' => Normalize::make($city['ar'], 'ar')->toString(),
             ];
         }
 

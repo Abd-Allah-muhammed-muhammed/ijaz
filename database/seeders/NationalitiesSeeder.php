@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Support\Normalize;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -184,12 +185,20 @@ class NationalitiesSeeder extends Seeder
                 'nationality_id' => $nationalityId,
                 'locale' => 'en',
                 'name' => $baseCountry['en'].($variation > 0 ? ' V'.$variation : ''),
+                'normalized_name' => Normalize::make(
+                    $baseCountry['en'].($variation > 0 ? ' V'.$variation : ''),
+                    'en'
+                )->toString(),
             ];
 
             $translations[] = [
                 'nationality_id' => $nationalityId,
                 'locale' => 'ar',
                 'name' => $baseCountry['ar'].($variation > 0 ? ' '.$variation : ''),
+                'normalized_name' => Normalize::make(
+                    $baseCountry['ar'].($variation > 0 ? ' '.$variation : ''),
+                    'ar'
+                )->toString(),
             ];
         }
 

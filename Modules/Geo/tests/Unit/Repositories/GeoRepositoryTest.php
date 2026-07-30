@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\User;
+use App\Support\Normalize;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Modules\Geo\Contracts\Repositories\CityRepositoryInterface;
 use Modules\Geo\Contracts\Repositories\NationalityRepositoryInterface;
 use Modules\Geo\Contracts\Repositories\RegionRepositoryInterface;
@@ -19,6 +21,88 @@ test('region repository paginates with search', function () {
 
     expect($results->total())->toBe(1)
         ->and($results->first()->is($matching))->toBeTrue();
+});
+
+test('searching regions by partial title returns matching results', function () {
+    app()->setLocale('en');
+
+    $matching = app(RegionRepositoryInterface::class)->create([
+        'en' => ['title' => 'Northern Frontier'],
+        'ar' => ['title' => 'الحدود الشمالية'],
+    ]);
+    app(RegionRepositoryInterface::class)->create([
+        'en' => ['title' => 'Eastern Province'],
+        'ar' => ['title' => 'المنطقة الشرقية'],
+    ]);
+
+    $results = app(RegionRepositoryInterface::class)->paginate(
+        Request::create('/', 'GET', ['search' => 'no'])
+    );
+
+    expect($results->total())->toBeGreaterThan(0)
+        ->and($results->pluck('id'))->toContain($matching->id);
+});
+
+test('searching cities by partial title returns matching results', function () {
+    app()->setLocale('en');
+
+    $region = Region::factory()->create();
+    $matching = app(CityRepositoryInterface::class)->create($region->id, [
+        'en' => ['title' => 'Northern City'],
+        'ar' => ['title' => 'مدينة شمالية'],
+    ]);
+    app(CityRepositoryInterface::class)->create($region->id, [
+        'en' => ['title' => 'Southern City'],
+        'ar' => ['title' => 'مدينة جنوبية'],
+    ]);
+
+    $results = app(CityRepositoryInterface::class)->paginate(
+        Request::create('/', 'GET', ['search' => 'no'])
+    );
+
+    expect($results->total())->toBeGreaterThan(0)
+        ->and($results->pluck('id'))->toContain($matching->id);
+});
+
+test('region search finds rows after normalized_title backfill', function () {
+    app()->setLocale('en');
+
+    $regionId = DB::table('regions')->insertGetId([
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    DB::table('region_translations')->insert([
+        'region_id' => $regionId,
+        'locale' => 'en',
+        'title' => 'BackfillNorthernRegion',
+        'normalized_title' => null,
+    ]);
+
+    expect(
+        DB::selectOne(
+            'SELECT normalized_title FROM region_translations WHERE region_id = ? AND locale = ?',
+            [$regionId, 'en']
+        )->normalized_title
+    )->toBeNull();
+
+    DB::table('region_translations')
+        ->whereNull('normalized_title')
+        ->orWhere('normalized_title', '')
+        ->orderBy('id')
+        ->each(function (object $row): void {
+            DB::table('region_translations')
+                ->where('id', $row->id)
+                ->update([
+                    'normalized_title' => Normalize::make($row->title, $row->locale)->toString(),
+                ]);
+        });
+
+    $results = app(RegionRepositoryInterface::class)->paginate(
+        Request::create('/', 'GET', ['search' => 'northern'])
+    );
+
+    expect($results->pluck('id'))->toContain($regionId);
 });
 
 test('city repository filters by region_id', function () {

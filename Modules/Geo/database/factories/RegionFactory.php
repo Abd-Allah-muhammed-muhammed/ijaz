@@ -31,7 +31,6 @@ class RegionFactory extends Factory
             $region->translations()->create([
                 'locale' => 'en',
                 'title' => fake()->city(),
-                'normalized_title' => fake()->slug(),
             ]);
         });
     }
