@@ -315,18 +315,32 @@
   Map those onto our design tokens so Metronic picks up per-app colors with ZERO
   component/JSX changes.
 
-  --bs-primary-rgb limitation: Bootstrap does `rgba(var(--bs-primary-rgb), α)` which
-  requires a literal "R, G, B" channel string — it cannot accept oklch()/var(--primary).
-  RGB triples below are precomputed from the matching oklch --primary values (Node
-  conversion) and must be updated if those tokens change.
-
   Sidebar dark background ($coal-500 / #0D0E12 via --bs-app-sidebar-*) is NOT
   primary-linked and is unaffected by this bridge.
+*/
+
+/*
+  ╔═══════════════════════════════════════════════════════════════════════════╗
+  ║  MANUAL SYNC REQUIRED — --bs-primary-rgb                                  ║
+  ║                                                                           ║
+  ║  These RGB triples are MANUALLY computed from the oklch --primary tokens  ║
+  ║  above. They do NOT update automatically when --primary changes.          ║
+  ║                                                                           ║
+  ║  Bootstrap uses them as:  rgba(var(--bs-primary-rgb), α)                  ║
+  ║  That syntax requires a literal "R, G, B" channel string — it cannot      ║
+  ║  accept oklch() or var(--primary).                                        ║
+  ║                                                                           ║
+  ║  If you change --primary for ANY app (light or dark), you MUST also       ║
+  ║  recompute and update the matching --bs-primary-rgb triple below, or      ║
+  ║  Bootstrap's rgba()-based effects (shadows, focus rings, .bg-primary      ║
+  ║  opacity utilities, subtle overlays, etc.) will SILENTLY go out of sync   ║
+  ║  with the solid --primary / --bs-primary color.                           ║
+  ╚═══════════════════════════════════════════════════════════════════════════╝
 */
 :root,
 :root[data-app='web'] {
     --bs-primary: var(--primary);
-    --bs-primary-rgb: 14, 16, 31; /* from oklch(0.18 0.03 275) */
+    --bs-primary-rgb: 14, 16, 31; /* MANUAL SYNC ← oklch(0.18 0.03 275) */
     --bs-primary-active: color-mix(in oklab, var(--primary) 88%, black);
     --bs-primary-light: color-mix(in oklab, var(--primary) 14%, white);
     --bs-primary-inverse: var(--primary-foreground);
@@ -345,20 +359,20 @@
 }
 
 :root[data-app='admin'] {
-    --bs-primary-rgb: 0, 75, 151; /* from oklch(0.42 0.14 255) */
+    --bs-primary-rgb: 0, 75, 151; /* MANUAL SYNC ← oklch(0.42 0.14 255) */
 }
 
 :root[data-app='provider'] {
-    --bs-primary-rgb: 0, 95, 46; /* from oklch(0.42 0.12 155) */
+    --bs-primary-rgb: 0, 95, 46; /* MANUAL SYNC ← oklch(0.42 0.12 155) */
 }
 
 :root[data-app='marketer'] {
-    --bs-primary-rgb: 170, 70, 0; /* from oklch(0.52 0.15 48) */
+    --bs-primary-rgb: 170, 70, 0; /* MANUAL SYNC ← oklch(0.52 0.15 48) */
 }
 
 :root.dark,
 :root.dark[data-app='web'] {
-    --bs-primary-rgb: 175, 182, 210; /* from oklch(0.78 0.04 275) */
+    --bs-primary-rgb: 175, 182, 210; /* MANUAL SYNC ← oklch(0.78 0.04 275) */
     --bs-primary-active: color-mix(in oklab, var(--primary) 88%, black);
     --bs-primary-light: color-mix(in oklab, var(--primary) 22%, black);
     --bs-primary-text-emphasis: color-mix(in oklab, var(--primary) 70%, white);
@@ -368,15 +382,15 @@
 }
 
 :root.dark[data-app='admin'] {
-    --bs-primary-rgb: 111, 167, 238; /* from oklch(0.72 0.12 255) */
+    --bs-primary-rgb: 111, 167, 238; /* MANUAL SYNC ← oklch(0.72 0.12 255) */
 }
 
 :root.dark[data-app='provider'] {
-    --bs-primary-rgb: 104, 185, 134; /* from oklch(0.72 0.11 155) */
+    --bs-primary-rgb: 104, 185, 134; /* MANUAL SYNC ← oklch(0.72 0.11 155) */
 }
 
 :root.dark[data-app='marketer'] {
-    --bs-primary-rgb: 240, 153, 91; /* from oklch(0.76 0.13 55) */
+    --bs-primary-rgb: 240, 153, 91; /* MANUAL SYNC ← oklch(0.76 0.13 55) */
 }
 
 /*
