@@ -1,4 +1,3 @@
-import {LucideIcon} from 'lucide-react';
 import {AuthenticatedUser, Model} from "@/shared/types/models";
 
 export interface Auth {
@@ -19,7 +18,7 @@ export interface NavGroup {
 export interface NavItem {
   title: string;
   href: string;
-  icon?: LucideIcon | null;
+  icon?: string | null;
   isActive?: boolean;
 }
 
@@ -34,7 +33,7 @@ export interface SharedData {
   sidebarOpen: boolean;
   app: {
     locale: string;
-    /** Design-system shell: drives <html data-app> color tokens */
+    /** Frontend shell identifier (admin / provider / marketer / web) */
     shell: 'admin' | 'provider' | 'marketer' | 'web';
   }
   flash: {
@@ -48,46 +47,18 @@ export interface PaginationResource<T extends typeof Model> {
   links: {
     first: string;
     last: string;
-    prev: string;
-    next: string;
+    prev: string | null;
+    next: string | null;
   };
-  meta: PaginationMeta;
+  meta: {
+    current_page: number;
+    from: number | null;
+    last_page: number;
+    path: string;
+    per_page: number;
+    to: number | null;
+    total: number;
+  };
 }
 
-export interface PaginationLink {
-  active: boolean;
-  label: string | TrustedHTML;
-  url: string;
-}
-
-export interface PaginationMeta {
-  current_page: number;
-  last_page: number;
-  per_page: number;
-  total: number;
-  from: number;
-  to: number;
-  path: string;
-  links: PaginationLink[];
-}
-export type LocalesOptions = {
-  name: string;
-  script: string;
-  regional: string;
-  native: string;
-  flag: string;
-}
-export type Locales = {
-  [key: string]: LocalesOptions;
-}
-
-export  type SelectOption = {
-  label: string;
-  value: string;
-};
-
-export type ReactSelect = {
-  label: string;
-  value: number | string;
-};
-
+export type { AuthenticatedUser, Model };

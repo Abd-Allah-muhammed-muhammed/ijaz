@@ -1,172 +1,154 @@
-import { type ReactElement, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Head, Link, router } from '@inertiajs/react';
-import MasterLayout from '@/apps/admin/layouts';
-import { PageTitle } from '@/vendor/metronic/layout/core';
-import { ToolbarWrapper } from '@/apps/admin/layouts';
-import { Content } from '@/apps/admin/layouts';
-import { KTCard, KTIcon } from '@/vendor/metronic/helpers';
-import {
-  AvatarCell,
-  DataTable,
-  DateCell,
-  StatusBadgeCell,
-  type DataTableColumn,
-} from '@/shared/components/DataTable';
-import usePermissions from '@/shared/hooks/use-permissions';
-import { applyFilterParam, visitWithFilters } from '@/shared/lib/filters';
-import type { PaginationResource } from '@/shared/types';
-import type { Admin } from '@/shared/types/models';
-import AdminController from '@/actions/App/Http/Controllers/Dashboard/AdminController';
+import MasterLayout from "@/vendor/metronic/layout/MasterLayout";
+import {PageTitle} from "@/vendor/metronic/layout/core";
+import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
+import {Content} from "@/vendor/metronic/layout/components/content";
+import {Head, Link, router} from "@inertiajs/react";
+import {KTCard, KTIcon} from "@/vendor/metronic/helpers";
+import Table, {LinkAction} from "@/shared/components/Table";
+import {PaginationResource} from "@/shared/types";
+import {Admin} from "@/shared/types/models";
+import AdminController from "@/actions/App/Http/Controllers/Dashboard/AdminController";
+import UserInfo from "@/shared/components/User/user-info";
+import withReactContent from "sweetalert2-react-content";
+import Swal from "sweetalert2";
+import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
 
-type SearchParams = {
-  per_page?: number;
-  search?: string;
-};
 
 type Props = {
-  rows: PaginationResource<Admin>;
-  prams: SearchParams | null;
+  rows: PaginationResource<Admin>,
+  prams: SearchPrams | null;
 };
 
-/**
- * Admins index — pilot DataTable migration (reference for remaining CRUD indexes).
- *
- * Note: admins resource has no Show route (`except(['show'])`). Row click opens Edit
- * when the user has `edit admins`; otherwise the row is not clickable.
- */
-const Index = ({ rows, prams }: Props) => {
+type SearchPrams = {
+  per_page: number;
+  search: string;
+};
+const Index = (
+  {
+    rows,
+    prams,
+  }: Props
+) => {
   const { t } = useTranslation();
-  const { hasPermission } = usePermissions();
-  const canEdit = hasPermission('edit admins');
-  const canCreate = hasPermission('create admins');
-  const canDelete = hasPermission('delete admins');
-
-  const searchParams: SearchParams = {
-    per_page: prams?.per_page ?? 10,
-    ...(prams?.search ? { search: prams.search } : {}),
+  const searchPrams: SearchPrams = prams || {
+    per_page: 10,
+    search: '',
   };
-
-  const searchParamsChanged = (name: keyof SearchParams, value: string | number) => {
-    const next = applyFilterParam(
-      { ...searchParams } as Record<string, unknown>,
-      name,
-      value,
-    );
-    visitWithFilters(AdminController.index().url, next, { only: ['rows', 'prams'] });
+  const swal = withReactContent(Swal)
+  const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
+    if (value) {
+      searchPrams[name] = value as never;
+    } else {
+      delete searchPrams[name];
+    }
+    router.get(AdminController.index().url, searchPrams);
   };
-
-  const columns = useMemo<DataTableColumn<Admin>[]>(
-    () => [
-      {
-        id: 'name',
-        header: t('name'),
-        cell: (row) => (
-          <AvatarCell name={row.name} image={row.image} description={row.email} />
-        ),
-      },
-      {
-        id: 'role',
-        header: t('role'),
-        cell: (row) => {
-          if (row.root) {
-            return <StatusBadgeCell label={t('root', { defaultValue: 'Root' })} color="warning" />;
-          }
-
-          const roleName = row.roles?.[0]?.name;
-
-          if (!roleName) {
-            return <span className="text-muted-foreground">—</span>;
-          }
-
-          return <StatusBadgeCell label={roleName} color="primary" />;
-        },
-      },
-      {
-        id: 'phone',
-        header: t('phone'),
-        accessorKey: 'phone',
-      },
-      {
-        id: 'job',
-        header: t('job'),
-        accessorKey: 'job',
-      },
-      {
-        id: 'created_at',
-        header: t('created_at'),
-        cell: (row) => <DateCell value={row.created_at} />,
-      },
-    ],
-    [t],
-  );
-
   return (
     <>
-      <Head title={t('admins')} />
-      <PageTitle
-        breadcrumbs={[
-          {
-            title: '',
-            path: '',
-            isSeparator: true,
-            isActive: false,
-          },
-        ]}
-      >
+      <Head title={t('admins')}/>
+      <PageTitle breadcrumbs={[
+        // {
+        //   title: 'User Management',
+        //   path: '/apps/user-management/users',
+        //   isSeparator: false,
+        //   isActive: false,
+        // },
+        {
+          title: '',
+          path: '',
+          isSeparator: true,
+          isActive: false,
+        },
+      ]}>
         {t('admins')}
       </PageTitle>
-      <ToolbarWrapper />
+      <ToolbarWrapper/>
       <Content>
-        <KTCard className="p-6">
-          <DataTable
-            columns={columns}
-            data={rows.data}
-            pagination={rows.meta}
-            paginationOnly={['rows', 'prams']}
-            searchable
-            searchValue={prams?.search ?? ''}
-            searchPlaceholder={t('search', { defaultValue: 'Search' })}
-            onSearch={(value) => searchParamsChanged('search', value)}
-            onRowClick={
-              canEdit
-                ? (row) => {
-                    router.visit(AdminController.edit(row.id as number).url);
-                  }
-                : undefined
-            }
-            toolbar={
-              canCreate ? (
-                <Link href={AdminController.create().url} className="btn btn-primary">
-                  <KTIcon iconName="plus" className="fs-2" />
-                </Link>
-              ) : null
-            }
-            actions={() => [
+        <KTCard>
+          <Table<Admin>
+            name='admins'
+            rows={rows}
+            search={{
+              value: prams?.search || '',
+              callback: (value) => {
+                searchPramsChanged('search', value);
+              },
+            }}
+            headers={[
               {
-                id: 'edit',
-                label: t('edit'),
-                href: (row) => AdminController.edit(row.id as number).url,
-                visible: canEdit,
+                title: t('name'),
+                property: 'name',
+                render: (row) => (
+                  <UserInfo user={{
+                    name: row.name,
+                    image: row.image,
+                    email: row.email,
+                  }}/>
+                )
               },
               {
-                id: 'delete',
-                label: t('delete'),
-                variant: 'destructive',
-                visible: canDelete,
-                confirm: { type: 'swal' },
-                onSelect: (row) => {
-                  router.delete(AdminController.destroy(row.id as number).url);
-                },
+                title: t('role'),
+                property: 'roles',
+                render: (row) => {
+                  if (row.roles?.length > 0) {
+                    return row.roles[0].name;
+                  }
+                  return '--';
+                }
+              },
+              {
+                title: t('phone'),
+                property: 'phone',
+              },
+              {
+                title: t('job'),
+                property: 'job',
+              },
+              {
+                title: t('created_at'),
+                property: 'created_at',
               },
             ]}
+            actions={[
+              {
+                show: true,
+                ele: (row) => (
+                  <LinkAction
+                    key={`edit-admin-${row.id}`}
+                    href={AdminController.edit(row.id as number).url}
+                    title={t('edit')}
+                  />
+                ),
+              },
+              {
+                show: true,
+                ele: (row) => (
+                  <ConfirmAction
+                    key={`delete-admin-${row.id}`}
+                    callback={() => {
+                      router.delete(AdminController.destroy(row.id as number).url)
+                    }}
+                    title={t('delete')}
+                  />
+                ),
+              },
+            ]}
+            addButton={
+              <Link
+                href={AdminController.create().url}
+                className="btn btn-primary"
+              >
+                <KTIcon iconName='plus' className='fs-2'/>
+              </Link>
+            }
           />
         </KTCard>
+        {/*{itemIdForUpdate !== undefined && <UserEditModal/>}*/}
       </Content>
     </>
   );
-};
+}
+Index.layout = (page: any) => <MasterLayout children={page}/>;
 
-Index.layout = (page: ReactElement) => <MasterLayout>{page}</MasterLayout>;
-
-export default Index;
+export default Index

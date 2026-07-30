@@ -1,131 +1,143 @@
-import { type ReactElement, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Head, Link, router } from '@inertiajs/react';
-import MasterLayout from '@/apps/admin/layouts';
-import { PageTitle } from '@/vendor/metronic/layout/core';
-import { ToolbarWrapper } from '@/apps/admin/layouts';
-import { Content } from '@/apps/admin/layouts';
-import { KTCard, KTIcon } from '@/vendor/metronic/helpers';
-import { DataTable, type DataTableColumn } from '@/shared/components/DataTable';
-import { applyFilterParam, visitWithFilters } from '@/shared/lib/filters';
-import type { PaginationResource } from '@/shared/types';
-import type { Region } from '@/shared/types/models';
-import RegionController from '@/actions/Modules/Geo/Http/Controllers/Dashboard/RegionController';
-import CityController from '@/actions/Modules/Geo/Http/Controllers/Dashboard/CityController';
+import MasterLayout from "@/vendor/metronic/layout/MasterLayout";
+import {PageTitle} from "@/vendor/metronic/layout/core";
+import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
+import {Content} from "@/vendor/metronic/layout/components/content";
+import {Head, Link} from "@inertiajs/react";
+import {KTCard, KTIcon} from "@/vendor/metronic/helpers";
+import Table, {LinkAction} from "@/shared/components/Table";
+import {PaginationResource} from "@/shared/types";
+import {Region} from "@/shared/types/models";
+import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
+import {ReactElement} from "react";
+import RegionController from "@/actions/Modules/Geo/Http/Controllers/Dashboard/RegionController";
+import CityController from "@/actions/Modules/Geo/Http/Controllers/Dashboard/CityController";
+import {applyFilterParam, visitWithFilters} from "@/shared/lib/filters";
 
-type SearchParams = {
-  per_page?: number;
-  search?: string;
-};
 
 type Props = {
-  rows: PaginationResource<Region>;
-  prams: SearchParams | null;
+  rows: PaginationResource<Region>,
+  prams: SearchPrams | null;
 };
 
-const Index = ({ rows, prams }: Props) => {
+type SearchPrams = {
+  per_page: number;
+  search: string;
+};
+const Index = (
+  {
+    rows,
+    prams,
+  }: Props
+) => {
   const { t } = useTranslation();
-
-  const searchParams: SearchParams = {
-    per_page: prams?.per_page ?? 10,
-    ...(prams?.search ? { search: prams.search } : {}),
+  const searchPrams: SearchPrams = prams || {
+    per_page: 10,
+    search: '',
   };
-
-  const searchParamsChanged = (name: keyof SearchParams, value: string | number) => {
+  const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
     const next = applyFilterParam(
-      { ...searchParams } as Record<string, unknown>,
+      { ...searchPrams } as Record<string, unknown>,
       name,
       value,
     );
-    visitWithFilters(RegionController.index().url, next, { only: ['rows', 'prams'] });
+    visitWithFilters(RegionController.index().url, next);
   };
-
-  const columns = useMemo<DataTableColumn<Region>[]>(
-    () => [
-      {
-        id: 'title',
-        header: t('title'),
-        accessorKey: 'title',
-      },
-      {
-        id: 'cities_count',
-        header: t('cities_count'),
-        cell: (row) => (
-          <Link
-            href={CityController.index({
-              mergeQuery: {
-                region_id: row.id,
-              },
-            }).url}
-            className="text-primary"
-            onClick={(event) => event.stopPropagation()}
-          >
-            {row.cities_count || '0'}
-          </Link>
-        ),
-      },
-    ],
-    [t],
-  );
-
   return (
     <>
-      <Head title={t('region')} />
-      <PageTitle
-        breadcrumbs={[
-          {
-            title: '',
-            path: '',
-            isSeparator: true,
-            isActive: false,
-          },
-        ]}
-      >
+      <Head title={t('region')}/>
+      <PageTitle breadcrumbs={[
+        // {
+        //   title: 'User Management',
+        //   path: '/apps/user-management/users',
+        //   isSeparator: false,
+        //   isActive: false,
+        // },
+        {
+          title: '',
+          path: '',
+          isSeparator: true,
+          isActive: false,
+        },
+      ]}>
         {t('region')}
       </PageTitle>
-      <ToolbarWrapper />
+      <ToolbarWrapper/>
       <Content>
-        <KTCard className="p-6">
-          <DataTable
-            columns={columns}
-            data={rows.data}
-            pagination={rows.meta}
-            paginationOnly={['rows', 'prams']}
-            searchable
-            searchValue={prams?.search ?? ''}
-            searchPlaceholder={t('search', { defaultValue: 'Search' })}
-            onSearch={(value) => searchParamsChanged('search', value)}
-            onRowClick={(row) => {
-              router.visit(RegionController.edit(row.id as number).url);
+        <KTCard>
+          <Table
+            <Region>
+            name='skills'
+            rows={rows}
+            search={{
+              value: prams?.search || '',
+              callback: (value) => {
+                searchPramsChanged('search', value);
+              },
             }}
-            toolbar={
-              <Link href={RegionController.create().url} className="btn btn-primary">
-                <KTIcon iconName="plus" className="fs-2" />
-              </Link>
-            }
-            actions={() => [
+            headers={[
               {
-                id: 'edit',
-                label: t('edit'),
-                href: (row) => RegionController.edit(row.id as number).url,
+                title: t('title'),
+                property: 'title',
               },
               {
-                id: 'delete',
-                label: t('delete'),
-                variant: 'destructive',
-                confirm: { type: 'swal' },
-                onSelect: (row) => {
-                  router.delete(RegionController.destroy(row.id as number).url);
-                },
+                title: t('cities_count'),
+                property: 'cities_count',
+                render: (row) => (
+                  <Link
+                    href={CityController.index({
+                      mergeQuery: {
+                        region_id: row.id,
+                      }
+                    })
+                      .url
+                    }
+                    className='text-primary'
+                  >
+                    {row.cities_count || '0'}
+                  </Link>
+                ),
               },
             ]}
+            actions={[
+              {
+                show: true,
+                ele: (row) => (
+                  <LinkAction
+                    key={`edit-region-${row.id}`}
+                    href={RegionController.edit(row.id as number).url}
+                    title={t('edit')}
+                  />
+                ),
+              },
+              {
+                show: true,
+                ele: (row) => (
+                  <ConfirmAction
+                    key={`delete-region-${row.id}`}
+                    callback={() => {
+                      router.delete(RegionController.destroy(row.id as number).url)
+                    }}
+                    title={t('delete')}
+                  />
+                ),
+              },
+            ]}
+            addButton={
+              <Link
+                href={RegionController.create().url}
+                className="btn btn-primary"
+              >
+                <KTIcon iconName='plus' className='fs-2'/>
+              </Link>
+            }
           />
         </KTCard>
       </Content>
     </>
   );
-};
+}
 
-Index.layout = (page: ReactElement) => <MasterLayout>{page}</MasterLayout>;
+Index.layout = (page: ReactElement) => <MasterLayout children={page}/>;
 
 export default Index;

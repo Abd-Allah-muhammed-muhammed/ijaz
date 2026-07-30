@@ -1,4 +1,3 @@
-import { cn } from '@/shared/lib/utils';
 import { type HTMLAttributes } from 'react';
 
 /**
@@ -13,7 +12,7 @@ export default function InputError({
   ...props
 }: HTMLAttributes<HTMLParagraphElement> & { message?: string }) {
   return message ? (
-    <p {...props} className={cn('text-danger text-sm mb-0 mt-2', className)}>
+    <p {...props} className={`text-danger small mb-0 mt-2 ${className}`.trim()}>
       {message}
     </p>
   ) : null;

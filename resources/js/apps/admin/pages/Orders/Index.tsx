@@ -1,8 +1,8 @@
 import { Head } from "@inertiajs/react";
 import { useTranslation } from 'react-i18next';
 import { PageTitle } from "@/vendor/metronic/layout/core";
-import { ToolbarWrapper } from '@/apps/admin/layouts';
-import { Content } from '@/apps/admin/layouts';
+import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
+import { Content } from '@/vendor/metronic/layout/components/content';
 import { KTIcon } from "@/vendor/metronic/helpers";
 import Pagination from "@/shared/components/Table/partials/Pagination";
 import { PaginationResource } from "@/shared/types";
@@ -11,7 +11,7 @@ import OrderController from "@/actions/Modules/Orders/Http/Controllers/Dashboard
 import OrderCard from "@/shared/components/order/order-card";
 import OrderStats from "@/shared/components/order/OrderStats";
 import { Col, Row } from "react-bootstrap";
-import MasterLayout from '@/apps/admin/layouts';
+import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
 import { OrderStatusEnum } from "@/Enums/Order";
 import { applyFilterParam, visitWithFilters } from "@/shared/lib/filters";
 

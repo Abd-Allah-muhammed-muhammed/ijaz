@@ -2,8 +2,8 @@ import CommentController from '@/actions/Modules/Opportunity/Http/Controllers/Da
 import OfferController from '@/actions/Modules/Opportunity/Http/Controllers/Dashboard/OfferController';
 import OpportunityController from '@/actions/Modules/Opportunity/Http/Controllers/Dashboard/OpportunityController';
 import { KTIcon, KTCard, KTCardBody } from '@/vendor/metronic/helpers';
-import MasterLayout from '@/apps/admin/layouts';
-import { Content } from '@/apps/admin/layouts';
+import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
+import { Content } from '@/vendor/metronic/layout/components/content';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import { Head, Link, router } from '@inertiajs/react';
 import { ReactElement } from 'react';

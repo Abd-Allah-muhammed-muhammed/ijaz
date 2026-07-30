@@ -1,5 +1,5 @@
-import {ToolbarWrapper} from '@/apps/admin/layouts';
-import {Content} from '@/apps/admin/layouts';
+import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
+import { Content } from '@/vendor/metronic/layout/components/content';
 import {KTIcon} from "@/vendor/metronic/helpers";
 import {ReactElement} from "react";
 import {Provider} from "@/shared/types/models";

@@ -1,7 +1,7 @@
 import GuarantorDashboardController from '@/actions/Modules/Guarantor/Http/Controllers/Dashboard/GuarantorController';
 import { KTIcon, KTCard, KTCardBody } from '@/vendor/metronic/helpers';
-import MasterLayout from '@/apps/admin/layouts';
-import { Content } from '@/apps/admin/layouts';
+import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
+import { Content } from '@/vendor/metronic/layout/components/content';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import usePermissions from '@/shared/hooks/use-permissions';
 import { Head, Link, router, useForm } from '@inertiajs/react';

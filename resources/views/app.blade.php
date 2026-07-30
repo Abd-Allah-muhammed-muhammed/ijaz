@@ -1,10 +1,8 @@
 @php($locale = str_replace('_', '-', app()->getLocale()))
 @use(App\Services\Translations\TranslationService)
 @php($direction = in_array($locale, ['ar', 'ur']) ? 'rtl' : 'ltr')
-@php($appShell = $appShell ?? 'web')
 <!DOCTYPE html>
 <html lang="{{ $locale }}" @class(['dark' => ($appearance ?? 'system') === 'dark'])
-  data-app="{{ $appShell }}"
   data-bs-theme="{{$appearance ?? 'system'}}" dir="{{$direction}}" direction="{{$direction}}" data-inertia="true"
   data-direction="{{$direction}}" style="direction: {{$direction}};">
 
@@ -18,7 +16,6 @@
   <title inertia>{{ config('app.name', 'Ijaz') }}</title>
   <link rel="shortcut icon" href="{{asset('/media/logos/default.svg')}}" />
   <link rel="stylesheet" id="layout-styles-anchor" href="{{asset('splash-screen.css')}}" />
-  {{-- Inter for Latin; IBM Plex Sans Arabic loaded via @font-face in app.css from /public/fonts --}}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -33,37 +30,8 @@
     <link rel="stylesheet" href="{{asset('css/style.bundle.css')}}" />
   @endif
   @vite(['resources/js/app.tsx', \App\Support\InertiaPagePath::viteEntry($page['component'])])
-  {{--
-    Unlayered bridge after Metronic + Vite CSS so --bs-* always wins Metronic's
-    :root / [data-bs-theme] assignments (equal-specificity source-order fight).
-    Token values (--primary / --info / …) still come from app.css.
-  --}}
-  <style id="design-system-bs-bridge">
-    html[data-app="web"],
-    html[data-app="admin"],
-    html[data-app="provider"],
-    html[data-app="marketer"] {
-      --bs-primary: var(--primary);
-      --bs-text-primary: var(--primary);
-      --bs-link-color: var(--primary);
-      --bs-component-active-bg: var(--primary);
-      --bs-component-active-color: var(--primary-foreground);
-      --bs-component-hover-color: var(--primary);
-      --bs-success: var(--success);
-      --bs-warning: var(--warning);
-      --bs-info: var(--info);
-    }
-    html[data-app="web"] { --bs-primary-rgb: 14, 16, 31; }
-    html[data-app="admin"] { --bs-primary-rgb: 0, 75, 151; }
-    html[data-app="provider"] { --bs-primary-rgb: 0, 95, 46; }
-    html[data-app="marketer"] { --bs-primary-rgb: 170, 70, 0; }
-    html.dark[data-app="web"], html[data-app="web"][data-bs-theme="dark"] { --bs-primary-rgb: 175, 182, 210; }
-    html.dark[data-app="admin"], html[data-app="admin"][data-bs-theme="dark"] { --bs-primary-rgb: 111, 167, 238; }
-    html.dark[data-app="provider"], html[data-app="provider"][data-bs-theme="dark"] { --bs-primary-rgb: 104, 185, 134; }
-    html.dark[data-app="marketer"], html[data-app="marketer"][data-bs-theme="dark"] { --bs-primary-rgb: 240, 153, 91; }
-  </style>
   @inertiaHead
-  <!--begin::Theme mode setup before paint (Bootstrap + Tailwind .dark sync)-->
+  <!--begin::Theme mode setup before paint-->
   <script>
     (function () {
       let themeMode = localStorage.getItem('kt_theme_mode_value') || '{{$appearance ?? 'system'}}'

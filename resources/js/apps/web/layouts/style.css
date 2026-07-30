@@ -1,7 +1,5 @@
 /*
   Website (FrontendLayout) Bootstrap brand overrides.
-  Design tokens for Tailwind live in resources/css/app.css via data-app="web".
-  Keep these --bs-* vars in sync with Website primary/secondary/success there.
 */
 :root {
   --bs-primary: #0c0f20;
@@ -14,8 +12,6 @@
   --bs-gray: #e1e3ea;
   --bs-warning: #C4903C;
 }
-
-/* Font stack is applied globally from app.css (--font-sans). */
 
 .rounded-15 {
   border-radius: 15px;

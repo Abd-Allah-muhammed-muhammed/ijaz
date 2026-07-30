@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 
 /**
  * Identifies which Inertia frontend shell is serving the current request.
- * Drives `data-app` on <html> and shared `app.shell` for design tokens.
+ * Shared as `app.shell` for frontend shell identification.
  */
 enum FrontendShell: string
 {

@@ -3,7 +3,6 @@
 import {createContext, useContext, useEffect, useState} from 'react'
 import {ThemeModeComponent} from '../../../assets/ts/layout'
 import {toAbsoluteUrl} from '../../../helpers'
-import {syncHtmlDarkClass} from '@/shared/lib/sync-html-dark-class'
 
 export type ThemeModeType = 'dark' | 'light' | 'system'
 export const themeModelSKey = 'kt_theme_mode_value'
@@ -67,13 +66,10 @@ const ThemeModeProvider = ({children}: {children: React.ReactNode}) => {
       localStorage.setItem(themeModelSKey, _mode)
     }
 
-    const resolvedMode = _mode === 'system' ? systemMode : _mode
-
     if (saveInLocalStorage) {
-      document.documentElement.setAttribute('data-bs-theme', resolvedMode)
-      syncHtmlDarkClass(resolvedMode)
+      const updatedMode = _mode === 'system' ? systemMode : _mode
+      document.documentElement.setAttribute('data-bs-theme', updatedMode)
     }
-
     ThemeModeComponent.init()
   }
 

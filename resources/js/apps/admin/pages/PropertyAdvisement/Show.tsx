@@ -1,6 +1,6 @@
 import { KTIcon } from '@/vendor/metronic/helpers';
-import MasterLayout from '@/apps/admin/layouts';
-import { Content } from '@/apps/admin/layouts';
+import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
+import { Content } from '@/vendor/metronic/layout/components/content';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import PropertyAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/PropertyAdvisementController';
 import { AdvisementStatusEnum, OperationEnum } from '@/Enums/Advisements';

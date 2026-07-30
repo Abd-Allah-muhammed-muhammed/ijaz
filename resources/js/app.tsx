@@ -1,5 +1,3 @@
-// Tailwind v4 (theme + utilities only — preflight disabled; see resources/css/app.css)
-import '../css/app.css';
 // import './vendor/metronic/assets/sass/style.react.scss'
 // import './vendor/metronic/assets/fonticon/fonticon.css'
 import './vendor/metronic/assets/keenicons/duotone/style.css';
@@ -23,7 +21,6 @@ import { initializeTheme } from './shared/hooks/use-appearance';
 import './lang/i18next';
 import I18nextEffect from './lang/I18next-effect';
 import { setApiLocale } from './shared/lib/api-client';
-import { initializeAppShell } from './shared/lib/app-shell';
 import { resolveInertiaPage } from './shared/lib/resolve-inertia-page';
 import type { SharedData } from './shared/types';
 
@@ -39,7 +36,6 @@ createInertiaApp({
     const locale = shared.app?.locale || 'en';
     // Must set on the shared apiClient instance — query hooks do not use global axios.
     setApiLocale(locale);
-    initializeAppShell(shared.app?.shell);
 
     const appElement = (
       <I18nextEffect locale={locale}>

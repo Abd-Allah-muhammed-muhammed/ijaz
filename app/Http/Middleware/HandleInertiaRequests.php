@@ -47,7 +47,6 @@ class HandleInertiaRequests extends Middleware
         $error = session('error');
         $shell = FrontendShell::fromRequest($request);
 
-        // Blade root template reads this for SSR `data-app` (same pattern as HandleAppearance).
         View::share('appShell', $shell->value);
 
         return [

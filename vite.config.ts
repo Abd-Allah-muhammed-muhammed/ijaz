@@ -1,46 +1,60 @@
-import tailwindcss from '@tailwindcss/vite';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
 import laravel from 'laravel-vite-plugin';
-import {defineConfig} from 'vite';
-import {run} from "vite-plugin-run";
+import { defineConfig } from 'vite';
+import { run } from 'vite-plugin-run';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
     laravel({
-      // CSS enters via import from app.tsx (same pattern as Keenicons / FontAwesome)
       input: ['resources/js/app.tsx'],
       ssr: 'resources/js/ssr.tsx',
       refresh: true,
     }),
     react(),
-    tailwindcss(),
     run([
       {
-        name: "wayfinder",
-        run: ["php", "artisan", "wayfinder:generate"],
+        name: 'wayfinder',
+        // Dev/HMR only — running during `vite build` races and deletes actions mid-bundle.
+        build: false,
+        run: ['php', 'artisan', 'wayfinder:generate'],
         pattern: [
-          "routes/**/*.php",
-          "app/**/Http/**/*.php",
-          "Modules/**/Routes/**/*.php",
-          "Modules/**/Http/Controllers/**/*.php",
+          'routes/**/*.php',
+          'app/**/Http/**/*.php',
+          'Modules/**/Routes/**/*.php',
+          'Modules/**/Http/Controllers/**/*.php',
         ],
       },
       {
-        name: "js-enums",
-        run: ["php", "artisan", "make:js-enums"],
-        pattern: ["app/Enums/**/*Enum.php"],
+        name: 'js-enums',
+        build: false,
+        run: ['php', 'artisan', 'make:js-enums'],
+        pattern: ['app/Enums/**/*Enum.php'],
       },
       {
-        name: "js-translations",
-        run: ["php", "artisan", "make:js-translations"],
-        pattern: ["lang/**/*.php", 'lang/**/*.json'],
+        name: 'js-translations',
+        build: false,
+        run: ['php', 'artisan', 'make:js-translations'],
+        pattern: ['lang/**/*.php', 'lang/**/*.json'],
       },
       {
-        name: "optimize:clear",
-        run: ["php", "artisan", "optimize:clear"],
-        pattern: ["lang/**/*.php", 'lang/**/*.json'],
-      }
+        name: 'optimize:clear',
+        build: false,
+        run: ['php', 'artisan', 'optimize:clear'],
+        pattern: ['lang/**/*.php', 'lang/**/*.json'],
+      },
     ]),
   ],
+  resolve: {
+    // Explicit `@/` alias — previously provided implicitly by @tailwindcss/vite via tsconfig paths.
+    alias: [
+      {
+        find: '@/',
+        replacement: `${path.resolve(__dirname, 'resources/js')}/`,
+      },
+    ],
+  },
 });
-
