@@ -1,7 +1,7 @@
 import { HeaderWrapper } from './components/header'
 import { ScrollTop } from './components/scroll-top'
 import { FooterWrapper } from './components/footer'
-import { Sidebar } from '@/shared/components/Sidebar'
+import { Sidebar } from './components/sidebar'
 import { PageDataProvider } from './core'
 import { ReactNode, useEffect } from "react";
 import { Head, usePage } from "@inertiajs/react";

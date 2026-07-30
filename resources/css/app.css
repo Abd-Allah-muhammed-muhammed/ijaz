@@ -311,10 +311,8 @@ body {
 /*
   Bridge design-system --primary into Metronic/Bootstrap accents used by
   create (+) buttons and DataTable pagination (legacy .btn-primary / .pagination).
-
-  Admin sidebar: copy-then-substitute Tailwind component in shared/components/Sidebar
-  (keeps `app-sidebar` geometry classes; paints with verified Metronic hex values).
-  Active nav item uses `bg-primary` — the only intentional deviation from Metronic.
+  Sidebar remains Metronic-owned (layoutType dark-sidebar) — Tailwind-native
+  Sidebar WIP lives in shared/components/Sidebar/ (deferred; not wired into Admin).
 */
 .btn-primary {
     --bs-btn-color: var(--primary-foreground);
