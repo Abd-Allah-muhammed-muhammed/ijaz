@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/components/ui/table';
+import { confirmWithSweetAlert } from '@/shared/lib/confirm-action';
 import { cn } from '@/shared/lib/utils';
 import type {
   DataTableAction,
@@ -69,6 +70,48 @@ function defaultCellValue<T extends DataTableRow>(
   return '';
 }
 
+async function runConfirmedSelect<T extends DataTableRow>(
+  action: DataTableAction<T>,
+  row: T,
+  labels: {
+    areYouSure: string;
+    cancel: string;
+    yes: string;
+  },
+): Promise<void> {
+  if (!action.onSelect) {
+    return;
+  }
+
+  const confirm =
+    action.confirm ??
+    (action.confirmMessage
+      ? { type: 'browser' as const, message: action.confirmMessage }
+      : undefined);
+
+  if (!confirm) {
+    action.onSelect(row);
+    return;
+  }
+
+  if (confirm.type === 'browser') {
+    if (window.confirm(confirm.message)) {
+      action.onSelect(row);
+    }
+    return;
+  }
+
+  const confirmed = await confirmWithSweetAlert({
+    title: confirm.title ?? labels.areYouSure,
+    cancelButtonText: labels.cancel,
+    confirmButtonText: labels.yes,
+  });
+
+  if (confirmed) {
+    action.onSelect(row);
+  }
+}
+
 function DataTableActionsMenu<T extends DataTableRow>({
   row,
   actions,
@@ -81,6 +124,12 @@ function DataTableActionsMenu<T extends DataTableRow>({
   if (actions.length === 0) {
     return null;
   }
+
+  const confirmLabels = {
+    areYouSure: t('are_you_sure'),
+    cancel: t('cancel'),
+    yes: t('yes'),
+  };
 
   return (
     <DropdownMenu>
@@ -100,21 +149,6 @@ function DataTableActionsMenu<T extends DataTableRow>({
         {actions.map((action) => {
           const href =
             typeof action.href === 'function' ? action.href(row) : action.href;
-
-          const runSelect = () => {
-            if (!action.onSelect) {
-              return;
-            }
-
-            if (action.confirmMessage) {
-              if (window.confirm(action.confirmMessage)) {
-                action.onSelect(row);
-              }
-              return;
-            }
-
-            action.onSelect(row);
-          };
 
           if (href) {
             return (
@@ -140,7 +174,7 @@ function DataTableActionsMenu<T extends DataTableRow>({
               )}
               onSelect={(event) => {
                 event.preventDefault();
-                runSelect();
+                void runConfirmedSelect(action, row, confirmLabels);
               }}
             >
               {action.label}
@@ -166,7 +200,7 @@ export function DataTable<T extends DataTableRow>({
   searchable = false,
   searchValue = '',
   onSearch,
-  searchDebounceMs = 400,
+  searchDebounceMs = 0,
   searchPlaceholder = 'Search',
   onRowClick,
   actions,
@@ -179,7 +213,18 @@ export function DataTable<T extends DataTableRow>({
   const { t } = useTranslation();
   const [draftSearch, setDraftSearch] = useState(searchValue);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const showActionsColumn = Boolean(actions);
+
+  const showActionsColumn = useMemo(() => {
+    if (!actions) {
+      return false;
+    }
+
+    if (data.length === 0) {
+      return false;
+    }
+
+    return data.some((row) => resolveActions(actions, row).length > 0);
+  }, [actions, data]);
 
   useEffect(() => {
     setDraftSearch(searchValue);

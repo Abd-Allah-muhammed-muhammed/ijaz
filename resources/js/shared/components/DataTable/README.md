@@ -2,7 +2,8 @@
 
 Canonical list pattern for Admin / Provider index pages.
 **One table format project-wide** — no card-mode toggle. Complex data lives in
-smart column cells; full detail lives on the record Show page via `onRowClick`.
+smart column cells; full detail lives on a detail route via `onRowClick` (Show **or**
+Edit — page decides).
 
 Do **not** invent a second list layout (cards grid, dual render paths) alongside this.
 
@@ -14,7 +15,8 @@ Do **not** invent a second list layout (cards grid, dual render paths) alongside
 | Pagination | Existing `@/shared/components/Table/partials/Pagination` (Laravel `meta.links`) |
 | Money / dates | `@/shared/lib/formatters` via smart cells |
 | Permissions | Gate actions with `visible: hasPermission(...)` from `usePermissions` |
-| Detail | `onRowClick` → Inertia visit to Show route |
+| Delete confirm | `confirm: { type: 'swal' }` → shared `confirmWithSweetAlert` (same as ConfirmAction) |
+| Row click | Optional `onRowClick` — Show, Edit, or omit |
 
 ## Minimal index page
 
@@ -77,6 +79,8 @@ type Props = {
 
 export default function Index({ rows, prams }: Props) {
   const { hasPermission } = usePermissions();
+  const canEdit = hasPermission('edit examples');
+  const canDelete = hasPermission('delete examples');
 
   return (
     <DataTable
@@ -88,30 +92,75 @@ export default function Index({ rows, prams }: Props) {
       onSearch={(search) =>
         router.get(ExampleController.index().url, { search }, { preserveState: true })
       }
+      // Enter-only by default (majority CRUD pattern). For live search:
+      // searchDebounceMs={400}
       onRowClick={(row) => router.visit(ExampleController.show(row.id).url)}
-      onSort={(columnId) =>
-        router.get(ExampleController.index().url, { sort: columnId }, { preserveState: true })
-      }
-      actions={(row) => [
+      actions={() => [
         {
           id: 'edit',
           label: 'Edit',
-          href: ExampleController.edit(row.id).url,
-          visible: hasPermission('edit examples'),
+          href: (row) => ExampleController.edit(row.id).url,
+          visible: canEdit,
         },
         {
           id: 'delete',
           label: 'Delete',
           variant: 'destructive',
-          confirmMessage: 'Are you sure?',
-          visible: hasPermission('delete examples'),
-          onSelect: () => router.delete(ExampleController.destroy(row.id).url),
+          visible: canDelete,
+          confirm: { type: 'swal' },
+          onSelect: (row) => router.delete(ExampleController.destroy(row.id).url),
         },
       ]}
     />
   );
 }
 ```
+
+## Row click patterns
+
+`onRowClick` is generic — it does **not** assume a Show page exists.
+
+```tsx
+// A) Has Show — open detail (Orders / Guarantor style)
+onRowClick={(row) => router.visit(ExampleController.show(row.id).url)}
+
+// B) No Show (resource except show) — open Edit when permitted (Admins pilot)
+onRowClick={
+  canEdit
+    ? (row) => router.visit(ExampleController.edit(row.id).url)
+    : undefined
+}
+
+// C) Non-clickable rows — omit onRowClick (actions-only)
+```
+
+## Actions column auto-hide
+
+Pass `actions` whenever the page *could* show actions. DataTable hides the Actions
+header/cells when **every** resolved row has zero visible actions (permission gating).
+You do **not** need `actions={canEdit || canDelete ? … : undefined}`.
+
+## Confirm strategies
+
+```tsx
+// Project default for deletes (SweetAlert — same as ConfirmAction)
+confirm: { type: 'swal' }
+confirm: { type: 'swal', title: t('custom_title') } // optional title override
+
+// Browser confirm
+confirm: { type: 'browser', message: 'Are you sure?' }
+```
+
+Shared helper: `@/shared/lib/confirm-action` (`confirmWithSweetAlert`).
+
+## Search default
+
+| Behavior | Config |
+| --- | --- |
+| **Enter-only (default)** | `searchDebounceMs` omitted / `0` — matches ~25 legacy Table indexes |
+| Live debounce | `searchDebounceMs={400}` — Guarantor / Opportunity style |
+
+Enter always flushes immediately even when debounce is enabled.
 
 ## Smart cells
 
@@ -127,6 +176,5 @@ Compose **inside** `column.cell` — they never replace the table row:
 ## Notes
 
 - Legacy `@/shared/components/Table` (Bootstrap) stays until pages migrate; **new** indexes should use `DataTable`.
-- `LinkAction` / `ConfirmAction` from the old Table remain available for unmigrated pages; prefer `actions` + `confirmMessage` on DataTable for new work.
-- Filters beyond search (status select, date range) stay **outside** DataTable in the page toolbar — same as Orders/Guarantor filter bars today.
+- Filters beyond search (status select, date range) stay **outside** DataTable in the page toolbar.
 - Empty list: pass `emptyState` for a custom message/icon; otherwise a default muted line is shown.

@@ -5,6 +5,7 @@ export { CurrencyCell } from './cells/CurrencyCell';
 export { DateCell } from './cells/DateCell';
 export type {
   DataTableAction,
+  DataTableActionConfirm,
   DataTableActionVariant,
   DataTableColumn,
   DataTableEmptyState,

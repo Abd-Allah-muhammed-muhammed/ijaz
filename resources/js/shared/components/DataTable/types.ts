@@ -32,6 +32,22 @@ export type DataTableColumn<T extends DataTableRow> = {
 export type DataTableActionVariant = 'default' | 'destructive';
 
 /**
+ * Confirm before running `onSelect`.
+ * - `swal` — project SweetAlert (same config as ConfirmAction); `title` defaults to `t('are_you_sure')`
+ * - `browser` — `window.confirm(message)`
+ */
+export type DataTableActionConfirm =
+  | {
+      type: 'swal';
+      /** SweetAlert `title`. Defaults to translated `are_you_sure`. */
+      title?: string;
+    }
+  | {
+      type: 'browser';
+      message: string;
+    };
+
+/**
  * Row-level action. Gate with `visible` (boolean or per-row callback) —
  * typically `visible: hasPermission('edit admins')`.
  */
@@ -42,7 +58,11 @@ export type DataTableAction<T extends DataTableRow> = {
   onSelect?: (row: T) => void;
   visible?: boolean | ((row: T) => boolean);
   variant?: DataTableActionVariant;
-  /** When set, confirm before calling `onSelect` (browser confirm). */
+  /** Prefer this over legacy `confirmMessage`. */
+  confirm?: DataTableActionConfirm;
+  /**
+   * @deprecated Use `confirm: { type: 'browser', message }` instead.
+   */
   confirmMessage?: string;
 };
 
@@ -59,17 +79,22 @@ export type DataTableProps<T extends DataTableRow> = {
   searchable?: boolean;
   searchValue?: string;
   onSearch?: (value: string) => void;
-  /** Debounce for live search. `0` = Enter-only (legacy Table behavior). Default 400. */
+  /**
+   * Debounce for live search. Default `0` = Enter-only (majority of CRUD indexes /
+   * legacy Table). Pass `400` (or similar) for Guarantor/Opportunity-style live search.
+   */
   searchDebounceMs?: number;
   searchPlaceholder?: string;
   /**
-   * Navigate to the record Show page (details-on-click).
+   * Optional row navigation — destination is page-defined (Show, Edit, or omit).
    * Actions cell stops propagation so edit/delete do not trigger this.
    */
   onRowClick?: (row: T) => void;
   /**
    * Row actions. Prefer a function so permission / per-row visibility stays local:
    * `actions={(row) => [{ id: 'edit', label: t('edit'), href: …, visible: canEdit }]}`
+   *
+   * The Actions column is omitted automatically when every resolved row has zero visible actions.
    */
   actions?: DataTableAction<T>[] | ((row: T) => DataTableAction<T>[]);
   /** Right-side toolbar (e.g. Create button). */

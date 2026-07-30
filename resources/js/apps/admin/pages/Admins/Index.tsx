@@ -1,8 +1,6 @@
 import { type ReactElement, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Head, Link, router } from '@inertiajs/react';
-import withReactContent from 'sweetalert2-react-content';
-import Swal from 'sweetalert2';
 import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
@@ -43,7 +41,6 @@ const Index = ({ rows, prams }: Props) => {
   const canEdit = hasPermission('edit admins');
   const canCreate = hasPermission('create admins');
   const canDelete = hasPermission('delete admins');
-  const swal = withReactContent(Swal);
 
   const searchParams: SearchParams = {
     per_page: prams?.per_page ?? 10,
@@ -104,22 +101,6 @@ const Index = ({ rows, prams }: Props) => {
     [t],
   );
 
-  const confirmDelete = (row: Admin) => {
-    swal
-      .fire({
-        title: t('are_you_sure'),
-        icon: 'warning',
-        showCancelButton: true,
-        cancelButtonText: t('cancel'),
-        confirmButtonText: t('yes'),
-      })
-      .then((result) => {
-        if (result.isConfirmed) {
-          router.delete(AdminController.destroy(row.id as number).url);
-        }
-      });
-  };
-
   return (
     <>
       <Head title={t('admins')} />
@@ -161,25 +142,24 @@ const Index = ({ rows, prams }: Props) => {
                 </Link>
               ) : null
             }
-            actions={
-              canEdit || canDelete
-                ? () => [
-                    {
-                      id: 'edit',
-                      label: t('edit'),
-                      href: (row) => AdminController.edit(row.id as number).url,
-                      visible: canEdit,
-                    },
-                    {
-                      id: 'delete',
-                      label: t('delete'),
-                      variant: 'destructive' as const,
-                      visible: canDelete,
-                      onSelect: confirmDelete,
-                    },
-                  ]
-                : undefined
-            }
+            actions={() => [
+              {
+                id: 'edit',
+                label: t('edit'),
+                href: (row) => AdminController.edit(row.id as number).url,
+                visible: canEdit,
+              },
+              {
+                id: 'delete',
+                label: t('delete'),
+                variant: 'destructive',
+                visible: canDelete,
+                confirm: { type: 'swal' },
+                onSelect: (row) => {
+                  router.delete(AdminController.destroy(row.id as number).url);
+                },
+              },
+            ]}
           />
         </KTCard>
       </Content>
