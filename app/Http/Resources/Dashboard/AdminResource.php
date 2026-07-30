@@ -23,6 +23,7 @@ class AdminResource extends JsonResource
             'online' => $this->online,
             'roles' => RoleResource::collection($this->whenLoaded('roles')),
             'socket_id' => $this->getAuthIdentifierForBroadcasting(),
+            'created_at' => $this->created_at,
         ];
     }
 }

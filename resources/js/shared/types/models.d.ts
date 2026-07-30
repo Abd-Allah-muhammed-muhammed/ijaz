@@ -53,6 +53,8 @@ export interface Admin extends Model, UserWithAvatar {
   job: string;
   address: string;
   phone: string;
+  online?: boolean;
+  created_at?: string | Date;
 }
 
 export interface UserWithRoles extends User {
