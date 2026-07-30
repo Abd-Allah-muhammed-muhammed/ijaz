@@ -5,6 +5,13 @@ type Props = {
   section: SidebarNavSection;
 };
 
+/**
+ * Section header matches Metronic markup:
+ * `menu-content pt-8 pb-2` + `menu-section text-muted text-uppercase fs-8 ls-1`
+ * - pt-8 = 2rem, pb-2 = 0.5rem, horizontal = `$menu-link-padding-x` 1rem
+ * - fs-8 = 0.85rem, ls-1 = 0.1rem
+ * - text-muted = `$gray-500` #99A1B7 (class used in original SidebarMenuMain)
+ */
 export function SidebarSection({ section }: Props) {
   if (section.show === false) {
     return null;
@@ -16,15 +23,14 @@ export function SidebarSection({ section }: Props) {
     return null;
   }
 
-  // Section with a title but no visible items (permission-gated) — hide entirely
   if (section.title && visibleItems.length === 0) {
     return null;
   }
 
   return (
-    <div className="ds-sidebar-section space-y-0.5">
+    <div className="ds-sidebar-section">
       {section.title ? (
-        <div className="ds-sidebar-section-title px-3 pb-1.5 pt-6 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="ds-sidebar-section-title px-4 pb-2 pt-8 text-[0.85rem] font-normal uppercase tracking-[0.1rem] text-[#99A1B7]">
           {section.title}
         </div>
       ) : null}

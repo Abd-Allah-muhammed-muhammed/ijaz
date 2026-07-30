@@ -314,18 +314,26 @@ body {
 */
 
 /*
-  Tailwind-native Admin Sidebar (`.ds-sidebar`) — overrides Metronic dark-sidebar
-  paint so `bg-sidebar` / light-dark / data-app tokens win. Geometry (`app-sidebar`,
-  `data-kt-app-sidebar-*`) stays for header/content shell compatibility.
+  Tailwind-native Admin Sidebar (`.ds-sidebar`) — Metronic dark-sidebar paint
+  extracted from source (`_sidebar-dark.scss` + `_variables.custom.scss`):
+    bg           $coal-500                              #0D0E12  (FIXED, not theme-toggling)
+    separator    $light-light-dark                      #1F212A
+    link text    $gray-700-dark                         #9A9CAE
+    icon         $gray-400-dark                         #464852
+    hover text   $gray-900-dark                         #F5F5F5  (no hover bg)
+    section      text-muted / $gray-500                 #99A1B7
+    active bg    OUR --primary (only intentional deviation from Metronic #1C1C21)
+
+  Geometry (`app-sidebar`, `data-kt-app-sidebar-*`) stays for header/content shell.
 */
 #kt_app_sidebar.ds-sidebar {
-    background-color: var(--sidebar) !important;
-    border-inline-end: 1px solid var(--sidebar-border);
-    color: var(--sidebar-foreground);
+    background-color: #0d0e12 !important;
+    border-inline-end: 1px solid #1f212a;
+    color: #9a9cae;
 }
 
 #kt_app_sidebar.ds-sidebar .app-sidebar-logo {
-    border-bottom: 1px dashed var(--sidebar-border);
+    border-bottom: 1px dashed #1f212a;
 }
 
 /* Minimize: hide labels (Metronic geometry still collapses width via body attrs) */

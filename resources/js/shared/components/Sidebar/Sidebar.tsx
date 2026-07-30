@@ -10,14 +10,13 @@ const SIDEBAR_MINIMIZE_ATTR = 'data-kt-app-sidebar-minimize';
 const SIDEBAR_HOVERABLE_ATTR = 'data-kt-app-sidebar-hoverable';
 
 /**
- * Tailwind-native app sidebar.
+ * Tailwind-native sidebar painted to match Metronic `dark-sidebar` source values
+ * (`$coal-500` #0D0E12 bg — fixed, independent of page light/dark).
  *
- * Visuals use design-system tokens (`bg-sidebar`, `text-sidebar-primary`, etc.)
- * so light/dark + per-app (`data-app`) colors work from day one.
+ * Active item is the only intentional deviation: uses app `--primary` instead of
+ * Metronic `$app-sidebar-dark-menu-link-bg-color-active` (#1C1C21).
  *
- * Layout geometry still cooperates with Metronic's shell via `id="kt_app_sidebar"`,
- * the `app-sidebar` class, and body `data-kt-app-sidebar-*` attrs — until header /
- * toolbar are replaced in a later pass. Menu markup itself is not Metronic.
+ * Geometry IDs / `app-sidebar` class retained for Metronic header/content shell.
  */
 export function Sidebar({
   sections,
@@ -37,10 +36,6 @@ export function Sidebar({
 
     const initial = body.getAttribute(SIDEBAR_MINIMIZE_ATTR) === 'on';
     setMinimized(initial);
-
-    return () => {
-      // Leave layout attrs in place; Metronic header may still rely on them during the transition.
-    };
   }, []);
 
   const toggleMinimize = useCallback(() => {
@@ -58,10 +53,7 @@ export function Sidebar({
   return (
     <aside
       id="kt_app_sidebar"
-      className={cn(
-        'app-sidebar ds-sidebar flex flex-col',
-        'bg-sidebar text-sidebar-foreground border-e border-sidebar-border',
-      )}
+      className="app-sidebar ds-sidebar flex flex-col"
       data-kt-drawer="true"
       data-kt-drawer-name="app-sidebar"
       data-kt-drawer-activate="{default: true, lg: false}"
@@ -72,7 +64,7 @@ export function Sidebar({
     >
       <div
         id="kt_app_sidebar_logo"
-        className="app-sidebar-logo relative flex h-[70px] shrink-0 items-center px-6"
+        className="app-sidebar-logo relative flex h-[70px] shrink-0 items-center justify-between px-6"
       >
         <Link href={homeHref} className="flex items-center">
           <img
@@ -94,23 +86,26 @@ export function Sidebar({
           aria-pressed={minimized}
           onClick={toggleMinimize}
           className={cn(
-            'absolute top-1/2 z-10 flex size-8 -translate-y-1/2 items-center justify-center rounded-md border border-sidebar-border bg-sidebar shadow-sm',
-            'text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+            /* Metronic `.app-sidebar-toggle`: body-bg, border #F1F1F2, soft shadow */
+            'app-sidebar-toggle absolute top-1/2 z-10 flex size-[30px] -translate-y-1/2 items-center justify-center',
+            'rounded-md border border-[#F1F1F2] bg-white text-[#99A1B7] shadow-[0px_8px_14px_rgba(15,42,81,0.04)]',
+            'transition-transform duration-200 hover:text-primary',
             'start-full -translate-x-1/2 rtl:translate-x-1/2',
             minimized && 'rotate-180',
           )}
         >
-          <ChevronLeft className="size-4 rtl:rotate-180" />
+          <ChevronLeft className="size-3.5 rtl:rotate-180" />
         </button>
       </div>
 
       <div className="app-sidebar-menu flex min-h-0 flex-1 flex-col overflow-hidden">
+        {/* Metronic: `my-5` wrapper + `menu … px-3` */}
         <nav
           id="kt_app_sidebar_menu_wrapper"
-          className="app-sidebar-wrapper my-4 flex-1 overflow-y-auto px-3"
+          className="app-sidebar-wrapper my-5 flex-1 overflow-y-auto px-3"
           aria-label="Main"
         >
-          <div className="space-y-0.5 pb-6">
+          <div className="pb-6">
             {sections.map((section, index) => (
               <SidebarSection
                 key={section.title ?? `section-${index}`}
