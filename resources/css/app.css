@@ -353,6 +353,35 @@ body {
     box-shadow: 0 0 0 0.2rem color-mix(in oklab, var(--primary) 25%, transparent);
 }
 
+/*
+  DataTable toolbar create (+) links use Metronic `btn btn-primary` + large `fs-2` icons.
+  Normalize to a compact icon button matching the search input height (~2.5rem).
+*/
+.data-table-toolbar > .btn-primary,
+.data-table-toolbar a.btn-primary {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    padding: 0 !important;
+    line-height: 1;
+}
+
+.data-table-toolbar > .btn-primary .ki-duotone,
+.data-table-toolbar > .btn-primary .ki-outline,
+.data-table-toolbar > .btn-primary .ki-solid,
+.data-table-toolbar > .btn-primary i,
+.data-table-toolbar a.btn-primary .ki-duotone,
+.data-table-toolbar a.btn-primary .ki-outline,
+.data-table-toolbar a.btn-primary .ki-solid,
+.data-table-toolbar a.btn-primary i {
+    font-size: 1.15rem !important;
+    line-height: 1 !important;
+}
+
 /* Registration completion (scoped — unique selectors only) */
 .registration-content {
     line-height: 1.8;

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { Link } from '@inertiajs/react';
-import { ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Search, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Pagination from '@/shared/components/Table/partials/Pagination';
 import { Button } from '@/shared/components/ui/button';
@@ -269,6 +269,17 @@ export function DataTable<T extends DataTableRow>({
     onSearch(event.currentTarget.value);
   };
 
+  const clearSearch = () => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    setDraftSearch('');
+    onSearch?.('');
+  };
+
+  const hasSearchText = draftSearch.trim().length > 0;
+
   const defaultEmpty = (
     <div className="py-10 text-center text-sm text-muted-foreground">
       {t('no_matching_records_found', { defaultValue: 'No matching records found' })}
@@ -286,15 +297,30 @@ export function DataTable<T extends DataTableRow>({
                 type="search"
                 value={draftSearch}
                 placeholder={searchPlaceholder}
-                className="ps-9"
+                className={cn(
+                  'ps-9 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden',
+                  hasSearchText && 'pe-9',
+                )}
                 onChange={(event) => setDraftSearch(event.target.value)}
                 onKeyDown={handleSearchKeyDown}
               />
+              {hasSearchText ? (
+                <button
+                  type="button"
+                  className="absolute end-2 top-1/2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  aria-label={t('clear', { defaultValue: 'Clear search' })}
+                  onClick={clearSearch}
+                >
+                  <X className="size-3.5" />
+                </button>
+              ) : null}
             </div>
           ) : (
             <div />
           )}
-          {toolbar ? <div className="flex items-center gap-2">{toolbar}</div> : null}
+          {toolbar ? (
+            <div className="data-table-toolbar flex items-center gap-2">{toolbar}</div>
+          ) : null}
         </div>
       )}
 

@@ -159,6 +159,7 @@ Shared helper: `@/shared/lib/confirm-action` (`confirmWithSweetAlert`).
 | --- | --- |
 | **Enter-only (default)** | `searchDebounceMs` omitted / `0` — matches ~25 legacy Table indexes |
 | Live debounce | `searchDebounceMs={400}` — Guarantor / Opportunity style |
+| Clear (X) | Shown when the input has text; calls `onSearch('')` so pages using `applyFilterParam` / `visitWithFilters` drop `?search=` and reload the full list |
 
 Enter always flushes immediately even when debounce is enabled.
 
