@@ -15,6 +15,7 @@ class RoleRepository implements RoleRepositoryInterface
     public function paginate(Request $request): LengthAwarePaginator
     {
         return Role::query()
+            ->withCount('users')
             ->when($request->search, fn (Builder $q, $v) => $q->where('name', 'like', "%$v%"))
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();

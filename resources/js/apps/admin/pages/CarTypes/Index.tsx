@@ -8,7 +8,7 @@ import ConfirmAction from '@/shared/components/Table/partials/confirm-action';
 import usePermissions from '@/shared/hooks/use-permissions';
 import { PaginationResource } from '@/shared/types';
 import { CarType } from '@/shared/types/models';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { ReactElement, ReactNode } from 'react';
 import FormCheckInput from 'react-bootstrap/FormCheck';
 import { useTranslation } from 'react-i18next';

@@ -3,7 +3,7 @@ import MasterLayout from "@/vendor/metronic/layout/MasterLayout";
 import {PageTitle} from "@/vendor/metronic/layout/core";
 import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
 import {Content} from "@/vendor/metronic/layout/components/content";
-import {Head} from "@inertiajs/react";
+import {Head, router} from "@inertiajs/react";
 import {KTCard} from "@/vendor/metronic/helpers";
 import Table from "@/shared/components/Table";
 import {PaginationResource} from "@/shared/types";
