@@ -1,5 +1,5 @@
 import { KTIcon } from '@/vendor/metronic/helpers';
-import MasterLayout from '@/apps/admin/layouts/MasterLayout';
+import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
 import { Content } from '@/vendor/metronic/layout/components/content';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import InstituteAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/InstituteAdvisementController';

@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import MasterLayout from "@/apps/admin/layouts/MasterLayout";
+import MasterLayout from "@/vendor/metronic/layout/MasterLayout";
 
 import { PageTitle } from '@/vendor/metronic/layout/core'
 import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar'

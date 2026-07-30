@@ -311,52 +311,9 @@ body {
 /*
   Bridge design-system --primary into Metronic/Bootstrap accents used by
   create (+) buttons and DataTable pagination (legacy .btn-primary / .pagination).
+  Sidebar remains Metronic-owned (layoutType dark-sidebar) — Tailwind-native
+  Sidebar WIP lives in shared/components/Sidebar/ for a future dedicated pass.
 */
-
-/*
-  Tailwind-native Admin Sidebar (`.ds-sidebar`) — Metronic dark-sidebar paint
-  extracted from source (`_sidebar-dark.scss` + `_variables.custom.scss`):
-    bg           $coal-500                              #0D0E12  (FIXED, not theme-toggling)
-    separator    $light-light-dark                      #1F212A
-    link text    $gray-700-dark                         #9A9CAE
-    icon         $gray-400-dark                         #464852
-    hover text   $gray-900-dark                         #F5F5F5  (no hover bg)
-    section      text-muted / $gray-500                 #99A1B7
-    active bg    OUR --primary (only intentional deviation from Metronic #1C1C21)
-
-  Geometry (`app-sidebar`, `data-kt-app-sidebar-*`) stays for header/content shell.
-*/
-#kt_app_sidebar.ds-sidebar {
-    background-color: #0d0e12 !important;
-    border-inline-end: 1px solid #1f212a;
-    color: #9a9cae;
-}
-
-#kt_app_sidebar.ds-sidebar .app-sidebar-logo {
-    border-bottom: 1px dashed #1f212a;
-}
-
-/* Minimize: hide labels (Metronic geometry still collapses width via body attrs) */
-[data-kt-app-sidebar-minimize='on'] #kt_app_sidebar.ds-sidebar .ds-sidebar-label,
-[data-kt-app-sidebar-minimize='on'] #kt_app_sidebar.ds-sidebar .ds-sidebar-section-title {
-    opacity: 0;
-    width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-}
-
-[data-kt-app-sidebar-hoverable='true'][data-kt-app-sidebar-minimize='on']
-    #kt_app_sidebar.ds-sidebar:hover:not(.animating)
-    .ds-sidebar-label,
-[data-kt-app-sidebar-hoverable='true'][data-kt-app-sidebar-minimize='on']
-    #kt_app_sidebar.ds-sidebar:hover:not(.animating)
-    .ds-sidebar-section-title {
-    opacity: 1;
-    width: auto;
-    pointer-events: auto;
-}
 .btn-primary {
     --bs-btn-color: var(--primary-foreground);
     --bs-btn-bg: var(--primary);

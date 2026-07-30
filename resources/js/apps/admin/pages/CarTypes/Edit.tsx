@@ -1,4 +1,4 @@
-import MasterLayout from '@/apps/admin/layouts/MasterLayout';
+import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
 
 import { Content } from '@/vendor/metronic/layout/components/content';
 import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';

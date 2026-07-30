@@ -5,7 +5,7 @@ import { Badge } from "react-bootstrap";
 import { Content } from "@/vendor/metronic/layout/components/content";
 import { KTIcon } from "@/vendor/metronic/helpers";
 import React, { useState } from 'react';
-import MasterLayout from '@/apps/admin/layouts/MasterLayout';
+import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
 import clsx from 'clsx';
 import OverviewTap from './components/overview-tap';
 import OffersTap from './components/offers-tap';
