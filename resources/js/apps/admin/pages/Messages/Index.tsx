@@ -1,10 +1,10 @@
 import { type ReactElement, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Head, router } from '@inertiajs/react';
-import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
+import MasterLayout from '@/apps/admin/layouts';
 import { PageTitle } from '@/vendor/metronic/layout/core';
-import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
-import { Content } from '@/vendor/metronic/layout/components/content';
+import { ToolbarWrapper } from '@/apps/admin/layouts';
+import { Content } from '@/apps/admin/layouts';
 import { KTCard } from '@/vendor/metronic/helpers';
 import { DataTable, type DataTableColumn } from '@/shared/components/DataTable';
 import { applyFilterParam, visitWithFilters } from '@/shared/lib/filters';

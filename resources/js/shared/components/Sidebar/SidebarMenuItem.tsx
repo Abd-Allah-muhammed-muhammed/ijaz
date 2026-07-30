@@ -1,18 +1,8 @@
-/**
- * Literal copy of vendor/metronic/.../sidebar-menu/SidebarMenuItem.tsx
- * with mechanical class substitution.
- *
- * ONLY deliberate deviation: active background uses `bg-primary` (app token)
- * instead of Metronic `$app-sidebar-dark-menu-link-bg-color-active` (#1C1C21).
- *
- * Colors use `!` (Tailwind v4 important) so Bootstrap `a { color: link }` cannot
- * paint nav links blue — the failure mode of prior replacement attempts.
- */
+import { useAdminShell } from '@/apps/admin/layouts/shell-context';
+import { cn } from '@/shared/lib/utils';
 import { Link } from '@inertiajs/react';
-import clsx from 'clsx';
-import { type FC, type ReactNode } from 'react';
 import { KTIcon } from '@/vendor/metronic/helpers';
-import { useLayout } from '@/vendor/metronic/layout/core';
+import type { FC, ReactNode } from 'react';
 
 type Props = {
   to: string;
@@ -25,67 +15,62 @@ type Props = {
   isActive?: boolean;
 };
 
-const SidebarMenuItem: FC<Props> = ({
+export const SidebarMenuItem: FC<Props> = ({
   children,
   to,
   title,
   icon,
-  fontIcon,
   hasBullet = false,
   isActive = false,
   show = true,
 }) => {
-  const { config } = useLayout();
-  const { app } = config;
+  const { collapsed, setMobileOpen } = useAdminShell();
 
   if (!show) {
     return null;
   }
 
   return (
-    <div className="block py-[0.15rem] ps-[0.115rem]">
+    <div className="px-2">
       <Link
-        className={clsx(
-          'group flex w-full items-center rounded-[0.475rem] px-4 py-[0.65rem] no-underline outline-none!',
-          'text-[1.1rem] font-semibold',
-          'transition-[color] duration-200 ease-[ease]',
-          isActive
-            ? /* DEVIATION: bg-primary instead of #1C1C21 */
-              'bg-primary! text-primary-foreground! hover:bg-primary! hover:text-primary-foreground!'
-            : 'bg-transparent text-[#9A9CAE]! hover:bg-transparent hover:text-[#F5F5F5]!',
-        )}
         href={to}
+        title={collapsed ? title : undefined}
+        onClick={() => setMobileOpen(false)}
+        className={cn(
+          'group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium no-underline outline-none!',
+          'transition-colors duration-150 ease-out',
+          isActive
+            ? 'bg-primary text-primary-foreground shadow-sm'
+            : 'text-[var(--admin-shell-sidebar-muted)] hover:bg-[var(--admin-shell-sidebar-hover)] hover:text-[var(--admin-shell-sidebar-foreground)]',
+          collapsed && 'justify-center px-0',
+        )}
       >
+        {isActive && (
+          <span
+            aria-hidden
+            className="absolute inset-y-1 start-0 w-0.5 rounded-full bg-primary-foreground/80"
+          />
+        )}
         {hasBullet && (
-          <span className="me-2 flex w-5 shrink-0 items-center justify-center">
-            <span className="size-1.5 rounded-full bg-current"></span>
+          <span className="flex size-5 shrink-0 items-center justify-center">
+            <span className="size-1.5 rounded-full bg-current" />
           </span>
         )}
-        {icon && app?.sidebar?.default?.menu?.iconType === 'svg' && (
+        {icon && (
           <span
-            className={clsx(
-              'me-2 flex size-8 shrink-0 items-center justify-center',
+            className={cn(
+              'flex size-5 shrink-0 items-center justify-center',
               isActive
-                ? 'text-primary-foreground!'
-                : 'text-[#464852]! group-hover:text-[#F5F5F5]!',
+                ? 'text-primary-foreground'
+                : 'text-[var(--admin-shell-sidebar-muted)] group-hover:text-[var(--admin-shell-sidebar-foreground)]',
             )}
           >
-            <KTIcon iconName={icon} className="text-[1.5rem]! leading-none" />
+            <KTIcon iconName={icon} className="text-[1.2rem]! leading-none" />
           </span>
         )}
-        {fontIcon && app?.sidebar?.default?.menu?.iconType === 'font' && (
-          <i
-            className={clsx('bi text-[1.35rem]!', fontIcon)}
-            style={{
-              marginInlineEnd: '0.5rem',
-            }}
-          ></i>
-        )}
-        <span className="grow truncate">{title}</span>
+        {!collapsed && <span className="grow truncate">{title}</span>}
       </Link>
       {children}
     </div>
   );
 };
-
-export { SidebarMenuItem };

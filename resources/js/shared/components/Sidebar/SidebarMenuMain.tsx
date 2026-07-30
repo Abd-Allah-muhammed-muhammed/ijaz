@@ -27,6 +27,7 @@ import useActiveRoute from '@/shared/hooks/use-active-route';
 import usePermissions from '@/shared/hooks/use-permissions';
 import { useTranslation } from 'react-i18next';
 import { SidebarMenuItem } from '@/shared/components/Sidebar/SidebarMenuItem';
+import { SidebarSection } from '@/shared/components/Sidebar/SidebarSection';
 import DeviceCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/DeviceCategoryController';
 import ElectronicBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/ElectronicBrandController';
 import SpecializationController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/SpecializationController';
@@ -57,11 +58,7 @@ const SidebarMenuMain = () => {
       {/* 2. Orders */}
       {hasPermission('show orders') && (
         <>
-          <div className="block py-[0.15rem]">
-            <div className="px-4 pt-8 pb-2">
-              <span className="uppercase text-[0.85rem] tracking-[0.1rem] text-[#99A1B7]">{t('orders')}</span>
-            </div>
-          </div>
+          <SidebarSection label={t('orders')} />
           <SidebarMenuItem
             isActive={matchComponents('dashboard.orders.*')}
             to={OrderController.index().url}
@@ -75,11 +72,7 @@ const SidebarMenuMain = () => {
 
       {/* 3. Administration → Roles, Admins, Users, Providers */}
       {hasAnyPermission(['show roles', 'show admins', 'show users', 'show providers']) && (
-        <div className="block py-[0.15rem]">
-          <div className="px-4 pt-8 pb-2">
-            <span className="uppercase text-[0.85rem] tracking-[0.1rem] text-[#99A1B7]">{t('administration')}</span>
-          </div>
-        </div>
+        <SidebarSection label={t('administration')} />
       )}
       <SidebarMenuItem
         to={RoleController.index().url}
@@ -116,11 +109,7 @@ const SidebarMenuMain = () => {
 
       {/* 4. Marketplace → Categories, Skills, Provider Types */}
       {hasAnyPermission(['show categories', 'show skills', 'show providerTypes']) && (
-        <div className="block py-[0.15rem]">
-          <div className="px-4 pt-8 pb-2">
-            <span className="uppercase text-[0.85rem] tracking-[0.1rem] text-[#99A1B7]">{t('marketplace')}</span>
-          </div>
-        </div>
+        <SidebarSection label={t('marketplace')} />
       )}
       <SidebarMenuItem
         to={CategoryController.index().url}
@@ -149,11 +138,7 @@ const SidebarMenuMain = () => {
 
       {/* 5. Geo → Regions, Cities, Nationalities */}
       {hasAnyPermission(['show regions', 'show cities', 'show nationalities']) && (
-        <div className="block py-[0.15rem]">
-          <div className="px-4 pt-8 pb-2">
-            <span className="uppercase text-[0.85rem] tracking-[0.1rem] text-[#99A1B7]">{t('geo')}</span>
-          </div>
-        </div>
+        <SidebarSection label={t('geo')} />
       )}
       <SidebarMenuItem
         to={RegionController.index().url}
@@ -182,11 +167,7 @@ const SidebarMenuMain = () => {
 
       {/* 6. Catalog — Properties → Property Categories, Property Types */}
       {hasAnyPermission(['show propertyCategories', 'show propertyTypes']) && (
-        <div className="block py-[0.15rem]">
-          <div className="px-4 pt-8 pb-2">
-            <span className="uppercase text-[0.85rem] tracking-[0.1rem] text-[#99A1B7]">{t('catalog_properties')}</span>
-          </div>
-        </div>
+        <SidebarSection label={t('catalog_properties')} />
       )}
       <SidebarMenuItem
         to={PropertyCategoryController.index().url}
@@ -207,11 +188,7 @@ const SidebarMenuMain = () => {
 
       {/* 7. Catalog — Cars → Car Categories, Car Types, Car Brands */}
       {hasAnyPermission(['show carBrands', 'show carTypes', 'show carCategories']) && (
-        <div className="block py-[0.15rem]">
-          <div className="px-4 pt-8 pb-2">
-            <span className="uppercase text-[0.85rem] tracking-[0.1rem] text-[#99A1B7]">{t('catalog_cars')}</span>
-          </div>
-        </div>
+        <SidebarSection label={t('catalog_cars')} />
       )}
       <SidebarMenuItem
         to={CarCategoryController.index().url}
@@ -240,11 +217,7 @@ const SidebarMenuMain = () => {
 
       {/* 8. Catalog — Devices → Device Categories, Electronic Brands */}
       {hasAnyPermission(['show deviceCategories', 'show electronicBrands']) && (
-        <div className="block py-[0.15rem]">
-          <div className="px-4 pt-8 pb-2">
-            <span className="uppercase text-[0.85rem] tracking-[0.1rem] text-[#99A1B7]">{t('catalog_devices')}</span>
-          </div>
-        </div>
+        <SidebarSection label={t('catalog_devices')} />
       )}
       <SidebarMenuItem
         to={DeviceCategoryController.index().url}
@@ -265,11 +238,7 @@ const SidebarMenuMain = () => {
 
       {/* 9. Catalog — Institutes → Specializations */}
       {hasPermission('show specializations') && (
-        <div className="block py-[0.15rem]">
-          <div className="px-4 pt-8 pb-2">
-            <span className="uppercase text-[0.85rem] tracking-[0.1rem] text-[#99A1B7]">{t('catalog_institutes')}</span>
-          </div>
-        </div>
+        <SidebarSection label={t('catalog_institutes')} />
       )}
       <SidebarMenuItem
         to={SpecializationController.index().url}
@@ -287,11 +256,7 @@ const SidebarMenuMain = () => {
         'show electronicAdvisements',
         'show instituteAdvisements',
       ]) && (
-        <div className="block py-[0.15rem]">
-          <div className="px-4 pt-8 pb-2">
-            <span className="uppercase text-[0.85rem] tracking-[0.1rem] text-[#99A1B7]">{t('classifieds')}</span>
-          </div>
-        </div>
+        <SidebarSection label={t('classifieds')} />
       )}
       <SidebarMenuItem
         to={PropertyAdvisementController.index().url}
@@ -328,11 +293,7 @@ const SidebarMenuMain = () => {
 
       {/* 11. Opportunities & Guarantor */}
       {hasAnyPermission(['show opportunities', 'show guarantors']) && (
-        <div className="block py-[0.15rem]">
-          <div className="px-4 pt-8 pb-2">
-            <span className="uppercase text-[0.85rem] tracking-[0.1rem] text-[#99A1B7]">{t('opportunities_guarantor')}</span>
-          </div>
-        </div>
+        <SidebarSection label={t('opportunities_guarantor')} />
       )}
       <SidebarMenuItem
         to={OpportunityController.index().url}
@@ -353,11 +314,7 @@ const SidebarMenuMain = () => {
 
       {/* 12. Finance */}
       {hasAnyPermission(['show topUpRequests', 'show withdrawRequests']) && (
-        <div className="block py-[0.15rem]">
-          <div className="px-4 pt-8 pb-2">
-            <span className="uppercase text-[0.85rem] tracking-[0.1rem] text-[#99A1B7]">{t('finance')}</span>
-          </div>
-        </div>
+        <SidebarSection label={t('finance')} />
       )}
       <SidebarMenuItem
         to={TopUpRequestController.index().url}
@@ -377,11 +334,7 @@ const SidebarMenuMain = () => {
       />
 
       {/* 13. Content / CMS → Banners, Pages, Questions, Messages */}
-      <div className="block py-[0.15rem]">
-        <div className="px-4 pt-8 pb-2">
-          <span className="uppercase text-[0.85rem] tracking-[0.1rem] text-[#99A1B7]">{t('content_cms')}</span>
-        </div>
-      </div>
+      <SidebarSection label={t('content_cms')} />
       <SidebarMenuItem
         to={BannerController.index().url}
         title={t('banners')}
@@ -413,11 +366,7 @@ const SidebarMenuMain = () => {
       />
 
       {/* 14. Support → Tickets */}
-      <div className="block py-[0.15rem]">
-        <div className="px-4 pt-8 pb-2">
-          <span className="uppercase text-[0.85rem] tracking-[0.1rem] text-[#99A1B7]">{t('support')}</span>
-        </div>
-      </div>
+      <SidebarSection label={t('support')} />
       <SidebarMenuItem
         to={SupportController.index().url}
         title={t('tickets')}
@@ -428,11 +377,7 @@ const SidebarMenuMain = () => {
 
       {/* 15. Quality & System → Reviews, Settings, Pan Analytics */}
       {hasAnyPermission(['show reviews', 'show settings', 'show panAnalytics']) && (
-        <div className="block py-[0.15rem]">
-          <div className="px-4 pt-8 pb-2">
-            <span className="uppercase text-[0.85rem] tracking-[0.1rem] text-[#99A1B7]">{t('quality_system')}</span>
-          </div>
-        </div>
+        <SidebarSection label={t('quality_system')} />
       )}
       <SidebarMenuItem
         to={ReviewController.index().url}

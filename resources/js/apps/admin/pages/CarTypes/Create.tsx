@@ -1,7 +1,7 @@
-import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
+import MasterLayout from '@/apps/admin/layouts';
 
-import { Content } from '@/vendor/metronic/layout/components/content';
-import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
+import { Content } from '@/apps/admin/layouts';
+import { ToolbarWrapper } from '@/apps/admin/layouts';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import CarTypeController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarTypeController';
 import { ReactSelect } from '@/shared/types';

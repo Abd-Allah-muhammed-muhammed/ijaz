@@ -203,6 +203,22 @@
     --brand-warning: oklch(0.68 0.12 75);
 }
 
+/*
+  Admin shell chrome — sidebar is ALWAYS dark (independent of light/dark mode).
+  Used by the Tailwind Admin Shell (not Metronic --bs-app-sidebar-*).
+*/
+:root {
+    --admin-shell-sidebar: oklch(0.17 0.012 260);
+    --admin-shell-sidebar-elevated: oklch(0.2 0.012 260);
+    --admin-shell-sidebar-foreground: oklch(0.92 0.01 260);
+    --admin-shell-sidebar-muted: oklch(0.62 0.015 260);
+    --admin-shell-sidebar-hover: oklch(1 0 0 / 0.06);
+    --admin-shell-sidebar-border: oklch(1 0 0 / 0.08);
+    --admin-shell-sidebar-width: 16.5rem;
+    --admin-shell-sidebar-collapsed-width: 4.5rem;
+    --admin-shell-header-height: 3.5rem;
+}
+
 /* Admin Dashboard — professional blue (AA white text on solid buttons) */
 :root[data-app='admin'] {
     /* Deep professional blue — L=0.42 / C=0.14 / H=255; white text comfortably above AA */

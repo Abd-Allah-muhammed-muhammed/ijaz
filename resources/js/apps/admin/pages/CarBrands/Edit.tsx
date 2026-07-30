@@ -1,13 +1,13 @@
 import { PageTitle } from '@/vendor/metronic/layout/core';
-import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
+import MasterLayout from '@/apps/admin/layouts';
 import CarBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarBrandController';
 import { CarBrand } from '@/shared/types/models';
 import { Head } from '@inertiajs/react';
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import Form, { CarBrandForm } from './Form';
-import { Content } from '@/vendor/metronic/layout/components/content';
-import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
+import { Content } from '@/apps/admin/layouts';
+import { ToolbarWrapper } from '@/apps/admin/layouts';
 
 type Props = {
   carBrand: CarBrand;

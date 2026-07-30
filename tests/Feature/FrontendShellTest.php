@@ -61,6 +61,17 @@ test('bootstrap variable bridge in app.css uses html data-app specificity', func
         ->toContain('--bs-primary-rgb: 0, 75, 151');
 });
 
+test('admin shell tokens and layout entry exist for Tailwind Admin Shell', function () {
+    $css = file_get_contents(resource_path('css/app.css'));
+    $layout = file_get_contents(resource_path('js/apps/admin/layouts/AdminLayout.tsx'));
+    $sidebar = file_get_contents(resource_path('js/shared/components/Sidebar/Sidebar.tsx'));
+
+    expect($css)->toContain('--admin-shell-sidebar:');
+    expect($layout)->toContain('AdminShellProvider');
+    expect($sidebar)->not->toContain('data-kt-app-sidebar');
+    expect($sidebar)->not->toContain('app-sidebar');
+});
+
 test('provider login sets data-app provider and shares app.shell', function () {
     $this->get(route('provider.login'))
         ->assertSuccessful()

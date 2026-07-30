@@ -1,8 +1,8 @@
 import { AdvisementStatusEnum, OperationEnum } from '@/Enums/Advisements';
 import { KTIcon } from '@/vendor/metronic/helpers';
-import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
-import { Content } from '@/vendor/metronic/layout/components/content';
-import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
+import MasterLayout from '@/apps/admin/layouts';
+import { Content } from '@/apps/admin/layouts';
+import { ToolbarWrapper } from '@/apps/admin/layouts';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import Pagination from '@/shared/components/Table/partials/Pagination';
 import { CitiesSelect, PropertyCategoriesSelect, PropertyTypesSelect, RegionsSelect } from '@/shared/components/selects';

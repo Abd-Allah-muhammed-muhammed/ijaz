@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import MasterLayout from "@/vendor/metronic/layout/MasterLayout";
 import {PageTitle} from "@/vendor/metronic/layout/core";
 import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
 import {Content} from "@/vendor/metronic/layout/components/content";
