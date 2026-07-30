@@ -43,9 +43,22 @@ test('dashboard login sets data-app admin and shares app.shell', function () {
     $this->get(route('dashboard.login.form'))
         ->assertSuccessful()
         ->assertSee('data-app="admin"', false)
+        ->assertSee('id="design-system-bs-bridge"', false)
+        ->assertSee('--bs-primary: var(--primary)', false)
         ->assertInertia(fn ($page) => $page
             ->where('app.shell', 'admin')
         );
+});
+
+test('bootstrap variable bridge in app.css uses html data-app specificity', function () {
+    $css = file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain("html[data-app='admin']")
+        ->toContain("html[data-app='admin'][data-bs-theme='light']")
+        ->toContain('--bs-primary: var(--primary)')
+        ->toContain('--bs-info: var(--info)')
+        ->toContain('--bs-primary-rgb: 0, 75, 151');
 });
 
 test('provider login sets data-app provider and shares app.shell', function () {

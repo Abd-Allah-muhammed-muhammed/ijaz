@@ -85,7 +85,7 @@ const Home = ({
           <Col md={3} sm={6} className='mb-xl-8'>
             <StatisticsWidget5
               className='card-xl-stretch mb-xl-8'
-              color='info'
+              color='primary'
               svgIcon='basket'
               iconColor='white'
               title={stats.totalOrders.toString()}

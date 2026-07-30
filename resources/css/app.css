@@ -307,13 +307,17 @@
 /*
   Bootstrap / Metronic CSS-variable bridge
   ---------------------------------------
-  Metronic's compiled CSS (public/css/style.bundle.css) reads --bs-primary,
-  --bs-primary-active, --bs-primary-light, --bs-primary-inverse, --bs-text-primary,
-  --bs-link-color, --bs-component-active-bg, etc. for .btn.btn-primary, badges,
-  text-primary, focus rings, and many utilities.
+  Metronic's compiled CSS (public/css/style.bundle.css) sets unscoped
+  `:root, [data-bs-theme=light] { --bs-primary: #1B84FF }` and
+  `--bs-info: #7239EA` (purple). Dashboard KPI cards use `.bg-primary` /
+  `.bg-info` which read those vars (Metronic overrides use
+  `background-color: var(--bs-*) !important`).
 
-  Map those onto our design tokens so Metronic picks up per-app colors with ZERO
-  component/JSX changes.
+  Document load order in app.blade.php is Metronic <link> THEN Vite app.css,
+  so equal-specificity rules already favor us — but Metronic's
+  `[data-bs-theme=light]` is (0,1,0). We use `html[data-app="…"]` (0,1,1)
+  and `html[data-app="…"][data-bs-theme="…"]` (0,2,1) so our bridge wins
+  even if another unlayered sheet loads later (Vite chunk CSS, etc.).
 
   Sidebar dark background ($coal-500 / #0D0E12 via --bs-app-sidebar-*) is NOT
   primary-linked and is unaffected by this bridge.
@@ -321,26 +325,20 @@
 
 /*
   ╔═══════════════════════════════════════════════════════════════════════════╗
-  ║  MANUAL SYNC REQUIRED — --bs-primary-rgb                                  ║
+  ║  MANUAL SYNC REQUIRED — --bs-*-rgb channel triples                        ║
   ║                                                                           ║
-  ║  These RGB triples are MANUALLY computed from the oklch --primary tokens  ║
-  ║  above. They do NOT update automatically when --primary changes.          ║
-  ║                                                                           ║
-  ║  Bootstrap uses them as:  rgba(var(--bs-primary-rgb), α)                  ║
-  ║  That syntax requires a literal "R, G, B" channel string — it cannot      ║
-  ║  accept oklch() or var(--primary).                                        ║
-  ║                                                                           ║
-  ║  If you change --primary for ANY app (light or dark), you MUST also       ║
-  ║  recompute and update the matching --bs-primary-rgb triple below, or      ║
-  ║  Bootstrap's rgba()-based effects (shadows, focus rings, .bg-primary      ║
-  ║  opacity utilities, subtle overlays, etc.) will SILENTLY go out of sync   ║
-  ║  with the solid --primary / --bs-primary color.                           ║
+  ║  Bootstrap uses:  rgba(var(--bs-primary-rgb), α)                          ║
+  ║  That syntax needs a literal "R, G, B" string — not oklch()/var().        ║
+  ║  Recompute triples whenever the matching oklch token changes.             ║
   ╚═══════════════════════════════════════════════════════════════════════════╝
 */
-:root,
-:root[data-app='web'] {
+
+/* Shared status + primary bridge shape (per-app RGB / primary overrides below). */
+html[data-app='web'],
+html[data-app='admin'],
+html[data-app='provider'],
+html[data-app='marketer'] {
     --bs-primary: var(--primary);
-    --bs-primary-rgb: 14, 16, 31; /* MANUAL SYNC ← oklch(0.18 0.03 275) */
     --bs-primary-active: color-mix(in oklab, var(--primary) 88%, black);
     --bs-primary-light: color-mix(in oklab, var(--primary) 14%, white);
     --bs-primary-inverse: var(--primary-foreground);
@@ -356,40 +354,72 @@
     --bs-component-active-bg: var(--primary);
     --bs-component-active-color: var(--primary-foreground);
     --bs-component-hover-color: var(--primary);
+
+    /* Status: kill Metronic purple --bs-info (#7239EA) on .bg-info KPI cards, etc. */
+    --bs-success: var(--success);
+    --bs-success-rgb: 0, 104, 54; /* MANUAL SYNC ← oklch(0.45 0.12 155) */
+    --bs-warning: var(--warning);
+    --bs-warning-rgb: 208, 144, 30; /* MANUAL SYNC ← oklch(0.7 0.14 75) */
+    --bs-info: var(--info);
+    --bs-info-rgb: 20, 121, 176; /* MANUAL SYNC ← oklch(0.55 0.12 240) */
 }
 
-:root[data-app='admin'] {
+html[data-app='web'],
+html[data-app='web'][data-bs-theme='light'] {
+    --bs-primary-rgb: 14, 16, 31; /* MANUAL SYNC ← oklch(0.18 0.03 275) */
+}
+
+html[data-app='admin'],
+html[data-app='admin'][data-bs-theme='light'] {
     --bs-primary-rgb: 0, 75, 151; /* MANUAL SYNC ← oklch(0.42 0.14 255) */
 }
 
-:root[data-app='provider'] {
+html[data-app='provider'],
+html[data-app='provider'][data-bs-theme='light'] {
     --bs-primary-rgb: 0, 95, 46; /* MANUAL SYNC ← oklch(0.42 0.12 155) */
 }
 
-:root[data-app='marketer'] {
+html[data-app='marketer'],
+html[data-app='marketer'][data-bs-theme='light'] {
     --bs-primary-rgb: 170, 70, 0; /* MANUAL SYNC ← oklch(0.52 0.15 48) */
 }
 
-:root.dark,
-:root.dark[data-app='web'] {
-    --bs-primary-rgb: 175, 182, 210; /* MANUAL SYNC ← oklch(0.78 0.04 275) */
+html.dark[data-app='web'],
+html.dark[data-app='admin'],
+html.dark[data-app='provider'],
+html.dark[data-app='marketer'],
+html[data-app='web'][data-bs-theme='dark'],
+html[data-app='admin'][data-bs-theme='dark'],
+html[data-app='provider'][data-bs-theme='dark'],
+html[data-app='marketer'][data-bs-theme='dark'] {
     --bs-primary-active: color-mix(in oklab, var(--primary) 88%, black);
     --bs-primary-light: color-mix(in oklab, var(--primary) 22%, black);
     --bs-primary-text-emphasis: color-mix(in oklab, var(--primary) 70%, white);
     --bs-primary-bg-subtle: color-mix(in oklab, var(--primary) 18%, black);
     --bs-primary-border-subtle: color-mix(in oklab, var(--primary) 35%, black);
     --bs-link-hover-color: color-mix(in oklab, var(--primary) 85%, white);
+    --bs-success-rgb: 78, 190, 125; /* MANUAL SYNC ← oklch(0.72 0.14 155) */
+    --bs-warning-rgb: 228, 172, 89; /* MANUAL SYNC ← oklch(0.78 0.12 75) */
+    --bs-info-rgb: 103, 173, 221; /* MANUAL SYNC ← oklch(0.72 0.1 240) */
 }
 
-:root.dark[data-app='admin'] {
+html.dark[data-app='web'],
+html[data-app='web'][data-bs-theme='dark'] {
+    --bs-primary-rgb: 175, 182, 210; /* MANUAL SYNC ← oklch(0.78 0.04 275) */
+}
+
+html.dark[data-app='admin'],
+html[data-app='admin'][data-bs-theme='dark'] {
     --bs-primary-rgb: 111, 167, 238; /* MANUAL SYNC ← oklch(0.72 0.12 255) */
 }
 
-:root.dark[data-app='provider'] {
+html.dark[data-app='provider'],
+html[data-app='provider'][data-bs-theme='dark'] {
     --bs-primary-rgb: 104, 185, 134; /* MANUAL SYNC ← oklch(0.72 0.11 155) */
 }
 
-:root.dark[data-app='marketer'] {
+html.dark[data-app='marketer'],
+html[data-app='marketer'][data-bs-theme='dark'] {
     --bs-primary-rgb: 240, 153, 91; /* MANUAL SYNC ← oklch(0.76 0.13 55) */
 }
 
