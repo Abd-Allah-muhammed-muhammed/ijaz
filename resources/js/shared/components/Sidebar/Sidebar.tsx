@@ -1,120 +1,151 @@
-import { Link } from '@inertiajs/react';
-import { ChevronLeft } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { url as assetUrl } from '@/shared/helpers/general';
-import { cn } from '@/shared/lib/utils';
-import { SidebarSection } from './SidebarSection';
-import type { SidebarProps } from './types';
-
-const SIDEBAR_MINIMIZE_ATTR = 'data-kt-app-sidebar-minimize';
-const SIDEBAR_HOVERABLE_ATTR = 'data-kt-app-sidebar-hoverable';
-
+/* eslint-disable no-prototype-builtins */
 /**
- * Tailwind-native sidebar painted to match Metronic `dark-sidebar` source values
- * (`$coal-500` #0D0E12 bg — fixed, independent of page light/dark).
- *
- * Active item is the only intentional deviation: uses app `--primary` instead of
- * Metronic `$app-sidebar-dark-menu-link-bg-color-active` (#1C1C21).
- *
- * Geometry IDs / `app-sidebar` class retained for Metronic header/content shell.
+ * Literal copy of vendor/metronic/layout/components/sidebar/Sidebar.tsx
+ * with mechanical class substitution (see commit message / mapping table).
  */
-export function Sidebar({
-  sections,
-  homeHref = '/dashboard',
-  logoSrc = 'logo2.png',
-}: SidebarProps) {
-  const [minimized, setMinimized] = useState(false);
+import clsx from 'clsx';
+import { useEffect, useRef } from 'react';
+import { type ILayout, useLayout } from '@/vendor/metronic/layout/core';
+import { SidebarMenu } from '@/shared/components/Sidebar/SidebarMenu';
+import { SidebarLogo } from '@/shared/components/Sidebar/SidebarLogo';
+
+const Sidebar = () => {
+  const { config } = useLayout();
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const body = document.body;
-    body.setAttribute('data-kt-app-sidebar-enabled', 'true');
-    body.setAttribute('data-kt-app-sidebar-fixed', 'true');
-    body.setAttribute('data-kt-app-sidebar-push-header', 'true');
-    body.setAttribute('data-kt-app-sidebar-push-toolbar', 'true');
-    body.setAttribute('data-kt-app-sidebar-push-footer', 'true');
-    body.setAttribute(SIDEBAR_HOVERABLE_ATTR, 'true');
+    updateDOM(config);
+  }, [config]);
 
-    const initial = body.getAttribute(SIDEBAR_MINIMIZE_ATTR) === 'on';
-    setMinimized(initial);
-  }, []);
-
-  const toggleMinimize = useCallback(() => {
-    setMinimized((prev) => {
-      const next = !prev;
-      if (next) {
-        document.body.setAttribute(SIDEBAR_MINIMIZE_ATTR, 'on');
-      } else {
-        document.body.removeAttribute(SIDEBAR_MINIMIZE_ATTR);
-      }
-      return next;
-    });
-  }, []);
+  if (!config.app?.sidebar?.display) {
+    return null;
+  }
 
   return (
-    <aside
-      id="kt_app_sidebar"
-      className="app-sidebar ds-sidebar flex flex-col"
-      data-kt-drawer="true"
-      data-kt-drawer-name="app-sidebar"
-      data-kt-drawer-activate="{default: true, lg: false}"
-      data-kt-drawer-overlay="true"
-      data-kt-drawer-width="225px"
-      data-kt-drawer-direction="start"
-      data-kt-drawer-toggle="#kt_app_sidebar_mobile_toggle"
-    >
-      <div
-        id="kt_app_sidebar_logo"
-        className="app-sidebar-logo relative flex h-[70px] shrink-0 items-center justify-between px-6"
-      >
-        <Link href={homeHref} className="flex items-center">
-          <img
-            alt="Logo"
-            src={assetUrl(logoSrc)}
-            className="app-sidebar-logo-default h-[25px]"
-          />
-          <img
-            alt="Logo"
-            src={assetUrl(logoSrc)}
-            className="app-sidebar-logo-minimize h-5"
-          />
-        </Link>
-
-        <button
-          type="button"
-          id="kt_app_sidebar_toggle"
-          aria-label={minimized ? 'Expand sidebar' : 'Collapse sidebar'}
-          aria-pressed={minimized}
-          onClick={toggleMinimize}
-          className={cn(
-            /* Metronic `.app-sidebar-toggle`: body-bg, border #F1F1F2, soft shadow */
-            'app-sidebar-toggle absolute top-1/2 z-10 flex size-[30px] -translate-y-1/2 items-center justify-center',
-            'rounded-md border border-[#F1F1F2] bg-white text-[#99A1B7] shadow-[0px_8px_14px_rgba(15,42,81,0.04)]',
-            'transition-transform duration-200 hover:text-primary',
-            'start-full -translate-x-1/2 rtl:translate-x-1/2',
-            minimized && 'rotate-180',
+    <>
+      {(config.layoutType === 'dark-sidebar' || config.layoutType === 'light-sidebar') && (
+        <div
+          ref={sidebarRef}
+          id="kt_app_sidebar"
+          className={clsx(
+            /* Keep `app-sidebar` for Metronic layout geometry (width/fixed/minimize). */
+            'app-sidebar',
+            /* dark-sidebar bg $coal-500 → #0D0E12 (fixed paint) */
+            'bg-[#0D0E12]!',
+            /* config.app.sidebar.default.class was `flex-column` → flex flex-col */
+            config.app?.sidebar?.default?.class === 'flex-column'
+              ? 'flex flex-col'
+              : config.app?.sidebar?.default?.class,
           )}
         >
-          <ChevronLeft className="size-3.5 rtl:rotate-180" />
-        </button>
-      </div>
-
-      <div className="app-sidebar-menu flex min-h-0 flex-1 flex-col overflow-hidden">
-        {/* Metronic: `my-5` wrapper + `menu … px-3` */}
-        <nav
-          id="kt_app_sidebar_menu_wrapper"
-          className="app-sidebar-wrapper my-5 flex-1 overflow-y-auto px-3"
-          aria-label="Main"
-        >
-          <div className="pb-6">
-            {sections.map((section, index) => (
-              <SidebarSection
-                key={section.title ?? `section-${index}`}
-                section={section}
-              />
-            ))}
-          </div>
-        </nav>
-      </div>
-    </aside>
+          <SidebarLogo sidebarRef={sidebarRef} />
+          <SidebarMenu />
+        </div>
+      )}
+    </>
   );
-}
+};
+
+const updateDOM = (config: ILayout) => {
+  if (config.layoutType === 'dark-sidebar' || config.layoutType === 'light-sidebar') {
+    if (config.app?.sidebar?.default?.minimize?.desktop?.enabled) {
+      if (config.app?.sidebar?.default?.minimize?.desktop?.default) {
+        document.body.setAttribute('data-kt-app-sidebar-minimize', 'on');
+      }
+
+      if (config.app?.sidebar?.default?.minimize?.desktop?.hoverable) {
+        document.body.setAttribute('data-kt-app-sidebar-hoverable', 'true');
+      }
+    }
+
+    if (config.app?.sidebar?.default?.minimize?.mobile?.enabled) {
+      if (config.app?.sidebar?.default?.minimize?.mobile?.default) {
+        document.body.setAttribute('data-kt-app-sidebar-minimize-mobile', 'on');
+      }
+
+      if (config.app?.sidebar?.default?.minimize?.mobile?.hoverable) {
+        document.body.setAttribute('data-kt-app-sidebar-hoverable-mobile', 'true');
+      }
+    }
+
+    if (config.app?.sidebar?.default?.collapse?.desktop?.enabled) {
+      if (config.app?.sidebar?.default?.collapse?.desktop?.default) {
+        document.body.setAttribute('data-kt-app-sidebar-collapse', 'on');
+      }
+    }
+
+    if (config.app?.sidebar?.default?.collapse?.mobile?.enabled) {
+      if (config.app?.sidebar?.default?.collapse?.mobile?.default) {
+        document.body.setAttribute('data-kt-app-sidebar-collapse-mobile', 'on');
+      }
+    }
+
+    if (config.app?.sidebar?.default?.push) {
+      if (config.app?.sidebar?.default?.push?.header) {
+        document.body.setAttribute('data-kt-app-sidebar-push-header', 'true');
+      }
+
+      if (config.app?.sidebar?.default?.push?.toolbar) {
+        document.body.setAttribute('data-kt-app-sidebar-push-toolbar', 'true');
+      }
+
+      if (config.app?.sidebar?.default?.push?.footer) {
+        document.body.setAttribute('data-kt-app-sidebar-push-footer', 'true');
+      }
+    }
+
+    if (config.app?.sidebar?.default?.stacked) {
+      document.body.setAttribute('app-sidebar-stacked', 'true');
+    }
+
+    document.body.setAttribute('data-kt-app-sidebar-enabled', 'true');
+    document.body.setAttribute(
+      'data-kt-app-sidebar-fixed',
+      config.app?.sidebar?.default?.fixed?.desktop?.toString() || '',
+    );
+
+    const appSidebarDefaultDrawerEnabled = config.app?.sidebar?.default?.drawer?.enabled;
+    let appSidebarDefaultDrawerAttributes: { [attrName: string]: string } = {};
+    if (appSidebarDefaultDrawerEnabled) {
+      appSidebarDefaultDrawerAttributes = config.app?.sidebar?.default?.drawer?.attributes as {
+        [attrName: string]: string;
+      };
+    }
+
+    const appSidebarDefaultStickyEnabled = config.app?.sidebar?.default?.sticky?.enabled;
+    let appSidebarDefaultStickyAttributes: { [attrName: string]: string } = {};
+    if (appSidebarDefaultStickyEnabled) {
+      appSidebarDefaultStickyAttributes = config.app?.sidebar?.default?.sticky?.attributes as {
+        [attrName: string]: string;
+      };
+    }
+
+    setTimeout(() => {
+      const sidebarElement = document.getElementById('kt_app_sidebar');
+      if (sidebarElement) {
+        const sidebarAttributes = sidebarElement
+          .getAttributeNames()
+          .filter((t) => t.indexOf('data-') > -1);
+        sidebarAttributes.forEach((attr) => sidebarElement.removeAttribute(attr));
+
+        if (appSidebarDefaultDrawerEnabled) {
+          for (const key in appSidebarDefaultDrawerAttributes) {
+            if (appSidebarDefaultDrawerAttributes.hasOwnProperty(key)) {
+              sidebarElement.setAttribute(key, appSidebarDefaultDrawerAttributes[key]);
+            }
+          }
+        }
+
+        if (appSidebarDefaultStickyEnabled) {
+          for (const key in appSidebarDefaultStickyAttributes) {
+            if (appSidebarDefaultStickyAttributes.hasOwnProperty(key)) {
+              sidebarElement.setAttribute(key, appSidebarDefaultStickyAttributes[key]);
+            }
+          }
+        }
+      }
+    }, 0);
+  }
+};
+
+export { Sidebar };

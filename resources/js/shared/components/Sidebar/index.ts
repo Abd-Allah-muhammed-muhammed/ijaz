@@ -1,4 +1,5 @@
 export { Sidebar } from './Sidebar';
-export { SidebarNavItem } from './SidebarNavItem';
-export { SidebarSection } from './SidebarSection';
-export type { SidebarNavItem as SidebarNavItemType, SidebarNavSection, SidebarProps } from './types';
+export { SidebarLogo } from './SidebarLogo';
+export { SidebarMenu } from './SidebarMenu';
+export { SidebarMenuItem } from './SidebarMenuItem';
+export { SidebarMenuMain } from './SidebarMenuMain';
