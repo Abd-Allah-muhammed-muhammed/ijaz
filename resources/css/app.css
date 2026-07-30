@@ -305,6 +305,81 @@
 }
 
 /*
+  Bootstrap / Metronic CSS-variable bridge
+  ---------------------------------------
+  Metronic's compiled CSS (public/css/style.bundle.css) reads --bs-primary,
+  --bs-primary-active, --bs-primary-light, --bs-primary-inverse, --bs-text-primary,
+  --bs-link-color, --bs-component-active-bg, etc. for .btn.btn-primary, badges,
+  text-primary, focus rings, and many utilities.
+
+  Map those onto our design tokens so Metronic picks up per-app colors with ZERO
+  component/JSX changes.
+
+  --bs-primary-rgb limitation: Bootstrap does `rgba(var(--bs-primary-rgb), α)` which
+  requires a literal "R, G, B" channel string — it cannot accept oklch()/var(--primary).
+  RGB triples below are precomputed from the matching oklch --primary values (Node
+  conversion) and must be updated if those tokens change.
+
+  Sidebar dark background ($coal-500 / #0D0E12 via --bs-app-sidebar-*) is NOT
+  primary-linked and is unaffected by this bridge.
+*/
+:root,
+:root[data-app='web'] {
+    --bs-primary: var(--primary);
+    --bs-primary-rgb: 14, 16, 31; /* from oklch(0.18 0.03 275) */
+    --bs-primary-active: color-mix(in oklab, var(--primary) 88%, black);
+    --bs-primary-light: color-mix(in oklab, var(--primary) 14%, white);
+    --bs-primary-inverse: var(--primary-foreground);
+    --bs-primary-clarity: color-mix(in oklab, var(--primary) 20%, transparent);
+    --bs-primary-text-emphasis: color-mix(in oklab, var(--primary) 72%, black);
+    --bs-primary-bg-subtle: color-mix(in oklab, var(--primary) 12%, white);
+    --bs-primary-border-subtle: color-mix(in oklab, var(--primary) 28%, white);
+    --bs-text-primary: var(--primary);
+    --bs-link-color: var(--primary);
+    --bs-link-color-rgb: var(--bs-primary-rgb);
+    --bs-link-hover-color: color-mix(in oklab, var(--primary) 85%, black);
+    --bs-link-hover-color-rgb: var(--bs-primary-rgb);
+    --bs-component-active-bg: var(--primary);
+    --bs-component-active-color: var(--primary-foreground);
+    --bs-component-hover-color: var(--primary);
+}
+
+:root[data-app='admin'] {
+    --bs-primary-rgb: 0, 75, 151; /* from oklch(0.42 0.14 255) */
+}
+
+:root[data-app='provider'] {
+    --bs-primary-rgb: 0, 95, 46; /* from oklch(0.42 0.12 155) */
+}
+
+:root[data-app='marketer'] {
+    --bs-primary-rgb: 170, 70, 0; /* from oklch(0.52 0.15 48) */
+}
+
+:root.dark,
+:root.dark[data-app='web'] {
+    --bs-primary-rgb: 175, 182, 210; /* from oklch(0.78 0.04 275) */
+    --bs-primary-active: color-mix(in oklab, var(--primary) 88%, black);
+    --bs-primary-light: color-mix(in oklab, var(--primary) 22%, black);
+    --bs-primary-text-emphasis: color-mix(in oklab, var(--primary) 70%, white);
+    --bs-primary-bg-subtle: color-mix(in oklab, var(--primary) 18%, black);
+    --bs-primary-border-subtle: color-mix(in oklab, var(--primary) 35%, black);
+    --bs-link-hover-color: color-mix(in oklab, var(--primary) 85%, white);
+}
+
+:root.dark[data-app='admin'] {
+    --bs-primary-rgb: 111, 167, 238; /* from oklch(0.72 0.12 255) */
+}
+
+:root.dark[data-app='provider'] {
+    --bs-primary-rgb: 104, 185, 134; /* from oklch(0.72 0.11 155) */
+}
+
+:root.dark[data-app='marketer'] {
+    --bs-primary-rgb: 240, 153, 91; /* from oklch(0.76 0.13 55) */
+}
+
+/*
   Apply the unified font stack without Tailwind Preflight.
   Does not reset margins/borders — Bootstrap still owns those.
 */
@@ -316,8 +391,8 @@ body {
 /*
   Bridge design-system --primary into Metronic/Bootstrap accents used by
   create (+) buttons and DataTable pagination (legacy .btn-primary / .pagination).
-  Sidebar remains Metronic-owned (layoutType dark-sidebar) — Tailwind-native
-  Sidebar WIP lives in shared/components/Sidebar/ (deferred; not wired into Admin).
+  Broader Metronic paint also flows through the --bs-primary* bridge above.
+  Sidebar dark background ($coal-500) stays Metronic-owned and primary-independent.
 */
 .btn-primary {
     --bs-btn-color: var(--primary-foreground);
