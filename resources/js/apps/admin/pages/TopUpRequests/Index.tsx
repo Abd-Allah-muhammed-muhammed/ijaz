@@ -1,156 +1,147 @@
+import { type ReactElement, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import MasterLayout from "@/vendor/metronic/layout/MasterLayout";
-import {PageTitle} from "@/vendor/metronic/layout/core";
-import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
-import {Content} from "@/vendor/metronic/layout/components/content";
-import {Head} from "@inertiajs/react";
-import {KTCard} from "@/vendor/metronic/helpers";
-import Table, {LinkAction} from "@/shared/components/Table";
-import {PaginationResource} from "@/shared/types";
-import {TopUpRequest} from "@/shared/types/models";
-import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
-import {ReactElement} from "react";
-import {OperationStatusEnum} from "@/Enums/Enums";
-import TopUpRequestController from "@/actions/Modules/Wallet/Http/Controllers/Dashboard/TopUpRequestController";
-import {applyFilterParam, visitWithFilters} from "@/shared/lib/filters";
+import { Head, router } from '@inertiajs/react';
+import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
+import { PageTitle } from '@/vendor/metronic/layout/core';
+import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
+import { Content } from '@/vendor/metronic/layout/components/content';
+import { KTCard } from '@/vendor/metronic/helpers';
+import {
+  CurrencyCell,
+  DataTable,
+  DateCell,
+  StatusBadgeCell,
+  type DataTableColumn,
+} from '@/shared/components/DataTable';
+import { applyFilterParam, visitWithFilters } from '@/shared/lib/filters';
+import type { PaginationResource } from '@/shared/types';
+import type { TopUpRequest } from '@/shared/types/models';
+import TopUpRequestController from '@/actions/Modules/Wallet/Http/Controllers/Dashboard/TopUpRequestController';
 
+type SearchParams = {
+  per_page?: number;
+  search?: string;
+};
 
 type Props = {
-  rows: PaginationResource<TopUpRequest>,
-  prams: SearchPrams | null;
+  rows: PaginationResource<TopUpRequest>;
+  prams: SearchParams | null;
 };
 
-type SearchPrams = {
-  per_page: number;
-  search: string;
-};
-const Index = (
-  {
-    rows,
-    prams,
-  }: Props
-) => {
+const Index = ({ rows, prams }: Props) => {
   const { t } = useTranslation();
-  const searchPrams: SearchPrams = prams || {
-    per_page: 10,
-    search: '',
+
+  const searchParams: SearchParams = {
+    per_page: prams?.per_page ?? 10,
+    ...(prams?.search ? { search: prams.search } : {}),
   };
 
-  const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
+  const searchParamsChanged = (name: keyof SearchParams, value: string | number) => {
     const next = applyFilterParam(
-      { ...searchPrams } as Record<string, unknown>,
+      { ...searchParams } as Record<string, unknown>,
       name,
       value,
     );
-    visitWithFilters(TopUpRequestController.index().url, next, { only: ['rows'] });
+    visitWithFilters(TopUpRequestController.index().url, next, { only: ['rows', 'prams'] });
   };
+
+  const columns = useMemo<DataTableColumn<TopUpRequest>[]>(
+    () => [
+      {
+        id: 'id',
+        header: '#',
+        accessorKey: 'id',
+      },
+      {
+        id: 'name',
+        header: t('name'),
+        cell: (row) => row.user?.name ?? '—',
+      },
+      {
+        id: 'amount',
+        header: t('amount'),
+        cell: (row) => <CurrencyCell value={row.amount} options={{ currencyLabel: '' }} />,
+      },
+      {
+        id: 'status',
+        header: t('status'),
+        cell: (row) => (
+          <StatusBadgeCell label={row.status.label} color={row.status.color} />
+        ),
+      },
+      {
+        id: 'payment_method',
+        header: t('payment_method'),
+        cell: (row) => (
+          <StatusBadgeCell label={row.payment_method.label} color="secondary" />
+        ),
+      },
+      {
+        id: 'payment_status',
+        header: t('payment_status'),
+        cell: (row) =>
+          row.payment_status ? (
+            <StatusBadgeCell
+              label={row.payment_status.label}
+              color={row.payment_status.color}
+            />
+          ) : (
+            <StatusBadgeCell label={t('N/A')} color="secondary" />
+          ),
+      },
+      {
+        id: 'created_at',
+        header: t('created_at'),
+        cell: (row) => <DateCell value={row.created_at} />,
+      },
+    ],
+    [t],
+  );
+
   return (
     <>
-      <Head title={t('top_up_requests')}/>
-      <PageTitle breadcrumbs={[
-        // {
-        //   title: 'User Management',
-        //   path: '/apps/user-management/users',
-        //   isSeparator: false,
-        //   isActive: false,
-        // },
-        {
-          title: '',
-          path: '',
-          isSeparator: true,
-          isActive: false,
-        },
-      ]}>
+      <Head title={t('top_up_requests')} />
+      <PageTitle
+        breadcrumbs={[
+          {
+            title: '',
+            path: '',
+            isSeparator: true,
+            isActive: false,
+          },
+        ]}
+      >
         {t('top_up_requests')}
       </PageTitle>
-      <ToolbarWrapper/>
+      <ToolbarWrapper />
       <Content>
-        <KTCard>
-          <Table
-            <TopUpRequest>
-            only={[
-              'rows'
-            ]}
-            name='top-up'
-            rows={rows}
-            search={{
-              value: prams?.search || '',
-              callback: (value) => {
-                searchPramsChanged('search', value);
-              },
+        <KTCard className="p-6">
+          <DataTable
+            columns={columns}
+            data={rows.data}
+            pagination={rows.meta}
+            paginationOnly={['rows', 'prams']}
+            searchable
+            searchValue={prams?.search ?? ''}
+            searchPlaceholder={t('search', { defaultValue: 'Search' })}
+            onSearch={(value) => searchParamsChanged('search', value)}
+            onRowClick={(row) => {
+              router.visit(TopUpRequestController.show(row.id as string).url);
             }}
-            headers={[
+            actions={() => [
               {
-                title: '#',
-                property: 'id',
-              },
-              {
-                title: t('name'),
-                property: 'name',
-                render: row => (row.user?.name ?? "-"),
-              },
-              {
-                title: t('amount'),
-                property: 'amount',
-              },
-              {
-                title: t('status'),
-                property: 'status',
-                render: (row) => (
-                  <span className={`badge badge-light-${row.status.color}`}> {row.status.label}</span>
-                )
-              },
-              {
-                title: t('payment_method'),
-                property: 'payment_method',
-                render: (row) => (
-                  <span className={`badge badge-light-secondary`}> {row.payment_method.label}</span>
-                )
-              },
-              {
-                title: t('payment_status'),
-                property: 'payment_status',
-                render: (row) => row.payment_status ?
-                  (<span className={`badge badge-light-${row.payment_status.color}`}> {row.payment_status.label}</span>)
-                  : (<span className={`badge badge-light-secondary`}> {t('N/A')}</span>)
-              },
-              {
-                title: t('created_at'),
-                property: 'created_at',
-                render: (row) => {
-                  const data = new Date(row.created_at);
-                  return (<span>{data.toLocaleDateString()}: {data.toLocaleTimeString()}</span>)
-                }
+                id: 'show',
+                label: t('show'),
+                href: (row) => TopUpRequestController.show(row.id as string).url,
               },
             ]}
-            actions={[
-              {
-                show: true,
-                ele: (row) => (
-                  <LinkAction
-                    key={`edit-top-up-${row.id}`}
-                    href={TopUpRequestController.show(row.id as string).url}
-                    title={t('show')}
-                  />
-                ),
-              },
-            ]}
-            // addButton={
-            //   <Link
-            //     href={TopUpRequestController.create().url}
-            //     className="btn btn-primary"
-            //   >
-            //     <KTIcon iconName='plus' className='fs-2'/>
-            //   </Link>
-            // }
           />
         </KTCard>
       </Content>
     </>
   );
-}
+};
 
-//@ts-ignore
-Index.layout = (page: ReactElement) => <MasterLayout children={page} {...page.props}/>;
+Index.layout = (page: ReactElement) => <MasterLayout>{page}</MasterLayout>;
 
 export default Index;

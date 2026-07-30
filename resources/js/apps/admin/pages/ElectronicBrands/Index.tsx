@@ -1,41 +1,55 @@
-import { KTCard, KTIcon } from '@/vendor/metronic/helpers';
-import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
-import { Content } from '@/vendor/metronic/layout/components/content';
-import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
-import { PageTitle } from '@/vendor/metronic/layout/core';
-import ElectronicBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/ElectronicBrandController';
-import Table, { LinkAction } from '@/shared/components/Table';
-import ConfirmAction from '@/shared/components/Table/partials/confirm-action';
-import { PaginationResource } from '@/shared/types';
-import { ElectronicBrand } from '@/shared/types/models';
-import { Head, Link, router } from '@inertiajs/react';
-import { ReactElement } from 'react';
+import { type ReactElement, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Head, Link, router } from '@inertiajs/react';
+import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
+import { PageTitle } from '@/vendor/metronic/layout/core';
+import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
+import { Content } from '@/vendor/metronic/layout/components/content';
+import { KTCard, KTIcon } from '@/vendor/metronic/helpers';
+import { DataTable, type DataTableColumn } from '@/shared/components/DataTable';
+import { applyFilterParam, visitWithFilters } from '@/shared/lib/filters';
+import type { PaginationResource } from '@/shared/types';
+import type { ElectronicBrand } from '@/shared/types/models';
+import ElectronicBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/ElectronicBrandController';
+
+type SearchParams = {
+  per_page?: number;
+  search?: string;
+};
 
 type Props = {
   rows: PaginationResource<ElectronicBrand>;
-  prams: SearchPrams | null;
+  prams: SearchParams | null;
 };
 
-type SearchPrams = {
-  per_page: number;
-  search: string;
-};
 const Index = ({ rows, prams }: Props) => {
   const { t } = useTranslation();
-  const searchPrams: SearchPrams = prams || {
-    per_page: 10,
-    search: '',
+
+  const searchParams: SearchParams = {
+    per_page: prams?.per_page ?? 10,
+    ...(prams?.search ? { search: prams.search } : {}),
   };
 
-  const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    if (value) {
-      searchPrams[name] = value as never;
-    } else {
-      delete searchPrams[name];
-    }
-    router.get(ElectronicBrandController.index().url, searchPrams);
+  const searchParamsChanged = (name: keyof SearchParams, value: string | number) => {
+    const next = applyFilterParam(
+      { ...searchParams } as Record<string, unknown>,
+      name,
+      value,
+    );
+    visitWithFilters(ElectronicBrandController.index().url, next, { only: ['rows', 'prams'] });
   };
+
+  const columns = useMemo<DataTableColumn<ElectronicBrand>[]>(
+    () => [
+      {
+        id: 'name',
+        header: t('name'),
+        accessorKey: 'name',
+      },
+    ],
+    [t],
+  );
+
   return (
     <>
       <Head title={t('electronic_brands')} />
@@ -53,47 +67,40 @@ const Index = ({ rows, prams }: Props) => {
       </PageTitle>
       <ToolbarWrapper />
       <Content>
-        <KTCard>
-          <Table<ElectronicBrand>
-            name="electronic_brands"
-            rows={rows}
-            search={{
-              value: prams?.search || '',
-              callback: (value) => {
-                searchPramsChanged('search', value);
-              },
+        <KTCard className="p-6">
+          <DataTable
+            columns={columns}
+            data={rows.data}
+            pagination={rows.meta}
+            paginationOnly={['rows', 'prams']}
+            searchable
+            searchValue={prams?.search ?? ''}
+            searchPlaceholder={t('search', { defaultValue: 'Search' })}
+            onSearch={(value) => searchParamsChanged('search', value)}
+            onRowClick={(row) => {
+              router.visit(ElectronicBrandController.edit(row.id as number).url);
             }}
-            headers={[
-              {
-                title: t('name'),
-                property: 'name',
-              },
-            ]}
-            actions={[
-              {
-                show: true,
-                ele: (row) => (
-                  <LinkAction key={`edit-electronic-brand-${row.id}`} href={ElectronicBrandController.edit(row.id as number).url} title={t('edit')} />
-                ),
-              },
-              {
-                show: true,
-                ele: (row) => (
-                  <ConfirmAction
-                    key={`delete-electronic-brand-${row.id}`}
-                    callback={() => {
-                      router.delete(ElectronicBrandController.destroy(row.id as number).url);
-                    }}
-                    title={t('delete')}
-                  />
-                ),
-              },
-            ]}
-            addButton={
+            toolbar={
               <Link href={ElectronicBrandController.create().url} className="btn btn-primary">
                 <KTIcon iconName="plus" className="fs-2" />
               </Link>
             }
+            actions={() => [
+              {
+                id: 'edit',
+                label: t('edit'),
+                href: (row) => ElectronicBrandController.edit(row.id as number).url,
+              },
+              {
+                id: 'delete',
+                label: t('delete'),
+                variant: 'destructive',
+                confirm: { type: 'swal' },
+                onSelect: (row) => {
+                  router.delete(ElectronicBrandController.destroy(row.id as number).url);
+                },
+              },
+            ]}
           />
         </KTCard>
       </Content>
@@ -101,6 +108,6 @@ const Index = ({ rows, prams }: Props) => {
   );
 };
 
-Index.layout = (page: ReactElement) => <MasterLayout children={page} />;
+Index.layout = (page: ReactElement) => <MasterLayout>{page}</MasterLayout>;
 
 export default Index;

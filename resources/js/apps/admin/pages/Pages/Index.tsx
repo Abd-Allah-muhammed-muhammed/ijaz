@@ -1,131 +1,118 @@
+import { type ReactElement, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import MasterLayout from "@/vendor/metronic/layout/MasterLayout";
-import {PageTitle} from "@/vendor/metronic/layout/core";
-import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
-import {Content} from "@/vendor/metronic/layout/components/content";
-import {Head, Link} from "@inertiajs/react";
-import {KTCard, KTIcon} from "@/vendor/metronic/helpers";
-import Table, {LinkAction} from "@/shared/components/Table";
-import {PaginationResource} from "@/shared/types";
-import {Page} from "@/shared/types/models";
-import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
-import {ReactElement} from "react";
+import { Head, Link, router } from '@inertiajs/react';
+import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
+import { PageTitle } from '@/vendor/metronic/layout/core';
+import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
+import { Content } from '@/vendor/metronic/layout/components/content';
+import { KTCard, KTIcon } from '@/vendor/metronic/helpers';
+import { DataTable, type DataTableColumn } from '@/shared/components/DataTable';
+import { applyFilterParam, visitWithFilters } from '@/shared/lib/filters';
+import type { PaginationResource } from '@/shared/types';
+import type { Page } from '@/shared/types/models';
+import PageController from '@/actions/Modules/Cms/Http/Controllers/Dashboard/PageController';
 
-import PageController from "@/actions/Modules/Cms/Http/Controllers/Dashboard/PageController";
-import {applyFilterParam, visitWithFilters} from "@/shared/lib/filters";
-
+type SearchParams = {
+  per_page?: number;
+  search?: string;
+};
 
 type Props = {
-  rows: PaginationResource<Page>,
-  prams: SearchPrams | null;
+  rows: PaginationResource<Page>;
+  prams: SearchParams | null;
 };
 
-type SearchPrams = {
-  per_page: number;
-  search: string;
-};
-const Index = (
-  {
-    rows,
-    prams,
-  }: Props
-) => {
+const Index = ({ rows, prams }: Props) => {
   const { t } = useTranslation();
-  const searchPrams: SearchPrams = prams || {
-    per_page: 10,
-    search: '',
+
+  const searchParams: SearchParams = {
+    per_page: prams?.per_page ?? 10,
+    ...(prams?.search ? { search: prams.search } : {}),
   };
 
-  const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
+  const searchParamsChanged = (name: keyof SearchParams, value: string | number) => {
     const next = applyFilterParam(
-      { ...searchPrams } as Record<string, unknown>,
+      { ...searchParams } as Record<string, unknown>,
       name,
       value,
     );
-    visitWithFilters(PageController.index().url, next, { only: ['rows'] });
+    visitWithFilters(PageController.index().url, next, { only: ['rows', 'prams'] });
   };
+
+  const columns = useMemo<DataTableColumn<Page>[]>(
+    () => [
+      {
+        id: 'title',
+        header: t('title'),
+        accessorKey: 'title',
+      },
+      {
+        id: 'slug',
+        header: t('slug'),
+        accessorKey: 'slug',
+      },
+    ],
+    [t],
+  );
+
   return (
     <>
-      <Head title={t('pages')}/>
-      <PageTitle breadcrumbs={[
-        // {
-        //   title: 'User Management',
-        //   path: '/apps/user-management/users',
-        //   isSeparator: false,
-        //   isActive: false,
-        // },
-        {
-          title: '',
-          path: '',
-          isSeparator: true,
-          isActive: false,
-        },
-      ]}>
+      <Head title={t('pages')} />
+      <PageTitle
+        breadcrumbs={[
+          {
+            title: '',
+            path: '',
+            isSeparator: true,
+            isActive: false,
+          },
+        ]}
+      >
         {t('pages')}
       </PageTitle>
-      <ToolbarWrapper/>
+      <ToolbarWrapper />
       <Content>
-        <KTCard>
-          <Table
-            <Page>
-            name='pages'
-            only={['rows']}
-            rows={rows}
-            search={{
-              value: prams?.search || '',
-              callback: (value) => {
-                searchPramsChanged('search', value);
-              },
+        <KTCard className="p-6">
+          <DataTable
+            columns={columns}
+            data={rows.data}
+            pagination={rows.meta}
+            paginationOnly={['rows', 'prams']}
+            searchable
+            searchValue={prams?.search ?? ''}
+            searchPlaceholder={t('search', { defaultValue: 'Search' })}
+            onSearch={(value) => searchParamsChanged('search', value)}
+            onRowClick={(row) => {
+              router.visit(PageController.edit(row).url);
             }}
-            headers={[
-              {
-                title: t('title'),
-                property: 'title',
-              },
-              {
-                title: t('slug'),
-                property: 'slug',
-              },
-            ]}
-            actions={[
-              {
-                show: true,
-                ele: (row) => (
-                  <LinkAction
-                    key={`edit-pages-${row.id}`}
-                    href={PageController.edit(row).url}
-                    title={t('edit')}
-                  />
-                ),
-              },
-              {
-                show: true,
-                ele: (row) => (
-                  <ConfirmAction
-                    key={`delete-pages-${row.id}`}
-                    callback={() => {
-                      router.delete(PageController.destroy(row).url)
-                    }}
-                    title={t('delete')}
-                  />
-                ),
-              },
-            ]}
-            addButton={
-              <Link
-                href={PageController.create().url}
-                className="btn btn-primary"
-              >
-                <KTIcon iconName='plus' className='fs-2'/>
+            toolbar={
+              <Link href={PageController.create().url} className="btn btn-primary">
+                <KTIcon iconName="plus" className="fs-2" />
               </Link>
             }
+            actions={() => [
+              {
+                id: 'edit',
+                label: t('edit'),
+                href: (row) => PageController.edit(row).url,
+              },
+              {
+                id: 'delete',
+                label: t('delete'),
+                variant: 'destructive',
+                confirm: { type: 'swal' },
+                onSelect: (row) => {
+                  router.delete(PageController.destroy(row).url);
+                },
+              },
+            ]}
           />
         </KTCard>
       </Content>
     </>
   );
-}
+};
 
-Index.layout = (page: ReactElement) => <MasterLayout children={page}/>;
+Index.layout = (page: ReactElement) => <MasterLayout>{page}</MasterLayout>;
 
 export default Index;
