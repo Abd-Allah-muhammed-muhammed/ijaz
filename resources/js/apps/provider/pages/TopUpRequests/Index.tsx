@@ -48,7 +48,7 @@ const Index = (
   };
   return (
     <>
-      <Head title={t('top-up_requests')}/>
+      <Head title={t('top_up_requests')}/>
       <PageTitle breadcrumbs={[
         // {
         //   title: 'User Management',
@@ -63,7 +63,7 @@ const Index = (
           isActive: false,
         },
       ]}>
-        {t('top-up_requests')}
+        {t('top_up_requests')}
       </PageTitle>
       <ToolbarWrapper/>
       <Content>
