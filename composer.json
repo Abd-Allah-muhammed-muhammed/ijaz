@@ -17,6 +17,7 @@
         "dedoc/scramble": "^0.13.20",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^13.0",
+        "laravel/pulse": "^1.7",
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
@@ -36,6 +37,7 @@
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.18",
         "laravel/sail": "^1.41",
+        "laravel/telescope": "^5.21",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
         "pestphp/pest": "^4.0",
@@ -98,7 +100,9 @@
     },
     "extra": {
         "laravel": {
-            "dont-discover": []
+            "dont-discover": [
+                "laravel/telescope"
+            ]
         }
     },
     "config": {

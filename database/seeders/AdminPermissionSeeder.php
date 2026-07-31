@@ -132,6 +132,9 @@ class AdminPermissionSeeder extends Seeder
                 'export panAnalytics',
                 'delete panAnalytics',
             ],
+            'monitoring' => [
+                'view monitoring tools',
+            ],
         ];
 
         foreach ($modules as $module => $permissions) {

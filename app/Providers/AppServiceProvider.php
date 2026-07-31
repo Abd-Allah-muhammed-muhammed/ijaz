@@ -13,6 +13,7 @@ use App\Contracts\Auth\UserRepositoryInterface;
 use App\Contracts\PanAnalytics\PanAnalyticsRepositoryInterface;
 use App\Contracts\Provider\ProviderManagementRepositoryInterface;
 use App\Contracts\User\UserManagementRepositoryInterface;
+use App\Models\Admin;
 use App\NotificationChannels\EventChannel;
 use App\NotificationChannels\FirebaseChannel;
 use App\Repositories\Account\AccountRepository;
@@ -37,6 +38,7 @@ use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
+use Illuminate\Contracts\Auth\Access\Gate as GateContract;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Routing\Route;
@@ -46,6 +48,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Telescope\TelescopeServiceProvider as TelescopePackageServiceProvider;
 use Modules\Chat\Contracts\ParticipantResolverInterface;
 use Modules\Settings\Models\Setting;
 
@@ -57,6 +60,12 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         require_once app_path('Helpers/arrays.php');
+
+        // Telescope is a --dev dependency; only register when the package is installed.
+        if (class_exists(TelescopePackageServiceProvider::class)) {
+            $this->app->register(TelescopePackageServiceProvider::class);
+            $this->app->register(TelescopeServiceProvider::class);
+        }
 
         $this->app->bind('inertia.view-finder', fn (): InertiaPageFinder => new InertiaPageFinder);
 
@@ -165,6 +174,16 @@ class AppServiceProvider extends ServiceProvider
             $admin = Auth::guard('admin')->user();
 
             return (bool) ($admin?->root);
+        });
+
+        // Defined via afterResolving so this replaces Pulse's default local-only gate.
+        $this->callAfterResolving(GateContract::class, function (GateContract $gate): void {
+            $gate->define('viewPulse', function ($user = null): bool {
+                $admin = Auth::guard('admin')->user();
+
+                return $admin instanceof Admin
+                    && $admin->can('view monitoring tools');
+            });
         });
 
         $this->app->singleton('settings', fn () => cache()->rememberForever('settings', fn () => Setting::pluck('content', 'key')));
