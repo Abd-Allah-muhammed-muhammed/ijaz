@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Support\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
@@ -33,9 +34,13 @@ function validateCompanyGuarantorRequest(array $data, array $files = []): Illumi
         Request::create('/', 'POST', $data, [], $files)
     );
     $formRequest->setContainer(app());
+    $formRequest->setRedirector(app('redirect'));
+
+    $prepare = new ReflectionMethod($formRequest, 'prepareForValidation');
+    $prepare->invoke($formRequest);
 
     $validator = Validator::make(
-        array_merge($data, $files),
+        array_merge($formRequest->all(), $files),
         $formRequest->rules()
     );
     $formRequest->withValidator($validator);
@@ -235,4 +240,34 @@ test('StoreCompanyGuarantorRequest fails when installment due_date is not after 
 
     expect($validator->fails())->toBeTrue()
         ->and($validator->errors()->has('installments.0.due_date'))->toBeTrue();
+});
+
+test('guarantor installment due_date accepts Arabic-Indic digits', function () {
+    $requester = User::factory()->create();
+    $counterpartyPhone = '0509988112';
+    User::factory()->create([
+        'phone' => (string) Phone::make($counterpartyPhone),
+    ]);
+    Sanctum::actingAs($requester);
+
+    $dueDate1 = now()->addDays(30)->toDateString();
+    $dueDate2 = now()->addDays(60)->toDateString();
+    $map = [
+        '0' => '٠', '1' => '١', '2' => '٢', '3' => '٣', '4' => '٤',
+        '5' => '٥', '6' => '٦', '7' => '٧', '8' => '٨', '9' => '٩',
+    ];
+
+    $data = companyGuarantorPayload([
+        'counterparty_phone' => $counterpartyPhone,
+        'installments' => [
+            ['order' => 1, 'amount' => 500, 'due_date' => strtr($dueDate1, $map)],
+            ['order' => 2, 'amount' => 500, 'due_date' => strtr($dueDate2, $map)],
+        ],
+    ]);
+
+    $validator = validateCompanyGuarantorRequest($data, companyGuarantorFiles());
+
+    expect($validator->fails())->toBeFalse($validator->errors()->toJson())
+        ->and($validator->errors()->has('installments.0.due_date'))->toBeFalse()
+        ->and($validator->errors()->has('installments.1.due_date'))->toBeFalse();
 });

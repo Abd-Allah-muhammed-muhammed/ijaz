@@ -107,6 +107,28 @@ test('authenticated user can create opportunity', function () {
     expect(Opportunity::query()->count())->toBe(1);
 });
 
+test('opportunity expires_at accepts Arabic-Indic digits', function () {
+    $user = User::factory()->create();
+    Sanctum::actingAs($user);
+
+    $expiresAt = now()->addDays(14)->toDateString();
+    $arabicExpiresAt = strtr($expiresAt, [
+        '0' => '٠', '1' => '١', '2' => '٢', '3' => '٣', '4' => '٤',
+        '5' => '٥', '6' => '٦', '7' => '٧', '8' => '٨', '9' => '٩',
+    ]);
+
+    $this->postJson(action([OpportunityController::class, 'store']), [
+        'title' => 'Arabic Date Opportunity',
+        'description' => 'Opportunity created with Arabic-Indic expires_at digits.',
+        'expires_at' => $arabicExpiresAt,
+    ])
+        ->assertSuccessful()
+        ->assertJsonMissingValidationErrors(['expires_at']);
+
+    $opportunity = Opportunity::query()->where('title', 'Arabic Date Opportunity')->firstOrFail();
+    expect($opportunity->expires_at->toDateString())->toBe($expiresAt);
+});
+
 test('create opportunity validates required fields', function () {
     Sanctum::actingAs(User::factory()->create());
 

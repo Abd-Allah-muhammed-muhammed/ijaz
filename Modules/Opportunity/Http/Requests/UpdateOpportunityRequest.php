@@ -2,6 +2,7 @@
 
 namespace Modules\Opportunity\Http\Requests;
 
+use App\Support\Normalize;
 use Illuminate\Contracts\Validation\ValidationRule;
 use MMAE\ApiResponse\Request\ApiRequest;
 
@@ -29,5 +30,15 @@ class UpdateOpportunityRequest extends ApiRequest
             'files' => ['nullable', 'array'],
             'files.*' => ['file', 'mimes:jpg,jpeg,png,pdf,webp', 'max:5120'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $expiresAt = $this->input('expires_at');
+        if (is_string($expiresAt)) {
+            $this->merge([
+                'expires_at' => Normalize::westernDigits($expiresAt),
+            ]);
+        }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Modules\Classifieds\Http\Requests\Api;
 
+use App\Support\Normalize;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Enum;
 use JsonException;
@@ -64,6 +65,18 @@ class InstituteAdvisementRequest extends ApiRequest
             $this->merge([
                 'options' => json_decode($this->get('options'), true, 512, JSON_THROW_ON_ERROR),
             ]);
+        }
+
+        $dateFields = [];
+        foreach (['registration_start', 'registration_end', 'study_start', 'study_end'] as $field) {
+            $value = $this->input($field);
+            if (is_string($value)) {
+                $dateFields[$field] = Normalize::westernDigits($value);
+            }
+        }
+
+        if ($dateFields !== []) {
+            $this->merge($dateFields);
         }
     }
 }

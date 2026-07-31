@@ -70,6 +70,27 @@ test('store attaches skills and accepts a real phone contact_number', function (
     expect($job->skills()->pluck('skills.id')->all())->toBe([$fixtures['skill']->id]);
 });
 
+test('job expired_at accepts Arabic-Indic digits', function () {
+    $fixtures = createJobsModuleFixtures();
+    Sanctum::actingAs($fixtures['user']);
+
+    $expiredAt = now()->addDays(10)->toDateString();
+    $arabicExpiredAt = strtr($expiredAt, [
+        '0' => '٠', '1' => '١', '2' => '٢', '3' => '٣', '4' => '٤',
+        '5' => '٥', '6' => '٦', '7' => '٧', '8' => '٨', '9' => '٩',
+    ]);
+
+    $this->postJson('/api/v1/jobs', jobsModulePayload($fixtures, [
+        'title' => 'Job Arabic Date',
+        'expired_at' => $arabicExpiredAt,
+    ]))
+        ->assertSuccessful()
+        ->assertJsonMissingValidationErrors(['expired_at']);
+
+    $job = JobOffer::query()->where('title', 'Job Arabic Date')->firstOrFail();
+    expect($job->expired_at->toDateString())->toBe($expiredAt);
+});
+
 test('update syncs skills and rejects non-owners', function () {
     $fixtures = createJobsModuleFixtures();
     $other = User::factory()->create();
