@@ -16,6 +16,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Log;
 
 class VerifyOtpAction
 {
@@ -49,6 +50,8 @@ class VerifyOtpAction
         $otp = $this->otpRepository->findForSubject($user, $session->purpose);
 
         if (! $otp?->matches($code)) {
+            $this->logCollapsedVerifyFailure($session, $user, $otp);
+
             $session = $this->otpSessionRepository->incrementAttempts($session);
             $remaining = max(0, $session->max_attempts - $session->attempts_count);
 
@@ -56,6 +59,7 @@ class VerifyOtpAction
                 return OtpVerifyResult::failure('max_attempts_exceeded', trans('max attempts exceeded'));
             }
 
+            // User-facing message stays ambiguous on purpose (security).
             return OtpVerifyResult::failure(
                 'invalid_code',
                 trans('wrong OTP'),
@@ -64,6 +68,26 @@ class VerifyOtpAction
         }
 
         return $this->completeSession($session, $user, $playerId);
+    }
+
+    /**
+     * Distinguish missing / expired / wrong-code internally — all three still
+     * surface as the same user-facing invalid_code response.
+     */
+    private function logCollapsedVerifyFailure(OtpSession $session, User $user, ?Otp $otp): void
+    {
+        $reason = match (true) {
+            $otp === null => 'missing_otp',
+            $otp->isExpired() => 'expired_otp',
+            default => 'invalid_code',
+        };
+
+        Log::channel('sms')->warning('OTP session verify failed', [
+            'reason' => $reason,
+            'verification_id' => (string) $session->id,
+            'user_id' => $user->id,
+            'purpose' => $session->purpose->value,
+        ]);
     }
 
     /**

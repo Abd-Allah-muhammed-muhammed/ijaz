@@ -16,10 +16,22 @@ trait OtpGeneration
             $phone = Phone::make($phone);
         }
 
-        if ($phone->toString() === config('sms.test_number') || config('sms.verification_code_all_numbers') == true) {
-            return config('sms.verification_code') ?? 1111;
+        $normalizedPhone = $phone->toString();
+        $isWhitelistedTestNumber = filled(config('sms.test_number'))
+            && $normalizedPhone === config('sms.test_number');
+
+        // SMS_VERIFICATION_CODE_ALL_NUMBERS must never apply in production,
+        // even if the env var is accidentally left true on a live server.
+        $allNumbersFixed = config('sms.verification_code_all_numbers') == true
+            && ! app()->isProduction();
+
+        if ($isWhitelistedTestNumber || $allNumbersFixed) {
+            // Use filled()/?: — `??` does not catch empty-string env values.
+            $code = config('sms.verification_code');
+
+            return filled($code) ? (string) $code : '1111';
         }
 
-        return random_int(1000, 9999);
+        return (string) random_int(1000, 9999);
     }
 }
