@@ -2,9 +2,9 @@
 
 namespace App\Http\Middleware;
 
-use App;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class LocalizationMiddleware
@@ -27,8 +27,8 @@ class LocalizationMiddleware
                     'quality' => isset($parts[1]) ? (float) $parts[1] : 1.0,
                 ];
             })
-            ->sortDesc();
-        $preferredLocale = $preferredLocale->firstWhere('locale', fn ($locale) => in_array($locale['locale'], $supportedLocales, true))['locale'] ?? 'en';
+            ->sortByDesc('quality')
+            ->first(fn (array $locale) => in_array($locale['locale'], $supportedLocales, true))['locale'] ?? 'en';
 
         App::setLocale($preferredLocale);
 

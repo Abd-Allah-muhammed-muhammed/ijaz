@@ -24,4 +24,7 @@ return [
     'rejected' => 'Your account is rejected',
     'blocked' => 'Your account is blocked',
     'banned' => 'Your account is permanently banned',
+    'deleted' => 'Your account has been deleted',
+    'inactive' => 'Your account is not active',
+    'user_not_found' => 'User not found',
 ];

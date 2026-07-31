@@ -31,14 +31,16 @@ class LoginUserAction
         $user = $this->userRepository->findByPhone($phone->toString());
 
         if (! $user) {
-            return UserLoginResult::failure(trans('user not found'), 400);
+            return UserLoginResult::failure(__('auth.user_not_found'), 400);
         }
 
         if ($user->status->isNot(UserStatusEnum::Active)) {
             $message = match ($user->status) {
-                UserStatusEnum::Deleted => trans('this account is deleted'),
-                UserStatusEnum::Blocked => $user->blocked_until ? trans('this account is blocked') : trans('this account is banned'),
-                default => trans('this account is not active '),
+                UserStatusEnum::Deleted => __('auth.deleted'),
+                UserStatusEnum::Blocked => $user->blocked_until
+                    ? __('auth.blocked')
+                    : __('auth.banned'),
+                default => __('auth.inactive'),
             };
 
             return UserLoginResult::failure($message, 400);

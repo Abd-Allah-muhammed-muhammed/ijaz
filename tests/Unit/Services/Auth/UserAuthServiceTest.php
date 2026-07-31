@@ -42,7 +42,7 @@ test('login fails with user not found message when phone does not match', functi
     $result = app(UserAuthService::class)->login('512345678');
 
     expect($result->success)->toBeFalse()
-        ->and($result->message)->toBe(trans('user not found'))
+        ->and($result->message)->toBe(__('auth.user_not_found'))
         ->and($result->statusCode)->toBe(400);
 });
 
@@ -52,7 +52,7 @@ test('login fails with appropriate message for deleted user', function () {
     $result = app(UserAuthService::class)->login('512345678');
 
     expect($result->success)->toBeFalse()
-        ->and($result->message)->toBe(trans('this account is deleted'))
+        ->and($result->message)->toBe(__('auth.deleted'))
         ->and($result->statusCode)->toBe(400);
 });
 
@@ -65,7 +65,7 @@ test('login fails with appropriate message for blocked user', function () {
     $result = app(UserAuthService::class)->login('512345678');
 
     expect($result->success)->toBeFalse()
-        ->and($result->message)->toBe(trans('this account is blocked'))
+        ->and($result->message)->toBe(__('auth.blocked'))
         ->and($result->statusCode)->toBe(400);
 });
 
