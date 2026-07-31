@@ -98,6 +98,7 @@ class CategoryRepository implements CategoryRepositoryInterface
             throw new MarketplaceException(__('this category has subcategories'));
         }
 
+        $category->providerTypes()->detach();
         $category->delete();
         $category->deleteIcon();
     }

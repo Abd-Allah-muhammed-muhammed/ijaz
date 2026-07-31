@@ -13,7 +13,7 @@ class SkillRepository implements SkillRepositoryInterface
 {
     public function paginateForDashboard(Request $request): LengthAwarePaginator
     {
-        return Skill::with(['translation', 'category'])
+        return Skill::with(['translation', 'category.translation'])
             ->when($request->integer('category_id'), function ($query) use ($request) {
                 $query->where('category_id', $request->integer('category_id'));
             })
@@ -66,7 +66,7 @@ class SkillRepository implements SkillRepositoryInterface
     {
         $skill->update($data);
 
-        return $skill->fresh(['translations', 'translation', 'category']) ?? $skill;
+        return $skill->fresh(['translations', 'translation', 'category.translation']) ?? $skill;
     }
 
     public function delete(Skill $skill): void
@@ -76,6 +76,6 @@ class SkillRepository implements SkillRepositoryInterface
 
     public function loadForEdit(Skill $skill): Skill
     {
-        return $skill->load(['translations', 'category']);
+        return $skill->load(['translations', 'category.translation']);
     }
 }
