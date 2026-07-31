@@ -23,7 +23,7 @@ trait HasNormalizedAttributes
 
             foreach ($attributesMap as $attribute => $normalizedAttribute) {
                 if ($model->isDirty($attribute)) {
-                    $model->{$normalizedAttribute} = TextNormalize::make($model->{$attribute}, $locale);
+                    $model->{$normalizedAttribute} = TextNormalize::make($model->{$attribute}, $locale)->toString();
                 }
             }
         });

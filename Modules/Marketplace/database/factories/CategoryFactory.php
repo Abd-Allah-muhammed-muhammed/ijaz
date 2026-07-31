@@ -39,7 +39,6 @@ class CategoryFactory extends Factory
             $category->translations()->create([
                 'locale' => 'en',
                 'title' => fake()->sentence(2),
-                'normalized_title' => fake()->slug(),
                 'description' => fake()->paragraph(),
             ]);
         });

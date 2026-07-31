@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\Actions\DeviceCategory;
 
+use App\Support\TranslationSearch;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Catalog\Models\DeviceCategory;
 
@@ -13,7 +14,7 @@ class ListDeviceCategoriesForSelectAction
     public function handle(?string $search = null): Collection
     {
         return DeviceCategory::query()->withTranslation()
-            ->when($search, fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%"))
+            ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v))
             ->get();
     }
 }

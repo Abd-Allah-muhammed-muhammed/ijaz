@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Support\Normalize;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 
 class RegionsAndCitiesSeeder extends Seeder
 {
@@ -50,47 +50,23 @@ class RegionsAndCitiesSeeder extends Seeder
             ['en' => 'Rimah', 'ar' => 'رماح'],
         ];
 
-        $maxId = DB::table('regions')->max('id') ?? 0;
-        $now = now();
-        $regionsData = [];
-        $translationsData = [];
-
-        foreach ($regions as $i => $region) {
-            $regionId = $maxId + $i + 1;
-
-            $regionsData[] = [
-                'id' => $regionId,
-                'created_at' => $now->copy()->subDays(rand(30, 365)),
-                'updated_at' => $now,
-            ];
-
-            $translationsData[] = [
-                'region_id' => $regionId,
-                'locale' => 'en',
-                'title' => $region['en'],
-                'normalized_title' => Normalize::make($region['en'], 'en')->toString(),
-            ];
-
-            $translationsData[] = [
-                'region_id' => $regionId,
-                'locale' => 'ar',
-                'title' => $region['ar'],
-                'normalized_title' => Normalize::make($region['ar'], 'ar')->toString(),
-            ];
+        foreach ($regions as $region) {
+            Region::query()->create([
+                'translations' => [
+                    'en' => ['title' => $region['en']],
+                    'ar' => ['title' => $region['ar']],
+                ],
+            ]);
         }
-
-        DB::table('regions')->insert($regionsData);
-        DB::table('region_translations')->insert($translationsData);
 
         echo 'Added '.count($regions)." regions with translations.\n";
     }
 
     private function seedCities(): void
     {
-        // Get all region IDs
-        $regionIds = DB::table('regions')->pluck('id')->toArray();
+        $regionIds = Region::query()->pluck('id')->all();
 
-        if (empty($regionIds)) {
+        if ($regionIds === []) {
             echo "No regions found. Skipping cities.\n";
 
             return;
@@ -202,43 +178,14 @@ class RegionsAndCitiesSeeder extends Seeder
             ['en' => 'Ankara', 'ar' => 'أنقرة'],
         ];
 
-        $maxId = DB::table('cities')->max('id') ?? 0;
-        $now = now();
-        $citiesData = [];
-        $translationsData = [];
-
-        foreach ($cities as $i => $city) {
-            $cityId = $maxId + $i + 1;
-            $regionId = $regionIds[array_rand($regionIds)];
-
-            $citiesData[] = [
-                'id' => $cityId,
-                'region_id' => $regionId,
-                'created_at' => $now->copy()->subDays(rand(1, 365)),
-                'updated_at' => $now,
-            ];
-
-            $translationsData[] = [
-                'city_id' => $cityId,
-                'locale' => 'en',
-                'title' => $city['en'],
-                'normalized_title' => Normalize::make($city['en'], 'en')->toString(),
-            ];
-
-            $translationsData[] = [
-                'city_id' => $cityId,
-                'locale' => 'ar',
-                'title' => $city['ar'],
-                'normalized_title' => Normalize::make($city['ar'], 'ar')->toString(),
-            ];
-        }
-
-        foreach (array_chunk($citiesData, 100) as $chunk) {
-            DB::table('cities')->insert($chunk);
-        }
-
-        foreach (array_chunk($translationsData, 200) as $chunk) {
-            DB::table('city_translations')->insert($chunk);
+        foreach ($cities as $city) {
+            City::query()->create([
+                'region_id' => $regionIds[array_rand($regionIds)],
+                'translations' => [
+                    'en' => ['title' => $city['en']],
+                    'ar' => ['title' => $city['ar']],
+                ],
+            ]);
         }
 
         echo 'Added '.count($cities)." cities with translations.\n";

@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Repositories;
 
-use App\Support\Normalize;
+use App\Support\TranslationSearch;
 use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,11 +25,10 @@ class PropertyCategoryRepository implements PropertyCategoryRepositoryInterface
     {
         return PropertyCategory::withCount(['children'])
             ->with(['translation'])
-            ->when($request->input('search'), function ($query, $v) {
-                $v = Normalize::make($v, app()->getLocale());
-
-                return $query->whereTranslationLike('normalized_title', "%{$v}%");
-            })
+            ->when(
+                $request->input('search'),
+                fn ($query, $v) => TranslationSearch::apply($query, (string) $v)
+            )
             ->when(
                 $request->integer('parent_id'),
                 fn ($query, $v) => $query->where('parent_id', $v),

@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\Actions\ElectronicBrand;
 
+use App\Support\TranslationSearch;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Catalog\Models\ElectronicBrand;
 
@@ -14,7 +15,7 @@ class ListElectronicBrandsForSelectAction
     {
         return ElectronicBrand::query()->withTranslation()
             ->where('is_active', true)
-            ->when($search, fn ($query, $v) => $query->whereTranslationLike('name', "%{$v}%"))
+            ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v, 'normalized_name'))
             ->get();
     }
 }

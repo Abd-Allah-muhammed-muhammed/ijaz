@@ -141,3 +141,16 @@ extraction is safe.
 Always propose the correct layer placement before writing code, even if the person asking
 didn't explicitly request the full pattern — this is the project's established convention,
 not optional per-feature.
+
+## Normalized translation search (project-wide)
+
+- Search Astrotomic models via `App\Support\TranslationSearch` (or Catalog
+  `TranslationSearchFilter` with `normalize: true`) against `normalized_*` columns on
+  **both** Dashboard and API/select paths. Do not leave API/select on raw `title`/`name`
+  when a `normalized_*` column exists.
+- Exceptions without `normalized_*` columns (keep raw search): CarBrand, CarType,
+  PropertyType, ProviderType, Cms Pages/Questions.
+- Seeders writing to any `normalized_*`-bearing table MUST use Eloquent models so
+  `HasNormalizedAttributes` / translation `saving` hooks run. Never
+  `DB::table('…_translations')->insert(...)`. Enforced by
+  `tests/Feature/SeedersMustNotRawInsertNormalizedTablesTest.php`.

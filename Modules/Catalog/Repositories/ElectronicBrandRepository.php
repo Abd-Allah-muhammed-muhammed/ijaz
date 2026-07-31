@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Repositories;
 
-use App\Support\Normalize;
+use App\Support\TranslationSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -35,11 +35,10 @@ class ElectronicBrandRepository implements ElectronicBrandRepositoryInterface
     {
         return ElectronicBrand::with(['translation'])
             ->where('is_active', true)
-            ->when($request->search, function (Builder $query, mixed $value) {
-                $normalized = Normalize::make($value, app()->getLocale())->toString();
-
-                return $query->whereTranslationLike('normalized_name', "%{$normalized}%");
-            })
+            ->when(
+                $request->search,
+                fn (Builder $query, mixed $value) => TranslationSearch::apply($query, (string) $value, 'normalized_name')
+            )
             ->get();
     }
 

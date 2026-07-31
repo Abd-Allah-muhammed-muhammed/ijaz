@@ -2,6 +2,7 @@
 
 namespace Modules\Classifieds\QueryFilters\Filters;
 
+use App\Support\TranslationSearch;
 use Illuminate\Database\Eloquent\Builder;
 use Stringable;
 
@@ -18,10 +19,11 @@ final class SearchFilter
         }
 
         $search = (string) $this->value;
+        $term = TranslationSearch::term($search) ?? $search;
 
-        return $query->where(function (Builder $q) use ($search): void {
-            $q->where('title', 'like', "%{$search}%")
-                ->orWhere('description', 'like', "%{$search}%");
+        return $query->where(function (Builder $q) use ($term): void {
+            $q->where('normalized_title', 'like', "%{$term}%")
+                ->orWhere('normalized_description', 'like', "%{$term}%");
         });
     }
 }

@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Support\Normalize;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Modules\Geo\Models\Nationality;
 
 class NationalitiesSeeder extends Seeder
 {
@@ -160,56 +159,20 @@ class NationalitiesSeeder extends Seeder
             ['code' => 'ZW', 'icon' => '🇿🇼', 'en' => 'Zimbabwean', 'ar' => 'زيمبابوي'],
         ];
 
-        $maxId = DB::table('nationalities')->max('id') ?? 0;
-        $now = now();
-
-        $nationalities = [];
-        $translations = [];
-
-        for ($i = 0; $i < 500; $i++) {
-            $baseCountry = $countries[$i % count($countries)];
-            $variation = (int) floor($i / count($countries));
-            $nationalityId = $maxId + $i + 1;
-            $code = $baseCountry['code'].($variation > 0 ? $variation : '');
-
-            $nationalities[] = [
-                'id' => $nationalityId,
-                'icon' => $baseCountry['icon'],
-                'code' => $code,
-                'is_active' => 1,
-                'created_at' => $now->copy()->subDays(rand(1, 365)),
-                'updated_at' => $now,
-            ];
-
-            $translations[] = [
-                'nationality_id' => $nationalityId,
-                'locale' => 'en',
-                'name' => $baseCountry['en'].($variation > 0 ? ' V'.$variation : ''),
-                'normalized_name' => Normalize::make(
-                    $baseCountry['en'].($variation > 0 ? ' V'.$variation : ''),
-                    'en'
-                )->toString(),
-            ];
-
-            $translations[] = [
-                'nationality_id' => $nationalityId,
-                'locale' => 'ar',
-                'name' => $baseCountry['ar'].($variation > 0 ? ' '.$variation : ''),
-                'normalized_name' => Normalize::make(
-                    $baseCountry['ar'].($variation > 0 ? ' '.$variation : ''),
-                    'ar'
-                )->toString(),
-            ];
+        // Seed one record per country (not 500 variants) via Eloquent so
+        // HasNormalizedAttributes populates normalized_name.
+        foreach ($countries as $country) {
+            Nationality::query()->create([
+                'icon' => $country['icon'],
+                'code' => $country['code'],
+                'is_active' => true,
+                'translations' => [
+                    'en' => ['name' => $country['en']],
+                    'ar' => ['name' => $country['ar']],
+                ],
+            ]);
         }
 
-        foreach (array_chunk($nationalities, 100) as $chunk) {
-            DB::table('nationalities')->insert($chunk);
-        }
-
-        foreach (array_chunk($translations, 200) as $chunk) {
-            DB::table('nationality_translations')->insert($chunk);
-        }
-
-        echo "Added 500 nationalities with 1000 translations.\n";
+        echo 'Added '.count($countries)." nationalities with translations.\n";
     }
 }

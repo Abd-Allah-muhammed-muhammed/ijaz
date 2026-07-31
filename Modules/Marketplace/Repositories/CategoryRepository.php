@@ -2,7 +2,7 @@
 
 namespace Modules\Marketplace\Repositories;
 
-use App\Support\Normalize;
+use App\Support\TranslationSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
@@ -16,11 +16,10 @@ class CategoryRepository implements CategoryRepositoryInterface
     {
         return Category::withCount(['children'])
             ->with(['translation'])
-            ->when($request->input('search'), function ($query, $v) {
-                $v = Normalize::make($v, app()->getLocale());
-
-                return $query->whereTranslationLike('normalized_title', "%{$v}%");
-            })
+            ->when(
+                $request->input('search'),
+                fn ($query, $v) => TranslationSearch::apply($query, (string) $v)
+            )
             ->when(
                 $request->integer('parent_id'),
                 fn ($query, $v) => $query->where('parent_id', $v),
@@ -44,7 +43,7 @@ class CategoryRepository implements CategoryRepositoryInterface
             )
             ->when(
                 $request->search,
-                fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
+                fn ($query, $v) => TranslationSearch::apply($query, (string) $v)
             )
             ->paginate($request->integer('per_page', 10));
     }
@@ -59,7 +58,7 @@ class CategoryRepository implements CategoryRepositoryInterface
             )
             ->when(
                 $request->search,
-                fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
+                fn ($query, $v) => TranslationSearch::apply($query, (string) $v)
             )
             ->whereDoesntHave('children')
             ->paginate($request->integer('per_page', 10));
@@ -71,7 +70,7 @@ class CategoryRepository implements CategoryRepositoryInterface
             ->withTranslation()
             ->when(
                 $request->search,
-                fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
+                fn ($query, $v) => TranslationSearch::apply($query, (string) $v)
             )
             ->paginate($request->integer('per_page', 10));
     }
@@ -143,7 +142,7 @@ class CategoryRepository implements CategoryRepositoryInterface
             ->withTranslation()
             ->when(
                 $search,
-                fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
+                fn ($query, $v) => TranslationSearch::apply($query, (string) $v)
             )
             ->when(
                 $parentId,

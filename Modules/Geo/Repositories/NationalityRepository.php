@@ -2,7 +2,7 @@
 
 namespace Modules\Geo\Repositories;
 
-use App\Support\Normalize;
+use App\Support\TranslationSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -17,11 +17,10 @@ class NationalityRepository implements NationalityRepositoryInterface
     {
         return Nationality::query()
             ->with(['translation'])
-            ->when($request->input('search'), function (Builder $query, mixed $value) {
-                $normalized = Normalize::make((string) $value, app()->getLocale());
-
-                return $query->whereTranslationLike('normalized_name', "%{$normalized}%");
-            })
+            ->when(
+                $request->input('search'),
+                fn (Builder $query, mixed $value) => TranslationSearch::apply($query, (string) $value, 'normalized_name')
+            )
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();
     }
@@ -62,7 +61,7 @@ class NationalityRepository implements NationalityRepositoryInterface
     public function listForSelect(?string $search = null): Collection
     {
         return Nationality::query()->withTranslation()
-            ->when($search, fn ($query, $v) => $query->whereTranslationLike('name', "%{$v}%"))
+            ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v, 'normalized_name'))
             ->get();
     }
 
@@ -70,10 +69,7 @@ class NationalityRepository implements NationalityRepositoryInterface
     {
         return Nationality::query()
             ->withTranslation()
-            ->when(
-                $search,
-                fn ($query, $v) => $query->whereTranslationLike('name', "%{$v}%")
-            )
+            ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v, 'normalized_name'))
             ->paginate($perPage);
     }
 }
