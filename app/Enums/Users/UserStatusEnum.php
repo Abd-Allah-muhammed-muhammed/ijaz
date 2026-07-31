@@ -43,4 +43,18 @@ enum UserStatusEnum: string
             self::Blocked, self::Deleted => 'danger',
         };
     }
+
+    /**
+     * Message shown when a user with this status is denied authentication,
+     * or null when the status permits access. Shared by login, OTP verify,
+     * and the per-request EnsureUserIsActive middleware.
+     */
+    public function authRejectionMessage(bool $isTemporaryBlock): ?string
+    {
+        return match ($this) {
+            self::Active => null,
+            self::Deleted => __('auth.deleted'),
+            self::Blocked => $isTemporaryBlock ? __('auth.blocked') : __('auth.banned'),
+        };
+    }
 }

@@ -35,14 +35,18 @@ final readonly class OtpVerifyResult
         );
     }
 
-    public static function failure(string $errorCode, string $message = '', ?int $attemptsRemaining = null): self
-    {
+    public static function failure(
+        string $errorCode,
+        string $message = '',
+        ?int $attemptsRemaining = null,
+        int $statusCode = 422,
+    ): self {
         return new self(
             success: false,
             message: $message,
             errorCode: $errorCode,
             attemptsRemaining: $attemptsRemaining,
-            statusCode: 422,
+            statusCode: $statusCode,
         );
     }
 

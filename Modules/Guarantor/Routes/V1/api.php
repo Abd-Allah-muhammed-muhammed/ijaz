@@ -6,7 +6,7 @@ use Modules\Guarantor\Http\Controllers\Api\V1\InstallmentController;
 
 Route::prefix('guarantor')->name('guarantor.')->group(function () {
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'user.active'])->group(function () {
 
         Route::get('/', [GuarantorController::class, 'index'])
             ->name('index');

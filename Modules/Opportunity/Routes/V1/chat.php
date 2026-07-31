@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Opportunity\Http\Controllers\Api\V1\OpportunityChatController;
 
-Route::middleware('auth:sanctum')->controller(OpportunityChatController::class)->group(static function () {
+Route::middleware(['auth:sanctum', 'user.active'])->controller(OpportunityChatController::class)->group(static function () {
     Route::get('/', 'index')->name('index');
     Route::post('/', 'store')->name('store');
     Route::get('{conversation}', 'show')->name('show');

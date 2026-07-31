@@ -22,6 +22,10 @@ class UpdateUserStatusAction
             $this->repository->revokeTokens($user);
         }
 
+        if ($dto->status === UserStatusEnum::Deleted->value) {
+            $this->repository->revokeTokens($user);
+        }
+
         return $user;
     }
 }

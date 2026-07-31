@@ -6,7 +6,6 @@ use App\Contracts\Auth\OtpSessionRepositoryInterface;
 use App\Contracts\Auth\UserRepositoryInterface;
 use App\DTOs\Auth\UserLoginResult;
 use App\Enums\Auth\OtpPurposeEnum;
-use App\Enums\Users\UserStatusEnum;
 use App\Support\Phone;
 use Random\RandomException;
 
@@ -34,16 +33,10 @@ class LoginUserAction
             return UserLoginResult::failure(__('auth.user_not_found'), 400);
         }
 
-        if ($user->status->isNot(UserStatusEnum::Active)) {
-            $message = match ($user->status) {
-                UserStatusEnum::Deleted => __('auth.deleted'),
-                UserStatusEnum::Blocked => $user->blocked_until
-                    ? __('auth.blocked')
-                    : __('auth.banned'),
-                default => __('auth.inactive'),
-            };
+        $rejectionMessage = $user->status->authRejectionMessage((bool) $user->blocked_until);
 
-            return UserLoginResult::failure($message, 400);
+        if ($rejectionMessage !== null) {
+            return UserLoginResult::failure($rejectionMessage, 400);
         }
 
         $this->otpSessionRepository->deleteForUser($user, OtpPurposeEnum::Login);

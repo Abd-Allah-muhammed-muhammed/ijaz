@@ -118,6 +118,22 @@ class VerifyOtpAction
     {
         $purpose = $session->purpose;
 
+        // Re-check live status — account may have been banned/deleted after OTP was sent.
+        $user->refresh();
+        $rejectionMessage = $user->status->authRejectionMessage((bool) $user->blocked_until);
+
+        if ($rejectionMessage !== null) {
+            $this->otpSessionRepository->deleteForUser($user, $purpose);
+            $this->otpRepository->deleteForSubject($user, $purpose);
+            $user->tokens()->delete();
+
+            return OtpVerifyResult::failure(
+                'account_inactive',
+                $rejectionMessage,
+                statusCode: 400,
+            );
+        }
+
         $this->otpSessionRepository->deleteForUser($user, $purpose);
         $this->otpRepository->deleteForSubject($user, $purpose);
 

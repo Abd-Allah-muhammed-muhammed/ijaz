@@ -15,7 +15,7 @@ Route::group(['prefix' => 'classifieds'], function () {
     Route::get('institutes/all', [InstituteAdvisementController::class, 'all'])->name('institutes.all');
 
     // Protected Routes
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'user.active'])->group(function () {
 
         // Property Advisements Routes
         Route::apiResource('properties', PropertyAdvisementController::class)->parameters(['properties' => 'propertyAdvisement']);
