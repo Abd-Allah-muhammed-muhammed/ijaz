@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\Actions\CarCategory;
 
+use App\Support\TranslationSearch;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Catalog\Models\CarCategory;
 
@@ -13,7 +14,7 @@ class ListCarCategoriesForSelectAction
     public function handle(?string $search = null): Collection
     {
         return CarCategory::query()->withTranslation()
-            ->when($search, fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%"))
+            ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v))
             ->get();
     }
 }

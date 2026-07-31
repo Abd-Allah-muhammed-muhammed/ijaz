@@ -52,6 +52,23 @@ it('lists roles with the prams inertia prop', function (): void {
         );
 });
 
+it('includes users_count on each role in the index listing', function (): void {
+    $admin = createAdminManagementAdmin(['show roles']);
+    $role = Role::create(['name' => 'editor', 'guard_name' => 'admin']);
+    $admin->assignRole($role);
+
+    $this->actingAs($admin, 'admin')
+        ->get(action([RoleController::class, 'index']))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Roles/Index')
+            ->has('rows.data', fn ($rows) => $rows
+                ->where('0.users_count', 1)
+                ->etc()
+            )
+        );
+});
+
 it('stores a role with synced permissions', function (): void {
     $admin = createAdminManagementAdmin(['create roles']);
     $permission = Permission::firstOrCreate(

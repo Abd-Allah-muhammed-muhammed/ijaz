@@ -2,6 +2,7 @@
 
 namespace Modules\Guarantor\Http\Requests;
 
+use App\Support\Normalize;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
@@ -55,6 +56,31 @@ class StoreCompanyGuarantorRequest extends ApiRequest
             'company_documents' => ['nullable', 'array'],
             'company_documents.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $installments = $this->input('installments');
+        if (! is_array($installments)) {
+            return;
+        }
+
+        $normalized = [];
+        foreach ($installments as $index => $installment) {
+            if (! is_array($installment)) {
+                $normalized[$index] = $installment;
+
+                continue;
+            }
+
+            if (isset($installment['due_date']) && is_string($installment['due_date'])) {
+                $installment['due_date'] = Normalize::westernDigits($installment['due_date']);
+            }
+
+            $normalized[$index] = $installment;
+        }
+
+        $this->merge(['installments' => $normalized]);
     }
 
     public function withValidator(Validator $validator): void

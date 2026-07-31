@@ -34,7 +34,6 @@ class CityFactory extends Factory
             $city->translations()->create([
                 'locale' => 'en',
                 'title' => fake()->city(),
-                'normalized_title' => fake()->slug(),
             ]);
         });
     }

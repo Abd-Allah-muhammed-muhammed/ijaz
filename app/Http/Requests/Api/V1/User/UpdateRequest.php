@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Api\V1\User;
 
+use App\Models\User;
+use App\Rules\ValidPhoneRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
 use MMAE\ApiResponse\Request\ApiRequest;
@@ -24,6 +26,9 @@ class UpdateRequest extends ApiRequest
      */
     public function rules(): array
     {
+        /** @var User $user */
+        $user = $this->user();
+
         return [
             'f_name' => ['sometimes', 'required', 'string', 'max:255'],
             'l_name' => ['sometimes', 'required', 'string', 'max:255'],
@@ -32,12 +37,30 @@ class UpdateRequest extends ApiRequest
                 'required',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email')->ignore($this->user()->id),
+                Rule::unique('users', 'email')->ignore($user->id),
             ],
             'password' => ['sometimes', 'required', 'string', 'min:8', 'confirmed'],
-            'phone' => ['sometimes', 'required', 'string', 'max:20'],
+            // Pass the authenticated user so uniqueness ignores the caller's own phone.
+            'phone' => ['sometimes', 'required', 'string', 'max:20', new ValidPhoneRule($user)],
             'nationality_id' => ['sometimes', 'required', 'exists:nationalities,id'],
+            'latitude' => ['sometimes', 'required', 'numeric', 'between:-90,90'],
+            'longitude' => ['sometimes', 'required', 'numeric', 'between:-180,180'],
             'image' => ['sometimes', 'nullable', 'image', 'max:2048'],
         ];
+    }
+
+    /**
+     * Strip common phone formatting (spaces/dashes) so mobile-submitted
+     * "05 1234 5678" style values validate and normalize like bare digits.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (! $this->has('phone') || ! is_string($this->input('phone'))) {
+            return;
+        }
+
+        $this->merge([
+            'phone' => preg_replace('/[\s\-]+/', '', $this->input('phone')),
+        ]);
     }
 }

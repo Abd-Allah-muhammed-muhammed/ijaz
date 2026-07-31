@@ -24,7 +24,7 @@ class ProviderTypeResource extends JsonResource
             'translations' => $this->whenLoaded('translations', function () {
                 return $this->translations->keyBy('locale');
             }),
-            'providers_count' => $this->whenLoaded('providers_count', $this->providers_count),
+            'providers_count' => $this->whenCounted('providers'),
             'categories' => CategoryResource::collection($this->whenLoaded('categories')),
         ];
     }

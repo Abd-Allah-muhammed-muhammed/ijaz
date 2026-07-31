@@ -2,7 +2,7 @@
 
 namespace Modules\Marketplace\Repositories;
 
-use App\Support\Normalize;
+use App\Support\TranslationSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Modules\Marketplace\Contracts\Repositories\SkillRepositoryInterface;
@@ -13,15 +13,14 @@ class SkillRepository implements SkillRepositoryInterface
 {
     public function paginateForDashboard(Request $request): LengthAwarePaginator
     {
-        return Skill::with(['translation', 'category'])
+        return Skill::with(['translation', 'category.translation'])
             ->when($request->integer('category_id'), function ($query) use ($request) {
                 $query->where('category_id', $request->integer('category_id'));
             })
-            ->when($request->input('search'), function ($query, $v) {
-                $v = Normalize::make($v, app()->getLocale());
-
-                return $query->whereTranslationLike('normalized_title', "%{$v}%");
-            })
+            ->when(
+                $request->input('search'),
+                fn ($query, $v) => TranslationSearch::apply($query, (string) $v)
+            )
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();
     }
@@ -37,7 +36,7 @@ class SkillRepository implements SkillRepositoryInterface
                 ->withTranslation()
                 ->when(
                     $request->search,
-                    fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
+                    fn ($query, $v) => TranslationSearch::apply($query, (string) $v)
                 )
                 ->paginate($request->integer('per_page', 10));
         }
@@ -48,7 +47,7 @@ class SkillRepository implements SkillRepositoryInterface
             ->withTranslation()
             ->when(
                 $request->search,
-                fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
+                fn ($query, $v) => TranslationSearch::apply($query, (string) $v)
             )
             ->paginate($request->integer('per_page', 10));
     }
@@ -67,7 +66,7 @@ class SkillRepository implements SkillRepositoryInterface
     {
         $skill->update($data);
 
-        return $skill->fresh(['translations', 'translation', 'category']) ?? $skill;
+        return $skill->fresh(['translations', 'translation', 'category.translation']) ?? $skill;
     }
 
     public function delete(Skill $skill): void
@@ -77,6 +76,6 @@ class SkillRepository implements SkillRepositoryInterface
 
     public function loadForEdit(Skill $skill): Skill
     {
-        return $skill->load(['translations', 'category']);
+        return $skill->load(['translations', 'category.translation']);
     }
 }

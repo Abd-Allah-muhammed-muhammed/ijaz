@@ -10,11 +10,19 @@ return [
 
     /*
     | Fixed OTP for the configured test number (used by OtpGeneration).
+    | SendOtpSmsAction skips the real gateway for this number in EVERY
+    | environment (including production) to avoid burning SMS credits.
     */
     'test_number' => env('SMS_TEST_NUMBER', '966555338296'),
 
+    // Empty env values are treated as unset by OtpGeneration (falls back to 1111).
     'verification_code' => env('SMS_VERIFICATION_CODE', 1111),
 
+    /*
+    | When true, every phone gets the fixed verification_code (local/testing only).
+    | OtpGeneration hard-blocks this in production via app()->isProduction() even
+    | if the env var is accidentally left true on a live server.
+    */
     'verification_code_all_numbers' => env('SMS_VERIFICATION_CODE_ALL_NUMBERS', false),
 
     'gateways' => [

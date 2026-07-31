@@ -2,6 +2,7 @@
 
 namespace Modules\Marketplace\Actions\Category;
 
+use App\Support\TranslationSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Modules\Marketplace\Models\Category;
 
@@ -19,7 +20,7 @@ class ListCategoriesForSelectAction
             )
             ->when(
                 $search,
-                fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
+                fn ($query, $v) => TranslationSearch::apply($query, (string) $v)
             )
             ->paginate($perPage);
     }

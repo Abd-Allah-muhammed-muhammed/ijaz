@@ -3,6 +3,7 @@
 namespace Modules\Jobs\Http\Requests;
 
 use App\Rules\ValidPhoneRule;
+use App\Support\Normalize;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Enum;
 use JsonException;
@@ -46,6 +47,13 @@ class JobRequest extends ApiRequest
         if (is_string($this->get('skills'))) {
             $this->merge([
                 'skills' => json_decode($this->get('skills'), true, 512, JSON_THROW_ON_ERROR),
+            ]);
+        }
+
+        $expiredAt = $this->input('expired_at');
+        if (is_string($expiredAt)) {
+            $this->merge([
+                'expired_at' => Normalize::westernDigits($expiredAt),
             ]);
         }
     }

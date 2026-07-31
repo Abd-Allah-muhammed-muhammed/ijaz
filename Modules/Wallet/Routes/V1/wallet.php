@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Wallet\Http\Controllers\Api\V1\WalletController;
 
-Route::middleware('auth:sanctum')->prefix('wallet')->group(function () {
+Route::middleware(['auth:sanctum', 'user.active'])->prefix('wallet')->group(function () {
     Route::get('/balance', [WalletController::class, 'balance']);
     Route::post('/add-balance', [WalletController::class, 'addBalance']);
     Route::post('/withdraw', [WalletController::class, 'withdraw']);

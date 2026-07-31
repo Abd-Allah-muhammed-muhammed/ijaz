@@ -8,7 +8,7 @@ use Modules\Orders\Http\Controllers\Api\V1\OrderController;
 | Loaded under api/v1 with NO name prefix (routes stay unnamed).
 */
 Route::prefix('user')->group(static function () {
-    Route::middleware(['auth:user-api'])->group(static function () {
+    Route::middleware(['user-api'])->group(static function () {
         Route::controller(OrderController::class)->prefix('orders')->group(static function () {
             Route::get('/', 'index');
             Route::post('/', 'store');

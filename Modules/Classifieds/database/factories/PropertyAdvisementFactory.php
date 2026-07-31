@@ -4,7 +4,6 @@ namespace Modules\Classifieds\Database\Factories;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 use Modules\Catalog\Models\PropertyCategory;
 use Modules\Catalog\Models\PropertyType;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -33,13 +32,9 @@ class PropertyAdvisementFactory extends Factory
      */
     public function definition(): array
     {
-        $title = fake()->sentence(4);
-
         return [
-            'title' => $title,
-            'normalized_title' => Str::slug($title),
+            'title' => fake()->sentence(4),
             'description' => fake()->paragraph(3),
-            'normalized_description' => fake()->paragraph(3),
             'image' => 'media/property-advisements/placeholder.jpg',
             'status' => fake()->randomElement(AdvisementStatusEnum::cases()),
             'operation' => fake()->randomElement(OperationEnum::cases()),

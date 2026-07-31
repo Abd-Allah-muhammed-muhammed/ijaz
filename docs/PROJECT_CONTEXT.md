@@ -170,7 +170,8 @@ Shared notification shape: `App\Notifications\DomainNotification` — used by Or
 - Prefer FormRequests; avoid inline controller validation except rare documented leftovers.
 - Prefer Resources over leaking Eloquent models / ad-hoc arrays from API controllers.
 - Never mix raw `response()->json()` and `HasApiResponse` in the same controller style without reason.
-- Catalog translation search: `TranslationSearchFilter` (`normalize: true` on `normalized_*`, `false` on raw `name` for brand/type).
+- **Normalized search (canonical):** use `App\Support\TranslationSearch` (or Catalog `TranslationSearchFilter` with `normalize: true`) against `normalized_*` columns on **both** Dashboard and API/select paths. Exception: CarBrand / CarType / PropertyType / ProviderType / Cms Pages & Questions lack `normalized_*` — those keep raw `name`/`title` (`normalize: false`).
+- **Seeders for normalized_*-bearing tables MUST use Eloquent models** (never `DB::table()->insert()` into translation/advisement tables that rely on saving hooks). Enforced by `tests/Feature/SeedersMustNotRawInsertNormalizedTablesTest.php`.
 - Classifieds advisement services share owner-auth / delete / delete-media Actions.
 
 ### Never do this
@@ -204,6 +205,7 @@ Also still true (non-breaking quirks, documented in models/API docs):
 - Some notification / account-mutation endpoints still use `GET` (verb debt).
 - Geo catalog lookups (nationalities, regions, cities) live on `Modules\Geo\Http\Controllers\Api\V1\GeoController`; platform `providers` on `App\Http\Controllers\Api\V1\PlatformController`; public settings on `Modules\Settings\Http\Controllers\Api\V1\SettingController`.
 - ~~**`PropertyCategoryTranslation.normalized_title` is never written on save**~~ — **RESOLVED** on `fix/property-category-normalized-title`: saving hook matches Car/Device/Specialization; one-time migration backfills existing NULL rows.
+- ~~**Geo Regions/Cities/Nationalities search returned zero for seeded data**~~ — **RESOLVED**: seeders now use Eloquent; `TranslationSearch` unifies Dashboard+API; CI blocks raw inserts into normalized_*-bearing tables.
 - **CarBrand / CarType / PropertyType lack `normalized_*` translation columns** — search correctly uses raw `name` (`normalize: false`). Adding Arabic-insensitive search needs a future schema + save-hook pass, not filter-side fake normalization.
 
 **Planned but not implemented (not a bug, not dead code to remove):**

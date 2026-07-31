@@ -4,7 +4,6 @@ namespace Modules\Classifieds\Database\Factories;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 use Modules\Catalog\Models\CarBrand;
 use Modules\Catalog\Models\CarCategory;
 use Modules\Catalog\Models\CarType;
@@ -27,14 +26,9 @@ final class CarAdvisementFactory extends Factory
      */
     public function definition(): array
     {
-        $title = $this->faker->sentence(3);
-        $description = $this->faker->paragraphs(3, asText: true);
-
         return [
-            'title' => $title,
-            'normalized_title' => Str::slug($title),
-            'description' => $description,
-            'normalized_description' => Str::slug($description),
+            'title' => $this->faker->sentence(3),
+            'description' => $this->faker->paragraphs(3, asText: true),
             'image' => $this->faker->imageUrl(),
             'status' => AdvisementStatusEnum::PUBLISHED,
             'operation' => $this->faker->randomElement(OperationEnum::cases()),

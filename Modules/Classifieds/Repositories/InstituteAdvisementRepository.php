@@ -3,6 +3,7 @@
 namespace Modules\Classifieds\Repositories;
 
 use App\Models\User;
+use App\Support\TranslationSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Modules\Classifieds\Contracts\Repositories\InstituteAdvisementRepositoryInterface;
@@ -60,9 +61,10 @@ final class InstituteAdvisementRepository implements InstituteAdvisementReposito
     {
         return InstituteAdvisement::query()
             ->when($request->search, function ($query, $search) {
-                $query->where(function ($query) use ($search) {
-                    $query->where('normalized_title', 'like', "%{$search}%")
-                        ->orWhere('normalized_description', 'like', "%{$search}%")
+                $term = TranslationSearch::term((string) $search) ?? (string) $search;
+                $query->where(function ($query) use ($search, $term) {
+                    $query->where('normalized_title', 'like', "%{$term}%")
+                        ->orWhere('normalized_description', 'like', "%{$term}%")
                         ->orWhere('id', 'like', "%{$search}%");
                 });
             })

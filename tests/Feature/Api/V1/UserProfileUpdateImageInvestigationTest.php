@@ -158,3 +158,55 @@ it('rejects oversized images on partial profile update', function (): void {
 
     expect($user->fresh()->image)->toBe('users/old-avatar.jpg');
 });
+
+test('user can update their profile location (latitude/longitude)', function (): void {
+    $user = authenticatedProfileUser();
+
+    $this->post('/api/v1/user/auth/profile/update', [
+        'latitude' => '24.7136',
+        'longitude' => '46.6753',
+    ], [
+        'Accept' => 'application/json',
+    ])
+        ->assertSuccessful()
+        ->assertJsonPath('success', true)
+        ->assertJsonPath('data.latitude', '24.7136')
+        ->assertJsonPath('data.longitude', '46.6753');
+
+    $fresh = $user->fresh();
+    expect($fresh->latitude)->toBe('24.7136')
+        ->and($fresh->longitude)->toBe('46.6753')
+        ->and($fresh->f_name)->toBe('Ada')
+        ->and($fresh->phone)->toBe('512345678');
+});
+
+test('updating phone with an invalid format returns a validation error, not a silent empty save', function (): void {
+    $user = authenticatedProfileUser();
+    $originalPhone = $user->phone;
+
+    $this->post('/api/v1/user/auth/profile/update', [
+        'phone' => 'not-a-phone',
+    ], [
+        'Accept' => 'application/json',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['phone']);
+
+    expect($user->fresh()->phone)->toBe($originalPhone)
+        ->and($user->fresh()->phone)->not->toBe('');
+});
+
+test('updating phone with a valid but spaced/formatted KSA number still saves correctly', function (): void {
+    $user = authenticatedProfileUser();
+
+    $this->post('/api/v1/user/auth/profile/update', [
+        'phone' => '05 1234 5679',
+    ], [
+        'Accept' => 'application/json',
+    ])
+        ->assertSuccessful()
+        ->assertJsonPath('success', true)
+        ->assertJsonPath('data.phone', '966512345679');
+
+    expect($user->fresh()->phone)->toBe('966512345679');
+});

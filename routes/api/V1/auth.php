@@ -13,7 +13,7 @@ Route::group(['prefix' => 'otp', 'controller' => OtpController::class], static f
 });
 
 // Shared: routes requiring an authenticated Sanctum session
-Route::middleware('auth:sanctum')->group(static function () {
+Route::middleware(['auth:sanctum', 'user.active'])->group(static function () {
 
     // --- OTP (authenticated purpose send + phone/email verify) ---
     Route::group(['prefix' => 'otp', 'controller' => OtpController::class], static function () {
@@ -52,7 +52,7 @@ Route::group(['prefix' => 'user'], static function () {
         Route::post('register', 'register');
 
         // --- User API ---
-        Route::middleware(['auth:user-api'])->group(static function () {
+        Route::middleware(['user-api'])->group(static function () {
             Route::post('profile/update', 'profileUpdate');
             Route::get('me', 'auth');
             Route::post('logout', 'logout');
@@ -60,7 +60,7 @@ Route::group(['prefix' => 'user'], static function () {
     });
 
     // --- Providers ---
-    Route::group(['middleware' => ['auth:user-api']], static function () {
+    Route::group(['middleware' => ['user-api']], static function () {
         Route::group(['prefix' => 'providers', 'controller' => ProviderController::class], static function () {
             Route::get('/get', 'get');
         });

@@ -13,7 +13,7 @@ Route::prefix('catalog')->group(static function () {
     });
 });
 
-Route::middleware('auth:sanctum')->group(static function () {
+Route::middleware(['auth:sanctum', 'user.active'])->group(static function () {
     Route::controller(MessageController::class)->prefix('messages')->group(static function () {
         Route::post('/', 'store');
     });

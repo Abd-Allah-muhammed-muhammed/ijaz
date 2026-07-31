@@ -4,7 +4,6 @@ namespace Modules\Classifieds\Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 use Modules\Catalog\Models\PropertyCategory;
 use Modules\Catalog\Models\PropertyType;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
@@ -142,13 +141,10 @@ class PropertyAdvisementsSeeder extends Seeder
             ],
         ];
 
-        PropertyAdvisement::withoutEvents(function () use ($advisements, $userIds, $propertyTypeIds, $cityIds, $regionIds, $categoryIds): void {
+        PropertyAdvisement::query()->getConnection()->transaction(function () use ($advisements, $userIds, $propertyTypeIds, $cityIds, $regionIds, $categoryIds): void {
             foreach ($advisements as $data) {
-                $title = $data['title'];
-
+                // Let HasNormalizedAttributes populate normalized_* from title/description.
                 PropertyAdvisement::query()->create(array_merge($data, [
-                    'normalized_title' => Str::slug($title),
-                    'normalized_description' => strip_tags($data['description']),
                     'image' => 'media/property-advisements/placeholder.jpg',
                     'user_type' => User::class,
                     'user_id' => $userIds[array_rand($userIds)],

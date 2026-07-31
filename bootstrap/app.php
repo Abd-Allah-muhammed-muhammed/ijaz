@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureAcceptJsonMiddleware;
+use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LocalizationMiddleware;
@@ -83,6 +84,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'localeViewPath' => LaravelLocalizationViewPath::class,
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
+            'user.active' => EnsureUserIsActive::class,
+        ]);
+
+        // Guard + live status check for User Sanctum API (belt already revokes on ban/delete).
+        $middleware->group('user-api', [
+            'auth:user-api',
+            'user.active',
         ]);
     })
     ->withBroadcasting(

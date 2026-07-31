@@ -2,7 +2,7 @@
 
 namespace Modules\Catalog\Repositories;
 
-use App\Support\Normalize;
+use App\Support\TranslationSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -37,11 +37,7 @@ class SpecializationRepository implements SpecializationRepositoryInterface
             ->when($request->parent_id,
                 fn (Builder $query, mixed $value) => $query->where('parent_id', $value),
                 fn (Builder $query) => $query->whereNull('parent_id'))
-            ->when($request->search, function (Builder $query, mixed $value) {
-                $normalized = Normalize::make($value, app()->getLocale())->toString();
-
-                return $query->whereTranslationLike('normalized_title', "%{$normalized}%");
-            })
+            ->when($request->search, fn (Builder $query, mixed $value) => TranslationSearch::apply($query, (string) $value))
             ->get();
     }
 

@@ -11,7 +11,7 @@ Route::prefix('opportunities')->name('opportunities.')->group(function () {
     Route::get('{opportunity}', [OpportunityController::class, 'show'])->name('show');
     Route::get('{opportunity}/comments', [CommentController::class, 'index'])->name('comments.index');
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'user.active'])->group(function () {
 
         Route::get('/', [OpportunityController::class, 'index'])->name('index');
         Route::post('/', [OpportunityController::class, 'store'])->name('store');

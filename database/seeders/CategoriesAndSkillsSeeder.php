@@ -3,7 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Modules\Marketplace\Models\Category;
+use Modules\Marketplace\Models\Skill;
 
 class CategoriesAndSkillsSeeder extends Seeder
 {
@@ -398,88 +399,38 @@ class CategoriesAndSkillsSeeder extends Seeder
             ],
         ];
 
-        $maxCategoryId = DB::table('categories')->max('id') ?? 0;
-        $maxSkillId = DB::table('skills')->max('id') ?? 0;
-        $now = now();
+        $skillCount = 0;
 
-        $categoriesData = [];
-        $categoryTranslations = [];
-        $skillsData = [];
-        $skillTranslations = [];
-
-        $categoryId = $maxCategoryId;
-        $skillId = $maxSkillId;
-
-        foreach ($categoriesWithSkills as $category) {
-            $categoryId++;
-
-            $categoriesData[] = [
-                'id' => $categoryId,
-                'icon' => $category['icon'],
+        foreach ($categoriesWithSkills as $categoryData) {
+            $category = Category::query()->create([
+                'icon' => $categoryData['icon'],
                 'parent_id' => null,
-                'fees' => $category['fees'],
-                'fees_type' => $category['fees_type'],
-                'created_at' => $now->copy()->subDays(rand(30, 365)),
-                'updated_at' => $now,
-            ];
+                'fees' => $categoryData['fees'],
+                'fees_type' => $categoryData['fees_type'],
+                'translations' => [
+                    'en' => [
+                        'title' => $categoryData['en'],
+                        'description' => $categoryData['desc_en'],
+                    ],
+                    'ar' => [
+                        'title' => $categoryData['ar'],
+                        'description' => $categoryData['desc_ar'],
+                    ],
+                ],
+            ]);
 
-            $categoryTranslations[] = [
-                'category_id' => $categoryId,
-                'locale' => 'en',
-                'title' => $category['en'],
-                'description' => $category['desc_en'],
-            ];
-
-            $categoryTranslations[] = [
-                'category_id' => $categoryId,
-                'locale' => 'ar',
-                'title' => $category['ar'],
-                'description' => $category['desc_ar'],
-            ];
-
-            // Add skills for this category
-            foreach ($category['skills'] as $skill) {
-                $skillId++;
-
-                $skillsData[] = [
-                    'id' => $skillId,
-                    'category_id' => $categoryId,
-                    'created_at' => $now->copy()->subDays(rand(1, 365)),
-                    'updated_at' => $now,
-                ];
-
-                $skillTranslations[] = [
-                    'skill_id' => $skillId,
-                    'locale' => 'en',
-                    'title' => $skill['en'],
-                ];
-
-                $skillTranslations[] = [
-                    'skill_id' => $skillId,
-                    'locale' => 'ar',
-                    'title' => $skill['ar'],
-                ];
+            foreach ($categoryData['skills'] as $skillData) {
+                Skill::query()->create([
+                    'category_id' => $category->id,
+                    'translations' => [
+                        'en' => ['title' => $skillData['en']],
+                        'ar' => ['title' => $skillData['ar']],
+                    ],
+                ]);
+                $skillCount++;
             }
         }
 
-        // Insert categories
-        foreach (array_chunk($categoriesData, 50) as $chunk) {
-            DB::table('categories')->insert($chunk);
-        }
-
-        foreach (array_chunk($categoryTranslations, 100) as $chunk) {
-            DB::table('category_translations')->insert($chunk);
-        }
-
-        // Insert skills
-        foreach (array_chunk($skillsData, 100) as $chunk) {
-            DB::table('skills')->insert($chunk);
-        }
-
-        foreach (array_chunk($skillTranslations, 200) as $chunk) {
-            DB::table('skill_translations')->insert($chunk);
-        }
-
-        echo 'Added '.count($categoriesData).' categories with '.count($skillsData)." skills.\n";
+        echo 'Added '.count($categoriesWithSkills).' categories with '.$skillCount." skills.\n";
     }
 }

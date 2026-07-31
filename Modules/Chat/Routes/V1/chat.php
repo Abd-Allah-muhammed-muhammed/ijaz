@@ -5,7 +5,7 @@ use Modules\Chat\Http\Controllers\Api\V1\MemberChatController;
 use Modules\Chat\Http\Controllers\Api\V1\OrderChatController;
 use Modules\Chat\Http\Controllers\Api\V1\TicketSupportChatController;
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'user.active'])->group(function () {
     Route::prefix('chats')->group(function () {
         Route::controller(OrderChatController::class)->prefix('orders')->group(function () {
             Route::get('/', 'index');

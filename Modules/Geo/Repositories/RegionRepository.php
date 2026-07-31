@@ -2,7 +2,7 @@
 
 namespace Modules\Geo\Repositories;
 
-use App\Support\Normalize;
+use App\Support\TranslationSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -17,11 +17,10 @@ class RegionRepository implements RegionRepositoryInterface
         return Region::query()
             ->with(['translation'])
             ->withCount(['cities'])
-            ->when($request->input('search'), function (Builder $query, mixed $value) {
-                $normalized = Normalize::make((string) $value, app()->getLocale());
-
-                return $query->whereTranslationLike('normalized_title', "%{$normalized}%");
-            })
+            ->when(
+                $request->input('search'),
+                fn (Builder $query, mixed $value) => TranslationSearch::apply($query, (string) $value)
+            )
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();
     }
@@ -73,7 +72,7 @@ class RegionRepository implements RegionRepositoryInterface
     public function listForSelect(?string $search = null): Collection
     {
         return Region::query()->withTranslation()
-            ->when($search, fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%"))
+            ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v))
             ->get();
     }
 
@@ -81,10 +80,7 @@ class RegionRepository implements RegionRepositoryInterface
     {
         return Region::query()
             ->withTranslation()
-            ->when(
-                $search,
-                fn ($query, $v) => $query->whereTranslationLike('title', "%{$v}%")
-            )
+            ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v))
             ->paginate($perPage);
     }
 }

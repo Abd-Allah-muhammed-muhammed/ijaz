@@ -52,7 +52,9 @@ class ProviderTypeRepository implements ProviderTypeRepositoryInterface
             throw new MarketplaceException(__('Sorry, unable to execute this action due to existing data'));
         }
 
+        $providerType->categories()->detach();
         $providerType->delete();
+        $providerType->deleteImage();
     }
 
     public function loadForEdit(ProviderType $providerType): ProviderType
