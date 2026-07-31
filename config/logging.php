@@ -1,6 +1,5 @@
 <?php
 
-use App\Logging\SMSLogger;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -130,8 +129,11 @@ return [
             'level' => 'info',
         ],
         'sms' => [
-            'driver' => 'custom',
-            'via' => SMSLogger::class,
+            'driver' => 'daily',
+            'path' => storage_path('logs/sms.log'),
+            'level' => env('LOG_LEVEL', 'info'),
+            'days' => 14,
+            'replace_placeholders' => true,
         ],
     ],
 
