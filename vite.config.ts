@@ -36,7 +36,10 @@ export default defineConfig({
       },
       {
         name: 'js-translations',
-        build: false,
+        // Must run on `vite build` too — lang/*.json is the source of truth;
+        // resources/js/lang is generated. build:false left manual ar.json edits
+        // invisible after npm run build.
+        build: true,
         run: ['php', 'artisan', 'make:js-translations'],
         pattern: ['lang/**/*.php', 'lang/**/*.json'],
       },
