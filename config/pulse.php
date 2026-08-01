@@ -166,8 +166,10 @@ return [
             ],
         ],
 
-        // Servers recorder requires `php artisan pulse:check` and caused unserialize
-        // crashes from corrupted snapshots on this single-VPS setup — disabled intentionally.
+        Recorders\Servers::class => [
+            'server_name' => env('PULSE_SERVER_NAME', gethostname()),
+            'directories' => explode(':', env('PULSE_SERVER_DIRECTORIES', '/')),
+        ],
 
         Recorders\SlowJobs::class => [
             'enabled' => env('PULSE_SLOW_JOBS_ENABLED', true),

@@ -6,13 +6,14 @@ use App\Support\MonitoringAccess;
 use Database\Seeders\AdminPermissionSeeder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Pulse\Recorders\Servers;
 use Laravel\Telescope\Telescope;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
-function createMonitoringAdmin(array $permissions = [], bool $root = false, bool $superAdmin = false): Admin
+function createMonitoringAdmin(array $permissions = [], bool $root = false): Admin
 {
     foreach ($permissions as $permission) {
         Permission::firstOrCreate([
@@ -37,15 +38,7 @@ function createMonitoringAdmin(array $permissions = [], bool $root = false, bool
         $admin->forceFill(['root' => true])->save();
     }
 
-    if ($superAdmin) {
-        $role = Role::findOrCreate('super-admin', 'admin');
-
-        if ($permissions !== []) {
-            $role->givePermissionTo($permissions);
-        }
-
-        $admin->assignRole($role);
-    } elseif ($permissions !== []) {
+    if ($permissions !== []) {
         $admin->givePermissionTo($permissions);
     }
 
@@ -54,7 +47,9 @@ function createMonitoringAdmin(array $permissions = [], bool $root = false, bool
 
 function assertMonitoringToolAccess(bool $allowed): void
 {
-    expect(MonitoringAccess::allows())->toBe($allowed);
+    $admin = Auth::guard('admin')->user();
+
+    expect($admin instanceof Admin ? MonitoringAccess::allows($admin) : false)->toBe($allowed);
     expect(Gate::allows('viewPulse'))->toBe($allowed);
     expect(Gate::allows('viewTelescope'))->toBe($allowed);
     expect(Gate::allows('viewLogViewer'))->toBe($allowed);
@@ -71,8 +66,8 @@ it('forbids guests from pulse, telescope, and log viewer', function (): void {
     assertMonitoringToolAccess(false);
 });
 
-it('forbids admins with only the monitoring permission', function (): void {
-    $admin = createMonitoringAdmin(['view monitoring tools']);
+it('forbids admins without the monitoring permission', function (): void {
+    $admin = createMonitoringAdmin();
 
     $this->actingAs($admin, 'admin')
         ->get('/pulse')
@@ -86,19 +81,11 @@ it('forbids admins with only the monitoring permission', function (): void {
     assertMonitoringToolAccess(false);
 });
 
-it('forbids super-admin without the monitoring permission', function (): void {
-    $admin = createMonitoringAdmin(superAdmin: true);
+it('allows a non-root admin granted only the view monitoring tools permission', function (): void {
+    $admin = createMonitoringAdmin(['view monitoring tools']);
 
-    $this->actingAs($admin, 'admin')
-        ->get('/pulse')
-        ->assertForbidden();
-
-    $this->actingAs($admin, 'admin');
-    assertMonitoringToolAccess(false);
-});
-
-it('allows root admins via gate before even without an explicit permission grant', function (): void {
-    $admin = createMonitoringAdmin(root: true);
+    expect($admin->root)->toBeFalse()
+        ->and($admin->hasRole('super-admin'))->toBeFalse();
 
     $this->actingAs($admin, 'admin')
         ->get('/pulse')
@@ -112,8 +99,8 @@ it('allows root admins via gate before even without an explicit permission grant
     assertMonitoringToolAccess(true);
 });
 
-it('allows super-admin with the view monitoring tools permission', function (): void {
-    $admin = createMonitoringAdmin(['view monitoring tools'], superAdmin: true);
+it('allows root admins via gate before even without an explicit permission grant', function (): void {
+    $admin = createMonitoringAdmin(root: true);
 
     $this->actingAs($admin, 'admin')
         ->get('/pulse')
@@ -152,8 +139,8 @@ it('stores pulse and telescope on the shared monitoring connection', function ()
         ->and(config('telescope.enabled'))->toBeFalse();
 });
 
-it('does not register the pulse servers recorder', function (): void {
-    expect(config('pulse.recorders'))->not->toHaveKey(Servers::class);
+it('registers the pulse servers recorder', function (): void {
+    expect(config('pulse.recorders'))->toHaveKey(Servers::class);
 });
 
 it('redacts sensitive values from log content', function (): void {

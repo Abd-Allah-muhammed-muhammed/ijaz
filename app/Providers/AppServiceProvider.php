@@ -14,6 +14,7 @@ use App\Contracts\PanAnalytics\PanAnalyticsRepositoryInterface;
 use App\Contracts\Provider\ProviderManagementRepositoryInterface;
 use App\Contracts\User\UserManagementRepositoryInterface;
 use App\Logging\RedactingLaravelLog;
+use App\Models\Admin;
 use App\NotificationChannels\EventChannel;
 use App\NotificationChannels\FirebaseChannel;
 use App\Repositories\Account\AccountRepository;
@@ -180,8 +181,17 @@ class AppServiceProvider extends ServiceProvider
 
         // Defined via afterResolving so this replaces Pulse's default local-only gate.
         $this->callAfterResolving(GateContract::class, function (GateContract $gate): void {
-            $gate->define('viewPulse', fn ($user = null): bool => MonitoringAccess::allows());
-            $gate->define('viewLogViewer', fn ($user = null): bool => MonitoringAccess::allows());
+            $gate->define('viewPulse', function ($user = null): bool {
+                $admin = Auth::guard('admin')->user();
+
+                return $admin instanceof Admin && MonitoringAccess::allows($admin);
+            });
+
+            $gate->define('viewLogViewer', function ($user = null): bool {
+                $admin = Auth::guard('admin')->user();
+
+                return $admin instanceof Admin && MonitoringAccess::allows($admin);
+            });
         });
 
         LogViewer::extend('laravel', RedactingLaravelLog::class);

@@ -3,28 +3,18 @@
 namespace App\Support;
 
 use App\Models\Admin;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Shared authorization for Pulse, Telescope, and Log Viewer.
  *
- * Access requires an admin-guard session that is root OR has the super-admin role,
- * plus the "view monitoring tools" permission (extra layer — permission alone is not enough).
+ * Access is permission-based: any admin granted "view monitoring tools" may use
+ * all three tools. Root admins continue to pass via the global Gate::before bypass
+ * in AdminServiceProvider (no special-case root check here).
  */
 final class MonitoringAccess
 {
-    public static function allows(): bool
+    public static function allows(Admin $admin): bool
     {
-        $admin = Auth::guard('admin')->user();
-
-        if (! $admin instanceof Admin) {
-            return false;
-        }
-
-        if (! $admin->root && ! $admin->hasRole('super-admin')) {
-            return false;
-        }
-
         return $admin->can('view monitoring tools');
     }
 }
