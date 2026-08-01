@@ -101,9 +101,13 @@ return [
     | Pulse Cache Driver
     |--------------------------------------------------------------------------
     |
-    | This configuration option determines the cache driver that will be used
-    | for various tasks, including caching dashboard results, establishing
-    | locks for events that should only occur on one server and signals.
+    | Named cache STORE (config/cache.php), not a DB connection. When null,
+    | Pulse uses the app default store. With CACHE_STORE=database that means
+    | the default connection's `cache` table (ijaz), NOT the monitoring DB.
+    | That is expected: Pulse metrics live in `monitoring`; Livewire card
+    | snapshots / locks use the app cache store. Point PULSE_CACHE_DRIVER at
+    | another store only if you add one — serializable_classes still applies
+    | globally for any store that serializes PHP values.
     |
     */
 

@@ -1,5 +1,7 @@
 <?php
 
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 return [
@@ -115,15 +117,19 @@ return [
     | unserialized, which hardens security against deserialization attacks.
     |
     | If your application stores PHP objects in cache, you should explicitly
-    | list the allowed classes here. For example:
+    | list the allowed classes here.
     |
-    | 'serializable_classes' => [
-    |     App\Data\CachedDashboardStats::class,
-    |     App\Support\CachedPricingSnapshot::class,
-    | ],
+    | Laravel Pulse Livewire cards cache query snapshots that contain these
+    | types (see laravel/pulse#505). Without this allow-list, Laravel 13's
+    | default `false` turns them into __PHP_Incomplete_Class and crashes
+    | random Pulse widgets on cache hit.
     |
     */
 
-    'serializable_classes' => false,
+    'serializable_classes' => [
+        stdClass::class,
+        Collection::class,
+        CarbonImmutable::class,
+    ],
 
 ];
