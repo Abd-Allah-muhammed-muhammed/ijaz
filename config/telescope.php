@@ -16,7 +16,7 @@ return [
     |
     */
 
-    'enabled' => env('TELESCOPE_ENABLED', true),
+    'enabled' => filter_var(env('TELESCOPE_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
 
     /*
     |--------------------------------------------------------------------------
@@ -59,7 +59,7 @@ return [
 
     'storage' => [
         'database' => [
-            'connection' => env('DB_CONNECTION', 'mysql'),
+            'connection' => env('TELESCOPE_DB_CONNECTION', 'monitoring'),
             'chunk' => 1000,
         ],
     ],

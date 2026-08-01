@@ -112,6 +112,47 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        /*
+        |--------------------------------------------------------------------------
+        | Monitoring (Pulse + Telescope)
+        |--------------------------------------------------------------------------
+        |
+        | Isolated storage for Laravel Pulse and Telescope so their high-churn
+        | tables never compete with application data. Create the database first:
+        |
+        |   CREATE DATABASE ijaz_monitoring CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+        |
+        | Override driver/credentials with DB_MONITORING_* when they differ from
+        | the default connection (e.g. sqlite :memory: in phpunit).
+        |
+        */
+
+        'monitoring' => [
+            'driver' => env('DB_MONITORING_DRIVER', env('DB_CONNECTION', 'mysql')),
+            'url' => env('DB_MONITORING_URL', env('DB_URL')),
+            'host' => env('DB_MONITORING_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('DB_MONITORING_PORT', env('DB_PORT', '3306')),
+            'database' => env('DB_MONITORING_DATABASE', 'ijaz_monitoring'),
+            'username' => env('DB_MONITORING_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('DB_MONITORING_PASSWORD', env('DB_PASSWORD', '')),
+            'unix_socket' => env('DB_MONITORING_SOCKET', env('DB_SOCKET', '')),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'search_path' => 'public',
+            'sslmode' => 'prefer',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+            'busy_timeout' => null,
+            'journal_mode' => null,
+            'synchronous' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
     ],
 
     /*

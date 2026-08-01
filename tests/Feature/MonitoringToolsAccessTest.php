@@ -106,3 +106,9 @@ it('schedules telescope prune daily', function (): void {
 
     expect(Artisan::output())->toContain('telescope:prune');
 });
+
+it('stores pulse and telescope on the shared monitoring connection', function (): void {
+    expect(config('pulse.storage.database.connection'))->toBe('monitoring')
+        ->and(config('telescope.storage.database.connection'))->toBe('monitoring')
+        ->and(config('telescope.enabled'))->toBeFalse();
+});
