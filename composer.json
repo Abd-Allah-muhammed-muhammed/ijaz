@@ -25,6 +25,7 @@
         "mcamara/laravel-localization": "^2.3",
         "mmae/apiresponse": "^1.0",
         "nwidart/laravel-modules": "^13.0",
+        "opcodesio/log-viewer": "^3.24",
         "panphp/pan": "^0.1.8",
         "paytabscom/laravel_paytabs": "^1.9",
         "ratchet/pawl": "^0.4.3",

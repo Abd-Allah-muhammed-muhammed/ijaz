@@ -1,15 +1,18 @@
 <?php
 
 use App\Models\Admin;
+use App\Support\LogRedactor;
+use App\Support\MonitoringAccess;
 use Database\Seeders\AdminPermissionSeeder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Gate;
+use Laravel\Pulse\Recorders\Servers;
 use Laravel\Telescope\Telescope;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
-function createMonitoringAdmin(array $permissions = [], bool $root = false): Admin
+function createMonitoringAdmin(array $permissions = [], bool $root = false, bool $superAdmin = false): Admin
 {
     foreach ($permissions as $permission) {
         Permission::firstOrCreate([
@@ -34,58 +37,94 @@ function createMonitoringAdmin(array $permissions = [], bool $root = false): Adm
         $admin->forceFill(['root' => true])->save();
     }
 
-    if ($permissions !== []) {
+    if ($superAdmin) {
+        $role = Role::findOrCreate('super-admin', 'admin');
+
+        if ($permissions !== []) {
+            $role->givePermissionTo($permissions);
+        }
+
+        $admin->assignRole($role);
+    } elseif ($permissions !== []) {
         $admin->givePermissionTo($permissions);
     }
 
     return $admin->fresh();
 }
 
-function assertTelescopeAccess(bool $allowed): void
+function assertMonitoringToolAccess(bool $allowed): void
 {
+    expect(MonitoringAccess::allows())->toBe($allowed);
+    expect(Gate::allows('viewPulse'))->toBe($allowed);
+    expect(Gate::allows('viewTelescope'))->toBe($allowed);
+    expect(Gate::allows('viewLogViewer'))->toBe($allowed);
+
     // Telescope routes are not registered when TELESCOPE_ENABLED=false (phpunit default
     // to keep the suite lightweight). The auth gate/callback still run and are what
     // Authorize middleware consults when the dashboard is enabled.
-    expect(Gate::allows('viewTelescope'))->toBe($allowed);
     expect(Telescope::check(Request::create('/telescope', 'GET')))->toBe($allowed);
 }
 
-it('forbids guests from pulse and telescope', function (): void {
+it('forbids guests from pulse, telescope, and log viewer', function (): void {
     $this->get('/pulse')->assertForbidden();
-    assertTelescopeAccess(false);
+    $this->get('/log-viewer')->assertForbidden();
+    assertMonitoringToolAccess(false);
 });
 
-it('forbids admins without the monitoring permission', function (): void {
-    $admin = createMonitoringAdmin();
+it('forbids admins with only the monitoring permission', function (): void {
+    $admin = createMonitoringAdmin(['view monitoring tools']);
+
+    $this->actingAs($admin, 'admin')
+        ->get('/pulse')
+        ->assertForbidden();
+
+    $this->actingAs($admin, 'admin')
+        ->get('/log-viewer')
+        ->assertForbidden();
+
+    $this->actingAs($admin, 'admin');
+    assertMonitoringToolAccess(false);
+});
+
+it('forbids super-admin without the monitoring permission', function (): void {
+    $admin = createMonitoringAdmin(superAdmin: true);
 
     $this->actingAs($admin, 'admin')
         ->get('/pulse')
         ->assertForbidden();
 
     $this->actingAs($admin, 'admin');
-    assertTelescopeAccess(false);
+    assertMonitoringToolAccess(false);
 });
 
-it('allows admins with the view monitoring tools permission', function (): void {
-    $admin = createMonitoringAdmin(['view monitoring tools']);
-
-    $this->actingAs($admin, 'admin')
-        ->get('/pulse')
-        ->assertSuccessful();
-
-    $this->actingAs($admin, 'admin');
-    assertTelescopeAccess(true);
-});
-
-it('allows root admins via gate before even without the permission', function (): void {
+it('allows root admins via gate before even without an explicit permission grant', function (): void {
     $admin = createMonitoringAdmin(root: true);
 
     $this->actingAs($admin, 'admin')
         ->get('/pulse')
         ->assertSuccessful();
 
+    $this->actingAs($admin, 'admin')
+        ->get('/log-viewer')
+        ->assertSuccessful();
+
     $this->actingAs($admin, 'admin');
-    assertTelescopeAccess(true);
+    assertMonitoringToolAccess(true);
+});
+
+it('allows super-admin with the view monitoring tools permission', function (): void {
+    $admin = createMonitoringAdmin(['view monitoring tools'], superAdmin: true);
+
+    $this->actingAs($admin, 'admin')
+        ->get('/pulse')
+        ->assertSuccessful();
+
+    $this->actingAs($admin, 'admin')
+        ->get('/log-viewer')
+        ->assertSuccessful();
+
+    $this->actingAs($admin, 'admin');
+    assertMonitoringToolAccess(true);
 });
 
 it('seeds the view monitoring tools permission onto the super-admin role', function (): void {
@@ -111,4 +150,27 @@ it('stores pulse and telescope on the shared monitoring connection', function ()
     expect(config('pulse.storage.database.connection'))->toBe('monitoring')
         ->and(config('telescope.storage.database.connection'))->toBe('monitoring')
         ->and(config('telescope.enabled'))->toBeFalse();
+});
+
+it('does not register the pulse servers recorder', function (): void {
+    expect(config('pulse.recorders'))->not->toHaveKey(Servers::class);
+});
+
+it('redacts sensitive values from log content', function (): void {
+    $sample = <<<'LOG'
+* **cookie**: XSRF-TOKEN=eyJsecret; ijaz_session=eyJsession
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.abc
+password=SuperSecret123
+"api_key":"sk-live-abc123"
+LOG;
+
+    $redacted = LogRedactor::redact($sample);
+
+    expect($redacted)
+        ->toContain('[REDACTED]')
+        ->not->toContain('eyJsecret')
+        ->not->toContain('eyJsession')
+        ->not->toContain('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.abc')
+        ->not->toContain('SuperSecret123')
+        ->not->toContain('sk-live-abc123');
 });

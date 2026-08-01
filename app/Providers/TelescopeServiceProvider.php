@@ -2,8 +2,7 @@
 
 namespace App\Providers;
 
-use App\Models\Admin;
-use Illuminate\Support\Facades\Auth;
+use App\Support\MonitoringAccess;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Telescope\IncomingEntry;
 use Laravel\Telescope\Telescope;
@@ -33,7 +32,7 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
     }
 
     /**
-     * Configure Telescope authorization — always require the admin monitoring permission
+     * Configure Telescope authorization — always require MonitoringAccess
      * (no open access in the local environment).
      */
     protected function authorization(): void
@@ -60,22 +59,15 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
             'cookie',
             'x-csrf-token',
             'x-xsrf-token',
+            'authorization',
         ]);
     }
 
     /**
-     * Register the Telescope gate.
-     *
-     * Access requires an authenticated admin (session guard) with the
-     * "view monitoring tools" permission. Root admins pass via Gate::before.
+     * Register the Telescope gate (same root/super-admin + permission check as Pulse / Log Viewer).
      */
     protected function gate(): void
     {
-        Gate::define('viewTelescope', function ($user = null): bool {
-            $admin = Auth::guard('admin')->user();
-
-            return $admin instanceof Admin
-                && $admin->can('view monitoring tools');
-        });
+        Gate::define('viewTelescope', fn ($user = null): bool => MonitoringAccess::allows());
     }
 }

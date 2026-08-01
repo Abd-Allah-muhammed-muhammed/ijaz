@@ -13,7 +13,7 @@ use App\Contracts\Auth\UserRepositoryInterface;
 use App\Contracts\PanAnalytics\PanAnalyticsRepositoryInterface;
 use App\Contracts\Provider\ProviderManagementRepositoryInterface;
 use App\Contracts\User\UserManagementRepositoryInterface;
-use App\Models\Admin;
+use App\Logging\RedactingLaravelLog;
 use App\NotificationChannels\EventChannel;
 use App\NotificationChannels\FirebaseChannel;
 use App\Repositories\Account\AccountRepository;
@@ -33,6 +33,7 @@ use App\Support\Api\ApiVersionResolverChain;
 use App\Support\Api\ApiVersionService;
 use App\Support\Api\Contracts\ApiVersionResolverStrategy;
 use App\Support\InertiaPageFinder;
+use App\Support\MonitoringAccess;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
@@ -51,6 +52,7 @@ use Illuminate\Support\ServiceProvider;
 use Laravel\Telescope\TelescopeServiceProvider as TelescopePackageServiceProvider;
 use Modules\Chat\Contracts\ParticipantResolverInterface;
 use Modules\Settings\Models\Setting;
+use Opcodes\LogViewer\Facades\LogViewer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -178,13 +180,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Defined via afterResolving so this replaces Pulse's default local-only gate.
         $this->callAfterResolving(GateContract::class, function (GateContract $gate): void {
-            $gate->define('viewPulse', function ($user = null): bool {
-                $admin = Auth::guard('admin')->user();
-
-                return $admin instanceof Admin
-                    && $admin->can('view monitoring tools');
-            });
+            $gate->define('viewPulse', fn ($user = null): bool => MonitoringAccess::allows());
+            $gate->define('viewLogViewer', fn ($user = null): bool => MonitoringAccess::allows());
         });
+
+        LogViewer::extend('laravel', RedactingLaravelLog::class);
 
         $this->app->singleton('settings', fn () => cache()->rememberForever('settings', fn () => Setting::pluck('content', 'key')));
         JsonResource::withoutWrapping();
