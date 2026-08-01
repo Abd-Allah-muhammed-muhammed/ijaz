@@ -1,5 +1,6 @@
 <?php
 
+use App\Logging\ConfigureLogRedaction;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -63,6 +64,7 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
+            'tap' => [ConfigureLogRedaction::class],
         ],
 
         'daily' => [
@@ -71,6 +73,7 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
+            'tap' => [ConfigureLogRedaction::class],
         ],
 
         'slack' => [
@@ -127,6 +130,7 @@ return [
             'driver' => 'single',
             'path' => storage_path('logs/paytabs.log'),
             'level' => 'info',
+            'tap' => [ConfigureLogRedaction::class],
         ],
         'sms' => [
             'driver' => 'daily',
@@ -134,6 +138,7 @@ return [
             'level' => env('LOG_LEVEL', 'info'),
             'days' => 14,
             'replace_placeholders' => true,
+            'tap' => [ConfigureLogRedaction::class],
         ],
     ],
 

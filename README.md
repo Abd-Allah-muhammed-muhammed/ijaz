@@ -132,7 +132,9 @@ Paste this content:
 ```ini
 [program:ijaz-default-worker]
 process_name=%(program_name)s_%(process_num)02d
-command=php /home/ijaz/project/artisan queue:work --sleep=3 --tries=3 --queue=default --timeout=0
+; Listen to default + opportunities (hourly ExpireOpportunityJob — low volume,
+; no dedicated worker needed). Queue order = priority: default first.
+command=php /home/ijaz/project/artisan queue:work --sleep=3 --tries=3 --queue=default,opportunities --timeout=0
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -203,6 +205,39 @@ ijaz-online-worker:ijaz-online-worker_00      RUNNING
 ijaz-reverb-socket:ijaz-reverb-socket_00      RUNNING
 ```
 
+#### Production hotfix — `opportunities` queue was never consumed
+
+`ExpireOpportunityJob` is dispatched to the `opportunities` queue (hourly via
+`opportunities:expire`), but older Supervisor configs only listened to `default`
+and `guarantor`. Apply this on the **live server** (edit the real file, not only
+this README):
+
+```bash
+# 1. Edit Supervisor program command
+sudo nano /etc/supervisor/conf.d/ijaz.conf
+# Change the ijaz-default-worker command line from:
+#   --queue=default
+# to:
+#   --queue=default,opportunities
+
+# 2. Reload Supervisor and restart only the default workers
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl restart ijaz-default-worker:*
+
+# 3. Confirm the new command is live
+sudo supervisorctl status ijaz-default-worker:*
+ps aux | grep 'queue:work' | grep opportunities
+
+# 4. Drain any jobs that piled up while nobody was listening
+cd /home/ijaz/project
+php artisan tinker --execute="echo DB::table('jobs')->where('queue','opportunities')->count().' pending'; echo PHP_EOL; echo DB::table('failed_jobs')->where('queue','opportunities')->count().' failed'; echo PHP_EOL;"
+# Pending jobs will be picked up automatically by the restarted workers.
+# Retry failed ones if needed:
+# php artisan queue:retry all
+# (or retry specific UUIDs from queue:failed)
+```
+
 ---
 
 ### Cron Job (Laravel Scheduler)
@@ -222,7 +257,10 @@ crontab -l -u ijaz
 ```
 
 The scheduler runs:
+- `opportunities:expire` — hourly (dispatches `ExpireOpportunityJob` onto the `opportunities` queue; consumed by `ijaz-default-worker`)
 - `guarantor:check-overdue` — daily at midnight (checks overdue installments)
+- `auth:prune-expired-otp-sessions` — hourly
+- `telescope:prune` — daily at midnight
 
 ---
 
@@ -256,7 +294,12 @@ supervisorctl restart ijaz-guarantor-worker:*
 
 ### Adding a New Module (Queue)
 
-If a new module uses a dedicated queue, add a new worker block to `/etc/supervisor/conf.d/ijaz.conf`:
+**Prefer the simple path:** low-volume module queues (like `opportunities`) should be
+appended to the default worker list — e.g. `--queue=default,opportunities,{module}` —
+then `supervisorctl reread && supervisorctl update && supervisorctl restart ijaz-default-worker:*`.
+
+Only add a **dedicated** Supervisor program (like `guarantor`) when the queue needs
+isolation: high volume, long-running jobs, or failure blast-radius separation.
 
 ```ini
 [program:ijaz-{module}-worker]

@@ -11,5 +11,7 @@ return [
     AppServiceProvider::class,
     BladeServiceProvider::class,
     RepositoryServiceProvider::class,
+    // TelescopeServiceProvider is registered conditionally in AppServiceProvider
+    // (laravel/telescope is a --dev dependency).
     PaypageServiceProvider::class,
 ];
