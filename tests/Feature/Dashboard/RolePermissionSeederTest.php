@@ -1,18 +1,37 @@
 <?php
 
 use App\Models\Admin;
-use Database\Seeders\AdminPermissionSeeder;
+use Database\Seeders\AdminRootSeeder;
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Support\Facades\Gate;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
     withoutOrdersLocaleMiddleware();
-    $this->seed(AdminPermissionSeeder::class);
+    $this->seed(RolePermissionSeeder::class);
 });
 
+/**
+ * Exact counts from the pre-refactor audit — must not drift.
+ *
+ * @return array<string, int>
+ */
+function expectedRolePermissionCounts(): array
+{
+    return [
+        'super-admin' => 119,
+        'operations' => 11,
+        'finance' => 4,
+        'support' => 8,
+        'content-manager' => 52,
+        'viewer-monitor' => 1,
+        'developer' => 98,
+    ];
+}
+
 it('seeds every declared admin permission name', function (): void {
-    $expected = AdminPermissionSeeder::allPermissionNames();
+    $expected = RolePermissionSeeder::allPermissionNames();
 
     $actual = Permission::query()
         ->where('guard_name', 'admin')
@@ -21,7 +40,8 @@ it('seeds every declared admin permission name', function (): void {
         ->values()
         ->all();
 
-    expect($actual)->toEqualCanonicalizing($expected);
+    expect($actual)->toEqualCanonicalizing($expected)
+        ->and($actual)->toHaveCount(119);
 });
 
 it('keeps super-admin synced to every admin permission', function (): void {
@@ -29,7 +49,8 @@ it('keeps super-admin synced to every admin permission', function (): void {
     $all = Permission::query()->where('guard_name', 'admin')->pluck('name')->sort()->values();
 
     expect($role->permissions->pluck('name')->sort()->values()->all())
-        ->toEqual($all->all());
+        ->toEqual($all->all())
+        ->and($role->permissions)->toHaveCount(119);
 });
 
 it('is idempotent when re-seeded', function (): void {
@@ -37,22 +58,23 @@ it('is idempotent when re-seeded', function (): void {
     $beforePermissions = Permission::query()->where('guard_name', 'admin')->count();
     $beforeSuperAdminPerms = Role::findByName('super-admin', 'admin')->permissions()->count();
 
-    $this->seed(AdminPermissionSeeder::class);
+    $this->seed(RolePermissionSeeder::class);
 
     expect(Role::query()->where('guard_name', 'admin')->count())->toBe($beforeRoles)
         ->and(Permission::query()->where('guard_name', 'admin')->count())->toBe($beforePermissions)
         ->and(Role::findByName('super-admin', 'admin')->permissions()->count())->toBe($beforeSuperAdminPerms);
 });
 
-it('assigns each module role the exact expected permission set', function (string $roleName): void {
-    $map = AdminPermissionSeeder::rolePermissionMap();
+it('assigns each module role the exact expected permission set and count', function (string $roleName): void {
+    $map = RolePermissionSeeder::rolePermissionMap();
     $expected = collect($map[$roleName])->sort()->values()->all();
+    $expectedCount = expectedRolePermissionCounts()[$roleName];
 
     $role = Role::findByName($roleName, 'admin');
     $actual = $role->permissions->pluck('name')->sort()->values()->all();
 
     expect($actual)->toEqual($expected)
-        ->and($actual)->not->toBeEmpty();
+        ->and($actual)->toHaveCount($expectedCount);
 })->with([
     'operations',
     'finance',
@@ -61,6 +83,13 @@ it('assigns each module role the exact expected permission set', function (strin
     'viewer-monitor',
     'developer',
 ]);
+
+it('preserves the audited permission counts for every seeded role', function (): void {
+    foreach (expectedRolePermissionCounts() as $roleName => $count) {
+        expect(Role::findByName($roleName, 'admin')->permissions()->count())
+            ->toBe($count, "Role [{$roleName}] permission count drifted from audit.");
+    }
+});
 
 it('does not grant developer sensitive finance write or privilege-escalation permissions', function (): void {
     $role = Role::findByName('developer', 'admin');
@@ -76,7 +105,7 @@ it('does not grant developer sensitive finance write or privilege-escalation per
         ->and($role->hasPermissionTo('delete users'))->toBeFalse();
 });
 
-it('leaves root admin authorization on the Gate::before bypass without requiring super-admin', function (): void {
+it('allows root via Gate::before even without any role assignment', function (): void {
     $root = Admin::query()->create([
         'name' => 'Root Probe',
         'phone' => fake()->unique()->numerify('05########'),
@@ -95,4 +124,13 @@ it('leaves root admin authorization on the Gate::before bypass without requiring
     expect(Gate::allows('view monitoring tools'))->toBeTrue()
         ->and(Gate::allows('edit withdrawRequests'))->toBeTrue()
         ->and(Gate::allows('create roles'))->toBeTrue();
+});
+
+it('assigns super-admin to the seeded root admin (belt-and-suspenders)', function (): void {
+    $this->seed(AdminRootSeeder::class);
+
+    $root = Admin::query()->where('root', true)->firstOrFail();
+
+    expect($root->hasRole('super-admin'))->toBeTrue()
+        ->and($root->email)->toBe('root@nagaz.com');
 });

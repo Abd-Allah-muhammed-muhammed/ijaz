@@ -3,7 +3,7 @@
 use App\Models\Admin;
 use App\Support\LogRedactor;
 use App\Support\MonitoringAccess;
-use Database\Seeders\AdminPermissionSeeder;
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
@@ -115,7 +115,7 @@ it('allows root admins via gate before even without an explicit permission grant
 });
 
 it('seeds the view monitoring tools permission onto the super-admin role', function (): void {
-    $this->seed(AdminPermissionSeeder::class);
+    $this->seed(RolePermissionSeeder::class);
 
     expect(Permission::query()->where([
         'name' => 'view monitoring tools',
