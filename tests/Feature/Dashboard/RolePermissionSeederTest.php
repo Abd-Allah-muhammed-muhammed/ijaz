@@ -134,3 +134,18 @@ it('assigns super-admin to the seeded root admin (belt-and-suspenders)', functio
     expect($root->hasRole('super-admin'))->toBeTrue()
         ->and($root->email)->toBe('root@nagaz.com');
 });
+
+it('fails fast with a clear typo suggestion for an invalid role module key', function (): void {
+    $permissions = [
+        'categories' => ['guard' => 'admin', 'crud' => true],
+        'providers' => ['guard' => 'admin', 'crud' => true],
+    ];
+
+    expect(fn () => RolePermissionSeeder::validateRoleModuleReferences([
+        'operations' => ['categories', 'providerz'],
+    ], $permissions))
+        ->toThrow(
+            InvalidArgumentException::class,
+            'RolePermissionSeeder: role [operations] references unknown module [providerz]. Did you mean [providers]?'
+        );
+});

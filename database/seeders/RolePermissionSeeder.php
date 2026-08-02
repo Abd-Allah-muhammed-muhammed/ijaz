@@ -3,22 +3,161 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use InvalidArgumentException;
+use RuntimeException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * Seeds the admin-guard permission catalog and composes Dashboard roles from
- * reusable logical groups (Catalog, Geo, CMS, Finance, Ops, …) — no duplicated lists.
+ * Single source of truth for admin-guard permissions and Dashboard roles.
  *
- * Account creation (root admin) stays in {@see AdminRootSeeder}.
+ * Edit {@see PERMISSIONS} / {@see ROLES} only — seeding logic below stays stable.
+ * Account creation stays in {@see AdminRootSeeder}.
  */
 class RolePermissionSeeder extends Seeder
 {
-    private const string GUARD = 'admin';
+    /**
+     * Module key => definition.
+     *
+     * - crud: expand show/create/edit/delete {module}
+     * - actions: verb (show|create|edit|delete → "{verb} {module}") or a full permission name
+     * - extra: additional full permission names
+     * - guard: Spatie guard (default admin)
+     *
+     * @var array<string, array{guard?: string, crud?: bool, actions?: list<string>, extra?: list<string>}>
+     */
+    private const array PERMISSIONS = [
+        'roles' => ['guard' => 'admin', 'crud' => true],
+        'admins' => ['guard' => 'admin', 'crud' => true],
+        'providers' => ['guard' => 'admin', 'crud' => true, 'extra' => ['process providers']],
+        'users' => ['guard' => 'admin', 'crud' => true],
+        'categories' => ['guard' => 'admin', 'crud' => true],
+        'propertyCategories' => ['guard' => 'admin', 'crud' => true],
+        'propertyTypes' => ['guard' => 'admin', 'crud' => true],
+        'carBrands' => ['guard' => 'admin', 'crud' => true],
+        'carTypes' => ['guard' => 'admin', 'crud' => true],
+        'carCategories' => ['guard' => 'admin', 'crud' => true],
+        'propertyAdvisements' => ['guard' => 'admin', 'actions' => ['show', 'edit', 'delete']],
+        'carAdvisements' => ['guard' => 'admin', 'actions' => ['show', 'edit', 'delete']],
+        'electronicAdvisements' => ['guard' => 'admin', 'actions' => ['show', 'edit', 'delete']],
+        'instituteAdvisements' => ['guard' => 'admin', 'actions' => ['show', 'edit', 'delete']],
+        'deviceCategories' => ['guard' => 'admin', 'crud' => true],
+        'electronicBrands' => ['guard' => 'admin', 'crud' => true],
+        'specializations' => ['guard' => 'admin', 'crud' => true],
+        'skills' => ['guard' => 'admin', 'crud' => true],
+        'regions' => ['guard' => 'admin', 'crud' => true],
+        'cities' => ['guard' => 'admin', 'crud' => true],
+        'nationalities' => ['guard' => 'admin', 'crud' => true],
+        'providerTypes' => ['guard' => 'admin', 'crud' => true],
+        'banners' => ['guard' => 'admin', 'crud' => true],
+        'pages' => ['guard' => 'admin', 'crud' => true],
+        'questions' => ['guard' => 'admin', 'crud' => true],
+        'topUpRequests' => ['guard' => 'admin', 'actions' => ['show', 'edit']],
+        'messages' => ['guard' => 'admin', 'actions' => ['show', 'delete']],
+        'withdrawRequests' => ['guard' => 'admin', 'actions' => ['show', 'edit']],
+        'supportTicket' => ['guard' => 'admin', 'actions' => ['show', 'edit']],
+        'orders' => ['guard' => 'admin', 'actions' => ['show', 'edit']],
+        'opportunities' => ['guard' => 'admin', 'actions' => ['show', 'delete']],
+        'guarantors' => ['guard' => 'admin', 'actions' => ['show', 'manage guarantors']],
+        'settings' => ['guard' => 'admin', 'actions' => ['show', 'edit']],
+        'reviews' => ['guard' => 'admin', 'actions' => ['show', 'delete']],
+        'panAnalytics' => ['guard' => 'admin', 'actions' => ['show', 'export panAnalytics', 'delete']],
+        'monitoring' => ['guard' => 'admin', 'actions' => ['view monitoring tools']],
+    ];
+
+    /**
+     * Role => module grants.
+     *
+     * - '*' = every permission from PERMISSIONS
+     * - 'module' = all permissions for that module
+     * - 'module' => ['show', 'edit'] = subset (verbs expand the same way as PERMISSIONS actions)
+     *
+     * @var array<string, '*'|array<int|string, string|list<string>>>
+     */
+    private const array ROLES = [
+        'super-admin' => '*',
+        'operations' => [
+            'providers',
+            'orders',
+            'opportunities',
+            'guarantors',
+        ],
+        'finance' => [
+            'topUpRequests',
+            'withdrawRequests',
+        ],
+        'support' => [
+            'supportTicket',
+            'messages',
+            'questions',
+        ],
+        'content-manager' => [
+            'categories',
+            'propertyCategories',
+            'propertyTypes',
+            'carBrands',
+            'carTypes',
+            'carCategories',
+            'deviceCategories',
+            'electronicBrands',
+            'specializations',
+            'skills',
+            'providerTypes',
+            'banners',
+            'pages',
+        ],
+        'viewer-monitor' => [
+            'monitoring',
+        ],
+        /*
+         * Developer — same effective set as before. Partial modules use action subsets
+         * (e.g. finance read-only, no process providers / manage guarantors / role mutations).
+         */
+        'developer' => [
+            'monitoring',
+            'settings',
+            'panAnalytics',
+            'roles' => ['show'],
+            'admins' => ['show'],
+            'users' => ['show', 'edit'],
+            'providers' => ['show', 'edit'],
+            'orders',
+            'opportunities' => ['show'],
+            'guarantors' => ['show'],
+            'messages' => ['show'],
+            'supportTicket',
+            'reviews' => ['show'],
+            'topUpRequests' => ['show'],
+            'withdrawRequests' => ['show'],
+            'propertyAdvisements' => ['show', 'edit'],
+            'carAdvisements' => ['show', 'edit'],
+            'electronicAdvisements' => ['show', 'edit'],
+            'instituteAdvisements' => ['show', 'edit'],
+            'categories',
+            'propertyCategories',
+            'propertyTypes',
+            'carBrands',
+            'carTypes',
+            'carCategories',
+            'deviceCategories',
+            'electronicBrands',
+            'specializations',
+            'skills',
+            'providerTypes',
+            'banners',
+            'pages',
+            'questions',
+            'regions',
+            'cities',
+            'nationalities',
+        ],
+    ];
 
     public function run(): void
     {
+        self::validateRoleModuleReferences(self::ROLES, self::PERMISSIONS);
+
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         $this->seedPermissions();
@@ -26,318 +165,67 @@ class RolePermissionSeeder extends Seeder
     }
 
     /**
-     * Spatie permission registry: DB `group` column => permission definitions.
-     * Use `'crud'` to expand into show/create/edit/delete for that module key.
+     * Fail-fast: every module key in $roles must exist in $permissions.
      *
-     * @return array<string, list<string>>
+     * @param  array<string, '*'|array<int|string, string|list<string>>>  $roles
+     * @param  array<string, array{guard?: string, crud?: bool, actions?: list<string>, extra?: list<string>}>  $permissions
      */
-    public static function permissionRegistry(): array
+    public static function validateRoleModuleReferences(array $roles, array $permissions): void
     {
-        return [
-            'roles' => ['crud'],
-            'admins' => ['crud'],
-            'providers' => ['crud', 'process providers'],
-            'users' => ['crud'],
-            'categories' => ['crud'],
-            'propertyCategories' => ['crud'],
-            'propertyTypes' => ['crud'],
-            'carBrands' => ['crud'],
-            'carTypes' => ['crud'],
-            'carCategories' => ['crud'],
-            'propertyAdvisements' => [
-                'show propertyAdvisements',
-                'edit propertyAdvisements',
-                'delete propertyAdvisements',
-            ],
-            'carAdvisements' => [
-                'show carAdvisements',
-                'edit carAdvisements',
-                'delete carAdvisements',
-            ],
-            'electronicAdvisements' => [
-                'show electronicAdvisements',
-                'edit electronicAdvisements',
-                'delete electronicAdvisements',
-            ],
-            'instituteAdvisements' => [
-                'show instituteAdvisements',
-                'edit instituteAdvisements',
-                'delete instituteAdvisements',
-            ],
-            'deviceCategories' => ['crud'],
-            'electronicBrands' => ['crud'],
-            'specializations' => ['crud'],
-            'skills' => ['crud'],
-            'regions' => ['crud'],
-            'cities' => ['crud'],
-            'nationalities' => ['crud'],
-            'providerTypes' => ['crud'],
-            'banners' => ['crud'],
-            'pages' => ['crud'],
-            'questions' => ['crud'],
-            'topUpRequests' => [
-                'show topUpRequests',
-                'edit topUpRequests',
-            ],
-            'messages' => [
-                'show messages',
-                'delete messages',
-            ],
-            'withdrawRequests' => [
-                'show withdrawRequests',
-                'edit withdrawRequests',
-            ],
-            'supportTicket' => [
-                'show supportTicket',
-                'edit supportTicket',
-            ],
-            'orders' => [
-                'show orders',
-                'edit orders',
-            ],
-            // Canonical names from Modules/*/database/seeders/*PermissionSeeder.
-            'opportunities' => [
-                'show opportunities',
-                'delete opportunities',
-            ],
-            'guarantors' => [
-                'show guarantors',
-                'manage guarantors',
-            ],
-            'settings' => [
-                'show settings',
-                'edit settings',
-            ],
-            'reviews' => [
-                'show reviews',
-                'delete reviews',
-            ],
-            'panAnalytics' => [
-                'show panAnalytics',
-                'export panAnalytics',
-                'delete panAnalytics',
-            ],
-            'monitoring' => [
-                'view monitoring tools',
-            ],
-        ];
-    }
+        $validKeys = array_keys($permissions);
 
-    /**
-     * Reusable permission groups — defined once, composed into roles.
-     *
-     * @return array<string, list<string>>
-     */
-    public static function groups(): array
-    {
-        return [
-            'catalog' => [
-                ...self::crud('categories'),
-                ...self::crud('propertyCategories'),
-                ...self::crud('propertyTypes'),
-                ...self::crud('carBrands'),
-                ...self::crud('carTypes'),
-                ...self::crud('carCategories'),
-                ...self::crud('deviceCategories'),
-                ...self::crud('electronicBrands'),
-                ...self::crud('specializations'),
-                ...self::crud('skills'),
-                ...self::crud('providerTypes'),
-            ],
-            'geo' => [
-                ...self::crud('regions'),
-                ...self::crud('cities'),
-                ...self::crud('nationalities'),
-            ],
-            'cms' => [
-                ...self::crud('banners'),
-                ...self::crud('pages'),
-            ],
-            'faq' => self::crud('questions'),
-            'finance' => [
-                'show topUpRequests',
-                'edit topUpRequests',
-                'show withdrawRequests',
-                'edit withdrawRequests',
-            ],
-            'finance_read' => [
-                'show topUpRequests',
-                'show withdrawRequests',
-            ],
-            'providers' => [
-                ...self::crud('providers'),
-                'process providers',
-            ],
-            'providers_edit' => [
-                'show providers',
-                'edit providers',
-            ],
-            'orders' => [
-                'show orders',
-                'edit orders',
-            ],
-            'opportunities' => [
-                'show opportunities',
-                'delete opportunities',
-            ],
-            'opportunities_read' => [
-                'show opportunities',
-            ],
-            'guarantors' => [
-                'show guarantors',
-                'manage guarantors',
-            ],
-            'guarantors_read' => [
-                'show guarantors',
-            ],
-            'support_inbox' => [
-                'show supportTicket',
-                'edit supportTicket',
-                'show messages',
-                'delete messages',
-            ],
-            'support_inbox_read' => [
-                'show supportTicket',
-                'edit supportTicket',
-                'show messages',
-            ],
-            'classifieds_write' => [
-                'show propertyAdvisements',
-                'edit propertyAdvisements',
-                'show carAdvisements',
-                'edit carAdvisements',
-                'show electronicAdvisements',
-                'edit electronicAdvisements',
-                'show instituteAdvisements',
-                'edit instituteAdvisements',
-            ],
-            'monitoring' => [
-                'view monitoring tools',
-            ],
-            'settings' => [
-                'show settings',
-                'edit settings',
-            ],
-            'analytics' => [
-                'show panAnalytics',
-                'export panAnalytics',
-                'delete panAnalytics',
-            ],
-            'users_edit' => [
-                'show users',
-                'edit users',
-            ],
-            'reviews_read' => [
-                'show reviews',
-            ],
-            'access_inspect' => [
-                'show roles',
-                'show admins',
-            ],
-        ];
-    }
-
-    /**
-     * Role name => list of group keys to merge, or null for every admin permission.
-     * Extra permission names may be appended via {@see rolePermissionMap()}.
-     *
-     * @return array<string, list<string>|null>
-     */
-    public static function roleGroups(): array
-    {
-        return [
-            'super-admin' => null,
-            'operations' => [
-                'providers',
-                'orders',
-                'opportunities',
-                'guarantors',
-            ],
-            'finance' => [
-                'finance',
-            ],
-            'support' => [
-                'support_inbox',
-                'faq',
-            ],
-            'content-manager' => [
-                'catalog',
-                'cms',
-            ],
-            'viewer-monitor' => [
-                'monitoring',
-            ],
-            /*
-             * Developer — build/maintain without full super-admin.
-             * See group list; excludes role/admin mutations, process providers,
-             * manage guarantors, finance writes, and destructive user/provider deletes.
-             */
-            'developer' => [
-                'monitoring',
-                'settings',
-                'analytics',
-                'access_inspect',
-                'users_edit',
-                'providers_edit',
-                'orders',
-                'opportunities_read',
-                'guarantors_read',
-                'support_inbox_read',
-                'reviews_read',
-                'finance_read',
-                'classifieds_write',
-                'catalog',
-                'cms',
-                'faq',
-                'geo',
-            ],
-        ];
-    }
-
-    /**
-     * Resolved role → permission names (admin guard). `super-admin` => null (all).
-     *
-     * @return array<string, list<string>|null>
-     */
-    public static function rolePermissionMap(): array
-    {
-        $groups = self::groups();
-        $map = [];
-
-        foreach (self::roleGroups() as $role => $groupKeys) {
-            if ($groupKeys === null) {
-                $map[$role] = null;
-
+        foreach ($roles as $role => $modules) {
+            if ($modules === '*') {
                 continue;
             }
 
-            $names = [];
-
-            foreach ($groupKeys as $groupKey) {
-                if (! isset($groups[$groupKey])) {
-                    throw new \InvalidArgumentException("Unknown permission group [{$groupKey}] for role [{$role}].");
-                }
-
-                array_push($names, ...$groups[$groupKey]);
+            if (! is_array($modules)) {
+                throw new InvalidArgumentException(
+                    "RolePermissionSeeder: role [{$role}] must be '*' or an array of module keys."
+                );
             }
 
-            $map[$role] = array_values(array_unique($names));
+            foreach ($modules as $key => $value) {
+                $module = is_int($key) ? $value : $key;
+
+                if (! is_string($module)) {
+                    throw new InvalidArgumentException(
+                        "RolePermissionSeeder: role [{$role}] has an invalid module entry."
+                    );
+                }
+
+                if (! array_key_exists($module, $permissions)) {
+                    $suggestion = self::closestModuleKey($module, $validKeys);
+                    $hint = $suggestion !== null ? " Did you mean [{$suggestion}]?" : '';
+
+                    throw new InvalidArgumentException(
+                        "RolePermissionSeeder: role [{$role}] references unknown module [{$module}].{$hint}"
+                    );
+                }
+
+                if (is_int($key)) {
+                    continue;
+                }
+
+                if (! is_array($value)) {
+                    throw new InvalidArgumentException(
+                        "RolePermissionSeeder: role [{$role}] module [{$module}] subset must be a list of actions."
+                    );
+                }
+
+                $allowed = self::modulePermissionNames($module, $permissions[$module]);
+
+                foreach ($value as $action) {
+                    $expanded = self::expandAction($module, $action);
+
+                    if (! in_array($expanded, $allowed, true)) {
+                        throw new InvalidArgumentException(
+                            "RolePermissionSeeder: role [{$role}] requests [{$expanded}] on module [{$module}], which is not defined in PERMISSIONS."
+                        );
+                    }
+                }
+            }
         }
-
-        return $map;
-    }
-
-    /**
-     * @return list<string>
-     */
-    public static function crud(string $module): array
-    {
-        return [
-            "show {$module}",
-            "create {$module}",
-            "edit {$module}",
-            "delete {$module}",
-        ];
     }
 
     /**
@@ -347,49 +235,127 @@ class RolePermissionSeeder extends Seeder
     {
         $names = [];
 
-        foreach (self::permissionRegistry() as $module => $permissions) {
-            foreach ($permissions as $permission) {
-                if ($permission === 'crud') {
-                    array_push($names, ...self::crud($module));
-
-                    continue;
-                }
-
-                $names[] = $permission;
-            }
+        foreach (self::PERMISSIONS as $module => $definition) {
+            array_push($names, ...self::modulePermissionNames($module, $definition));
         }
 
         return array_values(array_unique($names));
     }
 
-    private function seedPermissions(): void
+    /**
+     * Resolved role → permission names. `super-admin` => null (all).
+     *
+     * @return array<string, list<string>|null>
+     */
+    public static function rolePermissionMap(): array
     {
-        foreach (self::permissionRegistry() as $module => $permissions) {
-            $crudSeeded = false;
+        $map = [];
 
-            foreach ($permissions as $permission) {
-                if ($permission === 'crud') {
-                    if ($crudSeeded) {
-                        continue;
-                    }
+        foreach (self::ROLES as $role => $modules) {
+            if ($modules === '*') {
+                $map[$role] = null;
 
-                    $crudSeeded = true;
+                continue;
+            }
 
-                    foreach (self::crud($module) as $name) {
-                        Permission::firstOrCreate([
-                            'name' => $name,
-                            'guard_name' => self::GUARD,
-                        ], [
-                            'group' => $module,
-                        ]);
-                    }
+            $names = [];
+
+            foreach ($modules as $key => $value) {
+                if (is_int($key)) {
+                    array_push($names, ...self::modulePermissionNames($value, self::PERMISSIONS[$value]));
 
                     continue;
                 }
 
+                foreach ($value as $action) {
+                    $names[] = self::expandAction($key, $action);
+                }
+            }
+
+            $map[$role] = array_values(array_unique($names));
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param  array{guard?: string, crud?: bool, actions?: list<string>, extra?: list<string>}  $definition
+     * @return list<string>
+     */
+    public static function modulePermissionNames(string $module, array $definition): array
+    {
+        $names = [];
+
+        if (($definition['crud'] ?? false) === true) {
+            array_push($names, ...self::crudActions($module));
+        }
+
+        foreach ($definition['actions'] ?? [] as $action) {
+            $names[] = self::expandAction($module, $action);
+        }
+
+        foreach ($definition['extra'] ?? [] as $extra) {
+            $names[] = $extra;
+        }
+
+        return array_values(array_unique($names));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function crudActions(string $module): array
+    {
+        return [
+            "show {$module}",
+            "create {$module}",
+            "edit {$module}",
+            "delete {$module}",
+        ];
+    }
+
+    public static function expandAction(string $module, string $action): string
+    {
+        if (in_array($action, ['show', 'create', 'edit', 'delete'], true)) {
+            return "{$action} {$module}";
+        }
+
+        return $action;
+    }
+
+    /**
+     * @param  list<string>  $candidates
+     */
+    public static function closestModuleKey(string $invalid, array $candidates): ?string
+    {
+        $best = null;
+        $bestDistance = null;
+
+        foreach ($candidates as $candidate) {
+            $distance = levenshtein($invalid, $candidate);
+
+            if ($bestDistance === null || $distance < $bestDistance) {
+                $bestDistance = $distance;
+                $best = $candidate;
+            }
+        }
+
+        if ($bestDistance === null || $bestDistance > max(3, (int) floor(strlen($invalid) / 2))) {
+            return null;
+        }
+
+        return $best;
+    }
+
+    private function seedPermissions(): void
+    {
+        foreach (self::PERMISSIONS as $module => $definition) {
+            $guard = $definition['guard'] ?? 'admin';
+
+            foreach (self::modulePermissionNames($module, $definition) as $name) {
                 Permission::firstOrCreate([
-                    'name' => $permission,
-                    'guard_name' => self::GUARD,
+                    'name' => $name,
+                    'guard_name' => $guard,
                 ], [
                     'group' => $module,
                 ]);
@@ -399,23 +365,27 @@ class RolePermissionSeeder extends Seeder
 
     private function seedRoles(): void
     {
-        $allAdminPermissions = Permission::query()
-            ->where('guard_name', self::GUARD)
-            ->pluck('name')
-            ->all();
-
         foreach (self::rolePermissionMap() as $roleName => $permissionNames) {
             $role = Role::firstOrCreate([
                 'name' => $roleName,
-                'guard_name' => self::GUARD,
+                'guard_name' => 'admin',
             ]);
 
-            $names = $permissionNames ?? $allAdminPermissions;
+            $names = $permissionNames ?? Permission::query()
+                ->where('guard_name', 'admin')
+                ->pluck('name')
+                ->all();
 
-            $missing = array_values(array_diff($names, $allAdminPermissions));
+            $existing = Permission::query()
+                ->where('guard_name', 'admin')
+                ->whereIn('name', $names)
+                ->pluck('name')
+                ->all();
+
+            $missing = array_values(array_diff($names, $existing));
 
             if ($missing !== []) {
-                throw new \RuntimeException(
+                throw new RuntimeException(
                     "RolePermissionSeeder: role [{$roleName}] references unknown permissions: ".implode(', ', $missing)
                 );
             }
