@@ -160,17 +160,17 @@ const Show = ({row,paymentResponse}: Props) => {
                 />
               }
             >
-              {paymentResponse === null ? (
+              {!paymentResponse?.card ? (
                 <p className="text-gray-400 mb-0">{t('no_card_details')}</p>
               ) : (
                 <BankCardBootstrap
                   cardHolder={auth.name}
-                  cardNumber={paymentResponse.card.payment_description}
-                  expiryMonth={paymentResponse.card.expiryMonth}
-                  expiryYear={paymentResponse.card.expiryYear}
-                  bankName={paymentResponse.card.payment_method}
-                  cardType={paymentResponse.card.card_type}
-                  cardScheme={paymentResponse.card.card_scheme}
+                  cardNumber={paymentResponse.card?.payment_description}
+                  expiryMonth={paymentResponse.card?.expiryMonth}
+                  expiryYear={paymentResponse.card?.expiryYear}
+                  bankName={paymentResponse.card?.payment_method}
+                  cardType={paymentResponse.card?.card_type}
+                  cardScheme={paymentResponse.card?.card_scheme}
                 />
               )}
             </Deferred>

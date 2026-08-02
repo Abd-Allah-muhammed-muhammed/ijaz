@@ -136,6 +136,11 @@ class TopUpController extends Controller
             $rawResponse = $verifyResult->rawResponse;
         }
 
+        // Testing / partial gateway payloads may omit payment_info — treat as no card.
+        if (blank($rawResponse['payment_info'] ?? null)) {
+            return null;
+        }
+
         return PaymentResponseResource::make(new PaymentResponse(
             status: $payment->status === PaymentStatusEnum::Accepted ? 'success' : $payment->status->value,
             transactionId: $topUpRequest->transaction_id,
