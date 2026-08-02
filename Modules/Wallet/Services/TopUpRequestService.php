@@ -58,9 +58,9 @@ class TopUpRequestService
         );
     }
 
-    public function listForOwner(Model $owner, int $perPage = 16): LengthAwarePaginator
+    public function listForOwner(Model $owner, Request $request): LengthAwarePaginator
     {
-        return $this->listForOwnerAction->handle($owner, $perPage);
+        return $this->listForOwnerAction->handle($owner, $request);
     }
 
     public function listAll(Request $request): LengthAwarePaginator

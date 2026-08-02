@@ -14,11 +14,16 @@ class RoleRepository implements RoleRepositoryInterface
 {
     public function paginate(Request $request): LengthAwarePaginator
     {
-        return Role::query()
-            ->withCount('users')
+        // loadCount on hydrated models: Spatie users() needs each role's guard_name;
+        // query-level withCount('users') falls back to auth.defaults.guard (web/User).
+        $paginator = Role::query()
             ->when($request->search, fn (Builder $q, $v) => $q->where('name', 'like', "%$v%"))
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();
+
+        $paginator->getCollection()->loadCount('users');
+
+        return $paginator;
     }
 
     public function create(array $data): Role

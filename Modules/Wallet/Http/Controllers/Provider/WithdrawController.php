@@ -27,7 +27,7 @@ class WithdrawController extends Controller
     {
         $rows = $this->withdrawRequestService->listForOwner(
             auth('provider')->user(),
-            $request->integer('perPage', 16),
+            $request,
         );
 
         return inertia('Provider/WithdrawRequests/Index', [

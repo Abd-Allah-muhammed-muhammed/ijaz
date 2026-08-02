@@ -49,6 +49,13 @@ return [
     'integer' => 'يجب أن يكون الحقل :attribute عددًا صحيحًا.',
     'ip' => 'يجب أن يكون الحقل :attribute عنوان IP صحيح.',
     'json' => 'يجب أن يكون الحقل :attribute نص JSON صالحاً.',
+    'gt' => [
+        'array' => 'يجب أن يحتوي الحقل :attribute على أكثر من :value عنصر.',
+        'file' => 'يجب أن يكون حجم الملف في الحقل :attribute أكبر من :value كيلوبايت.',
+        'numeric' => 'يجب أن تكون قيمة الحقل :attribute أكبر من :value.',
+        'string' => 'يجب أن يكون عدد الأحرف في الحقل :attribute أكبر من :value.',
+    ],
+    'mimes' => 'يجب أن يكون الحقل :attribute ملفًا من نوع: :values.',
     'max' => [
         'numeric' => 'يجب ألا تكون قيمة الحقل :attribute أكبر من :max.',
         'file' => 'يجب ألا يتجاوز حجم الملف في الحقل :attribute :max كيلوبايت.',

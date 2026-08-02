@@ -73,7 +73,7 @@ const AccountLayout = ({children, provider}: Props) => {
             <div className='d-flex flex-wrap flex-sm-nowrap mb-3'>
               <div className='me-7 mb-4'>
                 <div className='symbol symbol-100px symbol-lg-160px symbol-fixed position-relative'>
-                  <img src={provider.logo} alt='Metronic'/>
+                  <img src={provider.logo} alt='Metronic' className='object-fit-contain'/>
                   <div
                     className='position-absolute translate-middle bottom-0 start-100 mb-6 bg-success rounded-circle border-4 border-white h-20px w-20px'></div>
                 </div>
@@ -308,22 +308,44 @@ const AccountLayout = ({children, provider}: Props) => {
                 }
                 addBalanceMutator.mutate(RechargeForm.data, {
                   onSuccess: (res) => {
-                    if (res.data.payable) {
+                    if (res?.success && res?.data?.payable && res?.data?.url) {
                       setPaymentWindow(window.open(res.data.url, 'payment', 'width=800,height=600'));
                       return;
                     }
-                    setShowRechargeModal(false)
-                    RechargeForm.reset()
-                    toast.success(res.data.message)
+                    if (res?.success) {
+                      setShowRechargeModal(false);
+                      RechargeForm.reset();
+                      toast.success(
+                        res?.message || res?.data?.message || t('Payment Successful'),
+                      );
+                      return;
+                    }
+                    toast.error(res?.message || t('Payment Failed, Please Try Again'));
                   },
                   onError: (err) => {
-                    if (err.response?.data && typeof err.response.data === 'object' && 'errors' in err.response.data) {
-                      const errors = (err.response.data as { errors: Record<string, string[]> }).errors;
-                      Object.keys(errors).forEach((key) => {
-                        RechargeForm.setError(key as keyof walletDepositFormSchema, errors[key][0]);
-                      });
+                    const payload = err.response?.data;
+                    if (payload && typeof payload === 'object') {
+                      if ('errors' in payload && payload.errors && typeof payload.errors === 'object') {
+                        const errors = payload.errors as Record<string, string[]>;
+                        Object.keys(errors).forEach((key) => {
+                          RechargeForm.setError(
+                            key as keyof walletDepositFormSchema,
+                            errors[key][0],
+                          );
+                        });
+                        return;
+                      }
+                      if (
+                        'message' in payload
+                        && typeof (payload as { message?: unknown }).message === 'string'
+                        && (payload as { message: string }).message !== ''
+                      ) {
+                        toast.error((payload as { message: string }).message);
+                        return;
+                      }
                     }
-                  }
+                    toast.error(t('Payment Failed, Please Try Again'));
+                  },
                 })
               }}
             />

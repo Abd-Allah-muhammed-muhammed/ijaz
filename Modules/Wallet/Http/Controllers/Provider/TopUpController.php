@@ -36,7 +36,7 @@ class TopUpController extends Controller
     {
         $rows = $this->topUpRequestService->listForOwner(
             auth('provider')->user(),
-            $request->integer('perPage', 16),
+            $request,
         );
 
         return inertia('Provider/TopUpRequests/Index', [
@@ -49,7 +49,9 @@ class TopUpController extends Controller
     {
         return inertia('Provider/TopUpRequests/Show', [
             'row' => TopUpResource::make($topUpRequest),
-            'paymentResponse' => Inertia::defer(fn () => $this->resolvePaymentResponse($topUpRequest)),
+            'paymentResponse' => $this->hasResolvableCardData($topUpRequest)
+                ? Inertia::defer(fn () => $this->resolvePaymentResponse($topUpRequest))
+                : null,
         ]);
     }
 
@@ -60,7 +62,7 @@ class TopUpController extends Controller
 
         if ($request->hasFile('transaction_image')) {
             $imagePath = $request->file('transaction_image')
-                ->store('topup', 'local');
+                ->store('topup', 'public');
         }
 
         $data = CreateTopUpData::fromRequest($request->validated(), $imagePath);
@@ -108,9 +110,14 @@ class TopUpController extends Controller
         }
     }
 
+    private function hasResolvableCardData(TopUpRequest $topUpRequest): bool
+    {
+        return filled($topUpRequest->transaction_id) && filled($topUpRequest->payment_driver);
+    }
+
     private function resolvePaymentResponse(TopUpRequest $topUpRequest): ?PaymentResponseResource
     {
-        if (! $topUpRequest->transaction_id || ! $topUpRequest->payment_driver) {
+        if (! $this->hasResolvableCardData($topUpRequest)) {
             return null;
         }
 
@@ -127,6 +134,11 @@ class TopUpController extends Controller
                 ->resolveGateway($topUpRequest->payment_driver)
                 ->verify($payment, ['tranRef' => $topUpRequest->transaction_id]);
             $rawResponse = $verifyResult->rawResponse;
+        }
+
+        // Testing / partial gateway payloads may omit payment_info — treat as no card.
+        if (blank($rawResponse['payment_info'] ?? null)) {
+            return null;
         }
 
         return PaymentResponseResource::make(new PaymentResponse(

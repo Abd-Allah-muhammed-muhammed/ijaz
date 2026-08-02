@@ -42,11 +42,13 @@ class CreateTopUpRequestAction
         $topUpRequest = $this->repository->createForOwner($owner, $attributes);
 
         if ($data->paymentMethod->isOnline()) {
+            // Server config is the only source of truth for which gateway is used.
+            // Client-supplied payment_driver is ignored (kept on the DTO for BC only).
             $result = $this->paymentService->initiate(
                 owner: $owner,
                 product: $topUpRequest,
                 amount: $topUpRequest->amount,
-                driver: $data->paymentDriver,
+                driver: $this->paymentService->getDefaultDriver(),
             );
 
             return [

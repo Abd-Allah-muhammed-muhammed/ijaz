@@ -21,6 +21,7 @@ use Modules\Geo\Models\Region;
 use Modules\Marketplace\Http\Resources\Dashboard\ProviderTypeResource;
 use Modules\Marketplace\Models\ProviderType;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
+use Modules\Wallet\Support\WalletSearch;
 use Throwable;
 
 class AuthController extends Controller
@@ -126,8 +127,12 @@ class AuthController extends Controller
                     ->wallet
                     ->transactions()
                     ->latest()
-                    ->when($request->input('search'), function ($query, $v) {
-                        $query->where(fn (Builder $q) => $q->where('id', 'like', "%{$v}%")->orWhere('operation_id', 'like', "%{$v}%"));
+                    ->when(WalletSearch::normalize($request->input('search')), function ($query, string $search): void {
+                        $query->where(function (Builder $q) use ($search): void {
+                            $q->where('id', 'like', "%{$search}%")
+                                ->orWhere('operation_id', 'like', "%{$search}%")
+                                ->orWhere('payment_id', 'like', "%{$search}%");
+                        });
                     })
                     ->paginate($request->integer('per_page', 25))
                     ->withQueryString()

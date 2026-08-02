@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Wallet\Contracts\Repositories\WithdrawRequestRepositoryInterface;
 use Modules\Wallet\Models\WithdrawRequest;
+use Modules\Wallet\Support\WalletSearch;
 
 class WithdrawRequestRepository implements WithdrawRequestRepositoryInterface
 {
@@ -34,11 +35,19 @@ class WithdrawRequestRepository implements WithdrawRequestRepositoryInterface
         $withdrawRequest->delete();
     }
 
-    public function paginateForOwner(Model $owner, int $perPage): LengthAwarePaginator
+    public function paginateForOwner(Model $owner, Request $request): LengthAwarePaginator
     {
+        $search = WalletSearch::normalize($request->input('search'));
+
         return $owner->withdrawRequests()
+            ->when($search, function (Builder $query) use ($search): void {
+                $query->where(function (Builder $inner) use ($search): void {
+                    $inner->where('id', 'like', "%{$search}%")
+                        ->orWhere('transaction_id', 'like', "%{$search}%");
+                });
+            })
             ->latest()
-            ->paginate($perPage);
+            ->paginate($request->integer('perPage', 16));
     }
 
     public function paginateAll(Request $request): LengthAwarePaginator

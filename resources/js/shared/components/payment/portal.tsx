@@ -1,4 +1,6 @@
+import {usePage} from "@inertiajs/react";
 import {PaymentDriverEnum, PaymentMethodEnum} from "@/Enums/Payment";
+import {useTranslation} from "react-i18next";
 import './style.css'
 
 type Props = {
@@ -9,13 +11,33 @@ type Props = {
 }
 
 const Portal = ({onPaymentMethodChange, onPaymentDriverChange, paymentDriver, paymentMethod}: Props) => {
-  const handlePaymentMethodChange = (key: string) => {
-    onPaymentMethodChange(key);
+  const {t} = useTranslation();
+  const {payment} = usePage().props;
+  const onlineEnabled = payment?.online_enabled === true;
+  const activeDriverValue = payment?.driver;
+  const activeDriver = onlineEnabled
+    ? Object.values(PaymentDriverEnum).find((driver) => driver.value === activeDriverValue)
+    : undefined;
+
+  const methods = Object.entries(PaymentMethodEnum).filter(([, value]) => {
+    if (value === PaymentMethodEnum.Online) {
+      return onlineEnabled && Boolean(activeDriver);
+    }
+
+    return true;
+  });
+
+  const handlePaymentMethodChange = (value: string) => {
+    onPaymentMethodChange(value);
+    if (value === PaymentMethodEnum.Online && activeDriver) {
+      onPaymentDriverChange(activeDriver.value);
+    }
   };
+
   return (
     <div>
       <div className="d-flex gap-3 flex-wrap">
-        {Object.entries(PaymentMethodEnum).map(([k, v]) => (
+        {methods.map(([k, v]) => (
           <label
             key={k}
             className={`relative border border-gray-300 border-dashed rounded min-w-32 py-3 px-4 cursor-pointer transition-colors flex-1 text-center select-none overflow-hidden group
@@ -28,49 +50,46 @@ const Portal = ({onPaymentMethodChange, onPaymentDriverChange, paymentDriver, pa
               type="radio"
               name="payment_method"
               value={k}
-              checked={paymentDriver === v}
+              checked={paymentMethod === v}
               onChange={() => handlePaymentMethodChange(v)}
               className="absolute opacity-0 w-0 h-0 pointer-events-none"
               hidden
-
             />
             <div className="flex flex-col items-center justify-center gap-2">
               <span
-                className={`fs-2 fw-bolder transition-colors ${paymentMethod === v ? "text-primary" : "text-gray-800 group-hover:text-primary/80"}`}>{v}</span>
+                className={`fs-2 fw-bolder transition-colors ${paymentMethod === v ? "text-primary" : "text-gray-800 group-hover:text-primary/80"}`}>{t(v)}</span>
             </div>
           </label>
         ))}
       </div>
-      {paymentMethod == PaymentMethodEnum.Online && (
+      {paymentMethod == PaymentMethodEnum.Online && activeDriver && (
         <div className="d-flex gap-3 flex-wrap mt-5">
-          {Object.values(PaymentDriverEnum).map((driver) => (
-            <div
-              key={driver.value}
+          <div key={activeDriver.value}>
+            <input
+              id={`payment-${activeDriver.value}`}
+              className="form-check-input payment-input"
+              type="radio"
+              name="payment"
+              value={activeDriver.value}
+              hidden
+              readOnly
+              checked={paymentDriver === activeDriver.value || paymentMethod === PaymentMethodEnum.Online}
+            />
+            <label
+              htmlFor={`payment-${activeDriver.value}`}
+              className="btn btn-outline btn-outline-dashed btn-active-light-primary d-flex align-items-center cursor-pointer payment-label"
             >
-              <input
-                id={`payment-${driver.value}`}
-                className="form-check-input payment-input" type="radio" name="payment" value={driver.value}
-                hidden
-                onChange={() => onPaymentDriverChange(driver.value)}
-                checked={paymentDriver === driver.value}
+              <img
+                src={activeDriver.logo()}
+                alt={activeDriver.name}
+                className="object-contain cursor-pointer max-h-20"
+                style={{
+                  width: '100px',
+                  objectFit: 'contain',
+                }}
               />
-              <label
-                htmlFor={`payment-${driver.value}`}
-                className="btn btn-outline btn-outline-dashed btn-active-light-primary d-flex align-items-center cursor-pointer payment-label"
-              >
-                <img
-                  src={driver.logo()}
-                  alt={driver.name}
-                  className="object-contain  cursor-pointer"
-                  style={{
-                    width: '100px',
-                    height: '50px',
-                  }}
-                />
-              </label>
-            </div>
-          ))}
-
+            </label>
+          </div>
         </div>
       )}
     </div>

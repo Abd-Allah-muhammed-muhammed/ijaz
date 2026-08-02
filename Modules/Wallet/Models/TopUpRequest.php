@@ -4,12 +4,15 @@ namespace Modules\Wallet\Models;
 
 use App\Enums\OperationStatusEnum;
 use App\Models\Admin;
+use App\Support\HasStoredFileUrl;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Facades\Storage;
 use Modules\Payment\Enums\PaymentMethodEnum;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Models\Payment;
@@ -17,7 +20,7 @@ use Modules\Wallet\Database\Factories\TopUpRequestFactory;
 
 class TopUpRequest extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasStoredFileUrl, HasUuids;
 
     protected $keyType = 'string';
 
@@ -44,6 +47,35 @@ class TopUpRequest extends Model
     public function payment(): MorphOne
     {
         return $this->morphOne(Payment::class, 'product');
+    }
+
+    public function deleteTransactionImage(): void
+    {
+        if ($this->transaction_image) {
+            Storage::disk($this->storedFileDisk())->delete($this->transaction_image);
+        }
+    }
+
+    protected function transactionImageUrl(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            if (blank($this->attributes['transaction_image'] ?? null)) {
+                return null;
+            }
+
+            return $this->storedFileUrl($this->transaction_image);
+        });
+    }
+
+    protected function storedFileDisk(): string
+    {
+        return 'public';
+    }
+
+    protected function defaultImagePlaceholder(): ?string
+    {
+        // Receipts are download links — never fabricate a placeholder avatar URL.
+        return null;
     }
 
     protected function casts(): array

@@ -5,6 +5,8 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Modules\Payment\Enums\PaymentDriverEnum;
 use Modules\Payment\Enums\PaymentMethodEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Models\Payment;
 use Modules\Wallet\Http\Controllers\Dashboard\TopUpRequestController as DashboardTopUpRequestController;
 use Modules\Wallet\Http\Controllers\Provider\TopUpController;
 use Modules\Wallet\Models\TopUpRequest;
@@ -47,7 +49,7 @@ test('provider can create online top-up', function () {
 });
 
 test('provider can create offline top-up', function () {
-    Storage::fake('local');
+    Storage::fake('public');
     withoutWalletLocaleMiddleware();
     $provider = createWalletProvider();
 
@@ -64,7 +66,9 @@ test('provider can create offline top-up', function () {
 
     expect($topUp)->not->toBeNull()
         ->and($topUp->payment_method)->toBe(PaymentMethodEnum::Offline)
-        ->and($topUp->wallet_id)->toBe($provider->wallet->id);
+        ->and($topUp->wallet_id)->toBe($provider->wallet->id)
+        ->and($topUp->transaction_image)->not->toBeNull()
+        ->and(Storage::disk('public')->exists($topUp->transaction_image))->toBeTrue();
 });
 
 test('provider can view top-up detail', function () {
@@ -78,6 +82,89 @@ test('provider can view top-up detail', function () {
         ->assertInertia(fn ($page) => $page
             ->component('Provider/TopUpRequests/Show')
             ->where('row.id', $topUp->id)
+        );
+});
+
+test('provider top-up details shows the attachment download link when transaction_image exists', function () {
+    Storage::fake('public');
+    withoutWalletLocaleMiddleware();
+
+    $provider = createWalletProvider();
+    $path = UploadedFile::fake()->image('receipt.jpg')->store('topup', 'public');
+    $topUp = createTopUpFor($provider, [
+        'payment_method' => PaymentMethodEnum::Offline->value,
+        'transaction_image' => $path,
+    ]);
+
+    $expectedUrl = Storage::disk('public')->url($path);
+
+    $this->actingAs($provider, 'provider')
+        ->get(action([TopUpController::class, 'show'], ['top_up_request' => $topUp->id]))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Provider/TopUpRequests/Show')
+            ->where('row.transaction_image', $expectedUrl)
+            ->missing('row.attachment')
+        );
+
+    expect($expectedUrl)->toContain('/storage/')
+        ->and(Storage::disk('public')->exists($path))->toBeTrue();
+});
+
+test('provider top-up details shows a clean no-card-data state for offline payments, not undefined-then-N/A flash', function () {
+    withoutWalletLocaleMiddleware();
+
+    $provider = createWalletProvider();
+    $topUp = createTopUpFor($provider, [
+        'payment_method' => PaymentMethodEnum::Offline->value,
+        'transaction_id' => null,
+        'payment_driver' => null,
+    ]);
+
+    $this->actingAs($provider, 'provider')
+        ->get(action([TopUpController::class, 'show'], ['top_up_request' => $topUp->id]))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Provider/TopUpRequests/Show')
+            // Offline has no card data: paymentResponse must be present as null on the
+            // initial response (not deferred/undefined), so the UI never flashes a card shell.
+            ->where('paymentResponse', null)
+            ->etc()
+        );
+});
+
+test('provider top-up details renders safely when payment response exists but has no card data', function () {
+    withoutWalletLocaleMiddleware();
+
+    $provider = createWalletProvider();
+    $topUp = createTopUpFor($provider, [
+        'payment_method' => PaymentMethodEnum::Online->value,
+        'payment_status' => PaymentStatusEnum::Accepted->value,
+        'status' => OperationStatusEnum::Approved->value,
+        'transaction_id' => 'test-txn-no-card-info',
+        'payment_driver' => PaymentDriverEnum::Testing->value,
+    ]);
+
+    Payment::factory()
+        ->forProduct($topUp, $provider)
+        ->accepted()
+        ->create([
+            'transaction_id' => 'test-txn-no-card-info',
+            'driver' => PaymentDriverEnum::Testing->value,
+            // Mirrors the testing gateway / real crash case: status only, no payment_info.
+            'response' => ['status' => 'success'],
+        ]);
+
+    $this->actingAs($provider, 'provider')
+        ->get(action([TopUpController::class, 'show'], ['top_up_request' => $topUp->id]))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Provider/TopUpRequests/Show')
+            ->missing('paymentResponse')
+            ->loadDeferredProps(fn ($reload) => $reload
+                // Partial payment payload must resolve to null (no card), not a crashy object.
+                ->where('paymentResponse', null)
+            )
         );
 });
 
@@ -233,7 +320,7 @@ test('approving offline top-up sets wallet_id on request', function () {
     withoutWalletLocaleMiddleware();
     $provider = createWalletProvider();
 
-    Storage::fake('local');
+    Storage::fake('public');
 
     $this->actingAs($provider, 'provider')
         ->postJson(action([TopUpController::class, 'store']), [

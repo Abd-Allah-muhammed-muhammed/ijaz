@@ -50,6 +50,14 @@ return [
     'ip' => ':attribute एक मान्य IP पता होना चाहिए।',
     'json' => ':attribute एक मान्य JSON स्ट्रिंग होनी चाहिए।',
 
+    'gt' => [
+        'array' => ':attribute में :value से अधिक आइटम होने चाहिए।',
+        'file' => ':attribute :value किलोबाइट से बड़ा होना चाहिए।',
+        'numeric' => ':attribute :value से बड़ा होना चाहिए।',
+        'string' => ':attribute में :value से अधिक अक्षर होने चाहिए।',
+    ],
+    'mimes' => ':attribute इस प्रकार की फ़ाइल होनी चाहिए: :values।',
+
     'max' => [
         'numeric' => ':attribute :max से अधिक नहीं हो सकता।',
         'file' => ':attribute :max किलोबाइट से बड़ा नहीं हो सकता।',

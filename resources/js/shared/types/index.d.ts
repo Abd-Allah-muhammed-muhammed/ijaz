@@ -40,6 +40,12 @@ export interface SharedData {
     success: message | null;
     error: message | null;
   }
+  payment: {
+    /** Active PAYMENT_DRIVER value (paytabs | rajhi | testing) */
+    driver: string;
+    /** False only when driver is empty/unrecognized; Testing is a valid online gateway */
+    online_enabled: boolean;
+  }
 }
 
 export interface PaginationResource<T extends typeof Model> {

@@ -9,6 +9,7 @@ use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
 use Modules\Wallet\DTOs\WalletTransactionData;
 use Modules\Wallet\Models\Wallet;
 use Modules\Wallet\Models\WalletTransaction;
+use Modules\Wallet\Support\WalletSearch;
 
 class WalletTransactionRepository implements WalletTransactionRepositoryInterface
 {
@@ -48,10 +49,16 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
         ?string $search = null,
         int $perPage = 25,
     ): LengthAwarePaginator {
+        $search = WalletSearch::normalize($search);
+
         return $wallet->transactions()
             ->latest()
-            ->when($search, function ($query, $value) {
-                $query->where(fn (Builder $q) => $q->where('id', 'like', "%{$value}%")->orWhere('operation_id', 'like', "%{$value}%"));
+            ->when($search, function (Builder $query) use ($search): void {
+                $query->where(function (Builder $q) use ($search): void {
+                    $q->where('id', 'like', "%{$search}%")
+                        ->orWhere('operation_id', 'like', "%{$search}%")
+                        ->orWhere('payment_id', 'like', "%{$search}%");
+                });
             })
             ->paginate($perPage)
             ->withQueryString();
