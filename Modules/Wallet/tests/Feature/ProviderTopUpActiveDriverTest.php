@@ -30,7 +30,7 @@ test('provider top-up recharge always uses the server-configured payment driver,
         ->and(app(PaymentService::class)->getDefaultDriver())->toBe(PaymentDriverEnum::Testing->value);
 });
 
-test('online payment option is hidden from Inertia shared data when only the testing driver is configured', function () {
+test('online payment option shows the testing gateway tile when PAYMENT_DRIVER=testing', function () {
     withoutWalletLocaleMiddleware();
     config(['payment.default' => PaymentDriverEnum::Testing->value]);
 
@@ -41,6 +41,21 @@ test('online payment option is hidden from Inertia shared data when only the tes
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
             ->where('payment.driver', PaymentDriverEnum::Testing->value)
+            ->where('payment.online_enabled', true)
+        );
+});
+
+test('online payment option is only hidden when no valid driver value is configured', function () {
+    withoutWalletLocaleMiddleware();
+    config(['payment.default' => 'not-a-real-gateway']);
+
+    $provider = createWalletProvider();
+
+    $this->actingAs($provider, 'provider')
+        ->get(action([TopUpController::class, 'index']))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->where('payment.driver', 'not-a-real-gateway')
             ->where('payment.online_enabled', false)
         );
 });

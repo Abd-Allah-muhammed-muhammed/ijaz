@@ -43,7 +43,7 @@ export interface SharedData {
   payment: {
     /** Active PAYMENT_DRIVER value (paytabs | rajhi | testing) */
     driver: string;
-    /** False when only the testing/dev gateway is configured */
+    /** False only when driver is empty/unrecognized; Testing is a valid online gateway */
     online_enabled: boolean;
   }
 }

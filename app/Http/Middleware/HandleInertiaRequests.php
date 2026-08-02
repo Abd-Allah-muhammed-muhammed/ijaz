@@ -71,7 +71,9 @@ class HandleInertiaRequests extends Middleware
             ],
             'payment' => [
                 'driver' => $paymentDriver,
-                'online_enabled' => $paymentDriver !== PaymentDriverEnum::Testing->value,
+                // True for any recognized gateway including Testing (QA simulation).
+                // False only when config is empty/invalid and does not map to PaymentDriverEnum.
+                'online_enabled' => PaymentDriverEnum::tryFrom($paymentDriver) !== null,
             ],
         ];
     }

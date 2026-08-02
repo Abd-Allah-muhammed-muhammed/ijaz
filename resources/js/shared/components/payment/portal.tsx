@@ -80,10 +80,10 @@ const Portal = ({onPaymentMethodChange, onPaymentDriverChange, paymentDriver, pa
               <img
                 src={activeDriver.logo()}
                 alt={activeDriver.name}
-                className="object-contain  cursor-pointer"
+                className="object-contain cursor-pointer max-h-20"
                 style={{
                   width: '100px',
-                  height: '50px',
+                  objectFit: 'contain',
                 }}
               />
             </label>

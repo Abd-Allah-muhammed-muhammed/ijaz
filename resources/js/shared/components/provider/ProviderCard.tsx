@@ -33,7 +33,7 @@ const ProviderCard: FC<Props> = ({ provider }: Props) => {
 
       <div className='card-body d-flex flex-column align-items-center pt-0 px-9 pb-8'>
         {/* Avatar/Logo */}
-        <div className='symbol symbol-100px symbol-circle mb-5 mt-n10 p-1 bg-white shadow-sm'>
+        <div className='symbol symbol-100px symbol-circle mb-5 mt-n10 p-1 bg-white shadow-sm object-contain'>
           <img src={provider.logo} alt={provider.name} className='p-1 rounded-circle' />
         </div>
 
