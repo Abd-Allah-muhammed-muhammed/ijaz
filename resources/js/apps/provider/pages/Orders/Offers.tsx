@@ -39,7 +39,7 @@ const Show = ({rows}: Props) => {
                     </div>
 
                     <Card.Text className='mb-4'>
-                      <strong>{t('Price')}:</strong> {row.price}
+                      <strong>{t('price')}:</strong> {row.price}
                     </Card.Text>
                     <div className='d-flex justify-content-end align-items-center'>
                       <small className="text-muted">{new Date(row.created_at).toLocaleDateString()}</small>

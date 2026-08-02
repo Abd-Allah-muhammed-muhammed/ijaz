@@ -25,7 +25,7 @@ const ConversationsPanel = ({searchCallback}: Props) => {
             onChange={searchCallback}
             className='form-control form-control-solid px-15'
             name='search'
-            placeholder={ t('Search by phone...')}
+            placeholder={t('search_by_phone')}
           />
         </form>
       </div>

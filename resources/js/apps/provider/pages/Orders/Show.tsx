@@ -390,8 +390,8 @@ const Show = ({order}: Props) => {
                     {t('Are you sure you want to delete this offer? This action cannot be undone.')}
                   </Modal.Body>
                   <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>{t('Cancel')}</Button>
-                    <Button variant="danger" onClick={confirmDeleteOffer}>{t('Delete')}</Button>
+                    <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>{t('cancel')}</Button>
+                    <Button variant="danger" onClick={confirmDeleteOffer}>{t('delete')}</Button>
                   </Modal.Footer>
                 </Modal>
               </Card.Body>

@@ -1,5 +1,6 @@
 import {usePage} from "@inertiajs/react";
 import {PaymentDriverEnum, PaymentMethodEnum} from "@/Enums/Payment";
+import {useTranslation} from "react-i18next";
 import './style.css'
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
 }
 
 const Portal = ({onPaymentMethodChange, onPaymentDriverChange, paymentDriver, paymentMethod}: Props) => {
+  const {t} = useTranslation();
   const {payment} = usePage().props;
   const onlineEnabled = payment?.online_enabled === true;
   const activeDriverValue = payment?.driver;
@@ -55,7 +57,7 @@ const Portal = ({onPaymentMethodChange, onPaymentDriverChange, paymentDriver, pa
             />
             <div className="flex flex-col items-center justify-center gap-2">
               <span
-                className={`fs-2 fw-bolder transition-colors ${paymentMethod === v ? "text-primary" : "text-gray-800 group-hover:text-primary/80"}`}>{v}</span>
+                className={`fs-2 fw-bolder transition-colors ${paymentMethod === v ? "text-primary" : "text-gray-800 group-hover:text-primary/80"}`}>{t(v)}</span>
             </div>
           </label>
         ))}

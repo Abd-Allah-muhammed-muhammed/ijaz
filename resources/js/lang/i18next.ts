@@ -42,8 +42,8 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: undefined,
-    lng: undefined,
+    fallbackLng: I18N_DEFAULT_LOCALE,
+    lng: getStoredLanguage(),
     interpolation: {
       escapeValue: false, // react already safes from xss
     },

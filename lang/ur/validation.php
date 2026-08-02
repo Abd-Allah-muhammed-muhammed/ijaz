@@ -51,6 +51,14 @@ return [
     'ip' => ':attribute ایک درست IP ایڈریس ہونا چاہیے۔',
     'json' => ':attribute ایک درست JSON سٹرنگ ہونی چاہیے۔',
 
+    'gt' => [
+        'array' => ':attribute میں :value سے زیادہ آئٹمز ہونے چاہییں۔',
+        'file' => ':attribute کا سائز :value کلو بائٹس سے زیادہ ہونا چاہیے۔',
+        'numeric' => ':attribute کی قیمت :value سے زیادہ ہونی چاہیے۔',
+        'string' => ':attribute میں :value سے زیادہ حروف ہونے چاہییں۔',
+    ],
+    'mimes' => ':attribute اس قسم کی فائل ہونی چاہیے: :values۔',
+
     'max' => [
         'numeric' => ':attribute کی قیمت :max سے زیادہ نہیں ہو سکتی۔',
         'file' => ':attribute کا سائز :max کلو بائٹس سے زیادہ نہیں ہو سکتا۔',

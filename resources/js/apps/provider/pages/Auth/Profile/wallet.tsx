@@ -43,7 +43,7 @@ const Wallet = ({transactions, provider, prams}: Props) => {
   };
   return (
     <>
-      <Head title="Wallet"/>
+      <Head title={t('wallet')}/>
       <Content>
         <Card>
           <Card.Body>

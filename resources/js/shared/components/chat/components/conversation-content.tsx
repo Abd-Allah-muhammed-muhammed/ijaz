@@ -199,7 +199,7 @@ const ConversationContent = ({ }: Props) => {
           rows={1}
           value={message.content}
           data-kt-element='input'
-          placeholder='Type a message'
+          placeholder={t('Type a message')}
           onChange={(e) => setMessage(prevState => ({
             ...prevState,
             content: e.target.value
