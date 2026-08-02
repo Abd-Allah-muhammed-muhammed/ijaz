@@ -49,7 +49,9 @@ class TopUpController extends Controller
     {
         return inertia('Provider/TopUpRequests/Show', [
             'row' => TopUpResource::make($topUpRequest),
-            'paymentResponse' => Inertia::defer(fn () => $this->resolvePaymentResponse($topUpRequest)),
+            'paymentResponse' => $this->hasResolvableCardData($topUpRequest)
+                ? Inertia::defer(fn () => $this->resolvePaymentResponse($topUpRequest))
+                : null,
         ]);
     }
 
@@ -60,7 +62,7 @@ class TopUpController extends Controller
 
         if ($request->hasFile('transaction_image')) {
             $imagePath = $request->file('transaction_image')
-                ->store('topup', 'local');
+                ->store('topup', 'public');
         }
 
         $data = CreateTopUpData::fromRequest($request->validated(), $imagePath);
@@ -108,9 +110,14 @@ class TopUpController extends Controller
         }
     }
 
+    private function hasResolvableCardData(TopUpRequest $topUpRequest): bool
+    {
+        return filled($topUpRequest->transaction_id) && filled($topUpRequest->payment_driver);
+    }
+
     private function resolvePaymentResponse(TopUpRequest $topUpRequest): ?PaymentResponseResource
     {
-        if (! $topUpRequest->transaction_id || ! $topUpRequest->payment_driver) {
+        if (! $this->hasResolvableCardData($topUpRequest)) {
             return null;
         }
 

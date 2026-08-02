@@ -27,7 +27,7 @@ class TopUpResource extends JsonResource
             'payment_method' => $this->payment_method,
             'payment_status' => $this->payment_status,
             'admin_notes' => $this->admin_notes,
-            'transaction_image' => $this->transaction_image,
+            'transaction_image' => $this->transaction_image_url,
             'user_notes' => $this->user_notes,
             'created_at' => $this->created_at,
         ];

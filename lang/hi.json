@@ -388,6 +388,7 @@
     "payment_method": "भुगतान विधि",
     "payment_status": "भुगतान स्थिति",
     "not_available": "उपलब्ध नहीं",
+    "no_card_details": "कार्ड विवरण उपलब्ध नहीं",
     "N/A": "उपलब्ध नहीं",
     "show": "देखें",
     "amount": "राशि",

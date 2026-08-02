@@ -2,10 +2,10 @@ import { useTranslation } from 'react-i18next';
 import {PageTitle} from "@/vendor/metronic/layout/core";
 import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
 import {Content} from "@/vendor/metronic/layout/components/content";
-import {Head, usePage} from "@inertiajs/react";
+import {Deferred, Head, usePage} from "@inertiajs/react";
 import {KTCard} from "@/vendor/metronic/helpers";
 import {TopUpRequest} from "@/shared/types/models";
-import {ReactNode, useEffect} from "react";
+import {ReactNode} from "react";
 import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/TopUpController";
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
 import {PaymentResponse} from "@/shared/types/api";
@@ -18,14 +18,18 @@ type Props = {
   paymentResponse: PaymentResponse | null
 };
 
-const Show = ({row,paymentResponse}: Props) => {
-  const { t } = useTranslation();
-  console.log(paymentResponse)
-  useEffect(() => {
-    console.log(paymentResponse)
-  }, [paymentResponse]);
+const CardSkeleton = () => (
+  <div
+    className="rounded-4 bg-light animate-pulse mb-3"
+    style={{maxWidth: 340, minHeight: 200}}
+    aria-hidden="true"
+  />
+);
 
+const Show = ({row, paymentResponse}: Props) => {
+  const { t } = useTranslation();
   const auth = usePage().props.auth.user
+
   return (
     <>
       <Head title={t('top_up_requests')}/>
@@ -53,15 +57,6 @@ const Show = ({row,paymentResponse}: Props) => {
             <KTCard className="p-4 h-100">
               <h2 className="text-xl font-bold mb-6">{t('top_up_request_details')}</h2>
               <dl className="divide-y divide-gray-200 dark:divide-gray-700">
-                {/*<div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">*/}
-                {/*  <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('user')}</dt>*/}
-                {/*  <dd className="text-gray-900 dark:text-white">*/}
-                {/*    {row.user?.name || t('not_available')}*/}
-                {/*    {row.user_type ? (*/}
-                {/*      <span className="ml-2 text-xs text-gray-400">({t(row.user_type)})</span>*/}
-                {/*    ) : null}*/}
-                {/*  </dd>*/}
-                {/*</div>*/}
                 <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
                   <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('amount')}</dt>
                   <dd className="text-gray-900 dark:text-white">{row.amount}</dd>
@@ -93,8 +88,8 @@ const Show = ({row,paymentResponse}: Props) => {
                 <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
                   <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('attachment')}</dt>
                   <dd>
-                    {row.attachment ? (
-                      <a href={row.attachment} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline">{t('download')}</a>
+                    {row.transaction_image ? (
+                      <a href={row.transaction_image} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline">{t('download')}</a>
                     ) : (
                       <span className="text-gray-400">{t('not_available')}</span>
                     )}
@@ -108,21 +103,22 @@ const Show = ({row,paymentResponse}: Props) => {
             </KTCard>
           </div>
           {/* Bank Card */}
-          <div className="col-12 col-lg-5 ">
-            {paymentResponse === undefined ? (
-              <BankCardBootstrap/>
-
-            ) : paymentResponse === null ? t('N/A') : (
-              <BankCardBootstrap
-                cardHolder={auth.name}
-                cardNumber={paymentResponse.card.payment_description}
-                expiryMonth={paymentResponse.card.expiryMonth}
-                expiryYear={paymentResponse.card.expiryYear}
-                bankName={paymentResponse.card.payment_method}
-                cardType={paymentResponse.card.card_type}
-                cardScheme={paymentResponse.card.card_scheme}
-              />
-            )}
+          <div className="col-12 col-lg-5">
+            <Deferred data="paymentResponse" fallback={<CardSkeleton/>}>
+              {paymentResponse === null ? (
+                <p className="text-gray-400 mb-0">{t('no_card_details')}</p>
+              ) : (
+                <BankCardBootstrap
+                  cardHolder={auth.name}
+                  cardNumber={paymentResponse.card.payment_description}
+                  expiryMonth={paymentResponse.card.expiryMonth}
+                  expiryYear={paymentResponse.card.expiryYear}
+                  bankName={paymentResponse.card.payment_method}
+                  cardType={paymentResponse.card.card_type}
+                  cardScheme={paymentResponse.card.card_scheme}
+                />
+              )}
+            </Deferred>
           </div>
         </div>
       </Content>

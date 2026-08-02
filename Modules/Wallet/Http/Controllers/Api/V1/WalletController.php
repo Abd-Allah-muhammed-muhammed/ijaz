@@ -49,7 +49,7 @@ class WalletController extends Controller
         $user = auth()->user();
 
         $imagePath = $request->file('transaction_image')
-            ?->store('transactions');
+            ?->store('transactions', 'public');
 
         $data = CreateTopUpData::fromRequest($request->validated(), $imagePath);
 

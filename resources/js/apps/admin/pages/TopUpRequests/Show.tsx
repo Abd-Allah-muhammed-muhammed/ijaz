@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import {PageTitle} from "@/vendor/metronic/layout/core";
 import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
 import { Content } from '@/vendor/metronic/layout/components/content';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Deferred, Head, useForm, usePage } from '@inertiajs/react';
 import {KTCard} from "@/vendor/metronic/helpers";
 import {TopUpRequest} from "@/shared/types/models";
 import {ReactNode} from "react";
@@ -149,21 +149,31 @@ const Show = ({row,paymentResponse}: Props) => {
             }
           </div>
           {/* Bank Card */}
-          <div className="col-12 col-lg-5 ">
-            {paymentResponse === undefined ? (
-              <BankCardBootstrap/>
-
-            ) : paymentResponse === null ? t('N/A') : (
-              <BankCardBootstrap
-                cardHolder={auth.name}
-                cardNumber={paymentResponse.card.payment_description}
-                expiryMonth={paymentResponse.card.expiryMonth}
-                expiryYear={paymentResponse.card.expiryYear}
-                bankName={paymentResponse.card.payment_method}
-                cardType={paymentResponse.card.card_type}
-                cardScheme={paymentResponse.card.card_scheme}
-              />
-            )}
+          <div className="col-12 col-lg-5">
+            <Deferred
+              data="paymentResponse"
+              fallback={
+                <div
+                  className="rounded-4 bg-light animate-pulse mb-3"
+                  style={{maxWidth: 340, minHeight: 200}}
+                  aria-hidden="true"
+                />
+              }
+            >
+              {paymentResponse === null ? (
+                <p className="text-gray-400 mb-0">{t('no_card_details')}</p>
+              ) : (
+                <BankCardBootstrap
+                  cardHolder={auth.name}
+                  cardNumber={paymentResponse.card.payment_description}
+                  expiryMonth={paymentResponse.card.expiryMonth}
+                  expiryYear={paymentResponse.card.expiryYear}
+                  bankName={paymentResponse.card.payment_method}
+                  cardType={paymentResponse.card.card_type}
+                  cardScheme={paymentResponse.card.card_scheme}
+                />
+              )}
+            </Deferred>
           </div>
         </div>
       </Content>

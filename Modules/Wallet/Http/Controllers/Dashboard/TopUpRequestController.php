@@ -51,7 +51,9 @@ class TopUpRequestController extends Controller implements HasMiddleware
 
         return inertia('Dashboard/TopUpRequests/Show', [
             'row' => TopUpResource::make($topUpRequest),
-            'paymentResponse' => Inertia::defer(fn () => $this->resolvePaymentResponse($topUpRequest)),
+            'paymentResponse' => $this->hasResolvableCardData($topUpRequest)
+                ? Inertia::defer(fn () => $this->resolvePaymentResponse($topUpRequest))
+                : null,
         ]);
     }
 
@@ -73,9 +75,14 @@ class TopUpRequestController extends Controller implements HasMiddleware
         return redirect()->route('dashboard.top-up-requests.index')->with('success', __('data saved successfully'));
     }
 
+    private function hasResolvableCardData(TopUpRequest $topUpRequest): bool
+    {
+        return filled($topUpRequest->transaction_id) && filled($topUpRequest->payment_driver);
+    }
+
     private function resolvePaymentResponse(TopUpRequest $topUpRequest): ?PaymentResponseResource
     {
-        if (! $topUpRequest->transaction_id || ! $topUpRequest->payment_driver) {
+        if (! $this->hasResolvableCardData($topUpRequest)) {
             return null;
         }
 

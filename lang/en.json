@@ -518,6 +518,7 @@
     "top_up_request_details": "Top Up Request Details",
     "attachment": "Attachment",
     "not_available": "Not Available",
+    "no_card_details": "No card details available",
     "payment_status": "Payment Status",
     "N/A": "N/A",
     "show": "Show",

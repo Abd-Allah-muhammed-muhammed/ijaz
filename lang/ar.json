@@ -418,6 +418,7 @@
     "top_up_request": "طلب إيداع",
     "amount": "المبلغ",
     "not_available": "غير متوفر",
+    "no_card_details": "لا تتوفر تفاصيل البطاقة",
     "payment_method": "طريقة الدفع",
     "payment_status": "حالة الدفع",
     "N/A": "غير متاح",

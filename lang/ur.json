@@ -387,6 +387,7 @@
     "payment_method": "ادائیگی کا طریقہ",
     "payment_status": "ادائیگی کی حالت",
     "not_available": "دستیاب نہیں",
+    "no_card_details": "کارڈ کی تفصیلات دستیاب نہیں",
     "N/A": "دستیاب نہیں",
     "show": "دیکھیں",
     "amount": "رقم",

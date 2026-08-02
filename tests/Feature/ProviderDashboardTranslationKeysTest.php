@@ -36,6 +36,10 @@ it('defines critical Provider Dashboard translation keys in every locale JSON so
         'payment_status',
         'payment_driver',
         'transaction_image',
+        'no_card_details',
+        'not_available',
+        'attachment',
+        'download',
 
         // Chat + toasts
         'search_by_phone',
