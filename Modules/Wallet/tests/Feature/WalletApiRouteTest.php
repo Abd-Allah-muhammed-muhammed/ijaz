@@ -220,14 +220,16 @@ test('add-balance and withdraw response envelopes are byte-identical after refac
         ->and($withdraw['data'])->toHaveKeys(['id', 'amount', 'status', 'admin_notes', 'user_notes', 'created_at']);
 });
 
-test('user api top-up accepts payment_driver field', function () {
+test('user api top-up ignores client-supplied payment_driver and uses the server-configured driver', function () {
+    config(['payment.default' => PaymentDriverEnum::Testing->value]);
+
     $user = createWalletUser();
     Sanctum::actingAs($user);
 
     $response = $this->postJson(action([WalletController::class, 'addBalance']), [
         'amount' => 125,
         'payment_method' => PaymentMethodEnum::Online->value,
-        'payment_driver' => PaymentDriverEnum::Testing->value,
+        'payment_driver' => PaymentDriverEnum::Rajhi->value,
     ])->assertSuccessful();
 
     $payment = Payment::query()->where('amount', 125)->first();

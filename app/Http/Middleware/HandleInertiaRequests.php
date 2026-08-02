@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use Inertia\Middleware;
+use Modules\Payment\Enums\PaymentDriverEnum;
+use Modules\Payment\Services\PaymentService;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -49,6 +51,8 @@ class HandleInertiaRequests extends Middleware
 
         View::share('appShell', $shell->value);
 
+        $paymentDriver = app(PaymentService::class)->getDefaultDriver();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -64,6 +68,10 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => $this->makeMessage($success),
                 'error' => $this->makeMessage($error),
+            ],
+            'payment' => [
+                'driver' => $paymentDriver,
+                'online_enabled' => $paymentDriver !== PaymentDriverEnum::Testing->value,
             ],
         ];
     }

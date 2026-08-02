@@ -26,8 +26,10 @@ class TopUpRequestRequest extends ApiRequest
                 'string',
                 (new Enum(PaymentMethodEnum::class)),
             ],
+            // Accepted for backward compatibility only — CreateTopUpRequestAction
+            // always initiates via PaymentService::getDefaultDriver(), never this value.
             'payment_driver' => [
-                'required_if:payment_method,'.PaymentMethodEnum::Online->value,
+                'nullable',
                 'string',
                 (new Enum(PaymentDriverEnum::class))
                     ->when(app()->isProduction(), fn ($rule) => $rule->except([PaymentDriverEnum::Testing])),
