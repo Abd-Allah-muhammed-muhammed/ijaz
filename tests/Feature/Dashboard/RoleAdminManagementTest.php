@@ -1,8 +1,10 @@
 <?php
 
+use App\Contracts\Admin\RoleRepositoryInterface;
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\RoleController;
 use App\Models\Admin;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
@@ -66,6 +68,45 @@ it('includes users_count on each role in the index listing', function (): void {
                 ->where('0.users_count', 1)
                 ->etc()
             )
+        );
+});
+
+test('roles index shows correct users_count for a role with an assigned admin', function (): void {
+    // Spatie's Role::users() resolves the related model from guard_name, falling back to
+    // auth.defaults.guard on an empty query-builder instance. withCount('users') therefore
+    // counts User rows when the ambient guard is "web" — even for admin-guard roles.
+    // Keep the ambient guard on web so this regression catches that footgun.
+    auth()->shouldUse('web');
+    config(['auth.defaults.guard' => 'web']);
+
+    $admin = createAdminManagementAdmin(['show roles']);
+    $role = Role::create(['name' => 'content-editor', 'guard_name' => 'admin']);
+    $admin->assignRole($role);
+
+    expect($role->users()->count())->toBe(1)
+        ->and(Role::query()->withCount('users')->findOrFail($role->id)->users_count)->toBe(0);
+
+    $paginator = app(RoleRepositoryInterface::class)
+        ->paginate(new Request);
+
+    $row = $paginator->getCollection()->firstWhere('id', $role->id);
+
+    expect($row)->not->toBeNull()
+        ->and($row->users_count)->toBe(1);
+
+    $this->actingAs($admin, 'admin')
+        ->get(action([RoleController::class, 'index']))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Roles/Index')
+            ->has('rows.data')
+            ->where('rows.data', function ($rows) use ($role): bool {
+                $match = collect($rows)->first(
+                    fn ($row) => (int) data_get($row, 'id') === (int) $role->id
+                );
+
+                return $match !== null && (int) data_get($match, 'users_count') === 1;
+            })
         );
 });
 
