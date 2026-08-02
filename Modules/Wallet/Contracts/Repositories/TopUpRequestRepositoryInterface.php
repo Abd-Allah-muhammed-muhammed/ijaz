@@ -21,7 +21,7 @@ interface TopUpRequestRepositoryInterface
 
     public function delete(TopUpRequest $topUpRequest): void;
 
-    public function paginateForOwner(Model $owner, int $perPage): LengthAwarePaginator;
+    public function paginateForOwner(Model $owner, Request $request): LengthAwarePaginator;
 
     public function paginateAll(Request $request): LengthAwarePaginator;
 }

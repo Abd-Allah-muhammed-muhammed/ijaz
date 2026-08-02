@@ -3,6 +3,7 @@
 namespace Modules\Wallet\Actions\TopUp;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Wallet\Contracts\Repositories\TopUpRequestRepositoryInterface;
 
@@ -12,8 +13,8 @@ class ListTopUpRequestsForOwnerAction
         private readonly TopUpRequestRepositoryInterface $repository,
     ) {}
 
-    public function handle(Model $owner, int $perPage = 16): LengthAwarePaginator
+    public function handle(Model $owner, Request $request): LengthAwarePaginator
     {
-        return $this->repository->paginateForOwner($owner, $perPage);
+        return $this->repository->paginateForOwner($owner, $request);
     }
 }

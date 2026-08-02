@@ -36,7 +36,7 @@ class TopUpController extends Controller
     {
         $rows = $this->topUpRequestService->listForOwner(
             auth('provider')->user(),
-            $request->integer('perPage', 16),
+            $request,
         );
 
         return inertia('Provider/TopUpRequests/Index', [

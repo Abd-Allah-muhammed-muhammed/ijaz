@@ -51,7 +51,7 @@ const Show = ({transactions, provider, prams }: Props) => {
               name={"transactions"}
               rows={transactions}
               search={{
-                value: '',
+                value: prams?.search || '',
                 callback: (value) => {
                   searchPramsChanged('search', value);
                 },
