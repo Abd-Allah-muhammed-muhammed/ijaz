@@ -6,6 +6,7 @@ import {Content} from "@/vendor/metronic/layout/components/content";
 import {Head} from "@inertiajs/react";
 import {KTCard} from "@/vendor/metronic/helpers";
 import Table, {LinkAction} from "@/shared/components/Table";
+import usePermissions from '@/shared/hooks/use-permissions';
 import {PaginationResource} from "@/shared/types";
 import {WithdrawRequest} from "@/shared/types/models";
 import {ReactElement} from "react";
@@ -29,6 +30,7 @@ const Index = (
   }: Props
 ) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const searchPrams: SearchPrams = prams || {
     per_page: 10,
     search: '',
@@ -113,7 +115,7 @@ const Index = (
             ]}
             actions={[
               {
-                show: true,
+                show: hasPermission('show withdrawRequests'),
                 ele: (row) => (
                   <LinkAction
                     key={`edit-withdraw-${row.id}`}

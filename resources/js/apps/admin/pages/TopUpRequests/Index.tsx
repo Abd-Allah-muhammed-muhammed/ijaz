@@ -6,6 +6,7 @@ import {Content} from "@/vendor/metronic/layout/components/content";
 import {Head} from "@inertiajs/react";
 import {KTCard} from "@/vendor/metronic/helpers";
 import Table, {LinkAction} from "@/shared/components/Table";
+import usePermissions from '@/shared/hooks/use-permissions';
 import {PaginationResource} from "@/shared/types";
 import {TopUpRequest} from "@/shared/types/models";
 import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
@@ -31,6 +32,7 @@ const Index = (
   }: Props
 ) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const searchPrams: SearchPrams = prams || {
     per_page: 10,
     search: '',
@@ -129,7 +131,7 @@ const Index = (
             ]}
             actions={[
               {
-                show: true,
+                show: hasPermission('show topUpRequests'),
                 ele: (row) => (
                   <LinkAction
                     key={`edit-top-up-${row.id}`}

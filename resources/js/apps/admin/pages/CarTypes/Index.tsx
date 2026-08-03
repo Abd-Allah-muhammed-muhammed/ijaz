@@ -99,7 +99,11 @@ const Index = ({ rows, prams }: Props) => {
                       className="h-20px w-30px"
                       type="checkbox"
                       defaultChecked={row.is_active}
+                      disabled={!hasPermission('edit carTypes')}
                       onClick={() => {
+                        if (!hasPermission('edit carTypes')) {
+                          return;
+                        }
                         router.put(
                           CarTypeController.updateStatus(row.id as number).url,
                           {

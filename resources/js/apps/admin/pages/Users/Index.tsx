@@ -9,6 +9,7 @@ import { User } from "@/shared/types/models";
 
 import Pagination from "@/shared/components/Table/partials/Pagination";
 import UserCard from "@/shared/components/User/UserCard";
+import usePermissions from '@/shared/hooks/use-permissions';
 import { KTIcon } from "@/vendor/metronic/helpers";
 import UserController from "@/actions/App/Http/Controllers/Dashboard/UserController";
 
@@ -33,6 +34,7 @@ const Index = ({
   stats,
 }: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const searchPrams: SearchPrams = prams || {
     per_page: 10,
     search: '',
@@ -123,15 +125,17 @@ const Index = ({
                 />
               </div>
 
-              <div className='d-flex align-items-center gap-3'>
-                <Link
-                  href={UserController.create().url}
-                  className="btn btn-primary d-flex align-items-center gap-2"
-                >
-                  <KTIcon iconName='plus' className='fs-2' />
-                  {t('add_user')}
-                </Link>
-              </div>
+              {hasPermission('create users') && (
+                <div className='d-flex align-items-center gap-3'>
+                  <Link
+                    href={UserController.create().url}
+                    className="btn btn-primary d-flex align-items-center gap-2"
+                  >
+                    <KTIcon iconName='plus' className='fs-2' />
+                    {t('add_user')}
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>

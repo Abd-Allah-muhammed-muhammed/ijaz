@@ -1,6 +1,7 @@
 import { AdvisementStatusEnum, OperationEnum } from '@/Enums/Advisements';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import PropertyAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/PropertyAdvisementController';
+import usePermissions from '@/shared/hooks/use-permissions';
 import { PropertyAdvisement } from '@/shared/types/models';
 import { router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +25,7 @@ const operationConfig: Record<string, { badge: string }> = {
 
 const PropertyAdvisementCard = ({ row }: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
 
   const sCfg = statusConfig[row.status?.value] ?? statusConfig[AdvisementStatusEnum.CLOSED];
   const oCfg = operationConfig[row.operation?.value as string] ?? { badge: 'badge-light-secondary' };
@@ -81,18 +83,20 @@ const PropertyAdvisementCard = ({ row }: Props) => {
               >
                 <KTIcon iconName="arrow-left" className="fs-6" />
               </button>
-              <button
-                className="btn btn-icon btn-sm btn-light-danger"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (window.confirm(t('are_you_sure'))) {
-                    router.delete(PropertyAdvisementController.destroy(row.id as number).url);
-                  }
-                }}
-                title={t('delete')}
-              >
-                <KTIcon iconName="trash" className="fs-6" />
-              </button>
+              {hasPermission('delete propertyAdvisements') && (
+                <button
+                  className="btn btn-icon btn-sm btn-light-danger"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm(t('are_you_sure'))) {
+                      router.delete(PropertyAdvisementController.destroy(row.id as number).url);
+                    }
+                  }}
+                  title={t('delete')}
+                >
+                  <KTIcon iconName="trash" className="fs-6" />
+                </button>
+              )}
             </div>
           </div>
           {row.address && (

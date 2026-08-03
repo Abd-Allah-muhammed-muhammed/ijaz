@@ -25,7 +25,7 @@ class CarTypeController extends Controller implements HasMiddleware
         return [
             new Middleware('permission:show carTypes', only: ['index', 'show']),
             new Middleware('permission:create carTypes', only: ['create', 'store']),
-            new Middleware('permission:edit carTypes', only: ['edit', 'update']),
+            new Middleware('permission:edit carTypes', only: ['edit', 'update', 'updateStatus']),
             new Middleware('permission:delete carTypes', only: ['destroy']),
         ];
     }

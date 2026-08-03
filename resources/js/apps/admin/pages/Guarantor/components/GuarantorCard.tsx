@@ -1,4 +1,5 @@
 import GuarantorDashboardController from '@/actions/Modules/Guarantor/Http/Controllers/Dashboard/GuarantorController';
+import usePermissions from '@/shared/hooks/use-permissions';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import { Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
@@ -38,6 +39,7 @@ const typeBadgeClass: Record<string, string> = {
 
 const GuarantorCard = ({ row }: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const statusClass = statusBadgeClass[row.status?.value] ?? 'badge-light-secondary';
   const typeClass = typeBadgeClass[row.type?.value] ?? 'badge-light-secondary';
 
@@ -103,17 +105,19 @@ const GuarantorCard = ({ row }: Props) => {
           <Link href={GuarantorDashboardController.show(row.id).url} className="btn btn-sm btn-light-primary">
             {t('guarantor.details')}
           </Link>
-          <button
-            type="button"
-            className="btn btn-sm btn-light-danger"
-            onClick={() => {
-              if (window.confirm(t('are_you_sure_delete'))) {
-                router.delete(GuarantorDashboardController.destroy(row.id).url);
-              }
-            }}
-          >
-            {t('delete')}
-          </button>
+          {hasPermission('manage guarantors') && (
+            <button
+              type="button"
+              className="btn btn-sm btn-light-danger"
+              onClick={() => {
+                if (window.confirm(t('are_you_sure_delete'))) {
+                  router.delete(GuarantorDashboardController.destroy(row.id).url);
+                }
+              }}
+            >
+              {t('delete')}
+            </button>
+          )}
         </div>
       </div>
     </div>

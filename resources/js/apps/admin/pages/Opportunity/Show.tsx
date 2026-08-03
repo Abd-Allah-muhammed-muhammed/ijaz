@@ -1,6 +1,7 @@
 import CommentController from '@/actions/Modules/Opportunity/Http/Controllers/Dashboard/CommentController';
 import OfferController from '@/actions/Modules/Opportunity/Http/Controllers/Dashboard/OfferController';
 import OpportunityController from '@/actions/Modules/Opportunity/Http/Controllers/Dashboard/OpportunityController';
+import usePermissions from '@/shared/hooks/use-permissions';
 import { KTIcon, KTCard, KTCardBody } from '@/vendor/metronic/helpers';
 import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
 import { Content } from '@/vendor/metronic/layout/components/content';
@@ -77,6 +78,8 @@ const offerStatusBadgeClass: Record<string, string> = {
 
 const Show = ({ opportunity }: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
+  const canDelete = hasPermission('delete opportunities');
   const badgeClass = statusBadgeClass[opportunity.status?.value] ?? 'badge-light-secondary';
 
   const confirmDelete = (callback: () => void) => {
@@ -133,15 +136,17 @@ const Show = ({ opportunity }: Props) => {
                   <KTIcon iconName="arrow-left" className="fs-6 px-1" />
                   {t('back')}
                 </Link>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-light-danger"
-                  onClick={() =>
-                    confirmDelete(() => router.delete(OpportunityController.destroy(opportunity.id).url))
-                  }
-                >
-                  {t('delete')}
-                </button>
+                {canDelete && (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-light-danger"
+                    onClick={() =>
+                      confirmDelete(() => router.delete(OpportunityController.destroy(opportunity.id).url))
+                    }
+                  >
+                    {t('delete')}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -253,15 +258,17 @@ const Show = ({ opportunity }: Props) => {
                       <span className={`badge ${offerStatusBadgeClass[offer.status?.value] ?? 'badge-light-secondary'} fw-bold`}>
                         {offer.status?.label}
                       </span>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-light-danger"
-                        onClick={() =>
-                          confirmDelete(() => router.delete(OfferController.destroy(offer.id).url, { preserveScroll: true }))
-                        }
-                      >
-                        {t('delete')}
-                      </button>
+                      {canDelete && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-light-danger"
+                          onClick={() =>
+                            confirmDelete(() => router.delete(OfferController.destroy(offer.id).url, { preserveScroll: true }))
+                          }
+                        >
+                          {t('delete')}
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -287,17 +294,19 @@ const Show = ({ opportunity }: Props) => {
                       <p className="text-gray-700 mb-1">{comment.body}</p>
                       <div className="text-muted fs-8">{new Date(comment.created_at).toLocaleString()}</div>
                     </div>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-light-danger"
-                      onClick={() =>
-                        confirmDelete(() =>
-                          router.delete(CommentController.destroy(comment.id).url, { preserveScroll: true }),
-                        )
-                      }
-                    >
-                      {t('delete')}
-                    </button>
+                    {canDelete && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-light-danger"
+                        onClick={() =>
+                          confirmDelete(() =>
+                            router.delete(CommentController.destroy(comment.id).url, { preserveScroll: true }),
+                          )
+                        }
+                      >
+                        {t('delete')}
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>

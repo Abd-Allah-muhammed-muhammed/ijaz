@@ -6,6 +6,7 @@ import ElectronicAdvisementController from '@/actions/Modules/Classifieds/Http/C
 import { AdvisementStatusEnum } from '@/Enums/Advisements';
 import { ElectronicAdvisement, Media } from '@/shared/types/models';
 import { Head, Link, router } from '@inertiajs/react';
+import usePermissions from '@/shared/hooks/use-permissions';
 import { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -15,6 +16,9 @@ type Props = {
 
 const ShowElectronicAdvisement = ({ row }: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
+  const canEdit = hasPermission('edit electronicAdvisements');
+  const canDelete = hasPermission('delete electronicAdvisements');
 
   const handleStatusChange = (newStatus: string) => {
     router.put(ElectronicAdvisementController.update(row.id as number).url, { status: newStatus }, { preserveScroll: true });
@@ -99,18 +103,20 @@ const ShowElectronicAdvisement = ({ row }: Props) => {
                       <KTIcon iconName="arrow-left" className="fs-6 px-1" />
                       {t('back')}
                     </Link>
-                    <button
-                      type="button"
-                      aria-label={t('delete')}
-                      className="btn btn-sm btn-icon btn-light-danger"
-                      onClick={() => {
-                        if (window.confirm(t('are_you_sure_delete'))) {
-                          router.delete(ElectronicAdvisementController.show(row.id as number).url);
-                        }
-                      }}
-                    >
-                      <KTIcon iconName="trash" className="fs-3" />
-                    </button>
+                    {canDelete && (
+                      <button
+                        type="button"
+                        aria-label={t('delete')}
+                        className="btn btn-sm btn-icon btn-light-danger"
+                        onClick={() => {
+                          if (window.confirm(t('are_you_sure_delete'))) {
+                            router.delete(ElectronicAdvisementController.destroy(row.id as number).url);
+                          }
+                        }}
+                      >
+                        <KTIcon iconName="trash" className="fs-3" />
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -309,7 +315,13 @@ const ShowElectronicAdvisement = ({ row }: Props) => {
                       aria-label={t('advisement_status')}
                       className={`form-select form-select-sm form-select-solid fw-bold fs-7 w-150px`}
                       value={row.status?.value}
-                      onChange={(e) => handleStatusChange(e.target.value)}
+                      disabled={!canEdit}
+                      onChange={(e) => {
+                        if (!canEdit) {
+                          return;
+                        }
+                        handleStatusChange(e.target.value);
+                      }}
                     >
                       <option value={AdvisementStatusEnum.PUBLISHED}>{t('advisement.status.published')}</option>
                       <option value={AdvisementStatusEnum.PENDING}>{t('advisement.status.pending')}</option>

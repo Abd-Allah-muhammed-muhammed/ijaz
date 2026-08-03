@@ -18,6 +18,7 @@ import SupportChatController from "@/actions/Modules/Support/Http/Controllers/Da
 import MessageIn from "@/shared/components/chat/components/message-in";
 import MessageOut from "@/shared/components/chat/components/message-out";
 import ActionButton from "@/shared/components/action-button";
+import usePermissions from '@/shared/hooks/use-permissions';
 import {useConversations} from "@/store/use-chat";
 import {ChatEventEnum} from "@/Enums/Chat";
 import {TicketSupportStatusEnum} from "@/Enums/SupportTickets";
@@ -38,6 +39,8 @@ type ChatMessage = {
 let unreadMessageIndex: number[] = [];
 const Show = ({row, chat, chatMessages}: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
+  const canEdit = hasPermission('edit supportTicket');
   const formatDate = (date: string | Date) => {
     return new Date(date).toLocaleString('en-US', {
       year: 'numeric',
@@ -336,7 +339,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
               </div>
 
               {/* Chat Input Area */}
-              {!chat ? (
+              {canEdit && (!chat ? (
                   <div className="card-footer pt-4 border-top">
                     <button className="btn btn-primary w-100" onClick={() => {
                       router.post(SupportController.openChat(row.id as number).url);
@@ -394,7 +397,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
                                     text={t('send')}/>
                     </div>
                   </div>
-                )}
+                ))}
             </KTCard>
           </div>
 
@@ -409,6 +412,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
               </div>
               <div className="card-body py-3">
                 {/* Action Buttons */}
+                {canEdit && (
                 <div className="d-flex flex-column gap-3">
                   <button
                     className="btn btn-light-success w-100"
@@ -446,6 +450,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
                     {t('close_ticket')}
                   </button>
                 </div>
+                )}
               </div>
             </KTCard>
 

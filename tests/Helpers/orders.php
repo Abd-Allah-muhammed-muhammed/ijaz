@@ -14,6 +14,7 @@ use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Models\OrderOffer;
+use Spatie\Permission\Models\Permission;
 
 /**
  * Shared helpers for Orders Step 0 regression-lock tests.
@@ -31,13 +32,26 @@ function withoutOrdersLocaleMiddleware(): void
 
 function createOrdersAdmin(): Admin
 {
-    return Admin::query()->create([
+    $admin = Admin::query()->create([
         'name' => 'Orders Admin',
         'phone' => fake()->unique()->phoneNumber(),
         'email' => fake()->unique()->safeEmail(),
         'password' => 'password',
         'language' => 'en',
     ]);
+
+    foreach (['show orders', 'edit orders'] as $permission) {
+        Permission::firstOrCreate([
+            'name' => $permission,
+            'guard_name' => 'admin',
+        ], [
+            'group' => 'orders',
+        ]);
+    }
+
+    $admin->givePermissionTo(['show orders', 'edit orders']);
+
+    return $admin;
 }
 
 /**

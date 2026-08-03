@@ -6,6 +6,7 @@ import CarAdvisementController from '@/actions/Modules/Classifieds/Http/Controll
 import { AdvisementStatusEnum, OperationEnum, UsageStatusEnum } from '@/Enums/Advisements';
 import { Media, CarAdvisement } from '@/shared/types/models';
 import { Head, Link, router } from '@inertiajs/react';
+import usePermissions from '@/shared/hooks/use-permissions';
 import { ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -28,6 +29,9 @@ const usageStatusConfig: Record<string, { badge: string; color: string }> = {
 
 const ShowCarAdvisement = ({ row }: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
+  const canEdit = hasPermission('edit carAdvisements');
+  const canDelete = hasPermission('delete carAdvisements');
 
   const handleStatusChange = (newStatus: string) => {
     router.put(CarAdvisementController.update(row.id as number).url, { status: newStatus }, { preserveScroll: true });
@@ -111,17 +115,19 @@ const ShowCarAdvisement = ({ row }: Props) => {
                       <KTIcon iconName="arrow-left" className="fs-6 px-1" />
                       {t('back')}
                     </Link>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-icon btn-light-danger"
-                      onClick={() => {
-                        if (window.confirm(t('are_you_sure_delete'))) {
-                          router.delete(CarAdvisementController.destroy(row.id as number).url);
-                        }
-                      }}
-                    >
-                      <KTIcon iconName="trash" className="fs-3" />
-                    </button>
+                    {canDelete && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-icon btn-light-danger"
+                        onClick={() => {
+                          if (window.confirm(t('are_you_sure_delete'))) {
+                            router.delete(CarAdvisementController.destroy(row.id as number).url);
+                          }
+                        }}
+                      >
+                        <KTIcon iconName="trash" className="fs-3" />
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -313,7 +319,11 @@ const ShowCarAdvisement = ({ row }: Props) => {
                     <select
                       className={`form-select form-select-sm form-select-solid fw-bold fs-7 w-150px`}
                       value={row.status?.value}
-                      onChange={(e) => handleStatusChange(e.target.value)}
+                      disabled={!canEdit}
+                      onChange={(e) => {
+                        if (!canEdit) return;
+                        handleStatusChange(e.target.value);
+                      }}
                     >
                       <option value={AdvisementStatusEnum.PUBLISHED}>{t('advisement.status.published')}</option>
                       <option value={AdvisementStatusEnum.PENDING}>{t('advisement.status.pending')}</option>

@@ -9,6 +9,7 @@ import { Provider } from "@/shared/types/models";
 
 import Pagination from "@/shared/components/Table/partials/Pagination";
 import ProviderCard from "@/shared/components/provider/ProviderCard";
+import usePermissions from '@/shared/hooks/use-permissions';
 import { KTIcon } from "@/vendor/metronic/helpers";
 import ProviderController from "@/actions/App/Http/Controllers/Dashboard/ProviderController";
 
@@ -37,6 +38,7 @@ const Index = (
   }: Props
 ) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const searchPrams: SearchPrams = prams || {
     per_page: 10,
     search: '',
@@ -168,13 +170,15 @@ const Index = (
               />
             </div>
 
-            <Link
-              href={ProviderController.create().url}
-              className="btn btn-primary btn-sm"
-            >
-              <KTIcon iconName='plus' className='fs-2' />
-              {t('add_provider')}
-            </Link>
+            {hasPermission('create providers') && (
+              <Link
+                href={ProviderController.create().url}
+                className="btn btn-primary btn-sm"
+              >
+                <KTIcon iconName='plus' className='fs-2' />
+                {t('add_provider')}
+              </Link>
+            )}
           </div>
         </div>
         <div className='row g-6 g-xl-9'>

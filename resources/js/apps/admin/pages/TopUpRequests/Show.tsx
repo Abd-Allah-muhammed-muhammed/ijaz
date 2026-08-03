@@ -8,6 +8,7 @@ import {TopUpRequest} from "@/shared/types/models";
 import {ReactNode} from "react";
 import {PaymentResponse} from "@/shared/types/api";
 import {build_date} from "@/shared/helpers/general";
+import usePermissions from '@/shared/hooks/use-permissions';
 import BankCardBootstrap from "@/shared/components/BankCardBootstrap";
 import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
 import { Button } from 'react-bootstrap';
@@ -23,6 +24,8 @@ type Props = {
 
 const Show = ({row,paymentResponse}: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
+  const canEdit = hasPermission('edit topUpRequests');
   const auth = usePage().props.auth.user
   const form = useForm<FormInput>();
 
@@ -132,7 +135,7 @@ const Show = ({row,paymentResponse}: Props) => {
               </dl>
             </KTCard>
             {
-              row.status.value == OperationStatusEnum.Pending &&
+              canEdit && row.status.value == OperationStatusEnum.Pending &&
               <KTCard className="p-4">
                 <div className="d-flex gap-2">
                   <textarea

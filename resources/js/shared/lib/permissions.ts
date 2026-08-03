@@ -16,6 +16,28 @@ export type PermissionChecker = {
   hasAllRole: (roles: readonly string[]) => boolean;
 };
 
+export type RoleLike = string | { name?: string | null } | null | undefined;
+
+/**
+ * Normalize Inertia `auth.user.roles` to role name strings.
+ * AdminResource sends Role objects (`{ id, name, ... }`); createPermissionChecker expects names.
+ */
+export function roleNamesFromAuth(roles: readonly RoleLike[] | undefined): string[] {
+  if (!roles?.length) {
+    return [];
+  }
+
+  return roles
+    .map((role) => {
+      if (typeof role === 'string') {
+        return role;
+      }
+
+      return role?.name ?? null;
+    })
+    .filter((name): name is string => typeof name === 'string' && name.length > 0);
+}
+
 export function createPermissionChecker(
   permissions: readonly string[],
   roles: readonly string[],

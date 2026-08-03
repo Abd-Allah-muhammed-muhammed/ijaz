@@ -6,6 +6,7 @@ import {Content} from "@/vendor/metronic/layout/components/content";
 import {Head, Link, router} from "@inertiajs/react";
 import {KTCard, KTIcon} from "@/vendor/metronic/helpers";
 import Table, {LinkAction} from "@/shared/components/Table";
+import usePermissions from '@/shared/hooks/use-permissions';
 import {PaginationResource} from "@/shared/types";
 import {Question} from "@/shared/types/models";
 import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
@@ -30,6 +31,7 @@ const Index = (
   }: Props
 ) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const searchPrams: SearchPrams = prams || {
     per_page: 10,
     search: '',
@@ -84,7 +86,7 @@ const Index = (
             ]}
             actions={[
               {
-                show: true,
+                show: hasPermission('edit questions'),
                 ele: (row) => (
                   <LinkAction
                     key={`edit-questions-${row.id}`}
@@ -94,7 +96,7 @@ const Index = (
                 ),
               },
               {
-                show: true,
+                show: hasPermission('delete questions'),
                 ele: (row) => (
                   <ConfirmAction
                     key={`delete-questions-${row.id}`}
@@ -107,12 +109,14 @@ const Index = (
               },
             ]}
             addButton={
-              <Link
+              hasPermission('create questions') ? (
+                <Link
                 href={QuestionController.create().url}
                 className="btn btn-primary"
               >
                 <KTIcon iconName='plus' className='fs-2'/>
               </Link>
+              ) : undefined
             }
           />
         </KTCard>

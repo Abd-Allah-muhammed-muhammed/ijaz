@@ -1,4 +1,5 @@
 import { KTIcon } from '@/vendor/metronic/helpers';
+import usePermissions from '@/shared/hooks/use-permissions';
 import { InstituteAdvisement } from '@/shared/types/models';
 import { Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +11,7 @@ type Props = {
 
 const InstituteAdvisementCard = ({ row }: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
 
   const hasDiscount = row.discounted_price != null && row.price != null && row.discounted_price < row.price;
 
@@ -130,18 +132,20 @@ const InstituteAdvisementCard = ({ row }: Props) => {
             >
               <KTIcon iconName="arrow-right" className="fs-4" />
             </Link>
-            <button
-              type="button"
-              aria-label={t('delete')}
-              className="btn btn-icon btn-light-danger btn-sm rounded-circle"
-              onClick={() => {
-                if (window.confirm(t('are_you_sure_delete'))) {
-                  router.delete(InstituteAdvisementController.show(row.id as number).url);
-                }
-              }}
-            >
-              <KTIcon iconName="trash" className="fs-4" />
-            </button>
+            {hasPermission('delete instituteAdvisements') && (
+              <button
+                type="button"
+                aria-label={t('delete')}
+                className="btn btn-icon btn-light-danger btn-sm rounded-circle"
+                onClick={() => {
+                  if (window.confirm(t('are_you_sure_delete'))) {
+                    router.delete(InstituteAdvisementController.destroy(row.id as number).url);
+                  }
+                }}
+              >
+                <KTIcon iconName="trash" className="fs-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>
