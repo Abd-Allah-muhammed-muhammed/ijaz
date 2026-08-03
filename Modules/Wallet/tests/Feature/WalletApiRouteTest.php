@@ -340,6 +340,23 @@ test('missing amount on withdraw → 422', function () {
         ->assertJsonValidationErrors(['amount']);
 });
 
+test('mobile API validation failure still returns the JSON error envelope', function () {
+    $user = createWalletUser();
+    Sanctum::actingAs($user);
+
+    $this->postJson(action([WalletController::class, 'withdraw']), [])
+        ->assertUnprocessable()
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('message', 'Validation Failed')
+        ->assertJsonStructure([
+            'success',
+            'data',
+            'errors' => ['amount'],
+            'message',
+            'token',
+        ]);
+});
+
 test('unauthenticated cannot list transactions → 401', function () {
     $this->getJson(action([WalletController::class, 'transactions']))
         ->assertUnauthorized();
