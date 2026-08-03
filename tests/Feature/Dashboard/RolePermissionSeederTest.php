@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Admin;
-use Database\Seeders\AdminRootSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Support\Facades\Gate;
 use Spatie\Permission\Models\Permission;
@@ -124,15 +123,6 @@ it('allows root via Gate::before even without any role assignment', function ():
     expect(Gate::allows('view monitoring tools'))->toBeTrue()
         ->and(Gate::allows('edit withdrawRequests'))->toBeTrue()
         ->and(Gate::allows('create roles'))->toBeTrue();
-});
-
-it('assigns super-admin to the seeded root admin (belt-and-suspenders)', function (): void {
-    $this->seed(AdminRootSeeder::class);
-
-    $root = Admin::query()->where('root', true)->firstOrFail();
-
-    expect($root->hasRole('super-admin'))->toBeTrue()
-        ->and($root->email)->toBe('root@nagaz.com');
 });
 
 it('fails fast with a clear typo suggestion for an invalid role module key', function (): void {

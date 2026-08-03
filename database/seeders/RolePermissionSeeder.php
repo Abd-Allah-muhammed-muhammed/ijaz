@@ -13,7 +13,7 @@ use Spatie\Permission\PermissionRegistrar;
  * Single source of truth for admin-guard permissions and Dashboard roles.
  *
  * Edit {@see PERMISSIONS} / {@see ROLES} only — seeding logic below stays stable.
- * Account creation stays in {@see AdminRootSeeder}.
+ * Create admin accounts with `php artisan admin:create` (not a seeder).
  */
 class RolePermissionSeeder extends Seeder
 {

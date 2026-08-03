@@ -30,6 +30,14 @@ interface AdminManagementRepositoryInterface
      */
     public function attachRoles(Admin $admin, array $roleIds): void;
 
+    public function assignRoleByName(Admin $admin, string $roleName): void;
+
+    public function markAsRoot(Admin $admin): void;
+
+    public function existsByEmail(string $email): bool;
+
+    public function existsByPhone(string $phone): bool;
+
     public function delete(Admin $admin): void;
 
     public function loadForEdit(Admin $admin): Admin;

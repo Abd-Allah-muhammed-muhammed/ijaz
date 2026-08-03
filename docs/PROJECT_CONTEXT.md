@@ -62,6 +62,14 @@ Ijaz is a multi-actor marketplace: users create service orders, providers respon
 
 **OTP:** Unified `App\Models\Otp` (UUID) + `App\Enums\Auth\OtpPurposeEnum` via `HasOTPs` / `HasOTPsContract`. Deleted models `VerificationCode` / `RegisterVerificationCode` must not be resurrected.
 
+**Admin bootstrap:** Do **not** seed a root admin with a hardcoded password. After `php artisan migrate --seed` (roles via `RolePermissionSeeder`), create admins with:
+
+```bash
+php artisan admin:create
+```
+
+Root accounts get `root=true` (Gate::before bypass) and `super-admin` when that role exists. Non-root accounts must pick an existing admin-guard role; the command fails clearly if roles were never seeded.
+
 ---
 
 ## 4 — Directory Structure
