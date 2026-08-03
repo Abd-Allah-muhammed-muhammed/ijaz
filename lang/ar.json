@@ -611,6 +611,7 @@
     "total_requests": "إجمالي الطلبات",
     "active_requests": "الطلبات النشطة",
     "pending_requests": "الطلبات المعلقة",
+    "pending_requests_listed_first": "تُعرض الطلبات المعلقة أولاً، ثم الأحدث.",
     "completed_requests": "الطلبات المكتملة",
     "cancelled_requests": "الطلبات الملغاة",
     "cancelled_by_provider": "ملغي من قبل مقدم الخدمة",

@@ -714,6 +714,7 @@
     "total_requests": "Total Requests",
     "active_requests": "Active Requests",
     "pending_requests": "Pending Requests",
+    "pending_requests_listed_first": "Pending requests are listed first, then newest.",
     "completed_requests": "Completed Requests",
     "cancelled_requests": "Cancelled Requests",
     "properties": "Properties",

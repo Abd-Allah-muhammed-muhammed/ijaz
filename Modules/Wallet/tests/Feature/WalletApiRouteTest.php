@@ -150,6 +150,7 @@ test('wallet transactions API response shape is unchanged', function () {
 
     expect(array_keys($data['items'][0]))->toBe([
         'id',
+        'amount',
         'credit',
         'debit',
         'pending_credit',
@@ -161,6 +162,28 @@ test('wallet transactions API response shape is unchanged', function () {
         'operation_id',
         'created_at',
     ]);
+});
+
+test('mobile wallet transaction list exposes a non-zero display amount for a withdraw hold entry', function () {
+    $user = createWalletUser();
+    fundWallet($user, 400);
+    Sanctum::actingAs($user);
+
+    $this->postJson(action([WalletController::class, 'withdraw']), [
+        'amount' => 200,
+    ])->assertSuccessful();
+
+    $items = $this->getJson(action([WalletController::class, 'transactions'], ['per_page' => 10]))
+        ->assertSuccessful()
+        ->json('data.items');
+
+    $hold = collect($items)->first(
+        fn (array $item): bool => (float) $item['pending_debit'] === 200.0
+    );
+
+    expect($hold)->not->toBeNull()
+        ->and($hold)->toHaveKey('amount')
+        ->and((float) $hold['amount'])->toBe(200.0);
 });
 
 test('add-balance and withdraw response envelopes are byte-identical after refactor', function () {

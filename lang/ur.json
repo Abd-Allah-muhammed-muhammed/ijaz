@@ -533,6 +533,7 @@
     "total_requests": "کل درخواستیں",
     "active_requests": "فعال درخواستیں",
     "pending_requests": "زیر التواء درخواستیں",
+    "pending_requests_listed_first": "زیر التواء درخواستیں پہلے دکھائی جاتی ہیں، پھر جدید ترین۔",
     "completed_requests": "مکمل درخواستیں",
     "cancelled_requests": "منسوخ شدہ درخواستیں",
     "properties": "پراپرٹیز",

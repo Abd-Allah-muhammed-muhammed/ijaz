@@ -63,6 +63,10 @@ const Index = (
       </PageTitle>
       <ToolbarWrapper/>
       <Content>
+        <div className="alert alert-info d-flex align-items-center mb-5">
+          <span className="badge badge-light-primary me-3">{t('pending')}</span>
+          <span>{t('pending_requests_listed_first')}</span>
+        </div>
         <KTCard>
           <Table
             <WithdrawRequest>
