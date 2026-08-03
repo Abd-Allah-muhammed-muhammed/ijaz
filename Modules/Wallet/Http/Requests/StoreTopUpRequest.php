@@ -2,9 +2,9 @@
 
 namespace Modules\Wallet\Http\Requests;
 
+use App\Http\Requests\ApiRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Enum;
-use MMAE\ApiResponse\Request\ApiRequest;
 use Modules\Payment\Enums\PaymentMethodEnum;
 
 class StoreTopUpRequest extends ApiRequest

@@ -3,9 +3,9 @@
 namespace App\Http\Requests\Api\V1;
 
 use App\Enums\Auth\OtpPurposeEnum;
+use App\Http\Requests\ApiRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
-use MMAE\ApiResponse\Request\ApiRequest;
 
 class VerifyOTPRequest extends ApiRequest
 {

@@ -2,9 +2,9 @@
 
 namespace Modules\Guarantor\Http\Requests;
 
+use App\Http\Requests\ApiRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
-use MMAE\ApiResponse\Request\ApiRequest;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 
 class UpdateGuarantorStatusRequest extends ApiRequest

@@ -2,9 +2,9 @@
 
 namespace Modules\Orders\Http\Requests\Api;
 
+use App\Http\Requests\ApiRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Enum;
-use MMAE\ApiResponse\Request\ApiRequest;
 use Modules\Orders\Enums\OfferStatusEnum;
 
 class UpdateOfferStatusRequest extends ApiRequest

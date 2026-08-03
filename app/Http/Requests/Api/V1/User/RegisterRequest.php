@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Api\V1\User;
 
+use App\Http\Requests\ApiRequest;
 use App\Models\User;
 use App\Rules\ValidPhoneRule;
 use Illuminate\Contracts\Validation\ValidationRule;
-use MMAE\ApiResponse\Request\ApiRequest;
 
 class RegisterRequest extends ApiRequest
 {

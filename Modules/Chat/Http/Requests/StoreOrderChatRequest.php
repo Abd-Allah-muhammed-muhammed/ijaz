@@ -2,8 +2,8 @@
 
 namespace Modules\Chat\Http\Requests;
 
+use App\Http\Requests\ApiRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
-use MMAE\ApiResponse\Request\ApiRequest;
 
 class StoreOrderChatRequest extends ApiRequest
 {

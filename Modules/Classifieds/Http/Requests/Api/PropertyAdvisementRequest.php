@@ -2,10 +2,10 @@
 
 namespace Modules\Classifieds\Http\Requests\Api;
 
+use App\Http\Requests\ApiRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Enum;
 use JsonException;
-use MMAE\ApiResponse\Request\ApiRequest;
 use Modules\Classifieds\Enums\OperationEnum;
 
 class PropertyAdvisementRequest extends ApiRequest

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Http\Requests\ApiRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
-use MMAE\ApiResponse\Request\ApiRequest;
 
 class VerifyOtpSessionRequest extends ApiRequest
 {

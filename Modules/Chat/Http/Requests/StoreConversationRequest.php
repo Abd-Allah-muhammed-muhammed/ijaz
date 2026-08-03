@@ -2,7 +2,7 @@
 
 namespace Modules\Chat\Http\Requests;
 
-use MMAE\ApiResponse\Request\ApiRequest;
+use App\Http\Requests\ApiRequest;
 
 class StoreConversationRequest extends ApiRequest
 {
