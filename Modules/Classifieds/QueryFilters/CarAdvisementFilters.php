@@ -47,7 +47,7 @@ final class CarAdvisementFilters
             new UsageStatusFilter($this->request->filled('usage_status') ? (string) $this->request->string('usage_status') : null),
             new CarBrandFilter($this->request->filled('car_brand_id') ? $this->request->integer('car_brand_id') : null),
             new CarTypeFilter($this->request->filled('car_type_id') ? $this->request->integer('car_type_id') : null),
-            new CarCategoryFilter($this->request->filled('car_category_id') ? $this->request->integer('car_category_id') : null),
+            new CarCategoryFilter($this->resolveCarCategoryId()),
             new CityFilter($this->request->filled('city_id') ? $this->request->integer('city_id') : null),
             new RegionFilter($this->request->filled('region_id') ? $this->request->integer('region_id') : null),
             new YearRangeFilter(
@@ -69,5 +69,21 @@ final class CarAdvisementFilters
         }
 
         return $filters;
+    }
+
+    /**
+     * Prefer the type-specific param; accept mobile's generic `category_id` alias.
+     */
+    private function resolveCarCategoryId(): ?int
+    {
+        if ($this->request->filled('car_category_id')) {
+            return $this->request->integer('car_category_id');
+        }
+
+        if ($this->request->filled('category_id')) {
+            return $this->request->integer('category_id');
+        }
+
+        return null;
     }
 }

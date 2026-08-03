@@ -3,6 +3,7 @@
 use App\Models\User;
 use Illuminate\Http\Request;
 use Laravel\Sanctum\Sanctum;
+use Modules\Catalog\Models\CarCategory;
 use Modules\Catalog\Models\DeviceCategory;
 use Modules\Catalog\Models\ElectronicBrand;
 use Modules\Catalog\Models\Specialization;
@@ -12,6 +13,7 @@ use Modules\Classifieds\Enums\InstituteTypeEnum;
 use Modules\Classifieds\Enums\StudyLevelEnum;
 use Modules\Classifieds\Enums\StudyTypeEnum;
 use Modules\Classifieds\Http\Controllers\Api\V1\CarAdvisementController;
+use Modules\Classifieds\Http\Controllers\Api\V1\ElectronicAdvisementController;
 use Modules\Classifieds\Models\CarAdvisement;
 use Modules\Classifieds\Models\ElectronicAdvisement;
 use Modules\Classifieds\Models\InstituteAdvisement;
@@ -80,6 +82,75 @@ test('car/property/electronic/institute advisement filter accepts min_price=0', 
         ->and($ids)->toContain($zeroId)
         ->and($ids)->not->toContain($highId);
 })->with(['car', 'property', 'electronic', 'institute']);
+
+/**
+ * Mobile car marketplace sends the generic `category_id` query param (same name
+ * Property already uses), but CarAdvisementFilters historically only read
+ * `car_category_id` — so category filtering silently had no effect.
+ */
+test('car advisements list filters by category_id as an alias for car_category_id', function () {
+    $categoryA = CarCategory::factory()->create();
+    $categoryB = CarCategory::factory()->create();
+
+    CarAdvisement::factory()->published()->create(['car_category_id' => $categoryA->id]);
+    CarAdvisement::factory()->published()->create(['car_category_id' => $categoryB->id]);
+
+    $this->getJson(action([CarAdvisementController::class, 'all'], ['category_id' => $categoryA->id]))
+        ->assertOk()
+        ->assertJsonPath('data.total', 1)
+        ->assertJsonPath('data.items.0.car_category_id', $categoryA->id);
+});
+
+test('car advisements list still filters correctly when car_category_id is sent directly', function () {
+    $categoryA = CarCategory::factory()->create();
+    $categoryB = CarCategory::factory()->create();
+
+    CarAdvisement::factory()->published()->create(['car_category_id' => $categoryA->id]);
+    CarAdvisement::factory()->published()->create(['car_category_id' => $categoryB->id]);
+
+    $this->getJson(action([CarAdvisementController::class, 'all'], ['car_category_id' => $categoryA->id]))
+        ->assertOk()
+        ->assertJsonPath('data.total', 1)
+        ->assertJsonPath('data.items.0.car_category_id', $categoryA->id);
+});
+
+test('car advisements prefer car_category_id when both category params are sent', function () {
+    $categoryA = CarCategory::factory()->create();
+    $categoryB = CarCategory::factory()->create();
+
+    CarAdvisement::factory()->published()->create(['car_category_id' => $categoryA->id]);
+    CarAdvisement::factory()->published()->create(['car_category_id' => $categoryB->id]);
+
+    $this->getJson(action([CarAdvisementController::class, 'all'], [
+        'car_category_id' => $categoryA->id,
+        'category_id' => $categoryB->id,
+    ]))
+        ->assertOk()
+        ->assertJsonPath('data.total', 1)
+        ->assertJsonPath('data.items.0.car_category_id', $categoryA->id);
+});
+
+/**
+ * Same mobile mismatch risk as cars: electronics historically only read
+ * `device_category_id`. Property already accepts `category_id` natively.
+ */
+test('electronic advisements list filters by category_id as an alias for device_category_id', function () {
+    $categoryA = DeviceCategory::query()->create(['icon' => 'icons/a.png']);
+    $categoryA->translateOrNew('en')->title = 'Phones';
+    $categoryA->save();
+
+    $categoryB = DeviceCategory::query()->create(['icon' => 'icons/b.png']);
+    $categoryB->translateOrNew('en')->title = 'Laptops';
+    $categoryB->save();
+
+    createPublishedElectronicAdvisement(['device_category_id' => $categoryA->id]);
+    createPublishedElectronicAdvisement(['device_category_id' => $categoryB->id]);
+
+    $this->getJson(action([ElectronicAdvisementController::class, 'all'], ['category_id' => $categoryA->id]))
+        ->assertOk()
+        ->assertJsonPath('data.total', 1)
+        ->assertJsonPath('data.items.0.device_category_id', $categoryA->id);
+});
 
 /**
  * @return CarAdvisement|PropertyAdvisement|ElectronicAdvisement|InstituteAdvisement
