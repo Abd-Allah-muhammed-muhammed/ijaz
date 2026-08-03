@@ -74,7 +74,10 @@ class OpportunityController extends Controller
     {
         return $this->successResponse(
             OpportunityCollection::make(
-                $this->service->listPublic($request->integer('per_page', 10))
+                $this->service->listPublic(
+                    $request->user('sanctum') ?? $request->user(),
+                    $request->integer('per_page', 10),
+                )
             )
         );
     }
@@ -183,10 +186,15 @@ class OpportunityController extends Controller
      *   "message": "No query results for model."
      * }
      */
-    public function show(Opportunity $opportunity): JsonResponse
+    public function show(Request $request, Opportunity $opportunity): JsonResponse
     {
         return $this->successResponse(
-            OpportunityResource::make($this->service->loadForShow($opportunity))
+            OpportunityResource::make(
+                $this->service->loadForShow(
+                    $opportunity,
+                    $request->user('sanctum') ?? $request->user(),
+                )
+            )
         );
     }
 
@@ -299,7 +307,9 @@ class OpportunityController extends Controller
         $opportunity = $this->service->renew($opportunity, $expiresAt);
 
         return $this->successResponse(
-            OpportunityResource::make($this->service->loadForShow($opportunity)),
+            OpportunityResource::make(
+                $this->service->loadForShow($opportunity, $request->user()),
+            ),
         );
     }
 

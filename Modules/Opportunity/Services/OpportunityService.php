@@ -35,9 +35,9 @@ class OpportunityService
         return $this->listForDashboardAction->handle($request);
     }
 
-    public function listPublic(int $perPage = 10): LengthAwarePaginator
+    public function listPublic(?Model $actor = null, int $perPage = 10): LengthAwarePaginator
     {
-        return $this->opportunities->listPublic($perPage);
+        return $this->opportunities->listPublic($actor, $perPage);
     }
 
     public function listByActor(Model $actor, int $perPage = 10): LengthAwarePaginator
@@ -45,18 +45,9 @@ class OpportunityService
         return $this->opportunities->listByActor($actor, $perPage);
     }
 
-    public function loadForShow(Opportunity $opportunity): Opportunity
+    public function loadForShow(Opportunity $opportunity, ?Model $actor = null): Opportunity
     {
-        $opportunity->load([
-            'author',
-            'region.translation',
-            'city.translation',
-            'acceptedOffer.author',
-            'media',
-        ]);
-        $opportunity->loadCount(['offers', 'comments']);
-
-        return $opportunity;
+        return $this->opportunities->loadForShow($opportunity, $actor);
     }
 
     /**

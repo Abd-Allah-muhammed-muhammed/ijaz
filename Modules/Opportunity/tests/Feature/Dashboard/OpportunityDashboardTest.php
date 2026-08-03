@@ -60,6 +60,25 @@ test('admin with permission can view opportunities dashboard index', function ()
         );
 });
 
+test('admin dashboard opportunities index keeps global unscoped offers_count', function () {
+    withoutDashboardLocaleMiddleware();
+    $admin = createDashboardAdmin(['show opportunities']);
+
+    $opportunity = Opportunity::factory()->create();
+    OpportunityOffer::factory()->count(3)->create([
+        'opportunity_id' => $opportunity->id,
+    ]);
+
+    $this->actingAs($admin, 'admin')
+        ->get(action([DashboardOpportunityController::class, 'index']))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Opportunity/Index')
+            ->has('rows.data', 1)
+            ->where('rows.data.0.offers_count', 3)
+        );
+});
+
 test('admin with permission can view opportunity dashboard show page', function () {
     withoutDashboardLocaleMiddleware();
     $admin = createDashboardAdmin(['show opportunities']);
