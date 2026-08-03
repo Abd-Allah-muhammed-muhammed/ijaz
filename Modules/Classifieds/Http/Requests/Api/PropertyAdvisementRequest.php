@@ -3,6 +3,7 @@
 namespace Modules\Classifieds\Http\Requests\Api;
 
 use App\Http\Requests\ApiRequest;
+use App\Rules\ValidPhoneRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Enum;
 use JsonException;
@@ -43,7 +44,7 @@ class PropertyAdvisementRequest extends ApiRequest
             'facade' => ['nullable', 'string', 'max:255'],
             'street_width' => ['nullable', 'numeric', 'min:0'],
             'street_type' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', 'max:20', new ValidPhoneRule(existance: false)],
             'license' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:500'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],

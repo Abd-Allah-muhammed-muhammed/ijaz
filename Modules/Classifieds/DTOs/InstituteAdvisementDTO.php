@@ -2,6 +2,7 @@
 
 namespace Modules\Classifieds\DTOs;
 
+use App\Support\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 
@@ -62,7 +63,7 @@ final readonly class InstituteAdvisementDTO
             paymentNotes: $validated['payment_notes'] ?? null,
             courseUrl: $validated['course_url'] ?? null,
             studyLevel: $validated['study_level'] ?? null,
-            phone: $validated['phone'] ?? null,
+            phone: filled($validated['phone'] ?? null) ? Phone::make((string) $validated['phone'])->toString() : null,
             website: $validated['website'] ?? null,
             registrationUrl: $validated['registration_url'] ?? null,
             qualityUrl: $validated['quality_url'] ?? null,

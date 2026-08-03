@@ -3,6 +3,7 @@
 namespace Modules\Opportunity\Http\Requests;
 
 use App\Http\Requests\ApiRequest;
+use App\Rules\ValidPhoneRule;
 use App\Support\Normalize;
 use Illuminate\Contracts\Validation\ValidationRule;
 
@@ -24,7 +25,7 @@ class UpdateOpportunityRequest extends ApiRequest
             'budget' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'region_id' => ['sometimes', 'nullable', 'exists:regions,id'],
             'city_id' => ['sometimes', 'nullable', 'exists:cities,id'],
-            'phone' => ['sometimes', 'nullable', 'string', 'max:20'],
+            'phone' => ['sometimes', 'nullable', 'string', 'max:20', new ValidPhoneRule(existance: false)],
             'email' => ['sometimes', 'nullable', 'email', 'max:255'],
             'expires_at' => ['sometimes', 'nullable', 'date', 'after:today'],
             'files' => ['nullable', 'array'],

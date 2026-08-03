@@ -2,6 +2,8 @@
 
 namespace Modules\Cms\DTOs;
 
+use App\Support\Phone;
+
 final readonly class CreateMessageDTO
 {
     public function __construct(
@@ -18,7 +20,7 @@ final readonly class CreateMessageDTO
     {
         return new self(
             name: $validated['name'],
-            phone: $validated['phone'],
+            phone: Phone::make($validated['phone'])->toString(),
             title: $validated['title'],
             content: $validated['content'],
         );

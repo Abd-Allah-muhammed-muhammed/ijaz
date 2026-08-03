@@ -6,6 +6,7 @@ use App\DTOs\Admin\CreateAdminAccountDTO;
 use App\Models\Admin;
 use App\Services\Admin\AdminManagementService;
 use App\Services\Admin\RoleService;
+use App\Support\Phone;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -47,10 +48,27 @@ class CreateAdminCommand extends Command
             },
         );
 
-        $phone = text(
+        $rawPhone = text(
             label: 'Phone',
             required: 'Phone is required.',
+            validate: function (string $value): ?string {
+                $normalizedInput = preg_replace('/[\s\-]+/', '', $value) ?? $value;
+                $phone = Phone::make($normalizedInput);
+
+                if ($phone->isNotValid()) {
+                    return trans('messages.invalid_phone');
+                }
+
+                return null;
+            },
         );
+        $phone = Phone::make(preg_replace('/[\s\-]+/', '', $rawPhone) ?? $rawPhone)->toString();
+
+        if ($phone === '') {
+            $this->error(trans('messages.invalid_phone'));
+
+            return self::FAILURE;
+        }
 
         $password = password(
             label: 'Password',

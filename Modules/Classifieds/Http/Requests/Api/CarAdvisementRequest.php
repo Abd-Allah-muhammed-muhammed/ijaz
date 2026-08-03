@@ -3,6 +3,7 @@
 namespace Modules\Classifieds\Http\Requests\Api;
 
 use App\Http\Requests\ApiRequest;
+use App\Rules\ValidPhoneRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Enum;
 use JsonException;
@@ -44,7 +45,7 @@ class CarAdvisementRequest extends ApiRequest
             'color' => ['nullable', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
             'show_price' => ['sometimes', 'boolean'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', 'max:20', new ValidPhoneRule(existance: false)],
             'address' => ['nullable', 'string', 'max:500'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],

@@ -110,3 +110,30 @@ test('admin:create fails clearly when no roles exist for a non-root admin', func
 
     expect(Admin::query()->where('email', 'noroles@example.com')->exists())->toBeFalse();
 });
+
+test('admin:create rejects a non-Saudi/invalid phone format', function (): void {
+    $this->artisan('admin:create')
+        ->expectsQuestion('Name', 'Bad Phone Admin')
+        ->expectsQuestion('Email', 'badphone@example.com')
+        ->expectsQuestion('Phone', 'not-a-phone')
+        ->expectsOutputToContain(trans('messages.invalid_phone'))
+        ->assertFailed();
+
+    expect(Admin::query()->where('email', 'badphone@example.com')->exists())->toBeFalse();
+});
+
+test('admin:create normalizes a valid phone to the standard stored format', function (): void {
+    $this->artisan('admin:create')
+        ->expectsQuestion('Name', 'Normalized Phone Admin')
+        ->expectsQuestion('Email', 'normphone@example.com')
+        ->expectsQuestion('Phone', '05 0123 4568')
+        ->expectsQuestion('Password', 'SecurePass123!')
+        ->expectsQuestion('Confirm password', 'SecurePass123!')
+        ->expectsConfirmation('Is this a root account?', 'yes')
+        ->assertSuccessful();
+
+    $admin = Admin::query()->where('email', 'normphone@example.com')->first();
+
+    expect($admin)->not->toBeNull()
+        ->and($admin->phone)->toBe('966501234568');
+});

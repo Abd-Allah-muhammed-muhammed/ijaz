@@ -4,6 +4,7 @@ namespace App\Repositories\Admin;
 
 use App\Contracts\Admin\AdminManagementRepositoryInterface;
 use App\Models\Admin;
+use App\Support\Phone;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 
@@ -57,7 +58,13 @@ class AdminManagementRepository implements AdminManagementRepositoryInterface
 
     public function existsByPhone(string $phone): bool
     {
-        return Admin::query()->where('phone', $phone)->exists();
+        $variants = Phone::make($phone)->all();
+
+        if ($variants === []) {
+            return Admin::query()->where('phone', $phone)->exists();
+        }
+
+        return Admin::query()->whereIn('phone', $variants)->exists();
     }
 
     public function delete(Admin $admin): void

@@ -3,6 +3,7 @@
 namespace Modules\Classifieds\Http\Requests\Api;
 
 use App\Http\Requests\ApiRequest;
+use App\Rules\ValidPhoneRule;
 use App\Support\Normalize;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Enum;
@@ -38,7 +39,7 @@ class InstituteAdvisementRequest extends ApiRequest
             'hours_count' => ['nullable', 'integer', 'min:1'],
             'goals' => ['nullable', 'string'],
             'payment_notes' => ['nullable', 'string'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', 'max:20', new ValidPhoneRule(existance: false)],
             'website' => ['nullable', 'url', 'max:500'],
             'registration_url' => ['nullable', 'url', 'max:500'],
             'course_url' => ['nullable', 'url', 'max:500'],

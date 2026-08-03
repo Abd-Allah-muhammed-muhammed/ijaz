@@ -2,6 +2,7 @@
 
 namespace Modules\Jobs\DTOs;
 
+use App\Support\Phone;
 use Illuminate\Support\Carbon;
 use Modules\Jobs\Enums\JobTypeEnum;
 
@@ -35,7 +36,7 @@ final readonly class StoreJobDTO
             description: (string) $validated['description'],
             expectedSalary: (float) $validated['expected_salary'],
             expiredAt: Carbon::parse($validated['expired_at'])->setTimezone('UTC'),
-            contactNumber: (string) $validated['contact_number'],
+            contactNumber: Phone::make((string) $validated['contact_number'])->toString(),
             cityId: (int) $validated['city_id'],
             regionId: (int) $validated['region_id'],
             nationalityId: (int) $validated['nationality_id'],
