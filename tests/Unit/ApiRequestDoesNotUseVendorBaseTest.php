@@ -4,6 +4,8 @@ use App\Http\Requests\ApiRequest;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use Inertia\Support\Header as InertiaHeader;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Wallet\Http\Requests\Provider\WithdrawRequestRequest;
 use Modules\Wallet\Http\Requests\StoreWithdrawRequest;
@@ -51,7 +53,7 @@ test('no app or module FormRequest imports the buggy vendor ApiRequest', functio
     expect($hits)->toBeEmpty();
 });
 
-test('ApiRequest failedValidation returns the standard JSON envelope', function () {
+test('ApiRequest failedValidation returns the standard JSON envelope for JSON API requests', function () {
     $request = new class extends ApiRequest
     {
         public function authorize(): bool
@@ -64,6 +66,8 @@ test('ApiRequest failedValidation returns the standard JSON envelope', function 
             return ['amount' => ['required', 'numeric']];
         }
     };
+
+    $request->headers->set('Accept', 'application/json');
 
     $validator = Validator::make([], $request->rules());
 
@@ -80,6 +84,31 @@ test('ApiRequest failedValidation returns the standard JSON envelope', function 
             ])
             ->and($response->getData(true)['errors'])->toHaveKey('amount');
     }
+});
+
+test('ApiRequest failedValidation defers to Laravel for Inertia requests', function () {
+    $request = new class extends ApiRequest
+    {
+        public function authorize(): bool
+        {
+            return true;
+        }
+
+        public function rules(): array
+        {
+            return ['amount' => ['required', 'numeric']];
+        }
+    };
+
+    $request->headers->set(InertiaHeader::INERTIA, 'true');
+    $request->headers->set('Accept', 'text/html, application/xhtml+xml');
+    $request->setContainer(app());
+    $request->setRedirector(app('redirect'));
+
+    $validator = Validator::make([], $request->rules());
+
+    expect(fn () => $request->failedValidation($validator))
+        ->toThrow(ValidationException::class);
 });
 
 test('wallet withdraw FormRequests extend the application ApiRequest base', function () {

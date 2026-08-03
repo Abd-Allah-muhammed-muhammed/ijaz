@@ -38,6 +38,29 @@ test('provider can create withdraw request with sufficient balance', function ()
         ->and((float) $provider->wallet->fresh()->pending_debit)->toBe(200.0);
 });
 
+test('provider withdraw form validation failure redirects back with errors (Inertia-compatible), not raw JSON', function () {
+    withoutWalletLocaleMiddleware();
+    $provider = createWalletProvider();
+    fundWallet($provider, 300);
+
+    $response = $this->actingAs($provider, 'provider')
+        ->from(action([WithdrawController::class, 'index']))
+        ->withHeaders([
+            'X-Inertia' => 'true',
+            'X-Requested-With' => 'XMLHttpRequest',
+            'Accept' => 'text/html, application/xhtml+xml',
+        ])
+        ->post(action([WithdrawController::class, 'store']), [
+            'amount' => 1,
+        ]);
+
+    $response->assertRedirect(action([WithdrawController::class, 'index']))
+        ->assertSessionHasErrors(['amount']);
+
+    expect($response->headers->get('content-type') ?? '')->not->toContain('application/json')
+        ->and(WithdrawRequest::query()->count())->toBe(0);
+});
+
 test('provider cannot create withdraw with insufficient balance', function () {
     withoutWalletLocaleMiddleware();
     $provider = createWalletProvider();
