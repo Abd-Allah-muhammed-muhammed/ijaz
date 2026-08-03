@@ -41,7 +41,7 @@ final class ElectronicAdvisementFilters
     {
         $filters = [
             new ConditionFilter($this->request->filled('condition') ? (string) $this->request->string('condition') : null),
-            new DeviceCategoryFilter($this->request->filled('device_category_id') ? $this->request->integer('device_category_id') : null),
+            new DeviceCategoryFilter($this->resolveDeviceCategoryId()),
             new ElectronicBrandFilter($this->request->filled('electronic_brand_id') ? $this->request->integer('electronic_brand_id') : null),
             new CityFilter($this->request->filled('city_id') ? $this->request->integer('city_id') : null),
             new RegionFilter($this->request->filled('region_id') ? $this->request->integer('region_id') : null),
@@ -57,5 +57,21 @@ final class ElectronicAdvisementFilters
         }
 
         return $filters;
+    }
+
+    /**
+     * Prefer the type-specific param; accept mobile's generic `category_id` alias.
+     */
+    private function resolveDeviceCategoryId(): ?int
+    {
+        if ($this->request->filled('device_category_id')) {
+            return $this->request->integer('device_category_id');
+        }
+
+        if ($this->request->filled('category_id')) {
+            return $this->request->integer('category_id');
+        }
+
+        return null;
     }
 }
