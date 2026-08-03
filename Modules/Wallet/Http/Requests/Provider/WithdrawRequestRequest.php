@@ -2,8 +2,8 @@
 
 namespace Modules\Wallet\Http\Requests\Provider;
 
+use App\Http\Requests\ApiRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
-use MMAE\ApiResponse\Request\ApiRequest;
 
 class WithdrawRequestRequest extends ApiRequest
 {

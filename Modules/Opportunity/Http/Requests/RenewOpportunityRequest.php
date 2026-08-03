@@ -2,9 +2,9 @@
 
 namespace Modules\Opportunity\Http\Requests;
 
+use App\Http\Requests\ApiRequest;
 use App\Support\Normalize;
 use Illuminate\Contracts\Validation\ValidationRule;
-use MMAE\ApiResponse\Request\ApiRequest;
 
 class RenewOpportunityRequest extends ApiRequest
 {

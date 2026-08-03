@@ -2,8 +2,8 @@
 
 namespace Modules\Orders\Http\Requests\Api;
 
+use App\Http\Requests\ApiRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
-use MMAE\ApiResponse\Request\ApiRequest;
 
 class OrderRequest extends ApiRequest
 {

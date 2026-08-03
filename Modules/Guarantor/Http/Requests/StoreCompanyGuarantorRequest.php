@@ -2,11 +2,11 @@
 
 namespace Modules\Guarantor\Http\Requests;
 
+use App\Http\Requests\ApiRequest;
 use App\Support\Normalize;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
-use MMAE\ApiResponse\Request\ApiRequest;
 use Modules\Guarantor\Enums\AuthorizationTypeEnum;
 use Modules\Guarantor\Rules\CheckAuthenticatableId;
 

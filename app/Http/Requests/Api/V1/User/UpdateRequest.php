@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests\Api\V1\User;
 
+use App\Http\Requests\ApiRequest;
 use App\Models\User;
 use App\Rules\ValidPhoneRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
-use MMAE\ApiResponse\Request\ApiRequest;
 
 class UpdateRequest extends ApiRequest
 {
