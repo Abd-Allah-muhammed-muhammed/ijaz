@@ -6,6 +6,7 @@ import {Content} from "@/vendor/metronic/layout/components/content";
 import {Head, router} from "@inertiajs/react";
 import {KTCard} from "@/vendor/metronic/helpers";
 import Table from "@/shared/components/Table";
+import usePermissions from '@/shared/hooks/use-permissions';
 import {PaginationResource} from "@/shared/types";
 import {Review} from "@/shared/types/models";
 import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
@@ -32,6 +33,7 @@ const Index = (
   }: Props
 ) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const searchPrams: SearchPrams = prams || {
     per_page: 10,
     search: '',
@@ -107,7 +109,7 @@ const Index = (
             ]}
             actions={[
               {
-                show: true,
+                show: hasPermission('delete reviews'),
                 ele: (row) => (
                   <ConfirmAction
                     key={`delete-review-${row.id}`}

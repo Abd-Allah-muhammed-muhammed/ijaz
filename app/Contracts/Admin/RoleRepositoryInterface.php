@@ -36,6 +36,8 @@ interface RoleRepositoryInterface
      */
     public function getAllForAdminGuard(): Collection;
 
+    public function adminGuardRoleExists(string $roleName): bool;
+
     /**
      * @return Collection<int, Permission>
      */

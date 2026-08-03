@@ -6,6 +6,7 @@ import PropertyAdvisementController from '@/actions/Modules/Classifieds/Http/Con
 import { AdvisementStatusEnum, OperationEnum } from '@/Enums/Advisements';
 import { Media, PropertyAdvisement } from '@/shared/types/models';
 import { Head, Link, router } from '@inertiajs/react';
+import usePermissions from '@/shared/hooks/use-permissions';
 
 
 import { ReactElement } from 'react';
@@ -30,6 +31,9 @@ const operationConfig: Record<string, { badge: string; color: string }> = {
 
 const ShowPropertyAdvisement = ({ row }: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
+  const canEdit = hasPermission('edit propertyAdvisements');
+  const canDelete = hasPermission('delete propertyAdvisements');
 
   console.log(row);
 
@@ -122,17 +126,19 @@ const ShowPropertyAdvisement = ({ row }: Props) => {
                       <KTIcon iconName="arrow-left" className="fs-6 px-1" />
                       {t('back')}
                     </Link>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-icon btn-light-danger"
-                      onClick={() => {
-                        if (window.confirm(t('are_you_sure_delete'))) {
-                          router.delete(PropertyAdvisementController.destroy(row.id as number).url);
-                        }
-                      }}
-                    >
-                      <KTIcon iconName="trash" className="fs-3" />
-                    </button>
+                    {canDelete && (
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-icon btn-light-danger"
+                        onClick={() => {
+                          if (window.confirm(t('are_you_sure_delete'))) {
+                            router.delete(PropertyAdvisementController.destroy(row.id as number).url);
+                          }
+                        }}
+                      >
+                        <KTIcon iconName="trash" className="fs-3" />
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -349,7 +355,11 @@ const ShowPropertyAdvisement = ({ row }: Props) => {
                     <select
                       className={`form-select form-select-sm form-select-solid fw-bold fs-7 w-150px`}
                       value={row.status?.value}
-                      onChange={(e) => handleStatusChange(e.target.value)}
+                      disabled={!canEdit}
+                      onChange={(e) => {
+                        if (!canEdit) return;
+                        handleStatusChange(e.target.value);
+                      }}
                     >
                       <option value={AdvisementStatusEnum.PUBLISHED}>{t('advisement.status.published')}</option>
                       <option value={AdvisementStatusEnum.PENDING}>{t('advisement.status.pending')}</option>

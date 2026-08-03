@@ -56,5 +56,11 @@ class JobRequest extends ApiRequest
                 'expired_at' => Normalize::westernDigits($expiredAt),
             ]);
         }
+
+        if ($this->has('contact_number') && is_string($this->input('contact_number'))) {
+            $this->merge([
+                'contact_number' => preg_replace('/[\s\-]+/', '', $this->input('contact_number')),
+            ]);
+        }
     }
 }

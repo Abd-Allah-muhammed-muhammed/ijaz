@@ -6,6 +6,7 @@ import {Content} from "@/vendor/metronic/layout/components/content";
 import {Head, Link, router} from "@inertiajs/react";
 import {KTCard, KTIcon} from "@/vendor/metronic/helpers";
 import Table, {LinkAction} from "@/shared/components/Table";
+import usePermissions from '@/shared/hooks/use-permissions';
 import {PaginationResource} from "@/shared/types";
 import {ProviderType} from "@/shared/types/models";
 import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
@@ -24,6 +25,7 @@ type SearchPrams = {
 };
 const Index = ({rows, prams,}: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const searchPrams: SearchPrams = prams || {
     per_page: 10,
     search: '',
@@ -88,7 +90,7 @@ const Index = ({rows, prams,}: Props) => {
             ]}
             actions={[
               {
-                show: true,
+                show: hasPermission('edit providerTypes'),
                 ele: (row) => (
                   <LinkAction
                     key={`edit-provider_type-${row.id}`}
@@ -98,7 +100,7 @@ const Index = ({rows, prams,}: Props) => {
                 ),
               },
               {
-                show: true,
+                show: hasPermission('delete providerTypes'),
                 ele: (row) => (
                   <ConfirmAction
                     key={`delete-provider_type-${row.id}`}
@@ -111,12 +113,14 @@ const Index = ({rows, prams,}: Props) => {
               },
             ]}
             addButton={
-              <Link
+              hasPermission('create providerTypes') ? (
+                <Link
                 href={ProviderTypeController.create().url}
                 className="btn btn-primary"
               >
                 <KTIcon iconName='plus' className='fs-2'/>
               </Link>
+              ) : undefined
             }
           />
         </KTCard>

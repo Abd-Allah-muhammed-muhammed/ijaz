@@ -2,6 +2,7 @@
 
 namespace Modules\Opportunity\DTOs;
 
+use App\Support\Phone;
 use Illuminate\Support\Carbon;
 use Modules\Opportunity\Http\Requests\StoreOpportunityRequest;
 use Modules\Opportunity\Http\Requests\UpdateOpportunityRequest;
@@ -29,7 +30,7 @@ final readonly class OpportunityData
             budget: isset($validated['budget']) ? (float) $validated['budget'] : null,
             region_id: isset($validated['region_id']) ? (int) $validated['region_id'] : null,
             city_id: isset($validated['city_id']) ? (int) $validated['city_id'] : null,
-            phone: $validated['phone'] ?? null,
+            phone: filled($validated['phone'] ?? null) ? Phone::make((string) $validated['phone'])->toString() : null,
             email: $validated['email'] ?? null,
             expires_at: isset($validated['expires_at']) ? Carbon::parse($validated['expires_at']) : null,
         );

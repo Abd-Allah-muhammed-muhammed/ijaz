@@ -2,6 +2,7 @@
 
 namespace Modules\Classifieds\DTOs;
 
+use App\Support\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 
@@ -60,7 +61,7 @@ final readonly class PropertyAdvisementDTO
             facade: $validated['facade'] ?? null,
             streetWidth: isset($validated['street_width']) ? (float) $validated['street_width'] : null,
             streetType: $validated['street_type'] ?? null,
-            phone: $validated['phone'] ?? null,
+            phone: filled($validated['phone'] ?? null) ? Phone::make((string) $validated['phone'])->toString() : null,
             license: $validated['license'] ?? null,
             address: $validated['address'] ?? null,
             latitude: isset($validated['latitude']) ? (float) $validated['latitude'] : null,

@@ -2,6 +2,7 @@
 
 namespace App\DTOs\Auth;
 
+use App\Support\Phone;
 use Illuminate\Http\UploadedFile;
 
 final readonly class UpdateAdminProfileDTO
@@ -23,7 +24,7 @@ final readonly class UpdateAdminProfileDTO
     {
         return new self(
             name: $validated['name'],
-            phone: $validated['phone'],
+            phone: Phone::make($validated['phone'])->toString(),
             email: $validated['email'],
             address: $validated['address'],
             job: $validated['job'],

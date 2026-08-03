@@ -5,6 +5,7 @@ import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import SpecializationController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/SpecializationController';
 import Table, { LinkAction } from '@/shared/components/Table';
+import usePermissions from '@/shared/hooks/use-permissions';
 import ConfirmAction from '@/shared/components/Table/partials/confirm-action';
 import { PaginationResource } from '@/shared/types';
 import { Specialization } from '@/shared/types/models';
@@ -24,6 +25,7 @@ type SearchPrams = {
 };
 const Index = ({ rows, prams }: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const searchPrams: SearchPrams = prams || {
     per_page: 10,
     search: '',
@@ -87,13 +89,13 @@ const Index = ({ rows, prams }: Props) => {
             ]}
             actions={[
               {
-                show: true,
+                show: hasPermission('edit specializations'),
                 ele: (row) => (
                   <LinkAction key={`edit-specialization-${row.id}`} href={SpecializationController.edit(row.id as number).url} title={t('edit')} />
                 ),
               },
               {
-                show: true,
+                show: hasPermission('delete specializations'),
                 ele: (row) => (
                   <ConfirmAction
                     key={`delete-specialization-${row.id}`}
@@ -106,9 +108,11 @@ const Index = ({ rows, prams }: Props) => {
               },
             ]}
             addButton={
-              <Link href={SpecializationController.create().url} className="btn btn-primary">
+              hasPermission('create specializations') ? (
+                <Link href={SpecializationController.create().url} className="btn btn-primary">
                 <KTIcon iconName="plus" className="fs-2" />
               </Link>
+              ) : undefined
             }
           />
         </KTCard>

@@ -1,4 +1,4 @@
-import { createPermissionChecker, type PermissionChecker } from '@/shared/lib/permissions';
+import { createPermissionChecker, roleNamesFromAuth, type PermissionChecker, type RoleLike } from '@/shared/lib/permissions';
 import { usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
 
@@ -16,9 +16,14 @@ import { useMemo } from 'react';
 export default function usePermissions(): PermissionChecker {
   const { user, permissions } = usePage().props.auth;
 
+  const roleNames = useMemo(
+    () => roleNamesFromAuth(user?.roles as RoleLike[] | undefined),
+    [user?.roles],
+  );
+
   return useMemo(
-    () => createPermissionChecker(permissions ?? [], user?.roles ?? [], Boolean(user?.root)),
-    [permissions, user?.roles, user?.root],
+    () => createPermissionChecker(permissions ?? [], roleNames, Boolean(user?.root)),
+    [permissions, roleNames, user?.root],
   );
 }
 

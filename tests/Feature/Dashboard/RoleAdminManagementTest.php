@@ -163,7 +163,31 @@ it('stores an admin with roles attached', function (): void {
 
     $created = Admin::query()->where('email', 'staff@example.com')->firstOrFail();
     expect($created->roles->pluck('id')->all())->toContain($role->id)
+        ->and($created->phone)->toBe('966501112233')
         ->and($created->image)->not->toBeNull();
+});
+
+it('rejects an invalid admin phone on store', function (): void {
+    Storage::fake('public');
+
+    $admin = createAdminManagementAdmin(['create admins']);
+    $role = Role::create(['name' => 'staff-invalid-phone', 'guard_name' => 'admin']);
+
+    $this->actingAs($admin, 'admin')
+        ->post(action([AdminController::class, 'store']), [
+            'name' => 'Bad Phone Staff',
+            'phone' => 'not-a-phone',
+            'email' => 'bad-staff@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'address' => 'Jeddah',
+            'job' => 'Staff',
+            'image' => UploadedFile::fake()->image('avatar.jpg'),
+            'roles' => [$role->id],
+        ])
+        ->assertSessionHasErrors('phone');
+
+    expect(Admin::query()->where('email', 'bad-staff@example.com')->exists())->toBeFalse();
 });
 
 it('updates an admin without requiring a new password', function (): void {

@@ -1,4 +1,5 @@
 import { KTIcon } from '@/vendor/metronic/helpers';
+import usePermissions from '@/shared/hooks/use-permissions';
 import { ElectronicAdvisement } from '@/shared/types/models';
 import { Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +11,7 @@ type Props = {
 
 const ElectronicAdvisementCard = ({ row }: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
 
   return (
     <div className="card h-100 border-0 shadow-sm overflow-hidden hover-elevate-up">
@@ -126,18 +128,20 @@ const ElectronicAdvisementCard = ({ row }: Props) => {
             >
               <KTIcon iconName="arrow-right" className="fs-4" />
             </Link>
-            <button
-              type="button"
-              aria-label={t('delete')}
-              className="btn btn-icon btn-light-danger btn-sm rounded-circle"
-              onClick={() => {
-                if (window.confirm(t('are_you_sure_delete'))) {
-                  router.delete(ElectronicAdvisementController.show(row.id as number).url);
-                }
-              }}
-            >
-              <KTIcon iconName="trash" className="fs-4" />
-            </button>
+            {hasPermission('delete electronicAdvisements') && (
+              <button
+                type="button"
+                aria-label={t('delete')}
+                className="btn btn-icon btn-light-danger btn-sm rounded-circle"
+                onClick={() => {
+                  if (window.confirm(t('are_you_sure_delete'))) {
+                    router.delete(ElectronicAdvisementController.destroy(row.id as number).url);
+                  }
+                }}
+              >
+                <KTIcon iconName="trash" className="fs-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>

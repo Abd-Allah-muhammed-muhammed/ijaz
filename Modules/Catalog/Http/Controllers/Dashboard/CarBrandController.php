@@ -25,7 +25,7 @@ class CarBrandController extends Controller implements HasMiddleware
         return [
             new Middleware('permission:show carBrands', only: ['index', 'show']),
             new Middleware('permission:create carBrands', only: ['create', 'store']),
-            new Middleware('permission:edit carBrands', only: ['edit', 'update']),
+            new Middleware('permission:edit carBrands', only: ['edit', 'update', 'updateStatus']),
             new Middleware('permission:delete carBrands', only: ['destroy']),
         ];
     }

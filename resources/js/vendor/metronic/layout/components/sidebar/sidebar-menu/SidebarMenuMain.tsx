@@ -377,11 +377,13 @@ const SidebarMenuMain = () => {
       />
 
       {/* 13. Content / CMS → Banners, Pages, Questions, Messages */}
-      <div className="menu-item">
-        <div className="menu-content pt-8 pb-2">
-          <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('content_cms')}</span>
+      {hasAnyPermission(['show banners', 'show pages', 'show questions', 'show messages']) && (
+        <div className="menu-item">
+          <div className="menu-content pt-8 pb-2">
+            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('content_cms')}</span>
+          </div>
         </div>
-      </div>
+      )}
       <SidebarMenuItem
         to={BannerController.index().url}
         title={t('banners')}
@@ -396,6 +398,7 @@ const SidebarMenuMain = () => {
         icon="document"
         fontIcon="bi-file-earmark-text"
         isActive={matchComponents('dashboard.pages.*')}
+        show={hasPermission('show pages')}
       />
       <SidebarMenuItem
         to={QuestionController.index().url}
@@ -403,6 +406,7 @@ const SidebarMenuMain = () => {
         icon="question-2"
         fontIcon="bi-question-circle"
         isActive={matchComponents('dashboard.questions.*')}
+        show={hasPermission('show questions')}
       />
       <SidebarMenuItem
         to={MessageController.index().url}
@@ -410,20 +414,24 @@ const SidebarMenuMain = () => {
         icon="sms"
         fontIcon="bi-chat-dots"
         isActive={matchComponents('dashboard.messages.*')}
+        show={hasPermission('show messages')}
       />
 
       {/* 14. Support → Tickets */}
-      <div className="menu-item">
-        <div className="menu-content pt-8 pb-2">
-          <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('support')}</span>
+      {hasPermission('show supportTicket') && (
+        <div className="menu-item">
+          <div className="menu-content pt-8 pb-2">
+            <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('support')}</span>
+          </div>
         </div>
-      </div>
+      )}
       <SidebarMenuItem
         to={SupportController.index().url}
         title={t('tickets')}
         icon="message-question"
         fontIcon="bi-headset"
         isActive={matchComponents('dashboard.tickets.*')}
+        show={hasPermission('show supportTicket')}
       />
 
       {/* 15. Quality & System → Reviews, Settings, Pan Analytics */}

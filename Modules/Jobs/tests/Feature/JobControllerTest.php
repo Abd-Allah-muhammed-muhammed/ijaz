@@ -67,7 +67,18 @@ test('store attaches skills and accepts a real phone contact_number', function (
         ->assertJsonPath('data.title', 'Job With Skills');
 
     $job = JobOffer::query()->where('title', 'Job With Skills')->firstOrFail();
-    expect($job->skills()->pluck('skills.id')->all())->toBe([$fixtures['skill']->id]);
+    expect($job->skills()->pluck('skills.id')->all())->toBe([$fixtures['skill']->id])
+        ->and($job->contact_number)->toBe('966501234567');
+});
+
+test('job store rejects an invalid contact_number', function () {
+    $fixtures = createJobsModuleFixtures();
+    Sanctum::actingAs($fixtures['user']);
+
+    $this->postJson('/api/v1/jobs', jobsModulePayload($fixtures, [
+        'contact_number' => 'not-a-phone',
+    ]))->assertUnprocessable()
+        ->assertJsonValidationErrors(['contact_number']);
 });
 
 test('job expired_at accepts Arabic-Indic digits', function () {

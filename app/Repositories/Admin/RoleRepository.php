@@ -58,6 +58,14 @@ class RoleRepository implements RoleRepositoryInterface
         return Role::where('guard_name', 'admin')->get();
     }
 
+    public function adminGuardRoleExists(string $roleName): bool
+    {
+        return Role::query()
+            ->where('guard_name', 'admin')
+            ->where('name', $roleName)
+            ->exists();
+    }
+
     public function listAdminPermissions(): Collection
     {
         return Permission::where('guard_name', 'admin')->get();

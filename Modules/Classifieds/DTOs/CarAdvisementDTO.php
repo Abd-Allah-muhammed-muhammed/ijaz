@@ -2,6 +2,7 @@
 
 namespace Modules\Classifieds\DTOs;
 
+use App\Support\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 
@@ -59,7 +60,7 @@ final readonly class CarAdvisementDTO
             fuelType: $validated['fuel_type'] ?? null,
             engineSize: $validated['engine_size'] ?? null,
             color: $validated['color'] ?? null,
-            phone: $validated['phone'] ?? null,
+            phone: filled($validated['phone'] ?? null) ? Phone::make((string) $validated['phone'])->toString() : null,
             address: $validated['address'] ?? null,
             latitude: isset($validated['latitude']) ? (float) $validated['latitude'] : null,
             longitude: isset($validated['longitude']) ? (float) $validated['longitude'] : null,

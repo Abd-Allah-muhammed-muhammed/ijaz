@@ -5,6 +5,7 @@ import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import CarCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarCategoryController';
 import Table, { LinkAction } from '@/shared/components/Table';
+import usePermissions from '@/shared/hooks/use-permissions';
 import ConfirmAction from '@/shared/components/Table/partials/confirm-action';
 import { PaginationResource } from '@/shared/types';
 import { Category } from '@/shared/types/models';
@@ -24,6 +25,7 @@ type SearchPrams = {
 };
 const Index = ({ rows, prams }: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const searchPrams: SearchPrams = prams || {
     per_page: 10,
     search: '',
@@ -96,13 +98,13 @@ const Index = ({ rows, prams }: Props) => {
             ]}
             actions={[
               {
-                show: true,
+                show: hasPermission('edit carCategories'),
                 ele: (row) => (
                   <LinkAction key={`edit-category-${row.id}`} href={CarCategoryController.edit(row.id as number).url} title={t('edit')} />
                 ),
               },
               {
-                show: true,
+                show: hasPermission('delete carCategories'),
                 ele: (row) => (
                   <ConfirmAction
                     key={`delete-category-${row.id}`}
@@ -115,9 +117,11 @@ const Index = ({ rows, prams }: Props) => {
               },
             ]}
             addButton={
-              <Link href={CarCategoryController.create().url} className="btn btn-primary">
+              hasPermission('create carCategories') ? (
+                <Link href={CarCategoryController.create().url} className="btn btn-primary">
                 <KTIcon iconName="plus" className="fs-2" />
               </Link>
+              ) : undefined
             }
           />
         </KTCard>

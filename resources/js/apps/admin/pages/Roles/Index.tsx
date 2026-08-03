@@ -6,6 +6,7 @@ import {Content} from "@/vendor/metronic/layout/components/content";
 import {Head, Link, router} from "@inertiajs/react";
 import {KTCard, KTIcon} from "@/vendor/metronic/helpers";
 import Table, {LinkAction} from "@/shared/components/Table";
+import usePermissions from '@/shared/hooks/use-permissions';
 import {PaginationResource} from "@/shared/types";
 import {Role} from "@/shared/types/models";
 import RoleController from "@/actions/App/Http/Controllers/Dashboard/RoleController";
@@ -30,6 +31,7 @@ const Index = (
   }: Props
 ) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const searchPrams: SearchPrams = prams || {
     per_page: 10,
     search: '',
@@ -87,7 +89,7 @@ const Index = (
             ]}
             actions={[
               {
-                show: true,
+                show: hasPermission('edit roles'),
                 ele: (row) => (
                   <LinkAction
                     key={`edit-role-${row.id}`}
@@ -97,7 +99,7 @@ const Index = (
                 ),
               },
               {
-                show: true,
+                show: hasPermission('delete roles'),
                 ele: (row) => (
                   <ConfirmAction
                     key={`delete-role-${row.id}`}
@@ -110,12 +112,14 @@ const Index = (
               },
             ]}
             addButton={
-              <Link
+              hasPermission('create roles') ? (
+                <Link
                 href={RoleController.create().url}
                 className="btn btn-primary"
               >
                 <KTIcon iconName='plus' className='fs-2'/>
               </Link>
+              ) : undefined
             }
           />
         </KTCard>

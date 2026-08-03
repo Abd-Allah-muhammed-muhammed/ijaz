@@ -19,9 +19,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            // Roles first so AdminRootSeeder can assign super-admin to root.
+            // Roles/permissions only — create the first admin with: php artisan admin:create
             RolePermissionSeeder::class,
-            AdminRootSeeder::class,
+            SystemSeeder::class,
             ProviderPermissionsSeeder::class,
             SettingsSeeder::class,
             RegionsAndCitiesSeeder::class,

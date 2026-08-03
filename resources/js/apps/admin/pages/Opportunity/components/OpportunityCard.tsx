@@ -1,4 +1,5 @@
 import OpportunityController from '@/actions/Modules/Opportunity/Http/Controllers/Dashboard/OpportunityController';
+import usePermissions from '@/shared/hooks/use-permissions';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import { Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
@@ -30,6 +31,7 @@ const statusBadgeClass: Record<string, string> = {
 
 const OpportunityCard = ({ row }: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const badgeClass = statusBadgeClass[row.status?.value] ?? 'badge-light-secondary';
 
   return (
@@ -91,17 +93,19 @@ const OpportunityCard = ({ row }: Props) => {
           <Link href={OpportunityController.show(row.id).url} className="btn btn-sm btn-light-primary">
             {t('details')}
           </Link>
-          <button
-            type="button"
-            className="btn btn-sm btn-light-danger"
-            onClick={() => {
-              if (window.confirm(t('are_you_sure_delete'))) {
-                router.delete(OpportunityController.destroy(row.id).url);
-              }
-            }}
-          >
-            {t('delete')}
-          </button>
+          {hasPermission('delete opportunities') && (
+            <button
+              type="button"
+              className="btn btn-sm btn-light-danger"
+              onClick={() => {
+                if (window.confirm(t('are_you_sure_delete'))) {
+                  router.delete(OpportunityController.destroy(row.id).url);
+                }
+              }}
+            >
+              {t('delete')}
+            </button>
+          )}
         </div>
       </div>
     </div>

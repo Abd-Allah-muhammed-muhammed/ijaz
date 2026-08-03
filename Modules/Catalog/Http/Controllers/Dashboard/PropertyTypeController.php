@@ -27,7 +27,7 @@ class PropertyTypeController extends Controller implements HasMiddleware
         return [
             new Middleware('permission:show propertyTypes', only: ['index', 'show']),
             new Middleware('permission:create propertyTypes', only: ['create', 'store']),
-            new Middleware('permission:edit propertyTypes', only: ['edit', 'update']),
+            new Middleware('permission:edit propertyTypes', only: ['edit', 'update', 'updateStatus']),
             new Middleware('permission:delete propertyTypes', only: ['destroy']),
         ];
     }

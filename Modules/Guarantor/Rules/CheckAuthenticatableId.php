@@ -20,13 +20,20 @@ class CheckAuthenticatableId implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $user = auth()->user();
         $phone = Phone::make($value);
+
+        if ($phone->isNotValid()) {
+            $fail(trans('messages.invalid_phone'));
+
+            return;
+        }
+
+        $user = auth()->user();
         $exists = match ($this->type) {
-            'user' => User::where($this->attribute ?? 'phone', $phone)
+            'user' => User::where($this->attribute ?? 'phone', $phone->toString())
                 ->when(get_class($user) === User::class, fn ($q) => $q->where('id', '!=', $user->id))
                 ->exists(),
-            'provider' => Provider::where($this->attribute ?? 'phone', $phone)
+            'provider' => Provider::where($this->attribute ?? 'phone', $phone->toString())
                 ->when(get_class($user) === Provider::class, fn ($q) => $q->where('id', '!=', $user->id))
                 ->exists(),
             default => false,

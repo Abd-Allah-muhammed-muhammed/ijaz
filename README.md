@@ -26,8 +26,28 @@ wallets, payments, guarantee requests, advisements, and support tickets.
    - `php artisan key:generate`
 5. Run migrations and seeders:
    - `php artisan migrate --seed`
-6. Start frontend build/dev process:
+6. Create the initial root admin (interactive — password is never stored in code):
+   - `php artisan admin:create`
+   - Confirm **yes** when asked "Is this a root account?"
+7. Start frontend build/dev process:
    - `npm run dev`
+
+### Creating additional admins
+
+```bash
+# After RolePermissionSeeder has run (included in db:seed):
+php artisan admin:create
+```
+
+Answer the prompts for name, email, phone, and password (masked). Choose **no** for
+root, then select an existing admin-guard role (`super-admin`, `operations`, `finance`,
+`support`, `content-manager`, `viewer-monitor`, `developer`).
+
+If no roles exist yet, the command fails with guidance to run:
+
+```bash
+php artisan db:seed --class=Database\\Seeders\\RolePermissionSeeder
+```
 
 Note: In this environment, Laravel Herd serves the app; no manual `php artisan serve` is required.
 
@@ -52,6 +72,7 @@ Architecture rules live in `.cursor/rules/layered-architecture.mdc` (Claude Skil
 - Format PHP: `vendor/bin/pint --dirty --format agent`
 - List routes: `php artisan route:list --except-vendor`
 - Generate Wayfinder routes/actions: `php artisan wayfinder:generate`
+- Create admin accounts: `php artisan admin:create`
 
 ## Notes
 
@@ -97,6 +118,7 @@ DB_PASSWORD=
 php artisan migrate --force
 php artisan db:seed --force
 php artisan db:seed --class=Modules\\Guarantor\\Database\\Seeders\\GuarantorPermissionSeeder --force
+php artisan admin:create   # interactive: create root admin (no hardcoded password in seeders)
 ```
 
 #### 4. Cache

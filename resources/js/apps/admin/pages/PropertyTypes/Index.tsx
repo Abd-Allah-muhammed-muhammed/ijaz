@@ -85,7 +85,11 @@ const Index = ({ rows, prams }: Props) => {
                       className="h-20px w-30px"
                       type="checkbox"
                       defaultChecked={row.is_active}
+                      disabled={!hasPermission('edit propertyTypes')}
                       onClick={() => {
+                        if (!hasPermission('edit propertyTypes')) {
+                          return;
+                        }
                         router.put(PropertyTypeController.updateStatus(row.id as number).url, {
                           is_active: !row.is_active,
                         },{

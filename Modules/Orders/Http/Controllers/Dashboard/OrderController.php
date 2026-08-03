@@ -5,17 +5,26 @@ namespace Modules\Orders\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Modules\Chat\Http\Resources\Dashboard\ConversationMessageCollection;
 use Modules\Orders\Http\Resources\Dashboard\OrderCollection;
 use Modules\Orders\Http\Resources\Dashboard\OrderResource;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Services\OrderService;
 
-class OrderController extends Controller
+class OrderController extends Controller implements HasMiddleware
 {
     public function __construct(
         private readonly OrderService $orderService,
     ) {}
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:show orders', only: ['index', 'show', 'conversationMessages']),
+        ];
+    }
 
     /**
      * Display a listing of the resource.

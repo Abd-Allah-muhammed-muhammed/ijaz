@@ -2,6 +2,7 @@
 
 namespace App\DTOs\Admin;
 
+use App\Support\Phone;
 use Illuminate\Http\UploadedFile;
 
 final readonly class StoreAdminDTO
@@ -27,7 +28,7 @@ final readonly class StoreAdminDTO
     {
         return new self(
             name: $validated['name'],
-            phone: $validated['phone'],
+            phone: Phone::make($validated['phone'])->toString(),
             email: $validated['email'],
             password: $validated['password'],
             address: $validated['address'],
