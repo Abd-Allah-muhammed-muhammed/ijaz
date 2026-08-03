@@ -941,6 +941,8 @@
     "user_note": "User Note",
     "search_by_phone": "Search by phone...",
     "conversations": "Conversations",
+    "no_conversations_yet": "No conversations yet",
+    "select_a_conversation": "Select a conversation to start messaging",
     "send": "Send",
     "review": "Review",
     "user review": "User Review",

@@ -144,7 +144,6 @@ const ConversationContent = ({ }: Props) => {
     return () => {
       window.Echo.leave(`chats.${currentConversation?.id}`);
       setMessages([]);
-      setCurrentConversation(null)
     };
 
   }, [currentConversation]);

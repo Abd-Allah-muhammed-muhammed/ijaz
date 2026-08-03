@@ -1,16 +1,14 @@
-import {Conversation as Chat} from "@/shared/types/models";
 import Conversation from "@/shared/components/chat/components/conversation";
-import React, {useContext} from "react";
-import {ConversationContext, useConversations} from "@/store/use-chat";
+import React from "react";
+import {useConversations} from "@/store/use-chat";
+import {useTranslation} from "react-i18next";
+import {KTIcon} from "@/vendor/metronic/helpers";
 
-type Props = {
-  conversations: Chat[],
-  currentSocketId: string
-};
 const ConversationsList = () => {
   const {conversations, currentSocketId} = useConversations();
-  return (
+  const {t} = useTranslation();
 
+  return (
     <div
       className='scroll-y me-n5 pe-5 h-100'
       data-kt-scroll='true'
@@ -20,15 +18,21 @@ const ConversationsList = () => {
       data-kt-scroll-wrappers='#kt_content, #kt_chat_contacts_body'
       data-kt-scroll-offset='0px'
     >
-      {conversations.map((chat, index) => (
-        <React.Fragment key={chat.id}>
-          <Conversation chat={chat} currentSocketId={currentSocketId} />
-          {index !== (conversations.length - 1) && (
-            <div className='separator separator-dashed d-none'></div>
-          )}
-        </React.Fragment>
-
-      ))}
+      {conversations.length === 0 ? (
+        <div className="py-20 text-center">
+          <KTIcon iconName="messages" className="fs-5x mb-5 text-gray-300" />
+          <p className="text-muted fw-semibold fs-5 mb-0">{t('no_conversations_yet')}</p>
+        </div>
+      ) : (
+        conversations.map((chat, index) => (
+          <React.Fragment key={chat.id}>
+            <Conversation chat={chat} currentSocketId={currentSocketId} />
+            {index !== (conversations.length - 1) && (
+              <div className='separator separator-dashed d-none'></div>
+            )}
+          </React.Fragment>
+        ))
+      )}
     </div>
   );
 }

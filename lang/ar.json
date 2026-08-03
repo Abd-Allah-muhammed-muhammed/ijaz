@@ -854,6 +854,8 @@
     "user_note": "ملاحظة المستخدم",
     "search_by_phone": "البحث برقم الهاتف...",
     "conversations": "المحادثات",
+    "no_conversations_yet": "لا توجد محادثات بعد",
+    "select_a_conversation": "اختر محادثة لبدء المراسلة",
     "send": "إرسال",
     "review": "التقييم",
     "user review": "تقييم العميل",

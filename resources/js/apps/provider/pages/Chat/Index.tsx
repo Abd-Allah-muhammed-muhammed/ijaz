@@ -8,6 +8,7 @@ import {Head, usePage} from "@inertiajs/react";
 import ConversationContent from "@/shared/components/chat/components/conversation-content";
 import {useConversations} from "@/store/use-chat";
 import { useTranslation } from 'react-i18next';
+import {KTIcon} from "@/vendor/metronic/helpers";
 
 type Props = {
   rows: PaginationResource<Conversation>,
@@ -48,8 +49,15 @@ const Index = ({rows}: Props) => {
         </div>
 
         <div className='flex-lg-row-fluid ms-lg-7 ms-xl-10 h-100'>
-          {currentConversation && (
+          {currentConversation ? (
             <ConversationContent/>
+          ) : (
+            <div className="card border-0 shadow-sm h-100">
+              <div className="card-body py-20 text-center d-flex flex-column align-items-center justify-content-center">
+                <KTIcon iconName="message-text-2" className="fs-5x mb-5 text-gray-300" />
+                <p className="text-muted fw-semibold fs-5 mb-0">{t('select_a_conversation')}</p>
+              </div>
+            </div>
           )}
         </div>
       </div>
