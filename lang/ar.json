@@ -611,6 +611,7 @@
     "total_requests": "إجمالي الطلبات",
     "active_requests": "الطلبات النشطة",
     "pending_requests": "الطلبات المعلقة",
+    "pending_requests_listed_first": "تُعرض الطلبات المعلقة أولاً، ثم الأحدث.",
     "completed_requests": "الطلبات المكتملة",
     "cancelled_requests": "الطلبات الملغاة",
     "cancelled_by_provider": "ملغي من قبل مقدم الخدمة",
@@ -853,6 +854,8 @@
     "user_note": "ملاحظة المستخدم",
     "search_by_phone": "البحث برقم الهاتف...",
     "conversations": "المحادثات",
+    "no_conversations_yet": "لا توجد محادثات بعد",
+    "select_a_conversation": "اختر محادثة لبدء المراسلة",
     "send": "إرسال",
     "review": "التقييم",
     "user review": "تقييم العميل",
@@ -886,5 +889,7 @@
     "something went wrong": "حدث خطأ ما",
     "payment_successful": "تم الدفع بنجاح",
     "payment_failed": "فشل الدفع",
-    "payment_failed_please_try_again": "فشل الدفع، يرجى المحاولة مرة أخرى"
+    "payment_failed_please_try_again": "فشل الدفع، يرجى المحاولة مرة أخرى",
+    "this category has subcategories": "لا يمكن حذف هذا التصنيف لأنه يحتوي على تصنيفات فرعية. يرجى حذفها أو إعادة تعيينها أولاً.",
+    "this specialization has subspecializations": "لا يمكن حذف هذا التخصص لأنه يحتوي على تخصصات فرعية. يرجى حذفها أو إعادة تعيينها أولاً."
 }

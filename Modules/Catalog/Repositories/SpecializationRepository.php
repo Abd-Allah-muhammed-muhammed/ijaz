@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Contracts\Repositories\SpecializationRepositoryInterface;
+use Modules\Catalog\Exceptions\CatalogException;
 use Modules\Catalog\Models\Specialization;
 use Modules\Catalog\QueryFilters\Specialization\SpecializationFilters;
 
@@ -56,7 +57,7 @@ class SpecializationRepository implements SpecializationRepositoryInterface
     public function delete(Specialization $specialization): void
     {
         if ($specialization->children()->exists()) {
-            throw new \Exception(__('this specialization has subspecializations'));
+            throw new CatalogException(__('this specialization has subspecializations'));
         }
         $specialization->deleteIcon();
         $specialization->delete();

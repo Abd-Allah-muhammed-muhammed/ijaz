@@ -714,6 +714,7 @@
     "total_requests": "Total Requests",
     "active_requests": "Active Requests",
     "pending_requests": "Pending Requests",
+    "pending_requests_listed_first": "Pending requests are listed first, then newest.",
     "completed_requests": "Completed Requests",
     "cancelled_requests": "Cancelled Requests",
     "properties": "Properties",
@@ -940,6 +941,8 @@
     "user_note": "User Note",
     "search_by_phone": "Search by phone...",
     "conversations": "Conversations",
+    "no_conversations_yet": "No conversations yet",
+    "select_a_conversation": "Select a conversation to start messaging",
     "send": "Send",
     "review": "Review",
     "user review": "User Review",
@@ -967,5 +970,7 @@
     "Payment Successful": "Payment Successful",
     "Payment Failed, Please Try Again": "Payment Failed, Please Try Again",
     "something went wrong": "Something went wrong",
-    "payment_failed_please_try_again": "Payment failed, please try again"
+    "payment_failed_please_try_again": "Payment failed, please try again",
+    "this category has subcategories": "Cannot delete this category because it has subcategories. Please delete or reassign them first.",
+    "this specialization has subspecializations": "Cannot delete this specialization because it has subspecializations. Please delete or reassign them first."
 }

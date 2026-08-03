@@ -11,10 +11,12 @@ use Inertia\Response;
 use Modules\Catalog\Contracts\Services\DeviceCategoryServiceInterface;
 use Modules\Catalog\DTOs\StoreDeviceCategoryDTO;
 use Modules\Catalog\DTOs\UpdateDeviceCategoryDTO;
+use Modules\Catalog\Exceptions\CatalogException;
 use Modules\Catalog\Http\Requests\Dashboard\DeviceCategoryRequest;
 use Modules\Catalog\Http\Resources\Dashboard\DeviceCategoryCollection;
 use Modules\Catalog\Http\Resources\Dashboard\DeviceCategoryResource;
 use Modules\Catalog\Models\DeviceCategory;
+use Throwable;
 
 class DeviceCategoryController extends Controller implements HasMiddleware
 {
@@ -79,8 +81,16 @@ class DeviceCategoryController extends Controller implements HasMiddleware
 
     public function destroy(DeviceCategory $device_category): RedirectResponse
     {
-        $this->service->destroy($device_category);
+        try {
+            $this->service->destroy($device_category);
 
-        return redirect()->route('dashboard.device-categories.index')->with('success', __('data deleted successfully'));
+            return redirect()->route('dashboard.device-categories.index')->with('success', __('data deleted successfully'));
+        } catch (CatalogException $exception) {
+            return redirect()->back()->with('error', $exception->getMessage());
+        } catch (Throwable $throwable) {
+            report($throwable);
+
+            return redirect()->back()->with('error', __('something went wrong'));
+        }
     }
 }

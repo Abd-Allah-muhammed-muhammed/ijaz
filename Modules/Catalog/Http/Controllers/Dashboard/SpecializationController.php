@@ -11,10 +11,12 @@ use Inertia\Response;
 use Modules\Catalog\Contracts\Services\SpecializationServiceInterface;
 use Modules\Catalog\DTOs\StoreSpecializationDTO;
 use Modules\Catalog\DTOs\UpdateSpecializationDTO;
+use Modules\Catalog\Exceptions\CatalogException;
 use Modules\Catalog\Http\Requests\Dashboard\SpecializationRequest;
 use Modules\Catalog\Http\Resources\Dashboard\SpecializationCollection;
 use Modules\Catalog\Http\Resources\Dashboard\SpecializationResource;
 use Modules\Catalog\Models\Specialization;
+use Throwable;
 
 class SpecializationController extends Controller implements HasMiddleware
 {
@@ -79,8 +81,16 @@ class SpecializationController extends Controller implements HasMiddleware
 
     public function destroy(Specialization $specialization): RedirectResponse
     {
-        $this->service->destroy($specialization);
+        try {
+            $this->service->destroy($specialization);
 
-        return redirect()->route('dashboard.specializations.index')->with('success', __('data deleted successfully'));
+            return redirect()->route('dashboard.specializations.index')->with('success', __('data deleted successfully'));
+        } catch (CatalogException $exception) {
+            return redirect()->back()->with('error', $exception->getMessage());
+        } catch (Throwable $throwable) {
+            report($throwable);
+
+            return redirect()->back()->with('error', __('something went wrong'));
+        }
     }
 }

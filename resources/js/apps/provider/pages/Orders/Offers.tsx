@@ -9,6 +9,7 @@ import React from "react";
 import {PaginationResource} from "@/shared/types";
 import Pagination from "@/shared/components/Table/partials/Pagination";
 import OrderController from '@/actions/Modules/Orders/Http/Controllers/Provider/OrderController';
+import {KTIcon} from "@/vendor/metronic/helpers";
 
 type Props = {
   rows: PaginationResource<OrderOffer>,
@@ -27,29 +28,38 @@ const Show = ({rows}: Props) => {
     <>
       <Head title={t('offers')}/>
       <Content>
-        <Row>
-          {rows.data.map(row => (
-            <Col key={row.id} xl={4} lg={6} md={6} sm={12} className={'mb-6'}>
-              <Link href={OrderController.show(row.order_id)}>
-                <Card className="h-100">
-                  <Card.Body>
-                    <div className="d-flex justify-content-between mb-4">
-                      <Card.Title>{t('Order ID')}: {row.order_id}</Card.Title>
-                      <Badge bg={row.status.color}>{row.status.label}</Badge>
-                    </div>
+        {rows.data.length === 0 ? (
+          <div className="card border-0 shadow-sm">
+            <div className="card-body py-20 text-center">
+              <KTIcon iconName="price-tag" className="fs-5x mb-5 text-gray-300" />
+              <p className="text-muted fw-semibold fs-5">{t('no_offers')}</p>
+            </div>
+          </div>
+        ) : (
+          <Row>
+            {rows.data.map(row => (
+              <Col key={row.id} xl={4} lg={6} md={6} sm={12} className={'mb-6'}>
+                <Link href={OrderController.show(row.order_id)}>
+                  <Card className="h-100">
+                    <Card.Body>
+                      <div className="d-flex justify-content-between mb-4">
+                        <Card.Title>{t('Order ID')}: {row.order_id}</Card.Title>
+                        <Badge bg={row.status.color}>{row.status.label}</Badge>
+                      </div>
 
-                    <Card.Text className='mb-4'>
-                      <strong>{t('price')}:</strong> {row.price}
-                    </Card.Text>
-                    <div className='d-flex justify-content-end align-items-center'>
-                      <small className="text-muted">{new Date(row.created_at).toLocaleDateString()}</small>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </Link>
-            </Col>
-          ))}
-        </Row>
+                      <Card.Text className='mb-4'>
+                        <strong>{t('price')}:</strong> {row.price}
+                      </Card.Text>
+                      <div className='d-flex justify-content-end align-items-center'>
+                        <small className="text-muted">{new Date(row.created_at).toLocaleDateString()}</small>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </Link>
+              </Col>
+            ))}
+          </Row>
+        )}
         <Pagination paginationMeta={rows.meta}/>
       </Content>
     </>

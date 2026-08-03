@@ -230,6 +230,54 @@ test('admin can approve offline top-up → credits wallet', function () {
         ->and($topUp->fresh()->status)->toBe(OperationStatusEnum::Approved);
 });
 
+test('admin approving an offline top-up request updates both status and payment_status', function () {
+    withoutWalletLocaleMiddleware();
+    $admin = createWalletAdmin();
+    $user = createWalletUser();
+    $topUp = createTopUpFor($user, [
+        'amount' => 75,
+        'payment_method' => PaymentMethodEnum::Offline->value,
+        'status' => OperationStatusEnum::Pending->value,
+        'payment_status' => PaymentStatusEnum::Pending->value,
+    ]);
+
+    $this->actingAs($admin, 'admin')
+        ->from(action([DashboardTopUpRequestController::class, 'index']))
+        ->put(action([DashboardTopUpRequestController::class, 'updateStatus'], ['topUpRequest' => $topUp->id]), [
+            'status' => OperationStatusEnum::Approved->value,
+        ])->assertRedirect(route('dashboard.top-up-requests.index'))
+        ->assertSessionHas('success');
+
+    $topUp->refresh();
+
+    expect($topUp->status)->toBe(OperationStatusEnum::Approved)
+        ->and($topUp->payment_status)->toBe(PaymentStatusEnum::Accepted);
+});
+
+test('admin rejecting an offline top-up request updates both status and payment_status', function () {
+    withoutWalletLocaleMiddleware();
+    $admin = createWalletAdmin();
+    $user = createWalletUser();
+    $topUp = createTopUpFor($user, [
+        'amount' => 100,
+        'payment_method' => PaymentMethodEnum::Offline->value,
+        'status' => OperationStatusEnum::Pending->value,
+        'payment_status' => PaymentStatusEnum::Pending->value,
+    ]);
+
+    $this->actingAs($admin, 'admin')
+        ->from(action([DashboardTopUpRequestController::class, 'index']))
+        ->put(action([DashboardTopUpRequestController::class, 'updateStatus'], ['topUpRequest' => $topUp->id]), [
+            'status' => OperationStatusEnum::Rejected->value,
+        ])->assertRedirect(route('dashboard.top-up-requests.index'))
+        ->assertSessionHas('success');
+
+    $topUp->refresh();
+
+    expect($topUp->status)->toBe(OperationStatusEnum::Rejected)
+        ->and($topUp->payment_status)->toBe(PaymentStatusEnum::Rejected);
+});
+
 test('admin cannot approve already-processed top-up', function () {
     withoutWalletLocaleMiddleware();
     $admin = createWalletAdmin();

@@ -3,16 +3,19 @@
 namespace Modules\Catalog\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Modules\Catalog\Contracts\Services\CarCategoryServiceInterface;
 use Modules\Catalog\DTOs\StoreCarCategoryDTO;
 use Modules\Catalog\DTOs\UpdateCarCategoryDTO;
+use Modules\Catalog\Exceptions\CatalogException;
 use Modules\Catalog\Http\Requests\Dashboard\CarCategoryRequest;
 use Modules\Catalog\Http\Resources\Dashboard\CarCategoryCollection;
 use Modules\Catalog\Http\Resources\Dashboard\CarCategoryResource;
 use Modules\Catalog\Models\CarCategory;
+use Throwable;
 
 class CarCategoryController extends Controller implements HasMiddleware
 {
@@ -73,10 +76,18 @@ class CarCategoryController extends Controller implements HasMiddleware
         return redirect()->route('dashboard.car-categories.index')->with('success', __('data updated successfully'));
     }
 
-    public function destroy(CarCategory $car_category)
+    public function destroy(CarCategory $car_category): RedirectResponse
     {
-        $this->service->destroy($car_category);
+        try {
+            $this->service->destroy($car_category);
 
-        return redirect()->route('dashboard.car-categories.index')->with('success', __('data deleted successfully'));
+            return redirect()->route('dashboard.car-categories.index')->with('success', __('data deleted successfully'));
+        } catch (CatalogException $exception) {
+            return redirect()->back()->with('error', $exception->getMessage());
+        } catch (Throwable $throwable) {
+            report($throwable);
+
+            return redirect()->back()->with('error', __('something went wrong'));
+        }
     }
 }

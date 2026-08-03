@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Contracts\Repositories\DeviceCategoryRepositoryInterface;
+use Modules\Catalog\Exceptions\CatalogException;
 use Modules\Catalog\Models\DeviceCategory;
 use Modules\Catalog\QueryFilters\DeviceCategory\DeviceCategoryFilters;
 
@@ -56,7 +57,7 @@ class DeviceCategoryRepository implements DeviceCategoryRepositoryInterface
     public function delete(DeviceCategory $deviceCategory): void
     {
         if ($deviceCategory->children()->exists()) {
-            throw new \Exception(__('this category has subcategories'));
+            throw new CatalogException(__('this category has subcategories'));
         }
         $deviceCategory->deleteIcon();
         $deviceCategory->delete();

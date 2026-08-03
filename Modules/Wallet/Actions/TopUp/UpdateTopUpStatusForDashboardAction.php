@@ -4,6 +4,7 @@ namespace Modules\Wallet\Actions\TopUp;
 
 use App\Enums\OperationStatusEnum;
 use Illuminate\Support\Facades\DB;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Wallet\Contracts\Repositories\TopUpRequestRepositoryInterface;
 use Modules\Wallet\Exceptions\WalletException;
 use Modules\Wallet\Models\TopUpRequest;
@@ -27,11 +28,23 @@ class UpdateTopUpStatusForDashboardAction
         }
 
         return DB::transaction(function () use ($topUpRequest, $status, $adminNotes, $adminId): TopUpRequest {
-            $topUpRequest = $this->repository->update($topUpRequest, [
+            $attributes = [
                 'status' => $status,
                 'admin_notes' => $adminNotes,
                 'admin_id' => $adminId,
-            ]);
+            ];
+
+            // Mirror HandleTopUpPaymentCompleted / HandleTopUpPaymentFailed enum values.
+            if ($status === OperationStatusEnum::Rejected->value) {
+                $attributes['payment_status'] = PaymentStatusEnum::Rejected;
+            } elseif (
+                $status === OperationStatusEnum::Approved->value
+                && $topUpRequest->payment_method->isOffline()
+            ) {
+                $attributes['payment_status'] = PaymentStatusEnum::Accepted;
+            }
+
+            $topUpRequest = $this->repository->update($topUpRequest, $attributes);
 
             if (
                 $topUpRequest->status === OperationStatusEnum::Approved

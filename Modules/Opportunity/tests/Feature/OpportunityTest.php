@@ -92,6 +92,105 @@ test('guest can view single opportunity', function () {
         ]);
 });
 
+// ─── offers_count visibility (viewer-scoped) ─────────────────────────────────
+
+/**
+ * @return array{author: User, offerer: User, bystander: User, opportunity: Opportunity}
+ */
+function createOpportunityWithThreeOffersFromDifferentUsers(): array
+{
+    $author = User::factory()->create();
+    $offerer = User::factory()->create();
+    $otherOfferer = User::factory()->create();
+    $bystander = User::factory()->create();
+
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+    ]);
+
+    OpportunityOffer::factory()->create([
+        'opportunity_id' => $opportunity->id,
+        'author_type' => User::class,
+        'author_id' => $offerer->id,
+    ]);
+    OpportunityOffer::factory()->count(2)->create([
+        'opportunity_id' => $opportunity->id,
+        'author_type' => User::class,
+        'author_id' => $otherOfferer->id,
+    ]);
+
+    expect(OpportunityOffer::query()->where('opportunity_id', $opportunity->id)->count())->toBe(3);
+
+    return compact('author', 'offerer', 'bystander', 'opportunity');
+}
+
+test('opportunity author sees the true total offers_count', function () {
+    ['author' => $author, 'opportunity' => $opportunity] = createOpportunityWithThreeOffersFromDifferentUsers();
+
+    Sanctum::actingAs($author);
+
+    $this->getJson(action([OpportunityController::class, 'show'], ['opportunity' => $opportunity->id]))
+        ->assertSuccessful()
+        ->assertJsonPath('data.offers_count', 3);
+
+    $list = $this->getJson(action([OpportunityController::class, 'all']))
+        ->assertSuccessful()
+        ->json('data.items');
+
+    $row = collect($list)->firstWhere('id', $opportunity->id);
+    expect($row['offers_count'])->toBe(3);
+});
+
+test('a non-author user with one submitted offer sees offers_count of 1, not the global total', function () {
+    ['offerer' => $offerer, 'opportunity' => $opportunity] = createOpportunityWithThreeOffersFromDifferentUsers();
+
+    Sanctum::actingAs($offerer);
+
+    $this->getJson(action([OpportunityController::class, 'show'], ['opportunity' => $opportunity->id]))
+        ->assertSuccessful()
+        ->assertJsonPath('data.offers_count', 1);
+
+    $list = $this->getJson(action([OpportunityController::class, 'all']))
+        ->assertSuccessful()
+        ->json('data.items');
+
+    $row = collect($list)->firstWhere('id', $opportunity->id);
+    expect($row['offers_count'])->toBe(1);
+});
+
+test('a non-author user with no submitted offer sees offers_count of 0, even if other users have offers', function () {
+    ['bystander' => $bystander, 'opportunity' => $opportunity] = createOpportunityWithThreeOffersFromDifferentUsers();
+
+    Sanctum::actingAs($bystander);
+
+    $this->getJson(action([OpportunityController::class, 'show'], ['opportunity' => $opportunity->id]))
+        ->assertSuccessful()
+        ->assertJsonPath('data.offers_count', 0);
+
+    $list = $this->getJson(action([OpportunityController::class, 'all']))
+        ->assertSuccessful()
+        ->json('data.items');
+
+    $row = collect($list)->firstWhere('id', $opportunity->id);
+    expect($row['offers_count'])->toBe(0);
+});
+
+test('unauthenticated request to opportunities list shows offers_count as 0', function () {
+    ['opportunity' => $opportunity] = createOpportunityWithThreeOffersFromDifferentUsers();
+
+    $list = $this->getJson(action([OpportunityController::class, 'all']))
+        ->assertSuccessful()
+        ->json('data.items');
+
+    $row = collect($list)->firstWhere('id', $opportunity->id);
+    expect($row['offers_count'])->toBe(0);
+
+    $this->getJson(action([OpportunityController::class, 'show'], ['opportunity' => $opportunity->id]))
+        ->assertSuccessful()
+        ->assertJsonPath('data.offers_count', 0);
+});
+
 test('authenticated user can create opportunity', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);

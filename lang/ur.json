@@ -533,6 +533,7 @@
     "total_requests": "کل درخواستیں",
     "active_requests": "فعال درخواستیں",
     "pending_requests": "زیر التواء درخواستیں",
+    "pending_requests_listed_first": "زیر التواء درخواستیں پہلے دکھائی جاتی ہیں، پھر جدید ترین۔",
     "completed_requests": "مکمل درخواستیں",
     "cancelled_requests": "منسوخ شدہ درخواستیں",
     "properties": "پراپرٹیز",
@@ -759,6 +760,9 @@
     "user_note": "صارف کی نوٹ",
     "search_by_phone": "فون نمبر سے تلاش کریں...",
     "conversations": "گفتگو",
+    "no_conversations_yet": "ابھی کوئی گفتگو نہیں",
+    "select_a_conversation": "پیغام بھیجنے کے لیے ایک گفتگو منتخب کریں",
+    "no_offers": "کوئی آفر نہیں ملی",
     "send": "بھیجیں",
     "review": "جائزہ",
     "user review": "صارف کا جائزہ",
@@ -794,5 +798,7 @@
     "something went wrong": "کچھ غلط ہو گیا",
     "payment_successful": "ادائیگی کامیاب",
     "payment_failed": "ادائیگی ناکام",
-    "payment_failed_please_try_again": "ادائیگی ناکام، دوبارہ کوشش کریں"
+    "payment_failed_please_try_again": "ادائیگی ناکام، دوبارہ کوشش کریں",
+    "this category has subcategories": "اس زمرے کو حذف نہیں کیا جا سکتا کیونکہ اس کے ذیلی زمرے موجود ہیں۔ براہ کرم پہلے انہیں حذف کریں یا دوبارہ تفویض کریں۔",
+    "this specialization has subspecializations": "اس تخصص کو حذف نہیں کیا جا سکتا کیونکہ اس کے ذیلی تخصص موجود ہیں۔ براہ کرم پہلے انہیں حذف کریں یا دوبارہ تفویض کریں۔"
 }

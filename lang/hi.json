@@ -535,6 +535,7 @@
     "total_requests": "कुल अनुरोध",
     "active_requests": "सक्रिय अनुरोध",
     "pending_requests": "लंबित अनुरोध",
+    "pending_requests_listed_first": "लंबित अनुरोध पहले सूचीबद्ध होते हैं, फिर नवीनतम।",
     "completed_requests": "पूर्ण अनुरोध",
     "cancelled_requests": "रद्द अनुरोध",
     "properties": "संपत्तियां",
@@ -760,6 +761,9 @@
     "user_note": "उपयोगकर्ता नोट",
     "search_by_phone": "फ़ोन से खोजें...",
     "conversations": "बातचीत",
+    "no_conversations_yet": "अभी कोई बातचीत नहीं",
+    "select_a_conversation": "संदेश शुरू करने के लिए एक बातचीत चुनें",
+    "no_offers": "कोई ऑफर नहीं मिला",
     "send": "भेजें",
     "review": "समीक्षा",
     "user review": "उपयोगकर्ता समीक्षा",
@@ -795,5 +799,7 @@
     "something went wrong": "कुछ गलत हो गया",
     "payment_successful": "भुगतान सफल",
     "payment_failed": "भुगतान विफल",
-    "payment_failed_please_try_again": "भुगतान विफल, कृपया पुनः प्रयास करें"
+    "payment_failed_please_try_again": "भुगतान विफल, कृपया पुनः प्रयास करें",
+    "this category has subcategories": "इस श्रेणी को हटाया नहीं जा सकता क्योंकि इसमें उपश्रेणियाँ हैं। कृपया पहले उन्हें हटाएँ या पुनः असाइन करें।",
+    "this specialization has subspecializations": "इस विशेषज्ञता को हटाया नहीं जा सकता क्योंकि इसमें उप-विशेषज्ञताएँ हैं। कृपया पहले उन्हें हटाएँ या पुनः असाइन करें।"
 }

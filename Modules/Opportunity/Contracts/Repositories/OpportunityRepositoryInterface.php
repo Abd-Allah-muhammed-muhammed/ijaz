@@ -22,9 +22,11 @@ interface OpportunityRepositoryInterface
 
     public function findById(string $id): Opportunity;
 
-    public function listPublic(int $perPage = 10): LengthAwarePaginator;
+    public function listPublic(?Model $actor = null, int $perPage = 10): LengthAwarePaginator;
 
     public function listByActor(Model $actor, int $perPage = 10): LengthAwarePaginator;
+
+    public function loadForShow(Opportunity $opportunity, ?Model $actor = null): Opportunity;
 
     public function paginateForDashboard(Request $request): LengthAwarePaginator;
 

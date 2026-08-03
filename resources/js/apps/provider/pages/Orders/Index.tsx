@@ -99,13 +99,22 @@ const Index = (
             </div>
           </div>
         </div>
-        <Row className='row'>
-          {rows.data.map((row) => (
-            <Col sm={6} xl={3} key={'order-' + row.id}>
-              <OrderCard url={OrderController.show(row.id as string).url} order={row}/>
-            </Col>
-          ))}
-        </Row>
+        {rows.data.length === 0 ? (
+          <div className="card border-0 shadow-sm">
+            <div className="card-body py-20 text-center">
+              <KTIcon iconName="basket" className="fs-5x mb-5 text-gray-300" />
+              <p className="text-muted fw-semibold fs-5">{t('no_orders_found')}</p>
+            </div>
+          </div>
+        ) : (
+          <Row className='row'>
+            {rows.data.map((row) => (
+              <Col sm={6} xl={3} key={'order-' + row.id}>
+                <OrderCard url={OrderController.show(row.id as string).url} order={row}/>
+              </Col>
+            ))}
+          </Row>
+        )}
         <Pagination paginationMeta={rows.meta} preserveScroll/>
       </Content>
     </>
