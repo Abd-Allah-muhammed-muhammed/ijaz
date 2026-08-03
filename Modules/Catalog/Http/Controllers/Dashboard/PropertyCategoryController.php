@@ -3,12 +3,14 @@
 namespace Modules\Catalog\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Modules\Catalog\Contracts\Services\PropertyCategoryServiceInterface;
 use Modules\Catalog\DTOs\StorePropertyCategoryDTO;
 use Modules\Catalog\DTOs\UpdatePropertyCategoryDTO;
+use Modules\Catalog\Exceptions\CatalogException;
 use Modules\Catalog\Http\Requests\Dashboard\PropertyCategoryRequest;
 use Modules\Catalog\Http\Resources\Dashboard\PropertyCategoryCollection;
 use Modules\Catalog\Http\Resources\Dashboard\PropertyCategoryResource;
@@ -103,18 +105,16 @@ class PropertyCategoryController extends Controller implements HasMiddleware
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(PropertyCategory $propertyCategory)
+    public function destroy(PropertyCategory $propertyCategory): RedirectResponse
     {
         try {
             $this->service->destroy($propertyCategory);
 
             return redirect()->route('dashboard.property-categories.index')->with('success', __('data deleted successfully'));
-        } catch (Throwable $e) {
-            if ($e->getMessage() === __('this category has subcategories')) {
-                return redirect()->back()->with('error', $e->getMessage());
-            }
-
-            report($e);
+        } catch (CatalogException $exception) {
+            return redirect()->back()->with('error', $exception->getMessage());
+        } catch (Throwable $throwable) {
+            report($throwable);
 
             return redirect()->back()->with('error', __('something went wrong'));
         }

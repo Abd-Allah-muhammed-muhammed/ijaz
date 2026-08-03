@@ -968,5 +968,7 @@
     "Payment Successful": "Payment Successful",
     "Payment Failed, Please Try Again": "Payment Failed, Please Try Again",
     "something went wrong": "Something went wrong",
-    "payment_failed_please_try_again": "Payment failed, please try again"
+    "payment_failed_please_try_again": "Payment failed, please try again",
+    "this category has subcategories": "Cannot delete this category because it has subcategories. Please delete or reassign them first.",
+    "this specialization has subspecializations": "Cannot delete this specialization because it has subspecializations. Please delete or reassign them first."
 }

@@ -3,12 +3,12 @@
 namespace Modules\Catalog\Repositories;
 
 use App\Support\TranslationSearch;
-use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Contracts\Repositories\PropertyCategoryRepositoryInterface;
+use Modules\Catalog\Exceptions\CatalogException;
 use Modules\Catalog\Models\PropertyCategory;
 use Modules\Catalog\QueryFilters\PropertyCategory\PropertyCategoryFilters;
 
@@ -58,7 +58,7 @@ class PropertyCategoryRepository implements PropertyCategoryRepositoryInterface
     public function delete(PropertyCategory $propertyCategory): void
     {
         if ($propertyCategory->children()->exists()) {
-            throw new Exception(__('this category has subcategories'));
+            throw new CatalogException(__('this category has subcategories'));
         }
 
         $propertyCategory->delete();

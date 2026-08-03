@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Catalog\Contracts\Repositories\CarCategoryRepositoryInterface;
+use Modules\Catalog\Exceptions\CatalogException;
 use Modules\Catalog\Models\CarCategory;
 use Modules\Catalog\QueryFilters\CarCategory\CarCategoryFilters;
 
@@ -42,7 +43,7 @@ class CarCategoryRepository implements CarCategoryRepositoryInterface
     public function delete(CarCategory $carCategory): void
     {
         if ($carCategory->children()->exists()) {
-            throw new \Exception(__('this category has subcategories'));
+            throw new CatalogException(__('this category has subcategories'));
         }
         $carCategory->deleteIcon();
         $carCategory->delete();

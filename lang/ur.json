@@ -795,5 +795,7 @@
     "something went wrong": "کچھ غلط ہو گیا",
     "payment_successful": "ادائیگی کامیاب",
     "payment_failed": "ادائیگی ناکام",
-    "payment_failed_please_try_again": "ادائیگی ناکام، دوبارہ کوشش کریں"
+    "payment_failed_please_try_again": "ادائیگی ناکام، دوبارہ کوشش کریں",
+    "this category has subcategories": "اس زمرے کو حذف نہیں کیا جا سکتا کیونکہ اس کے ذیلی زمرے موجود ہیں۔ براہ کرم پہلے انہیں حذف کریں یا دوبارہ تفویض کریں۔",
+    "this specialization has subspecializations": "اس تخصص کو حذف نہیں کیا جا سکتا کیونکہ اس کے ذیلی تخصص موجود ہیں۔ براہ کرم پہلے انہیں حذف کریں یا دوبارہ تفویض کریں۔"
 }

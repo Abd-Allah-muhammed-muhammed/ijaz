@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Storage;
 use Modules\Catalog\Contracts\Services\SpecializationServiceInterface;
 use Modules\Catalog\DTOs\StoreSpecializationDTO;
 use Modules\Catalog\DTOs\UpdateSpecializationDTO;
+use Modules\Catalog\Exceptions\CatalogException;
 use Modules\Catalog\Http\Requests\Dashboard\SpecializationRequest;
 use Modules\Catalog\Models\Specialization;
 use Tests\TestCase;
@@ -137,7 +138,7 @@ it('prevents deleting a specialization that has children', function (): void {
     Specialization::factory()->create(['parent_id' => $parent->id]);
 
     expect(fn () => $service->destroy($parent))
-        ->toThrow(Exception::class);
+        ->toThrow(CatalogException::class);
 });
 
 it('deletes a specialization and its stored icon', function (): void {
