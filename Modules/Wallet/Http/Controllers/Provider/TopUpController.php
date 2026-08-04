@@ -78,18 +78,27 @@ class TopUpController extends Controller
                     return $this->failedMessageResponse($paymentResult->message);
                 }
 
-                return $this->successResponse($paymentResult->toArray());
+                $payload = $paymentResult->toArray();
+                $message = $payload['message'] ?? '';
+
+                return $this->makeResponse(true, $payload, $message);
             }
 
-            return $this->successResponse([
-                'status' => 'pending',
-                'transaction_id' => '',
-                'driver' => '',
-                'url' => '',
-                'payable' => false,
-                'data' => [],
-                'message' => trans('Top up request created successfully and is pending admin approval.'),
-            ]);
+            $message = trans('Top up request created successfully and is pending admin approval.');
+
+            return $this->makeResponse(
+                true,
+                [
+                    'status' => 'pending',
+                    'transaction_id' => '',
+                    'driver' => '',
+                    'url' => '',
+                    'payable' => false,
+                    'data' => [],
+                    'message' => $message,
+                ],
+                $message,
+            );
         } catch (Throwable $e) {
             DB::rollBack();
             report($e);

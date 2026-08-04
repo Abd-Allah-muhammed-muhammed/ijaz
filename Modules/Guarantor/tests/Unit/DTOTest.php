@@ -85,6 +85,14 @@ test('InstallmentData can be constructed from array', function () {
         ->and($data->due_date)->toBe('2026-08-15');
 });
 
+test('InstallmentData rejects missing or empty due_date', function (array $payload) {
+    InstallmentData::fromArray($payload);
+})->throws(InvalidArgumentException::class)->with([
+    'missing key' => [['order' => 1, 'amount' => 100]],
+    'null' => [['order' => 1, 'amount' => 100, 'due_date' => null]],
+    'empty string' => [['order' => 1, 'amount' => 100, 'due_date' => '']],
+]);
+
 test('InstallmentData collectionFromRequest returns array of InstallmentData', function () {
     $request = Mockery::mock(StoreCompanyGuarantorRequest::class);
     $request->shouldReceive('validated')

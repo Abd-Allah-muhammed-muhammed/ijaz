@@ -40,17 +40,17 @@ class OfferService
     /**
      * @throws Throwable
      */
-    public function accept(Opportunity $opportunity, OpportunityOffer $offer): Opportunity
+    public function accept(Opportunity $opportunity, OpportunityOffer $offer, Model $actor): Opportunity
     {
-        return $this->acceptAction->handle($opportunity, $offer);
+        return $this->acceptAction->handle($opportunity, $offer, $actor);
     }
 
     /**
      * @throws Throwable
      */
-    public function reject(Opportunity $opportunity, OpportunityOffer $offer): void
+    public function reject(Opportunity $opportunity, OpportunityOffer $offer, Model $actor): void
     {
-        $this->rejectAction->handle($opportunity, $offer);
+        $this->rejectAction->handle($opportunity, $offer, $actor);
     }
 
     public function deleteForDashboard(OpportunityOffer $offer): void

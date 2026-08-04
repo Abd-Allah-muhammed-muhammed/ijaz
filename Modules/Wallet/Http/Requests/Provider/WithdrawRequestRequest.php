@@ -4,6 +4,7 @@ namespace Modules\Wallet\Http\Requests\Provider;
 
 use App\Http\Requests\ApiRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Modules\Wallet\Rules\SufficientAvailableBalance;
 
 class WithdrawRequestRequest extends ApiRequest
 {
@@ -24,6 +25,7 @@ class WithdrawRequestRequest extends ApiRequest
                 'required',
                 'numeric',
                 'min:'.$minWithdraw,
+                new SufficientAvailableBalance('provider'),
             ],
             'user_notes' => [
                 'nullable',

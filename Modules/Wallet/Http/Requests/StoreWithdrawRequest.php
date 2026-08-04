@@ -4,6 +4,7 @@ namespace Modules\Wallet\Http\Requests;
 
 use App\Http\Requests\ApiRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Modules\Wallet\Rules\SufficientAvailableBalance;
 
 class StoreWithdrawRequest extends ApiRequest
 {
@@ -25,7 +26,12 @@ class StoreWithdrawRequest extends ApiRequest
         $minWithdraw = (float) app('settings')->get('min_withdraw_amount', 200);
 
         return [
-            'amount' => ['required', 'numeric', 'min:'.$minWithdraw],
+            'amount' => [
+                'required',
+                'numeric',
+                'min:'.$minWithdraw,
+                new SufficientAvailableBalance,
+            ],
             'user_notes' => ['nullable', 'string', 'max:191'],
         ];
     }

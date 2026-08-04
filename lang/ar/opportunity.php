@@ -40,7 +40,9 @@ return [
     'cannot_submit_offer_on_own_opportunity' => 'لا يمكنك تقديم عرض على فرصتك الخاصة',
     'offer_already_submitted' => 'لقد قدمت عرضاً بالفعل على هذه الفرصة',
     'cannot_accept_offer' => 'لا يمكنك قبول عرض لهذه الفرصة',
+    'cannot_accept_own_offer' => 'لا يمكنك قبول عرضك الخاص',
     'cannot_reject_offer' => 'لا يمكنك رفض هذا العرض',
+    'cannot_reject_own_offer' => 'لا يمكنك رفض عرضك الخاص',
     'offer_not_belong_to_opportunity' => 'هذا العرض لا ينتمي إلى الفرصة المحددة',
 
     'no_accepted_offer' => 'لا يوجد عرض مقبول لهذه الفرصة بعد',

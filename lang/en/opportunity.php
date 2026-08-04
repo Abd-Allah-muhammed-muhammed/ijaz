@@ -40,7 +40,9 @@ return [
     'cannot_submit_offer_on_own_opportunity' => 'You cannot submit an offer on your own opportunity',
     'offer_already_submitted' => 'You have already submitted an offer on this opportunity',
     'cannot_accept_offer' => 'You cannot accept an offer for this opportunity',
+    'cannot_accept_own_offer' => 'You cannot accept your own offer',
     'cannot_reject_offer' => 'You cannot reject this offer',
+    'cannot_reject_own_offer' => 'You cannot reject your own offer',
     'offer_not_belong_to_opportunity' => 'This offer does not belong to the specified opportunity',
 
     'no_accepted_offer' => 'This opportunity has no accepted offer yet',

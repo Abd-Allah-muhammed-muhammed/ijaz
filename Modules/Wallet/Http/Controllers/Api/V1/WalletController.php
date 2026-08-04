@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Wallet\DTOs\CreateTopUpData;
 use Modules\Wallet\DTOs\CreateWithdrawData;
@@ -64,26 +65,40 @@ class WalletController extends Controller
                     return $this->failedMessageResponse($paymentResult->message);
                 }
 
-                return $this->successResponse([
-                    'status' => $paymentResult->status,
-                    'driver' => $paymentResult->driver,
-                    'url' => $paymentResult->url,
-                    'payable' => $paymentResult->payable,
-                    'transaction_id' => $paymentResult->transactionId,
-                    'message' => $paymentResult->message,
-                    'data' => TopUpResource::make($topUpRequest),
-                ]);
+                $message = $paymentResult->message ?? '';
+
+                // Mirror withdraw fix: populate envelope root `message` (mobile reads
+                // this) while preserving the payable gateway payload shape.
+                return $this->makeResponse(
+                    true,
+                    [
+                        'status' => $paymentResult->status,
+                        'driver' => $paymentResult->driver,
+                        'url' => $paymentResult->url,
+                        'payable' => $paymentResult->payable,
+                        'transaction_id' => $paymentResult->transactionId,
+                        'message' => $paymentResult->message,
+                        'data' => TopUpResource::make($topUpRequest),
+                    ],
+                    $message,
+                );
             }
 
-            return $this->successResponse([
-                'status' => 'pending',
-                'transaction_id' => '',
-                'driver' => 'offline',
-                'url' => '',
-                'payable' => false,
-                'data' => TopUpResource::make($topUpRequest),
-                'message' => trans('top up request created successfully, waiting for admin approval'),
-            ]);
+            $message = trans('top up request created successfully, waiting for admin approval');
+
+            return $this->makeResponse(
+                true,
+                [
+                    'status' => 'pending',
+                    'transaction_id' => '',
+                    'driver' => 'offline',
+                    'url' => '',
+                    'payable' => false,
+                    'data' => TopUpResource::make($topUpRequest),
+                    'message' => $message,
+                ],
+                $message,
+            );
         } catch (Throwable $e) {
             report($e);
 
@@ -99,13 +114,29 @@ class WalletController extends Controller
         try {
             $withdrawRequest = $this->withdrawRequestService->create($user, $data);
 
-            return $this->successResponse([
-                'status' => 'pending',
-                'data' => WithdrawRequestResource::make($withdrawRequest),
-                'message' => trans('Withdraw request created successfully and is pending admin approval.'),
-            ]);
+            $message = trans('Withdrawal request submitted successfully and is pending review.');
+
+            // Populate both the envelope `message` (what mobile reads) and nested
+            // `data.message` (wallet envelope contract). successResponse() leaves
+            // the root message empty, which caused mobile to fall back to the
+            // generic operation label trans('withdraw') → "سحب".
+            return $this->makeResponse(
+                true,
+                [
+                    'status' => 'pending',
+                    'data' => WithdrawRequestResource::make($withdrawRequest),
+                    'message' => $message,
+                ],
+                $message,
+            );
         } catch (InsufficientBalanceException $e) {
-            return $this->failedMessageResponse(__("You can't withdraw this amount."));
+            // Race-condition safety net — FormRequest normally rejects first with 422.
+            throw ValidationException::withMessages([
+                'amount' => __('insufficient_available_balance', [
+                    'available' => $this->walletService->getBalance($user)->available,
+                    'requested' => $data->amount,
+                ]),
+            ]);
         } catch (Throwable $e) {
             report($e);
 

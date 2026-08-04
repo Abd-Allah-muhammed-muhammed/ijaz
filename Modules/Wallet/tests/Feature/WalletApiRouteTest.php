@@ -279,6 +279,73 @@ test('offline top-up creates TopUpRequest without Payment → 200', function () 
         ->and(Payment::query()->count())->toBe(0);
 });
 
+test('offline top-up request creation returns the full localized success message at the envelope root, not empty', function (string $locale, string $expectedMessage) {
+    Storage::fake('public');
+    $user = createWalletUser();
+    Sanctum::actingAs($user);
+
+    $response = $this->postJson(
+        action([WalletController::class, 'addBalance']),
+        [
+            'amount' => 80,
+            'payment_method' => PaymentMethodEnum::Offline->value,
+            'transaction_image' => UploadedFile::fake()->image('receipt.jpg'),
+        ],
+        ['Accept-Language' => $locale],
+    )->assertSuccessful();
+
+    $envelopeMessage = $response->json('message');
+    $nestedMessage = $response->json('data.message');
+
+    expect($envelopeMessage)
+        ->toBe($expectedMessage)
+        ->not->toBe('')
+        ->not->toBeNull()
+        ->and($nestedMessage)->toBe($expectedMessage)
+        ->and(mb_strlen((string) $envelopeMessage))->toBeGreaterThan(10);
+})->with([
+    'ar' => ['ar', 'تم إنشاء طلب الإيداع بنجاح وهو بانتظار موافقة الإدارة'],
+    'en' => ['en', 'Top up request created successfully, waiting for admin approval'],
+]);
+
+test('online top-up request creation (payable) still returns correct root message/behavior', function () {
+    $user = createWalletUser();
+    Sanctum::actingAs($user);
+
+    $response = $this->postJson(action([WalletController::class, 'addBalance']), [
+        'amount' => 100,
+        'payment_method' => PaymentMethodEnum::Online->value,
+        'payment_driver' => PaymentDriverEnum::Testing->value,
+    ])->assertSuccessful();
+
+    $data = $response->json('data');
+
+    expect(array_keys($data))->toBe([
+        'status',
+        'driver',
+        'url',
+        'payable',
+        'transaction_id',
+        'message',
+        'data',
+    ])
+        ->and($data['status'])->toBe('success')
+        ->and($data['payable'])->toBeTrue()
+        ->and($data['url'])->toBeString()->not->toBeEmpty()
+        ->and($data['transaction_id'])->not->toBeNull()
+        ->and($data['data'])->toBeArray()
+        ->and($data['data'])->toHaveKeys(['id', 'amount', 'status', 'payment_method']);
+
+    // Root envelope message mirrors nested data.message (gateway may leave it null/empty
+    // for Testing — still must not leave the envelope as a silent null omission).
+    $envelopeMessage = $response->json('message');
+    $nestedMessage = $response->json('data.message');
+
+    expect($envelopeMessage)
+        ->toBe($nestedMessage ?? '')
+        ->toBeString();
+});
+
 test('offline top-up requires transaction_image', function () {
     $user = createWalletUser();
     Sanctum::actingAs($user);
@@ -330,16 +397,42 @@ test('withdraw with sufficient balance creates WithdrawRequest → 200', functio
     expect(WithdrawRequest::query()->where('user_id', $user->id)->exists())->toBeTrue();
 });
 
+test('withdrawal request creation returns the full localized success message, not a generic label', function (string $locale, string $expectedMessage) {
+    $user = createWalletUser();
+    fundWallet($user, 400);
+    Sanctum::actingAs($user);
+
+    $response = $this->postJson(
+        action([WalletController::class, 'withdraw']),
+        ['amount' => 200],
+        ['Accept-Language' => $locale],
+    )->assertSuccessful();
+
+    $envelopeMessage = $response->json('message');
+    $nestedMessage = $response->json('data.message');
+
+    expect($envelopeMessage)
+        ->toBe($expectedMessage)
+        ->not->toBe(__('withdraw', [], $locale))
+        ->not->toBe('سحب')
+        ->not->toBe('Withdraw')
+        ->and($nestedMessage)->toBe($expectedMessage)
+        ->and(mb_strlen($envelopeMessage))->toBeGreaterThan(10);
+})->with([
+    'ar' => ['ar', 'تم إرسال طلب السحب بنجاح وهو قيد المراجعة'],
+    'en' => ['en', 'Withdrawal request submitted successfully and is pending review.'],
+]);
+
 test('withdraw with insufficient balance → 422', function () {
     $user = createWalletUser();
     Sanctum::actingAs($user);
 
-    $response = $this->postJson(action([WalletController::class, 'withdraw']), [
+    $this->postJson(action([WalletController::class, 'withdraw']), [
         'amount' => 200,
-    ]);
+    ])->assertUnprocessable()
+        ->assertJsonValidationErrors(['amount']);
 
-    expect($response->status())->toBeGreaterThanOrEqual(400)
-        ->and(WithdrawRequest::query()->count())->toBe(0);
+    expect(WithdrawRequest::query()->count())->toBe(0);
 });
 
 test('withdraw creates pending_debit hold on wallet', function () {

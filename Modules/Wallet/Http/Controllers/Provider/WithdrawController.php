@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Response;
 use Modules\Wallet\DTOs\CreateWithdrawData;
 use Modules\Wallet\Exceptions\InsufficientBalanceException;
@@ -14,6 +15,7 @@ use Modules\Wallet\Http\Requests\Provider\WithdrawRequestRequest;
 use Modules\Wallet\Http\Resources\Dashboard\WithdrawCollection;
 use Modules\Wallet\Http\Resources\Dashboard\WithdrawResource;
 use Modules\Wallet\Models\WithdrawRequest;
+use Modules\Wallet\Services\WalletService;
 use Modules\Wallet\Services\WithdrawRequestService;
 use Throwable;
 
@@ -21,6 +23,7 @@ class WithdrawController extends Controller
 {
     public function __construct(
         private readonly WithdrawRequestService $withdrawRequestService,
+        private readonly WalletService $walletService,
     ) {}
 
     public function index(Request $request): Response
@@ -55,11 +58,17 @@ class WithdrawController extends Controller
             DB::commit();
 
             return redirect()->back()
-                ->with('success', trans('Withdraw request created successfully and is pending admin approval.'));
+                ->with('success', trans('Withdrawal request submitted successfully and is pending review.'));
         } catch (InsufficientBalanceException $e) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', __("You can't withdraw this amount."));
+            // Race-condition safety net — FormRequest normally rejects first with 422.
+            throw ValidationException::withMessages([
+                'amount' => __('insufficient_available_balance', [
+                    'available' => $this->walletService->getBalance($provider)->available,
+                    'requested' => $data->amount,
+                ]),
+            ]);
         } catch (Throwable $e) {
             DB::rollBack();
             report($e);
