@@ -41,7 +41,9 @@ function validateCompanyGuarantorRequest(array $data, array $files = []): Illumi
 
     $validator = Validator::make(
         array_merge($formRequest->all(), $files),
-        $formRequest->rules()
+        $formRequest->rules(),
+        $formRequest->messages(),
+        $formRequest->attributes()
     );
     $formRequest->withValidator($validator);
 
@@ -240,6 +242,25 @@ test('StoreCompanyGuarantorRequest fails when installment due_date is not after 
 
     expect($validator->fails())->toBeTrue()
         ->and($validator->errors()->has('installments.0.due_date'))->toBeTrue();
+});
+
+test('StoreCompanyGuarantorRequest fails when an installment due_date is missing', function () {
+    ['counterparty' => $counterparty] = setupGuarantorActors();
+
+    $data = companyGuarantorPayload([
+        'counterparty_phone' => (string) $counterparty->phone,
+        'installments' => [
+            ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
+            ['order' => 2, 'amount' => 500],
+        ],
+    ]);
+
+    $validator = validateCompanyGuarantorRequest($data, companyGuarantorFiles());
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->has('installments.1.due_date'))->toBeTrue()
+        ->and($validator->errors()->first('installments.1.due_date'))
+        ->toBe(__('guarantor.installment_due_date_required'));
 });
 
 test('guarantor installment due_date accepts Arabic-Indic digits', function () {

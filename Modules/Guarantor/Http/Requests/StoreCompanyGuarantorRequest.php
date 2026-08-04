@@ -58,6 +58,28 @@ class StoreCompanyGuarantorRequest extends ApiRequest
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'installments.*.due_date.required' => __('guarantor.installment_due_date_required'),
+            'installments.*.due_date.date' => __('guarantor.installment_due_date_invalid'),
+            'installments.*.due_date.after' => __('guarantor.installment_due_date_after_today'),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'installments.*.due_date' => __('guarantor.due_date'),
+        ];
+    }
+
     protected function prepareForValidation(): void
     {
         $installments = $this->input('installments');
