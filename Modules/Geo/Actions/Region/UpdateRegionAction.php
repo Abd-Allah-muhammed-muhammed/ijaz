@@ -2,6 +2,7 @@
 
 namespace Modules\Geo\Actions\Region;
 
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\DB;
 use Modules\Geo\Contracts\Repositories\RegionRepositoryInterface;
 use Modules\Geo\DTOs\UpdateRegionDTO;
@@ -19,8 +20,13 @@ class UpdateRegionAction
      */
     public function handle(Region $region, UpdateRegionDTO $dto): Region
     {
-        return DB::transaction(
+        $region = DB::transaction(
             fn (): Region => $this->repository->update($region, $dto->translations)
         );
+
+        LookupCache::forgetAllLocales('regions:all');
+        LookupCache::forgetAllLocales('regions:dropdown');
+
+        return $region;
     }
 }

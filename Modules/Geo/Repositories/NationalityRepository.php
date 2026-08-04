@@ -2,6 +2,7 @@
 
 namespace Modules\Geo\Repositories;
 
+use App\Support\LookupCache;
 use App\Support\TranslationSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -60,9 +61,18 @@ class NationalityRepository implements NationalityRepositoryInterface
      */
     public function listForSelect(?string $search = null): Collection
     {
-        return Nationality::query()->withTranslation()
-            ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v, 'normalized_name'))
-            ->get();
+        if (filled($search)) {
+            return Nationality::query()->withTranslation()
+                ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v, 'normalized_name'))
+                ->get();
+        }
+
+        /** @var Collection<int, Nationality> */
+        return LookupCache::rememberForeverForLocale(
+            'nationalities:all',
+            app()->getLocale(),
+            fn (): Collection => Nationality::query()->withTranslation()->get(),
+        );
     }
 
     public function paginateForApi(?string $search = null, int $perPage = 10): LengthAwarePaginator

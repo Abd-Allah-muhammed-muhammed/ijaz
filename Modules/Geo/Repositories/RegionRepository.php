@@ -2,6 +2,7 @@
 
 namespace Modules\Geo\Repositories;
 
+use App\Support\LookupCache;
 use App\Support\TranslationSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -61,9 +62,14 @@ class RegionRepository implements RegionRepositoryInterface
      */
     public function getAllForDropdown(): Collection
     {
-        return Region::query()
-            ->with(['translation'])
-            ->get();
+        /** @var Collection<int, Region> */
+        return LookupCache::rememberForeverForLocale(
+            'regions:dropdown',
+            app()->getLocale(),
+            fn (): Collection => Region::query()
+                ->with(['translation'])
+                ->get(),
+        );
     }
 
     /**
@@ -71,9 +77,18 @@ class RegionRepository implements RegionRepositoryInterface
      */
     public function listForSelect(?string $search = null): Collection
     {
-        return Region::query()->withTranslation()
-            ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v))
-            ->get();
+        if (filled($search)) {
+            return Region::query()->withTranslation()
+                ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v))
+                ->get();
+        }
+
+        /** @var Collection<int, Region> */
+        return LookupCache::rememberForeverForLocale(
+            'regions:all',
+            app()->getLocale(),
+            fn (): Collection => Region::query()->withTranslation()->get(),
+        );
     }
 
     public function paginateForApi(?string $search = null, int $perPage = 10): LengthAwarePaginator

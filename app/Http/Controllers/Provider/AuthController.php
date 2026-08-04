@@ -16,8 +16,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Modules\Geo\Http\Resources\Dashboard\CityResource;
 use Modules\Geo\Http\Resources\Dashboard\RegionResource;
-use Modules\Geo\Models\City;
-use Modules\Geo\Models\Region;
+use Modules\Geo\Services\CityService;
+use Modules\Geo\Services\RegionService;
 use Modules\Marketplace\Http\Resources\Dashboard\ProviderTypeResource;
 use Modules\Marketplace\Services\ProviderTypeService;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
@@ -30,6 +30,8 @@ class AuthController extends Controller
         private readonly ProviderAuthService $providerAuthService,
         private readonly SwitchLocaleAction $switchLocaleAction,
         private readonly ProviderTypeService $providerTypeService,
+        private readonly RegionService $regionService,
+        private readonly CityService $cityService,
     ) {}
 
     public function loginForm()
@@ -76,8 +78,8 @@ class AuthController extends Controller
         return inertia('Provider/Auth/Profile/Index', [
             'provider' => fn () => ProviderResource::make($provider),
             'types' => fn () => ProviderTypeResource::collection($this->providerTypeService->listForApi()),
-            'regions' => fn () => RegionResource::collection(Region::withTranslation()->get()),
-            'cities' => fn () => CityResource::collection(City::withTranslation()->get()),
+            'regions' => fn () => RegionResource::collection($this->regionService->listForSelect()),
+            'cities' => fn () => CityResource::collection($this->cityService->listForSelect()),
         ]);
     }
 

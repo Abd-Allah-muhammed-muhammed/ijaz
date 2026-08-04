@@ -1,11 +1,17 @@
 <?php
 
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\CityTranslation;
+use Modules\Geo\Models\Nationality;
+use Modules\Geo\Models\NationalityTranslation;
+use Modules\Geo\Models\Region;
+use Modules\Geo\Models\RegionTranslation;
 use Modules\Marketplace\Models\ProviderType;
 use Modules\Marketplace\Models\ProviderTypeTranslation;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 return [
 
@@ -133,9 +139,16 @@ return [
         stdClass::class,
         Collection::class,
         CarbonImmutable::class,
+        // Eloquent lookup caching (Tier 1 domains that return Eloquent Collections)
         EloquentCollection::class,
         ProviderType::class,
         ProviderTypeTranslation::class,
+        Region::class,
+        RegionTranslation::class,
+        City::class,
+        CityTranslation::class,
+        Nationality::class,
+        NationalityTranslation::class,
     ],
 
 ];

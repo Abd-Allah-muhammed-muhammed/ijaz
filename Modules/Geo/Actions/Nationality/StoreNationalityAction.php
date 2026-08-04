@@ -2,6 +2,7 @@
 
 namespace Modules\Geo\Actions\Nationality;
 
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\DB;
 use Modules\Geo\Contracts\Repositories\NationalityRepositoryInterface;
 use Modules\Geo\DTOs\StoreNationalityDTO;
@@ -19,8 +20,12 @@ class StoreNationalityAction
      */
     public function handle(StoreNationalityDTO $dto): Nationality
     {
-        return DB::transaction(
+        $nationality = DB::transaction(
             fn (): Nationality => $this->repository->create($dto->translations)
         );
+
+        LookupCache::forgetAllLocales('nationalities:all');
+
+        return $nationality;
     }
 }

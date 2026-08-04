@@ -12,8 +12,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Modules\Geo\Http\Resources\Dashboard\CityResource;
 use Modules\Geo\Http\Resources\Dashboard\RegionResource;
-use Modules\Geo\Models\City;
-use Modules\Geo\Models\Region;
+use Modules\Geo\Services\CityService;
+use Modules\Geo\Services\RegionService;
 use Modules\Marketplace\Http\Resources\Dashboard\ProviderTypeResource;
 use Modules\Marketplace\Services\ProviderTypeService;
 use Random\RandomException;
@@ -24,6 +24,8 @@ class AuthController extends Controller
     public function __construct(
         private readonly ProviderAuthService $providerAuthService,
         private readonly ProviderTypeService $providerTypeService,
+        private readonly RegionService $regionService,
+        private readonly CityService $cityService,
     ) {}
 
     /**
@@ -52,16 +54,8 @@ class AuthController extends Controller
     {
         return inertia('Frontend/Auth/Register_', [
             'types' => ProviderTypeResource::collection($this->providerTypeService->listForApi()),
-            'regions' => RegionResource::collection(Region::withTranslation()->get()),
-            //      'regions' => [],
-            'cities' => CityResource::collection(City::withTranslation()->get()),
-            //      'cities' => [],
-            //      'categories' => CategoryResource::collection(
-            //        Category::whereDoesntHave('parent')
-            //          ->with('translation')
-            //          ->with('childrenRecursive.translation')
-            //          ->get()
-            //      )
+            'regions' => RegionResource::collection($this->regionService->listForSelect()),
+            'cities' => CityResource::collection($this->cityService->listForSelect()),
         ]);
     }
 
