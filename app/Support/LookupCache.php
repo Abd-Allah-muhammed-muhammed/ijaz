@@ -46,17 +46,18 @@ use Illuminate\Support\Facades\Cache;
  * Type preservation:
  * Laravel's cache uses PHP serialize(). Values round-trip as the same type **only if**
  * their classes are allow-listed in `config('cache.serializable_classes')`. This app
- * currently allows `Illuminate\Support\Collection`, `stdClass`, and `CarbonImmutable`.
- * `Illuminate\Database\Eloquent\Collection` / Eloquent models are NOT allow-listed and
- * become `__PHP_Incomplete_Class` on cache hit (verified against CACHE_STORE=database).
+ * currently allows `Illuminate\Support\Collection`, `Illuminate\Database\Eloquent\Collection`,
+ * `stdClass`, `CarbonImmutable`, and explicitly listed Eloquent models used by lookup
+ * caches (e.g. ProviderType). Classes not on that list become `__PHP_Incomplete_Class`
+ * on cache hit.
  *
  * Root cause of the earlier Collection→array bug: Tier 1 domain code intentionally
  * cached `->toArray()` / mapped arrays (to avoid the Eloquent allow-list gap) but still
  * type-hinted callers as `Eloquent\Collection`. The cache layer did not transmute types —
  * the closure returned arrays and those arrays were returned unchanged. LookupCache
  * therefore returns the closure's value unmodified. Callers must either:
- * 1. Cache allow-listed types (arrays, DTOs, Support\Collection), and type-hint accordingly, or
- * 2. Expand `cache.serializable_classes` before caching Eloquent objects.
+ * 1. Cache allow-listed types (arrays, DTOs, Support\Collection, allow-listed Eloquent), or
+ * 2. Expand `cache.serializable_classes` before caching additional Eloquent objects.
  *
  * Driver notes:
  * Production uses CACHE_STORE=database (no cache tags). flush() / forgetAllLocales() /

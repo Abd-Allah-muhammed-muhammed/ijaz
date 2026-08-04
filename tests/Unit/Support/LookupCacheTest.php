@@ -1,6 +1,7 @@
 <?php
 
 use App\Support\LookupCache;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
@@ -340,9 +341,11 @@ test('flush uses the registry path on the database cache driver', function (): v
     config(['cache.default' => env('CACHE_STORE', 'array')]);
 });
 
-test('Eloquent Collections are not safely round-tripped under serializable_classes (documents root cause)', function (): void {
+test('Eloquent Collections round-trip when allow-listed in serializable_classes', function (): void {
     config(['cache.default' => 'file']);
     Cache::store('file')->flush();
+
+    expect(config('cache.serializable_classes'))->toContain(EloquentCollection::class);
 
     $eloquent = new EloquentCollection([
         (object) ['id' => 1],
@@ -351,8 +354,34 @@ test('Eloquent Collections are not safely round-tripped under serializable_class
     Cache::store('file')->put('probe:eloquent-collection', $eloquent, 60);
     $restored = Cache::store('file')->get('probe:eloquent-collection');
 
-    expect($restored)->toBeInstanceOf(__PHP_Incomplete_Class::class);
+    expect($restored)->toBeInstanceOf(EloquentCollection::class)
+        ->and($restored->first())->toBeInstanceOf(stdClass::class)
+        ->and($restored->first()->id)->toBe(1);
 
     Cache::store('file')->forget('probe:eloquent-collection');
+    config(['cache.default' => env('CACHE_STORE', 'array')]);
+});
+
+test('Eloquent Collections become IncompleteClass when not allow-listed', function (): void {
+    config([
+        'cache.default' => 'file',
+        'cache.serializable_classes' => [
+            stdClass::class,
+            Collection::class,
+            CarbonImmutable::class,
+        ],
+    ]);
+    Cache::store('file')->flush();
+
+    $eloquent = new EloquentCollection([
+        (object) ['id' => 1],
+    ]);
+
+    Cache::store('file')->put('probe:eloquent-collection-denied', $eloquent, 60);
+    $restored = Cache::store('file')->get('probe:eloquent-collection-denied');
+
+    expect($restored)->toBeInstanceOf(__PHP_Incomplete_Class::class);
+
+    Cache::store('file')->forget('probe:eloquent-collection-denied');
     config(['cache.default' => env('CACHE_STORE', 'array')]);
 });

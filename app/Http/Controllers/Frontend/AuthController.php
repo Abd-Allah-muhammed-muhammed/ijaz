@@ -15,7 +15,7 @@ use Modules\Geo\Http\Resources\Dashboard\RegionResource;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
 use Modules\Marketplace\Http\Resources\Dashboard\ProviderTypeResource;
-use Modules\Marketplace\Models\ProviderType;
+use Modules\Marketplace\Services\ProviderTypeService;
 use Random\RandomException;
 use Throwable;
 
@@ -23,6 +23,7 @@ class AuthController extends Controller
 {
     public function __construct(
         private readonly ProviderAuthService $providerAuthService,
+        private readonly ProviderTypeService $providerTypeService,
     ) {}
 
     /**
@@ -50,7 +51,7 @@ class AuthController extends Controller
     public function create()
     {
         return inertia('Frontend/Auth/Register_', [
-            'types' => ProviderTypeResource::collection(ProviderType::withTranslation()->get()),
+            'types' => ProviderTypeResource::collection($this->providerTypeService->listForApi()),
             'regions' => RegionResource::collection(Region::withTranslation()->get()),
             //      'regions' => [],
             'cities' => CityResource::collection(City::withTranslation()->get()),

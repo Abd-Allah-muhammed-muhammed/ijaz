@@ -19,7 +19,7 @@ use Modules\Geo\Http\Resources\Dashboard\RegionResource;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
 use Modules\Marketplace\Http\Resources\Dashboard\ProviderTypeResource;
-use Modules\Marketplace\Models\ProviderType;
+use Modules\Marketplace\Services\ProviderTypeService;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
 use Modules\Wallet\Support\WalletSearch;
 use Throwable;
@@ -29,6 +29,7 @@ class AuthController extends Controller
     public function __construct(
         private readonly ProviderAuthService $providerAuthService,
         private readonly SwitchLocaleAction $switchLocaleAction,
+        private readonly ProviderTypeService $providerTypeService,
     ) {}
 
     public function loginForm()
@@ -74,7 +75,7 @@ class AuthController extends Controller
 
         return inertia('Provider/Auth/Profile/Index', [
             'provider' => fn () => ProviderResource::make($provider),
-            'types' => fn () => ProviderTypeResource::collection(ProviderType::withTranslation()->get()),
+            'types' => fn () => ProviderTypeResource::collection($this->providerTypeService->listForApi()),
             'regions' => fn () => RegionResource::collection(Region::withTranslation()->get()),
             'cities' => fn () => CityResource::collection(City::withTranslation()->get()),
         ]);
