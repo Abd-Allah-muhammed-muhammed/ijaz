@@ -743,6 +743,7 @@
     "offers": "ऑफर",
     "communications": "संचार",
     "withdraw": "निकासी",
+    "insufficient_available_balance": "उपलब्ध शेष राशि अपर्याप्त है। उपलब्ध: :available, अनुरोधित: :requested",
     "recharge": "रिचार्ज",
     "balance": "बैलेंस",
     "total_earning": "कुल आय",

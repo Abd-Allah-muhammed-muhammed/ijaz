@@ -334,12 +334,12 @@ test('withdraw with insufficient balance → 422', function () {
     $user = createWalletUser();
     Sanctum::actingAs($user);
 
-    $response = $this->postJson(action([WalletController::class, 'withdraw']), [
+    $this->postJson(action([WalletController::class, 'withdraw']), [
         'amount' => 200,
-    ]);
+    ])->assertUnprocessable()
+        ->assertJsonValidationErrors(['amount']);
 
-    expect($response->status())->toBeGreaterThanOrEqual(400)
-        ->and(WithdrawRequest::query()->count())->toBe(0);
+    expect(WithdrawRequest::query()->count())->toBe(0);
 });
 
 test('withdraw creates pending_debit hold on wallet', function () {

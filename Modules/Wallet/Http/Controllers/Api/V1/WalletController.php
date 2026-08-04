@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Wallet\DTOs\CreateTopUpData;
 use Modules\Wallet\DTOs\CreateWithdrawData;
@@ -105,7 +106,13 @@ class WalletController extends Controller
                 'message' => trans('Withdraw request created successfully and is pending admin approval.'),
             ]);
         } catch (InsufficientBalanceException $e) {
-            return $this->failedMessageResponse(__("You can't withdraw this amount."));
+            // Race-condition safety net — FormRequest normally rejects first with 422.
+            throw ValidationException::withMessages([
+                'amount' => __('insufficient_available_balance', [
+                    'available' => $this->walletService->getBalance($user)->available,
+                    'requested' => $data->amount,
+                ]),
+            ]);
         } catch (Throwable $e) {
             report($e);
 

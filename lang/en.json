@@ -419,6 +419,7 @@
     "payment_successful": "Payment successful",
     "payment_failed": "Payment failed",
     "insufficient_balance": "Insufficient balance",
+    "insufficient_available_balance": "Insufficient available balance. Available: :available, requested: :requested",
     "minimum_withdrawal_amount": "Minimum withdrawal amount is :amount SAR",
     "Registration bonus": "Registration bonus",
     "logo upload failed, please try again": "Logo upload failed, please try again",

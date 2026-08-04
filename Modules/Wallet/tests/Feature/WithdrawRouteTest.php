@@ -70,7 +70,7 @@ test('provider cannot create withdraw with insufficient balance', function () {
         ->post(action([WithdrawController::class, 'store']), [
             'amount' => 200,
         ])->assertRedirect()
-        ->assertSessionHas('error');
+        ->assertSessionHasErrors(['amount']);
 
     expect(WithdrawRequest::query()->count())->toBe(0);
 });
