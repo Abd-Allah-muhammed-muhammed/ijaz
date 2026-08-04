@@ -966,7 +966,7 @@
     "Are you sure you want to delete this offer? This action cannot be undone.": "Are you sure you want to delete this offer? This action cannot be undone.",
     "Type a message": "Type a message",
     "Top up request created successfully and is pending admin approval.": "Top up request created successfully and is pending admin approval.",
-    "Withdraw request created successfully and is pending admin approval.": "Withdraw request created successfully and is pending admin approval.",
+    "Withdrawal request submitted successfully and is pending review.": "Withdrawal request submitted successfully and is pending review.",
     "top up request created successfully, waiting for admin approval": "Top up request created successfully, waiting for admin approval",
     "Payment Successful": "Payment Successful",
     "Payment Failed, Please Try Again": "Payment Failed, Please Try Again",

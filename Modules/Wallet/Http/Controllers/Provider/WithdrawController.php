@@ -58,7 +58,7 @@ class WithdrawController extends Controller
             DB::commit();
 
             return redirect()->back()
-                ->with('success', trans('Withdraw request created successfully and is pending admin approval.'));
+                ->with('success', trans('Withdrawal request submitted successfully and is pending review.'));
         } catch (InsufficientBalanceException $e) {
             DB::rollBack();
 

@@ -330,6 +330,32 @@ test('withdraw with sufficient balance creates WithdrawRequest → 200', functio
     expect(WithdrawRequest::query()->where('user_id', $user->id)->exists())->toBeTrue();
 });
 
+test('withdrawal request creation returns the full localized success message, not a generic label', function (string $locale, string $expectedMessage) {
+    $user = createWalletUser();
+    fundWallet($user, 400);
+    Sanctum::actingAs($user);
+
+    $response = $this->postJson(
+        action([WalletController::class, 'withdraw']),
+        ['amount' => 200],
+        ['Accept-Language' => $locale],
+    )->assertSuccessful();
+
+    $envelopeMessage = $response->json('message');
+    $nestedMessage = $response->json('data.message');
+
+    expect($envelopeMessage)
+        ->toBe($expectedMessage)
+        ->not->toBe(__('withdraw', [], $locale))
+        ->not->toBe('سحب')
+        ->not->toBe('Withdraw')
+        ->and($nestedMessage)->toBe($expectedMessage)
+        ->and(mb_strlen($envelopeMessage))->toBeGreaterThan(10);
+})->with([
+    'ar' => ['ar', 'تم إرسال طلب السحب بنجاح وهو قيد المراجعة'],
+    'en' => ['en', 'Withdrawal request submitted successfully and is pending review.'],
+]);
+
 test('withdraw with insufficient balance → 422', function () {
     $user = createWalletUser();
     Sanctum::actingAs($user);

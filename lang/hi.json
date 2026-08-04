@@ -793,7 +793,7 @@
     "Are you sure you want to delete this offer? This action cannot be undone.": "क्या आप वाकई इस ऑफर को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",
     "Type a message": "संदेश लिखें",
     "Top up request created successfully and is pending admin approval.": "टॉप-अप अनुरोध सफलतापूर्वक बनाया गया है और व्यवस्थापक अनुमोदन की प्रतीक्षा में है।",
-    "Withdraw request created successfully and is pending admin approval.": "निकासी अनुरोध सफलतापूर्वक बनाया गया है और व्यवस्थापक अनुमोदन की प्रतीक्षा में है।",
+    "Withdrawal request submitted successfully and is pending review.": "निकासी का अनुरोध सफलतापूर्वक सबमिट कर दिया गया है और समीक्षाधीन है।",
     "top up request created successfully, waiting for admin approval": "टॉप-अप अनुरोध सफलतापूर्वक बनाया गया, व्यवस्थापक अनुमोदन की प्रतीक्षा है",
     "Payment Successful": "भुगतान सफल",
     "Payment Failed, Please Try Again": "भुगतान विफल, कृपया पुनः प्रयास करें",
