@@ -127,10 +127,18 @@ it('seeds the view monitoring tools permission onto the super-admin role', funct
     expect($role->hasPermissionTo('view monitoring tools'))->toBeTrue();
 });
 
-it('schedules telescope prune daily', function (): void {
+it('schedules telescope prune daily with a 48-hour retention window', function (): void {
     Artisan::call('schedule:list');
 
-    expect(Artisan::output())->toContain('telescope:prune');
+    expect(Artisan::output())
+        ->toContain('telescope:prune')
+        ->toContain('--hours=48');
+});
+
+it('configures pulse storage and ingest retention to trim after 7 days', function (): void {
+    expect(config('pulse.storage.trim.keep'))->toBe('7 days')
+        ->and(config('pulse.ingest.trim.keep'))->toBe('7 days')
+        ->and(config('pulse.ingest.trim.lottery'))->toBe([1, 1_000]);
 });
 
 it('stores pulse and telescope on the shared monitoring connection', function (): void {
