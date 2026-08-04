@@ -47,13 +47,17 @@ class OpportunityPolicy
 
     public function acceptOffer(Model $user, Opportunity $opportunity, OpportunityOffer $offer): bool
     {
-        return $opportunity->status === OpportunityStatusEnum::New
+        // Own-offer denial (403) is enforced in AcceptOfferAction — keep status/belonging here.
+        return $this->isAuthor($user, $opportunity)
+            && $opportunity->status === OpportunityStatusEnum::New
             && $offer->opportunity_id === $opportunity->id;
     }
 
     public function rejectOffer(Model $user, Opportunity $opportunity, OpportunityOffer $offer): bool
     {
-        return $offer->opportunity_id === $opportunity->id;
+        // Own-offer denial (403) is enforced in RejectOfferAction — keep belonging here.
+        return $this->isAuthor($user, $opportunity)
+            && $offer->opportunity_id === $opportunity->id;
     }
 
     public function chat(Model $user, Opportunity $opportunity): bool

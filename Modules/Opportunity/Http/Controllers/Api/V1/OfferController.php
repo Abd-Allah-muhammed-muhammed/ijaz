@@ -166,7 +166,7 @@ class OfferController extends Controller
             $this->authorizeOrFail('update', $opportunity, 'opportunity.unauthorized');
             $this->authorizeOrFail('acceptOffer', [$opportunity, $offer], 'opportunity.cannot_accept_offer', 422);
 
-            $opportunity = $this->service->accept($opportunity, $offer);
+            $opportunity = $this->service->accept($opportunity, $offer, auth()->user());
 
             return $this->successResponse(OpportunityResource::make($opportunity));
         } catch (OpportunityException $e) {
@@ -209,7 +209,7 @@ class OfferController extends Controller
             $this->authorizeOrFail('update', $opportunity, 'opportunity.unauthorized');
             $this->authorizeOrFail('rejectOffer', [$opportunity, $offer], 'opportunity.offer_not_belong_to_opportunity');
 
-            $this->service->reject($opportunity, $offer);
+            $this->service->reject($opportunity, $offer, auth()->user());
 
             return $this->successMessageResponse(__('opportunity.offer_rejected_successfully'));
         } catch (OpportunityException $e) {

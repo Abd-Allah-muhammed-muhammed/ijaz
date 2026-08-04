@@ -39,7 +39,9 @@ return [
     'cannot_submit_offer_on_own_opportunity' => 'आप अपने स्वयं के अवसर पर प्रस्ताव नहीं भेज सकते',
     'offer_already_submitted' => 'आपने इस अवसर पर पहले ही प्रस्ताव जमा कर दिया है',
     'cannot_accept_offer' => 'आप इस अवसर के लिए प्रस्ताव स्वीकार नहीं कर सकते',
+    'cannot_accept_own_offer' => 'आप अपना स्वयं का प्रस्ताव स्वीकार नहीं कर सकते',
     'cannot_reject_offer' => 'आप इस प्रस्ताव को अस्वीकार नहीं कर सकते',
+    'cannot_reject_own_offer' => 'आप अपना स्वयं का प्रस्ताव अस्वीकार नहीं कर सकते',
     'offer_not_belong_to_opportunity' => 'यह प्रस्ताव निर्दिष्ट अवसर से संबंधित नहीं है',
 
     'no_accepted_offer' => 'इस अवसर के लिए अभी तक कोई स्वीकृत प्रस्ताव नहीं है',

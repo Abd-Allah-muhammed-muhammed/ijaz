@@ -677,6 +677,125 @@ test('non author cannot accept offer', function () {
         ->assertJsonPath('message', __('opportunity.unauthorized'));
 });
 
+test('offer creator cannot accept their own price offer', function () {
+    $author = User::factory()->create();
+    $offerer = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+    ]);
+    $offer = OpportunityOffer::factory()->create([
+        'opportunity_id' => $opportunity->id,
+        'author_type' => User::class,
+        'author_id' => $offerer->id,
+    ]);
+
+    Sanctum::actingAs($offerer);
+
+    $this->postJson(action([OfferController::class, 'accept'], [
+        'opportunity' => $opportunity->id,
+        'offer' => $offer->id,
+    ]))->assertForbidden()
+        ->assertJsonPath('message', __('opportunity.unauthorized'));
+
+    expect($offer->fresh()->status)->toBe(OfferStatusEnum::Pending);
+});
+
+test('opportunity author (or appropriate recipient) CAN accept an offer submitted by someone else', function () {
+    $author = User::factory()->create();
+    $offerer = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+    ]);
+    $offer = OpportunityOffer::factory()->create([
+        'opportunity_id' => $opportunity->id,
+        'author_type' => User::class,
+        'author_id' => $offerer->id,
+    ]);
+
+    Sanctum::actingAs($author);
+
+    $this->postJson(action([OfferController::class, 'accept'], [
+        'opportunity' => $opportunity->id,
+        'offer' => $offer->id,
+    ]))->assertSuccessful()
+        ->assertJsonPath('data.status.value', OpportunityStatusEnum::OfferAccepted->value)
+        ->assertJsonPath('data.accepted_offer.id', $offer->id);
+
+    expect($offer->fresh()->status)->toBe(OfferStatusEnum::Accepted);
+});
+
+test('opportunity author cannot accept an offer they themselves authored', function () {
+    $author = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+    ]);
+    $ownOffer = OpportunityOffer::factory()->create([
+        'opportunity_id' => $opportunity->id,
+        'author_type' => User::class,
+        'author_id' => $author->id,
+    ]);
+
+    Sanctum::actingAs($author);
+
+    $this->postJson(action([OfferController::class, 'accept'], [
+        'opportunity' => $opportunity->id,
+        'offer' => $ownOffer->id,
+    ]))->assertForbidden()
+        ->assertJsonPath('message', __('opportunity.cannot_accept_own_offer'));
+
+    expect($ownOffer->fresh()->status)->toBe(OfferStatusEnum::Pending);
+});
+
+test('offer creator cannot reject their own price offer', function () {
+    $author = User::factory()->create();
+    $offerer = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+    ]);
+    $offer = OpportunityOffer::factory()->create([
+        'opportunity_id' => $opportunity->id,
+        'author_type' => User::class,
+        'author_id' => $offerer->id,
+    ]);
+
+    Sanctum::actingAs($offerer);
+
+    $this->postJson(action([OfferController::class, 'reject'], [
+        'opportunity' => $opportunity->id,
+        'offer' => $offer->id,
+    ]))->assertForbidden()
+        ->assertJsonPath('message', __('opportunity.unauthorized'));
+
+    expect($offer->fresh()->status)->toBe(OfferStatusEnum::Pending);
+});
+
+test('opportunity author cannot reject an offer they themselves authored', function () {
+    $author = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+    ]);
+    $ownOffer = OpportunityOffer::factory()->create([
+        'opportunity_id' => $opportunity->id,
+        'author_type' => User::class,
+        'author_id' => $author->id,
+    ]);
+
+    Sanctum::actingAs($author);
+
+    $this->postJson(action([OfferController::class, 'reject'], [
+        'opportunity' => $opportunity->id,
+        'offer' => $ownOffer->id,
+    ]))->assertForbidden()
+        ->assertJsonPath('message', __('opportunity.cannot_reject_own_offer'));
+
+    expect($ownOffer->fresh()->status)->toBe(OfferStatusEnum::Pending);
+});
+
 // ─── Comments ────────────────────────────────────────────────────────────────
 
 test('guest can list comments', function () {

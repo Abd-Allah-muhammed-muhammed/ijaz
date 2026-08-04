@@ -39,7 +39,9 @@ return [
     'cannot_submit_offer_on_own_opportunity' => 'آپ اپنی موقع پر پیشکش جمع نہیں کر سکتے',
     'offer_already_submitted' => 'آپ نے اس موقع پر پہلے ہی پیشکش جمع کروا دی ہے',
     'cannot_accept_offer' => 'آپ اس موقع کے لیے پیشکش قبول نہیں کر سکتے',
+    'cannot_accept_own_offer' => 'آپ اپنی پیشکش قبول نہیں کر سکتے',
     'cannot_reject_offer' => 'آپ اس پیشکش کو مسترد نہیں کر سکتے',
+    'cannot_reject_own_offer' => 'آپ اپنی پیشکش مسترد نہیں کر سکتے',
     'offer_not_belong_to_opportunity' => 'یہ پیشکش مخصوص موقع سے تعلق نہیں رکھتی',
 
     'no_accepted_offer' => 'اس موقع کے لیے ابھی تک کوئی قبول شدہ پیشکش نہیں ہے',
