@@ -144,7 +144,6 @@ return [
         stdClass::class,
         Collection::class,
         CarbonImmutable::class,
-        // Eloquent lookup caching (Tier 1 domains that return Eloquent Collections)
         EloquentCollection::class,
         ProviderType::class,
         ProviderTypeTranslation::class,
