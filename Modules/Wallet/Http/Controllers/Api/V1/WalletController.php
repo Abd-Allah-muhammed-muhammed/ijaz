@@ -65,26 +65,40 @@ class WalletController extends Controller
                     return $this->failedMessageResponse($paymentResult->message);
                 }
 
-                return $this->successResponse([
-                    'status' => $paymentResult->status,
-                    'driver' => $paymentResult->driver,
-                    'url' => $paymentResult->url,
-                    'payable' => $paymentResult->payable,
-                    'transaction_id' => $paymentResult->transactionId,
-                    'message' => $paymentResult->message,
-                    'data' => TopUpResource::make($topUpRequest),
-                ]);
+                $message = $paymentResult->message ?? '';
+
+                // Mirror withdraw fix: populate envelope root `message` (mobile reads
+                // this) while preserving the payable gateway payload shape.
+                return $this->makeResponse(
+                    true,
+                    [
+                        'status' => $paymentResult->status,
+                        'driver' => $paymentResult->driver,
+                        'url' => $paymentResult->url,
+                        'payable' => $paymentResult->payable,
+                        'transaction_id' => $paymentResult->transactionId,
+                        'message' => $paymentResult->message,
+                        'data' => TopUpResource::make($topUpRequest),
+                    ],
+                    $message,
+                );
             }
 
-            return $this->successResponse([
-                'status' => 'pending',
-                'transaction_id' => '',
-                'driver' => 'offline',
-                'url' => '',
-                'payable' => false,
-                'data' => TopUpResource::make($topUpRequest),
-                'message' => trans('top up request created successfully, waiting for admin approval'),
-            ]);
+            $message = trans('top up request created successfully, waiting for admin approval');
+
+            return $this->makeResponse(
+                true,
+                [
+                    'status' => 'pending',
+                    'transaction_id' => '',
+                    'driver' => 'offline',
+                    'url' => '',
+                    'payable' => false,
+                    'data' => TopUpResource::make($topUpRequest),
+                    'message' => $message,
+                ],
+                $message,
+            );
         } catch (Throwable $e) {
             report($e);
 
