@@ -1,11 +1,11 @@
 <?php
 
 use Carbon\CarbonImmutable;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Support\Collection;
 use Modules\Marketplace\Models\ProviderType;
 use Modules\Marketplace\Models\ProviderTypeTranslation;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 return [
 
@@ -133,7 +133,6 @@ return [
         stdClass::class,
         Collection::class,
         CarbonImmutable::class,
-        // Eloquent lookup caching (ProviderTypes Tier 1 — Expand as other domains cache models)
         EloquentCollection::class,
         ProviderType::class,
         ProviderTypeTranslation::class,
