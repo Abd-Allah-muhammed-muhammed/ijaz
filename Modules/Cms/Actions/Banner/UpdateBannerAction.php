@@ -3,6 +3,7 @@
 namespace Modules\Cms\Actions\Banner;
 
 use App\Support\HandlesTransactionalFileUpload;
+use App\Support\LookupCache;
 use Modules\Cms\Contracts\Repositories\BannerRepositoryInterface;
 use Modules\Cms\DTOs\UpdateBannerDTO;
 use Modules\Cms\Models\Banner;
@@ -21,7 +22,7 @@ class UpdateBannerAction
      */
     public function handle(Banner $banner, UpdateBannerDTO $dto): Banner
     {
-        return $this->storeFileWithCleanup(
+        $banner = $this->storeFileWithCleanup(
             file: $dto->image,
             directory: 'banners',
             disk: 'public',
@@ -36,5 +37,9 @@ class UpdateBannerAction
                 return $this->repository->update($banner, $data);
             },
         );
+
+        LookupCache::forget('banners:all');
+
+        return $banner;
     }
 }

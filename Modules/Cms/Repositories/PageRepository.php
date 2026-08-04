@@ -2,6 +2,7 @@
 
 namespace Modules\Cms\Repositories;
 
+use App\Support\LookupCache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -51,8 +52,29 @@ class PageRepository implements PageRepositoryInterface
      */
     public function getAllForCatalog(): Collection
     {
-        return Page::query()
-            ->with('translation')
-            ->get();
+        /** @var Collection<int, Page> */
+        return LookupCache::rememberForeverForLocale(
+            'pages:all',
+            app()->getLocale(),
+            fn (): Collection => Page::query()
+                ->with('translation')
+                ->get(),
+        );
+    }
+
+    public function loadForCatalog(Page $page): Page
+    {
+        $slug = (string) $page->slug;
+
+        /** @var Page */
+        return LookupCache::rememberForeverScoped(
+            'pages:single',
+            app()->getLocale(),
+            $slug,
+            fn (): Page => Page::query()
+                ->where('slug', $slug)
+                ->with('translation')
+                ->firstOrFail(),
+        );
     }
 }

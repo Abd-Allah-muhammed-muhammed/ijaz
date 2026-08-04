@@ -23,4 +23,6 @@ interface PageRepositoryInterface
      * @return Collection<int, Page>
      */
     public function getAllForCatalog(): Collection;
+
+    public function loadForCatalog(Page $page): Page;
 }

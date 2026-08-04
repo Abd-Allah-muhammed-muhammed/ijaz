@@ -3,6 +3,7 @@
 namespace Modules\Marketplace\Actions\ProviderType;
 
 use App\Support\HandlesTransactionalFileUpload;
+use App\Support\LookupCache;
 use Modules\Marketplace\Contracts\Repositories\ProviderTypeRepositoryInterface;
 use Modules\Marketplace\DTOs\StoreProviderTypeDTO;
 use Modules\Marketplace\Models\ProviderType;
@@ -20,7 +21,7 @@ class StoreProviderTypeAction
     /** @throws Throwable */
     public function handle(StoreProviderTypeDTO $dto): ProviderType
     {
-        return $this->storeFileWithCleanup(
+        $providerType = $this->storeFileWithCleanup(
             file: $dto->image,
             directory: 'provider-types',
             disk: 'public',
@@ -36,5 +37,9 @@ class StoreProviderTypeAction
                 return $providerType->fresh(['translations', 'translation', 'categories.translations']) ?? $providerType;
             },
         );
+
+        LookupCache::forgetAllLocales('provider-types:all');
+
+        return $providerType;
     }
 }

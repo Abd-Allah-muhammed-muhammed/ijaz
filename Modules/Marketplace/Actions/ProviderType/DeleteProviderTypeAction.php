@@ -2,6 +2,7 @@
 
 namespace Modules\Marketplace\Actions\ProviderType;
 
+use App\Support\LookupCache;
 use Modules\Marketplace\Contracts\Repositories\ProviderTypeRepositoryInterface;
 use Modules\Marketplace\Models\ProviderType;
 
@@ -14,5 +15,7 @@ class DeleteProviderTypeAction
     public function handle(ProviderType $providerType): void
     {
         $this->repository->delete($providerType);
+
+        LookupCache::forgetAllLocales('provider-types:all');
     }
 }

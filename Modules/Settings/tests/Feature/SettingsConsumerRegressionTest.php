@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\LookupCache;
 use Modules\Orders\Actions\CalculateOrderFeesAction;
 use Modules\Payment\Services\PaymentService;
 use Modules\Settings\Http\Controllers\Api\V1\SettingController;
@@ -15,6 +16,7 @@ use Modules\Wallet\Http\Requests\StoreWithdrawRequest;
 beforeEach(function () {
     cache()->forget('settings');
     app()->forgetInstance('settings');
+    LookupCache::forget('settings:public');
 
     Setting::query()->updateOrCreate(
         ['key' => 'min_withdraw_amount'],

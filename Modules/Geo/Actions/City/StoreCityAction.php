@@ -2,6 +2,7 @@
 
 namespace Modules\Geo\Actions\City;
 
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\DB;
 use Modules\Geo\Contracts\Repositories\CityRepositoryInterface;
 use Modules\Geo\DTOs\StoreCityDTO;
@@ -19,8 +20,13 @@ class StoreCityAction
      */
     public function handle(StoreCityDTO $dto): City
     {
-        return DB::transaction(
+        $city = DB::transaction(
             fn (): City => $this->repository->create($dto->regionId, $dto->translations)
         );
+
+        LookupCache::forgetScopedAllLocales('cities:by-region', $dto->regionId);
+        LookupCache::forgetScopedAllLocales('cities:by-region', 0);
+
+        return $city;
     }
 }

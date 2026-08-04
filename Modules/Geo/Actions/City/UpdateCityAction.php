@@ -2,6 +2,7 @@
 
 namespace Modules\Geo\Actions\City;
 
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\DB;
 use Modules\Geo\Contracts\Repositories\CityRepositoryInterface;
 use Modules\Geo\DTOs\UpdateCityDTO;
@@ -19,8 +20,16 @@ class UpdateCityAction
      */
     public function handle(City $city, UpdateCityDTO $dto): City
     {
-        return DB::transaction(
+        $previousRegionId = (int) $city->region_id;
+
+        $city = DB::transaction(
             fn (): City => $this->repository->update($city, $dto->regionId, $dto->translations)
         );
+
+        LookupCache::forgetScopedAllLocales('cities:by-region', $previousRegionId);
+        LookupCache::forgetScopedAllLocales('cities:by-region', $dto->regionId);
+        LookupCache::forgetScopedAllLocales('cities:by-region', 0);
+
+        return $city;
     }
 }

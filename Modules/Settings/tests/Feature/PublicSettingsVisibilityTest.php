@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\LookupCache;
 use Modules\Settings\Http\Controllers\Api\V1\SettingController as ApiSettingController;
 use Modules\Settings\Http\Controllers\Dashboard\SettingController as DashboardSettingController;
 use Modules\Settings\Models\Setting;
@@ -7,6 +8,7 @@ use Modules\Settings\Models\Setting;
 beforeEach(function () {
     cache()->forget('settings');
     app()->forgetInstance('settings');
+    LookupCache::forget('settings:public');
 });
 
 test('public settings API only returns settings marked is_public', function () {

@@ -29,9 +29,9 @@ it('round-trips pulse dashboard classes through a serializing cache store', func
 });
 
 it('allows the pulse-required classes in cache.serializable_classes', function (): void {
-    expect(config('cache.serializable_classes'))->toEqualCanonicalizing([
+    expect(config('cache.serializable_classes'))->toContain(
         stdClass::class,
         Collection::class,
         CarbonImmutable::class,
-    ]);
+    );
 });

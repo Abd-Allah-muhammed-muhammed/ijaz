@@ -1,8 +1,22 @@
 <?php
 
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Modules\Cms\Models\Banner;
+use Modules\Cms\Models\Page;
+use Modules\Cms\Models\PageTranslation;
+use Modules\Cms\Models\Question;
+use Modules\Cms\Models\QuestionTranslation;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\CityTranslation;
+use Modules\Geo\Models\Nationality;
+use Modules\Geo\Models\NationalityTranslation;
+use Modules\Geo\Models\Region;
+use Modules\Geo\Models\RegionTranslation;
+use Modules\Marketplace\Models\ProviderType;
+use Modules\Marketplace\Models\ProviderTypeTranslation;
 
 return [
 
@@ -130,6 +144,21 @@ return [
         stdClass::class,
         Collection::class,
         CarbonImmutable::class,
+        // Eloquent lookup caching (Tier 1 domains that return Eloquent Collections)
+        EloquentCollection::class,
+        ProviderType::class,
+        ProviderTypeTranslation::class,
+        Region::class,
+        RegionTranslation::class,
+        City::class,
+        CityTranslation::class,
+        Nationality::class,
+        NationalityTranslation::class,
+        Banner::class,
+        Page::class,
+        PageTranslation::class,
+        Question::class,
+        QuestionTranslation::class,
     ],
 
 ];

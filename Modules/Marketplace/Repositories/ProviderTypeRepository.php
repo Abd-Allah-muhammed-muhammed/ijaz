@@ -2,6 +2,7 @@
 
 namespace Modules\Marketplace\Repositories;
 
+use App\Support\LookupCache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
@@ -24,9 +25,14 @@ class ProviderTypeRepository implements ProviderTypeRepositoryInterface
 
     public function allWithTranslationsForApi(): Collection
     {
-        return ProviderType::query()
-            ->withTranslation()
-            ->get();
+        /** @var Collection<int, ProviderType> */
+        return LookupCache::rememberForeverForLocale(
+            'provider-types:all',
+            app()->getLocale(),
+            fn (): Collection => ProviderType::query()
+                ->withTranslation()
+                ->get(),
+        );
     }
 
     public function findById(int $id): ProviderType

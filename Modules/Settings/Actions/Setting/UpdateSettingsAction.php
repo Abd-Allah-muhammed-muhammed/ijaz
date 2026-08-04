@@ -2,6 +2,7 @@
 
 namespace Modules\Settings\Actions\Setting;
 
+use App\Support\LookupCache;
 use Modules\Settings\Contracts\Repositories\SettingRepositoryInterface;
 use Modules\Settings\DTOs\UpdateSettingsDTO;
 
@@ -17,5 +18,6 @@ class UpdateSettingsAction
 
         cache()->forget('settings');
         app()->forgetInstance('settings');
+        LookupCache::forget('settings:public');
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use Modules\Settings\Actions\Setting\ListPublicSettingsAction;
 use Modules\Settings\Http\Controllers\Dashboard\SettingController;
 use Modules\Settings\Models\Setting;
 
@@ -28,11 +29,12 @@ test('admin with edit settings can update settings and invalidate cache', functi
 
     Setting::query()->updateOrCreate(
         ['key' => 'phone'],
-        ['content' => '966500000000', 'group' => 'general'],
+        ['content' => '966500000000', 'group' => 'general', 'is_public' => true],
     );
 
     cache()->forever('settings', collect(['phone' => '966500000000']));
     app()->instance('settings', collect(['phone' => '966500000000']));
+    app(ListPublicSettingsAction::class)->handle();
 
     $this->actingAs($admin, 'admin')
         ->put(action([SettingController::class, 'update']), [
@@ -49,7 +51,9 @@ test('admin with edit settings can update settings and invalidate cache', functi
     expect(Setting::query()->where('key', 'phone')->value('content'))->toBe('966511111111')
         ->and((bool) Setting::query()->where('key', 'phone')->value('is_public'))->toBeTrue()
         ->and(cache()->get('settings'))->toBeNull()
-        ->and(app('settings')->get('phone'))->toBe('966511111111');
+        ->and(app('settings')->get('phone'))->toBe('966511111111')
+        ->and(app(ListPublicSettingsAction::class)->handle()['phone'])
+        ->toBe('966511111111');
 });
 
 test('admin without show settings cannot access settings dashboard', function () {
