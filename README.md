@@ -282,7 +282,8 @@ The scheduler runs:
 - `opportunities:expire` — hourly (dispatches `ExpireOpportunityJob` onto the `opportunities` queue; consumed by `ijaz-default-worker`)
 - `guarantor:check-overdue` — daily at midnight (checks overdue installments)
 - `auth:prune-expired-otp-sessions` — hourly
-- `telescope:prune` — daily at midnight
+- `telescope:prune --hours=48` — daily at midnight (Telescope is off by default via `TELESCOPE_ENABLED`; when enabled, entries older than 48 hours are pruned)
+- Pulse has **no** prune artisan command — retention is config-driven (`PULSE_STORAGE_KEEP` / `PULSE_INGEST_KEEP`, default **7 days**) with lottery-based trim on ingest
 
 ---
 
