@@ -4,6 +4,11 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Modules\Cms\Models\Banner;
+use Modules\Cms\Models\Page;
+use Modules\Cms\Models\PageTranslation;
+use Modules\Cms\Models\Question;
+use Modules\Cms\Models\QuestionTranslation;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\CityTranslation;
 use Modules\Geo\Models\Nationality;
@@ -149,6 +154,11 @@ return [
         CityTranslation::class,
         Nationality::class,
         NationalityTranslation::class,
+        Banner::class,
+        Page::class,
+        PageTranslation::class,
+        Question::class,
+        QuestionTranslation::class,
     ],
 
 ];

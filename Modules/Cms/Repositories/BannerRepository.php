@@ -2,6 +2,7 @@
 
 namespace Modules\Cms\Repositories;
 
+use App\Support\LookupCache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -49,6 +50,10 @@ class BannerRepository implements BannerRepositoryInterface
      */
     public function all(): Collection
     {
-        return Banner::query()->get();
+        /** @var Collection<int, Banner> */
+        return LookupCache::rememberForever(
+            'banners:all',
+            fn (): Collection => Banner::query()->get(),
+        );
     }
 }

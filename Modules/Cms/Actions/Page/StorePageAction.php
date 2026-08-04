@@ -2,6 +2,7 @@
 
 namespace Modules\Cms\Actions\Page;
 
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Cms\Contracts\Repositories\PageRepositoryInterface;
@@ -20,9 +21,14 @@ class StorePageAction
      */
     public function handle(StorePageDTO $dto): Page
     {
-        return DB::transaction(fn (): Page => $this->repository->create([
+        $page = DB::transaction(fn (): Page => $this->repository->create([
             'slug' => Str::slug($dto->slug),
             'translations' => $dto->translations,
         ]));
+
+        LookupCache::forgetAllLocales('pages:all');
+        LookupCache::forgetScopedAllLocales('pages:single', $page->slug);
+
+        return $page;
     }
 }

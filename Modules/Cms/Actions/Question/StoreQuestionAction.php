@@ -2,6 +2,7 @@
 
 namespace Modules\Cms\Actions\Question;
 
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\DB;
 use Modules\Cms\Contracts\Repositories\QuestionRepositoryInterface;
 use Modules\Cms\DTOs\StoreQuestionDTO;
@@ -19,8 +20,12 @@ class StoreQuestionAction
      */
     public function handle(StoreQuestionDTO $dto): Question
     {
-        return DB::transaction(fn (): Question => $this->repository->create([
+        $question = DB::transaction(fn (): Question => $this->repository->create([
             'translations' => $dto->translations,
         ]));
+
+        LookupCache::forgetAllLocales('questions:all');
+
+        return $question;
     }
 }

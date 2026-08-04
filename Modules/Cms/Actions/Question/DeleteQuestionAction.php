@@ -2,6 +2,7 @@
 
 namespace Modules\Cms\Actions\Question;
 
+use App\Support\LookupCache;
 use Modules\Cms\Contracts\Repositories\QuestionRepositoryInterface;
 use Modules\Cms\Models\Question;
 
@@ -14,5 +15,7 @@ class DeleteQuestionAction
     public function handle(Question $question): void
     {
         $this->repository->delete($question);
+
+        LookupCache::forgetAllLocales('questions:all');
     }
 }
