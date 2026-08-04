@@ -5,6 +5,7 @@ namespace App\Repositories\User;
 use App\Contracts\User\UserManagementRepositoryInterface;
 use App\Enums\Users\UserStatusEnum;
 use App\Models\User;
+use App\Support\LookupCache;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -92,16 +93,19 @@ class UserManagementRepository implements UserManagementRepositoryInterface
      */
     public function statusCounts(): array
     {
-        $counts = User::query()
-            ->selectRaw('status, count(*) as aggregate')
-            ->groupBy('status')
-            ->pluck('aggregate', 'status');
+        /** @var array{total: int, active: int, blocked: int} */
+        return LookupCache::rememberFor('stats:users:status-counts', 30, function (): array {
+            $counts = User::query()
+                ->selectRaw('status, count(*) as aggregate')
+                ->groupBy('status')
+                ->pluck('aggregate', 'status');
 
-        return [
-            'total' => (int) $counts->sum(),
-            'active' => (int) ($counts[UserStatusEnum::Active->value] ?? 0),
-            'blocked' => (int) ($counts[UserStatusEnum::Blocked->value] ?? 0),
-        ];
+            return [
+                'total' => (int) $counts->sum(),
+                'active' => (int) ($counts[UserStatusEnum::Active->value] ?? 0),
+                'blocked' => (int) ($counts[UserStatusEnum::Blocked->value] ?? 0),
+            ];
+        });
     }
 
     /**

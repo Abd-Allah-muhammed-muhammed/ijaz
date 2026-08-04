@@ -5,6 +5,7 @@ namespace App\Repositories\Provider;
 use App\Contracts\Provider\ProviderManagementRepositoryInterface;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Models\Provider;
+use App\Support\LookupCache;
 use App\Support\Phone;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Database\Eloquent\Builder;
@@ -132,17 +133,20 @@ class ProviderManagementRepository implements ProviderManagementRepositoryInterf
      */
     public function statusCounts(): array
     {
-        $counts = Provider::query()
-            ->selectRaw('status, count(*) as aggregate')
-            ->groupBy('status')
-            ->pluck('aggregate', 'status');
+        /** @var array{total: int, approved: int, pending: int, blocked: int} */
+        return LookupCache::rememberFor('stats:providers:status-counts', 30, function (): array {
+            $counts = Provider::query()
+                ->selectRaw('status, count(*) as aggregate')
+                ->groupBy('status')
+                ->pluck('aggregate', 'status');
 
-        return [
-            'total' => (int) $counts->sum(),
-            'approved' => (int) ($counts[ProviderStatusEnum::Approved->value] ?? 0),
-            'pending' => (int) ($counts[ProviderStatusEnum::Pending->value] ?? 0),
-            'blocked' => (int) ($counts[ProviderStatusEnum::Blocked->value] ?? 0),
-        ];
+            return [
+                'total' => (int) $counts->sum(),
+                'approved' => (int) ($counts[ProviderStatusEnum::Approved->value] ?? 0),
+                'pending' => (int) ($counts[ProviderStatusEnum::Pending->value] ?? 0),
+                'blocked' => (int) ($counts[ProviderStatusEnum::Blocked->value] ?? 0),
+            ];
+        });
     }
 
     /**
