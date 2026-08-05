@@ -36,10 +36,10 @@ export default defineConfig({
       },
       {
         name: 'js-translations',
-        // Must run on `vite build` too — lang/*.json is the source of truth;
-        // resources/js/lang is generated. build:false left manual ar.json edits
-        // invisible after npm run build.
-        build: true,
+        // Production builds run this in npm `prebuild` so Vite does not regenerate
+        // resources/js/lang/*.json mid-bundle (that race corrupts JSON parses).
+        // Keep pattern-based HMR generation for `vite`/`npm run dev`.
+        build: false,
         run: ['php', 'artisan', 'make:js-translations'],
         pattern: ['lang/**/*.php', 'lang/**/*.json'],
       },

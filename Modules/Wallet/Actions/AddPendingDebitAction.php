@@ -7,6 +7,7 @@ use Modules\Wallet\Contracts\Repositories\WalletRepositoryInterface;
 use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
 use Modules\Wallet\DTOs\WalletTransactionData;
 use Modules\Wallet\Enums\TransactionTypeEnum;
+use Modules\Wallet\Exceptions\InsufficientBalanceException;
 
 class AddPendingDebitAction
 {
@@ -15,11 +16,29 @@ class AddPendingDebitAction
         private readonly WalletTransactionRepositoryInterface $transactionRepo,
     ) {}
 
-    public function handle(Model $owner, float $amount, Model $operation, string $description = ''): void
-    {
+    public function handle(
+        Model $owner,
+        float $amount,
+        Model $operation,
+        string $description = '',
+        bool $requireSufficientAvailable = false,
+        bool $skipBalanceIncrement = false,
+    ): void {
         $wallet = $this->walletRepo->lockForUpdate($owner);
         $balanceBefore = (float) $wallet->balance;
-        $wallet->increment('pending_debit', $amount);
+
+        if (! $skipBalanceIncrement) {
+            if ($requireSufficientAvailable) {
+                if (! $this->walletRepo->tryIncrementPendingDebitIfAvailable($wallet, $amount)) {
+                    throw new InsufficientBalanceException(
+                        available: $balanceBefore - (float) $wallet->pending_debit,
+                        requested: $amount,
+                    );
+                }
+            } else {
+                $wallet->increment('pending_debit', $amount);
+            }
+        }
 
         $this->transactionRepo->create($wallet, $owner, new WalletTransactionData(
             amount: $amount,

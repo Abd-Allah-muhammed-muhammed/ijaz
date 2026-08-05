@@ -23,6 +23,17 @@ class WithdrawRequestRepository implements WithdrawRequestRepositoryInterface
         return $withdrawRequest;
     }
 
+    public function lockForUpdate(WithdrawRequest $withdrawRequest): WithdrawRequest
+    {
+        /** @var WithdrawRequest $locked */
+        $locked = WithdrawRequest::query()
+            ->whereKey($withdrawRequest->getKey())
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        return $locked;
+    }
+
     public function update(WithdrawRequest $withdrawRequest, array $attributes): WithdrawRequest
     {
         $withdrawRequest->update($attributes);
