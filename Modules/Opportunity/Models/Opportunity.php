@@ -24,6 +24,8 @@ class Opportunity extends Model implements HasMedia
 {
     use HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
 
+    public const DEFAULT_DURATION_DAYS = 7;
+
     protected $keyType = 'string';
 
     public $incrementing = false;

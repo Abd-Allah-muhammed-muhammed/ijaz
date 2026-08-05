@@ -22,11 +22,18 @@ class CreateOpportunityAction
     public function handle(OpportunityData $data, Model $author, Request $request): Opportunity
     {
         return DB::transaction(function () use ($data, $author, $request) {
-            $opportunity = $this->opportunities->create([
+            $attributes = [
                 ...$data->toPersistenceArray(),
                 'author_type' => $author::class,
                 'author_id' => $author->getKey(),
-            ]);
+            ];
+
+            // Omit expires_at → default listing window (null reads as 00:00:00 on mobile).
+            if ($attributes['expires_at'] === null) {
+                $attributes['expires_at'] = now()->addDays(Opportunity::DEFAULT_DURATION_DAYS);
+            }
+
+            $opportunity = $this->opportunities->create($attributes);
 
             if ($request->hasFile('files')) {
                 $opportunity->addMultipleMediaFromRequest(['files'])->each(function ($media) {

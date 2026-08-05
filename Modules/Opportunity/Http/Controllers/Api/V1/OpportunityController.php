@@ -287,10 +287,10 @@ class OpportunityController extends Controller
     }
 
     /**
-     * Renew opportunity expiry by 7 days
+     * Renew opportunity expiry by 7 days (from now when already expired/null).
      *
      * @response 200 {
-     *   "status": true,
+     *   "success": true,
      *   "data": { "id": "...", "expires_at": "2026-07-01T00:00:00+00:00" }
      * }
      * @response 403 { "success": false, "message": "You are not authorized" }
