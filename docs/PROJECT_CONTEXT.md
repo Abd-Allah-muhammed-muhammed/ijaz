@@ -1,6 +1,6 @@
 # PROJECT CONTEXT
 
-**Last verified: 2026-07-27, post-Settings/Reviews/Otp/Notification consolidations**
+**Last verified: 2026-08-05, post Tier 1 + Tier 2 LookupCache rollout (`feature/project-wide-caching`)**
 
 This is the entry-point map of the Ijaz codebase after the modularization and cleanup session. For endpoint/model/enum detail, use the specialized docs listed below — do not duplicate them here.
 
@@ -14,6 +14,7 @@ This is the entry-point map of the Ijaz codebase after the modularization and cl
 | **[docs/MODELS_REFERENCE.md](MODELS_REFERENCE.md)** | All **72** Eloquent models (App Core + Modules), fields, relations, traits, enum casts |
 | **[docs/ENUMS_REFERENCE.md](ENUMS_REFERENCE.md)** | All **31** enums, cases, backing types, model cast usage, utility traits |
 | **[.cursor/rules/layered-architecture.mdc](../.cursor/rules/layered-architecture.mdc)** | **Authoritative** Controller → Service → Action → Repository / DTO / FormRequest rules |
+| **This file §9** | LookupCache Tier 1 / Tier 2 keys, invalidation, TTL, and deliberately deferred items |
 | **[docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](DEFERRED_MOBILE_BREAKING_CHANGES.md)** | Mobile-breaking items deliberately deferred until post-MVP (15/8) |
 | **[modules_statuses.json](../modules_statuses.json)** | Enabled nwidart modules (all **16** currently `true`) |
 
@@ -115,7 +116,7 @@ app/
 │   ├── Admin/ · Auth/ · Account/ · Dashboard/ · Provider/ · User/
 │   ├── Firebase/      — Push notifications
 │   └── Translations/  — Locale rendering for frontend
-├── Support/           — Shared utilities: Normalize, Phone, HasNormalizedAttributes, …
+├── Support/           — Shared utilities: Normalize, Phone, HasNormalizedAttributes, LookupCache, …
 ├── Traits/            — Cross-cutting model traits (HasWallet, HasOTPs, Blockable, …)
 └── UserProviders/     — Custom auth user providers
 ```
@@ -241,6 +242,107 @@ For exact inventory numbers and shapes, prefer the three reference docs over thi
 
 ---
 
+## 9 — Lookup / stats caching (Tier 1 + Tier 2)
+
+Shipped on `feature/project-wide-caching`. **Do not re-audit from scratch** or invent a second cache layer — extend `App\Support\LookupCache` and the tables below.
+
+### Utility — `App\Support\LookupCache`
+
+| Concern | Rule |
+|---|---|
+| Entry point | `app/Support/LookupCache.php` — forever / TTL / locale / scoped remember + `forget*` / `flush` |
+| Storage prefix | Logical keys become `lookup:{key}` (plus `:{locale}` / `:{scopeId}` when scoped) |
+| Registry | Tracked-key registry (`lookup:__registry__`) so granular forget works on the **database** cache driver (no tags required) |
+| Type preservation | Return the closure’s **natural** type. Eloquent / Support collections and models must be allow-listed in `config/cache.php` → `serializable_classes`. Prefer arrays/DTOs when unsure |
+| Where to wrap | Repository (or the single shared list Action) — Controllers/Services stay thin |
+| Tests | `tests/Unit/Support/LookupCacheTest.php` + per-domain `*LookupCacheTest.php` (cold vs warm equality + query-count drop) |
+| Test hygiene | `Tests\TestCase` flushes LookupCache between tests; `TestingDatabaseGuard` aborts if config is cached or DB is not sqlite `:memory:` |
+
+```php
+// Forever — invalidate only via forget*()
+LookupCache::rememberForever('settings:public', fn () => ...);
+LookupCache::rememberForeverForLocale('regions:all', $locale, fn () => ...);
+LookupCache::rememberForeverScoped('cities:by-region', $locale, $regionId, fn () => ...);
+
+// TTL — Tier 2 stats (pure expiry; no write-path forget)
+LookupCache::rememberFor('stats:orders:dashboard', 30, fn () => ...);
+
+// Invalidation (Tier 1 write Actions only)
+LookupCache::forget('settings:public');
+LookupCache::forgetAllLocales('regions:all');
+LookupCache::forgetScopedAllLocales('cities:by-region', $regionId);
+```
+
+**Spatie permissions** use Spatie’s own `spatie.permission.cache` (24h, store `default`) for the global permission↔role graph. That is **not** LookupCache. Per-request `getAllPermissions()` / `can()` still load the admin’s role/permission pivots (~2–3 queries) — expected; frontend `usePermissions()` reads Inertia `auth.permissions` (0 DB). Do not duplicate Spatie with LookupCache unless a measured problem appears.
+
+**Frontend i18n** bundles `resources/js/lang/*.json` via Vite/i18next — not a per-request DB/file cache target. `TranslationService`’s `rememberForever('translations.{locale}')` is dead code behind an early return; `app.blade.php` does not call `render()`.
+
+### Tier 1 — forever + write-path invalidation
+
+Mostly-static lookups. Invalidate in Store/Update/Delete (and status toggles when present).
+
+| Domain | Logical key(s) | Remember API | Invalidate at |
+|---|---|---|---|
+| Settings (public API) | `settings:public` | `rememberForever` | `UpdateSettingsAction` |
+| ProviderTypes | `provider-types:all` (+ locale) | `rememberForeverForLocale` | Store/Update/Delete ProviderType Actions |
+| Regions | `regions:all`, `regions:dropdown` (+ locale) | `rememberForeverForLocale` | Store/Update/Delete Region Actions |
+| Cities | `cities:by-region` (+ locale + region id; `0` = all) | `rememberForeverScoped` | Store/Update/Delete City (+ Region delete clears scoped keys) |
+| Nationalities | `nationalities:all` (+ locale) | `rememberForeverForLocale` | Store/Update/Delete Nationality Actions |
+| CMS Banners | `banners:all` | `rememberForever` | Store/Update/Delete Banner Actions |
+| CMS Pages | `pages:all` (+ locale), `pages:single` (+ locale + slug) | `rememberForeverForLocale` / `rememberForeverScoped` | Store/Update/Delete Page Actions |
+| CMS Questions | `questions:all` (+ locale) | `rememberForeverForLocale` | Store/Update/Delete Question Actions |
+
+Keep `regions:all` (`listForSelect`) and `regions:dropdown` (`getAllForDropdown`) as **separate** keys — Resource / shape differences.
+
+### Tier 2 — short TTL, no invalidation
+
+Brief staleness is acceptable for badges / summary dashboards. **Do not** add `LookupCache::forget` on order/user/provider write paths for these keys.
+
+| Domain | Logical key | TTL | Wrapped method |
+|---|---|---|---|
+| Orders | `stats:orders:dashboard` | 30s | `OrderRepository::dashboardStats()` |
+| Guarantor | `stats:guarantor:dashboard` | 30s | `GuarantorRepository::getDashboardStats()` |
+| Users | `stats:users:status-counts` | 30s | `UserManagementRepository::statusCounts()` |
+| Providers | `stats:providers:status-counts` | 30s | `ProviderManagementRepository::statusCounts()` |
+| PanAnalytics | `stats:pan-analytics:all` | 60s | `PanAnalyticsRepository::all()` (feeds summary / categories / topElements / funnel; paginate stays live) |
+
+### Deliberately deferred (do not treat as forgotten)
+
+**Original Tier 1 leftover**
+
+| Item | Why deferred |
+|---|---|
+| `DashboardHomeService::forHome()` (`stats:admin:home`) | Composite DTO + Eloquent graphs; needs allow-list growth; optional 60s TTL later |
+
+**Original Tier 2 Catalog / Marketplace (not in the executed rollout)**
+
+| Item | Why deferred |
+|---|---|
+| Catalog selects + API (car/property/device/electronic brands & types, specializations) | Filter/search key surface + must clear on `UpdateStatus*`; empty-search-only if/when done |
+| Marketplace root categories / children | Same — cache root / first page only; skip arbitrary search strings |
+| Skills by `category_id` | Worth doing with category-scoped keys + Skill/Category write invalidation; not done yet |
+
+**Original Tier 3 — skip**
+
+| Item | Why skipped |
+|---|---|
+| Wallet / order lists / chat / OTP / profiles / guarantor apps | Stale data = wrong money or privacy bugs |
+| Opportunity API `offers_count` | Viewer-scoped; global cache would leak |
+| Dashboard paginated CRUD indexes | Low traffic; high filter cardinality |
+| Category/Ajax **search** result pages | Key explosion + weak hit rate |
+| Role `loadCount('users')` | Low-traffic admin |
+| HTTP/CDN response caching | Premature without Redis + purge story |
+| Provider home per-provider stats | Needs `provider:{id}` keys; low priority |
+| `translations.{locale}` / Spatie admin pivots | File I/O dead path / expected per-request pivots — not LookupCache |
+
+### Optional next phase (when justified by traffic)
+
+1. Catalog + Marketplace empty-search lookups (original Tier 2 #7–9) via LookupCache forever/6h + write invalidation including status toggles.
+2. Short-TTL `DashboardHomeService::forHome` if admin home remains hot.
+3. Switch `CACHE_STORE` to Redis later for cheaper tags; registry already works on database driver.
+
+---
+
 ## Appendix — Quick reference
 
 ### Config worth knowing
@@ -248,8 +350,10 @@ For exact inventory numbers and shapes, prefer the three reference docs over thi
 - `config/app.php` — name, locale, timezone
 - `config/auth.php` — guards / providers
 - `config/broadcasting.php` — Reverb
+- `config/cache.php` — default store + `serializable_classes` allow-list for LookupCache
 - `config/firebase.php` — push
 - `config/otp.php` — OTP TTLs by purpose
+- Spatie permission cache — `config('permission.cache')` (package default; key `spatie.permission.cache`)
 - `Modules/Payment/config` + app payment config — drivers / PayTabs
 - `Modules/Sms/config` — SMS gateways
 - `modules_statuses.json` — which modules are enabled
@@ -271,5 +375,6 @@ For exact inventory numbers and shapes, prefer the three reference docs over thi
 | Enum cases or new enum | [docs/ENUMS_REFERENCE.md](ENUMS_REFERENCE.md) |
 | Deferred mobile item fixed or newly deferred | [docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](DEFERRED_MOBILE_BREAKING_CHANGES.md) + Known Issues §7 here |
 | Auth guard / actor model change | This file §3 |
+| New LookupCache domain, key, TTL, or deferred-item decision | This file **§9** (and `config/cache.php` allow-list if caching new Eloquent types) |
 
-Keep this file as the **map**, not a second copy of the inventories. When in doubt, regenerate the specialized docs from the live codebase and only refresh the sections here that would otherwise go stale (structure, modules table, known issues, session summary).
+Keep this file as the **map**, not a second copy of the inventories. When in doubt, regenerate the specialized docs from the live codebase and only refresh the sections here that would otherwise go stale (structure, modules table, known issues, session summary, caching §9).

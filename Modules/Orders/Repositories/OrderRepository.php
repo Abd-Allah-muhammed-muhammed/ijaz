@@ -4,6 +4,7 @@ namespace Modules\Orders\Repositories;
 
 use App\Models\Provider;
 use App\Models\User;
+use App\Support\LookupCache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
@@ -185,13 +186,14 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function dashboardStats(): array
     {
-        return [
+        /** @var array<string, int> */
+        return LookupCache::rememberFor('stats:orders:dashboard', 30, fn (): array => [
             'total' => Order::count(),
             'active' => Order::whereIn('status', [OrderStatusEnum::PaymentCompleted, OrderStatusEnum::InProgress])->count(),
             'pending' => Order::whereIn('status', [OrderStatusEnum::New, OrderStatusEnum::Hold, OrderStatusEnum::OfferProvided])->count(),
             'completed' => Order::whereIn('status', [OrderStatusEnum::EndedByProvider, OrderStatusEnum::EndedByClient])->count(),
             'cancelled' => Order::whereIn('status', [OrderStatusEnum::CancelledByProvider, OrderStatusEnum::CancelledByClient, OrderStatusEnum::Refunded])->count(),
-        ];
+        ]);
     }
 
     /**

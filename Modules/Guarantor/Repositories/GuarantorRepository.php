@@ -3,6 +3,7 @@
 namespace Modules\Guarantor\Repositories;
 
 use App\Models\User;
+use App\Support\LookupCache;
 use App\Support\Phone;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
@@ -133,13 +134,14 @@ class GuarantorRepository implements GuarantorRepositoryInterface
      */
     public function getDashboardStats(): array
     {
-        return [
+        /** @var array{total: int, pending_admin: int, in_progress: int, overdue: int, ended: int} */
+        return LookupCache::rememberFor('stats:guarantor:dashboard', 30, fn (): array => [
             'total' => GuarantorRequest::count(),
             'pending_admin' => GuarantorRequest::where('status', GuarantorStatusEnum::PendingAdmin)->count(),
             'in_progress' => GuarantorRequest::where('status', GuarantorStatusEnum::InProgress)->count(),
             'overdue' => GuarantorRequest::where('status', GuarantorStatusEnum::Overdue)->count(),
             'ended' => GuarantorRequest::where('status', GuarantorStatusEnum::Ended)->count(),
-        ];
+        ]);
     }
 
     public function delete(GuarantorRequest $guarantorRequest): void

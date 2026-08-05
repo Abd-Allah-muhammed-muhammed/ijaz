@@ -4,6 +4,7 @@ namespace App\Repositories\PanAnalytics;
 
 use App\Actions\PanAnalytics\CategorizePanElementAction;
 use App\Contracts\PanAnalytics\PanAnalyticsRepositoryInterface;
+use App\Support\LookupCache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
@@ -11,13 +12,26 @@ use Illuminate\Support\Facades\DB;
 
 class PanAnalyticsRepository implements PanAnalyticsRepositoryInterface
 {
+    /**
+     * Short TTL for the full-table snapshot used by summary / categories / topElements.
+     * Pure expiry only — clear() intentionally does not invalidate (brief staleness OK).
+     */
+    private const ALL_ROWS_TTL_SECONDS = 60;
+
     public function __construct(
         private readonly CategorizePanElementAction $categorizePanElementAction,
     ) {}
 
     public function all(): Collection
     {
-        return DB::table('pan_analytics')->get();
+        /** @var Collection<int, object> $rows */
+        $rows = LookupCache::rememberFor(
+            'stats:pan-analytics:all',
+            self::ALL_ROWS_TTL_SECONDS,
+            fn (): Collection => DB::table('pan_analytics')->get(),
+        );
+
+        return $rows;
     }
 
     public function paginateFiltered(?string $category, int $perPage): LengthAwarePaginator
