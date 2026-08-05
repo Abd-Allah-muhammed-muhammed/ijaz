@@ -65,7 +65,9 @@ return [
 
         'redis' => [
             'driver' => 'redis',
-            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
+            // Uses the dedicated `queue` Redis connection (REDIS_QUEUE_DB=2 by default),
+            // separate from default (0) and cache (REDIS_CACHE_DB=1).
+            'connection' => env('REDIS_QUEUE_CONNECTION', 'queue'),
             'queue' => env('REDIS_QUEUE', 'default'),
             'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
             'block_for' => null,

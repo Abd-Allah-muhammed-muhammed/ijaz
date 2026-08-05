@@ -262,6 +262,201 @@ php artisan tinker --execute="echo DB::table('jobs')->where('queue','opportuniti
 
 ---
 
+### Migrating to Horizon on Production
+
+Horizon replaces the dedicated `queue:work` Supervisor programs with a single
+`php artisan horizon` process that auto-balances workers across Redis queues.
+**Do not cut over until Redis is installed and verified** (same Redis instance
+already used / planned for cache). This section is copy-paste-ready for the
+live server; do **not** apply it until you are deliberately migrating.
+
+Horizon is installed in the app and **opt-in** via `.env`. Until you change
+`QUEUE_CONNECTION`, production (and local) keep using the `database` queue
+driver and the existing `ijaz-default-worker` / `ijaz-guarantor-worker` programs.
+
+#### 1. Prerequisites
+
+- Redis installed and reachable (`REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD`)
+- PhpRedis (`ext-redis`) or Predis configured via `REDIS_CLIENT`
+- Logical DB layout (same Redis instance, isolated keyspaces):
+  - DB `0` — general / Horizon meta (`config/horizon.php` → `'use' => 'default'`)
+  - DB `1` — cache (`REDIS_CACHE_DB=1`)
+  - DB `2` — queue jobs (`REDIS_QUEUE_DB=2`)
+- Code with `laravel/horizon` deployed (`composer install` on Linux needs
+  `ext-pcntl` + `ext-posix`; Windows local installs may need
+  `--ignore-platform-req=ext-pcntl --ignore-platform-req=ext-posix`)
+- Confirm `config/queue.php` redis connection points at the `queue` Redis
+  connection (`REDIS_QUEUE_CONNECTION=queue` → `REDIS_QUEUE_DB=2`)
+
+#### 2. Drain the database queue before cutover
+
+Keep the old workers running until the MySQL `jobs` table is empty (new jobs
+must not pile up mid-cutover — briefly pause traffic or put the app in
+maintenance if needed).
+
+```bash
+cd /home/ijaz/project
+
+# Pending + reserved jobs still on the database driver
+php artisan tinker --execute="echo 'jobs='.DB::table('jobs')->count().PHP_EOL; echo 'failed_jobs='.DB::table('failed_jobs')->count().PHP_EOL;"
+
+# Optional: break down by queue name
+php artisan tinker --execute="echo DB::table('jobs')->select('queue', DB::raw('count(*) as c'))->groupBy('queue')->get();"
+```
+
+Wait until `jobs=0`. Retry or clear `failed_jobs` separately if you care about
+them (`php artisan queue:retry all` / `queue:flush`).
+
+#### 3. `.env` changes (production)
+
+```env
+QUEUE_CONNECTION=redis
+
+# Dedicated Redis DB for jobs (do not reuse cache DB 1)
+REDIS_QUEUE_DB=2
+REDIS_QUEUE_CONNECTION=queue
+
+# Ensure Redis itself is configured (already required for cache if CACHE_STORE=redis)
+REDIS_CLIENT=phpredis
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+```
+
+Then rebuild config cache:
+
+```bash
+php artisan config:cache
+```
+
+#### 4. Supervisor — comment out queue workers, add Horizon
+
+Edit `/etc/supervisor/conf.d/ijaz.conf`:
+
+```bash
+sudo nano /etc/supervisor/conf.d/ijaz.conf
+```
+
+**Comment out** the queue worker programs only (`ijaz-default-worker` and
+`ijaz-guarantor-worker`). Keep `ijaz-online-worker` (`app:online-listen`) and
+`ijaz-reverb-socket` — they are not queue consumers and must stay running.
+
+```ini
+; --- Replaced by [program:ijaz-horizon] (Redis + Horizon) ---
+;[program:ijaz-default-worker]
+;process_name=%(program_name)s_%(process_num)02d
+;; Listen to default + opportunities (hourly ExpireOpportunityJob — low volume,
+;; no dedicated worker needed). Queue order = priority: default first.
+;command=php /home/ijaz/project/artisan queue:work --sleep=3 --tries=3 --queue=default,opportunities --timeout=0
+;autostart=true
+;autorestart=true
+;stopasgroup=true
+;killasgroup=true
+;user=ijaz
+;numprocs=4
+;redirect_stderr=true
+;stdout_logfile=/home/ijaz/project/storage/logs/default-worker.log
+;stopwaitsecs=3600
+
+;[program:ijaz-guarantor-worker]
+;process_name=%(program_name)s_%(process_num)02d
+;command=php /home/ijaz/project/artisan queue:work --sleep=3 --tries=3 --queue=guarantor --timeout=0
+;autostart=true
+;autorestart=true
+;stopasgroup=true
+;killasgroup=true
+;user=ijaz
+;numprocs=2
+;redirect_stderr=true
+;stdout_logfile=/home/ijaz/project/storage/logs/guarantor-worker.log
+;stopwaitsecs=3600
+
+[program:ijaz-horizon]
+process_name=%(program_name)s
+command=php /home/ijaz/project/artisan horizon
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=ijaz
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/home/ijaz/project/storage/logs/horizon.log
+stopwaitsecs=3600
+
+; Keep these unchanged:
+; [program:ijaz-online-worker]  — app:online-listen
+; [program:ijaz-reverb-socket]  — reverb:start
+```
+
+Horizon supervisors in `config/horizon.php` already cover `default`,
+`opportunities`, and `guarantor` (same split as the old Worker programs).
+
+#### 5. Apply Supervisor changes
+
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl stop ijaz-default-worker:*
+sudo supervisorctl stop ijaz-guarantor-worker:*
+sudo supervisorctl start ijaz-horizon
+sudo supervisorctl status
+```
+
+Expected (names may vary slightly after `update` removes old programs):
+
+```
+ijaz-horizon                            RUNNING
+ijaz-online-worker:ijaz-online-worker_00 RUNNING
+ijaz-reverb-socket:ijaz-reverb-socket_00 RUNNING
+```
+
+Verify Horizon:
+
+```bash
+cd /home/ijaz/project
+php artisan horizon:status
+# Dashboard (admin with "view monitoring tools"): https://{your-domain}/horizon
+```
+
+#### 6. Post-deploy restarts (after Horizon is live)
+
+Replace the old worker restarts in the regular deploy script with:
+
+```bash
+php artisan horizon:terminate
+# Supervisor autorestarts Horizon; or:
+# supervisorctl restart ijaz-horizon
+```
+
+#### 7. Rollback (if something goes wrong)
+
+1. Revert `.env`:
+   ```env
+   QUEUE_CONNECTION=database
+   ```
+   (comment out or leave `REDIS_QUEUE_*` — unused while on `database`)
+2. `php artisan config:cache`
+3. In Supervisor: uncomment `ijaz-default-worker` / `ijaz-guarantor-worker`,
+   comment out or remove `ijaz-horizon`
+4. Apply:
+   ```bash
+   sudo supervisorctl reread
+   sudo supervisorctl update
+   sudo supervisorctl stop ijaz-horizon
+   sudo supervisorctl start ijaz-default-worker:*
+   sudo supervisorctl start ijaz-guarantor-worker:*
+   sudo supervisorctl status
+   ```
+5. Confirm: `php artisan tinker --execute="echo config('queue.default');"` → `database`
+
+Any jobs already pushed to Redis while `QUEUE_CONNECTION=redis` will not be
+visible to the database workers. Drain Redis first if needed
+(`php artisan horizon:clear` / `queue:clear redis`) before rolling back, or
+temporarily keep Horizon running until Redis queues are empty.
+
+---
+
 ### Cron Job (Laravel Scheduler)
 
 ```bash
@@ -279,7 +474,7 @@ crontab -l -u ijaz
 ```
 
 The scheduler runs:
-- `opportunities:expire` — hourly (dispatches `ExpireOpportunityJob` onto the `opportunities` queue; consumed by `ijaz-default-worker`)
+- `opportunities:expire` — hourly (dispatches `ExpireOpportunityJob` onto the `opportunities` queue; consumed by `ijaz-default-worker`, or by Horizon after the Redis cutover)
 - `guarantor:check-overdue` — daily at midnight (checks overdue installments)
 - `auth:prune-expired-otp-sessions` — hourly
 - `telescope:prune --hours=48` — daily at midnight (Telescope is off by default via `TELESCOPE_ENABLED`; when enabled, entries older than 48 hours are pruned)
@@ -307,8 +502,12 @@ php artisan route:cache
 php artisan view:cache
 
 # 5. Restart workers
+# Before Horizon cutover:
 supervisorctl restart ijaz-default-worker:*
 supervisorctl restart ijaz-guarantor-worker:*
+# After Horizon cutover (see "Migrating to Horizon on Production"):
+# php artisan horizon:terminate
+# supervisorctl restart ijaz-horizon
 
 # 6. Upload public/build/ from local machine
 ```
