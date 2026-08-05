@@ -17,6 +17,7 @@
         "dedoc/scramble": "^0.13.20",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^13.0",
+        "laravel/horizon": "^5.48",
         "laravel/pulse": "^1.7",
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
@@ -115,6 +116,10 @@
             "wikimedia/composer-merge-plugin": true,
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
+        },
+        "platform": {
+            "ext-pcntl": "8.4.0",
+            "ext-posix": "8.4.0"
         }
     },
     "minimum-stability": "stable",
