@@ -114,9 +114,12 @@ class OrderService
         $this->endAndReviewOrder->handle($order, $user, $data);
     }
 
-    public function listForProvider(Provider $provider, int $perPage): LengthAwarePaginator
+    /**
+     * @param  array{status?: mixed, date_from?: mixed, date_to?: mixed, search?: mixed}  $filters
+     */
+    public function listForProvider(Provider $provider, array $filters, int $perPage): LengthAwarePaginator
     {
-        return $this->listProviderOrders->handle($provider, $perPage);
+        return $this->listProviderOrders->handle($provider, $filters, $perPage);
     }
 
     public function listRecommendedForProvider(Provider $provider, int $perPage): LengthAwarePaginator

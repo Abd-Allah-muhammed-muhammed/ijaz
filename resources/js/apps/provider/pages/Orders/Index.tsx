@@ -1,5 +1,5 @@
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
-import {Head, router} from "@inertiajs/react";
+import {Head} from "@inertiajs/react";
 import { useTranslation } from 'react-i18next';
 import {PageTitle} from "@/vendor/metronic/layout/core";
 import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
@@ -7,10 +7,12 @@ import {Content} from "@/vendor/metronic/layout/components/content";
 import {KTIcon} from "@/vendor/metronic/helpers";
 import Pagination from "@/shared/components/Table/partials/Pagination";
 import {PaginationResource} from "@/shared/types";
-import {Order, Provider} from "@/shared/types/models";
+import {Order} from "@/shared/types/models";
 import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/OrderController";
 import OrderCard from "@/shared/components/order/order-card";
 import {Col, Row} from "react-bootstrap";
+import {OrderStatusEnum} from "@/Enums/Order";
+import {applyFilterParam, visitWithFilters} from "@/shared/lib/filters";
 
 type Props = {
   rows: PaginationResource<Order>,
@@ -20,7 +22,9 @@ type Props = {
 type SearchPrams = {
   per_page: number;
   search: string;
-
+  status?: string;
+  date_from?: string;
+  date_to?: string;
 };
 const Index = (
   {
@@ -34,23 +38,16 @@ const Index = (
     search: '',
   };
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    if (value) {
-      searchPrams[name] = value as never;
-    } else {
-      delete searchPrams[name];
-    }
-
-    router.reload<SearchPrams>({
-      only: ['rows', 'prams'],
-      data: searchPrams,
-      // @ts-ignore
-      preserveState: true,
-      preserveScroll: true,
-    });
+    const next = applyFilterParam(
+      { ...searchPrams } as Record<string, unknown>,
+      name,
+      value,
+    );
+    visitWithFilters(OrderController.index().url, next, { only: ['rows', 'prams'] });
   };
   return (
     <>
-      <Head title={t('providers')}/>
+      <Head title={t('orders')}/>
       <PageTitle breadcrumbs={[
         {
           title: '',
@@ -59,7 +56,7 @@ const Index = (
           isActive: false,
         },
       ]}>
-        {t('providers')}
+        {t('orders')}
       </PageTitle>
       <ToolbarWrapper/>
       <Content>
@@ -82,20 +79,41 @@ const Index = (
             </div>
           </h3>
 
-          <div className='d-flex align-items-center my-2'>
-            <div className=' me-5'>
+          <div className='d-flex align-items-center my-2 gap-2'>
+            <div className='w-200px'>
               <select
                 name='status'
                 data-control='select2'
                 data-hide-search='true'
                 className='form-select form-select-white form-select-sm'
-                defaultValue='1'
+                defaultValue={searchPrams.status}
+                onChange={(e) => searchPramsChanged('status', e.target.value)}
               >
-                <option value='1'>30 Days</option>
-                <option value='2'>90 Days</option>
-                <option value='3'>6 Months</option>
-                <option value='4'>1 Year</option>
+                <option value=''>{t('all')}</option>
+                {Object.values(OrderStatusEnum).map((status) => (
+                  <option key={status} value={status}>
+                    {t(status)}
+                  </option>
+                ))}
               </select>
+            </div>
+            <div className='w-150px'>
+              <input
+                type='date'
+                className='form-control form-control-white form-control-sm'
+                placeholder='Date From'
+                defaultValue={searchPrams.date_from}
+                onChange={(e) => searchPramsChanged('date_from', e.target.value)}
+              />
+            </div>
+            <div className='w-150px'>
+              <input
+                type='date'
+                className='form-control form-control-white form-control-sm'
+                placeholder='Date To'
+                defaultValue={searchPrams.date_to}
+                onChange={(e) => searchPramsChanged('date_to', e.target.value)}
+              />
             </div>
           </div>
         </div>

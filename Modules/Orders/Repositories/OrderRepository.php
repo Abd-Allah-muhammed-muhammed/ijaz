@@ -40,11 +40,22 @@ class OrderRepository implements OrderRepositoryInterface
             ->paginate($perPage);
     }
 
-    public function paginateForProvider(Provider $provider, int $perPage): LengthAwarePaginator
+    /**
+     * @param  array{status?: mixed, date_from?: mixed, date_to?: mixed, search?: mixed}  $filters
+     */
+    public function paginateForProvider(Provider $provider, array $filters, int $perPage): LengthAwarePaginator
     {
         return $provider->orders()
             ->with(['user'])
             ->withCount(['offers', 'media'])
+            ->when(isset($filters['status']), fn ($q) => $q->where('status', $filters['status']))
+            ->when(isset($filters['date_from']), fn ($q) => $q->whereDate('created_at', '>=', $filters['date_from']))
+            ->when(isset($filters['date_to']), fn ($q) => $q->whereDate('created_at', '<=', $filters['date_to']))
+            ->when(isset($filters['search']), function ($q) use ($filters) {
+                $search = (string) $filters['search'];
+
+                return $q->where('title', 'like', "%{$search}%");
+            })
             ->latest()
             ->paginate($perPage);
     }

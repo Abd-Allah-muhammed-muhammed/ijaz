@@ -32,15 +32,29 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
+        $filters = [];
+        if ($request->filled('status')) {
+            $filters['status'] = $request->status;
+        }
+        if ($request->filled('date_from')) {
+            $filters['date_from'] = $request->date_from;
+        }
+        if ($request->filled('date_to')) {
+            $filters['date_to'] = $request->date_to;
+        }
+        if ($request->filled('search')) {
+            $filters['search'] = $request->search;
+        }
+
         $rows = $this->orderService->listForProvider(
             auth('provider')->user(),
+            $filters,
             $request->integer('perPage', 16),
         );
 
         return inertia('Provider/Orders/Index', [
             'rows' => OrderCollection::make($rows),
             'prams' => $request->all() ?: [],
-
         ]);
     }
 
