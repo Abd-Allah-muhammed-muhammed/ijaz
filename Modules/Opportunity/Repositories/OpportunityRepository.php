@@ -97,6 +97,13 @@ class OpportunityRepository implements OpportunityRepositoryInterface
             ->lazyById($chunkSize);
     }
 
+    public function getMissingExpiry(int $chunkSize = 100): LazyCollection
+    {
+        return Opportunity::query()
+            ->whereNull('expires_at')
+            ->lazyById($chunkSize);
+    }
+
     public function delete(Opportunity $opportunity): void
     {
         $opportunity->delete();
