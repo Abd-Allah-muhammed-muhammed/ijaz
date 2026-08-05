@@ -36,9 +36,12 @@ class ElectronicBrandRepository implements ElectronicBrandRepositoryInterface
     {
         // Prefer the shared select/cache path (ListElectronicBrandsForSelectAction).
         // Kept for interface compatibility; empty-search hits the same LookupCache key.
+        $base = fn (): Builder => ElectronicBrand::query()
+            ->withTranslation()
+            ->where('is_active', true);
+
         if (filled($request->search)) {
-            return ElectronicBrand::with(['translation'])
-                ->where('is_active', true)
+            return $base()
                 ->when(
                     $request->search,
                     fn (Builder $query, mixed $value) => TranslationSearch::apply($query, (string) $value, 'normalized_name')
@@ -50,9 +53,7 @@ class ElectronicBrandRepository implements ElectronicBrandRepositoryInterface
         return LookupCache::rememberForeverForLocale(
             'electronic-brands:all',
             app()->getLocale(),
-            fn (): Collection => ElectronicBrand::query()->withTranslation()
-                ->where('is_active', true)
-                ->get(),
+            fn (): Collection => $base()->get(),
         );
     }
 

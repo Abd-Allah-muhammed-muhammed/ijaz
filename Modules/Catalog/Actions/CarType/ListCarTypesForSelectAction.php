@@ -3,6 +3,7 @@
 namespace Modules\Catalog\Actions\CarType;
 
 use App\Support\LookupCache;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Modules\Catalog\Models\CarType;
 
@@ -13,10 +14,13 @@ class ListCarTypesForSelectAction
      */
     public function handle(?string $search = null, int $carBrandId = 0): Collection
     {
+        $base = fn (): Builder => CarType::query()
+            ->withTranslation()
+            ->when($carBrandId, fn (Builder $query, mixed $v) => $query->where('car_brand_id', $v));
+
         if (filled($search)) {
-            return CarType::query()->withTranslation()
-                ->when($search, fn ($query, $v) => $query->whereTranslationLike('name', "%{$v}%"))
-                ->when($carBrandId, fn ($query, $v) => $query->where('car_brand_id', $v))
+            return $base()
+                ->when($search, fn (Builder $query, mixed $v) => $query->whereTranslationLike('name', "%{$v}%"))
                 ->get();
         }
 
@@ -25,9 +29,7 @@ class ListCarTypesForSelectAction
             'car-types:by-brand',
             app()->getLocale(),
             $carBrandId,
-            fn (): Collection => CarType::query()->withTranslation()
-                ->when($carBrandId, fn ($query, $v) => $query->where('car_brand_id', $v))
-                ->get(),
+            fn (): Collection => $base()->get(),
         );
     }
 }
