@@ -1,13 +1,13 @@
 <?php
 
 use App\Models\Admin;
-use Modules\Marketplace\Models\Category;
-use Modules\Chat\Models\Conversation;
 use App\Models\Provider;
-use Modules\Chat\Models\System;
 use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 use Modules\Chat\Http\Resources\ChatUserResource;
+use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\System;
+use Modules\Marketplace\Models\Category;
 
 Broadcast::channel('provider-{id}', static function (Provider $user, int $id) {
     return (int) $user->id === $id;
@@ -22,7 +22,8 @@ Broadcast::channel('admin-{id}', static function (Admin $user, $id) {
 });
 
 Broadcast::channel('online', static function ($user) {
-    return ChatUserResource::make($user);
+    // Presence auth must return a plain array — JsonResource objects can serialize incorrectly.
+    return ChatUserResource::make($user)->resolve();
 });
 
 Broadcast::channel('public', static function ($user) {
@@ -33,10 +34,10 @@ Broadcast::channel('systems.{id}', static function ($user, $id) {
 });
 Broadcast::channel('chats.{chat}', static function ($user, Conversation $chat) {
     if ($chat->user1_type === System::class && $user instanceof Admin) {
-        return ChatUserResource::make($user);
+        return ChatUserResource::make($user)->resolve();
     }
     if ($chat->user1()->is($user) || $chat->user2()->is($user)) {
-        return ChatUserResource::make($user);
+        return ChatUserResource::make($user)->resolve();
     }
 
     return false;

@@ -19,7 +19,8 @@ const MessageOut = ({ conversationMessage }: Props) => {
         <div className='d-flex align-items-center mb-2'>
 
           <div className='me-3'>
-            <span className='text-muted fs-7 mb-1'>{new Date(conversationMessage.created_at).toLocaleString()}</span>
+            {/* Backend / broadcast payloads use shortAbsoluteDiffForHumans(), not ISO. */}
+            <span className='text-muted fs-7 mb-1'>{String(conversationMessage.created_at ?? '')}</span>
             <a
               href='#'
               className='fs-5 fw-bolder text-gray-900 text-hover-primary ms-1'

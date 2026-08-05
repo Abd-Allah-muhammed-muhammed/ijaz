@@ -26,7 +26,8 @@ const MessageIn = ({ conversationMessage }: Props) => {
             >
               {conversationMessage.sender?.name}
             </a>
-            <span className='text-muted fs-7 mb-1'>{new Date(conversationMessage.created_at).toLocaleString()}</span>
+            {/* Backend / broadcast payloads use shortAbsoluteDiffForHumans(), not ISO. */}
+            <span className='text-muted fs-7 mb-1'>{String(conversationMessage.created_at ?? '')}</span>
           </div>
 
         </div>
