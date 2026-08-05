@@ -5,6 +5,7 @@ namespace Modules\Opportunity\Providers;
 use Illuminate\Support\Facades\Gate;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Registry\ChatTypeRegistry;
+use Modules\Opportunity\Console\Commands\BackfillOpportunityExpiryCommand;
 use Modules\Opportunity\Console\Commands\ExpireOpportunitiesCommand;
 use Modules\Opportunity\Contracts\Repositories\OpportunityCommentRepositoryInterface;
 use Modules\Opportunity\Contracts\Repositories\OpportunityOfferRepositoryInterface;
@@ -48,6 +49,7 @@ class OpportunityServiceProvider extends ModuleServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 ExpireOpportunitiesCommand::class,
+                BackfillOpportunityExpiryCommand::class,
             ]);
         }
     }

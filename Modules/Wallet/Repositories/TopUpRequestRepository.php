@@ -23,6 +23,17 @@ class TopUpRequestRepository implements TopUpRequestRepositoryInterface
         return $topUpRequest;
     }
 
+    public function lockForUpdate(TopUpRequest $topUpRequest): TopUpRequest
+    {
+        /** @var TopUpRequest $locked */
+        $locked = TopUpRequest::query()
+            ->whereKey($topUpRequest->getKey())
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        return $locked;
+    }
+
     public function update(TopUpRequest $topUpRequest, array $attributes): TopUpRequest
     {
         $topUpRequest->update($attributes);

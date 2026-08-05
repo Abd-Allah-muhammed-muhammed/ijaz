@@ -32,5 +32,7 @@ interface OpportunityRepositoryInterface
 
     public function getExpired(int $chunkSize = 100): LazyCollection;
 
+    public function getMissingExpiry(int $chunkSize = 100): LazyCollection;
+
     public function delete(Opportunity $opportunity): void;
 }

@@ -14,6 +14,8 @@ interface WithdrawRequestRepositoryInterface
      */
     public function createForOwner(Model $owner, array $attributes): WithdrawRequest;
 
+    public function lockForUpdate(WithdrawRequest $withdrawRequest): WithdrawRequest;
+
     /**
      * @param  array<string, mixed>  $attributes
      */

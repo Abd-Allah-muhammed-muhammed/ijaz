@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useConversations } from "@/store/use-chat";
 import { ConversationMessage, ConversationUser } from "@/shared/types/models";
 import axios from "@/shared/helpers/axios";
-import ProviderMemberChatController from "@/actions/Modules/Chat/Http/Controllers/Provider/MemberChatController";
+import ProviderOrderChatController from "@/actions/Modules/Chat/Http/Controllers/Provider/OrderChatController";
 import { ChatEventEnum } from "@/Enums/Chat";
 import MessageIn from "@/shared/components/chat/components/message-in";
 import MessageOut from "@/shared/components/chat/components/message-out";
@@ -12,6 +12,7 @@ import { Button } from "react-bootstrap";
 import { KTIcon } from "@/vendor/metronic/helpers";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
+import type { SingleApiResponse, ConversationMessagePaginationResource } from "@/shared/types/api";
 
 type Props = {
   // Define any props if needed
@@ -21,6 +22,15 @@ type ChatMessage = {
   content: string;
   files: File[];
 };
+
+function echoSocketId(): string | undefined {
+  try {
+    return window.Echo?.socketId() ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 let unreadMessageIndex: number[] = [];
 const ConversationContent = ({ }: Props) => {
   const { t } = useTranslation();
@@ -32,8 +42,8 @@ const ConversationContent = ({ }: Props) => {
     setPrevConversation
   } = useConversations();
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
-  // const [unreadMessageIndexes, setUnreadMessageIndexes] = useState<number[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loadingMessages, setLoadingMessages] = useState<boolean>(false);
+  const [sending, setSending] = useState<boolean>(false);
   const messagesBox = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const scrollToMessageEnd = () => {
@@ -45,63 +55,67 @@ const ConversationContent = ({ }: Props) => {
   useEffect(() => {
     scrollToMessageEnd();
   }, [messages])
-  const sendMessage = () => {
-    setLoading(true)
-    if (currentConversation && (message.content.trim() !== '' || message.files.length)) {
-      const formData = new FormData();
-      formData.append('content', message.content);
-      message.files.forEach(file => {
-        formData.append('files[]', file);
-      });
-      axios.post(ProviderMemberChatController.send(currentConversation.id).url, formData, {
-        headers: {
-          'X-Socket-Id': window.Echo.socketId(),
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-        .then(response => {
-          setLoading(false);
-          response = response.data
-          console.log(response)
-          let newMessage: ConversationMessage;
 
-          if (response.success) {
-            newMessage = response.data;
-          } else {
-            newMessage = {
-              id: '0',
-              content: message.content,
-              created_at: new Date(),
-              updated_at: new Date(),
-              sender: {
-                id: 0,
-                name: 'You',
-                image: '/media/avatars/150-1.jpg',
-                socket_id: currentSocketId,
-                online: true
-              },
-              attachments: message.files.map(file => ({
-                id: 0,
-                url: URL.createObjectURL(file),
-                name: file.name,
-                size: file.size
-              })),
-            };
-          }
-          setMessages(prevMessages => [...prevMessages, newMessage]);
-          setMessage({ content: '', files: [] });
-        })
-        .catch(() => {
-          setLoading(false);
-        });
-    } else {
-      setLoading(false);
+  const sendMessage = async () => {
+    if (!currentConversation || (message.content.trim() === '' && !message.files.length)) {
+      return;
+    }
+
+    setSending(true);
+    const formData = new FormData();
+    formData.append('content', message.content);
+    message.files.forEach(file => {
+      formData.append('files[]', file);
+    });
+
+    const headers: Record<string, string> = {};
+    const socketId = echoSocketId();
+    if (socketId) {
+      headers['X-Socket-Id'] = socketId;
+    }
+
+    try {
+      const { data: response } = await axios.post<SingleApiResponse<ConversationMessage>>(
+        ProviderOrderChatController.send(currentConversation.id).url,
+        formData,
+        { headers },
+      );
+
+      const newMessage: ConversationMessage = response.success
+        ? response.data
+        : {
+            id: '0',
+            content: message.content,
+            created_at: new Date(),
+            updated_at: new Date(),
+            sender: {
+              id: 0,
+              name: 'You',
+              image: '/media/avatars/150-1.jpg',
+              socket_id: currentSocketId,
+              online: true
+            },
+            attachments: message.files.map(file => ({
+              id: 0,
+              url: URL.createObjectURL(file),
+              name: file.name,
+              size: file.size
+            })),
+          } as ConversationMessage;
+
+      setMessages(prevMessages => [...prevMessages, newMessage]);
+      setMessage({ content: '', files: [] });
+    } catch {
+      // Keep composer content so the user can retry.
+    } finally {
+      setSending(false);
     }
   }
+
   const onEnterPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      void sendMessage();
     }
   }
   const [message, setMessage] = useState<ChatMessage>({
@@ -111,38 +125,62 @@ const ConversationContent = ({ }: Props) => {
 
   const user = currentConversation?.user1?.socket_id !== currentSocketId ? currentConversation?.user1 : currentConversation?.user2;
   useEffect(() => {
-    if (currentConversation) {
-
-      if (currentConversation.id !== prevConversation?.id) {
-        setMessages([]);
-        setLoading(true);
-        if (prevConversation) {
-          window.Echo.leave(`chats.${prevConversation.id}`)
-        }
-        window.Echo.join(`chats.${currentConversation.id}`).listen(`.${ChatEventEnum.New_Message}`, (message: ConversationMessage) => {
-          setMessages((prevMessages) => [...prevMessages, message]);
-        }).joining((user: ConversationUser) => {
-          if (user.socket_id !== currentSocketId) {
-            setMessages((prevMessages) => {
-              unreadMessageIndex.forEach(index => {
-                prevMessages[index].read_at = new Date();
-              })
-              unreadMessageIndex = [];
-              return [...prevMessages];
-            })
-          }
-        });
-
-        axios.get(ProviderMemberChatController.show(currentConversation.id).url)
-          .then(response => {
-            setLoading(false)
-            setMessages(response.data);
-          })
-      }
+    if (!currentConversation) {
+      return;
     }
 
+    if (currentConversation.id === prevConversation?.id) {
+      return;
+    }
+
+    setMessages([]);
+    setLoadingMessages(true);
+
+    if (prevConversation) {
+      window.Echo.leave(`chats.${prevConversation.id}`)
+    }
+
+    window.Echo.join(`chats.${currentConversation.id}`).listen(`.${ChatEventEnum.New_Message}`, (incoming: ConversationMessage) => {
+      setMessages((prevMessages) => [...prevMessages, incoming]);
+    }).joining((joiningUser: ConversationUser) => {
+      if (joiningUser.socket_id !== currentSocketId) {
+        setMessages((prevMessages) => {
+          unreadMessageIndex.forEach(index => {
+            prevMessages[index].read_at = new Date();
+          })
+          unreadMessageIndex = [];
+          return [...prevMessages];
+        })
+      }
+    });
+
+    let cancelled = false;
+
+    axios.get<SingleApiResponse<ConversationMessagePaginationResource>>(
+      ProviderOrderChatController.show(currentConversation.id).url,
+    )
+      .then(({ data: response }) => {
+        if (cancelled) {
+          return;
+        }
+
+        const items = response?.data?.items;
+        setMessages(Array.isArray(items) ? items : []);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setMessages([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoadingMessages(false);
+        }
+      });
+
     return () => {
-      window.Echo.leave(`chats.${currentConversation?.id}`);
+      cancelled = true;
+      window.Echo.leave(`chats.${currentConversation.id}`);
       setMessages([]);
     };
 
@@ -179,6 +217,9 @@ const ConversationContent = ({ }: Props) => {
         </div>
       </div>
       <div ref={messagesBox} className='card-body d-flex flex-column flex-grow-1 scroll-y me-n5 pe-5  mb-5'>
+        {loadingMessages && messages.length === 0 ? (
+          <div className="text-center text-muted py-10">{t('Please wait...')}</div>
+        ) : null}
         {messages.map((message, index) => {
           const sender = message.sender as ConversationUser;
 
@@ -238,7 +279,7 @@ const ConversationContent = ({ }: Props) => {
               >X</a>
             }
           </div>
-          <ActionButton isProcessing={loading} type="button" onClick={sendMessage} text={t('send')} />
+          <ActionButton isProcessing={sending} type="button" onClick={() => void sendMessage()} text={t('send')} />
         </div>
       </div>
     </div>

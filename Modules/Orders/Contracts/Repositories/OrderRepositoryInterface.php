@@ -15,7 +15,10 @@ interface OrderRepositoryInterface
 
     public function paginateForUser(User $user, int $perPage): LengthAwarePaginator;
 
-    public function paginateForProvider(Provider $provider, int $perPage): LengthAwarePaginator;
+    /**
+     * @param  array{status?: mixed, date_from?: mixed, date_to?: mixed, search?: mixed}  $filters
+     */
+    public function paginateForProvider(Provider $provider, array $filters, int $perPage): LengthAwarePaginator;
 
     public function paginateRecommendedForProvider(Provider $provider, int $perPage): LengthAwarePaginator;
 

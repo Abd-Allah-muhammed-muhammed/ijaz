@@ -192,10 +192,12 @@ test('unauthenticated request to opportunities list shows offers_count as 0', fu
 });
 
 test('authenticated user can create opportunity', function () {
+    Carbon::setTestNow('2026-08-05 12:00:00');
+
     $user = User::factory()->create();
     Sanctum::actingAs($user);
 
-    $this->postJson(action([OpportunityController::class, 'store']), [
+    $response = $this->postJson(action([OpportunityController::class, 'store']), [
         'title' => 'Backend Developer Needed',
         'description' => 'Looking for a Laravel developer for a 3 month project.',
         'budget' => 5000,
@@ -204,6 +206,9 @@ test('authenticated user can create opportunity', function () {
         ->assertJsonPath('data.status.value', OpportunityStatusEnum::New->value);
 
     expect(Opportunity::query()->count())->toBe(1);
+    expect(Carbon::parse($response->json('data.expires_at'))->equalTo(now()->addDays(Opportunity::DEFAULT_DURATION_DAYS)))->toBeTrue();
+
+    Carbon::setTestNow();
 });
 
 test('opportunity expires_at accepts Arabic-Indic digits', function () {
@@ -1282,11 +1287,38 @@ test('owner can renew without expires at', function () {
 
     Sanctum::actingAs($user);
 
-    $this->postJson(action([OpportunityController::class, 'renew'], ['opportunity' => $opportunity->id]))
+    $response = $this->postJson(action([OpportunityController::class, 'renew'], ['opportunity' => $opportunity->id]))
         ->assertSuccessful();
 
     $opportunity->refresh();
-    expect($opportunity->expires_at->equalTo(now()->addDays(7)))->toBeTrue();
+    $expected = now()->addDays(Opportunity::DEFAULT_DURATION_DAYS);
+    expect($opportunity->expires_at->equalTo($expected))->toBeTrue();
+    expect(Carbon::parse($response->json('data.expires_at'))->equalTo($expected))->toBeTrue();
+
+    Carbon::setTestNow();
+});
+
+test('renew with null expires_at starts a fresh duration from now', function () {
+    Carbon::setTestNow('2026-08-05 12:00:00');
+
+    $user = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $user->id,
+        'expires_at' => null,
+        'status' => OpportunityStatusEnum::New,
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $response = $this->postJson(action([OpportunityController::class, 'renew'], ['opportunity' => $opportunity->id]))
+        ->assertSuccessful();
+
+    $opportunity->refresh();
+    $expected = now()->addDays(Opportunity::DEFAULT_DURATION_DAYS);
+    expect($opportunity->expires_at)->not->toBeNull();
+    expect($opportunity->expires_at->equalTo($expected))->toBeTrue();
+    expect(Carbon::parse($response->json('data.expires_at'))->equalTo($expected))->toBeTrue();
 
     Carbon::setTestNow();
 });
@@ -1370,7 +1402,29 @@ test('renew extends from now when already expired', function () {
         ->assertSuccessful();
 
     $opportunity->refresh();
-    expect($opportunity->expires_at->equalTo(now()->addDays(7)))->toBeTrue();
+    expect($opportunity->expires_at->equalTo(now()->addDays(Opportunity::DEFAULT_DURATION_DAYS)))->toBeTrue();
+    expect($opportunity->expires_at->isFuture())->toBeTrue();
+
+    Carbon::setTestNow();
+});
+
+test('renew extends from remaining future expiry not from now', function () {
+    Carbon::setTestNow('2026-06-06 12:00:00');
+
+    $user = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $user->id,
+        'expires_at' => now()->addDays(3),
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $this->postJson(action([OpportunityController::class, 'renew'], ['opportunity' => $opportunity->id]))
+        ->assertSuccessful();
+
+    $opportunity->refresh();
+    expect($opportunity->expires_at->equalTo(now()->addDays(3 + Opportunity::DEFAULT_DURATION_DAYS)))->toBeTrue();
 
     Carbon::setTestNow();
 });

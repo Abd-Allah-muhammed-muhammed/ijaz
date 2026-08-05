@@ -54,7 +54,8 @@ const Conversation = ({ chat, currentSocketId }: Props) => {
       </div>
 
       <div className='d-flex flex-column align-items-end ms-2'>
-        <span className='text-muted fs-7 mb-1'>{chat.last_massage_at ? new Date(chat.last_massage_at).toLocaleString() : ''}</span>
+        {/* Backend sends Carbon shortAbsoluteDiffForHumans() (e.g. "2h ago"), not ISO — do not Date-parse. */}
+        <span className='text-muted fs-7 mb-1'>{chat.last_massage_at || chat.last_message_at || ''}</span>
         {chat.unread_count && chat.unread_count > 0 ? (
           <span className='badge badge-sm badge-circle badge-light-warning'>{chat.unread_count}</span>
         ) : null}

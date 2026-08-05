@@ -3,28 +3,49 @@
 namespace Modules\Wallet\Actions\Withdraw;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Wallet\Actions\AddPendingDebitAction;
+use Modules\Wallet\Contracts\Repositories\WalletRepositoryInterface;
 use Modules\Wallet\Contracts\Repositories\WithdrawRequestRepositoryInterface;
 use Modules\Wallet\DTOs\CreateWithdrawData;
 use Modules\Wallet\Exceptions\InsufficientBalanceException;
 use Modules\Wallet\Models\WithdrawRequest;
-use Modules\Wallet\Services\WalletService;
 
 class CreateWithdrawRequestAction
 {
     public function __construct(
         private readonly WithdrawRequestRepositoryInterface $repository,
-        private readonly WalletService $walletService,
+        private readonly WalletRepositoryInterface $walletRepo,
+        private readonly AddPendingDebitAction $addPendingDebitAction,
     ) {}
 
     /**
      * Create a withdraw request and hold pending debit.
+     *
+     * Balance check and pending-debit hold are serialized under a wallet row lock
+     * (lockForUpdate) and an atomic compare-and-increment, so concurrent requests
+     * cannot cumulatively exceed available balance.
+     *
      * Caller must wrap in DB::transaction().
      */
     public function handle(Model $owner, CreateWithdrawData $data): WithdrawRequest
     {
-        if (! $this->walletService->canWithdraw($owner, $data->amount)) {
+        // Hold the wallet row for the remainder of the (caller's) transaction so
+        // concurrent withdraw flows on MySQL/InnoDB wait here before reading balance.
+        $wallet = $this->walletRepo->lockForUpdate($owner);
+
+        $available = (float) $wallet->balance - (float) $wallet->pending_debit;
+        if ($available < $data->amount) {
+            throw new InsufficientBalanceException($available, $data->amount);
+        }
+
+        // Authoritative concurrent-safe hold BEFORE inserting the withdraw row.
+        // Single UPDATE … WHERE available covers amount — works even when SELECT
+        // FOR UPDATE is a no-op (SQLite). On failure the outer transaction rolls back.
+        if (! $this->walletRepo->tryIncrementPendingDebitIfAvailable($wallet, $data->amount)) {
+            $wallet->refresh();
+
             throw new InsufficientBalanceException(
-                available: $this->walletService->getBalance($owner)->available,
+                available: (float) $wallet->balance - (float) $wallet->pending_debit,
                 requested: $data->amount,
             );
         }
@@ -34,11 +55,14 @@ class CreateWithdrawRequestAction
             'user_notes' => $data->userNotes,
         ]);
 
-        $this->walletService->addPendingDebit(
+        // Ledger only — pending_debit already held above.
+        $this->addPendingDebitAction->handle(
             owner: $owner,
             amount: $data->amount,
             operation: $withdrawRequest,
             description: "Withdraw Request Created #{$withdrawRequest->id}",
+            requireSufficientAvailable: false,
+            skipBalanceIncrement: true,
         );
 
         return $withdrawRequest;

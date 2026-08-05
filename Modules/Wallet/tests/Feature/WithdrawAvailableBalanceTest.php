@@ -1,8 +1,11 @@
 <?php
 
 use Laravel\Sanctum\Sanctum;
+use Modules\Wallet\DTOs\CreateWithdrawData;
+use Modules\Wallet\Exceptions\InsufficientBalanceException;
 use Modules\Wallet\Http\Controllers\Api\V1\WalletController;
 use Modules\Wallet\Models\WithdrawRequest;
+use Modules\Wallet\Services\WithdrawRequestService;
 
 test('withdrawal request exceeding total balance is rejected with 422', function () {
     setWalletSetting('min_withdraw_amount', '50');
@@ -92,6 +95,23 @@ test('multiple sequential withdrawal requests are correctly blocked once cumulat
     expect(WithdrawRequest::query()->where('user_id', $user->id)->count())->toBe(4)
         ->and((float) $user->wallet->fresh()->pending_debit)->toBe(310.0)
         ->and((float) $user->wallet->fresh()->balance)->toBe(600.0);
+});
+
+test('service-layer create rejects overdraft after pending holds (action lock safety net)', function () {
+    setWalletSetting('min_withdraw_amount', '50');
+
+    $user = createWalletUser();
+    fundWallet($user, 600);
+
+    app(WithdrawRequestService::class)->create($user, new CreateWithdrawData(amount: 500, userNotes: null));
+
+    expect(fn () => app(WithdrawRequestService::class)->create(
+        $user,
+        new CreateWithdrawData(amount: 200, userNotes: null),
+    ))->toThrow(InsufficientBalanceException::class);
+
+    expect(WithdrawRequest::query()->where('user_id', $user->id)->count())->toBe(1)
+        ->and((float) $user->wallet->fresh()->pending_debit)->toBe(500.0);
 });
 
 test('insufficient available balance translation key exists in all locales', function () {

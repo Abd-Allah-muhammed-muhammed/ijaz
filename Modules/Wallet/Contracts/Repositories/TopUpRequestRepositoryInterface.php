@@ -14,6 +14,8 @@ interface TopUpRequestRepositoryInterface
      */
     public function createForOwner(Model $owner, array $attributes): TopUpRequest;
 
+    public function lockForUpdate(TopUpRequest $topUpRequest): TopUpRequest;
+
     /**
      * @param  array<string, mixed>  $attributes
      */

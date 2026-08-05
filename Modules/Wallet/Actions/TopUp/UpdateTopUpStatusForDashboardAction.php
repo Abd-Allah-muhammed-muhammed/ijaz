@@ -23,11 +23,14 @@ class UpdateTopUpStatusForDashboardAction
         ?string $adminNotes,
         int $adminId,
     ): TopUpRequest {
-        if ($topUpRequest->status !== OperationStatusEnum::Pending) {
-            throw new WalletException('wallet.cannot_update_top_up_request_status');
-        }
-
         return DB::transaction(function () use ($topUpRequest, $status, $adminNotes, $adminId): TopUpRequest {
+            // Re-check under row lock so concurrent admin approvals cannot double-credit.
+            $topUpRequest = $this->repository->lockForUpdate($topUpRequest);
+
+            if ($topUpRequest->status !== OperationStatusEnum::Pending) {
+                throw new WalletException('wallet.cannot_update_top_up_request_status');
+            }
+
             $attributes = [
                 'status' => $status,
                 'admin_notes' => $adminNotes,

@@ -22,13 +22,16 @@ class UpdateWithdrawStatusForDashboardAction
         ?string $adminNotes,
         int $adminId,
     ): WithdrawRequest {
-        if ($withdrawRequest->status !== OperationStatusEnum::Pending) {
-            throw new WalletException('wallet.cannot_update_withdraw_request_status');
-        }
-
         $approved = $status === OperationStatusEnum::Approved->value;
 
         return DB::transaction(function () use ($withdrawRequest, $status, $adminNotes, $adminId, $approved): WithdrawRequest {
+            // Re-check under row lock so concurrent admin actions cannot double-finalize.
+            $withdrawRequest = $this->repository->lockForUpdate($withdrawRequest);
+
+            if ($withdrawRequest->status !== OperationStatusEnum::Pending) {
+                throw new WalletException('wallet.cannot_update_withdraw_request_status');
+            }
+
             $withdrawRequest = $this->repository->update($withdrawRequest, [
                 'status' => $status,
                 'admin_notes' => $adminNotes,
