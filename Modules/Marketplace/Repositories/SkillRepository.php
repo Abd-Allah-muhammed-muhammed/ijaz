@@ -2,8 +2,11 @@
 
 namespace Modules\Marketplace\Repositories;
 
+use App\Support\LookupCache;
 use App\Support\TranslationSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Marketplace\Contracts\Repositories\SkillRepositoryInterface;
 use Modules\Marketplace\Models\Category;
@@ -11,6 +14,31 @@ use Modules\Marketplace\Models\Skill;
 
 class SkillRepository implements SkillRepositoryInterface
 {
+    /**
+     * @return Collection<int, Skill>
+     */
+    public function listForSelect(?string $search = null, int $categoryId = 0): Collection
+    {
+        // Preserve historical behaviour: always filter by category_id (including 0).
+        $base = fn (): Builder => Skill::query()
+            ->withTranslation()
+            ->where('category_id', $categoryId);
+
+        if (filled($search)) {
+            return $base()
+                ->when($search, fn (Builder $query, mixed $v) => TranslationSearch::apply($query, (string) $v))
+                ->get();
+        }
+
+        /** @var Collection<int, Skill> */
+        return LookupCache::rememberForeverScoped(
+            'skills:by-category',
+            app()->getLocale(),
+            $categoryId,
+            fn (): Collection => $base()->get(),
+        );
+    }
+
     public function paginateForDashboard(Request $request): LengthAwarePaginator
     {
         return Skill::with(['translation', 'category.translation'])

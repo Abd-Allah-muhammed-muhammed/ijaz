@@ -1,6 +1,6 @@
 # PROJECT CONTEXT
 
-**Last verified: 2026-08-05, post Tier 1 + Tier 2 LookupCache rollout (`feature/project-wide-caching`)**
+**Last verified: 2026-08-05, post flat Catalog + Skill LookupCache extension (`feature/project-wide-caching`)**
 
 This is the entry-point map of the Ijaz codebase after the modularization and cleanup session. For endpoint/model/enum detail, use the specialized docs listed below — do not duplicate them here.
 
@@ -291,8 +291,15 @@ Mostly-static lookups. Invalidate in Store/Update/Delete (and status toggles whe
 | CMS Banners | `banners:all` | `rememberForever` | Store/Update/Delete Banner Actions |
 | CMS Pages | `pages:all` (+ locale), `pages:single` (+ locale + slug) | `rememberForeverForLocale` / `rememberForeverScoped` | Store/Update/Delete Page Actions |
 | CMS Questions | `questions:all` (+ locale) | `rememberForeverForLocale` | Store/Update/Delete Question Actions |
+| CarBrand | `car-brands:all` (+ locale) | `rememberForeverForLocale` | Store/Update/Delete/UpdateStatus CarBrand Actions (+ delete also clears `car-types:by-brand` for that brand + `0`) |
+| CarType | `car-types:by-brand` (+ locale + `car_brand_id`; `0` = all) | `rememberForeverScoped` | Store/Update/Delete/UpdateStatus CarType Actions |
+| PropertyType | `property-types:all` (+ locale) | `rememberForeverForLocale` | Store/Update/Delete/UpdateStatus PropertyType Actions |
+| ElectronicBrand | `electronic-brands:all` (+ locale; **active only**) | `rememberForeverForLocale` | Store/Update/Delete/UpdateStatus ElectronicBrand Actions (select + API `getAll` share this key) |
+| Skill | `skills:by-category` (+ locale + `category_id`; always filters that id, including `0`) | `rememberForeverScoped` | Store/Update/Delete Skill Actions |
 
 Keep `regions:all` (`listForSelect`) and `regions:dropdown` (`getAllForDropdown`) as **separate** keys — Resource / shape differences.
+
+Empty-search only: filled `search` bypasses LookupCache (same as Geo cities).
 
 ### Tier 2 — short TTL, no invalidation
 
@@ -314,13 +321,15 @@ Brief staleness is acceptable for badges / summary dashboards. **Do not** add `L
 |---|---|
 | `DashboardHomeService::forHome()` (`stats:admin:home`) | Composite DTO + Eloquent graphs; needs allow-list growth; optional 60s TTL later |
 
-**Original Tier 2 Catalog / Marketplace (not in the executed rollout)**
+**Original Tier 2 Catalog / Marketplace leftovers (partially done)**
 
 | Item | Why deferred |
 |---|---|
-| Catalog selects + API (car/property/device/electronic brands & types, specializations) | Filter/search key surface + must clear on `UpdateStatus*`; empty-search-only if/when done |
-| Marketplace root categories / children | Same — cache root / first page only; skip arbitrary search strings |
-| Skills by `category_id` | Worth doing with category-scoped keys + Skill/Category write invalidation; not done yet |
+| Marketplace Category trees / ajax / paginated select / API nested children | High key surface (`search` × `parent_id` × `per_page` × optional `provider_type_id`) + nested eager load — not a single flat forever key |
+| CarCategory / PropertyCategory / DeviceCategory / Specialization selects & API | Hierarchical flat-vs-roots shape split still needs deliberate key design (not forgotten — follow-up after Category design) |
+| Catalog **paginated** API indexes (car-brands, car-types, property-types, …) | Page/search variants; form selects are the high-value path (now cached for flat domains above) |
+
+**Done from that original list (do not re-investigate):** CarBrand, CarType (by brand), PropertyType, ElectronicBrand (active), Skill (by category).
 
 **Original Tier 3 — skip**
 
@@ -337,9 +346,10 @@ Brief staleness is acceptable for badges / summary dashboards. **Do not** add `L
 
 ### Optional next phase (when justified by traffic)
 
-1. Catalog + Marketplace empty-search lookups (original Tier 2 #7–9) via LookupCache forever/6h + write invalidation including status toggles.
-2. Short-TTL `DashboardHomeService::forHome` if admin home remains hot.
-3. Switch `CACHE_STORE` to Redis later for cheaper tags; registry already works on database driver.
+1. Marketplace Category **roots-only, empty search** (± provider-type scope) — still not full tree/ajax/search.
+2. Hierarchical Catalog selects (Car/Property/Device categories, Specializations) once roots vs flat-all keys are decided.
+3. Short-TTL `DashboardHomeService::forHome` if admin home remains hot.
+4. Switch `CACHE_STORE` to Redis later for cheaper tags; registry already works on database driver.
 
 ---
 

@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\Actions\PropertyType;
 
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\DB;
 use Modules\Catalog\Contracts\Repositories\PropertyTypeRepositoryInterface;
 use Modules\Catalog\Models\PropertyType;
@@ -18,8 +19,12 @@ class UpdateStatusPropertyTypeAction
      */
     public function handle(PropertyType $propertyType, bool $isActive): PropertyType
     {
-        return DB::transaction(
+        $propertyType = DB::transaction(
             fn (): PropertyType => $this->repository->update($propertyType, ['is_active' => $isActive])
         );
+
+        LookupCache::forgetAllLocales('property-types:all');
+
+        return $propertyType;
     }
 }

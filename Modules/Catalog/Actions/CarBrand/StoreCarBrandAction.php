@@ -3,6 +3,7 @@
 namespace Modules\Catalog\Actions\CarBrand;
 
 use App\Support\HandlesTransactionalFileUpload;
+use App\Support\LookupCache;
 use Modules\Catalog\Contracts\Repositories\CarBrandRepositoryInterface;
 use Modules\Catalog\DTOs\StoreCarBrandDTO;
 use Modules\Catalog\Models\CarBrand;
@@ -21,7 +22,7 @@ class StoreCarBrandAction
      */
     public function handle(StoreCarBrandDTO $dto): CarBrand
     {
-        return $this->storeFileWithCleanup(
+        $carBrand = $this->storeFileWithCleanup(
             file: $dto->image,
             directory: 'car_brands',
             disk: 'public',
@@ -35,5 +36,9 @@ class StoreCarBrandAction
                 return $carBrand->load(['translation']);
             },
         );
+
+        LookupCache::forgetAllLocales('car-brands:all');
+
+        return $carBrand;
     }
 }

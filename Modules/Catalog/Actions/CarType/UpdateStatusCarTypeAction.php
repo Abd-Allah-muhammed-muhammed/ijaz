@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\Actions\CarType;
 
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\DB;
 use Modules\Catalog\Contracts\Repositories\CarTypeRepositoryInterface;
 use Modules\Catalog\Models\CarType;
@@ -22,6 +23,9 @@ class UpdateStatusCarTypeAction
         try {
             $carType = $this->repository->update($carType, ['is_active' => $isActive]);
             DB::commit();
+
+            LookupCache::forgetScopedAllLocales('car-types:by-brand', (int) $carType->car_brand_id);
+            LookupCache::forgetScopedAllLocales('car-types:by-brand', 0);
 
             return $carType;
         } catch (Throwable $throwable) {

@@ -2,6 +2,7 @@
 
 namespace Modules\Marketplace\Actions\Skill;
 
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\DB;
 use Modules\Marketplace\Contracts\Repositories\SkillRepositoryInterface;
 use Modules\Marketplace\DTOs\StoreSkillDTO;
@@ -17,9 +18,13 @@ class StoreSkillAction
     /** @throws Throwable */
     public function handle(StoreSkillDTO $dto): Skill
     {
-        return DB::transaction(fn (): Skill => $this->repository->create([
+        $skill = DB::transaction(fn (): Skill => $this->repository->create([
             'category_id' => $dto->categoryId,
             'translations' => $dto->translations,
         ]));
+
+        LookupCache::forgetScopedAllLocales('skills:by-category', $dto->categoryId);
+
+        return $skill;
     }
 }

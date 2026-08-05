@@ -4,6 +4,14 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Modules\Catalog\Models\CarBrand;
+use Modules\Catalog\Models\CarBrandTranslation;
+use Modules\Catalog\Models\CarType;
+use Modules\Catalog\Models\CarTypeTranslation;
+use Modules\Catalog\Models\ElectronicBrand;
+use Modules\Catalog\Models\ElectronicBrandTranslation;
+use Modules\Catalog\Models\PropertyType;
+use Modules\Catalog\Models\PropertyTypeTranslation;
 use Modules\Cms\Models\Banner;
 use Modules\Cms\Models\Page;
 use Modules\Cms\Models\PageTranslation;
@@ -17,6 +25,8 @@ use Modules\Geo\Models\Region;
 use Modules\Geo\Models\RegionTranslation;
 use Modules\Marketplace\Models\ProviderType;
 use Modules\Marketplace\Models\ProviderTypeTranslation;
+use Modules\Marketplace\Models\Skill;
+use Modules\Marketplace\Models\SkillTranslation;
 
 return [
 
@@ -158,6 +168,16 @@ return [
         PageTranslation::class,
         Question::class,
         QuestionTranslation::class,
+        CarBrand::class,
+        CarBrandTranslation::class,
+        CarType::class,
+        CarTypeTranslation::class,
+        PropertyType::class,
+        PropertyTypeTranslation::class,
+        ElectronicBrand::class,
+        ElectronicBrandTranslation::class,
+        Skill::class,
+        SkillTranslation::class,
     ],
 
 ];

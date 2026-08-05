@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\Actions\PropertyType;
 
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\DB;
 use Modules\Catalog\Contracts\Repositories\PropertyTypeRepositoryInterface;
 use Modules\Catalog\DTOs\UpdatePropertyTypeDTO;
@@ -19,7 +20,7 @@ class UpdatePropertyTypeAction
      */
     public function handle(PropertyType $propertyType, UpdatePropertyTypeDTO $dto): PropertyType
     {
-        return DB::transaction(function () use ($propertyType, $dto): PropertyType {
+        $propertyType = DB::transaction(function () use ($propertyType, $dto): PropertyType {
             $data = ['translations' => $dto->translations];
 
             if ($dto->isActive !== null) {
@@ -28,5 +29,9 @@ class UpdatePropertyTypeAction
 
             return $this->repository->update($propertyType, $data);
         });
+
+        LookupCache::forgetAllLocales('property-types:all');
+
+        return $propertyType;
     }
 }

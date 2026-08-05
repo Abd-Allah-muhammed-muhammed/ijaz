@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\Actions\PropertyType;
 
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\DB;
 use Modules\Catalog\Contracts\Repositories\PropertyTypeRepositoryInterface;
 use Modules\Catalog\DTOs\StorePropertyTypeDTO;
@@ -19,9 +20,13 @@ class StorePropertyTypeAction
      */
     public function handle(StorePropertyTypeDTO $dto): PropertyType
     {
-        return DB::transaction(fn (): PropertyType => $this->repository->create([
+        $propertyType = DB::transaction(fn (): PropertyType => $this->repository->create([
             'translations' => $dto->translations,
             'is_active' => $dto->isActive,
         ]));
+
+        LookupCache::forgetAllLocales('property-types:all');
+
+        return $propertyType;
     }
 }
