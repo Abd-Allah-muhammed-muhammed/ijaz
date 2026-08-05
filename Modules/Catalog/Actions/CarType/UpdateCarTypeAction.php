@@ -3,6 +3,7 @@
 namespace Modules\Catalog\Actions\CarType;
 
 use App\Support\HandlesTransactionalFileUpload;
+use App\Support\LookupCache;
 use Modules\Catalog\Contracts\Repositories\CarTypeRepositoryInterface;
 use Modules\Catalog\DTOs\UpdateCarTypeDTO;
 use Modules\Catalog\Models\CarType;
@@ -21,7 +22,9 @@ class UpdateCarTypeAction
      */
     public function handle(CarType $carType, UpdateCarTypeDTO $dto): CarType
     {
-        return $this->storeFileWithCleanup(
+        $previousBrandId = (int) $carType->car_brand_id;
+
+        $carType = $this->storeFileWithCleanup(
             file: $dto->image,
             directory: 'car_types',
             disk: 'public',
@@ -43,5 +46,11 @@ class UpdateCarTypeAction
                 return $carType->load(['translation', 'carBrand.translation']);
             },
         );
+
+        LookupCache::forgetScopedAllLocales('car-types:by-brand', $previousBrandId);
+        LookupCache::forgetScopedAllLocales('car-types:by-brand', $dto->carBrandId);
+        LookupCache::forgetScopedAllLocales('car-types:by-brand', 0);
+
+        return $carType;
     }
 }

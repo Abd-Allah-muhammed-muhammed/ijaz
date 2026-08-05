@@ -3,11 +3,17 @@
 namespace Modules\Marketplace\Contracts\Repositories;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Marketplace\Models\Skill;
 
 interface SkillRepositoryInterface
 {
+    /**
+     * @return Collection<int, Skill>
+     */
+    public function listForSelect(?string $search = null, int $categoryId = 0): Collection;
+
     public function paginateForDashboard(Request $request): LengthAwarePaginator;
 
     public function paginateForApi(Request $request, ?int $categoryId = null): LengthAwarePaginator;

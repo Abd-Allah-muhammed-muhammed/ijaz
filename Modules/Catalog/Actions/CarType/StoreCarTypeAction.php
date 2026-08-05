@@ -3,6 +3,7 @@
 namespace Modules\Catalog\Actions\CarType;
 
 use App\Support\HandlesTransactionalFileUpload;
+use App\Support\LookupCache;
 use Modules\Catalog\Contracts\Repositories\CarTypeRepositoryInterface;
 use Modules\Catalog\DTOs\StoreCarTypeDTO;
 use Modules\Catalog\Models\CarType;
@@ -21,7 +22,7 @@ class StoreCarTypeAction
      */
     public function handle(StoreCarTypeDTO $dto): CarType
     {
-        return $this->storeFileWithCleanup(
+        $carType = $this->storeFileWithCleanup(
             file: $dto->image,
             directory: 'car_types',
             disk: 'public',
@@ -36,5 +37,10 @@ class StoreCarTypeAction
                 return $carType->load(['translation', 'carBrand.translation']);
             },
         );
+
+        LookupCache::forgetScopedAllLocales('car-types:by-brand', $dto->carBrandId);
+        LookupCache::forgetScopedAllLocales('car-types:by-brand', 0);
+
+        return $carType;
     }
 }

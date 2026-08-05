@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\Actions\ElectronicBrand;
 
+use App\Support\LookupCache;
 use Modules\Catalog\Contracts\Repositories\ElectronicBrandRepositoryInterface;
 use Modules\Catalog\Models\ElectronicBrand;
 
@@ -14,5 +15,7 @@ class DeleteElectronicBrandAction
     public function handle(ElectronicBrand $electronicBrand): void
     {
         $this->repository->delete($electronicBrand);
+
+        LookupCache::forgetAllLocales('electronic-brands:all');
     }
 }

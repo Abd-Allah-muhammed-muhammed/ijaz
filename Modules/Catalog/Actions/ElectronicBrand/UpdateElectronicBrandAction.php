@@ -3,6 +3,7 @@
 namespace Modules\Catalog\Actions\ElectronicBrand;
 
 use App\Support\HandlesTransactionalFileUpload;
+use App\Support\LookupCache;
 use Modules\Catalog\Contracts\Repositories\ElectronicBrandRepositoryInterface;
 use Modules\Catalog\DTOs\UpdateElectronicBrandDTO;
 use Modules\Catalog\Models\ElectronicBrand;
@@ -21,7 +22,7 @@ class UpdateElectronicBrandAction
      */
     public function handle(ElectronicBrand $electronicBrand, UpdateElectronicBrandDTO $dto): ElectronicBrand
     {
-        return $this->storeFileWithCleanup(
+        $electronicBrand = $this->storeFileWithCleanup(
             file: $dto->image,
             directory: 'electronic_brands',
             disk: 'public',
@@ -42,5 +43,9 @@ class UpdateElectronicBrandAction
                 return $electronicBrand->load(['translation']);
             },
         );
+
+        LookupCache::forgetAllLocales('electronic-brands:all');
+
+        return $electronicBrand;
     }
 }

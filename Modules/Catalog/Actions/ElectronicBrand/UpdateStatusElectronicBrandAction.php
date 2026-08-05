@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\Actions\ElectronicBrand;
 
+use App\Support\LookupCache;
 use Modules\Catalog\Contracts\Repositories\ElectronicBrandRepositoryInterface;
 use Modules\Catalog\Models\ElectronicBrand;
 
@@ -13,6 +14,10 @@ class UpdateStatusElectronicBrandAction
 
     public function handle(ElectronicBrand $electronicBrand, bool $isActive): ElectronicBrand
     {
-        return $this->repository->updateStatus($electronicBrand, $isActive);
+        $electronicBrand = $this->repository->updateStatus($electronicBrand, $isActive);
+
+        LookupCache::forgetAllLocales('electronic-brands:all');
+
+        return $electronicBrand;
     }
 }

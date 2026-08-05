@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\Actions\CarBrand;
 
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\DB;
 use Modules\Catalog\Contracts\Repositories\CarBrandRepositoryInterface;
 use Modules\Catalog\Models\CarBrand;
@@ -22,6 +23,8 @@ class UpdateStatusCarBrandAction
         try {
             $carBrand = $this->repository->update($carBrand, ['is_active' => $isActive]);
             DB::commit();
+
+            LookupCache::forgetAllLocales('car-brands:all');
 
             return $carBrand;
         } catch (Throwable $throwable) {
