@@ -43,7 +43,7 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
 
         Route::group([
             'prefix' => LaravelLocalization::setLocale(),
-            'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
+            'middleware' => ['web', 'localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
         ], function () use ($path) {
             Route::group(['prefix' => 'provider', 'as' => 'provider.'], function () use ($path) {
                 Route::middleware('auth:provider')->group(function () use ($path) {
