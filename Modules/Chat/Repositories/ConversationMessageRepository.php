@@ -36,20 +36,12 @@ class ConversationMessageRepository implements ConversationMessageRepositoryInte
             ->setRelation('receiver', $receiver);
     }
 
-    public function insertAttachments(
-        ConversationMessage $message,
-        Collection $rows,
-    ): void {
-        $message->attachments()->insert($rows->toArray());
-        $message->load('attachments');
-    }
-
     public function listForConversation(
         Conversation $conversation,
         int $perPage = 20,
     ): LengthAwarePaginator {
         return $conversation->messages()
-            ->with(['sender', 'receiver', 'attachments'])
+            ->with(['sender', 'receiver', 'media'])
             ->latest()
             ->paginate($perPage);
     }
@@ -59,7 +51,7 @@ class ConversationMessageRepository implements ConversationMessageRepositoryInte
         int $limit = 20,
     ): Collection {
         return $conversation->messages()
-            ->with(['attachments', 'sender'])
+            ->with(['media', 'sender'])
             ->latest()
             ->take($limit)
             ->get()

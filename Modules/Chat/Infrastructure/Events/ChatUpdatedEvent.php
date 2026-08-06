@@ -92,7 +92,7 @@ class ChatUpdatedEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterCom
                 ->count(),
             'last_message' => [
                 'content' => $this->chat?->lastMessage?->content,
-                'attachments_count' => $this->chat?->lastMessage?->attachments_count ?: $this->chat?->lastMessage?->attachments()?->count(),
+                'attachments_count' => $this->chat?->lastMessage?->getMedia('attachments')->count() ?? 0,
                 'sender' => [
                     'id' => $this->chat?->lastMessage?->sender?->id,
                     'name' => $this->chat?->lastMessage?->sender?->name,

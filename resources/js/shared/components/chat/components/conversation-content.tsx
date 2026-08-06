@@ -99,10 +99,15 @@ const ConversationContent = ({ }: Props) => {
               online: true
             },
             attachments: message.files.map(file => ({
-              id: 0,
-              url: URL.createObjectURL(file),
+              id: crypto.randomUUID?.() ?? String(Date.now()),
               name: file.name,
-              size: file.size
+              collection_name: 'attachments',
+              file_name: file.name,
+              mime_type: file.type,
+              type: (file.type.split('/')[0] || 'application'),
+              url: URL.createObjectURL(file),
+              extension: file.name.includes('.') ? file.name.split('.').pop() : '',
+              size: `${Math.max(1, Math.round(file.size / 1024))} KB`,
             })),
           } as ConversationMessage;
 

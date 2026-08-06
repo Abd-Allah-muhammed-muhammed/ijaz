@@ -7,7 +7,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Modules\Chat\Contracts\HasConversation;
 use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
 use Modules\Chat\Contracts\Repositories\ConversationRepositoryInterface;
@@ -155,19 +154,15 @@ abstract class BaseChatService
         );
 
         if ($attachments->isNotEmpty()) {
-            $files = $attachments->map(function (UploadedFile $file) use ($lastMessage) {
-                return [
-                    'id' => Str::uuid(),
-                    'conversation_message_id' => $lastMessage->id,
-                    'path' => $file->store('chat/attachment', $this->_attachment_storage),
-                    'filename' => $file->getClientOriginalName(),
-                    'type' => strtolower(explode('/', $file->getMimeType())[0]),
-                    'store' => $this->_attachment_storage,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+            $attachments->each(function (UploadedFile $file) use ($lastMessage): void {
+                $lastMessage
+                    ->addMedia($file)
+                    ->usingFileName($file->getClientOriginalName())
+                    ->usingName(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) ?: $file->getClientOriginalName())
+                    ->toMediaCollection('attachments', $this->_attachment_storage);
             });
-            $this->messages()->insertAttachments($lastMessage, $files);
+
+            $lastMessage->load('media');
         }
 
         return $lastMessage;

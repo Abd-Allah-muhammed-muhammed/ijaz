@@ -21,14 +21,6 @@ interface ConversationMessageRepositoryInterface
         bool $hasAttachments,
     ): ConversationMessage;
 
-    /**
-     * @param  Collection<int, array<string, mixed>>  $rows
-     */
-    public function insertAttachments(
-        ConversationMessage $message,
-        Collection $rows,
-    ): void;
-
     public function listForConversation(
         Conversation $conversation,
         int $perPage = 20,

@@ -26,7 +26,7 @@ class OrderRepository implements OrderRepositoryInterface
 
         return $chat->messages()
             ->latest()
-            ->with(['sender', 'attachments'])
+            ->with(['sender', 'media'])
             ->paginate($perPage)
             ->withQueryString();
     }

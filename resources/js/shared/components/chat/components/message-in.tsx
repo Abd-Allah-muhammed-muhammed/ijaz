@@ -33,10 +33,10 @@ const MessageIn = ({ conversationMessage }: Props) => {
         </div>
 
         <div
-          className='p-2 rounded w-100 bg-light-info text-gray-900 fw-bold mw-lg-400px'
+          className='p-2 rounded w-100 bg-light-info text-gray-900 fw-bold mw-lg-400px min-w-0'
         >
           {Boolean(conversationMessage.attachments?.length) && <Attachments attachments={conversationMessage.attachments as ConversationAttachment[]} />}
-          <p dangerouslySetInnerHTML={{ __html: conversationMessage.content }} className='text-start mb-0'></p>
+          <p dangerouslySetInnerHTML={{ __html: conversationMessage.content }} className='text-start mb-0 text-break'></p>
           <div className='d-flex justify-content-end'>
             {
               conversationMessage.read_at ? (

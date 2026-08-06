@@ -445,11 +445,21 @@ export interface ConversationMessage extends Model {
   has_attachments: boolean;
 }
 
-export interface ConversationAttachment extends Model {
+export interface ConversationAttachment {
   id: string;
+  name?: string;
+  collection_name?: string;
+  /** Original client filename (MediaLibrary / MediaResource). */
+  file_name: string;
+  mime_type?: string;
+  /** MIME major type — e.g. "image", "application". */
   type: string;
-  filename: string;
   url: string;
+  extension?: string;
+  /** Human-readable size from MediaResource (e.g. "120 KB"). */
+  size?: string;
+  /** @deprecated Prefer file_name — legacy custom-table field. */
+  filename?: string;
 }
 
 export interface Conversation extends Model {

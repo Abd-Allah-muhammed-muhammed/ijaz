@@ -135,7 +135,7 @@ class ConversationRepository implements ConversationRepositoryInterface
                 $join->on("{$operationsTable}.id", 'conversations.operation_id')
                     ->where("{$operationsTable}.status", '!=', $excludedOperationStatus);
             })
-            ->with(['lastMessage.sender', 'lastMessage.lastAttachment', 'user2', 'user1'])
+            ->with(['lastMessage.sender', 'lastMessage.media', 'user2', 'user1'])
             ->withCountUnreadMessagesFor($provider)
             ->where(function (Builder $query) use ($provider) {
                 $query->whereMorphedTo('user1', $provider)

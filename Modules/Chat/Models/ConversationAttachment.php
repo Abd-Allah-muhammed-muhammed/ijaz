@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @deprecated Legacy custom attachment rows. New chat files use Spatie MediaLibrary
+ *             on ConversationMessage (collection `attachments`). Kept for the
+ *             chat:migrate-attachments-to-medialibrary backfill; table drop is a
+ *             later verified cleanup step.
+ */
 class ConversationAttachment extends Model
 {
     use HasUuids;

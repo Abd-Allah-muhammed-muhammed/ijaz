@@ -26,7 +26,7 @@ test('NewMessageEvent broadcasts immediately on presence chats.{id} as new-messa
         'has_attachments' => false,
     ]);
     $message->setRelation('sender', $user1);
-    $message->setRelation('attachments', collect());
+    $message->setRelation('media', collect());
 
     $event = new NewMessageEvent($message);
 
