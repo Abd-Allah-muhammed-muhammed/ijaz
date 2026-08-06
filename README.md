@@ -68,11 +68,27 @@ Architecture rules live in `.cursor/rules/layered-architecture.mdc` (Claude Skil
 
 ## Common Commands
 
-- Run tests: `php artisan test --compact`
+- Run tests (fast parallel default): `composer test`
+- Run the serial race-condition test only: `composer test:serial`
+- Full/CI-equivalent coverage (parallel + serial): `composer test:all`
 - Format PHP: `vendor/bin/pint --dirty --format agent`
 - List routes: `php artisan route:list --except-vendor`
 - Generate Wayfinder routes/actions: `php artisan wayfinder:generate`
 - Create admin accounts: `php artisan admin:create`
+
+### Test suite modes
+
+| Command | What it runs | When to use |
+|---|---|---|
+| `composer test` | Pest Parallel (~8 processes), **excludes** the `serial` group | Everyday development — the fast path |
+| `composer test:serial` | Only tests tagged `->group('serial')` | After wallet/concurrency changes, or when you need the race proof |
+| `composer test:all` | `composer test` then `composer test:serial` | Pre-push / CI-equivalent full coverage |
+
+The sole `serial` test today is `Modules/Wallet/tests/Feature/WithdrawConcurrentBalanceTest.php`.
+It spawns its own multi-process `Process::pool` against a shared file SQLite DB to prove
+concurrent withdrawals cannot overdraw available balance. That nested process pool is
+unsafe to schedule alongside other ParaTest workers, so it is quarantined from the
+parallel pool and run alone via `composer test:serial`.
 
 ## Notes
 

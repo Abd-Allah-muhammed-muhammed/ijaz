@@ -121,4 +121,4 @@ test('concurrent withdrawal requests cannot cumulatively exceed available balanc
             }
         }
     }
-});
+})->group('serial');
