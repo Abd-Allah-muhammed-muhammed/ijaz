@@ -121,37 +121,59 @@ const ConversationContent = ({ }: Props) => {
     files: []
   });
   const messagesBox = useRef<HTMLDivElement>(null);
-  /** User is following the live end — auto-scroll on new messages. */
+  const messagesContentRef = useRef<HTMLDivElement>(null);
+  /** User is following the live end — auto-scroll on new messages / height growth. */
   const stickToBottomRef = useRef(true);
-  /** Force scroll once (conversation open / own send), ignoring stick state. */
-  const forceScrollRef = useRef(false);
+  /** Ignore onScroll while we programmatically jump to bottom. */
+  const ignoreScrollRef = useRef(false);
 
   const scrollToBottom = () => {
     const el = messagesBox.current;
     if (!el) {
       return;
     }
-    el.scrollTop = el.scrollHeight;
-  };
 
-  const scheduleScrollToBottom = () => {
-    // Double rAF: wait until layout after React commit (images/fonts may still shift).
+    ignoreScrollRef.current = true;
+    el.scrollTop = el.scrollHeight;
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        scrollToBottom();
-        stickToBottomRef.current = true;
-        forceScrollRef.current = false;
-      });
+      ignoreScrollRef.current = false;
+      stickToBottomRef.current = true;
     });
   };
+
+  /**
+   * Cause of the mid-list landing bug: scrolling only after messages state update
+   * (even with double-rAF) runs BEFORE async image/attachment loads finish, so
+   * scrollHeight keeps growing afterward. ResizeObserver re-sticks whenever the
+   * content height changes while the user is still following the bottom — same
+   * idea as WhatsApp.
+   */
+  useEffect(() => {
+    const content = messagesContentRef.current;
+    if (!content || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new ResizeObserver(() => {
+      if (stickToBottomRef.current) {
+        scrollToBottom();
+      }
+    });
+
+    observer.observe(content);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [currentConversation?.id]);
 
   useLayoutEffect(() => {
     if (loadingMessages && messages.length === 0) {
       return;
     }
 
-    if (forceScrollRef.current || stickToBottomRef.current) {
-      scheduleScrollToBottom();
+    if (stickToBottomRef.current) {
+      scrollToBottom();
     }
   }, [messages, loadingMessages]);
 
@@ -214,7 +236,6 @@ const ConversationContent = ({ }: Props) => {
           } as ConversationMessage;
 
       // Own send — always jump to latest.
-      forceScrollRef.current = true;
       stickToBottomRef.current = true;
       setMessages(prevMessages => [...prevMessages, newMessage]);
       updateConversationForNewMessages(
@@ -253,7 +274,6 @@ const ConversationContent = ({ }: Props) => {
     setMessages([]);
     setLoadingMessages(true);
     setErrorFileIndexes([]);
-    forceScrollRef.current = true;
     stickToBottomRef.current = true;
 
     if (prevConversation) {
@@ -262,7 +282,7 @@ const ConversationContent = ({ }: Props) => {
 
     window.Echo.join(`chats.${currentConversation.id}`).listen(`.${ChatEventEnum.New_Message}`, (incoming: ConversationMessage) => {
       // Only follow if the user was already at/near the bottom.
-      if (messagesBox.current) {
+      if (messagesBox.current && !ignoreScrollRef.current) {
         stickToBottomRef.current = isNearBottom(messagesBox.current);
       }
       setMessages((prevMessages) => [...prevMessages, incoming]);
@@ -295,7 +315,6 @@ const ConversationContent = ({ }: Props) => {
         // needs chronological within the page (oldest → newest, newest at bottom).
         // Same pattern as ConversationMessageRepository::listRecentForConversation.
         const items = response?.data?.items;
-        forceScrollRef.current = true;
         stickToBottomRef.current = true;
         setMessages(Array.isArray(items) ? [...items].reverse() : []);
       })
@@ -367,26 +386,29 @@ const ConversationContent = ({ }: Props) => {
         ref={messagesBox}
         className='card-body d-flex flex-column flex-grow-1 scroll-y me-n5 pe-5 mb-5 min-w-0'
         onScroll={() => {
-          if (messagesBox.current) {
-            stickToBottomRef.current = isNearBottom(messagesBox.current);
+          if (ignoreScrollRef.current || !messagesBox.current) {
+            return;
           }
+          stickToBottomRef.current = isNearBottom(messagesBox.current);
         }}
       >
-        {loadingMessages && messages.length === 0 ? (
-          <ChatMessagesSkeleton />
-        ) : null}
-        {messages.map((messageItem, index) => {
-          const sender = messageItem.sender as ConversationUser;
+        <div ref={messagesContentRef} className="d-flex flex-column w-100 min-w-0">
+          {loadingMessages && messages.length === 0 ? (
+            <ChatMessagesSkeleton />
+          ) : null}
+          {messages.map((messageItem, index) => {
+            const sender = messageItem.sender as ConversationUser;
 
-          if (!messageItem.read_at) {
-            unreadMessageIndex.push(index);
-          }
+            if (!messageItem.read_at) {
+              unreadMessageIndex.push(index);
+            }
 
-          if (sender.socket_id !== currentSocketId) {
-            return <MessageIn conversationMessage={messageItem} key={messageItem.id} />;
-          }
-          return <MessageOut conversationMessage={messageItem} key={messageItem.id} />;
-        })}
+            if (sender.socket_id !== currentSocketId) {
+              return <MessageIn conversationMessage={messageItem} key={messageItem.id} />;
+            }
+            return <MessageOut conversationMessage={messageItem} key={messageItem.id} />;
+          })}
+        </div>
       </div>
       <ChatComposer
         content={message.content}

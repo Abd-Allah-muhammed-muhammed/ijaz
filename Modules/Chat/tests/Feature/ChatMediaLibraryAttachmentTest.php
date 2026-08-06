@@ -241,6 +241,92 @@ test('a message with a missing/deleted attachment file renders a graceful unavai
         ->assertJsonFragment(['available' => false, 'file_name' => 'gone.pdf']);
 });
 
+test('a message with a missing attachment file still appears in the conversation with its text content and correct position, only the attachment shows the unavailable placeholder', function () {
+    Storage::fake('public');
+
+    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
+    $conversation = createOrderConversation($user, $provider, $order);
+
+    $before = ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_type' => Provider::class,
+        'sender_id' => $provider->getKey(),
+        'receiver_type' => $user::class,
+        'receiver_id' => $user->getKey(),
+        'content' => 'message before missing attachment',
+        'has_attachments' => false,
+        'created_at' => now()->subMinutes(3),
+        'updated_at' => now()->subMinutes(3),
+    ]);
+
+    $withMissing = ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_type' => Provider::class,
+        'sender_id' => $provider->getKey(),
+        'receiver_type' => $user::class,
+        'receiver_id' => $user->getKey(),
+        'content' => 'caption still visible with missing file',
+        'has_attachments' => true,
+        'created_at' => now()->subMinutes(2),
+        'updated_at' => now()->subMinutes(2),
+    ]);
+
+    ConversationAttachment::query()->create([
+        'conversation_message_id' => $withMissing->id,
+        'type' => 'pdf',
+        'filename' => 'vanished.pdf',
+        'path' => 'chat/vanished-not-on-disk.pdf',
+        'store' => 'public',
+    ]);
+
+    $after = ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_type' => Provider::class,
+        'sender_id' => $provider->getKey(),
+        'receiver_type' => $user::class,
+        'receiver_id' => $user->getKey(),
+        'content' => 'message after missing attachment',
+        'has_attachments' => false,
+        'created_at' => now()->subMinute(),
+        'updated_at' => now()->subMinute(),
+    ]);
+
+    $response = $this->actingAs($provider, 'provider')
+        ->getJson(action([OrderChatController::class, 'show'], ['conversation' => $conversation->id]))
+        ->assertSuccessful();
+
+    // API returns newest-first; message must still be present (never filtered out).
+    $items = collect($response->json('data.items'));
+    $ids = $items->pluck('id')->all();
+
+    expect($ids)
+        ->toContain($before->id)
+        ->toContain($withMissing->id)
+        ->toContain($after->id);
+
+    $byContent = $items->keyBy('content');
+
+    expect($byContent->has('caption still visible with missing file'))->toBeTrue()
+        ->and($byContent['caption still visible with missing file']['id'])->toBe($withMissing->id)
+        ->and($byContent['caption still visible with missing file']['content'])->toBe('caption still visible with missing file')
+        ->and($byContent['caption still visible with missing file']['attachments'])->toHaveCount(1)
+        ->and($byContent['caption still visible with missing file']['attachments'][0]['available'])->toBeFalse()
+        ->and($byContent['caption still visible with missing file']['attachments'][0]['file_name'])->toBe('vanished.pdf');
+
+    // Neighbors remain in the same page — message kept its place in the thread.
+    expect($ids)->toContain($before->id)
+        ->and($ids)->toContain($after->id);
+
+    // Resource-level: text + unavailable attachment coexist — nothing strips the message.
+    $resolved = ConversationMessageResource::make(
+        $withMissing->fresh()->load(['media', 'attachments', 'sender'])
+    )->resolve();
+
+    expect($resolved['content'])->toBe('caption still visible with missing file')
+        ->and($resolved['attachments'])->toHaveCount(1)
+        ->and($resolved['attachments'][0]['available'])->toBeFalse();
+});
+
 test('provider chat send returns a proper validation error for an oversized file attachment', function () {
     Bus::fake();
     Event::fake([NewMessageEvent::class, ChatUpdatedEvent::class]);
