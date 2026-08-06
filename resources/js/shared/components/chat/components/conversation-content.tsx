@@ -226,6 +226,14 @@ const ConversationContent = ({ }: Props) => {
     }
 
     try {
+      // TEMP DEBUG — remove after diagnosing production upload failures
+      console.log('[CHAT UPLOAD DEBUG] Sending', {
+        fileCount: message.files.length,
+        fileSizes: message.files.map((f) => f.size),
+        totalSize: message.files.reduce((sum, f) => sum + f.size, 0),
+        hasSocketId: !!socketId,
+      });
+
       const { data: response } = await axios.post<SingleApiResponse<ConversationMessage>>(
         ProviderOrderChatController.send(currentConversation.id).url,
         formData,
@@ -270,6 +278,17 @@ const ConversationContent = ({ }: Props) => {
       setMessage({ content: '', files: [] });
       setErrorFileIndexes([]);
     } catch (error) {
+      // TEMP DEBUG — remove after diagnosing production upload failures
+      console.error('[CHAT UPLOAD DEBUG]', {
+        isAxiosError: isAxiosError(error),
+        hasResponse: isAxiosError(error) ? !!error.response : 'n/a',
+        responseStatus: isAxiosError(error) ? error.response?.status : 'n/a',
+        responseData: isAxiosError(error) ? error.response?.data : 'n/a',
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorCode: isAxiosError(error) ? error.code : 'n/a',
+        rawError: error,
+      });
+
       const attachedCount = message.files.length;
       const { messages: validationMessages, fileIndexes } = extractValidationErrors(
         error,
