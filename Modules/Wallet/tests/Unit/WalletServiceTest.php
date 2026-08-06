@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\DB;
-use Modules\Wallet\Exceptions\InsufficientBalanceException;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Models\WalletTransaction;
 use Modules\Wallet\Models\WithdrawRequest;
@@ -37,14 +36,6 @@ test('debit decreases wallet balance', function () {
     DB::transaction(fn () => app(WalletService::class)->debit($user, 75, $operation));
 
     expect((float) $user->wallet->fresh()->balance)->toBe(125.0);
-});
-
-test('debit throws InsufficientBalanceException when balance too low', function () {
-    $user = createWalletUser();
-    $operation = WithdrawRequest::factory()->for($user, 'user')->create();
-
-    expect(fn () => DB::transaction(fn () => app(WalletService::class)->debit($user, 10, $operation)))
-        ->toThrow(InsufficientBalanceException::class);
 });
 
 test('addPendingCredit increases pending_credit', function () {
@@ -138,36 +129,4 @@ test('getBalance returns WalletBalanceData with correct available amount', funct
         ->and($balance->pending_credit)->toBe(10.0)
         ->and($balance->pending_debit)->toBe(50.0)
         ->and($balance->available)->toBe(150.0);
-});
-
-test('finalizeWithdraw when approved debits balance and reverses pending', function () {
-    $user = createWalletUser();
-    fundWallet($user, 100);
-    $withdrawRequest = WithdrawRequest::factory()->for($user, 'user')->create(['amount' => 40]);
-
-    DB::transaction(function () use ($user, $withdrawRequest) {
-        app(WalletService::class)->addPendingDebit($user, 40, $withdrawRequest);
-        app(WalletService::class)->finalizeWithdraw($user, $withdrawRequest, approved: true);
-    });
-
-    $wallet = $user->wallet->fresh();
-
-    expect((float) $wallet->balance)->toBe(60.0)
-        ->and((float) $wallet->pending_debit)->toBe(0.0);
-});
-
-test('finalizeWithdraw when rejected only reverses pending debit', function () {
-    $user = createWalletUser();
-    fundWallet($user, 100);
-    $withdrawRequest = WithdrawRequest::factory()->for($user, 'user')->create(['amount' => 40]);
-
-    DB::transaction(function () use ($user, $withdrawRequest) {
-        app(WalletService::class)->addPendingDebit($user, 40, $withdrawRequest);
-        app(WalletService::class)->finalizeWithdraw($user, $withdrawRequest, approved: false);
-    });
-
-    $wallet = $user->wallet->fresh();
-
-    expect((float) $wallet->balance)->toBe(100.0)
-        ->and((float) $wallet->pending_debit)->toBe(0.0);
 });

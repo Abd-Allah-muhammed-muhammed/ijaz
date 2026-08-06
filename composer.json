@@ -96,8 +96,17 @@
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"php artisan inertia:start-ssr\" --names=server,queue,logs,ssr"
         ],
         "test": [
+            "Composer\\Config::disableProcessTimeout",
             "@php artisan config:clear --ansi",
-            "@php artisan test"
+            "@php artisan test --compact --parallel --processes=8 --exclude-group=serial"
+        ],
+        "test:serial": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan test --compact --group=serial"
+        ],
+        "test:all": [
+            "@test",
+            "@test:serial"
         ]
     },
     "extra": {

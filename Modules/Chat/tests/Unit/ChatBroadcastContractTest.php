@@ -75,23 +75,25 @@ test('ConversationResource last_message_at is humanized relative text not ISO860
 });
 
 test('ConversationMessageResource created_at is humanized relative text not ISO8601', function () {
-    $user1 = User::factory()->create();
-    $user2 = User::factory()->create();
-    $conversation = createMemberConversation($user1, $user2);
+    $this->freezeSecond(function () {
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $conversation = createMemberConversation($user1, $user2);
 
-    $message = ConversationMessage::query()->create([
-        'conversation_id' => $conversation->id,
-        'sender_id' => $user1->getKey(),
-        'sender_type' => $user1::class,
-        'receiver_id' => $user2->getKey(),
-        'receiver_type' => $user2::class,
-        'content' => 'hello',
-        'has_attachments' => false,
-    ]);
+        $message = ConversationMessage::query()->create([
+            'conversation_id' => $conversation->id,
+            'sender_id' => $user1->getKey(),
+            'sender_type' => $user1::class,
+            'receiver_id' => $user2->getKey(),
+            'receiver_type' => $user2::class,
+            'content' => 'hello',
+            'has_attachments' => false,
+        ]);
 
-    $payload = ConversationMessageResource::make($message)->resolve();
+        $payload = ConversationMessageResource::make($message)->resolve();
 
-    expect($payload['created_at'])
-        ->toBe($message->created_at->shortAbsoluteDiffForHumans())
-        ->and($payload['created_at'])->not->toMatch('/^\d{4}-\d{2}-\d{2}T/');
+        expect($payload['created_at'])
+            ->toBe($message->created_at->shortAbsoluteDiffForHumans())
+            ->and($payload['created_at'])->not->toMatch('/^\d{4}-\d{2}-\d{2}T/');
+    });
 });

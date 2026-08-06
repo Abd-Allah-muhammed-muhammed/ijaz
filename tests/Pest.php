@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /*
@@ -17,14 +16,10 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(LazilyRefreshDatabase::class)
-    ->in('Feature', 'Unit', '../Modules/Classifieds/tests/Feature', '../Modules/Catalog/tests/Feature', '../Modules/Opportunity/tests/Feature', '../Modules/Opportunity/tests/Unit', '../Modules/Guarantor/tests/Unit', '../Modules/Guarantor/tests/Feature', '../Modules/Chat/tests/Unit', '../Modules/Chat/tests/Feature', '../Modules/Wallet/tests/Unit');
+    ->in('Feature', 'Unit', '../Modules/Classifieds/tests/Feature', '../Modules/Catalog/tests/Feature', '../Modules/Opportunity/tests/Feature', '../Modules/Opportunity/tests/Unit', '../Modules/Guarantor/tests/Unit', '../Modules/Guarantor/tests/Feature', '../Modules/Chat/tests/Unit', '../Modules/Chat/tests/Feature', '../Modules/Wallet/tests/Unit', '../Modules/Wallet/tests/Feature');
 
 pest()->extend(TestCase::class)
-    ->use(RefreshDatabase::class)
-    ->in('../Modules/Wallet/tests/Feature');
-
-pest()->extend(TestCase::class)
-    ->use(RefreshDatabase::class)
+    ->use(LazilyRefreshDatabase::class)
     ->in('../Modules/Payment/tests');
 
 pest()->extend(TestCase::class)
@@ -98,8 +93,3 @@ expect()->extend('toBeOne', function () {
 | global functions to help you to reduce the number of lines of code in your test files.
 |
 */
-
-function something()
-{
-    // ..
-}

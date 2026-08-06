@@ -23,20 +23,33 @@ test('authenticated user can get balance → 200', function () {
         ->assertSuccessful();
 });
 
-test('balance response has correct fields: balance, pending_credit, pending_debit, available', function () {
+test('wallet balance API response has correct fields, values, and key order', function () {
     $user = createWalletUser();
     fundWallet($user, 250);
     $user->wallet->update(['pending_credit' => 20, 'pending_debit' => 50]);
     Sanctum::actingAs($user);
 
-    $this->getJson(action([WalletController::class, 'balance']))
+    $data = $this->getJson(action([WalletController::class, 'balance']))
         ->assertSuccessful()
         ->assertJsonStructure([
             'data' => ['balance', 'pending_credit', 'pending_debit', 'available'],
         ])
         ->assertJsonPath('data.pending_credit', 20)
         ->assertJsonPath('data.pending_debit', 50)
-        ->assertJsonPath('data.available', 200);
+        ->assertJsonPath('data.available', 200)
+        ->json('data');
+
+    expect(array_keys($data))->toBe([
+        'balance',
+        'pending_credit',
+        'pending_debit',
+        'available',
+        'total_earning',
+        'total_spent',
+    ])
+        ->and($data['pending_credit'])->toBe(20)
+        ->and($data['pending_debit'])->toBe(50)
+        ->and($data['available'])->toBe(200);
 });
 
 test('unauthenticated cannot add balance → 401', function () {
@@ -100,29 +113,6 @@ test('wallet addBalance response shape is unchanged', function () {
         ->and($data['transaction_id'])->not->toBeNull()
         ->and($data['data'])->toBeArray()
         ->and($data['data'])->toHaveKeys(['id', 'amount', 'status', 'payment_method']);
-});
-
-test('wallet balance API response shape is unchanged', function () {
-    $user = createWalletUser();
-    fundWallet($user, 250);
-    $user->wallet->update(['pending_credit' => 20, 'pending_debit' => 50]);
-    Sanctum::actingAs($user);
-
-    $data = $this->getJson(action([WalletController::class, 'balance']))
-        ->assertSuccessful()
-        ->json('data');
-
-    expect(array_keys($data))->toBe([
-        'balance',
-        'pending_credit',
-        'pending_debit',
-        'available',
-        'total_earning',
-        'total_spent',
-    ])
-        ->and($data['pending_credit'])->toBe(20)
-        ->and($data['pending_debit'])->toBe(50)
-        ->and($data['available'])->toBe(200);
 });
 
 test('wallet transactions API response shape is unchanged', function () {
