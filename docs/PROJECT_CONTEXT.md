@@ -258,7 +258,7 @@ Shipped on `feature/project-wide-caching`. **Do not re-audit from scratch** or i
 | Tests | `tests/Unit/Support/LookupCacheTest.php` + per-domain `*LookupCacheTest.php` (cold vs warm equality + query-count drop) |
 | Test hygiene | `Tests\TestCase` flushes LookupCache between tests; `TestingDatabaseGuard` aborts if config is cached or DB is not sqlite `:memory:` |
 | Test runner | Default `composer test` = Pest Parallel (`--processes=8 --exclude-group=serial`). Quarantined race test: `composer test:serial`. Full coverage: `composer test:all` (see README) |
-| Push devices | Polymorphic `device_tokens` (User + Provider via `HasDeviceTokens` data-access trait; register/clear via `App\Actions\DeviceToken\*`). OTP verify registers FCM token; logout = current Sanctum + optional device clear; `POST /api/v1/user/auth/logout-all` wipes all Sanctum + device tokens. Ban/delete also clears device tokens. **Prod:** create table → `device-tokens:backfill-from-player-id` → verify → drop `player_id` (migration aborts if unmigrated rows remain). |
+| Push devices | Polymorphic `device_tokens` (User + Provider via `HasDeviceTokens`; register/clear via `App\Actions\DeviceToken\*`). OTP verify registers FCM token and links it to the new Sanctum `personal_access_token_id`. Logout (no body) clears only the device token linked to the current session; `logout-all` wipes all. Ban/delete also clear device tokens. **Prod player_id:** create table → backfill command → verify → drop column. |
 
 ```php
 // Forever — invalidate only via forget*()

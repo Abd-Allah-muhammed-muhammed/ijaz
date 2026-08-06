@@ -4,6 +4,7 @@ namespace App\Actions\Auth\User;
 
 use App\Actions\DeviceToken\ClearDeviceTokenAction;
 use App\Models\User;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class LogoutUserAction
 {
@@ -11,16 +12,24 @@ class LogoutUserAction
         private readonly ClearDeviceTokenAction $clearDeviceTokenAction,
     ) {}
 
-    public function handle(User $user, ?string $deviceToken = null): void
+    public function handle(User $user): void
     {
         $accessToken = $user->currentAccessToken();
 
-        if ($accessToken !== null) {
-            $accessToken->delete();
+        if ($accessToken === null) {
+            return;
         }
 
-        if (filled($deviceToken)) {
-            $this->clearDeviceTokenAction->handle($user, $deviceToken);
+        if ($accessToken instanceof PersonalAccessToken) {
+            $this->clearDeviceTokenAction->handle($user, (int) $accessToken->id);
+            $accessToken->delete();
+
+            return;
+        }
+
+        // TransientToken / non-persisted tokens: nothing to revoke in DB.
+        if (method_exists($accessToken, 'delete')) {
+            $accessToken->delete();
         }
     }
 }

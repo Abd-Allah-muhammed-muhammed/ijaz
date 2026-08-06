@@ -95,7 +95,7 @@ parallel pool and run alone via `composer test:serial`.
 | Endpoint | Behavior |
 |---|---|
 | OTP verify (`player_id` optional) | Creates a **new** Sanctum token **without** revoking other devices; registers/upserts the FCM token on `device_tokens` |
-| `POST /api/v1/user/auth/logout` | Revokes **only** the current Sanctum token; clears the FCM token if `player_id` or `device_token` is sent |
+| `POST /api/v1/user/auth/logout` | Revokes **only** the current Sanctum token and clears the FCM `device_tokens` row linked to that session (no request body) |
 | `POST /api/v1/user/auth/logout-all` | Revokes **all** Sanctum tokens and clears **all** `device_tokens` for the user |
 
 Push notifications fan out to every registered `device_tokens` row. Mobile still sends `player_id` on verify/logout (legacy field name) — no mobile schema change.

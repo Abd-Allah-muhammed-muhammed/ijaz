@@ -5,13 +5,16 @@ namespace App\Models;
 use Database\Factories\DeviceTokenFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
+use Laravel\Sanctum\PersonalAccessToken;
 
 /**
  * @property int $id
  * @property string $tokenable_type
  * @property int $tokenable_id
+ * @property int|null $personal_access_token_id
  * @property string $token
  * @property string|null $platform
  * @property string|null $device_name
@@ -27,6 +30,7 @@ class DeviceToken extends Model
     protected $fillable = [
         'tokenable_type',
         'tokenable_id',
+        'personal_access_token_id',
         'token',
         'platform',
         'device_name',
@@ -43,5 +47,10 @@ class DeviceToken extends Model
     public function tokenable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function personalAccessToken(): BelongsTo
+    {
+        return $this->belongsTo(PersonalAccessToken::class);
     }
 }

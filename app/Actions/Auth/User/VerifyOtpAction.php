@@ -139,14 +139,19 @@ class VerifyOtpAction
         $this->otpSessionRepository->deleteForUser($user, $purpose);
         $this->otpRepository->deleteForSubject($user, $purpose);
 
-        $plainTextToken = $user->createToken('user-app', ['*'])->plainTextToken;
+        $newAccessToken = $user->createToken('user-app', ['*']);
+        $plainTextToken = $newAccessToken->plainTextToken;
         $accessToken = explode('|', $plainTextToken)[1];
 
         $user->load(['nationality.translation']);
         $user->loadCount('unreadNotifications');
 
         if (filled($playerId)) {
-            $this->registerDeviceTokenAction->handle($user, $playerId);
+            $this->registerDeviceTokenAction->handle(
+                $user,
+                $playerId,
+                personalAccessTokenId: $newAccessToken->accessToken->id,
+            );
         }
 
         return OtpVerifyResult::sessionSuccess(

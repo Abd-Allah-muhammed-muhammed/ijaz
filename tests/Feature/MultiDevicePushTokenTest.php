@@ -175,18 +175,19 @@ test('firebase channel sends to every registered device token for a notifiable',
 test('single-device logout revokes only the current session, other devices remain logged in', function () {
     $user = User::factory()->create(['status' => UserStatusEnum::Active]);
     $register = app(RegisterDeviceTokenAction::class);
-    $register->handle($user, 'device-a');
-    $register->handle($user, 'device-b');
 
     $accessA = $user->createToken('user-app', ['*']);
     $accessB = $user->createToken('user-app', ['*']);
+    $register->handle($user, 'device-a', personalAccessTokenId: $accessA->accessToken->id);
+    $register->handle($user, 'device-b', personalAccessTokenId: $accessB->accessToken->id);
+
     $tokenA = $accessA->plainTextToken;
     $tokenB = $accessB->plainTextToken;
     $tokenAId = $accessA->accessToken->id;
     $tokenBId = $accessB->accessToken->id;
 
     $this->withToken($tokenA)
-        ->postJson('/api/v1/user/auth/logout', ['player_id' => 'device-a'])
+        ->postJson('/api/v1/user/auth/logout')
         ->assertSuccessful();
 
     expect($user->fresh()->tokens()->whereKey($tokenAId)->exists())->toBeFalse()
@@ -209,13 +210,73 @@ test('single-device logout revokes only the current session, other devices remai
         ->assertUnauthorized();
 });
 
-test('logout-all-devices revokes every sanctum token and clears every device token', function () {
+test('logging in on a device links that sanctum token to its device token registration', function () {
+    $user = User::factory()->create();
+    $sanctum = $user->createToken('user-app', ['*']);
+
+    $device = app(RegisterDeviceTokenAction::class)->handle(
+        $user,
+        'linked-fcm-token',
+        personalAccessTokenId: $sanctum->accessToken->id,
+    );
+
+    expect($device->personal_access_token_id)->toBe($sanctum->accessToken->id)
+        ->and(DeviceToken::query()->where('token', 'linked-fcm-token')->value('personal_access_token_id'))
+        ->toBe($sanctum->accessToken->id);
+});
+
+test('logging out with no request body clears only the device token linked to the current session', function () {
     $user = User::factory()->create(['status' => UserStatusEnum::Active]);
     $register = app(RegisterDeviceTokenAction::class);
-    $register->handle($user, 'device-a');
-    $register->handle($user, 'device-b');
-    $user->createToken('user-app', ['*']);
-    $user->createToken('user-app', ['*']);
+
+    $accessA = $user->createToken('user-app', ['*']);
+    $accessB = $user->createToken('user-app', ['*']);
+    $register->handle($user, 'session-a-fcm', personalAccessTokenId: $accessA->accessToken->id);
+    $register->handle($user, 'session-b-fcm', personalAccessTokenId: $accessB->accessToken->id);
+
+    $this->withToken($accessA->plainTextToken)
+        ->postJson('/api/v1/user/auth/logout')
+        ->assertSuccessful();
+
+    expect($user->deviceTokens()->where('token', 'session-a-fcm')->exists())->toBeFalse()
+        ->and($user->deviceTokens()->where('token', 'session-b-fcm')->exists())->toBeTrue();
+});
+
+test('logging out on device A does not affect device B session or its device token', function () {
+    $user = User::factory()->create(['status' => UserStatusEnum::Active]);
+    $register = app(RegisterDeviceTokenAction::class);
+
+    $accessA = $user->createToken('user-app', ['*']);
+    $accessB = $user->createToken('user-app', ['*']);
+    $register->handle($user, 'device-a-fcm', personalAccessTokenId: $accessA->accessToken->id);
+    $register->handle($user, 'device-b-fcm', personalAccessTokenId: $accessB->accessToken->id);
+
+    $this->withToken($accessA->plainTextToken)
+        ->postJson('/api/v1/user/auth/logout')
+        ->assertSuccessful();
+
+    $this->flushHeaders();
+    $this->app['auth']->forgetGuards();
+
+    $this->withToken($accessB->plainTextToken)
+        ->getJson('/api/v1/user/auth/me')
+        ->assertSuccessful();
+
+    expect($user->fresh()->tokens()->whereKey($accessB->accessToken->id)->exists())->toBeTrue()
+        ->and($user->deviceTokens()->where('token', 'device-b-fcm')->exists())->toBeTrue()
+        ->and($user->deviceTokens()->where('token', 'device-a-fcm')->exists())->toBeFalse();
+});
+
+test('logout-all-devices still clears every device token regardless of linkage', function () {
+    $user = User::factory()->create(['status' => UserStatusEnum::Active]);
+    $register = app(RegisterDeviceTokenAction::class);
+
+    $accessA = $user->createToken('user-app', ['*']);
+    $accessB = $user->createToken('user-app', ['*']);
+    $register->handle($user, 'device-a', personalAccessTokenId: $accessA->accessToken->id);
+    $register->handle($user, 'device-b', personalAccessTokenId: $accessB->accessToken->id);
+    // Unlinked edge case — still cleared by logout-all.
+    $register->handle($user, 'orphan-fcm');
 
     Sanctum::actingAs($user, ['*'], 'user-api');
 

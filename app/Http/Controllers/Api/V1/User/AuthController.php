@@ -46,7 +46,7 @@ class AuthController extends Controller
 
     public function logout(LogoutRequest $request): JsonResponse
     {
-        $this->userAuthService->logout($request->deviceToken());
+        $this->userAuthService->logout();
 
         return $this->successMessageResponse(trans('success'));
     }

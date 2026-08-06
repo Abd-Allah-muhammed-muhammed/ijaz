@@ -84,10 +84,10 @@ class UserAuthService
         return $this->resendOtpSessionAction->handle($verificationId);
     }
 
-    public function logout(?string $deviceToken = null): void
+    public function logout(): void
     {
         $user = $this->userRepository->findAuthenticated();
-        $this->logoutUserAction->handle($user, $deviceToken);
+        $this->logoutUserAction->handle($user);
     }
 
     public function logoutAllDevices(): void

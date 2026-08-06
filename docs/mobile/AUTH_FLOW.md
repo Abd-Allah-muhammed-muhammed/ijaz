@@ -351,7 +351,7 @@ Authorization: Bearer {access_token}
 Examples of protected mobile routes (after verify):
 
 - `GET /api/v1/user/auth/me`
-- `POST /api/v1/user/auth/logout` — **this device only** (revokes current Sanctum token; optionally clear FCM via `player_id` / `device_token` body field)
+- `POST /api/v1/user/auth/logout` — **this device only** (no body required; revokes the current Sanctum token and clears the FCM registration linked to that session)
 - `POST /api/v1/user/auth/logout-all` — **every device** (all Sanctum tokens + all `device_tokens`)
 - `POST /api/v1/user/auth/profile/update`
 - `GET /api/v1/user/providers/get`
