@@ -9,6 +9,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Modules\Chat\Models\Conversation;
 use Modules\Orders\Contracts\Repositories\OrderRepositoryInterface;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
@@ -16,17 +17,31 @@ use Modules\Orders\Models\Order;
 
 class OrderRepository implements OrderRepositoryInterface
 {
-    public function paginateConversationMessages(Order $order, int $perPage = 15): ?LengthAwarePaginator
+    public function findConversation(Order $order): ?Conversation
     {
-        $chat = $order->conversation;
+        $conversation = $order->conversation;
+
+        return $conversation instanceof Conversation ? $conversation : null;
+    }
+
+    public function paginateConversationMessages(Order $order, int $perPage = 15, ?string $search = null): ?LengthAwarePaginator
+    {
+        $chat = $this->findConversation($order);
 
         if (! $chat) {
             return null;
         }
 
-        return $chat->messages()
+        $query = $chat->messages()
             ->latest()
-            ->with(['sender', 'media'])
+            ->with(['sender', 'media']);
+
+        if ($search !== null && $search !== '') {
+            $escaped = addcslashes($search, '%_\\');
+            $query->where('content', 'like', '%'.$escaped.'%');
+        }
+
+        return $query
             ->paginate($perPage)
             ->withQueryString();
     }
@@ -284,6 +299,8 @@ class OrderRepository implements OrderRepositoryInterface
             'city.translation',
             'region.translation',
             'reviews',
+            'conversation.user1',
+            'conversation.user2',
         ]);
         $order->loadCount([
             'offers',

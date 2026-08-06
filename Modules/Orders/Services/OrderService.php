@@ -2,17 +2,22 @@
 
 namespace Modules\Orders\Services;
 
+use App\Models\Admin;
 use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
+use Modules\Chat\DTOs\ChatMessageData;
+use Modules\Chat\Models\ConversationMessage;
+use Modules\Orders\Actions\Dashboard\BroadcastAdminOrderConversationTypingAction;
 use Modules\Orders\Actions\Dashboard\CountAllOrdersAction;
 use Modules\Orders\Actions\Dashboard\GetOrderStatusDistributionAction;
 use Modules\Orders\Actions\Dashboard\ListDashboardHomeWindowedOrdersAction;
 use Modules\Orders\Actions\Dashboard\ListDashboardOrdersAction;
 use Modules\Orders\Actions\Dashboard\ListOrderConversationMessagesAction;
+use Modules\Orders\Actions\Dashboard\SendAdminOrderConversationMessageAction;
 use Modules\Orders\Actions\Dashboard\ShowDashboardOrderAction;
 use Modules\Orders\Actions\Provider\EndProviderOrderAction;
 use Modules\Orders\Actions\Provider\GetProviderHomeOrderStatsAction;
@@ -62,6 +67,8 @@ class OrderService
         private readonly GetOrderStatusDistributionAction $getOrderStatusDistribution,
         private readonly ShowDashboardOrderAction $showDashboardOrder,
         private readonly ListOrderConversationMessagesAction $listConversationMessages,
+        private readonly SendAdminOrderConversationMessageAction $sendAdminConversationMessage,
+        private readonly BroadcastAdminOrderConversationTypingAction $broadcastAdminConversationTyping,
     ) {}
 
     public function listForUser(User $user, int $perPage): LengthAwarePaginator
@@ -213,8 +220,21 @@ class OrderService
         return $this->showDashboardOrder->handle($order);
     }
 
-    public function conversationMessages(Order $order, int $perPage = 15): ?LengthAwarePaginator
+    public function conversationMessages(Order $order, int $perPage = 15, ?string $search = null): ?LengthAwarePaginator
     {
-        return $this->listConversationMessages->handle($order, $perPage);
+        return $this->listConversationMessages->handle($order, $perPage, $search);
+    }
+
+    public function sendConversationMessageAsAdmin(
+        Order $order,
+        Admin $admin,
+        ChatMessageData $data,
+    ): ConversationMessage {
+        return $this->sendAdminConversationMessage->handle($order, $admin, $data);
+    }
+
+    public function typingAsAdmin(Order $order, Admin $admin): void
+    {
+        $this->broadcastAdminConversationTyping->handle($order, $admin);
     }
 }

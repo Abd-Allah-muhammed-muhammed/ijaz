@@ -17,5 +17,7 @@ Route::middleware([
         Route::get('/', 'index')->name('index');
         Route::get('/{order}', 'show')->name('show');
         Route::get('/{order}/conversation-messages', 'conversationMessages')->name('conversation-messages');
+        Route::post('/{order}/conversation-messages', 'sendConversationMessage')->name('conversation-messages.store');
+        Route::post('/{order}/conversation-typing', 'conversationTyping')->name('conversation-typing');
     });
 });

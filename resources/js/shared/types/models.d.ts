@@ -514,6 +514,7 @@ export interface Order extends Model {
   user?: User;
   skills?: Skill[];
   reviews: Review[];
+  conversation?: Conversation | null;
 }
 
 export interface Media extends Model {

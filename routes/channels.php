@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 use Modules\Chat\Http\Resources\ChatUserResource;
 use Modules\Chat\Models\Conversation;
-use Modules\Chat\Models\System;
 use Modules\Marketplace\Models\Category;
 
 Broadcast::channel('provider-{id}', static function (Provider $user, int $id) {
@@ -33,7 +32,8 @@ Broadcast::channel('systems.{id}', static function ($user, $id) {
     return $user instanceof Admin;
 });
 Broadcast::channel('chats.{chat}', static function ($user, Conversation $chat) {
-    if ($chat->user1_type === System::class && $user instanceof Admin) {
+    // Admins may join any conversation for support oversight (orders, tickets, etc.).
+    if ($user instanceof Admin) {
         return ChatUserResource::make($user)->resolve();
     }
     if ($chat->user1()->is($user) || $chat->user2()->is($user)) {

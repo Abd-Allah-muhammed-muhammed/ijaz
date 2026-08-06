@@ -12,8 +12,8 @@ class ListOrderConversationMessagesAction
         private readonly OrderRepositoryInterface $orders,
     ) {}
 
-    public function handle(Order $order, int $perPage = 15): ?LengthAwarePaginator
+    public function handle(Order $order, int $perPage = 15, ?string $search = null): ?LengthAwarePaginator
     {
-        return $this->orders->paginateConversationMessages($order, $perPage);
+        return $this->orders->paginateConversationMessages($order, $perPage, $search);
     }
 }

@@ -7,7 +7,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
-use Modules\Chat\Http\Resources\Dashboard\ConversationMessageCollection;
+use MMAE\ApiResponse\Traits\HasApiResponse;
+use Modules\Chat\DTOs\ChatMessageData;
+use Modules\Chat\Http\Requests\ListConversationMessagesRequest;
+use Modules\Chat\Http\Requests\SendSupportMessageRequest;
+use Modules\Chat\Http\Resources\ConversationMessageCollection;
+use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Orders\Http\Resources\Dashboard\OrderCollection;
 use Modules\Orders\Http\Resources\Dashboard\OrderResource;
 use Modules\Orders\Models\Order;
@@ -15,6 +20,8 @@ use Modules\Orders\Services\OrderService;
 
 class OrderController extends Controller implements HasMiddleware
 {
+    use HasApiResponse;
+
     public function __construct(
         private readonly OrderService $orderService,
     ) {}
@@ -23,6 +30,7 @@ class OrderController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:show orders', only: ['index', 'show', 'conversationMessages']),
+            new Middleware('permission:edit orders', only: ['sendConversationMessage', 'conversationTyping']),
         ];
     }
 
@@ -70,13 +78,43 @@ class OrderController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function conversationMessages(Request $request, Order $order): JsonResponse
+    public function conversationMessages(ListConversationMessagesRequest $request, Order $order): JsonResponse
     {
-        $messages = $this->orderService->conversationMessages($order, 15);
+        $messages = $this->orderService->conversationMessages(
+            $order,
+            $request->integer('per_page', 15),
+            $request->searchTerm(),
+        );
 
-        return response()->json([
-            'success' => true,
-            'data' => $messages ? ConversationMessageCollection::make($messages) : null,
-        ]);
+        if ($messages === null) {
+            return response()->json([
+                'success' => true,
+                'data' => null,
+            ]);
+        }
+
+        return $this->successResponse(
+            ConversationMessageCollection::make($messages),
+        );
+    }
+
+    public function sendConversationMessage(SendSupportMessageRequest $request, Order $order): JsonResponse
+    {
+        $message = $this->orderService->sendConversationMessageAsAdmin(
+            $order,
+            auth('admin')->user(),
+            ChatMessageData::fromRequest($request),
+        );
+
+        return $this->successResponse(
+            ConversationMessageResource::make($message)
+        );
+    }
+
+    public function conversationTyping(Order $order): JsonResponse
+    {
+        $this->orderService->typingAsAdmin($order, auth('admin')->user());
+
+        return $this->successResponse([]);
     }
 }

@@ -7,11 +7,14 @@ use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
+use Modules\Chat\Models\Conversation;
 use Modules\Orders\Models\Order;
 
 interface OrderRepositoryInterface
 {
-    public function paginateConversationMessages(Order $order, int $perPage = 15): ?LengthAwarePaginator;
+    public function findConversation(Order $order): ?Conversation;
+
+    public function paginateConversationMessages(Order $order, int $perPage = 15, ?string $search = null): ?LengthAwarePaginator;
 
     public function paginateForUser(User $user, int $perPage): LengthAwarePaginator;
 

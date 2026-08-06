@@ -7,6 +7,7 @@ use App\Http\Resources\Api\V1\User\UserResource;
 use App\Http\Resources\Dashboard\ProviderResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Chat\Http\Resources\ConversationResource;
 use Modules\Geo\Http\Resources\Dashboard\CityResource;
 use Modules\Geo\Http\Resources\Dashboard\RegionResource;
 use Modules\Marketplace\Http\Resources\Dashboard\CategoryResource;
@@ -62,6 +63,7 @@ class OrderResource extends JsonResource
             'skills' => SkillResource::collection($this->whenLoaded('skills')),
             'reviews' => ReviewResource::collection($this->whenLoaded('reviews')),
             'media' => MediaResource::collection($this->whenLoaded('media')),
+            'conversation' => ConversationResource::make($this->whenLoaded('conversation')),
         ];
     }
 }
