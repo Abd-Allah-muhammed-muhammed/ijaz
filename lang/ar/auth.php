@@ -26,4 +26,5 @@ return [
     'deleted' => 'تم حذف حسابك',
     'inactive' => 'حسابك غير نشط',
     'user_not_found' => 'المستخدم غير موجود',
+    'logged_out_all_devices' => 'تم تسجيل خروجك من جميع الأجهزة.',
 ];

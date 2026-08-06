@@ -50,6 +50,13 @@ class AuthController extends Controller
         return $this->successMessageResponse(trans('success'));
     }
 
+    public function logoutAll(): JsonResponse
+    {
+        $this->userAuthService->logoutAllDevices();
+
+        return $this->successMessageResponse(trans('auth.logged_out_all_devices'));
+    }
+
     /**
      * Register and start an OTP challenge (same shape as login — no token / user payload).
      *

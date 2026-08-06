@@ -2,6 +2,7 @@
 
 namespace App\Actions\Auth\User;
 
+use App\Actions\DeviceToken\RegisterDeviceTokenAction;
 use App\Contracts\Auth\HasOTPsContract;
 use App\Contracts\Auth\OtpRepositoryInterface;
 use App\Contracts\Auth\OtpSessionRepositoryInterface;
@@ -23,6 +24,7 @@ class VerifyOtpAction
     public function __construct(
         private readonly OtpRepositoryInterface $otpRepository,
         private readonly OtpSessionRepositoryInterface $otpSessionRepository,
+        private readonly RegisterDeviceTokenAction $registerDeviceTokenAction,
     ) {}
 
     /**
@@ -137,15 +139,20 @@ class VerifyOtpAction
         $this->otpSessionRepository->deleteForUser($user, $purpose);
         $this->otpRepository->deleteForSubject($user, $purpose);
 
-        $user->tokens()->delete();
-        $plainTextToken = $user->createToken('user-app', ['*'])->plainTextToken;
+        $newAccessToken = $user->createToken('user-app', ['*']);
+        $plainTextToken = $newAccessToken->plainTextToken;
         $accessToken = explode('|', $plainTextToken)[1];
 
         $user->load(['nationality.translation']);
         $user->loadCount('unreadNotifications');
-        $user->update([
-            'player_id' => $playerId,
-        ]);
+
+        if (filled($playerId)) {
+            $this->registerDeviceTokenAction->handle(
+                $user,
+                $playerId,
+                personalAccessTokenId: $newAccessToken->accessToken->id,
+            );
+        }
 
         return OtpVerifyResult::sessionSuccess(
             $accessToken,

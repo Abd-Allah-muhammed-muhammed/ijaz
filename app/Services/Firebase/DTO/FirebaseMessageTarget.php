@@ -5,7 +5,7 @@ namespace App\Services\Firebase\DTO;
 use Illuminate\Contracts\Support\Arrayable;
 use InvalidArgumentException;
 
-class Target implements Arrayable
+class FirebaseMessageTarget implements Arrayable
 {
     public function __construct(protected string $type, protected ?string $value)
     {

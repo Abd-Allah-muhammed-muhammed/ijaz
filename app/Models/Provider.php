@@ -4,10 +4,10 @@ namespace App\Models;
 
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Services\Firebase\Contract\InteractWithFirebase;
-use App\Services\Firebase\DTO\Target;
 use App\Support\HasBroadcastChannel;
 use App\Support\HasStoredFileUrl;
 use App\Traits\Blockable;
+use App\Traits\HasDeviceTokens;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -63,7 +63,7 @@ use Storage;
  */
 class Provider extends Authenticatable implements HasConversation, HasMedia, InteractWithFirebase
 {
-    use Blockable, HasBroadcastChannel, HasJobs, HasPayments, HasReviews, HasRoles, HasStoredFileUrl, HasWallet, InteractsWithMedia, Notifiable;
+    use Blockable, HasBroadcastChannel, HasDeviceTokens, HasJobs, HasPayments, HasReviews, HasRoles, HasStoredFileUrl, HasWallet, InteractsWithMedia, Notifiable;
 
     protected $fillable = [
         'name', 'code', 'iban', 'about', 'logo', 'tax_number', 'phone', 'email', 'website', 'address',
@@ -145,11 +145,6 @@ class Provider extends Authenticatable implements HasConversation, HasMedia, Int
     public function orderOffers(): HasMany
     {
         return $this->hasMany(OrderOffer::class, 'provider_id');
-    }
-
-    public function routeNotificationForFirebase(): Target
-    {
-        return new Target('token', null);
     }
 
     protected function commercialRecordUrl(): Attribute

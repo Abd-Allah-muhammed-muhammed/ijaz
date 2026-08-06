@@ -191,12 +191,19 @@ test('verifyOtpSession with wrong code returns invalid_code', function () {
         ->and($result->attemptsRemaining)->toBe((int) config('otp.max_verification_attempts') - 1);
 });
 
-test('logout deletes all user tokens', function () {
+test('logout deletes only the current user token', function () {
     $user = createUserAuthUser();
-    $user->createToken('user-app', ['*']);
+    $keep = $user->createToken('user-app', ['*']);
+    $current = $user->createToken('user-app', ['*']);
     $this->actingAs($user, 'user-api');
+    // Sanctum actingAs without a specific token may not set currentAccessToken —
+    // use withToken HTTP path covered in MultiDevicePushTokenTest.
+    // Here we exercise the Action via service after manually setting current token.
+    $user->withAccessToken($current->accessToken);
 
     app(UserAuthService::class)->logout();
 
-    expect($user->tokens()->count())->toBe(0);
+    expect($user->tokens()->count())->toBe(1)
+        ->and($user->tokens()->whereKey($keep->accessToken->id)->exists())->toBeTrue()
+        ->and($user->tokens()->whereKey($current->accessToken->id)->exists())->toBeFalse();
 });

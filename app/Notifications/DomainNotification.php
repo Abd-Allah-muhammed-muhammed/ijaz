@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Services\Firebase\DTO\Message;
+use App\Services\Firebase\DTO\FirebaseNotificationContent;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -34,7 +34,7 @@ abstract class DomainNotification extends Notification implements ShouldQueue
     abstract protected function payload(): array;
 
     /**
-     * Exact Firebase Message `data` bag — often a subset of payload()/broadcastData().
+     * Exact Firebase notification content `data` bag — often a subset of payload()/broadcastData().
      *
      * @return array<string, mixed>
      */
@@ -94,9 +94,9 @@ abstract class DomainNotification extends Notification implements ShouldQueue
         ]))->onConnection('sync');
     }
 
-    public function toFirebase(object $notifiable): Message
+    public function toFirebase(object $notifiable): FirebaseNotificationContent
     {
-        return Message::make(
+        return FirebaseNotificationContent::make(
             title: trans($this->titleKey(), locale: $notifiable->language),
             body: trans($this->bodyKey(), locale: $notifiable->language),
             data: $this->firebaseData($notifiable),

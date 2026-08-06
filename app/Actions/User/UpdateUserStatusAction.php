@@ -2,6 +2,7 @@
 
 namespace App\Actions\User;
 
+use App\Actions\DeviceToken\ClearAllDeviceTokensAction;
 use App\Contracts\User\UserManagementRepositoryInterface;
 use App\DTOs\User\UpdateUserStatusDTO;
 use App\Enums\Users\UserStatusEnum;
@@ -11,6 +12,7 @@ class UpdateUserStatusAction
 {
     public function __construct(
         private readonly UserManagementRepositoryInterface $repository,
+        private readonly ClearAllDeviceTokensAction $clearAllDeviceTokensAction,
     ) {}
 
     public function handle(User $user, UpdateUserStatusDTO $dto): User
@@ -20,10 +22,12 @@ class UpdateUserStatusAction
         if ($dto->status === UserStatusEnum::Blocked->value) {
             $this->repository->block($user, $dto->blockDays ?: 0, $dto->blockReason);
             $this->repository->revokeTokens($user);
+            $this->clearAllDeviceTokensAction->handle($user);
         }
 
         if ($dto->status === UserStatusEnum::Deleted->value) {
             $this->repository->revokeTokens($user);
+            $this->clearAllDeviceTokensAction->handle($user);
         }
 
         return $user;

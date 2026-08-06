@@ -4,6 +4,8 @@ namespace App\Services\Auth;
 
 use App\Actions\Auth\User\IssueOtpAction;
 use App\Actions\Auth\User\LoginUserAction;
+use App\Actions\Auth\User\LogoutAllDevicesAction;
+use App\Actions\Auth\User\LogoutUserAction;
 use App\Actions\Auth\User\RegisterUserAction;
 use App\Actions\Auth\User\ResendOtpSessionAction;
 use App\Actions\Auth\User\VerifyOtpAction;
@@ -25,6 +27,8 @@ class UserAuthService
         private readonly IssueOtpAction $issueOtpAction,
         private readonly VerifyOtpAction $verifyOtpAction,
         private readonly ResendOtpSessionAction $resendOtpSessionAction,
+        private readonly LogoutUserAction $logoutUserAction,
+        private readonly LogoutAllDevicesAction $logoutAllDevicesAction,
     ) {}
 
     public function login(string $phone): UserLoginResult
@@ -83,6 +87,12 @@ class UserAuthService
     public function logout(): void
     {
         $user = $this->userRepository->findAuthenticated();
-        $user->tokens()->delete();
+        $this->logoutUserAction->handle($user);
+    }
+
+    public function logoutAllDevices(): void
+    {
+        $user = $this->userRepository->findAuthenticated();
+        $this->logoutAllDevicesAction->handle($user);
     }
 }

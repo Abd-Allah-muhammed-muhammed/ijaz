@@ -56,6 +56,7 @@ Route::group(['prefix' => 'user'], static function () {
             Route::post('profile/update', 'profileUpdate');
             Route::get('me', 'auth');
             Route::post('logout', 'logout');
+            Route::post('logout-all', 'logoutAll');
         });
     });
 

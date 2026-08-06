@@ -1,0 +1,315 @@
+<?php
+
+use App\Actions\DeviceToken\RegisterDeviceTokenAction;
+use App\Actions\User\UpdateUserStatusAction;
+use App\DTOs\User\UpdateUserStatusDTO;
+use App\Enums\Users\UserStatusEnum;
+use App\Models\DeviceToken;
+use App\Models\User;
+use App\NotificationChannels\FirebaseChannel;
+use App\Notifications\DomainNotification;
+use App\Services\Firebase\FirebaseService;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\Sanctum;
+use Mockery\MockInterface;
+
+test('registering a device token upserts and reassigns ownership if another account previously owned that token', function () {
+    $ownerA = User::factory()->create();
+    $ownerB = User::factory()->create();
+    $register = app(RegisterDeviceTokenAction::class);
+
+    $register->handle($ownerA, 'shared-fcm-token', 'android', 'Family Phone');
+
+    expect(DeviceToken::query()->where('token', 'shared-fcm-token')->count())->toBe(1)
+        ->and($ownerA->deviceTokens()->where('token', 'shared-fcm-token')->exists())->toBeTrue();
+
+    $register->handle($ownerB, 'shared-fcm-token', 'android', 'Family Phone');
+
+    expect(DeviceToken::query()->where('token', 'shared-fcm-token')->count())->toBe(1)
+        ->and($ownerA->fresh()->deviceTokens()->where('token', 'shared-fcm-token')->exists())->toBeFalse()
+        ->and($ownerB->fresh()->deviceTokens()->where('token', 'shared-fcm-token')->exists())->toBeTrue();
+});
+
+test('registering the same device token twice for the same user updates the existing row, not a duplicate', function () {
+    Carbon::setTestNow('2026-08-06 10:00:00');
+
+    $user = User::factory()->create();
+    $register = app(RegisterDeviceTokenAction::class);
+
+    $first = $register->handle($user, 'same-device-token', 'android', 'Pixel');
+
+    Carbon::setTestNow('2026-08-06 10:05:00');
+
+    $second = $register->handle($user, 'same-device-token', 'ios', 'Pixel');
+
+    expect(DeviceToken::query()->where('token', 'same-device-token')->count())->toBe(1)
+        ->and($second->id)->toBe($first->id)
+        ->and($second->wasRecentlyCreated)->toBeFalse()
+        ->and($second->platform)->toBe('ios')
+        ->and($second->last_used_at?->equalTo(Carbon::parse('2026-08-06 10:05:00')))->toBeTrue();
+
+    Carbon::setTestNow();
+});
+
+test('registering the same device token twice for the same user in rapid succession (race condition simulation) does not create duplicate rows', function () {
+    $user = User::factory()->create();
+    $token = 'race-fcm-token';
+    $register = app(RegisterDeviceTokenAction::class);
+    $now = now();
+
+    // Simulate a concurrent request that already committed the unique token row
+    // (the TOCTOU window updateOrCreate used to hit). Atomic upsert must update
+    // that row — never throw UniqueConstraintViolationException, never duplicate.
+    DB::table('device_tokens')->insert([
+        'tokenable_type' => $user->getMorphClass(),
+        'tokenable_id' => $user->id,
+        'token' => $token,
+        'platform' => 'android',
+        'device_name' => 'concurrent',
+        'last_used_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    $existingId = (int) DB::table('device_tokens')->where('token', $token)->value('id');
+
+    // A second overlapping insert must be rejected by the unique index.
+    expect(fn () => DB::table('device_tokens')->insert([
+        'tokenable_type' => $user->getMorphClass(),
+        'tokenable_id' => $user->id,
+        'token' => $token,
+        'platform' => 'android',
+        'device_name' => 'duplicate-attempt',
+        'last_used_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]))->toThrow(UniqueConstraintViolationException::class);
+
+    $result = $register->handle($user, $token, 'ios', 'Pixel');
+
+    expect(DeviceToken::query()->where('token', $token)->count())->toBe(1)
+        ->and($result->id)->toBe($existingId)
+        ->and($result->platform)->toBe('ios')
+        ->and($result->device_name)->toBe('Pixel')
+        ->and($result->tokenable_id)->toBe($user->id);
+});
+
+test('a user can be logged in on two devices simultaneously without either session being revoked', function () {
+    $user = User::factory()->create(['status' => UserStatusEnum::Active]);
+
+    $tokenA = $user->createToken('user-app', ['*'])->plainTextToken;
+    $tokenB = $user->createToken('user-app', ['*'])->plainTextToken;
+
+    expect($user->tokens()->count())->toBe(2);
+
+    $this->withToken($tokenA)
+        ->getJson('/api/v1/user/auth/me')
+        ->assertSuccessful();
+
+    $this->app['auth']->forgetGuards();
+
+    $this->withToken($tokenB)
+        ->getJson('/api/v1/user/auth/me')
+        ->assertSuccessful();
+
+    expect($user->fresh()->tokens()->count())->toBe(2);
+});
+
+test('firebase channel sends to every registered device token for a notifiable', function () {
+    $user = User::factory()->create(['language' => 'en']);
+    $register = app(RegisterDeviceTokenAction::class);
+    $register->handle($user, 'device-one');
+    $register->handle($user, 'device-two');
+
+    $sentTokens = [];
+
+    $firebase = $this->mock(FirebaseService::class, function (MockInterface $mock) use (&$sentTokens) {
+        $mock->shouldReceive('send')
+            ->twice()
+            ->andReturnUsing(function ($outgoing) use (&$sentTokens) {
+                $sentTokens[] = $outgoing->targetValue;
+
+                return ['name' => 'ok'];
+            });
+    });
+
+    $notification = new class extends DomainNotification
+    {
+        protected function titleKey(): string
+        {
+            return 'order_offer_created';
+        }
+
+        protected function bodyKey(): string
+        {
+            return 'order_offer_has_been_created';
+        }
+
+        protected function payload(): array
+        {
+            return [];
+        }
+
+        protected function firebaseData(object $notifiable): array
+        {
+            return [];
+        }
+
+        protected function sendsFirebase(object $notifiable): bool
+        {
+            return true;
+        }
+
+        public function broadcastType(): string
+        {
+            return 'test';
+        }
+    };
+
+    expect((new FirebaseChannel($firebase))->send($user, $notification))->toBeTrue()
+        ->and($sentTokens)->toEqualCanonicalizing(['device-one', 'device-two']);
+});
+
+test('single-device logout revokes only the current session, other devices remain logged in', function () {
+    $user = User::factory()->create(['status' => UserStatusEnum::Active]);
+    $register = app(RegisterDeviceTokenAction::class);
+
+    $accessA = $user->createToken('user-app', ['*']);
+    $accessB = $user->createToken('user-app', ['*']);
+    $register->handle($user, 'device-a', personalAccessTokenId: $accessA->accessToken->id);
+    $register->handle($user, 'device-b', personalAccessTokenId: $accessB->accessToken->id);
+
+    $tokenA = $accessA->plainTextToken;
+    $tokenB = $accessB->plainTextToken;
+    $tokenAId = $accessA->accessToken->id;
+    $tokenBId = $accessB->accessToken->id;
+
+    $this->withToken($tokenA)
+        ->postJson('/api/v1/user/auth/logout')
+        ->assertSuccessful();
+
+    expect($user->fresh()->tokens()->whereKey($tokenAId)->exists())->toBeFalse()
+        ->and($user->fresh()->tokens()->whereKey($tokenBId)->exists())->toBeTrue()
+        ->and($user->deviceTokens()->where('token', 'device-a')->exists())->toBeFalse()
+        ->and($user->deviceTokens()->where('token', 'device-b')->exists())->toBeTrue();
+
+    // Full plain-text token (id|secret). Reset auth guards between requests so a
+    // revoked token cannot ride the previous request's authenticated user.
+    $this->flushHeaders();
+    $this->app['auth']->forgetGuards();
+    $this->withToken($tokenB)
+        ->getJson('/api/v1/user/auth/me')
+        ->assertSuccessful();
+
+    $this->flushHeaders();
+    $this->app['auth']->forgetGuards();
+    $this->withToken($tokenA)
+        ->getJson('/api/v1/user/auth/me')
+        ->assertUnauthorized();
+});
+
+test('logging in on a device links that sanctum token to its device token registration', function () {
+    $user = User::factory()->create();
+    $sanctum = $user->createToken('user-app', ['*']);
+
+    $device = app(RegisterDeviceTokenAction::class)->handle(
+        $user,
+        'linked-fcm-token',
+        personalAccessTokenId: $sanctum->accessToken->id,
+    );
+
+    expect($device->personal_access_token_id)->toBe($sanctum->accessToken->id)
+        ->and(DeviceToken::query()->where('token', 'linked-fcm-token')->value('personal_access_token_id'))
+        ->toBe($sanctum->accessToken->id);
+});
+
+test('logging out with no request body clears only the device token linked to the current session', function () {
+    $user = User::factory()->create(['status' => UserStatusEnum::Active]);
+    $register = app(RegisterDeviceTokenAction::class);
+
+    $accessA = $user->createToken('user-app', ['*']);
+    $accessB = $user->createToken('user-app', ['*']);
+    $register->handle($user, 'session-a-fcm', personalAccessTokenId: $accessA->accessToken->id);
+    $register->handle($user, 'session-b-fcm', personalAccessTokenId: $accessB->accessToken->id);
+
+    $this->withToken($accessA->plainTextToken)
+        ->postJson('/api/v1/user/auth/logout')
+        ->assertSuccessful();
+
+    expect($user->deviceTokens()->where('token', 'session-a-fcm')->exists())->toBeFalse()
+        ->and($user->deviceTokens()->where('token', 'session-b-fcm')->exists())->toBeTrue();
+});
+
+test('logging out on device A does not affect device B session or its device token', function () {
+    $user = User::factory()->create(['status' => UserStatusEnum::Active]);
+    $register = app(RegisterDeviceTokenAction::class);
+
+    $accessA = $user->createToken('user-app', ['*']);
+    $accessB = $user->createToken('user-app', ['*']);
+    $register->handle($user, 'device-a-fcm', personalAccessTokenId: $accessA->accessToken->id);
+    $register->handle($user, 'device-b-fcm', personalAccessTokenId: $accessB->accessToken->id);
+
+    $this->withToken($accessA->plainTextToken)
+        ->postJson('/api/v1/user/auth/logout')
+        ->assertSuccessful();
+
+    $this->flushHeaders();
+    $this->app['auth']->forgetGuards();
+
+    $this->withToken($accessB->plainTextToken)
+        ->getJson('/api/v1/user/auth/me')
+        ->assertSuccessful();
+
+    expect($user->fresh()->tokens()->whereKey($accessB->accessToken->id)->exists())->toBeTrue()
+        ->and($user->deviceTokens()->where('token', 'device-b-fcm')->exists())->toBeTrue()
+        ->and($user->deviceTokens()->where('token', 'device-a-fcm')->exists())->toBeFalse();
+});
+
+test('logout-all-devices still clears every device token regardless of linkage', function () {
+    $user = User::factory()->create(['status' => UserStatusEnum::Active]);
+    $register = app(RegisterDeviceTokenAction::class);
+
+    $accessA = $user->createToken('user-app', ['*']);
+    $accessB = $user->createToken('user-app', ['*']);
+    $register->handle($user, 'device-a', personalAccessTokenId: $accessA->accessToken->id);
+    $register->handle($user, 'device-b', personalAccessTokenId: $accessB->accessToken->id);
+    // Unlinked edge case — still cleared by logout-all.
+    $register->handle($user, 'orphan-fcm');
+
+    Sanctum::actingAs($user, ['*'], 'user-api');
+
+    $this->postJson('/api/v1/user/auth/logout-all')
+        ->assertSuccessful()
+        ->assertJsonPath('message', __('auth.logged_out_all_devices'));
+
+    expect($user->fresh()->tokens()->count())->toBe(0)
+        ->and($user->deviceTokens()->count())->toBe(0);
+});
+
+test('banning or deleting a user clears all their device tokens', function () {
+    $banned = User::factory()->create(['status' => UserStatusEnum::Active]);
+    app(RegisterDeviceTokenAction::class)->handle($banned, 'ban-token');
+    $banned->createToken('user-app', ['*']);
+
+    app(UpdateUserStatusAction::class)->handle(
+        $banned,
+        new UpdateUserStatusDTO(UserStatusEnum::Blocked->value, 7, 'abuse'),
+    );
+
+    expect($banned->fresh()->tokens()->count())->toBe(0)
+        ->and($banned->deviceTokens()->count())->toBe(0);
+
+    $deleted = User::factory()->create(['status' => UserStatusEnum::Active]);
+    app(RegisterDeviceTokenAction::class)->handle($deleted, 'delete-token');
+    $deleted->createToken('user-app', ['*']);
+
+    app(UpdateUserStatusAction::class)->handle(
+        $deleted,
+        new UpdateUserStatusDTO(UserStatusEnum::Deleted->value, null, null),
+    );
+
+    expect($deleted->fresh()->tokens()->count())->toBe(0)
+        ->and($deleted->deviceTokens()->count())->toBe(0);
+});

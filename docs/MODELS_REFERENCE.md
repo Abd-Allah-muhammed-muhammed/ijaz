@@ -272,12 +272,12 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | `nationality_id` | `Unknown` | - |
 | `password` | `Unknown` | - |
 | `phone` | `Unknown` | - |
-| `player_id` | `Unknown` | - |
 | `status` | `Unknown` | - |
 
 ### Relationships
 | Method | Type | Related Model |
 |---|---|---|
+| `deviceTokens` | `MorphMany` | `App\Models\DeviceToken` |
 | `nationality` | `BelongsTo` | `Modules\Geo\Models\Nationality` |
 | `orders` | `HasMany` | `Modules\Orders\Models\Order` |
 | `guarantorRequests` | `MorphMany` | `Modules\Guarantor\Models\GuarantorRequest` |

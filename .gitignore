@@ -45,3 +45,10 @@ TESTING_GUIDE.md
 .agents
 debug_paytabs.log
 .vite
+
+# Firebase service-account credentials (never commit).
+# storage/app/* is already ignored via storage/app/.gitignore (*);
+# these entries make the dedicated path + legacy locations explicit.
+/storage/app/firebase/
+/storage/app/ijaz.json
+/storage/ijaz.json

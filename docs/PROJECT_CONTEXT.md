@@ -114,7 +114,7 @@ app/
 ├── Rules/
 ├── Services/
 │   ├── Admin/ · Auth/ · Account/ · Dashboard/ · Provider/ · User/
-│   ├── Firebase/      — Push notifications
+│   ├── Firebase/      — Stateless FCM sender (OutgoingFirebaseMessage + Http facade); config under services.firebase
 │   └── Translations/  — Locale rendering for frontend
 ├── Support/           — Shared utilities: Normalize, Phone, HasNormalizedAttributes, LookupCache, …
 ├── Traits/            — Cross-cutting model traits (HasWallet, HasOTPs, Blockable, …)
@@ -258,6 +258,7 @@ Shipped on `feature/project-wide-caching`. **Do not re-audit from scratch** or i
 | Tests | `tests/Unit/Support/LookupCacheTest.php` + per-domain `*LookupCacheTest.php` (cold vs warm equality + query-count drop) |
 | Test hygiene | `Tests\TestCase` flushes LookupCache between tests; `TestingDatabaseGuard` aborts if config is cached or DB is not sqlite `:memory:` |
 | Test runner | Default `composer test` = Pest Parallel (`--processes=8 --exclude-group=serial`). Quarantined race test: `composer test:serial`. Full coverage: `composer test:all` (see README) |
+| Push devices | Polymorphic `device_tokens` (User + Provider via `HasDeviceTokens`; register/clear via `App\Actions\DeviceToken\*`). OTP verify registers FCM token and links it to the new Sanctum `personal_access_token_id`. Logout (no body) clears only the device token linked to the current session; `logout-all` wipes all. Ban/delete also clear device tokens. **Prod player_id:** create table → backfill command → verify → drop column. |
 
 ```php
 // Forever — invalidate only via forget*()
@@ -362,7 +363,11 @@ Brief staleness is acceptable for badges / summary dashboards. **Do not** add `L
 - `config/auth.php` — guards / providers
 - `config/broadcasting.php` — Reverb
 - `config/cache.php` — default store + `serializable_classes` allow-list for LookupCache
-- `config/firebase.php` — push
+- `config/services.php` → `firebase` — FCM credentials path (`FIREBASE_AUTH_FILE_PATH`, default `storage/app/firebase/ijaz.json`), OAuth cache key, token TTL skew, endpoints. Credentials live under `storage/app/firebase/` (gitignored; never commit).
+- Push path: `DomainNotification` / Chat `NewMessageSentNotification` → `FirebaseChannel` (loops all `device_tokens` Targets) → `FirebaseService::send(OutgoingFirebaseMessage)` (stateless; no mutable fluent state)
+- Content DTO: `FirebaseNotificationContent` (renamed from `Message`)
+- Devices: polymorphic `device_tokens` via `HasDeviceTokens` on User/Provider (relationship + Firebase routing only). Business logic in `RegisterDeviceTokenAction` / `ClearDeviceTokenAction` / `ClearAllDeviceTokensAction`. Legacy `users.player_id` is backfilled via `device-tokens:backfill-from-player-id`, then dropped by a separate guarded migration — not auto-dropped on first migrate.
+- **Decision point:** live FCM payload is `notification` + `data` only. A former unused `notify()` path also set `android.priority` / APNs headers — never called from the channel; re-add only if mobile needs it.
 - `config/otp.php` — OTP TTLs by purpose
 - Spatie permission cache — `config('permission.cache')` (package default; key `spatie.permission.cache`)
 - `Modules/Payment/config` + app payment config — drivers / PayTabs
@@ -371,7 +376,7 @@ Brief staleness is acceptable for badges / summary dashboards. **Do not** add `L
 
 ### Core models still in `app/Models`
 
-`Admin`, `User`, `Provider`, `Employee`, `BlockHistory`, `Otp`
+`Admin`, `User`, `Provider`, `Employee`, `BlockHistory`, `Otp`, `DeviceToken`
 
 (Domain models such as Order, Conversation, Payment, Wallet, GuarantorRequest, Setting, Review, advisements, JobOffer, etc. live under their modules — see MODELS_REFERENCE.)
 

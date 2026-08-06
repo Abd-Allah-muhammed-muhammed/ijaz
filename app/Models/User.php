@@ -6,10 +6,10 @@ namespace App\Models;
 use App\Contracts\Auth\HasOTPsContract;
 use App\Enums\Users\UserStatusEnum;
 use App\Services\Firebase\Contract\InteractWithFirebase;
-use App\Services\Firebase\DTO\Target;
 use App\Support\HasBroadcastChannel;
 use App\Support\HasStoredFileUrl;
 use App\Traits\Blockable;
+use App\Traits\HasDeviceTokens;
 use App\Traits\HasOTPs;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -56,7 +56,6 @@ use Modules\Wallet\Traits\HasWallet;
  * @property UserStatusEnum $status
  * @property Carbon|null $blocked_at
  * @property Carbon|null $blocked_until
- * @property string|null $player_id
  * @property Carbon|null $email_verified_at
  * @property Carbon|null $phone_verified_at
  * @property string|null $remember_token
@@ -72,6 +71,7 @@ use Modules\Wallet\Traits\HasWallet;
  * @property-read string $name
  * @property-read Collection<int, Otp> $otps
  * @property-read Collection<int, Otp> $verificationCodes
+ * @property-read Collection<int, DeviceToken> $deviceTokens
  *
  * @method static UserFactory factory($count = null, $state = [])
  * @method static Builder|User newModelQuery()
@@ -91,7 +91,6 @@ use Modules\Wallet\Traits\HasWallet;
  * @method static Builder|User whereNationalityId($value)
  * @method static Builder|User wherePassword($value)
  * @method static Builder|User wherePhone($value)
- * @method static Builder|User wherePlayerId($value)
  * @method static Builder|User whereRememberToken($value)
  * @method static Builder|User whereStatus($value)
  * @method static Builder|User whereUpdatedAt($value)
@@ -101,7 +100,7 @@ use Modules\Wallet\Traits\HasWallet;
 class User extends Authenticatable implements HasConversation, HasOTPsContract, InteractWithFirebase
 {
     /** @use HasFactory<UserFactory> */
-    use Blockable, HasApiTokens, HasBroadcastChannel, HasFactory, HasJobs, HasOTPs, HasPayments, HasReviews, HasStoredFileUrl, HasWallet, Notifiable;
+    use Blockable, HasApiTokens, HasBroadcastChannel, HasDeviceTokens, HasFactory, HasJobs, HasOTPs, HasPayments, HasReviews, HasStoredFileUrl, HasWallet, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -122,7 +121,6 @@ class User extends Authenticatable implements HasConversation, HasOTPsContract, 
         'status',
         'blocked_at',
         'blocked_until',
-        'player_id',
     ];
 
     /**
@@ -216,11 +214,6 @@ class User extends Authenticatable implements HasConversation, HasOTPsContract, 
     public function unreadSentMessages(): MorphMany
     {
         return $this->morphMany(ConversationMessage::class, 'sender')->whereNull('read_at');
-    }
-
-    public function routeNotificationForFirebase(): Target
-    {
-        return new Target('token', $this->player_id);
     }
 
     /**

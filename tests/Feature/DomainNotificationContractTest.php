@@ -2,7 +2,7 @@
 
 use App\Models\Provider;
 use App\Models\User;
-use App\Services\Firebase\DTO\Message;
+use App\Services\Firebase\DTO\FirebaseNotificationContent;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -65,9 +65,9 @@ function assertBroadcastPayload(BroadcastMessage $message, array $expectedData):
         ->and($message->connection)->toBe('sync');
 }
 
-function assertFirebaseMessage(Message $message, string $title, string $body, array $data): void
+function assertFirebaseMessage(FirebaseNotificationContent $message, string $title, string $body, array $data): void
 {
-    expect($message)->toBeInstanceOf(Message::class)
+    expect($message)->toBeInstanceOf(FirebaseNotificationContent::class)
         ->and($message->getTitle())->toBe($title)
         ->and($message->getBody())->toBe($body)
         ->and($message->getData())->toBe($data);
