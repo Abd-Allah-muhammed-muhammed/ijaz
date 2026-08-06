@@ -804,5 +804,6 @@
     "this specialization has subspecializations": "اس تخصص کو حذف نہیں کیا جا سکتا کیونکہ اس کے ذیلی تخصص موجود ہیں۔ براہ کرم پہلے انہیں حذف کریں یا دوبارہ تفویض کریں۔",
     "messages.invalid_phone": "فون نمبر درست نہیں ہے۔",
     "Attachment unavailable": "منسلکہ دستیاب نہیں",
-    "Validation Failed": "تصدیق ناکام"
+    "Validation Failed": "تصدیق ناکام",
+    "One of your files exceeds the 5MB limit.": "آپ کی کسی فائل کا سائز 5MB کی حد سے زیادہ ہے۔"
 }

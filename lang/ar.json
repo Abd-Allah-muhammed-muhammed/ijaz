@@ -895,5 +895,6 @@
     "this specialization has subspecializations": "لا يمكن حذف هذا التخصص لأنه يحتوي على تخصصات فرعية. يرجى حذفها أو إعادة تعيينها أولاً.",
     "messages.invalid_phone": "رقم الجوال غير صالح.",
     "Attachment unavailable": "المرفق غير متاح",
-    "Validation Failed": "فشل التحقق"
+    "Validation Failed": "فشل التحقق",
+    "One of your files exceeds the 5MB limit.": "أحد ملفاتك يتجاوز حد 5 ميغابايت."
 }

@@ -261,3 +261,75 @@ test('provider chat send returns a proper validation error for an oversized file
         ->assertStatus(422)
         ->assertJsonValidationErrors(['files.0']);
 });
+
+test('oversized file validation error shows a clean user-friendly message, not the raw files.N field path', function () {
+    Bus::fake();
+    Event::fake([NewMessageEvent::class, ChatUpdatedEvent::class]);
+    Storage::fake('public');
+
+    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
+    $conversation = createOrderConversation($user, $provider, $order);
+
+    $oversized = UploadedFile::fake()->create('too-big.pdf', 6000, 'application/pdf');
+
+    $response = $this->actingAs($provider, 'provider')
+        ->post(
+            action([OrderChatController::class, 'send'], ['conversation' => $conversation->id]),
+            ['files' => [$oversized]],
+            ['Accept' => 'application/json'],
+        )
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['files.0']);
+
+    // Envelope uses literal key "files.0" (not nested files → 0).
+    $messages = collect($response->json('errors')['files.0'] ?? [])
+        ->flatten()
+        ->map(fn ($m) => (string) $m)
+        ->all();
+
+    expect($messages)->not->toBeEmpty();
+
+    foreach ($messages as $errorMessage) {
+        expect($errorMessage)
+            ->toBe(__('One of your files exceeds the 5MB limit.'))
+            ->and($errorMessage)->not->toContain('files.0')
+            ->and($errorMessage)->not->toMatch('/files\.\d+/');
+    }
+});
+
+test('the clean validation message works correctly regardless of which file index is oversized', function () {
+    Bus::fake();
+    Event::fake([NewMessageEvent::class, ChatUpdatedEvent::class]);
+    Storage::fake('public');
+
+    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
+    $conversation = createOrderConversation($user, $provider, $order);
+
+    $okSmall = UploadedFile::fake()->create('ok.pdf', 100, 'application/pdf');
+    $oversized = UploadedFile::fake()->create('too-big.pdf', 6000, 'application/pdf');
+    $okAlso = UploadedFile::fake()->create('also-ok.pdf', 80, 'application/pdf');
+
+    // Index 1 is the oversized file (not index 0).
+    $response = $this->actingAs($provider, 'provider')
+        ->post(
+            action([OrderChatController::class, 'send'], ['conversation' => $conversation->id]),
+            ['files' => [$okSmall, $oversized, $okAlso]],
+            ['Accept' => 'application/json'],
+        )
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['files.1']);
+
+    $messages = collect($response->json('errors')['files.1'] ?? [])
+        ->flatten()
+        ->map(fn ($m) => (string) $m)
+        ->all();
+
+    expect($messages)->not->toBeEmpty();
+
+    foreach ($messages as $errorMessage) {
+        expect($errorMessage)
+            ->toBe(__('One of your files exceeds the 5MB limit.'))
+            ->and($errorMessage)->not->toContain('files.1')
+            ->and($errorMessage)->not->toMatch('/files\.\d+/');
+    }
+});

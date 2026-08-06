@@ -15,6 +15,29 @@ class SendSupportMessageRequest extends ApiRequest
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'files' => __('attachment'),
+            // Wildcard covers files.0, files.1, … so Laravel never exposes the raw path.
+            'files.*' => __('attachment'),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            // Wildcard max rule — same clean copy for any oversized file index.
+            'files.*.max' => __('One of your files exceeds the 5MB limit.'),
+        ];
+    }
+
     public function authorize(): bool
     {
         return true;

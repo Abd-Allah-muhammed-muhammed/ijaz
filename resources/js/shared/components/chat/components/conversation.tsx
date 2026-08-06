@@ -35,11 +35,11 @@ const Conversation = ({ chat, currentSocketId }: Props) => {
   })();
 
   return (
-    <button className='d-flex  py-4 w-100 bg-transparent border-0' onClick={() => {
+    <button className='d-flex py-4 w-100 bg-transparent border-0 min-w-0 overflow-hidden' onClick={() => {
       setPrevConversation(currentConversation);
       setCurrentConversation(chat)
     }}>
-      <div className='d-flex align-items-center flex-grow-1 min-w-0'>
+      <div className='d-flex align-items-center flex-grow-1 min-w-0 overflow-hidden'>
         <div className='symbol symbol-45px symbol-circle flex-shrink-0'>
           {user?.image ? (
             <img alt='Pic' src={user.image} />
@@ -52,17 +52,18 @@ const Conversation = ({ chat, currentSocketId }: Props) => {
             className={`${user?.socket_id ?? ''} symbol-badge bg-success start-100 top-100 border-4 h-15px w-15px ms-n2 mt-n2 ${user?.online ? '' : 'd-none'}`} />
         </div>
 
-        <div className='ms-5 w-100 text-start min-w-0'>
+        <div className='ms-5 flex-grow-1 text-start min-w-0 overflow-hidden'>
           <a
             href='#'
             className='fs-5 fw-bolder text-gray-900 text-hover-primary mb-2 text-start text-truncate d-block'
+            style={{ maxWidth: '100%' }}
             title={displayName}
           >
             {displayName}
           </a>
-          <div className='fw-bold text-gray-500 text-start'>
-            <div className='d-flex align-items-center justify-content-between min-w-0'>
-              <span className='flex-grow-1 overflow-hidden text-truncate'>
+          <div className='fw-bold text-gray-500 text-start min-w-0'>
+            <div className='d-flex align-items-center justify-content-between min-w-0 gap-2'>
+              <span className='flex-grow-1 min-w-0 overflow-hidden text-truncate'>
                 {lastMessage?.sender?.socket_id !== currentSocketId ? firstName : t('You')}:&nbsp;
                 {previewBody}
               </span>
