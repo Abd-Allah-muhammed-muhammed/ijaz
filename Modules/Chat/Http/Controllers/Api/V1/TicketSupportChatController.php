@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Enums\ChatTypeEnum;
+use Modules\Chat\Http\Requests\ListConversationMessagesRequest;
 use Modules\Chat\Http\Requests\SendMessageRequest;
 use Modules\Chat\Http\Resources\ConversationCollection;
 use Modules\Chat\Http\Resources\ConversationMessageCollection;
@@ -38,7 +39,7 @@ class TicketSupportChatController extends Controller
         );
     }
 
-    public function show(Request $request, Conversation $conversation): JsonResponse
+    public function show(ListConversationMessagesRequest $request, Conversation $conversation): JsonResponse
     {
         $this->authorize('view', $conversation);
 
@@ -48,6 +49,7 @@ class TicketSupportChatController extends Controller
                     $conversation,
                     auth()->user(),
                     $request->integer('per_page', 15),
+                    $request->searchTerm(),
                 )
             )
         );

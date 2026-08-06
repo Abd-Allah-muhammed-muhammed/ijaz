@@ -3,15 +3,17 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import Attachments from '@/shared/components/chat/components/attachments';
+import { highlightSearchTerm } from '@/shared/components/chat/components/chat-search-highlight';
 
 type Props = {
   conversationMessage: ConversationMessage;
+  highlightTerm?: string | null;
 };
 
 const hasCaption = (content?: string | null): boolean =>
   Boolean(content && String(content).trim() !== '');
 
-const MessageOut = ({ conversationMessage }: Props) => {
+const MessageOut = ({ conversationMessage, highlightTerm }: Props) => {
   const { t } = useTranslation();
   return (
     <div
@@ -56,7 +58,11 @@ const MessageOut = ({ conversationMessage }: Props) => {
           )}
           {hasCaption(conversationMessage.content) ? (
             <p
-              dangerouslySetInnerHTML={{ __html: conversationMessage.content }}
+              dangerouslySetInnerHTML={{
+                __html: highlightTerm
+                  ? highlightSearchTerm(String(conversationMessage.content), highlightTerm)
+                  : String(conversationMessage.content),
+              }}
               className="text-end mb-2 text-break"
               style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
             ></p>

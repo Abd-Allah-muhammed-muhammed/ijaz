@@ -144,12 +144,16 @@ const ConversationContent = ({ }: Props) => {
   const [loadingMessages, setLoadingMessages] = useState<boolean>(false);
   const [sending, setSending] = useState<boolean>(false);
   const [errorFileIndexes, setErrorFileIndexes] = useState<number[]>([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
+  const [activeSearch, setActiveSearch] = useState('');
   const [message, setMessage] = useState<ChatMessage>({
     content: '',
     files: []
   });
   const messagesBox = useRef<HTMLDivElement>(null);
   const messagesContentRef = useRef<HTMLDivElement>(null);
+  const activeSearchRef = useRef('');
   /** User is following the live end — auto-scroll on new messages / height growth. */
   const stickToBottomRef = useRef(true);
   /** Ignore onScroll while we programmatically jump to bottom. */
@@ -167,6 +171,20 @@ const ConversationContent = ({ }: Props) => {
       ? ProviderOrderChatController.typing(currentConversation.id).url
       : null,
   });
+
+  useEffect(() => {
+    activeSearchRef.current = activeSearch;
+  }, [activeSearch]);
+
+  const fetchMessages = (conversationId: string | number, search?: string) => {
+    const params = search && search.trim() !== ''
+      ? { query: { search: search.trim() } }
+      : undefined;
+
+    return axios.get<SingleApiResponse<ConversationMessagePaginationResource>>(
+      ProviderOrderChatController.show(conversationId, params).url,
+    );
+  };
 
   const scrollToBottom = () => {
     const el = messagesBox.current;
@@ -338,6 +356,15 @@ const ConversationContent = ({ }: Props) => {
 
     window.Echo.join(`chats.${currentConversation.id}`)
       .listen(`.${ChatEventEnum.New_Message}`, (incoming: ConversationMessage) => {
+        // While filtering, only surface live messages that still match the query.
+        const search = activeSearchRef.current.trim().toLowerCase();
+        if (search !== '') {
+          const content = String(incoming.content ?? '').toLowerCase();
+          if (!content.includes(search)) {
+            return;
+          }
+        }
+
         // Only follow if the user was already at/near the bottom.
         if (messagesBox.current && !ignoreScrollRef.current) {
           stickToBottomRef.current = isNearBottom(messagesBox.current);
@@ -365,9 +392,12 @@ const ConversationContent = ({ }: Props) => {
 
     let cancelled = false;
 
-    axios.get<SingleApiResponse<ConversationMessagePaginationResource>>(
-      ProviderOrderChatController.show(currentConversation.id).url,
-    )
+    setSearchOpen(false);
+    setSearchInput('');
+    setActiveSearch('');
+    activeSearchRef.current = '';
+
+    fetchMessages(currentConversation.id)
       .then(({ data: response }) => {
         if (cancelled) {
           return;
@@ -398,6 +428,36 @@ const ConversationContent = ({ }: Props) => {
     };
 
   }, [currentConversation]);
+
+  // Debounced in-conversation search — replaces the message list with matches only.
+  useEffect(() => {
+    if (!currentConversation || !searchOpen) {
+      return;
+    }
+
+    const term = searchInput.trim();
+    const handle = window.setTimeout(() => {
+      setActiveSearch(term);
+      setLoadingMessages(true);
+      stickToBottomRef.current = true;
+
+      fetchMessages(currentConversation.id, term || undefined)
+        .then(({ data: response }) => {
+          const items = response?.data?.items;
+          setMessages(Array.isArray(items) ? [...items].reverse() : []);
+        })
+        .catch(() => {
+          setMessages([]);
+        })
+        .finally(() => {
+          setLoadingMessages(false);
+        });
+    }, 300);
+
+    return () => {
+      window.clearTimeout(handle);
+    };
+  }, [searchInput, searchOpen, currentConversation?.id]);
   return (
     <div className='card d-flex h-100 flex-column min-w-0'>
       <div className='card-header' id='kt_chat_messenger_header'>
@@ -434,7 +494,53 @@ const ConversationContent = ({ }: Props) => {
         </div>
 
         <div className='card-toolbar'>
-          <div className='me-n3'>
+          <div className='d-flex align-items-center gap-1 me-n1'>
+            {searchOpen ? (
+              <div className='d-flex align-items-center position-relative me-2' style={{ minWidth: 160, maxWidth: 240 }}>
+                <KTIcon iconName='magnifier' className='fs-3 position-absolute ms-3 text-gray-500' />
+                <input
+                  type='search'
+                  className='form-control form-control-sm form-control-solid ps-10'
+                  placeholder={t('Search messages', { defaultValue: 'Search messages' })}
+                  value={searchInput}
+                  autoFocus
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  aria-label={t('Search messages', { defaultValue: 'Search messages' })}
+                />
+              </div>
+            ) : null}
+            <Button
+              variant={searchOpen ? 'light-primary' : 'outline-secondary'}
+              size='sm'
+              className='btn-icon'
+              aria-label={searchOpen
+                ? t('Close search', { defaultValue: 'Close search' })
+                : t('Search messages', { defaultValue: 'Search messages' })}
+              onClick={() => {
+                if (searchOpen) {
+                  setSearchOpen(false);
+                  setSearchInput('');
+                  setActiveSearch('');
+                  activeSearchRef.current = '';
+                  if (!currentConversation) {
+                    return;
+                  }
+                  setLoadingMessages(true);
+                  stickToBottomRef.current = true;
+                  fetchMessages(currentConversation.id)
+                    .then(({ data: response }) => {
+                      const items = response?.data?.items;
+                      setMessages(Array.isArray(items) ? [...items].reverse() : []);
+                    })
+                    .catch(() => setMessages([]))
+                    .finally(() => setLoadingMessages(false));
+                  return;
+                }
+                setSearchOpen(true);
+              }}
+            >
+              <KTIcon iconName='magnifier' className="fs-2" />
+            </Button>
             <Button variant={'outline-secondary'} size='sm' onClick={() => {
               setPrevConversation(currentConversation);
               setCurrentConversation(null)
@@ -444,6 +550,18 @@ const ConversationContent = ({ }: Props) => {
           </div>
         </div>
       </div>
+      {searchOpen && activeSearch.trim() !== '' ? (
+        <div className='px-5 py-2 border-bottom bg-light-primary'>
+          <span className='fs-7 fw-semibold text-gray-600'>
+            {loadingMessages
+              ? t('Searching...', { defaultValue: 'Searching...' })
+              : t('{{count}} results', {
+                  count: messages.length,
+                  defaultValue: `${messages.length} results`,
+                })}
+          </span>
+        </div>
+      ) : null}
       <div
         ref={messagesBox}
         className='card-body d-flex flex-column flex-grow-1 scroll-y me-n5 pe-5 mb-5 min-w-0'
@@ -458,6 +576,13 @@ const ConversationContent = ({ }: Props) => {
           {loadingMessages && messages.length === 0 ? (
             <ChatMessagesSkeleton />
           ) : null}
+          {!loadingMessages && messages.length === 0 && activeSearch.trim() !== '' ? (
+            <div className="text-center py-10">
+              <div className="fw-semibold text-gray-600 fs-6">
+                {t('No messages found', { defaultValue: 'No messages found' })}
+              </div>
+            </div>
+          ) : null}
           {messages.map((messageItem, index) => {
             const sender = messageItem.sender as ConversationUser;
 
@@ -466,9 +591,21 @@ const ConversationContent = ({ }: Props) => {
             }
 
             if (sender.socket_id !== currentSocketId) {
-              return <MessageIn conversationMessage={messageItem} key={messageItem.id} />;
+              return (
+                <MessageIn
+                  conversationMessage={messageItem}
+                  key={messageItem.id}
+                  highlightTerm={activeSearch.trim() || null}
+                />
+              );
             }
-            return <MessageOut conversationMessage={messageItem} key={messageItem.id} />;
+            return (
+              <MessageOut
+                conversationMessage={messageItem}
+                key={messageItem.id}
+                highlightTerm={activeSearch.trim() || null}
+              />
+            );
           })}
           <ChatTypingIndicator user={typingUser} />
         </div>

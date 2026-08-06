@@ -69,8 +69,9 @@ class ConversationService
         Conversation $conversation,
         Model $actor,
         int $perPage = 20,
+        ?string $search = null,
     ): LengthAwarePaginator {
-        return $this->listMessagesAction->handle($conversation, $actor, $perPage);
+        return $this->listMessagesAction->handle($conversation, $actor, $perPage, $search);
     }
 
     public function send(
