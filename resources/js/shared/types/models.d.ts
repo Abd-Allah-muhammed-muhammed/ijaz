@@ -443,13 +443,32 @@ export interface ConversationMessage extends Model {
   read_at: Date;
   attachments?: ConversationAttachment[];
   has_attachments: boolean;
+  /** Present on ChatUpdatedEvent last_message payloads. */
+  attachments_count?: number;
 }
 
-export interface ConversationAttachment extends Model {
+export interface ConversationAttachment {
   id: string;
+  name?: string;
+  collection_name?: string;
+  /** Original client filename (MediaLibrary / MediaResource). */
+  file_name: string;
+  mime_type?: string;
+  /** MIME major type — e.g. "image", "application". */
   type: string;
-  filename: string;
   url: string;
+  extension?: string;
+  /** Human-readable size from MediaResource (e.g. "120 KB"). */
+  size?: string;
+  /**
+   * False when the backing MediaLibrary file is missing/unreadable on disk.
+   * Omitted/true means the file can be opened.
+   */
+  available?: boolean;
+  /**
+   * Translated label for unavailable attachments — prefer over file_name when present.
+   */
+  label?: string;
 }
 
 export interface Conversation extends Model {

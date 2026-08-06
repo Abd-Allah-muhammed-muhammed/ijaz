@@ -17,14 +17,12 @@ import SupportController from "@/actions/Modules/Support/Http/Controllers/Dashbo
 import SupportChatController from "@/actions/Modules/Support/Http/Controllers/Dashboard/SupportChatController";
 import MessageIn from "@/shared/components/chat/components/message-in";
 import MessageOut from "@/shared/components/chat/components/message-out";
-import ActionButton from "@/shared/components/action-button";
+import ChatComposer from "@/shared/components/chat/components/chat-composer";
 import usePermissions from '@/shared/hooks/use-permissions';
 import {useConversations} from "@/store/use-chat";
 import {ChatEventEnum} from "@/Enums/Chat";
 import {TicketSupportStatusEnum} from "@/Enums/SupportTickets";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
-
+import {toast} from "sonner";
 
 type Props = {
   row: TicketSupport<Order>,
@@ -59,6 +57,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
   const {auth} = usePage<{ auth: { user?: { socket_id?: string } } }>().props;
   const messagesBox = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<ConversationMessage[]>(chatMessages || []);
+  const [errorFileIndexes, setErrorFileIndexes] = useState<number[]>([]);
 
   useEffect(() => {
     if (auth.user?.socket_id) {
@@ -66,7 +65,6 @@ const Show = ({row, chat, chatMessages}: Props) => {
     }
   }, [auth.user?.socket_id, setCurrentSocketId]);
 
-  const fileRef = useRef<HTMLInputElement>(null);
   const scrollToMessageEnd = () => {
     if (messagesBox.current) {
       messagesBox.current.scrollTop = messagesBox.current.scrollHeight;
@@ -111,24 +109,41 @@ const Show = ({row, chat, chatMessages}: Props) => {
   }, [chat])
   const sendMessage = () => {
     if (chat && (messageForm.data.content.trim() !== '' || Boolean(messageForm.data.files.length))) {
+      setErrorFileIndexes([]);
       messageForm.submit(SupportChatController.send(row.id as number), {
-        onSuccess: (response) => {
+        onSuccess: () => {
           messageForm.setData('content', '');
           messageForm.setData('files', []);
-        }
+          setErrorFileIndexes([]);
+        },
+        onError: (errors) => {
+          const fileIndexes: number[] = [];
+          const messages: string[] = [];
+
+          Object.entries(errors).forEach(([key, value]) => {
+            const text = Array.isArray(value) ? value[0] : String(value);
+            if (text) {
+              messages.push(text);
+            }
+            const match = key.match(/^files(?:\.|\[)(\d+)/);
+            if (match) {
+              fileIndexes.push(Number(match[1]));
+            }
+          });
+
+          setErrorFileIndexes([...new Set(fileIndexes)]);
+          if (messages.length > 0) {
+            messages.forEach((msg) => toast.error(msg));
+          } else {
+            toast.error(t('Validation Failed'));
+          }
+        },
       });
-    }
-  }
-  const onEnterPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
     }
   }
   return (
     <>
-      <Head title={t('tickets')}/>
-      <PageTitle breadcrumbs={[
+      <Head title={t('tickets')}/>      <PageTitle breadcrumbs={[
         {
           title: t('tickets'),
           path: SupportController.index().url,
@@ -351,52 +366,21 @@ const Show = ({row, chat, chatMessages}: Props) => {
                   </div>
                 )
                 : (
-                  <div className='card-footer pt-4'>
-                    <textarea
-                      className='form-control form-control-flush mb-3'
-                      rows={1}
-                      value={messageForm.data.content}
-                      data-kt-element='input'
-                      placeholder='Type a message'
-                      onChange={(e) => messageForm.setData(prevState => ({
-                        ...prevState,
-                        content: e.target.value
-                      }))}
-                      onKeyDown={onEnterPress}
-                    />
-                    <div className='d-flex justify-content-end gap-1'>
-                      <input type="file" className="d-none"
-                             ref={fileRef}
-                             accept=".jpg,.jpeg,.png,.gif,.pdf,image/jpeg,image/png,image/gif,application/pdf"
-                             onChange={(e) => {
-                               messageForm.setData('files', Array.from(e.currentTarget.files || []).map(i => i as File));
-                             }}
-                             multiple
-                      />
-                      <div className="btn-group" role="group">
-                        <a className="btn p-3 shadow-xs"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (fileRef.current?.disabled) return;
-                            fileRef.current?.click();
-                          }}
-                        >
-                          {messageForm.data.files.length ||
-                          <FontAwesomeIcon icon={faPaperclip} />}
-                        </a>
-                        {Boolean(messageForm.data.files.length) &&
-                          <a className="btn p-3 shadow-xs"
-                             onClick={(e) => {
-                               e.preventDefault();
-                               messageForm.setData('files', []);
-                             }}
-                          >X</a>
-                        }
-                      </div>
-                      <ActionButton isProcessing={messageForm.processing} type="button" onClick={sendMessage}
-                                    text={t('send')}/>
-                    </div>
-                  </div>
+                  <ChatComposer
+                    content={messageForm.data.content}
+                    files={messageForm.data.files}
+                    isProcessing={messageForm.processing}
+                    errorFileIndexes={errorFileIndexes}
+                    onContentChange={(content) => {
+                      setErrorFileIndexes([]);
+                      messageForm.setData('content', content);
+                    }}
+                    onFilesChange={(files) => {
+                      setErrorFileIndexes([]);
+                      messageForm.setData('files', files);
+                    }}
+                    onSend={sendMessage}
+                  />
                 ))}
             </KTCard>
           </div>

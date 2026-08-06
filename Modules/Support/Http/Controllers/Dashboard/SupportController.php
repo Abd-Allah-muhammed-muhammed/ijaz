@@ -50,7 +50,7 @@ class SupportController extends Controller implements HasMiddleware
             'operation',
             'user',
             'chat.lastMessage.sender',
-            'chat.lastMessage.lastAttachment',
+            'chat.lastMessage.media',
             'chat.user2',
         ]);
 

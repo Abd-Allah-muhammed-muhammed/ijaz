@@ -39,7 +39,7 @@ class SendGuarantorChatMessageAction
             $this->chatTypeRegistry->get(ChatTypeEnum::Guarantor),
         );
 
-        $message->loadMissing(['sender', 'attachments']);
+        $message->loadMissing(['sender', 'media']);
 
         return $message;
     }

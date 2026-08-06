@@ -792,34 +792,6 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 
 ---
 
-## Model: ConversationAttachment
-
-**Namespace:** `Modules\Chat\Models`  
-**Table:** `conversation_attachments`  
-**File:** `Modules/Chat/Models/ConversationAttachment.php`
-
-### Fields
-| Field | Type | Notes |
-|---|---|---|
-| `conversation_message_id` | `Unknown` | - |
-| `filename` | `Unknown` | - |
-| `path` | `Unknown` | - |
-| `store` | `Unknown` | - |
-| `type` | `Unknown` | - |
-
-### Relationships
-| Method | Type | Related Model |
-|---|---|---|
-| `message` | `BelongsTo` | `Modules\Chat\Models\ConversationMessage` |
-
-### Traits
-- None detected
-
-### Enums / class casts
-- None detected in casts
-
----
-
 ## Model: ConversationMessage
 
 **Namespace:** `Modules\Chat\Models`  
@@ -847,10 +819,8 @@ Field types come from `$casts` / `casts()` when present; fillable attributes wit
 | `chat` | `BelongsTo` | `Modules\Chat\Models\Conversation` |
 | `sender` | `MorphTo` | `Modules\Chat\Models\ConversationMessage` |
 | `receiver` | `MorphTo` | `Modules\Chat\Models\ConversationMessage` |
-| `attachments` | `HasMany` | `Modules\Chat\Models\ConversationAttachment` |
-| `lastAttachment` | `HasOne` | `Modules\Chat\Models\ConversationAttachment` |
 | `readBy` | `MorphTo` | `Modules\Chat\Models\ConversationMessage` |
-| `media` | `MorphMany` | `Spatie\MediaLibrary\MediaCollections\Models\Media` |
+| `media` | `MorphMany` | `Spatie\MediaLibrary\MediaCollections\Models\Media` (collection: `attachments`) |
 
 ### Traits
 - `Illuminate\Database\Eloquent\SoftDeletes`

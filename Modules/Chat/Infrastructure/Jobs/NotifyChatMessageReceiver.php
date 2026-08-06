@@ -35,7 +35,7 @@ class NotifyChatMessageReceiver implements ShouldDispatchAfterCommit, ShouldQueu
             ->notify(new NewMessageSentNotification(
                 $this->message->content,
                 $this->sender,
-                $this->message->attachments->isNotEmpty(),
+                $this->message->getMedia('attachments')->isNotEmpty(),
                 $this->message->conversation_id,
                 $this->route,
             ));

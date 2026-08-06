@@ -127,6 +127,48 @@ test('provider can update their profile', function (): void {
         ->and($deps['provider']->phone)->toBe(Phone::make('512345679')->toString());
 });
 
+test('provider can update profile when category skills are empty arrays', function (): void {
+    // Regression: UpdateProfileRequest used `required` on categories.*.skills,
+    // which rejects [] — the common shape when the skills UI is unused / FormData
+    // omits empty arrays. Errors landed on categories.0.skills (etc.) which the
+    // profile form never displayed → silent failure.
+    // Also exercises skill-clearing via query builder (Collection::delete was broken).
+    $deps = createApprovedProviderForProfileUpdate();
+
+    $this->actingAs($deps['provider'], 'provider')
+        ->from(action([AuthController::class, 'profile']))
+        ->post(action([AuthController::class, 'updateProfile']), providerProfileUpdatePayload($deps, [
+            'categories' => [
+                ['id' => $deps['category']->id, 'skills' => []],
+            ],
+        ]))
+        ->assertRedirect(route('provider.profile'))
+        ->assertSessionHas('success', __('data updated successfully'))
+        ->assertSessionDoesntHaveErrors();
+
+    $deps['provider']->refresh();
+
+    expect($deps['provider']->name)->toBe('Updated Provider Co')
+        ->and($deps['provider']->categories()->pluck('categories.id')->all())->toContain($deps['category']->id)
+        ->and($deps['provider']->skills()->count())->toBe(0);
+});
+
+test('provider can update profile when category skills key is omitted', function (): void {
+    // FormData conversion drops empty arrays entirely, so the skills key may be absent.
+    $deps = createApprovedProviderForProfileUpdate();
+
+    $this->actingAs($deps['provider'], 'provider')
+        ->from(action([AuthController::class, 'profile']))
+        ->post(action([AuthController::class, 'updateProfile']), providerProfileUpdatePayload($deps, [
+            'categories' => [
+                ['id' => $deps['category']->id],
+            ],
+        ]))
+        ->assertRedirect(route('provider.profile'))
+        ->assertSessionHas('success', __('data updated successfully'))
+        ->assertSessionDoesntHaveErrors();
+});
+
 test('provider profile update replaces logo', function (): void {
     $deps = createApprovedProviderForProfileUpdate();
     $oldLogo = $deps['provider']->logo;

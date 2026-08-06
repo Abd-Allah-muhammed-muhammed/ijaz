@@ -36,7 +36,7 @@ function frozenConversationOpenKeys(): array
 
 /**
  * Exact top-level `data` keys for ConversationMessageResource send responses
- * after loadMissing(['sender', 'attachments']).
+ * after loadMissing(['sender', 'media']).
  */
 function frozenMessageSendKeys(): array
 {

@@ -60,7 +60,7 @@ class OrderChatController extends Controller
 
         return $this->successResponse(
             ConversationResource::make(
-                $conversation->load(['lastMessage.sender', 'lastMessage.lastAttachment', 'user2', 'user1'])
+                $conversation->load(['lastMessage.sender', 'lastMessage.media', 'user2', 'user1'])
             )
         );
     }
@@ -92,7 +92,7 @@ class OrderChatController extends Controller
         );
 
         return $this->successResponse(
-            ConversationMessageResource::make($message->loadMissing(['sender', 'attachments']))
+            ConversationMessageResource::make($message->loadMissing(['sender', 'media']))
         );
     }
 }

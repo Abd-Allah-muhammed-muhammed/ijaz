@@ -4,7 +4,7 @@ import {ScrollTop} from '@/apps/provider/layouts/scroll-top'
 import {FooterWrapper} from '@/apps/provider/layouts/footer'
 import {Sidebar} from '@/apps/provider/layouts/sidebar'
 import {PageDataProvider} from '@/apps/provider/layouts/core'
-import {ReactNode, useEffect, useState} from "react";
+import {ReactNode, useEffect, useRef, useState} from "react";
 import {Head, router, usePage} from "@inertiajs/react";
 import {KTIcon, reInitMenu} from "@/vendor/metronic/helpers";
 import ToastEffect from "@/shared/components/toaster/toast-effect";
@@ -34,6 +34,15 @@ export default function ProviderLayout({children, head}: Props) {
   const {setOrders} = useRecommendedOrdersContext();
   const {updateConversationForNewMessages, setCurrentSocketId, currentConversation} = useConversations();
   const {t} = useTranslation();
+  // Echo listeners mount once — keep URL / open conversation current via refs.
+  const urlRef = useRef(url);
+  const localeRef = useRef(locale);
+  const currentConversationRef = useRef(currentConversation);
+  const updateConversationRef = useRef(updateConversationForNewMessages);
+  urlRef.current = url;
+  localeRef.current = locale;
+  currentConversationRef.current = currentConversation;
+  updateConversationRef.current = updateConversationForNewMessages;
 
   useEffect(() => {
     const newCategories = new Set(userCategories.map((category) => category.id as number))
@@ -78,18 +87,28 @@ export default function ProviderLayout({children, head}: Props) {
         })
       })
       .listen(`.${ChatEventEnum.Chat_Updated}`, (chat: Conversation) => {
-        const cleanUrl = url.split('?')[0];
-        if (cleanUrl === `/${locale}${ProviderChatIndexController.url()}`) {
-          if (chat.last_message?.sender?.socket_id === user.socket_id) {
-            chat.unread_count = 0;
-          }
-          updateConversationForNewMessages(chat);
-          return
+        const cleanUrl = urlRef.current.split('?')[0];
+        const chatIndexPath = `/${localeRef.current}${ProviderChatIndexController.url()}`;
+        const openConversation = currentConversationRef.current;
+
+        // Always refresh the sidebar list when ChatUpdated fires — not only on
+        // the chat index URL (ref avoids stale closure after navigation).
+        if (chat.last_message?.sender?.socket_id === user.socket_id) {
+          chat.unread_count = 0;
         }
-        console.log('currentConversation = ', currentConversation)
-        if (chat.last_message?.sender?.socket_id !== user.socket_id && chat.id !== currentConversation?.id) {
+        updateConversationRef.current(chat);
+
+        if (cleanUrl === chatIndexPath) {
+          return;
+        }
+
+        if (chat.last_message?.sender?.socket_id !== user.socket_id && chat.id !== openConversation?.id) {
+          const attachmentCount = chat.last_message?.attachments_count ?? 0;
+          const description = (chat.last_message?.content ?? '').trim()
+            || (attachmentCount > 0 ? t('attachment') : '');
+
           toast.message(chat.last_message?.sender?.name, {
-            description: chat.last_message?.content,
+            description,
             id: chat.id,
             action: <Button
               variant='outline-secondary'

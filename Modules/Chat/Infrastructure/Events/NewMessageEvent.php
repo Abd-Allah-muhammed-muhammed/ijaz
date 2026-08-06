@@ -10,6 +10,7 @@ use Illuminate\Contracts\Events\ShouldHandleEventsAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Modules\Chat\Enums\ChatEventEnum;
+use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Models\ConversationMessage;
 
 class NewMessageEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterCommit
@@ -38,20 +39,17 @@ class NewMessageEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterComm
         return ChatEventEnum::New_Message->value;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function broadcastWith(): array
     {
-        return [
-            'id' => $this->message->id,
-            'content' => $this->message->content,
-            'created_at' => $this->message->created_at->shortAbsoluteDiffForHumans(),
-            'sender' => [
-                'id' => $this->message->sender->id,
-                'name' => $this->message->sender->name,
-                'image' => $this->message->sender->getImageUrl(),
-                'socket_id' => $this->message->sender->getAuthIdentifierForBroadcasting(),
-            ],
-            'attachments' => $this->message->attachments->map->toArray(),
-            'read_at' => $this->message->read_at?->shortAbsoluteDiffForHumans(),
-        ];
+        $this->message->loadMissing(['sender', 'media']);
+
+        // Must match ConversationMessageResource HTTP payload exactly (plain arrays).
+        return json_decode(
+            json_encode(ConversationMessageResource::make($this->message)->resolve()),
+            true,
+        );
     }
 }

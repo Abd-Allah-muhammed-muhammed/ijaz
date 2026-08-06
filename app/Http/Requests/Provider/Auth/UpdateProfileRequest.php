@@ -56,8 +56,10 @@ class UpdateProfileRequest extends FormRequest
             'password' => [Rule::when($id, 'nullable', 'required'), 'string', 'max:20', 'confirmed:password_confirmation'],
             'categories' => ['required', 'array'],
             'categories.*.id' => ['required', 'exists:categories,id'],
-            'categories.*.skills' => ['required', 'array'],
-            'categories.*.skills.*' => ['required', 'exists:skills,id'],
+            // Match Dashboard ProviderRequest / register — `required` rejects empty
+            // arrays, which are valid (skills UI optional; FormData also omits []).
+            'categories.*.skills' => ['nullable', 'array'],
+            'categories.*.skills.*' => ['nullable', 'exists:skills,id'],
         ];
         $type = $this->get('provider_type_id') ? ProviderType::find($this->get('provider_type_id')) : null;
         if ($type) {

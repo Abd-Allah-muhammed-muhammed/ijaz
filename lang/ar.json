@@ -893,5 +893,9 @@
     "payment_failed_please_try_again": "فشل الدفع، يرجى المحاولة مرة أخرى",
     "this category has subcategories": "لا يمكن حذف هذا التصنيف لأنه يحتوي على تصنيفات فرعية. يرجى حذفها أو إعادة تعيينها أولاً.",
     "this specialization has subspecializations": "لا يمكن حذف هذا التخصص لأنه يحتوي على تخصصات فرعية. يرجى حذفها أو إعادة تعيينها أولاً.",
-    "messages.invalid_phone": "رقم الجوال غير صالح."
+    "messages.invalid_phone": "رقم الجوال غير صالح.",
+    "Attachment unavailable": "هذا المرفق لم يعد متاحًا",
+    "Validation Failed": "فشل التحقق",
+    "One of your files exceeds the 5MB limit.": "أحد ملفاتك يتجاوز حد 5 ميغابايت.",
+    "This attachment is no longer available": "هذا المرفق لم يعد متاحًا"
 }

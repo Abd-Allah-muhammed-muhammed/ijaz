@@ -1,35 +1,128 @@
-import {ConversationAttachment} from "@/shared/types/models";
-import React from "react";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFile } from '@fortawesome/free-solid-svg-icons';
+import { ConversationAttachment } from '@/shared/types/models';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { KTIcon } from '@/vendor/metronic/helpers';
+import { url as appUrl } from '@/shared/helpers/general';
+import {
+  attachmentDisplayName,
+  isImageAttachment,
+  isPdfAttachment,
+} from '@/shared/components/chat/components/chat-attachment-utils';
 
-type  Props = {
-  attachments: ConversationAttachment[]
-}
+type Props = {
+  attachments: ConversationAttachment[];
+};
 
-const Attachments = ({attachments}: Props) => {
+const isUnavailable = (attachment: ConversationAttachment): boolean =>
+  attachment.available === false;
+
+/**
+ * Message-bubble attachment cards — mirrors Provider Order Show media rows
+ * (pdf.svg / doc.svg + filename + size + download).
+ */
+const Attachments = ({ attachments }: Props) => {
+  const { t } = useTranslation();
+
   return (
-    <div className="d-flex w-100 flex-wrap">
-      {attachments.map((attachment) => (
-        <div className="col-6 p-1 flex-grow-1">
-          <div className="bg-white shadow-sm w-100 h-100 p-2 bg-opacity-25">
-            {attachment.type == "image" ?
-              <a href={attachment.url} download>
-                <img src={attachment.url} alt="Attachment" className="w-100"/>
-              </a>
-               :
-              <div className="d-flex justify-content-center align-items-center h-100">
-                <a href={attachment.url} download>
-                  <FontAwesomeIcon icon={faFile} className="fs-4x" />
-                </a>
+    <div className="d-flex flex-column w-100 min-w-0">
+      {attachments.map((attachment, index) => {
+        const name = attachmentDisplayName(attachment);
+        const isLast = index === attachments.length - 1;
+        const spacing = isLast ? 'mb-2' : 'mb-3';
+
+        if (isUnavailable(attachment)) {
+          return (
+            <div
+              key={attachment.id}
+              className={`d-flex align-items-center min-w-0 rounded px-2 py-2 border border-dashed border-gray-400 ${spacing}`}
+              style={{ backgroundColor: 'rgba(255, 255, 255, 0.35)' }}
+              title={t('This attachment is no longer available')}
+            >
+              <div className="symbol symbol-30px me-3 flex-shrink-0">
+                <span className="symbol-label bg-light-danger">
+                  <KTIcon iconName="cross-circle" className="fs-2 text-danger" />
+                </span>
               </div>
-            }
+              <div className="fw-semibold flex-grow-1 min-w-0 overflow-hidden">
+                <div className="fs-7 fw-bold text-gray-700 text-truncate">
+                  {attachment.label?.trim()
+                    ? attachment.label
+                    : t('This attachment is no longer available')}
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        if (isImageAttachment(attachment)) {
+          return (
+            <a
+              key={attachment.id}
+              href={attachment.url}
+              target="_blank"
+              rel="noreferrer"
+              className={`d-block min-w-0 overflow-hidden rounded ${spacing}`}
+            >
+              <img
+                src={attachment.url}
+                alt={name}
+                className="w-100"
+                style={{
+                  maxHeight: 220,
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+            </a>
+          );
+        }
+
+        return (
+          <div
+            key={attachment.id}
+            className={`d-flex align-items-center min-w-0 rounded px-2 py-2 ${spacing}`}
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.45)' }}
+          >
+            <div className="symbol symbol-30px me-3 flex-shrink-0">
+              <img
+                alt=""
+                src={appUrl(
+                  isPdfAttachment(attachment)
+                    ? '/media/svg/files/pdf.svg'
+                    : '/media/svg/files/doc.svg',
+                )}
+              />
+            </div>
+            <div className="fw-semibold flex-grow-1 min-w-0 overflow-hidden">
+              <a
+                className="fs-7 fw-bold text-gray-900 text-hover-primary text-truncate d-block"
+                href={attachment.url}
+                target="_blank"
+                rel="noreferrer"
+                title={name}
+              >
+                {name}
+              </a>
+              {attachment.size ? (
+                <div className="text-gray-500 fs-8 text-truncate">
+                  {attachment.size}
+                </div>
+              ) : null}
+            </div>
+            <a
+              href={attachment.url}
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-clean btn-sm btn-icon btn-icon-primary btn-active-light-primary ms-2 flex-shrink-0"
+              aria-label="download"
+            >
+              <KTIcon iconName="arrow-down" className="fs-1" />
+            </a>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
-}
+};
 
-
-export default Attachments
+export default Attachments;

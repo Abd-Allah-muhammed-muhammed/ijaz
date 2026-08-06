@@ -28,6 +28,8 @@ class ChatServiceProvider extends ModuleServiceProvider
         RouteServiceProvider::class,
     ];
 
+    protected array $commands = [];
+
     public function register(): void
     {
         parent::register();
