@@ -12,11 +12,13 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use Inertia\ExceptionResponse;
+use Inertia\Support\Header as InertiaHeader;
 use Laravel\Sanctum\Http\Middleware\CheckAbilities;
 use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
@@ -25,6 +27,7 @@ use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
 use Mcamara\LaravelLocalization\Middleware\LocaleCookieRedirect;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
+use MMAE\ApiResponse\Configurations\Response as ApiResponseConfig;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
@@ -140,6 +143,37 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*') || $request->expectsJson()) {
                 return $e->render();
             }
+        });
+
+        /*
+         * PHP post_max_size / CONTENT_LENGTH rejection (ValidatePostSize) —
+         * match the MMAE validation envelope so upload UIs (chat, etc.) show
+         * the same toast + field errors as Laravel max: validation.
+         */
+        $exceptions->renderable(function (PostTooLargeException $e, Request $request) {
+            $message = __('One of your files exceeds the upload limit.');
+
+            if ($request->header(InertiaHeader::INERTIA) && ! $request->expectsJson()) {
+                return redirect()
+                    ->back()
+                    ->withErrors(['files' => $message]);
+            }
+
+            if ($request->is('api/*') || $request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'data' => [],
+                    'errors' => [
+                        'files' => [$message],
+                    ],
+                    'message' => ApiResponseConfig::$VALIDATION_FAILED_MESSAGE,
+                    'token' => '',
+                ], ApiResponseConfig::$VALIDATION_FAILED_STATUS);
+            }
+
+            return redirect()
+                ->back()
+                ->withErrors(['files' => $message]);
         });
 
         /*

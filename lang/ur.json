@@ -806,5 +806,6 @@
     "Attachment unavailable": "یہ منسلکہ اب دستیاب نہیں",
     "Validation Failed": "تصدیق ناکام",
     "One of your files exceeds the 5MB limit.": "آپ کی کسی فائل کا سائز 5MB کی حد سے زیادہ ہے۔",
-    "This attachment is no longer available": "یہ منسلکہ اب دستیاب نہیں"
+    "This attachment is no longer available": "یہ منسلکہ اب دستیاب نہیں",
+    "One of your files exceeds the upload limit.": "آپ کی کسی فائل کا سائز اپلوڈ کی حد سے زیادہ ہے۔"
 }
