@@ -2,6 +2,7 @@ import { Conversation as Chat } from "@/shared/types/models";
 import { useConversations } from "@/store/use-chat";
 import { KTIcon } from "@/vendor/metronic/helpers";
 import { useTranslation } from "react-i18next";
+import clsx from "clsx";
 
 type Props = {
   chat: Chat,
@@ -13,6 +14,7 @@ const Conversation = ({ chat, currentSocketId }: Props) => {
   const { t } = useTranslation();
   const displayName = user?.name ?? t('conversation');
   const firstName = displayName.replace(/[_\-\\/]/i, ' ').split(' ')[0] || displayName;
+  const isActive = currentConversation?.id === chat.id;
 
   const lastMessage = chat.last_message;
   const previewBody = (() => {
@@ -35,10 +37,19 @@ const Conversation = ({ chat, currentSocketId }: Props) => {
   })();
 
   return (
-    <button className='d-flex py-4 w-100 bg-transparent border-0 min-w-0 overflow-hidden' onClick={() => {
-      setPrevConversation(currentConversation);
-      setCurrentConversation(chat)
-    }}>
+    <button
+      type="button"
+      className={clsx(
+        // Metronic selected-list pattern: bg-light-primary (same family as menu-link.active / notices).
+        'd-flex py-4 w-100 border-0 min-w-0 overflow-hidden rounded px-3 text-start',
+        isActive ? 'bg-light-primary' : 'bg-transparent bg-hover-light',
+      )}
+      aria-current={isActive ? 'true' : undefined}
+      onClick={() => {
+        setPrevConversation(currentConversation);
+        setCurrentConversation(chat)
+      }}
+    >
       <div className='d-flex align-items-center flex-grow-1 min-w-0 overflow-hidden'>
         <div className='symbol symbol-45px symbol-circle flex-shrink-0'>
           {user?.image ? (
@@ -55,9 +66,13 @@ const Conversation = ({ chat, currentSocketId }: Props) => {
         <div className='ms-5 flex-grow-1 text-start min-w-0 overflow-hidden'>
           <a
             href='#'
-            className='fs-5 fw-bolder text-gray-900 text-hover-primary mb-2 text-start text-truncate d-block'
+            className={clsx(
+              'fs-5 fw-bolder mb-2 text-start text-truncate d-block',
+              isActive ? 'text-primary' : 'text-gray-900 text-hover-primary',
+            )}
             style={{ maxWidth: '100%' }}
             title={displayName}
+            onClick={(e) => e.preventDefault()}
           >
             {displayName}
           </a>
