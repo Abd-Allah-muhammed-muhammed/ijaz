@@ -443,6 +443,8 @@ export interface ConversationMessage extends Model {
   read_at: Date;
   attachments?: ConversationAttachment[];
   has_attachments: boolean;
+  /** Present on ChatUpdatedEvent last_message payloads. */
+  attachments_count?: number;
 }
 
 export interface ConversationAttachment {
@@ -458,6 +460,12 @@ export interface ConversationAttachment {
   extension?: string;
   /** Human-readable size from MediaResource (e.g. "120 KB"). */
   size?: string;
+  /**
+   * False when the backing file is missing/unreadable on disk
+   * (legacy rows that failed MediaLibrary migration, or deleted media files).
+   * Omitted/true means the file can be opened.
+   */
+  available?: boolean;
   /** @deprecated Prefer file_name — legacy custom-table field. */
   filename?: string;
 }

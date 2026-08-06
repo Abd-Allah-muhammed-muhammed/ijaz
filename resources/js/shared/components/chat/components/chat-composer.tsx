@@ -20,6 +20,8 @@ export type ChatComposerProps = {
   isProcessing?: boolean;
   placeholder?: string;
   disabled?: boolean;
+  /** Indexes of files that failed validation (e.g. too large) — red border. */
+  errorFileIndexes?: number[];
 };
 
 const ACCEPT =
@@ -37,9 +39,14 @@ const ChatComposer = ({
   isProcessing = false,
   placeholder,
   disabled = false,
+  errorFileIndexes = [],
 }: ChatComposerProps) => {
   const { t } = useTranslation();
   const fileRef = useRef<HTMLInputElement>(null);
+  const errorIndexSet = useMemo(
+    () => new Set(errorFileIndexes),
+    [errorFileIndexes],
+  );
 
   const previewUrls = useMemo(() => {
     return files.map((file) =>
@@ -82,14 +89,18 @@ const ChatComposer = ({
           {files.map((file, index) => {
             const previewUrl = previewUrls[index];
             const isImage = Boolean(previewUrl);
+            const hasError = errorIndexSet.has(index);
 
             return (
               <div
                 key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
-                className="position-relative border border-gray-300 border-dashed rounded p-2 bg-light overflow-hidden flex-shrink-0"
+                className={`position-relative border border-dashed rounded p-2 bg-light overflow-hidden flex-shrink-0 ${
+                  hasError ? 'border-danger' : 'border-gray-300'
+                }`}
                 style={{
                   width: isImage ? PREVIEW_IMAGE_SIZE + 16 : PREVIEW_FILE_WIDTH,
                   maxWidth: '100%',
+                  boxShadow: hasError ? '0 0 0 1px var(--bs-danger)' : undefined,
                 }}
               >
                 <button

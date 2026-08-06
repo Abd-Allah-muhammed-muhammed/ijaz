@@ -44,7 +44,7 @@ class TicketSupportChatService
             $data->files ?? [],
         );
 
-        return $conversation->lastMessage->loadMissing(['sender', 'media']);
+        return $conversation->lastMessage->loadMissing(['sender', 'media', 'attachments']);
     }
 
     public function sendAsUser(
@@ -56,7 +56,7 @@ class TicketSupportChatService
             $data->files ?? [],
         );
 
-        return $conversation->lastMessage->loadMissing(['sender', 'media']);
+        return $conversation->lastMessage->loadMissing(['sender', 'media', 'attachments']);
     }
 
     public function listMessages(

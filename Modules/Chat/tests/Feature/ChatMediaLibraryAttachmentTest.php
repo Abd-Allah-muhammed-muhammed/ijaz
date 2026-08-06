@@ -11,6 +11,7 @@ use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
 use Modules\Chat\Infrastructure\Events\NewMessageEvent;
 use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationAttachment;
 use Modules\Chat\Models\ConversationMessage;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -39,12 +40,13 @@ test('sending a chat message with an image attachment stores it via MediaLibrary
     $attachment = $response->json('data.attachments.0');
 
     expect($attachment)
-        ->toHaveKeys(['id', 'file_name', 'mime_type', 'type', 'url', 'size'])
+        ->toHaveKeys(['id', 'file_name', 'mime_type', 'type', 'url', 'size', 'available'])
         ->and($attachment['file_name'])->toBe('chat-photo.jpg')
         ->and($attachment['type'])->toBe('image')
         ->and($attachment['mime_type'])->toStartWith('image/')
         ->and($attachment['url'])->not->toBeEmpty()
-        ->and($attachment['size'])->not->toBeEmpty();
+        ->and($attachment['size'])->not->toBeEmpty()
+        ->and($attachment['available'])->toBeTrue();
 
     $message = ConversationMessage::query()
         ->where('conversation_id', $conversation->id)
@@ -113,7 +115,7 @@ test('a broadcast NewMessageEvent payload includes MediaLibrary-backed attachmen
     $httpPayload = $response->json('data');
 
     $message = ConversationMessage::query()->findOrFail($httpPayload['id']);
-    $message->loadMissing(['sender', 'media']);
+    $message->loadMissing(['sender', 'media', 'attachments']);
 
     $broadcastPayload = (new NewMessageEvent($message))->broadcastWith();
     $resourcePayload = json_decode(
@@ -123,8 +125,9 @@ test('a broadcast NewMessageEvent payload includes MediaLibrary-backed attachmen
 
     expect($broadcastPayload)->toBe($resourcePayload)
         ->and($broadcastPayload['attachments'])->toHaveCount(1)
-        ->and($broadcastPayload['attachments'][0])->toHaveKeys(['id', 'file_name', 'mime_type', 'type', 'url', 'size'])
+        ->and($broadcastPayload['attachments'][0])->toHaveKeys(['id', 'file_name', 'mime_type', 'type', 'url', 'size', 'available'])
         ->and($broadcastPayload['attachments'][0]['file_name'])->toBe('broadcast.jpg')
+        ->and($broadcastPayload['attachments'][0]['available'])->toBeTrue()
         ->and($broadcastPayload['attachments'][0]['id'])->toBe($httpPayload['attachments'][0]['id']);
 });
 
@@ -167,4 +170,94 @@ test('existing chat media access control (MediaAccessService::resolveChat) still
     $this->actingAs($outsider, 'provider');
     expect(fn () => $service->authorizeAndResolvePath($media, 'chat'))
         ->toThrow(HttpException::class);
+});
+
+test('a message with a missing/deleted attachment file renders a graceful unavailable fallback instead of blank content', function () {
+    Storage::fake('public');
+
+    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
+    $conversation = createOrderConversation($user, $provider, $order);
+
+    // Legacy path: conversation_attachments row whose file is gone from disk
+    // (same situation as pre-MediaLibrary rows that failed migration).
+    $legacyMessage = ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_type' => Provider::class,
+        'sender_id' => $provider->getKey(),
+        'receiver_type' => $user::class,
+        'receiver_id' => $user->getKey(),
+        'content' => null,
+        'has_attachments' => true,
+    ]);
+
+    ConversationAttachment::query()->create([
+        'conversation_message_id' => $legacyMessage->id,
+        'type' => 'pdf',
+        'filename' => 'missing-legacy.pdf',
+        'path' => 'chat/does-not-exist.pdf',
+        'store' => 'public',
+    ]);
+
+    $legacyPayload = ConversationMessageResource::make(
+        $legacyMessage->load(['media', 'attachments', 'sender'])
+    )->resolve();
+
+    expect($legacyPayload['attachments'])->toHaveCount(1)
+        ->and($legacyPayload['attachments'][0]['available'])->toBeFalse()
+        ->and($legacyPayload['attachments'][0]['file_name'])->toBe('missing-legacy.pdf')
+        ->and($legacyPayload['attachments'][0]['url'])->toBe('');
+
+    // MediaLibrary path: media row exists but the backing file was deleted.
+    $mediaMessage = ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_type' => Provider::class,
+        'sender_id' => $provider->getKey(),
+        'receiver_type' => $user::class,
+        'receiver_id' => $user->getKey(),
+        'content' => null,
+        'has_attachments' => true,
+    ]);
+
+    $media = $mediaMessage
+        ->addMedia(UploadedFile::fake()->create('gone.pdf', 20, 'application/pdf'))
+        ->toMediaCollection('attachments', 'public');
+
+    Storage::disk('public')->delete($media->getPathRelativeToRoot());
+
+    $mediaPayload = ConversationMessageResource::make(
+        $mediaMessage->fresh()->load(['media', 'attachments', 'sender'])
+    )->resolve();
+
+    expect($mediaPayload['attachments'])->toHaveCount(1)
+        ->and($mediaPayload['attachments'][0]['available'])->toBeFalse()
+        ->and($mediaPayload['attachments'][0]['file_name'])->toBe('gone.pdf')
+        ->and($mediaPayload['attachments'][0]['url'])->toBe('');
+
+    // Show endpoint must surface the unavailable card (not an empty attachments array).
+    $this->actingAs($provider, 'provider')
+        ->getJson(action([OrderChatController::class, 'show'], ['conversation' => $conversation->id]))
+        ->assertSuccessful()
+        ->assertJsonFragment(['available' => false, 'file_name' => 'missing-legacy.pdf'])
+        ->assertJsonFragment(['available' => false, 'file_name' => 'gone.pdf']);
+});
+
+test('provider chat send returns a proper validation error for an oversized file attachment', function () {
+    Bus::fake();
+    Event::fake([NewMessageEvent::class, ChatUpdatedEvent::class]);
+    Storage::fake('public');
+
+    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
+    $conversation = createOrderConversation($user, $provider, $order);
+
+    // max:5120 (kilobytes) — 6000 KB must fail validation.
+    $oversized = UploadedFile::fake()->create('too-big.pdf', 6000, 'application/pdf');
+
+    $this->actingAs($provider, 'provider')
+        ->post(
+            action([OrderChatController::class, 'send'], ['conversation' => $conversation->id]),
+            ['files' => [$oversized]],
+            ['Accept' => 'application/json'],
+        )
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['files.0']);
 });

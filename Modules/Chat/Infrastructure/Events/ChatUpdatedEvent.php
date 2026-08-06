@@ -66,8 +66,14 @@ class ChatUpdatedEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterCom
 
     public function broadcastWith(): array
     {
+        $this->chat->loadMissing(['lastMessage.sender', 'lastMessage.media', 'lastMessage.attachments']);
+
         $user1 = $this->chat->user1()->is($this->sender) ? $this->sender : $this->receiver;
         $user2 = $this->chat->user2()->is($this->sender) ? $this->sender : $this->receiver;
+        $lastMessage = $this->chat->lastMessage;
+        $attachmentsCount = $lastMessage
+            ? ($lastMessage->getMedia('attachments')->count() ?: $lastMessage->attachments()->count())
+            : 0;
 
         return [
             'id' => $this->chat->id,
@@ -91,15 +97,16 @@ class ChatUpdatedEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterCom
                 ->whereMorphedTo('receiver', $this->sender)
                 ->count(),
             'last_message' => [
-                'content' => $this->chat?->lastMessage?->content,
-                'attachments_count' => $this->chat?->lastMessage?->getMedia('attachments')->count() ?? 0,
+                'content' => $lastMessage?->content,
+                'attachments_count' => $attachmentsCount,
+                'has_attachments' => (bool) ($lastMessage?->has_attachments),
                 'sender' => [
-                    'id' => $this->chat?->lastMessage?->sender?->id,
-                    'name' => $this->chat?->lastMessage?->sender?->name,
-                    'image' => $this->chat?->lastMessage?->sender?->getImageUrl(),
-                    'socket_id' => $this->chat?->lastMessage?->sender?->getAuthIdentifierForBroadcasting(),
+                    'id' => $lastMessage?->sender?->id,
+                    'name' => $lastMessage?->sender?->name,
+                    'image' => $lastMessage?->sender?->getImageUrl(),
+                    'socket_id' => $lastMessage?->sender?->getAuthIdentifierForBroadcasting(),
                 ],
-                'read_at' => $this->chat?->lastMessage?->read_at,
+                'read_at' => $lastMessage?->read_at,
             ],
             'last_message_at' => $this->chat->last_message_at?->shortAbsoluteDiffForHumans(),
             'last_massage_at' => $this->chat->last_message_at?->shortAbsoluteDiffForHumans(), // @deprecated typo — use last_message_at

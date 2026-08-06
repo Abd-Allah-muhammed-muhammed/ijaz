@@ -22,6 +22,7 @@ import usePermissions from '@/shared/hooks/use-permissions';
 import {useConversations} from "@/store/use-chat";
 import {ChatEventEnum} from "@/Enums/Chat";
 import {TicketSupportStatusEnum} from "@/Enums/SupportTickets";
+import {toast} from "sonner";
 
 type Props = {
   row: TicketSupport<Order>,
@@ -56,6 +57,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
   const {auth} = usePage<{ auth: { user?: { socket_id?: string } } }>().props;
   const messagesBox = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<ConversationMessage[]>(chatMessages || []);
+  const [errorFileIndexes, setErrorFileIndexes] = useState<number[]>([]);
 
   useEffect(() => {
     if (auth.user?.socket_id) {
@@ -107,11 +109,35 @@ const Show = ({row, chat, chatMessages}: Props) => {
   }, [chat])
   const sendMessage = () => {
     if (chat && (messageForm.data.content.trim() !== '' || Boolean(messageForm.data.files.length))) {
+      setErrorFileIndexes([]);
       messageForm.submit(SupportChatController.send(row.id as number), {
         onSuccess: () => {
           messageForm.setData('content', '');
           messageForm.setData('files', []);
-        }
+          setErrorFileIndexes([]);
+        },
+        onError: (errors) => {
+          const fileIndexes: number[] = [];
+          const messages: string[] = [];
+
+          Object.entries(errors).forEach(([key, value]) => {
+            const text = Array.isArray(value) ? value[0] : String(value);
+            if (text) {
+              messages.push(text);
+            }
+            const match = key.match(/^files(?:\.|\[)(\d+)/);
+            if (match) {
+              fileIndexes.push(Number(match[1]));
+            }
+          });
+
+          setErrorFileIndexes([...new Set(fileIndexes)]);
+          if (messages.length > 0) {
+            messages.forEach((msg) => toast.error(msg));
+          } else {
+            toast.error(t('Validation Failed'));
+          }
+        },
       });
     }
   }
@@ -344,8 +370,15 @@ const Show = ({row, chat, chatMessages}: Props) => {
                     content={messageForm.data.content}
                     files={messageForm.data.files}
                     isProcessing={messageForm.processing}
-                    onContentChange={(content) => messageForm.setData('content', content)}
-                    onFilesChange={(files) => messageForm.setData('files', files)}
+                    errorFileIndexes={errorFileIndexes}
+                    onContentChange={(content) => {
+                      setErrorFileIndexes([]);
+                      messageForm.setData('content', content);
+                    }}
+                    onFilesChange={(files) => {
+                      setErrorFileIndexes([]);
+                      messageForm.setData('files', files);
+                    }}
                     onSend={sendMessage}
                   />
                 ))}

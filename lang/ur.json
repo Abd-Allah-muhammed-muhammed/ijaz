@@ -802,5 +802,7 @@
     "payment_failed_please_try_again": "ادائیگی ناکام، دوبارہ کوشش کریں",
     "this category has subcategories": "اس زمرے کو حذف نہیں کیا جا سکتا کیونکہ اس کے ذیلی زمرے موجود ہیں۔ براہ کرم پہلے انہیں حذف کریں یا دوبارہ تفویض کریں۔",
     "this specialization has subspecializations": "اس تخصص کو حذف نہیں کیا جا سکتا کیونکہ اس کے ذیلی تخصص موجود ہیں۔ براہ کرم پہلے انہیں حذف کریں یا دوبارہ تفویض کریں۔",
-    "messages.invalid_phone": "فون نمبر درست نہیں ہے۔"
+    "messages.invalid_phone": "فون نمبر درست نہیں ہے۔",
+    "Attachment unavailable": "منسلکہ دستیاب نہیں",
+    "Validation Failed": "تصدیق ناکام"
 }
