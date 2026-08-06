@@ -18,9 +18,10 @@ type Props = {
  */
 const Attachments = ({ attachments }: Props) => {
   return (
-    <div className="d-flex flex-column w-100 gap-2 mb-2 min-w-0">
-      {attachments.map((attachment) => {
+    <div className="d-flex flex-column w-100 min-w-0">
+      {attachments.map((attachment, index) => {
         const name = attachmentDisplayName(attachment);
+        const isLast = index === attachments.length - 1;
 
         if (isImageAttachment(attachment)) {
           return (
@@ -29,14 +30,14 @@ const Attachments = ({ attachments }: Props) => {
               href={attachment.url}
               target="_blank"
               rel="noreferrer"
-              className="d-block min-w-0"
+              className={`d-block min-w-0 overflow-hidden rounded ${isLast ? 'mb-2' : 'mb-3'}`}
             >
               <img
                 src={attachment.url}
                 alt={name}
-                className="rounded w-100"
+                className="w-100"
                 style={{
-                  maxHeight: 240,
+                  maxHeight: 220,
                   objectFit: 'cover',
                   display: 'block',
                 }}
@@ -48,7 +49,8 @@ const Attachments = ({ attachments }: Props) => {
         return (
           <div
             key={attachment.id}
-            className="d-flex align-items-center min-w-0 bg-white bg-opacity-25 rounded p-2"
+            className={`d-flex align-items-center min-w-0 rounded px-2 py-2 ${isLast ? 'mb-2' : 'mb-3'}`}
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.45)' }}
           >
             <div className="symbol symbol-30px me-3 flex-shrink-0">
               <img
@@ -60,17 +62,20 @@ const Attachments = ({ attachments }: Props) => {
                 )}
               />
             </div>
-            <div className="fw-semibold flex-grow-1 min-w-0">
+            <div className="fw-semibold flex-grow-1 min-w-0 overflow-hidden">
               <a
-                className="fs-6 fw-bold text-gray-900 text-hover-primary text-break d-block"
+                className="fs-7 fw-bold text-gray-900 text-hover-primary text-truncate d-block"
                 href={attachment.url}
                 target="_blank"
                 rel="noreferrer"
+                title={name}
               >
                 {name}
               </a>
               {attachment.size ? (
-                <div className="text-gray-500 fs-8">{attachment.size}</div>
+                <div className="text-gray-500 fs-8 text-truncate">
+                  {attachment.size}
+                </div>
               ) : null}
             </div>
             <a

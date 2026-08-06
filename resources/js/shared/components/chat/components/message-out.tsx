@@ -8,6 +8,9 @@ type Props = {
   conversationMessage: ConversationMessage;
 };
 
+const hasCaption = (content?: string | null): boolean =>
+  Boolean(content && String(content).trim() !== '');
+
 const MessageOut = ({ conversationMessage }: Props) => {
   const { t } = useTranslation();
   return (
@@ -37,7 +40,7 @@ const MessageOut = ({ conversationMessage }: Props) => {
           </div>
         </div>
         <div
-          className="p-2 rounded bg-light-primary text-gray-900 fw-bold w-100 d-flex flex-column min-w-0"
+          className="p-3 rounded bg-light-primary text-gray-900 fw-bold w-100 d-flex flex-column min-w-0 overflow-hidden"
           style={{
             maxWidth: 400,
             overflowWrap: 'anywhere',
@@ -51,11 +54,13 @@ const MessageOut = ({ conversationMessage }: Props) => {
               }
             />
           )}
-          <p
-            dangerouslySetInnerHTML={{ __html: conversationMessage.content }}
-            className="text-end mb-0 text-break"
-            style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
-          ></p>
+          {hasCaption(conversationMessage.content) ? (
+            <p
+              dangerouslySetInnerHTML={{ __html: conversationMessage.content }}
+              className="text-end mb-2 text-break"
+              style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+            ></p>
+          ) : null}
           <div className="d-flex justify-content-start">
             {conversationMessage.read_at ? (
               <KTIcon iconName="double-check" className="text-primary fs-1" />

@@ -7,6 +7,9 @@ type Props = {
   conversationMessage: ConversationMessage;
 };
 
+const hasCaption = (content?: string | null): boolean =>
+  Boolean(content && String(content).trim() !== '');
+
 const MessageIn = ({ conversationMessage }: Props) => {
   return (
     <div
@@ -24,19 +27,20 @@ const MessageIn = ({ conversationMessage }: Props) => {
           <div className="ms-3 min-w-0">
             <a
               href="#"
-              className="fs-5 fw-bolder text-gray-900 text-hover-primary me-1 text-break"
+              className="fs-5 fw-bolder text-gray-900 text-hover-primary me-1 text-truncate d-inline-block"
+              style={{ maxWidth: 220 }}
             >
               {conversationMessage.sender?.name}
             </a>
             {/* Backend / broadcast payloads use shortAbsoluteDiffForHumans(), not ISO. */}
-            <span className="text-muted fs-7 mb-1">
+            <span className="text-muted fs-7 mb-1 d-block">
               {String(conversationMessage.created_at ?? '')}
             </span>
           </div>
         </div>
 
         <div
-          className="p-2 rounded bg-light-info text-gray-900 fw-bold w-100 min-w-0"
+          className="p-3 rounded bg-light-info text-gray-900 fw-bold w-100 min-w-0 overflow-hidden"
           style={{
             maxWidth: 400,
             overflowWrap: 'anywhere',
@@ -50,11 +54,13 @@ const MessageIn = ({ conversationMessage }: Props) => {
               }
             />
           )}
-          <p
-            dangerouslySetInnerHTML={{ __html: conversationMessage.content }}
-            className="text-start mb-0 text-break"
-            style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
-          ></p>
+          {hasCaption(conversationMessage.content) ? (
+            <p
+              dangerouslySetInnerHTML={{ __html: conversationMessage.content }}
+              className="text-start mb-2 text-break"
+              style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+            ></p>
+          ) : null}
           <div className="d-flex justify-content-end">
             {conversationMessage.read_at ? (
               <KTIcon iconName="double-check" className="text-primary fs-1" />

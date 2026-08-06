@@ -25,6 +25,9 @@ export type ChatComposerProps = {
 const ACCEPT =
   '.jpg,.jpeg,.png,.gif,.pdf,image/jpeg,image/png,image/gif,application/pdf';
 
+const PREVIEW_IMAGE_SIZE = 72;
+const PREVIEW_FILE_WIDTH = 200;
+
 const ChatComposer = ({
   content,
   files,
@@ -73,9 +76,9 @@ const ChatComposer = ({
   };
 
   return (
-    <div className="card-footer pt-4">
+    <div className="card-footer pt-4 min-w-0 w-100">
       {files.length > 0 ? (
-        <div className="d-flex flex-wrap gap-3 mb-4">
+        <div className="d-flex flex-wrap gap-2 mb-4 w-100 min-w-0">
           {files.map((file, index) => {
             const previewUrl = previewUrls[index];
             const isImage = Boolean(previewUrl);
@@ -83,18 +86,21 @@ const ChatComposer = ({
             return (
               <div
                 key={`${file.name}-${file.size}-${file.lastModified}-${index}`}
-                className="position-relative border border-gray-300 border-dashed rounded p-2 bg-light"
-                style={{ maxWidth: isImage ? 96 : 260 }}
+                className="position-relative border border-gray-300 border-dashed rounded p-2 bg-light overflow-hidden flex-shrink-0"
+                style={{
+                  width: isImage ? PREVIEW_IMAGE_SIZE + 16 : PREVIEW_FILE_WIDTH,
+                  maxWidth: '100%',
+                }}
               >
                 <button
                   type="button"
-                  className="btn btn-icon btn-sm btn-light-danger position-absolute top-0 end-0 translate-middle rounded-circle"
-                  style={{ zIndex: 1 }}
+                  className="btn btn-icon btn-sm btn-light-danger position-absolute top-0 end-0 m-1 rounded-circle"
+                  style={{ zIndex: 1, width: 22, height: 22 }}
                   aria-label={t('remove')}
                   disabled={disabled || isProcessing}
                   onClick={() => removeFileAt(index)}
                 >
-                  <KTIcon iconName="cross" className="fs-4" />
+                  <KTIcon iconName="cross" className="fs-5" />
                 </button>
 
                 {isImage && previewUrl ? (
@@ -103,15 +109,15 @@ const ChatComposer = ({
                     alt={file.name}
                     className="rounded"
                     style={{
-                      width: 72,
-                      height: 72,
+                      width: PREVIEW_IMAGE_SIZE,
+                      height: PREVIEW_IMAGE_SIZE,
                       objectFit: 'cover',
                       display: 'block',
                     }}
                   />
                 ) : (
-                  <div className="d-flex align-items-center gap-3 pe-4">
-                    <div className="symbol symbol-35px flex-shrink-0">
+                  <div className="d-flex align-items-center gap-2 pe-4 min-w-0">
+                    <div className="symbol symbol-30px flex-shrink-0">
                       <img
                         alt=""
                         src={appUrl(
@@ -121,11 +127,16 @@ const ChatComposer = ({
                         )}
                       />
                     </div>
-                    <div className="fw-semibold min-w-0">
-                      <div className="fs-7 fw-bold text-gray-900 text-truncate" title={file.name}>
+                    <div className="fw-semibold min-w-0 flex-grow-1 overflow-hidden">
+                      <div
+                        className="fs-7 fw-bold text-gray-900 text-truncate"
+                        title={file.name}
+                      >
                         {file.name}
                       </div>
-                      <div className="text-gray-500 fs-8">{formatFileSize(file.size)}</div>
+                      <div className="text-gray-500 fs-8 text-truncate">
+                        {formatFileSize(file.size)}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -146,7 +157,7 @@ const ChatComposer = ({
         onKeyDown={onEnterPress}
       />
 
-      <div className="d-flex justify-content-end align-items-center gap-1">
+      <div className="d-flex justify-content-end align-items-center flex-wrap gap-1">
         <input
           type="file"
           className="d-none"
