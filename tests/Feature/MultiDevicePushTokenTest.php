@@ -9,6 +9,9 @@ use App\Models\User;
 use App\NotificationChannels\FirebaseChannel;
 use App\Notifications\DomainNotification;
 use App\Services\Firebase\FirebaseService;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\Sanctum;
 use Mockery\MockInterface;
 
@@ -27,6 +30,70 @@ test('registering a device token upserts and reassigns ownership if another acco
     expect(DeviceToken::query()->where('token', 'shared-fcm-token')->count())->toBe(1)
         ->and($ownerA->fresh()->deviceTokens()->where('token', 'shared-fcm-token')->exists())->toBeFalse()
         ->and($ownerB->fresh()->deviceTokens()->where('token', 'shared-fcm-token')->exists())->toBeTrue();
+});
+
+test('registering the same device token twice for the same user updates the existing row, not a duplicate', function () {
+    Carbon::setTestNow('2026-08-06 10:00:00');
+
+    $user = User::factory()->create();
+    $register = app(RegisterDeviceTokenAction::class);
+
+    $first = $register->handle($user, 'same-device-token', 'android', 'Pixel');
+
+    Carbon::setTestNow('2026-08-06 10:05:00');
+
+    $second = $register->handle($user, 'same-device-token', 'ios', 'Pixel');
+
+    expect(DeviceToken::query()->where('token', 'same-device-token')->count())->toBe(1)
+        ->and($second->id)->toBe($first->id)
+        ->and($second->wasRecentlyCreated)->toBeFalse()
+        ->and($second->platform)->toBe('ios')
+        ->and($second->last_used_at?->equalTo(Carbon::parse('2026-08-06 10:05:00')))->toBeTrue();
+
+    Carbon::setTestNow();
+});
+
+test('registering the same device token twice for the same user in rapid succession (race condition simulation) does not create duplicate rows', function () {
+    $user = User::factory()->create();
+    $token = 'race-fcm-token';
+    $register = app(RegisterDeviceTokenAction::class);
+    $now = now();
+
+    // Simulate a concurrent request that already committed the unique token row
+    // (the TOCTOU window updateOrCreate used to hit). Atomic upsert must update
+    // that row — never throw UniqueConstraintViolationException, never duplicate.
+    DB::table('device_tokens')->insert([
+        'tokenable_type' => $user->getMorphClass(),
+        'tokenable_id' => $user->id,
+        'token' => $token,
+        'platform' => 'android',
+        'device_name' => 'concurrent',
+        'last_used_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]);
+
+    $existingId = (int) DB::table('device_tokens')->where('token', $token)->value('id');
+
+    // A second overlapping insert must be rejected by the unique index.
+    expect(fn () => DB::table('device_tokens')->insert([
+        'tokenable_type' => $user->getMorphClass(),
+        'tokenable_id' => $user->id,
+        'token' => $token,
+        'platform' => 'android',
+        'device_name' => 'duplicate-attempt',
+        'last_used_at' => $now,
+        'created_at' => $now,
+        'updated_at' => $now,
+    ]))->toThrow(UniqueConstraintViolationException::class);
+
+    $result = $register->handle($user, $token, 'ios', 'Pixel');
+
+    expect(DeviceToken::query()->where('token', $token)->count())->toBe(1)
+        ->and($result->id)->toBe($existingId)
+        ->and($result->platform)->toBe('ios')
+        ->and($result->device_name)->toBe('Pixel')
+        ->and($result->tokenable_id)->toBe($user->id);
 });
 
 test('a user can be logged in on two devices simultaneously without either session being revoked', function () {
