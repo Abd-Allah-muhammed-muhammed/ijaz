@@ -4,8 +4,6 @@ namespace Modules\Chat\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Collection;
-use Modules\Chat\Models\ConversationAttachment;
 use Modules\Chat\Models\ConversationMessage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -22,7 +20,7 @@ class ConversationMessageResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $attachmentsLoaded = $this->relationLoaded('media') || $this->relationLoaded('attachments');
+        $attachmentsLoaded = $this->relationLoaded('media');
         $attachments = $attachmentsLoaded ? $this->resolveAttachments() : null;
         $lastAttachment = is_array($attachments) && $attachments !== []
             ? $attachments[array_key_last($attachments)]
@@ -44,7 +42,7 @@ class ConversationMessageResource extends JsonResource
     }
 
     /**
-     * Merge MediaLibrary + unmigrated legacy rows; mark missing files unavailable.
+     * MediaLibrary attachments only; mark missing files unavailable.
      *
      * @return list<array<string, mixed>>
      */
@@ -56,34 +54,13 @@ class ConversationMessageResource extends JsonResource
 
         /** @var list<array<string, mixed>> $items */
         $items = [];
-        $migratedLegacyIds = [];
 
-        if ($this->relationLoaded('media')) {
-            foreach ($this->getMedia('attachments') as $media) {
-                /** @var Media $media */
-                $legacyId = $media->getCustomProperty('legacy_attachment_id');
-                if (is_string($legacyId) && $legacyId !== '') {
-                    $migratedLegacyIds[] = $legacyId;
-                }
-
-                $items[] = ConversationAttachmentResource::make($media)->resolve();
-            }
+        foreach ($this->getMedia('attachments') as $media) {
+            /** @var Media $media */
+            $items[] = ConversationAttachmentResource::make($media)->resolve();
         }
 
-        if ($this->relationLoaded('attachments')) {
-            /** @var Collection<int, ConversationAttachment> $legacy */
-            $legacy = $this->attachments;
-            foreach ($legacy as $attachment) {
-                if (in_array($attachment->id, $migratedLegacyIds, true)) {
-                    continue;
-                }
-
-                $items[] = ConversationAttachmentResource::make($attachment)->resolve();
-            }
-        }
-
-        // Attachment-only messages whose files never made it into MediaLibrary
-        // (and have no remaining legacy rows) would otherwise render as blank bubbles.
+        // Attachment-flagged messages with no media rows would otherwise render blank.
         if ($items === [] && (bool) $this->has_attachments) {
             $items[] = ConversationAttachmentResource::unavailablePlaceholder(
                 'unavailable-'.$this->id,

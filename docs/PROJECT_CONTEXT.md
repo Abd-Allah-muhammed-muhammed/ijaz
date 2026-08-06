@@ -128,7 +128,7 @@ app/
 | Module | Purpose (one line) |
 |---|---|
 | **Catalog** | Car/property/device/electronic/specialization lookup tables + Dashboard CRUD + shared QueryFilters |
-| **Chat** | Member / order / ticket conversations, realtime events, chat handlers. **Attachments:** Spatie MediaLibrary on `ConversationMessage` (collection `attachments`). Legacy `conversation_attachments` table is **deprecated** — backfill via `php artisan chat:migrate-attachments-to-medialibrary` (`--dry-run` supported); drop table only after verification (same safe pattern as `device_tokens` / `player_id`). |
+| **Chat** | Member / order / ticket conversations, realtime events, chat handlers. **Attachments:** Spatie MediaLibrary on `ConversationMessage` (collection `attachments`, default disk `public`). Legacy `conversation_attachments` table/model fully retired (dropped after verified MediaLibrary cutover). |
 | **Classifieds** | Car / property / electronics / institute advisements (API + Dashboard); shared advisement Actions |
 | **Cms** | Banners, pages, FAQ questions, contact messages |
 | **Geo** | Regions, cities, nationalities (Dashboard + Api/V1 resources) |
@@ -259,7 +259,7 @@ Shipped on `feature/project-wide-caching`. **Do not re-audit from scratch** or i
 | Test hygiene | `Tests\TestCase` flushes LookupCache between tests; `TestingDatabaseGuard` aborts if config is cached or DB is not sqlite `:memory:` |
 | Test runner | Default `composer test` = Pest Parallel (`--processes=8 --exclude-group=serial`). Quarantined race test: `composer test:serial`. Full coverage: `composer test:all` (see README) |
 | Push devices | Polymorphic `device_tokens` (User + Provider via `HasDeviceTokens`; register/clear via `App\Actions\DeviceToken\*`). OTP verify registers FCM token and links it to the new Sanctum `personal_access_token_id`. Logout (no body) clears only the device token linked to the current session; `logout-all` wipes all. Ban/delete also clear device tokens. **Prod player_id:** create table → backfill command → verify → drop column. |
-| Chat attachments | MediaLibrary on `ConversationMessage` (`attachments` collection, default disk `public` — S3 later is a disk config change). Legacy `conversation_attachments` preserved until `chat:migrate-attachments-to-medialibrary` is run and verified, then a separate migration may drop it. |
+| Chat attachments | MediaLibrary on `ConversationMessage` (`attachments` collection, default disk `public` — S3 later is a disk config change). Legacy `conversation_attachments` table/model **retired** (drop migration applied after verified cutover). |
 
 ```php
 // Forever — invalidate only via forget*()
@@ -368,7 +368,7 @@ Brief staleness is acceptable for badges / summary dashboards. **Do not** add `L
 - Push path: `DomainNotification` / Chat `NewMessageSentNotification` → `FirebaseChannel` (loops all `device_tokens` Targets) → `FirebaseService::send(OutgoingFirebaseMessage)` (stateless; no mutable fluent state)
 - Content DTO: `FirebaseNotificationContent` (renamed from `Message`)
 - Devices: polymorphic `device_tokens` via `HasDeviceTokens` on User/Provider (relationship + Firebase routing only). Business logic in `RegisterDeviceTokenAction` / `ClearDeviceTokenAction` / `ClearAllDeviceTokensAction`. Legacy `users.player_id` is backfilled via `device-tokens:backfill-from-player-id`, then dropped by a separate guarded migration — not auto-dropped on first migrate.
-- Chat attachments: Spatie MediaLibrary on `ConversationMessage` (not the deprecated `conversation_attachments` table). Backfill: `chat:migrate-attachments-to-medialibrary` (`--dry-run`). Drop legacy table only after verification.
+- Chat attachments: Spatie MediaLibrary on `ConversationMessage` only. Legacy `conversation_attachments` table/model fully retired.
 - **Decision point:** live FCM payload is `notification` + `data` only. A former unused `notify()` path also set `android.priority` / APNs headers — never called from the channel; re-add only if mobile needs it.
 - `config/otp.php` — OTP TTLs by purpose
 - Spatie permission cache — `config('permission.cache')` (package default; key `spatie.permission.cache`)

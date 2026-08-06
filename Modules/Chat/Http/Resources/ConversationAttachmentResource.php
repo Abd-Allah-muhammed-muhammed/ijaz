@@ -6,17 +6,12 @@ use App\Http\Resources\Api\V1\MediaResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
-use Modules\Chat\Models\ConversationAttachment;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
- * Chat attachment payload (MediaLibrary or legacy conversation_attachments).
+ * Chat attachment payload — MediaLibrary only (MediaResource shape + `available`).
  *
- * Same shape as MediaResource, plus `available` — false when the backing file
- * is missing/unreadable on disk (legacy rows that failed migration, or Media
- * records whose files were deleted).
- *
- * @mixin Media|ConversationAttachment
+ * @mixin Media
  */
 class ConversationAttachmentResource extends JsonResource
 {
@@ -25,33 +20,32 @@ class ConversationAttachmentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        if ($this->resource instanceof Media) {
-            return $this->fromMedia($this->resource);
+        if (! $this->resource instanceof Media) {
+            return [];
         }
 
-        if ($this->resource instanceof ConversationAttachment) {
-            return $this->fromLegacy($this->resource);
-        }
-
-        return [];
+        return $this->fromMedia($this->resource);
     }
 
     /**
+     * Honest unavailable card — never invent a fake filename.
+     *
      * @return array<string, mixed>
      */
-    public static function unavailablePlaceholder(string $id, ?string $fileName = null): array
+    public static function unavailablePlaceholder(string $id): array
     {
         return [
             'id' => $id,
-            'name' => $fileName ?: null,
+            'name' => null,
             'collection_name' => 'attachments',
-            'file_name' => $fileName ?: '',
+            'file_name' => '',
             'mime_type' => null,
             'type' => 'application',
             'url' => '',
-            'extension' => $fileName ? pathinfo($fileName, PATHINFO_EXTENSION) : '',
+            'extension' => '',
             'size' => null,
             'available' => false,
+            'label' => __('This attachment is no longer available'),
         ];
     }
 
@@ -63,35 +57,21 @@ class ConversationAttachmentResource extends JsonResource
         $base = MediaResource::make($media)->resolve();
         $available = $this->mediaFileExists($media);
 
+        if ($available) {
+            return array_merge($base, [
+                'available' => true,
+            ]);
+        }
+
+        // File missing on disk — keep id for keys, clear download URL / display name
+        // so the UI never presents a misleading "filename" as if it were openable.
         return array_merge($base, [
-            'available' => $available,
-            'url' => $available ? ($base['url'] ?? '') : '',
+            'available' => false,
+            'url' => '',
+            'file_name' => '',
+            'name' => null,
+            'label' => __('This attachment is no longer available'),
         ]);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function fromLegacy(ConversationAttachment $attachment): array
-    {
-        $disk = $attachment->store ?: 'public';
-        $available = filled($attachment->path)
-            && Storage::disk($disk)->exists($attachment->path);
-
-        $extension = pathinfo((string) $attachment->filename, PATHINFO_EXTENSION);
-
-        return [
-            'id' => $attachment->id,
-            'name' => pathinfo((string) $attachment->filename, PATHINFO_FILENAME) ?: $attachment->filename,
-            'collection_name' => 'attachments',
-            'file_name' => $attachment->filename,
-            'mime_type' => null,
-            'type' => $attachment->type ?: ($extension === 'pdf' ? 'pdf' : 'application'),
-            'url' => $available ? (string) $attachment->url : '',
-            'extension' => $extension,
-            'size' => null,
-            'available' => $available,
-        ];
     }
 
     private function mediaFileExists(Media $media): bool

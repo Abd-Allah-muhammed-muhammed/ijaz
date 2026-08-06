@@ -44,7 +44,7 @@ class NewMessageEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterComm
      */
     public function broadcastWith(): array
     {
-        $this->message->loadMissing(['sender', 'media', 'attachments']);
+        $this->message->loadMissing(['sender', 'media']);
 
         // Must match ConversationMessageResource HTTP payload exactly (plain arrays).
         return json_decode(
