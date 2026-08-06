@@ -2,13 +2,13 @@
 
 namespace App\Services\Firebase\Contract;
 
-use App\Services\Firebase\DTO\Target;
+use App\Services\Firebase\DTO\FirebaseMessageTarget;
 use Illuminate\Support\Collection;
 
 interface InteractWithFirebase
 {
     /**
-     * @return Target|iterable<int, Target>|Collection<int, Target>
+     * @return FirebaseMessageTarget|iterable<int, FirebaseMessageTarget>|Collection<int, FirebaseMessageTarget>
      */
-    public function routeNotificationForFirebase(): Target|iterable;
+    public function routeNotificationForFirebase(): FirebaseMessageTarget|iterable;
 }

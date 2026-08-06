@@ -3,9 +3,9 @@
 namespace App\NotificationChannels;
 
 use App\Services\Firebase\Contract\InteractWithFirebase;
+use App\Services\Firebase\DTO\FirebaseMessageTarget;
 use App\Services\Firebase\DTO\FirebaseNotificationContent;
 use App\Services\Firebase\DTO\OutgoingFirebaseMessage;
-use App\Services\Firebase\DTO\Target;
 use App\Services\Firebase\Exceptions\FirebaseAuthenticationException;
 use App\Services\Firebase\Exceptions\FirebaseConfigurationException;
 use App\Services\Firebase\Exceptions\FirebaseSendException;
@@ -78,19 +78,19 @@ readonly class FirebaseChannel
     }
 
     /**
-     * @param  Target|iterable<int, Target>  $targets
-     * @return list<Target>
+     * @param  FirebaseMessageTarget|iterable<int, FirebaseMessageTarget>  $targets
+     * @return list<FirebaseMessageTarget>
      */
-    private function normalizeTargets(Target|iterable $targets): array
+    private function normalizeTargets(FirebaseMessageTarget|iterable $targets): array
     {
-        if ($targets instanceof Target) {
+        if ($targets instanceof FirebaseMessageTarget) {
             return [$targets];
         }
 
         $normalized = [];
 
         foreach ($targets as $target) {
-            if ($target instanceof Target) {
+            if ($target instanceof FirebaseMessageTarget) {
                 $normalized[] = $target;
             }
         }

@@ -3,7 +3,7 @@
 namespace App\Traits;
 
 use App\Models\DeviceToken;
-use App\Services\Firebase\DTO\Target;
+use App\Services\Firebase\DTO\FirebaseMessageTarget;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Collection;
 
@@ -19,9 +19,9 @@ trait HasDeviceTokens
     }
 
     /**
-     * @return Collection<int, Target>
+     * @return Collection<int, FirebaseMessageTarget>
      */
-    public function routeNotificationForFirebase(): Target|Collection
+    public function routeNotificationForFirebase(): FirebaseMessageTarget|Collection
     {
         $tokens = $this->relationLoaded('deviceTokens')
             ? $this->deviceTokens
@@ -31,6 +31,6 @@ trait HasDeviceTokens
             ->pluck('token')
             ->filter(fn (?string $token): bool => filled($token))
             ->values()
-            ->map(fn (string $token): Target => Target::make('token', $token));
+            ->map(fn (string $token): FirebaseMessageTarget => FirebaseMessageTarget::make('token', $token));
     }
 }
