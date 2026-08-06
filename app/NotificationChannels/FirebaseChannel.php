@@ -17,9 +17,9 @@ readonly class FirebaseChannel
     public function __construct(protected FirebaseService $firebaseService) {}
 
     /**
-     * @throws FirebaseConfigurationException
-     * @throws FirebaseAuthenticationException
-     * @throws FirebaseSendException
+     * Deliver via FCM. Typed Firebase failures are logged and swallowed so they
+     * cannot fail a multi-channel notification job or block database/broadcast.
+     * Unrelated exceptions still propagate.
      */
     public function send(InteractWithFirebase $notifiable, Notification $notification): bool
     {
@@ -51,7 +51,9 @@ readonly class FirebaseChannel
         try {
             $this->firebaseService->send($outgoing);
         } catch (FirebaseConfigurationException|FirebaseAuthenticationException|FirebaseSendException $exception) {
-            Log::error('Firebase notification channel failed', [
+            // Service already logged transport/API details; channel adds notifiable context
+            // then returns false so Laravel does not fail/retry sibling channels or the job.
+            Log::warning('Firebase notification channel failed; continuing without push', [
                 'notification' => $notification::class,
                 'notifiable_type' => $notifiable::class,
                 'notifiable_id' => method_exists($notifiable, 'getKey') ? $notifiable->getKey() : null,
@@ -63,7 +65,7 @@ readonly class FirebaseChannel
                     : null,
             ]);
 
-            throw $exception;
+            return false;
         }
 
         return true;

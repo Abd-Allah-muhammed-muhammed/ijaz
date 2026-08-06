@@ -5,10 +5,12 @@ use App\Models\User;
 use App\NotificationChannels\FirebaseChannel;
 use App\Notifications\DomainNotification;
 use App\Services\Firebase\DTO\Message;
+use App\Services\Firebase\Exceptions\FirebaseSendException;
 use App\Services\Firebase\FirebaseService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Mockery\MockInterface;
+use Tests\Fixtures\Notifications\MultiChannelFirebaseIsolationNotification;
 
 beforeEach(function () {
     Cache::flush();
@@ -133,6 +135,82 @@ test('firebase channel returns false when the notification message is invalid', 
     };
 
     expect($channel->send($user, $notification))->toBeFalse();
+});
+
+test('a Firebase send failure does not prevent the database and broadcast channels from succeeding in a multi-channel notification', function () {
+    $this->mock(FirebaseService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('send')
+            ->once()
+            ->andThrow(new FirebaseSendException('FCM unavailable', status: 503));
+    });
+
+    $user = User::factory()->create([
+        'player_id' => 'device-token',
+        'language' => 'en',
+    ]);
+
+    // notifyNow runs every via() channel in one pass — a thrown Firebase exception
+    // must not abort the call after database/broadcast already ran (or before them).
+    $user->notifyNow(new MultiChannelFirebaseIsolationNotification);
+
+    expect($user->notifications()->count())->toBe(1)
+        ->and($user->notifications()->first()->data['title_translated_key'])->toBe('order_offer_created');
+});
+
+test('a Firebase send failure does not block database when firebase is listed first in via()', function () {
+    $this->mock(FirebaseService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('send')
+            ->once()
+            ->andThrow(new FirebaseSendException('bad token', status: 404));
+    });
+
+    $user = User::factory()->create([
+        'player_id' => 'device-token',
+        'language' => 'en',
+    ]);
+
+    $user->notifyNow(new MultiChannelFirebaseIsolationNotification(
+        viaOrder: ['firebase', 'database', 'broadcast'],
+    ));
+
+    expect($user->notifications()->count())->toBe(1);
+});
+
+test('firebase channel returns false instead of throwing on typed Firebase failures', function () {
+    $user = User::factory()->make([
+        'id' => 42,
+        'player_id' => 'device-token',
+        'language' => 'en',
+    ]);
+
+    $firebase = $this->mock(FirebaseService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('send')
+            ->once()
+            ->andThrow(new FirebaseSendException('FCM rejected', status: 400));
+    });
+
+    $channel = new FirebaseChannel($firebase);
+
+    expect($channel->send($user, new MultiChannelFirebaseIsolationNotification))->toBeFalse();
+});
+
+test('firebase channel still propagates unrelated exceptions', function () {
+    $user = User::factory()->make([
+        'id' => 42,
+        'player_id' => 'device-token',
+        'language' => 'en',
+    ]);
+
+    $firebase = $this->mock(FirebaseService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('send')
+            ->once()
+            ->andThrow(new RuntimeException('unexpected infrastructure failure'));
+    });
+
+    $channel = new FirebaseChannel($firebase);
+
+    expect(fn () => $channel->send($user, new MultiChannelFirebaseIsolationNotification))
+        ->toThrow(RuntimeException::class, 'unexpected infrastructure failure');
 });
 
 test('firebase channel sends an outgoing message for a user with a valid player_id', function () {
