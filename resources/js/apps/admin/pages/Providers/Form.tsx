@@ -71,7 +71,7 @@ export default function Form({callback, row, types, cities, regions, backUrl,}: 
     city_id: row?.city_id || null,
     password: null,
     password_confirmation: null,
-    about: row?.about,
+    about: row?.about ?? '',
     categories: row?.categories?.map((c) => {
       return {
         id: c.id as number,
@@ -347,6 +347,7 @@ export default function Form({callback, row, types, cities, regions, backUrl,}: 
                         form.setData('about', e.currentTarget.value as string);
                       }}
                       placeholder={t('about')}/>
+                    <InputError message={form.errors.about}/>
                   </FormGroup>
 
                 </Col>
@@ -360,7 +361,10 @@ export default function Form({callback, row, types, cities, regions, backUrl,}: 
         <Card.Header>
           <Card.Title className="d-flex flex-column">
             {t('categories & skills')}
-            <InputError message={form.errors.categories}/>
+            <InputError message={
+              form.errors.categories
+              ?? Object.entries(form.errors).find(([key]) => key.startsWith('categories'))?.[1]
+            }/>
           </Card.Title>
           <div className='card-toolbar'>
             <Button variant='primary' size='sm' onClick={() => setShowCateModal(true)} disabled={!(form.data.provider_type_id as unknown as boolean)}>

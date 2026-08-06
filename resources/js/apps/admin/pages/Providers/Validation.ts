@@ -3,7 +3,9 @@ import i18next from '@/lang/i18next';
 
 const fileSize = 5; // 5 MB
 export const Inputs = z.object({
-  id: z.number().optional(),
+  // Coerce so string ids from Model (number|string) don't silently fail Zod
+  // on a path with no InputError.
+  id: z.coerce.number().optional(),
   provider_type_id: z.number(i18next.t('validation.required', {attribute: i18next.t('provider_type')})),
   requiredFiles: z.object({
     id_image: z.boolean(),
@@ -16,9 +18,8 @@ export const Inputs = z.object({
     .nonempty(i18next.t('validation.required', {attribute: i18next.t('name')}))
     .min(3, i18next.t('validation.min.string', {attribute: i18next.t('name'), min: '3'})),
 
-  about: z.string()
-    .nonempty(i18next.t('validation.required', {attribute: i18next.t('about')}))
-    .optional(),
+  about: z.string(i18next.t('validation.required', {attribute: i18next.t('about')}))
+    .nonempty(i18next.t('validation.required', {attribute: i18next.t('about')})),
 
   email: z.email(i18next.t('validation.email', {attribute: i18next.t('email')}))
     .nonempty(i18next.t('validation.required', {attribute: i18next.t('email')})),
@@ -115,7 +116,8 @@ export const Inputs = z.object({
     path: ['password'],
   })
   .refine(data => {
-    if (data.id) {
+    // On edit, only enforce confirmation when a new password is being set.
+    if (data.id && !data.password) {
       return true;
     }
     return data.password === data.password_confirmation

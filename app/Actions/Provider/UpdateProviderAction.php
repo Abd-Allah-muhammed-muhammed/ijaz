@@ -98,16 +98,12 @@ class UpdateProviderAction
 
                 return;
             }
-            $skills = array_unique($new['skills'] ?? []);
-            if (empty($skills)) {
-                $provider->categorySkills()
-                    ->where('category_id', $providerCategory->category_id)
-                    ->delete();
-            }
+            $skills = array_values(array_unique($new['skills'] ?? []));
             $old_s = $old_skills[$providerCategory->category_id] ?? [];
             $to_delete = array_diff($old_s, $skills);
             if (! empty($to_delete)) {
-                $provider->categorySkills
+                // Must use the relation query builder — Eloquent\Collection has no delete().
+                $provider->categorySkills()
                     ->where('category_id', $providerCategory->category_id)
                     ->whereIn('skill_id', $to_delete)
                     ->delete();
