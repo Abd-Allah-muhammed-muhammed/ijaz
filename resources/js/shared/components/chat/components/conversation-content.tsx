@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useConversations } from "@/store/use-chat";
 import { Conversation, ConversationMessage, ConversationUser } from "@/shared/types/models";
 import axios from "@/shared/helpers/axios";
@@ -12,8 +12,9 @@ import ChatTypingIndicator from "@/shared/components/chat/components/chat-typing
 import { formatFileSize } from "@/shared/components/chat/components/chat-attachment-utils";
 import { useChatTyping } from "@/shared/components/chat/hooks/use-chat-typing";
 import { useChatNotificationSound } from "@/shared/components/chat/hooks/use-chat-notification-sound";
+import { useChatLoadOlderMessages } from "@/shared/components/chat/hooks/use-chat-load-older-messages";
 import { useTranslation } from "react-i18next";
-import { Button } from "react-bootstrap";
+import { Button, Spinner } from "react-bootstrap";
 import { KTIcon } from "@/vendor/metronic/helpers";
 import type { SingleApiResponse, ConversationMessagePaginationResource } from "@/shared/types/api";
 import { toast } from "sonner";
@@ -178,15 +179,62 @@ const ConversationContent = ({ }: Props) => {
     activeSearchRef.current = activeSearch;
   }, [activeSearch]);
 
-  const fetchMessages = (conversationId: string | number, search?: string) => {
-    const params = search && search.trim() !== ''
-      ? { query: { search: search.trim() } }
-      : undefined;
+  const fetchMessages = (
+    conversationId: string | number,
+    options?: { search?: string; page?: number },
+  ) => {
+    const query: Record<string, string | number> = {};
+    if (options?.search && options.search.trim() !== '') {
+      query.search = options.search.trim();
+    }
+    if (options?.page && options.page > 1) {
+      query.page = options.page;
+    }
+
+    const params = Object.keys(query).length > 0 ? { query } : undefined;
 
     return axios.get<SingleApiResponse<ConversationMessagePaginationResource>>(
       ProviderOrderChatController.show(conversationId, params).url,
     );
   };
+
+  const fetchOlderPage = useCallback(async (page: number) => {
+    if (!currentConversation) {
+      return { items: [], hasMorePages: false, currentPage: page };
+    }
+
+    const { data: response } = await fetchMessages(currentConversation.id, { page });
+    const paginate = response?.data?.paginate;
+
+    return {
+      items: Array.isArray(response?.data?.items) ? response.data.items : [],
+      hasMorePages: Boolean(paginate?.has_more_pages),
+      currentPage: paginate?.current_page ?? page,
+    };
+  }, [currentConversation]);
+
+  const prependOlderMessages = useCallback((older: ConversationMessage[]) => {
+    setMessages((prev) => {
+      const existingIds = new Set(prev.map((m) => m.id));
+      const uniqueOlder = older.filter((m) => !existingIds.has(m.id));
+      return [...uniqueOlder, ...prev];
+    });
+  }, []);
+
+  const {
+    loadingOlder,
+    reachedBeginning,
+    resetPagination,
+    onScroll: onLoadOlderScroll,
+  } = useChatLoadOlderMessages({
+    enabled: Boolean(currentConversation) && activeSearch.trim() === '' && !searchOpen,
+    messagesBoxRef: messagesBox,
+    fetchOlderPage,
+    onPrepend: prependOlderMessages,
+    onDisableStickToBottom: () => {
+      stickToBottomRef.current = false;
+    },
+  });
 
   const scrollToBottom = () => {
     const el = messagesBox.current;
@@ -412,12 +460,18 @@ const ConversationContent = ({ }: Props) => {
         // needs chronological within the page (oldest → newest, newest at bottom).
         // Same pattern as ConversationMessageRepository::listRecentForConversation.
         const items = response?.data?.items;
+        const paginate = response?.data?.paginate;
         stickToBottomRef.current = true;
         setMessages(Array.isArray(items) ? [...items].reverse() : []);
+        resetPagination(
+          Boolean(paginate?.has_more_pages),
+          paginate?.current_page ?? 1,
+        );
       })
       .catch(() => {
         if (!cancelled) {
           setMessages([]);
+          resetPagination(false, 1);
         }
       })
       .finally(() => {
@@ -446,13 +500,17 @@ const ConversationContent = ({ }: Props) => {
       setLoadingMessages(true);
       stickToBottomRef.current = true;
 
-      fetchMessages(currentConversation.id, term || undefined)
+      fetchMessages(currentConversation.id, { search: term || undefined })
         .then(({ data: response }) => {
           const items = response?.data?.items;
+          const paginate = response?.data?.paginate;
           setMessages(Array.isArray(items) ? [...items].reverse() : []);
+          // Search replaces the timeline — no infinite-scroll through search hits.
+          resetPagination(false, paginate?.current_page ?? 1);
         })
         .catch(() => {
           setMessages([]);
+          resetPagination(false, 1);
         })
         .finally(() => {
           setLoadingMessages(false);
@@ -535,9 +593,17 @@ const ConversationContent = ({ }: Props) => {
                   fetchMessages(currentConversation.id)
                     .then(({ data: response }) => {
                       const items = response?.data?.items;
+                      const paginate = response?.data?.paginate;
                       setMessages(Array.isArray(items) ? [...items].reverse() : []);
+                      resetPagination(
+                        Boolean(paginate?.has_more_pages),
+                        paginate?.current_page ?? 1,
+                      );
                     })
-                    .catch(() => setMessages([]))
+                    .catch(() => {
+                      setMessages([]);
+                      resetPagination(false, 1);
+                    })
                     .finally(() => setLoadingMessages(false));
                   return;
                 }
@@ -575,9 +641,22 @@ const ConversationContent = ({ }: Props) => {
             return;
           }
           stickToBottomRef.current = isNearBottom(messagesBox.current);
+          onLoadOlderScroll();
         }}
       >
         <div ref={messagesContentRef} className="d-flex flex-column w-100 min-w-0">
+          {loadingOlder ? (
+            <div className="d-flex justify-content-center align-items-center py-3" aria-live="polite">
+              <Spinner animation="border" size="sm" className="text-primary" />
+            </div>
+          ) : null}
+          {reachedBeginning && messages.length > 0 && activeSearch.trim() === '' ? (
+            <div className="text-center py-3">
+              <span className="fs-8 fw-semibold text-gray-500">
+                {t('Beginning of conversation', { defaultValue: 'Beginning of conversation' })}
+              </span>
+            </div>
+          ) : null}
           {loadingMessages && messages.length === 0 ? (
             <ChatMessagesSkeleton />
           ) : null}

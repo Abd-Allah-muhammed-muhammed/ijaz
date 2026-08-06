@@ -19,6 +19,7 @@ Route::middleware([
         });
 
         Route::controller(SupportChatController::class)->group(function () {
+            Route::get('/tickets/{ticket}/messages', 'show')->name('tickets.messages');
             Route::post('/tickets/{ticket}/send', 'send')->name('tickets.send');
             Route::post('/tickets/{ticket}/typing', 'typing')->name('tickets.typing');
         });

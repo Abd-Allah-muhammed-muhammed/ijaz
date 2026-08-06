@@ -5,11 +5,11 @@ namespace Modules\Support\Http\Controllers\Dashboard;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Chat\DTOs\ChatMessageData;
+use Modules\Chat\Http\Requests\ListConversationMessagesRequest;
 use Modules\Chat\Http\Requests\SendSupportMessageRequest;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\Dashboard\ConversationMessageCollection;
@@ -27,13 +27,14 @@ class SupportChatController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:edit supportTicket', only: ['send', 'show', 'typing']),
+            new Middleware('permission:show supportTicket', only: ['show']),
+            new Middleware('permission:edit supportTicket', only: ['send', 'typing']),
         ];
     }
 
-    public function show(Request $request, TicketSupport $ticketSupport): JsonResponse
+    public function show(ListConversationMessagesRequest $request, TicketSupport $ticket): JsonResponse
     {
-        $conversation = $ticketSupport->chat;
+        $conversation = $ticket->chat;
 
         if (! $conversation) {
             return $this->failedMessageResponse('No conversation found for this ticket');
@@ -45,6 +46,7 @@ class SupportChatController extends Controller implements HasMiddleware
                     $conversation,
                     auth('admin')->user(),
                     $request->integer('per_page', 20),
+                    $request->searchTerm(),
                 )
             )
         );

@@ -12,7 +12,7 @@ import {
   TicketSupport
 } from "@/shared/types/models";
 import {KTCard} from "@/vendor/metronic/helpers";
-import React, {ReactNode, useEffect, useRef, useState} from "react";
+import React, {ReactNode, useCallback, useEffect, useRef, useState} from "react";
 import SupportController from "@/actions/Modules/Support/Http/Controllers/Dashboard/SupportController";
 import SupportChatController from "@/actions/Modules/Support/Http/Controllers/Dashboard/SupportChatController";
 import MessageIn from "@/shared/components/chat/components/message-in";
@@ -21,11 +21,15 @@ import ChatComposer from "@/shared/components/chat/components/chat-composer";
 import ChatTypingIndicator from "@/shared/components/chat/components/chat-typing-indicator";
 import { useChatTyping } from "@/shared/components/chat/hooks/use-chat-typing";
 import { useChatNotificationSound } from "@/shared/components/chat/hooks/use-chat-notification-sound";
+import { useChatLoadOlderMessages } from "@/shared/components/chat/hooks/use-chat-load-older-messages";
 import usePermissions from '@/shared/hooks/use-permissions';
 import {useConversations} from "@/store/use-chat";
 import {ChatEventEnum} from "@/Enums/Chat";
 import {TicketSupportStatusEnum} from "@/Enums/SupportTickets";
 import {toast} from "sonner";
+import axios from "@/shared/helpers/axios";
+import type { SingleApiResponse, ConversationMessagePaginationResource } from "@/shared/types/api";
+import { Spinner } from "react-bootstrap";
 
 type Props = {
   row: TicketSupport<Order>,
@@ -37,6 +41,14 @@ type ChatMessage = {
   content: string;
   files: File[];
 };
+
+/** px from bottom — treat as "still following the live end". */
+const NEAR_BOTTOM_THRESHOLD_PX = 120;
+
+function isNearBottom(el: HTMLElement, thresholdPx = NEAR_BOTTOM_THRESHOLD_PX): boolean {
+  return el.scrollHeight - el.scrollTop - el.clientHeight <= thresholdPx;
+}
+
 let unreadMessageIndex: number[] = [];
 const Show = ({row, chat, chatMessages}: Props) => {
   const { t } = useTranslation();
@@ -59,6 +71,8 @@ const Show = ({row, chat, chatMessages}: Props) => {
   const {currentSocketId, setCurrentSocketId} = useConversations();
   const {auth} = usePage<{ auth: { user?: { socket_id?: string } } }>().props;
   const messagesBox = useRef<HTMLDivElement>(null);
+  const stickToBottomRef = useRef(true);
+  const ignoreScrollRef = useRef(false);
   const [messages, setMessages] = useState<ConversationMessage[]>(chatMessages || []);
   const [errorFileIndexes, setErrorFileIndexes] = useState<number[]>([]);
   const {
@@ -75,6 +89,42 @@ const Show = ({row, chat, chatMessages}: Props) => {
   });
   const { notifyIncomingMessage } = useChatNotificationSound();
 
+  const fetchOlderPage = useCallback(async (page: number) => {
+    const { data: response } = await axios.get<SingleApiResponse<ConversationMessagePaginationResource>>(
+      SupportChatController.show(row.id as number, { query: { page, per_page: 20 } }).url,
+    );
+    const paginate = response?.data?.paginate;
+
+    return {
+      items: Array.isArray(response?.data?.items) ? response.data.items : [],
+      hasMorePages: Boolean(paginate?.has_more_pages),
+      currentPage: paginate?.current_page ?? page,
+    };
+  }, [row.id]);
+
+  const prependOlderMessages = useCallback((older: ConversationMessage[]) => {
+    setMessages((prev) => {
+      const existingIds = new Set(prev.map((m) => m.id));
+      const uniqueOlder = older.filter((m) => !existingIds.has(m.id));
+      return [...uniqueOlder, ...prev];
+    });
+  }, []);
+
+  const {
+    loadingOlder,
+    reachedBeginning,
+    resetPagination,
+    onScroll: onLoadOlderScroll,
+  } = useChatLoadOlderMessages({
+    enabled: Boolean(chat),
+    messagesBoxRef: messagesBox,
+    fetchOlderPage,
+    onPrepend: prependOlderMessages,
+    onDisableStickToBottom: () => {
+      stickToBottomRef.current = false;
+    },
+  });
+
   useEffect(() => {
     if (auth.user?.socket_id) {
       setCurrentSocketId(auth.user.socket_id);
@@ -82,20 +132,33 @@ const Show = ({row, chat, chatMessages}: Props) => {
   }, [auth.user?.socket_id, setCurrentSocketId]);
 
   const scrollToMessageEnd = () => {
-    if (messagesBox.current) {
-      messagesBox.current.scrollTop = messagesBox.current.scrollHeight;
+    const el = messagesBox.current;
+    if (!el) {
+      return;
     }
+
+    ignoreScrollRef.current = true;
+    el.scrollTop = el.scrollHeight;
+    requestAnimationFrame(() => {
+      ignoreScrollRef.current = false;
+      stickToBottomRef.current = true;
+    });
   }
 
   // Sync messages state with chatMessages prop when it updates
   useEffect(() => {
     if (chatMessages) {
+      stickToBottomRef.current = true;
       setMessages(chatMessages);
+      // Inertia seeds ~20 newest (chronological). Assume more exist at that size.
+      resetPagination(chatMessages.length >= 20, 1);
     }
-  }, [chatMessages]);
+  }, [chatMessages, resetPagination]);
 
   useEffect(() => {
-    scrollToMessageEnd();
+    if (stickToBottomRef.current) {
+      scrollToMessageEnd();
+    }
   }, [messages])
 
   // Connect to conversation channel via Echo
@@ -117,6 +180,9 @@ const Show = ({row, chat, chatMessages}: Props) => {
         .listen(`.${ChatEventEnum.New_Message}`, (message: ConversationMessage) => {
           const isOwnMessage = message.sender?.socket_id === currentSocketId;
           notifyIncomingMessage(Boolean(isOwnMessage));
+          if (messagesBox.current && !ignoreScrollRef.current) {
+            stickToBottomRef.current = isNearBottom(messagesBox.current);
+          }
           clearTyping();
           setMessages((prevMessages) => [...prevMessages, message]);
         })
@@ -357,10 +423,32 @@ const Show = ({row, chat, chatMessages}: Props) => {
                   <span className="text-muted mt-1 fw-semibold fs-7">{t('ticket_chat_messages')}</span>
                 </h3>
               </div>
-              <div ref={messagesBox} className='card-body d-flex flex-column flex-grow-1 scroll-y me-n5 pe-5  mb-5'
-                   style={{
-                     height: 'calc(100vh - 400px)',
-                   }}>
+              <div
+                ref={messagesBox}
+                className='card-body d-flex flex-column flex-grow-1 scroll-y me-n5 pe-5  mb-5'
+                style={{
+                  height: 'calc(100vh - 400px)',
+                }}
+                onScroll={() => {
+                  if (ignoreScrollRef.current || !messagesBox.current) {
+                    return;
+                  }
+                  stickToBottomRef.current = isNearBottom(messagesBox.current);
+                  onLoadOlderScroll();
+                }}
+              >
+                {loadingOlder ? (
+                  <div className="d-flex justify-content-center align-items-center py-3" aria-live="polite">
+                    <Spinner animation="border" size="sm" className="text-primary" />
+                  </div>
+                ) : null}
+                {reachedBeginning && messages.length > 0 ? (
+                  <div className="text-center py-3">
+                    <span className="fs-8 fw-semibold text-gray-500">
+                      {t('Beginning of conversation', { defaultValue: 'Beginning of conversation' })}
+                    </span>
+                  </div>
+                ) : null}
                 {messages && messages.length > 0 ? (
                   messages.map((message, index) => {
                     const sender = message.sender as ConversationUser | undefined;
