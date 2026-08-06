@@ -17,9 +17,13 @@ class ListMessagesAction
         Conversation $conversation,
         Model $actor,
         int $perPage = 20,
+        ?string $search = null,
     ): LengthAwarePaginator {
-        $this->messageRepository->markAsRead($conversation, $actor);
+        // Searching is a read-only filter — don't side-effect mark-as-read.
+        if ($search === null || $search === '') {
+            $this->messageRepository->markAsRead($conversation, $actor);
+        }
 
-        return $this->messageRepository->listForConversation($conversation, $perPage);
+        return $this->messageRepository->listForConversation($conversation, $perPage, $search);
     }
 }

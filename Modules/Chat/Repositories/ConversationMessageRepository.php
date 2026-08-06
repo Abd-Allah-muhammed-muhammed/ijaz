@@ -39,11 +39,19 @@ class ConversationMessageRepository implements ConversationMessageRepositoryInte
     public function listForConversation(
         Conversation $conversation,
         int $perPage = 20,
+        ?string $search = null,
     ): LengthAwarePaginator {
-        return $conversation->messages()
+        $query = $conversation->messages()
             ->with(['sender', 'receiver', 'media'])
-            ->latest()
-            ->paginate($perPage);
+            ->latest();
+
+        if ($search !== null && $search !== '') {
+            // Escape LIKE wildcards so user input is matched literally.
+            $escaped = addcslashes($search, '%_\\');
+            $query->where('content', 'like', '%'.$escaped.'%');
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function listRecentForConversation(

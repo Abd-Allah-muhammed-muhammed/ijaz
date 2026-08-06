@@ -2,6 +2,7 @@
 
 namespace Modules\Jobs\Models;
 
+use App\Support\HasWebpImageConversion;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -16,10 +17,11 @@ use Modules\Jobs\Enums\JobTypeEnum;
 use Modules\Marketplace\Models\Skill;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class JobOffer extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use HasWebpImageConversion, InteractsWithMedia;
 
     protected $fillable = [
         'user_id', 'user_type', 'title', 'description', 'expired_at', 'contact_number',
@@ -68,5 +70,10 @@ class JobOffer extends Model implements HasMedia
     protected function active(Builder $query): Builder
     {
         return $query->where('expired_at', '>', now());
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->registerWebpImageConversion($media);
     }
 }

@@ -39,7 +39,7 @@ class OpportunityDashboardResource extends JsonResource
                 : null),
             'media' => $this->whenLoaded('media', fn () => $this->media->map(fn ($media) => [
                 'uuid' => $media->uuid,
-                'url' => $media->getFullUrl(),
+                'url' => $media->getAvailableFullUrl(['webp']),
                 'mime_type' => $media->mime_type,
             ])),
             'offers_count' => $this->whenCounted('offers'),

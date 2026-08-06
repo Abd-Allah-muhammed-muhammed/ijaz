@@ -63,8 +63,18 @@ class TicketSupportChatService
         Conversation $conversation,
         Model $actor,
         int $perPage = 20,
+        ?string $search = null,
     ): LengthAwarePaginator {
-        return $this->conversationService->messages($conversation, $actor, $perPage);
+        return $this->conversationService->messages($conversation, $actor, $perPage, $search);
+    }
+
+    public function typingAsAdmin(TicketSupport $ticket, Admin $admin): void
+    {
+        $conversation = $ticket->chat;
+
+        abort_unless($conversation instanceof Conversation, 404);
+
+        $this->conversationService->typing($conversation, $admin);
     }
 
     /**

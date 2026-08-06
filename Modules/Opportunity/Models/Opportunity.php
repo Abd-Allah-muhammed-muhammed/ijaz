@@ -2,6 +2,7 @@
 
 namespace Modules\Opportunity\Models;
 
+use App\Support\HasWebpImageConversion;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -19,10 +20,11 @@ use Modules\Opportunity\Database\Factories\OpportunityFactory;
 use Modules\Opportunity\Enums\OpportunityStatusEnum;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Opportunity extends Model implements HasMedia
 {
-    use HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
+    use HasFactory, HasUuids, HasWebpImageConversion, InteractsWithMedia, SoftDeletes;
 
     public const DEFAULT_DURATION_DAYS = 7;
 
@@ -88,6 +90,19 @@ class Opportunity extends Model implements HasMedia
     {
         $this->addMediaCollection('files')
             ->useDisk('public');
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->registerWebpImageConversion($media);
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function webpConversionCollections(): ?array
+    {
+        return ['files'];
     }
 
     #[Scope]

@@ -9,6 +9,7 @@ use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Exceptions\ChatException;
+use Modules\Chat\Http\Requests\ListConversationMessagesRequest;
 use Modules\Chat\Http\Requests\SendMessageRequest;
 use Modules\Chat\Http\Requests\StoreOrderChatRequest;
 use Modules\Chat\Http\Resources\ConversationCollection;
@@ -63,7 +64,7 @@ class OrderChatController extends Controller
         );
     }
 
-    public function show(Request $request, Conversation $conversation): JsonResponse
+    public function show(ListConversationMessagesRequest $request, Conversation $conversation): JsonResponse
     {
         $this->authorize('view', $conversation);
 
@@ -73,6 +74,7 @@ class OrderChatController extends Controller
                     $conversation,
                     auth('provider')->user(),
                     $request->integer('per_page', 15),
+                    $request->searchTerm(),
                 )
             )
         );
@@ -92,5 +94,14 @@ class OrderChatController extends Controller
         return $this->successResponse(
             ConversationMessageResource::make($message->loadMissing(['sender', 'media']))
         );
+    }
+
+    public function typing(Conversation $conversation): JsonResponse
+    {
+        $this->authorize('send', $conversation);
+
+        $this->service->typing($conversation, auth('provider')->user());
+
+        return $this->successResponse([]);
     }
 }

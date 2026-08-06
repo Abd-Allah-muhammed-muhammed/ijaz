@@ -2,15 +2,17 @@ import { ConversationAttachment, ConversationMessage } from '@/shared/types/mode
 import React from 'react';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import Attachments from '@/shared/components/chat/components/attachments';
+import { highlightSearchTerm } from '@/shared/components/chat/components/chat-search-highlight';
 
 type Props = {
   conversationMessage: ConversationMessage;
+  highlightTerm?: string | null;
 };
 
 const hasCaption = (content?: string | null): boolean =>
   Boolean(content && String(content).trim() !== '');
 
-const MessageIn = ({ conversationMessage }: Props) => {
+const MessageIn = ({ conversationMessage, highlightTerm }: Props) => {
   return (
     <div
       className="d-flex justify-content-start mb-10 mw-100 min-w-0"
@@ -56,7 +58,11 @@ const MessageIn = ({ conversationMessage }: Props) => {
           )}
           {hasCaption(conversationMessage.content) ? (
             <p
-              dangerouslySetInnerHTML={{ __html: conversationMessage.content }}
+              dangerouslySetInnerHTML={{
+                __html: highlightTerm
+                  ? highlightSearchTerm(String(conversationMessage.content), highlightTerm)
+                  : String(conversationMessage.content),
+              }}
               className="text-start mb-2 text-break"
               style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
             ></p>

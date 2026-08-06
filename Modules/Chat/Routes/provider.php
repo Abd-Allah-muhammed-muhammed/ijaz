@@ -9,6 +9,7 @@ Route::prefix('chat')->as('chat.')->group(function () {
         Route::get('/', 'index');
         Route::post('/', 'store');
         Route::post('/send/{conversation}', 'send');
+        Route::post('/typing/{conversation}', 'typing');
         Route::get('/{conversation}', 'show');
     });
 

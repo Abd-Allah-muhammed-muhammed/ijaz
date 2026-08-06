@@ -24,6 +24,7 @@ interface ConversationMessageRepositoryInterface
     public function listForConversation(
         Conversation $conversation,
         int $perPage = 20,
+        ?string $search = null,
     ): LengthAwarePaginator;
 
     /**
