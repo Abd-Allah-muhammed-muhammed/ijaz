@@ -43,7 +43,6 @@ const Index = ({rows}: Props) => {
               // Handle search input change
               const searchValue = e.target.value;
               // You can implement the search logic here, e.g., filter conversations based on searchValue
-              console.log("Search value:", searchValue);
             }}
           />
         </div>

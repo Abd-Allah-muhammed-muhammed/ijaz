@@ -44,7 +44,6 @@ const Index = ({ rows, prams ,selects}: Props) => {
   const searchPrams: SearchPrams = prams || { per_page: 10 };
   const [selectsData, setSelectsData] = useState<Selects>(selects);
 
-  console.log(selectsData);
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
     const next = applyFilterParam(
       { ...searchPrams } as Record<string, unknown>,

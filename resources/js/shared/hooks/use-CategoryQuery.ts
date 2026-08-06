@@ -69,7 +69,6 @@ export function CategoriesSingleQueryOptions(locale: string, id: number): UseQue
  */
 export const fetchOne = async (locale: string, signal: AbortSignal, id: number): Promise<Category> => {
   const url = '/' + locale + AjaxController.category(id).url
-  console.log(`Fetching category #${id} from URL: ${url}`);
   const {data} = await axios.get<SingleApiResponse<Category>>(url, {signal});
   return data.data;
 }

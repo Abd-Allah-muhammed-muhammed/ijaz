@@ -154,7 +154,6 @@ export default function ProviderLayout({children, head}: Props) {
     categories.difference(oldCategories).forEach((category) => {
       window.Echo.private(`category.${category}`)
         .listen('.new-order', (order: Order) => {
-          console.log('new order')
           toast.warning(t('you have a new order in category') + ` ${order.category?.title}`,)
           setOrders((prevOrders) => {
             return [

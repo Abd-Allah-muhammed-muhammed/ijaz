@@ -19,7 +19,6 @@ type Props = {
 };
 const Edit = ({row, types, regions, cities}: Props) => {
   const { t } = useTranslation();
-  console.log(row)
   return (
     <>
       <Head title={t('providers')}/>

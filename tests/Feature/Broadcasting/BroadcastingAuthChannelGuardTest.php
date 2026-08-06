@@ -11,8 +11,8 @@ use Modules\Marketplace\Models\Category;
  * a channel's intended actor type (Admin hitting Provider-only channels).
  *
  * Regression: Provider-typed channel closures threw TypeError → HTTP 500 when
- * Admin was authenticated (auth:admin,provider) — exposed locally once Echo
- * could connect over ws://.
+ * Admin was authenticated — exposed locally once Echo could connect over ws://.
+ * See also BroadcastingMultiGuardAuthTest for Admin+Provider dual-session auth.
  *
  * phpunit.xml forces BROADCAST_CONNECTION=null (NullBroadcaster::auth is a no-op),
  * so these tests switch to reverb and re-register routes/channels.php after purge.

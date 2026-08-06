@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AuthenticateBroadcasting;
 use App\Http\Middleware\EnsureAcceptJsonMiddleware;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleAppearance;
@@ -88,6 +89,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
             'user.active' => EnsureUserIsActive::class,
+            'auth.broadcasting' => AuthenticateBroadcasting::class,
         ]);
 
         // Guard + live status check for User Sanctum API (belt already revokes on ban/delete).
@@ -98,7 +100,9 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withBroadcasting(
         __DIR__.'/../routes/channels.php',
-        ['middleware' => ['web', 'auth:admin,provider']],
+        // Prefer AuthenticateBroadcasting over auth:admin,provider — the latter
+        // always resolves Admin first when both dashboard sessions exist.
+        ['middleware' => ['web', 'auth.broadcasting']],
     )
     ->withSchedule(function (Schedule $schedule) {
         $schedule->command('opportunities:expire')->hourly();
