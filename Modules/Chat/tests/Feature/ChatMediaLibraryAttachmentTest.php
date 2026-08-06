@@ -13,6 +13,7 @@ use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
 use Modules\Chat\Infrastructure\Events\NewMessageEvent;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Models\ConversationMessage;
+use Spatie\MediaLibrary\Conversions\Jobs\PerformConversionsJob;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -488,4 +489,148 @@ test('the clean validation message works correctly regardless of which file inde
             ->and($errorMessage)->not->toContain('files.1')
             ->and($errorMessage)->not->toMatch('/files\.\d+/');
     }
+});
+
+test('uploading an image chat attachment queues a webp conversion', function () {
+    // RefreshDatabase wraps tests in a transaction; fire conversion jobs immediately
+    // so Bus::fake can observe PerformConversionsJob.
+    config(['media-library.queue_conversions_after_database_commit' => false]);
+
+    Bus::fake();
+    Event::fake([NewMessageEvent::class, ChatUpdatedEvent::class]);
+    Storage::fake('public');
+
+    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
+    $conversation = createOrderConversation($user, $provider, $order);
+    $conversation->load(['user1', 'user2']);
+
+    $this->actingAs($provider, 'provider')
+        ->post(
+            action([OrderChatController::class, 'send'], ['conversation' => $conversation->id]),
+            ['files' => [UploadedFile::fake()->image('photo.jpg', 80, 80)]],
+            ['Accept' => 'application/json'],
+        )
+        ->assertSuccessful();
+
+    Bus::assertDispatched(PerformConversionsJob::class);
+});
+
+test('PDF attachments are never sent through webp conversion', function () {
+    config(['media-library.queue_conversions_after_database_commit' => false]);
+
+    Bus::fake();
+    Event::fake([NewMessageEvent::class, ChatUpdatedEvent::class]);
+    Storage::fake('public');
+
+    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
+    $conversation = createOrderConversation($user, $provider, $order);
+    $conversation->load(['user1', 'user2']);
+
+    $this->actingAs($provider, 'provider')
+        ->post(
+            action([OrderChatController::class, 'send'], ['conversation' => $conversation->id]),
+            ['files' => [UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf')]],
+            ['Accept' => 'application/json'],
+        )
+        ->assertSuccessful();
+
+    Bus::assertNotDispatched(PerformConversionsJob::class);
+
+    $message = ConversationMessage::query()
+        ->where('conversation_id', $conversation->id)
+        ->where('has_attachments', true)
+        ->firstOrFail();
+
+    $media = $message->getFirstMedia('attachments');
+
+    expect($media)->not->toBeNull()
+        ->and($media->hasGeneratedConversion('webp'))->toBeFalse()
+        ->and($media->mime_type)->not->toStartWith('image/');
+});
+
+test('a chat attachment resource still returns the original url when no webp conversion exists yet (queued but not processed)', function () {
+    Bus::fake();
+    Storage::fake('public');
+
+    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
+    $conversation = createOrderConversation($user, $provider, $order);
+
+    $message = ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_id' => $provider->getKey(),
+        'sender_type' => Provider::class,
+        'receiver_id' => $user->getKey(),
+        'receiver_type' => $user::class,
+        'content' => 'pending conversion',
+        'has_attachments' => true,
+    ]);
+
+    $media = $message
+        ->addMedia(UploadedFile::fake()->image('pending.jpg', 30, 30))
+        ->toMediaCollection('attachments', 'public');
+
+    expect($media->hasGeneratedConversion('webp'))->toBeFalse();
+
+    $payload = ConversationAttachmentResource::make($media)->resolve();
+
+    expect($payload['available'])->toBeTrue()
+        ->and($payload['url'])->toBe($media->getFullUrl())
+        ->and($payload['url'])->not->toBeEmpty()
+        ->and($payload['url'])->not->toContain('/conversions/');
+});
+
+test('a chat attachment resource prefers the webp conversion url once generated, falls back to original if not yet ready', function () {
+    Bus::fake();
+    Storage::fake('public');
+
+    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
+    $conversation = createOrderConversation($user, $provider, $order);
+
+    $message = ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_id' => $provider->getKey(),
+        'sender_type' => Provider::class,
+        'receiver_id' => $user->getKey(),
+        'receiver_type' => $user::class,
+        'content' => 'webp ready',
+        'has_attachments' => true,
+    ]);
+
+    $media = $message
+        ->addMedia(UploadedFile::fake()->image('ready.jpg', 40, 40))
+        ->toMediaCollection('attachments', 'public');
+
+    $fallbackPayload = ConversationAttachmentResource::make($media)->resolve();
+    $originalUrl = $media->getFullUrl();
+
+    expect($fallbackPayload['url'])->toBe($originalUrl);
+
+    $media->markAsConversionGenerated('webp');
+    $media->refresh();
+
+    $webpPayload = ConversationAttachmentResource::make($media)->resolve();
+    $webpUrl = $media->getFullUrl('webp');
+
+    expect($webpPayload['url'])->toBe($webpUrl)
+        ->and($webpPayload['url'])->not->toBe($originalUrl)
+        ->and($webpPayload['url'])->toContain('webp');
+});
+
+test('chat validation accepts webp uploads as attachments', function () {
+    Bus::fake();
+    Event::fake([NewMessageEvent::class, ChatUpdatedEvent::class]);
+    Storage::fake('public');
+
+    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
+    $conversation = createOrderConversation($user, $provider, $order);
+    $conversation->load(['user1', 'user2']);
+
+    $this->actingAs($provider, 'provider')
+        ->post(
+            action([OrderChatController::class, 'send'], ['conversation' => $conversation->id]),
+            ['files' => [UploadedFile::fake()->create('already.webp', 40, 'image/webp')]],
+            ['Accept' => 'application/json'],
+        )
+        ->assertSuccessful()
+        ->assertJsonCount(1, 'data.attachments');
 });

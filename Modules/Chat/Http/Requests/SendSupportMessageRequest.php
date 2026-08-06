@@ -11,7 +11,7 @@ class SendSupportMessageRequest extends ApiRequest
         return [
             'content' => 'required_without:files|nullable|string',
             'files' => 'required_without:content|array',
-            'files.*' => 'required_without:content|file|mimes:jpeg,jpg,png,gif,pdf|max:5120',
+            'files.*' => 'required_without:content|file|mimes:jpeg,jpg,png,gif,webp,pdf|max:5120',
         ];
     }
 

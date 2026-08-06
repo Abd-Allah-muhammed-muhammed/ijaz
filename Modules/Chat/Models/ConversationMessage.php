@@ -29,6 +29,21 @@ class ConversationMessage extends Model implements HasMedia
             ->useDisk('public');
     }
 
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        // Images only — PDFs and other non-image attachments must never enter the WebP pipeline.
+        if ($media === null || ! str_starts_with((string) $media->mime_type, 'image/')) {
+            return;
+        }
+
+        $this->addMediaConversion('webp')
+            ->performOnCollections('attachments')
+            ->format('webp')
+            ->quality(82)
+            ->width(1920)
+            ->queued();
+    }
+
     public function chat(): BelongsTo
     {
         return $this->belongsTo(Conversation::class);

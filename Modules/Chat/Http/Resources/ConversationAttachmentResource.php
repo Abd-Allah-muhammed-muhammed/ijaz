@@ -58,8 +58,11 @@ class ConversationAttachmentResource extends JsonResource
         $available = $this->mediaFileExists($media);
 
         if ($available) {
+            // Prefer queued WebP conversion when ready; otherwise keep the original URL
+            // so images still display while the worker is backed up or stalled.
             return array_merge($base, [
                 'available' => true,
+                'url' => $media->getAvailableFullUrl(['webp']),
             ]);
         }
 
