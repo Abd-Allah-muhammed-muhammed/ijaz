@@ -2,277 +2,277 @@
 
 namespace App\Services\Firebase;
 
-use Exception;
+use App\Services\Firebase\DTO\OutgoingFirebaseMessage;
+use App\Services\Firebase\Exceptions\FirebaseAuthenticationException;
+use App\Services\Firebase\Exceptions\FirebaseConfigurationException;
+use App\Services\Firebase\Exceptions\FirebaseSendException;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
-use InvalidArgumentException;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use JsonException;
-use RuntimeException;
 
+/**
+ * Stateless FCM HTTP v1 sender.
+ *
+ * Safe to reuse across queue-worker notification sends: no per-message instance state.
+ * OAuth access tokens are shared via Cache only.
+ *
+ * Public API: send(OutgoingFirebaseMessage) — replaces the former mutable fluent chain
+ * (message/data/target/send) so FirebaseChannel builds a fresh DTO per notification.
+ */
 class FirebaseService
 {
-    private array $auth = [];
-
-    private string $access_token = '';
-
-    private array $message = [
-        'notification' => ['title' => '', 'body' => ''],
-        'token' => '',
-        'topic' => '',
-    ];
-
     /**
-     * @throws JsonException
+     * @return array<string, mixed>
+     *
+     * @throws FirebaseConfigurationException
+     * @throws FirebaseAuthenticationException
+     * @throws FirebaseSendException
      */
-    public function __construct()
+    public function send(OutgoingFirebaseMessage $message): array
     {
-        $this->setAuth(config('firebase.auth_file_path'));
-    }
+        $credentials = $this->credentials();
+        $accessToken = $this->accessToken($credentials);
 
-    /**
-     * @throws JsonException
-     */
-    public function setAuth(string $auth): static
-    {
-        $this->auth = json_decode(file_get_contents($auth), true, 512, JSON_THROW_ON_ERROR);
+        $url = str_replace(
+            '{project_id}',
+            $credentials['project_id'],
+            (string) config('services.firebase.fcm_send_url'),
+        );
 
-        return $this;
-    }
+        try {
+            $response = Http::withToken($accessToken)
+                ->acceptJson()
+                ->asJson()
+                ->timeout((int) config('services.firebase.http_timeout', 15))
+                ->post($url, [
+                    'message' => $message->toFcmMessage(),
+                ]);
+        } catch (ConnectionException $exception) {
+            Log::error('Firebase FCM request failed (connection)', [
+                'url' => $url,
+                'target_type' => $message->targetType,
+                'exception' => $exception->getMessage(),
+            ]);
 
-    public function message(string $title, string|array $body): static
-    {
-        $this->message['notification'] = [
-            'title' => $title, 'body' => $body,
-        ];
-
-        return $this;
-    }
-
-    public function data(array $data): static
-    {
-        if (empty($data)) {
-            return $this;
-        }
-        $this->message['data'] = (object) $data;
-
-        return $this;
-    }
-
-    public function target(string $type, string $value): static
-    {
-        if (! in_array($type, ['topic', 'token'])) {
-            throw new InvalidArgumentException("Invalid Argument type  '$type' not supported ");
-        }
-
-        if (empty(trim($value))) {
-            throw new InvalidArgumentException('Empty value provided for target message not supported');
-        }
-
-        if ($type === 'topic') {
-            $this->toTopic($value);
-        } else {
-            $this->to($value);
-        }
-
-        return $this;
-    }
-
-    public function toTopic(string $topic): static
-    {
-        $this->message['topic'] = $topic;
-        unset($this->message['token']);
-
-        return $this;
-    }
-
-    public function to(string $token): static
-    {
-        $this->message['token'] = $token;
-        unset($this->message['topic']);
-
-        return $this;
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function notify()
-    {
-        unset($this->message['notification']);
-        //    var body = json.encode({
-        //      "message": {
-        //    "token": token,
-        //        "data": {"title": title, "body": bodyText, "type": type},
-        //        "android": {
-        //      "priority": "high" // Ensure high priority for Android
-        //        },
-        //        "apns": {
-        //      "headers": {
-        //        "apns-priority": "10", // Immediate delivery
-        //          },
-        //          "payload": {
-        //        "aps": {
-        //          //change it when version 48
-        //          /"alert": {
-        //            // This ensures the notification is displayed on iOS
-        //            /"title": title,
-        //                "body": bodyText/
-        //              },/
-        //              "sound": "default", // Sound settings for iOS
-        //              "content-available": 1 // Triggers background handling on iOS
-        //            }
-        //          }
-        //        }
-        //      }
-        //    });
-        $this->message['apns'] = [
-            'headers' => [
-                'apns-priority' => '10',
-            ],
-            'payload' => [
-                'aps' => [
-                    'alert' => [
-                        'title' => $this->message['data']->title ?? '',
-                        'body' => $this->message['data']->body ?? '',
-                    ],
-                    'sound' => 'default',
-                    'content-available' => 1,
+            throw new FirebaseSendException(
+                'Firebase FCM request failed: '.$exception->getMessage(),
+                context: [
+                    'url' => $url,
+                    'target_type' => $message->targetType,
                 ],
-            ],
-            //      'fcm_options' => [
-            //        'analytics_label' => 'analytics',
-            //      ],
-        ];
-        $this->message['android'] = [
-            'priority' => 'high',
-            //      'notification' => [
-            //        'color' => '#0A0A0A',
-            //        'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
-            //        'channelId' => 'high_importance_channel'
-            //      ],
-            //      'fcm_options' => [
-            //        'analytics_label' => 'analytics',
-            //      ],
-        ];
-
-        return $this->send();
-    }
-
-    /**
-     * @throws Exception
-     */
-    public function send()
-    {
-        $this->authenticate();
-
-        return $this->post("https://fcm.googleapis.com/v1/projects/{$this->auth['project_id']}/messages:send", [
-            'headers' => [
-                "Authorization: {$this->access_token}",
-                'Content-Type: application/json',
-            ],
-            'body' => json_encode(['message' => $this->message], JSON_THROW_ON_ERROR),
-        ]);
-
-    }
-
-    /**
-     * @throws JsonException
-     */
-    protected function authenticate(): static
-    {
-        $this->access_token = $this->setToken();
-
-        return $this;
-    }
-
-    /**
-     * @throws JsonException
-     */
-    protected function setToken(): string
-    {
-        $token = $this->getToken();
-        if ($token) {
-            return $token;
+                previous: $exception,
+            );
         }
-        $authToken = $this->requestNewToken();
 
-        $token = "{$authToken['token_type']} {$authToken['access_token']}";
+        $body = $response->json() ?? [];
 
-        // sub 3m to insure token always valid
-        Cache::put(config('firebase.cache_key'), $token, $authToken['expires_in'] - (60 / 3));
+        if ($response->failed() || array_key_exists('error', $body)) {
+            $errorMessage = is_array($body['error'] ?? null)
+                ? (string) ($body['error']['message'] ?? $response->body())
+                : $response->body();
 
-        return $token;
-    }
+            Log::error('Firebase FCM send rejected', [
+                'status' => $response->status(),
+                'url' => $url,
+                'target_type' => $message->targetType,
+                'error' => $body['error'] ?? $response->body(),
+            ]);
 
-    protected function getToken()
-    {
-        return Cache::get(config('firebase.cache_key'));
+            throw new FirebaseSendException(
+                'Firebase FCM send failed: '.$errorMessage,
+                status: $response->status(),
+                context: [
+                    'url' => $url,
+                    'target_type' => $message->targetType,
+                    'response' => $body,
+                ],
+            );
+        }
 
+        return $body;
     }
 
     /**
+     * @param  array{project_id: string, client_email: string, private_key: string}  $credentials
+     *
+     * @throws FirebaseAuthenticationException
+     */
+    protected function accessToken(array $credentials): string
+    {
+        $cacheKey = (string) config('services.firebase.cache_key');
+        $cached = Cache::get($cacheKey);
+
+        if (is_string($cached) && $cached !== '') {
+            return $this->normalizeAccessToken($cached);
+        }
+
+        $tokenResponse = $this->requestAccessToken($credentials);
+        $accessToken = $tokenResponse['access_token'];
+        $expiresIn = (int) ($tokenResponse['expires_in'] ?? 3600);
+        $skew = (int) config('services.firebase.token_ttl_skew_seconds', 180);
+        $ttl = max(60, $expiresIn - $skew);
+
+        Cache::put($cacheKey, $accessToken, $ttl);
+
+        return $accessToken;
+    }
+
+    /**
+     * @param  array{project_id: string, client_email: string, private_key: string}  $credentials
+     * @return array{access_token: string, expires_in: int, token_type?: string}
+     *
+     * @throws FirebaseAuthenticationException
+     */
+    protected function requestAccessToken(array $credentials): array
+    {
+        $oauthUrl = (string) config('services.firebase.oauth_token_url');
+
+        try {
+            $assertion = $this->buildJwtAssertion($credentials, $oauthUrl);
+
+            $response = Http::asForm()
+                ->timeout((int) config('services.firebase.http_timeout', 15))
+                ->withHeaders(['Cache-Control' => 'no-store'])
+                ->post($oauthUrl, [
+                    'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+                    'assertion' => $assertion,
+                ]);
+        } catch (ConnectionException|JsonException $exception) {
+            Log::error('Firebase OAuth token request failed', [
+                'url' => $oauthUrl,
+                'exception' => $exception->getMessage(),
+            ]);
+
+            throw new FirebaseAuthenticationException(
+                'Firebase OAuth token request failed: '.$exception->getMessage(),
+                context: ['url' => $oauthUrl],
+                previous: $exception,
+            );
+        }
+
+        $body = $response->json() ?? [];
+
+        if ($response->failed() || empty($body['access_token'])) {
+            $errorMessage = is_array($body['error'] ?? null)
+                ? (string) ($body['error']['message'] ?? json_encode($body['error']))
+                : (string) ($body['error_description'] ?? $body['error'] ?? $response->body());
+
+            Log::error('Firebase OAuth token rejected', [
+                'status' => $response->status(),
+                'url' => $oauthUrl,
+                'error' => $body,
+            ]);
+
+            throw new FirebaseAuthenticationException(
+                'Firebase OAuth token request failed: '.$errorMessage,
+                status: $response->status(),
+                context: ['url' => $oauthUrl, 'response' => $body],
+            );
+        }
+
+        return [
+            'access_token' => (string) $body['access_token'],
+            'expires_in' => (int) ($body['expires_in'] ?? 3600),
+            'token_type' => (string) ($body['token_type'] ?? 'Bearer'),
+        ];
+    }
+
+    /**
+     * @param  array{client_email: string, private_key: string}  $credentials
+     *
+     * @throws FirebaseAuthenticationException
      * @throws JsonException
      */
-    protected function requestNewToken()
+    protected function buildJwtAssertion(array $credentials, string $audience): string
     {
-        $header = json_encode([
+        $now = time();
+
+        $header = $this->base64UrlEncode(json_encode([
             'alg' => 'RS256',
             'typ' => 'JWT',
-        ], JSON_THROW_ON_ERROR);
-        $now = time();
-        $payload = json_encode([
-            'iss' => $this->auth['client_email'],
-            'aud' => 'https://oauth2.googleapis.com/token',
+        ], JSON_THROW_ON_ERROR));
+
+        $payload = $this->base64UrlEncode(json_encode([
+            'iss' => $credentials['client_email'],
+            'aud' => $audience,
             'scope' => 'https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/firebase.messaging',
             'exp' => $now + 3600,
             'iat' => $now,
-        ], JSON_THROW_ON_ERROR);
+        ], JSON_THROW_ON_ERROR));
 
-        $base64Header = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-        $base64Payload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
-        $signatureInput = $base64Header.'.'.$base64Payload;
-        openssl_sign($signatureInput, $signature, $this->auth['private_key'], OPENSSL_ALGO_SHA256);
-        $base64Signature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+        $signatureInput = $header.'.'.$payload;
 
-        return $this->post('https://oauth2.googleapis.com/token', [
-            'headers' => [
-                'Cache-Control: no-store',
-                'Content-Type: application/x-www-form-urlencoded',
-            ],
-            'body' => http_build_query([
-                'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-                'assertion' => $signatureInput.'.'.$base64Signature,
-            ]),
-        ]);
+        $signed = openssl_sign(
+            $signatureInput,
+            $signature,
+            $credentials['private_key'],
+            OPENSSL_ALGO_SHA256,
+        );
+
+        if ($signed !== true) {
+            throw new FirebaseAuthenticationException(
+                'Failed to sign Firebase OAuth JWT assertion with the configured private key.',
+            );
+        }
+
+        return $signatureInput.'.'.$this->base64UrlEncode($signature);
     }
 
     /**
-     * @throws RuntimeException|JsonException
+     * @return array{project_id: string, client_email: string, private_key: string}
+     *
+     * @throws FirebaseConfigurationException
      */
-    public function post(string $url, array $options = [])
+    protected function credentials(): array
     {
-        $options = array_merge([
-            'headers' => [],
-            'body' => '',
-        ], $options);
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $options['headers']);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $options['body']);
-        $response = curl_exec($ch);
-        $error = curl_error($ch);
-        curl_close($ch);
-        if ($error) {
-            throw new RuntimeException($error);
-        }
-        $response = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new RuntimeException(json_last_error_msg());
-        }
-        if (array_key_exists('error', $response)) {
-            throw new RuntimeException($response['error']['message']);
+        $path = (string) config('services.firebase.credentials');
+
+        if ($path === '' || ! is_readable($path)) {
+            $message = "Firebase credentials file is missing or unreadable [{$path}]. Set FIREBASE_AUTH_FILE_PATH to a valid service-account JSON path.";
+
+            if (! app()->environment('local', 'testing')) {
+                Log::error($message, ['credentials_path' => $path, 'environment' => app()->environment()]);
+            }
+
+            throw new FirebaseConfigurationException($message);
         }
 
-        return $response;
+        try {
+            /** @var array<string, mixed> $auth */
+            $auth = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            throw new FirebaseConfigurationException(
+                "Firebase credentials file is not valid JSON [{$path}].",
+                previous: $exception,
+            );
+        }
+
+        foreach (['project_id', 'client_email', 'private_key'] as $required) {
+            if (empty($auth[$required]) || ! is_string($auth[$required])) {
+                throw new FirebaseConfigurationException(
+                    "Firebase credentials file is missing required key [{$required}] at [{$path}].",
+                );
+            }
+        }
+
+        return [
+            'project_id' => $auth['project_id'],
+            'client_email' => $auth['client_email'],
+            'private_key' => $auth['private_key'],
+        ];
+    }
+
+    protected function normalizeAccessToken(string $token): string
+    {
+        return str_starts_with($token, 'Bearer ')
+            ? substr($token, 7)
+            : $token;
+    }
+
+    protected function base64UrlEncode(string $value): string
+    {
+        return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
     }
 }

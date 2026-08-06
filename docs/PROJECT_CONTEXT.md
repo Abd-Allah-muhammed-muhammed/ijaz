@@ -114,7 +114,7 @@ app/
 ├── Rules/
 ├── Services/
 │   ├── Admin/ · Auth/ · Account/ · Dashboard/ · Provider/ · User/
-│   ├── Firebase/      — Push notifications
+│   ├── Firebase/      — Stateless FCM sender (OutgoingFirebaseMessage + Http facade); config under services.firebase
 │   └── Translations/  — Locale rendering for frontend
 ├── Support/           — Shared utilities: Normalize, Phone, HasNormalizedAttributes, LookupCache, …
 ├── Traits/            — Cross-cutting model traits (HasWallet, HasOTPs, Blockable, …)
@@ -362,7 +362,9 @@ Brief staleness is acceptable for badges / summary dashboards. **Do not** add `L
 - `config/auth.php` — guards / providers
 - `config/broadcasting.php` — Reverb
 - `config/cache.php` — default store + `serializable_classes` allow-list for LookupCache
-- `config/firebase.php` — push
+- `config/services.php` → `firebase` — FCM credentials path, OAuth cache key, token TTL skew, endpoints
+- Push path: `DomainNotification` / Chat `NewMessageSentNotification` → `FirebaseChannel` → `FirebaseService::send(OutgoingFirebaseMessage)` (stateless; no mutable fluent state)
+- **Decision point:** live FCM payload is `notification` + `data` only. A former unused `notify()` path also set `android.priority` / APNs headers — never called from the channel; re-add only if mobile needs it.
 - `config/otp.php` — OTP TTLs by purpose
 - Spatie permission cache — `config('permission.cache')` (package default; key `spatie.permission.cache`)
 - `Modules/Payment/config` + app payment config — drivers / PayTabs

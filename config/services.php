@@ -35,4 +35,28 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Firebase Cloud Messaging
+    |--------------------------------------------------------------------------
+    |
+    | Push notifications via FCM HTTP v1. Credentials are a Google service
+    | account JSON file (FIREBASE_AUTH_FILE_PATH). OAuth access tokens are
+    | cached under cache_key with a 3-minute skew before expires_in.
+    |
+    | Decision point (Phase 1): live sends use FCM "notification" + "data"
+    | only. A previous unused notify() path also set android.priority=high
+    | and APNs headers/payload — that was never called from FirebaseChannel.
+    | Revisit if mobile needs data-only / high-priority platform config.
+    |
+    */
+    'firebase' => [
+        'credentials' => env('FIREBASE_AUTH_FILE_PATH') ?: storage_path('ijaz.json'),
+        'cache_key' => env('FIREBASE_CACHE_KEY', 'firebase-oauth-token'),
+        'token_ttl_skew_seconds' => 180,
+        'oauth_token_url' => 'https://oauth2.googleapis.com/token',
+        'fcm_send_url' => 'https://fcm.googleapis.com/v1/projects/{project_id}/messages:send',
+        'http_timeout' => 15,
+    ],
+
 ];

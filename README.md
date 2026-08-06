@@ -127,7 +127,16 @@ DB_PORT=3306
 DB_DATABASE=ijaz_main
 DB_USERNAME=ijaz_main
 DB_PASSWORD=
+
+# Firebase Cloud Messaging (config/services.php → services.firebase)
+# Service-account JSON path; defaults to storage/ijaz.json when empty
+FIREBASE_AUTH_FILE_PATH=
 ```
+
+Push notifications use Laravel’s Notification system (`firebase` channel →
+`App\Services\Firebase\FirebaseService`). The sender is **stateless** (one
+`OutgoingFirebaseMessage` DTO per send) and talks to FCM/OAuth via the HTTP
+client. See `docs/PROJECT_CONTEXT.md` for the APNs/Android decision point.
 
 #### 3. Database
 ```bash
