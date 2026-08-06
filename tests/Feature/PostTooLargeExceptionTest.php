@@ -8,6 +8,11 @@ use MMAE\ApiResponse\Configurations\Response as ApiResponseConfig;
 /**
  * Simulate PHP rejecting a body larger than post_max_size.
  *
+ * Architecture: Laravel max:5120 (5MB) is the real UX limit; PHP post_max_size
+ * is only a generous abuse safety net. This test covers the safety-net path —
+ * PostTooLargeException must still return our graceful JSON envelope, never a
+ * raw exception page.
+ *
  * ValidatePostSize compares CONTENT_LENGTH to ini_get('post_max_size').
  * We do not need a real multi-megabyte payload — only a CONTENT_LENGTH
  * larger than the configured limit — so this stays fast and deterministic.

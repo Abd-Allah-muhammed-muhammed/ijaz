@@ -979,5 +979,6 @@
     "Validation Failed": "Validation Failed",
     "One of your files exceeds the 5MB limit.": "One of your files exceeds the 5MB limit.",
     "This attachment is no longer available": "This attachment is no longer available",
-    "One of your files exceeds the upload limit.": "One of your files exceeds the upload limit."
+    "One of your files exceeds the upload limit.": "One of your files exceeds the upload limit.",
+    "Something went wrong, please try again": "Something went wrong, please try again"
 }

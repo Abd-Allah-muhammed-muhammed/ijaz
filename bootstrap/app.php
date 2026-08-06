@@ -146,9 +146,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         /*
-         * PHP post_max_size / CONTENT_LENGTH rejection (ValidatePostSize) —
-         * match the MMAE validation envelope so upload UIs (chat, etc.) show
-         * the same toast + field errors as Laravel max: validation.
+         * Safety net only: PHP post_max_size / CONTENT_LENGTH (ValidatePostSize).
+         * The real UX-facing upload limit is Laravel validation (max:5120 ≈ 5MB).
+         * PHP ini should be generous (e.g. 64M) so normal users never hit this path;
+         * when they do (abuse / misconfigured server), return the same MMAE
+         * validation envelope so upload UIs can toast cleanly — never a raw page.
          */
         $exceptions->renderable(function (PostTooLargeException $e, Request $request) {
             $message = __('One of your files exceeds the upload limit.');

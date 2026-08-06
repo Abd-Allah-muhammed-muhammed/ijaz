@@ -898,5 +898,6 @@
     "Validation Failed": "فشل التحقق",
     "One of your files exceeds the 5MB limit.": "أحد ملفاتك يتجاوز حد 5 ميغابايت.",
     "This attachment is no longer available": "هذا المرفق لم يعد متاحًا",
-    "One of your files exceeds the upload limit.": "أحد ملفاتك يتجاوز حد الرفع."
+    "One of your files exceeds the upload limit.": "أحد ملفاتك يتجاوز حد الرفع.",
+    "Something went wrong, please try again": "حدث خطأ ما، يرجى المحاولة مرة أخرى"
 }

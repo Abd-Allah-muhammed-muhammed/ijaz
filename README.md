@@ -124,22 +124,33 @@ Do **not** treat create + backfill + drop as one automatic migrate. Sequence:
 - Laravel Queue Worker
 - Laravel Reverb (WebSocket)
 
-#### PHP upload limits (required)
+#### PHP upload limits (safety net only — not the UX limit)
 
-App-level validation caps uploads at **5MB** (`max:5120`). PHP’s own limits must be **higher**
-than that, or oversized requests are rejected as `PostTooLargeException` *before* Laravel
-validation runs (empty `$_POST` / `$_FILES`).
+**Real user-facing limit:** Laravel validation (`max:5120` ≈ **5MB**) on FormRequests.
+That is the only limit users should ever see under normal use.
 
-On every server (Herd, Laragon, staging, production), set at least:
+**PHP `upload_max_filesize` / `post_max_size`:** a generous **safety net against abuse /
+resource exhaustion only** — never the primary UX-facing control. Set them high enough
+that a legitimate user never hits them (e.g. **50M–100M**). If PHP’s limit is at or
+below the app’s 5MB rule, oversized uploads are rejected as `PostTooLargeException`
+*before* Laravel validation runs (empty `$_POST` / `$_FILES`), which bypasses our
+clean per-file messages.
+
+Recommended on every server (Herd, Laragon, staging, production):
 
 ```ini
-upload_max_filesize = 10M
-post_max_size = 12M
+; Safety net only — real UX limit is Laravel max:5120 (5MB)
+upload_max_filesize = 64M
+post_max_size = 64M
 ```
 
-`post_max_size` must be **≥** `upload_max_filesize`, with headroom for multipart form overhead.
-This is an infrastructure prerequisite — Laravel cannot raise PHP’s limits at runtime.
-After changing `php.ini` (or pool config), restart PHP-FPM / the web server.
+`post_max_size` must be **≥** `upload_max_filesize`. Laravel cannot raise these at
+runtime. After changing `php.ini` (or the PHP-FPM pool), restart PHP-FPM / the web
+server.
+
+If a request somehow still exceeds even this generous PHP limit (malicious / edge
+case), `bootstrap/app.php` maps `PostTooLargeException` to the same MMAE validation
+JSON envelope (`errors.files`) so the UI can toast cleanly instead of a raw exception page.
 
 ---
 
