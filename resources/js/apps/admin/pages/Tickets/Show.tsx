@@ -119,6 +119,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
         onError: (errors) => {
           const fileIndexes: number[] = [];
           const messages: string[] = [];
+          const attachedFileCount = messageForm.data.files.length;
 
           Object.entries(errors).forEach(([key, value]) => {
             const text = Array.isArray(value) ? value[0] : String(value);
@@ -128,6 +129,14 @@ const Show = ({row, chat, chatMessages}: Props) => {
             const match = key.match(/^files(?:\.|\[)(\d+)/);
             if (match) {
               fileIndexes.push(Number(match[1]));
+              return;
+            }
+
+            // PostTooLarge / bag-level "files" — highlight every attached preview.
+            if (key === 'files' && attachedFileCount > 0) {
+              for (let i = 0; i < attachedFileCount; i++) {
+                fileIndexes.push(i);
+              }
             }
           });
 

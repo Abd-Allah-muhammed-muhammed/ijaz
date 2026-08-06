@@ -807,5 +807,6 @@
     "Attachment unavailable": "यह अटैचमेंट अब उपलब्ध नहीं है",
     "Validation Failed": "सत्यापन विफल",
     "One of your files exceeds the 5MB limit.": "आपकी किसी फ़ाइल का आकार 5MB की सीमा से अधिक है।",
-    "This attachment is no longer available": "यह अटैचमेंट अब उपलब्ध नहीं है"
+    "This attachment is no longer available": "यह अटैचमेंट अब उपलब्ध नहीं है",
+    "One of your files exceeds the upload limit.": "आपकी किसी फ़ाइल का आकार अपलोड सीमा से अधिक है।"
 }

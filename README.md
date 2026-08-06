@@ -124,6 +124,23 @@ Do **not** treat create + backfill + drop as one automatic migrate. Sequence:
 - Laravel Queue Worker
 - Laravel Reverb (WebSocket)
 
+#### PHP upload limits (required)
+
+App-level validation caps uploads at **5MB** (`max:5120`). PHP’s own limits must be **higher**
+than that, or oversized requests are rejected as `PostTooLargeException` *before* Laravel
+validation runs (empty `$_POST` / `$_FILES`).
+
+On every server (Herd, Laragon, staging, production), set at least:
+
+```ini
+upload_max_filesize = 10M
+post_max_size = 12M
+```
+
+`post_max_size` must be **≥** `upload_max_filesize`, with headroom for multipart form overhead.
+This is an infrastructure prerequisite — Laravel cannot raise PHP’s limits at runtime.
+After changing `php.ini` (or pool config), restart PHP-FPM / the web server.
+
 ---
 
 ### First-Time Deployment

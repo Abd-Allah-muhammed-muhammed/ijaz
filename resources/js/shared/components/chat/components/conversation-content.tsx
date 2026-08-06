@@ -36,7 +36,15 @@ function echoSocketId(): string | undefined {
   }
 }
 
-function extractValidationErrors(error: unknown): {
+/**
+ * Parse MMAE-style validation envelopes (and PostTooLargeException, which uses
+ * the same shape with `errors.files` when PHP rejects the body before Laravel
+ * can attribute a specific file index).
+ */
+function extractValidationErrors(
+  error: unknown,
+  attachedFileCount = 0,
+): {
   messages: string[];
   fileIndexes: number[];
 } {
@@ -60,6 +68,14 @@ function extractValidationErrors(error: unknown): {
       const match = key.match(/^files(?:\.|\[)(\d+)/);
       if (match) {
         fileIndexes.push(Number(match[1]));
+        continue;
+      }
+
+      // PostTooLarge / bag-level "files" — highlight every attached preview.
+      if (key === 'files' && attachedFileCount > 0) {
+        for (let i = 0; i < attachedFileCount; i++) {
+          fileIndexes.push(i);
+        }
       }
     }
   }
@@ -244,7 +260,10 @@ const ConversationContent = ({ }: Props) => {
       setMessage({ content: '', files: [] });
       setErrorFileIndexes([]);
     } catch (error) {
-      const { messages: validationMessages, fileIndexes } = extractValidationErrors(error);
+      const { messages: validationMessages, fileIndexes } = extractValidationErrors(
+        error,
+        message.files.length,
+      );
       setErrorFileIndexes(fileIndexes);
 
       if (validationMessages.length > 0) {

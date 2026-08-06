@@ -260,6 +260,7 @@ Shipped on `feature/project-wide-caching`. **Do not re-audit from scratch** or i
 | Test runner | Default `composer test` = Pest Parallel (`--processes=8 --exclude-group=serial`). Quarantined race test: `composer test:serial`. Full coverage: `composer test:all` (see README) |
 | Push devices | Polymorphic `device_tokens` (User + Provider via `HasDeviceTokens`; register/clear via `App\Actions\DeviceToken\*`). OTP verify registers FCM token and links it to the new Sanctum `personal_access_token_id`. Logout (no body) clears only the device token linked to the current session; `logout-all` wipes all. Ban/delete also clear device tokens. **Prod player_id:** create table → backfill command → verify → drop column. |
 | Chat attachments | MediaLibrary on `ConversationMessage` (`attachments` collection, default disk `public` — S3 later is a disk config change). Legacy `conversation_attachments` table/model **retired** (drop migration applied after verified cutover). |
+| PHP upload limits | App validates at **5MB**. Servers must set `upload_max_filesize ≥ 10M` and `post_max_size ≥ 12M` (headroom). Otherwise PHP throws `PostTooLargeException` before Laravel validation — handled in `bootstrap/app.php` as the MMAE validation JSON envelope (`errors.files`). See README → Server Setup. |
 
 ```php
 // Forever — invalidate only via forget*()
