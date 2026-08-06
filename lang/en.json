@@ -975,8 +975,7 @@
     "this category has subcategories": "Cannot delete this category because it has subcategories. Please delete or reassign them first.",
     "this specialization has subspecializations": "Cannot delete this specialization because it has subspecializations. Please delete or reassign them first.",
     "messages.invalid_phone": "The phone number is invalid.",
-    "Attachment unavailable": "This attachment is no longer available",
+    "Attachment unavailable": "Attachment unavailable",
     "Validation Failed": "Validation Failed",
-    "One of your files exceeds the 5MB limit.": "One of your files exceeds the 5MB limit.",
-    "This attachment is no longer available": "This attachment is no longer available"
+    "One of your files exceeds the 5MB limit.": "One of your files exceeds the 5MB limit."
 }

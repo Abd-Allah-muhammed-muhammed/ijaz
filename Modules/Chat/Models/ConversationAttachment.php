@@ -1,0 +1,56 @@
+<?php
+
+namespace Modules\Chat\Models;
+
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
+
+/**
+ * @deprecated Legacy custom attachment rows. New chat files use Spatie MediaLibrary
+ *             on ConversationMessage (collection `attachments`). Kept for the
+ *             chat:migrate-attachments-to-medialibrary backfill; table drop is a
+ *             later verified cleanup step.
+ */
+class ConversationAttachment extends Model
+{
+    use HasUuids;
+
+    protected $keyType = 'string';
+
+    protected $appends = [
+        'url',
+    ];
+
+    protected $hidden = [
+        'store',
+    ];
+
+    protected $fillable = [
+        'conversation_message_id', 'type', 'filename', 'path', 'store',
+    ];
+
+    public static function booted(): void
+    {
+        parent::booted();
+        static::deleted(function (ConversationAttachment $chatAttachment) {
+            if ($chatAttachment->path && Storage::disk($chatAttachment->store)->exists($chatAttachment->path)) {
+                Storage::disk($chatAttachment->store)->delete($chatAttachment->path);
+            }
+        });
+    }
+
+    public function message(): BelongsTo
+    {
+        return $this->belongsTo(ConversationMessage::class, 'conversation_message_id');
+    }
+
+    protected function url(): Attribute
+    {
+        return Attribute::get(function () {
+            return \Storage::disk($this->store)->url($this->path);
+        });
+    }
+}

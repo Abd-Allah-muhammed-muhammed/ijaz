@@ -7,13 +7,12 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Modules\Chat\Http\Controllers\Provider\OrderChatController;
-use Modules\Chat\Http\Resources\ConversationAttachmentResource;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
 use Modules\Chat\Infrastructure\Events\NewMessageEvent;
 use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationAttachment;
 use Modules\Chat\Models\ConversationMessage;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function () {
@@ -56,7 +55,7 @@ test('sending a chat message with an image attachment stores it via MediaLibrary
 
     expect($message)->not->toBeNull()
         ->and($message->getMedia('attachments'))->toHaveCount(1)
-        ->and(file_exists(base_path('Modules/Chat/Models/ConversationAttachment.php')))->toBeFalse();
+        ->and($message->attachments()->count())->toBe(0);
 });
 
 test('sending a chat message with a PDF attachment stores it via MediaLibrary and exposes filename/size correctly', function () {
@@ -116,7 +115,7 @@ test('a broadcast NewMessageEvent payload includes MediaLibrary-backed attachmen
     $httpPayload = $response->json('data');
 
     $message = ConversationMessage::query()->findOrFail($httpPayload['id']);
-    $message->loadMissing(['sender', 'media']);
+    $message->loadMissing(['sender', 'media', 'attachments']);
 
     $broadcastPayload = (new NewMessageEvent($message))->broadcastWith();
     $resourcePayload = json_decode(
@@ -173,107 +172,40 @@ test('existing chat media access control (MediaAccessService::resolveChat) still
         ->toThrow(HttpException::class);
 });
 
-test('ConversationAttachmentResource no longer references the legacy ConversationAttachment model', function () {
-    $source = file_get_contents(
-        base_path('Modules/Chat/Http/Resources/ConversationAttachmentResource.php')
-    );
-
-    expect($source)
-        ->not->toContain('Modules\\Chat\\Models\\ConversationAttachment')
-        ->not->toContain('fromLegacy')
-        ->and(class_exists('Modules\\Chat\\Models\\ConversationAttachment', false))->toBeFalse()
-        ->and(file_exists(base_path('Modules/Chat/Models/ConversationAttachment.php')))->toBeFalse();
-
-    Storage::fake('public');
-
-    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
-    $conversation = createOrderConversation($user, $provider, $order);
-
-    $message = ConversationMessage::query()->create([
-        'conversation_id' => $conversation->id,
-        'sender_type' => Provider::class,
-        'sender_id' => $provider->getKey(),
-        'receiver_type' => $user::class,
-        'receiver_id' => $user->getKey(),
-        'content' => 'media only',
-        'has_attachments' => true,
-    ]);
-
-    $media = $message
-        ->addMedia(UploadedFile::fake()->image('ok.jpg', 10, 10))
-        ->toMediaCollection('attachments', 'public');
-
-    $payload = ConversationAttachmentResource::make($media)->resolve();
-
-    expect($payload['available'])->toBeTrue()
-        ->and($payload['file_name'])->toBe('ok.jpg')
-        ->and($media)->toBeInstanceOf(Media::class);
-});
-
-test('a message with a missing MediaLibrary file shows a clear "attachment unavailable" placeholder with correct translated text, not a generic filename', function () {
-    Storage::fake('public');
-
-    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
-    $conversation = createOrderConversation($user, $provider, $order);
-
-    $message = ConversationMessage::query()->create([
-        'conversation_id' => $conversation->id,
-        'sender_type' => Provider::class,
-        'sender_id' => $provider->getKey(),
-        'receiver_type' => $user::class,
-        'receiver_id' => $user->getKey(),
-        'content' => null,
-        'has_attachments' => true,
-    ]);
-
-    // Misleading MediaLibrary "name" (what used to leak as "Test File"-style text).
-    $media = $message
-        ->addMedia(UploadedFile::fake()->create('gone.pdf', 20, 'application/pdf'))
-        ->usingName('Test File')
-        ->usingFileName('gone.pdf')
-        ->toMediaCollection('attachments', 'public');
-
-    Storage::disk('public')->delete($media->getPathRelativeToRoot());
-
-    $payload = ConversationMessageResource::make(
-        $message->fresh()->load(['media', 'sender'])
-    )->resolve();
-
-    expect($payload['attachments'])->toHaveCount(1)
-        ->and($payload['attachments'][0]['available'])->toBeFalse()
-        ->and($payload['attachments'][0]['url'])->toBe('')
-        ->and($payload['attachments'][0]['file_name'])->toBe('')
-        ->and($payload['attachments'][0]['name'])->toBeNull()
-        ->and($payload['attachments'][0]['label'])->toBe(__('This attachment is no longer available'))
-        ->and($payload['attachments'][0]['label'])->not->toContain('Test File')
-        ->and($payload['attachments'][0]['file_name'])->not->toContain('Test File');
-
-    // Flag-only message (no media rows) also gets the honest placeholder — not a fake filename.
-    $flagOnly = ConversationMessage::query()->create([
-        'conversation_id' => $conversation->id,
-        'sender_type' => Provider::class,
-        'sender_id' => $provider->getKey(),
-        'receiver_type' => $user::class,
-        'receiver_id' => $user->getKey(),
-        'content' => null,
-        'has_attachments' => true,
-    ]);
-
-    $flagPayload = ConversationMessageResource::make(
-        $flagOnly->load(['media', 'sender'])
-    )->resolve();
-
-    expect($flagPayload['attachments'])->toHaveCount(1)
-        ->and($flagPayload['attachments'][0]['available'])->toBeFalse()
-        ->and($flagPayload['attachments'][0]['file_name'])->toBe('')
-        ->and($flagPayload['attachments'][0]['label'])->toBe(__('This attachment is no longer available'));
-});
-
 test('a message with a missing/deleted attachment file renders a graceful unavailable fallback instead of blank content', function () {
     Storage::fake('public');
 
     ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
     $conversation = createOrderConversation($user, $provider, $order);
+
+    // Legacy path: conversation_attachments row whose file is gone from disk
+    // (same situation as pre-MediaLibrary rows that failed migration).
+    $legacyMessage = ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_type' => Provider::class,
+        'sender_id' => $provider->getKey(),
+        'receiver_type' => $user::class,
+        'receiver_id' => $user->getKey(),
+        'content' => null,
+        'has_attachments' => true,
+    ]);
+
+    ConversationAttachment::query()->create([
+        'conversation_message_id' => $legacyMessage->id,
+        'type' => 'pdf',
+        'filename' => 'missing-legacy.pdf',
+        'path' => 'chat/does-not-exist.pdf',
+        'store' => 'public',
+    ]);
+
+    $legacyPayload = ConversationMessageResource::make(
+        $legacyMessage->load(['media', 'attachments', 'sender'])
+    )->resolve();
+
+    expect($legacyPayload['attachments'])->toHaveCount(1)
+        ->and($legacyPayload['attachments'][0]['available'])->toBeFalse()
+        ->and($legacyPayload['attachments'][0]['file_name'])->toBe('missing-legacy.pdf')
+        ->and($legacyPayload['attachments'][0]['url'])->toBe('');
 
     // MediaLibrary path: media row exists but the backing file was deleted.
     $mediaMessage = ConversationMessage::query()->create([
@@ -293,23 +225,20 @@ test('a message with a missing/deleted attachment file renders a graceful unavai
     Storage::disk('public')->delete($media->getPathRelativeToRoot());
 
     $mediaPayload = ConversationMessageResource::make(
-        $mediaMessage->fresh()->load(['media', 'sender'])
+        $mediaMessage->fresh()->load(['media', 'attachments', 'sender'])
     )->resolve();
 
     expect($mediaPayload['attachments'])->toHaveCount(1)
         ->and($mediaPayload['attachments'][0]['available'])->toBeFalse()
-        ->and($mediaPayload['attachments'][0]['file_name'])->toBe('')
-        ->and($mediaPayload['attachments'][0]['label'])->toBe(__('This attachment is no longer available'))
+        ->and($mediaPayload['attachments'][0]['file_name'])->toBe('gone.pdf')
         ->and($mediaPayload['attachments'][0]['url'])->toBe('');
 
     // Show endpoint must surface the unavailable card (not an empty attachments array).
     $this->actingAs($provider, 'provider')
         ->getJson(action([OrderChatController::class, 'show'], ['conversation' => $conversation->id]))
         ->assertSuccessful()
-        ->assertJsonFragment([
-            'available' => false,
-            'label' => __('This attachment is no longer available'),
-        ]);
+        ->assertJsonFragment(['available' => false, 'file_name' => 'missing-legacy.pdf'])
+        ->assertJsonFragment(['available' => false, 'file_name' => 'gone.pdf']);
 });
 
 test('a message with a missing attachment file still appears in the conversation with its text content and correct position, only the attachment shows the unavailable placeholder', function () {
@@ -342,11 +271,13 @@ test('a message with a missing attachment file still appears in the conversation
         'updated_at' => now()->subMinutes(2),
     ]);
 
-    $media = $withMissing
-        ->addMedia(UploadedFile::fake()->create('vanished.pdf', 20, 'application/pdf'))
-        ->toMediaCollection('attachments', 'public');
-
-    Storage::disk('public')->delete($media->getPathRelativeToRoot());
+    ConversationAttachment::query()->create([
+        'conversation_message_id' => $withMissing->id,
+        'type' => 'pdf',
+        'filename' => 'vanished.pdf',
+        'path' => 'chat/vanished-not-on-disk.pdf',
+        'store' => 'public',
+    ]);
 
     $after = ConversationMessage::query()->create([
         'conversation_id' => $conversation->id,
@@ -380,8 +311,7 @@ test('a message with a missing attachment file still appears in the conversation
         ->and($byContent['caption still visible with missing file']['content'])->toBe('caption still visible with missing file')
         ->and($byContent['caption still visible with missing file']['attachments'])->toHaveCount(1)
         ->and($byContent['caption still visible with missing file']['attachments'][0]['available'])->toBeFalse()
-        ->and($byContent['caption still visible with missing file']['attachments'][0]['label'])
-        ->toBe(__('This attachment is no longer available'));
+        ->and($byContent['caption still visible with missing file']['attachments'][0]['file_name'])->toBe('vanished.pdf');
 
     // Neighbors remain in the same page — message kept its place in the thread.
     expect($ids)->toContain($before->id)
@@ -389,7 +319,7 @@ test('a message with a missing attachment file still appears in the conversation
 
     // Resource-level: text + unavailable attachment coexist — nothing strips the message.
     $resolved = ConversationMessageResource::make(
-        $withMissing->fresh()->load(['media', 'sender'])
+        $withMissing->fresh()->load(['media', 'attachments', 'sender'])
     )->resolve();
 
     expect($resolved['content'])->toBe('caption still visible with missing file')

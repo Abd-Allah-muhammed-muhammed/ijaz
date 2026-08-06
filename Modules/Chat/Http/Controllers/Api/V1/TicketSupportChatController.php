@@ -65,7 +65,7 @@ class TicketSupportChatController extends Controller
         );
 
         return $this->successResponse(
-            ConversationMessageResource::make($message->loadMissing(['sender', 'media']))
+            ConversationMessageResource::make($message->loadMissing(['sender', 'media', 'attachments']))
         );
     }
 }

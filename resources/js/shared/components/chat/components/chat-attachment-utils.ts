@@ -34,10 +34,11 @@ export function isImageAttachment(input: {
   type?: string;
   mime_type?: string;
   file_name?: string;
+  filename?: string;
   name?: string;
   extension?: string;
 }): boolean {
-  const name = (input.file_name || input.name || '').toLowerCase();
+  const name = (input.file_name || input.filename || input.name || '').toLowerCase();
 
   return (
     input.type === 'image' ||
@@ -50,10 +51,11 @@ export function isPdfAttachment(input: {
   type?: string;
   mime_type?: string;
   file_name?: string;
+  filename?: string;
   name?: string;
   extension?: string;
 }): boolean {
-  const name = (input.file_name || input.name || '').toLowerCase();
+  const name = (input.file_name || input.filename || input.name || '').toLowerCase();
 
   return (
     input.type === 'pdf' ||
@@ -65,7 +67,8 @@ export function isPdfAttachment(input: {
 
 export function attachmentDisplayName(input: {
   file_name?: string;
+  filename?: string;
   name?: string;
 }): string {
-  return input.file_name || input.name || 'file';
+  return input.file_name || input.filename || input.name || 'file';
 }

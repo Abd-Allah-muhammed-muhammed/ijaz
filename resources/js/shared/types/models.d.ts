@@ -461,14 +461,13 @@ export interface ConversationAttachment {
   /** Human-readable size from MediaResource (e.g. "120 KB"). */
   size?: string;
   /**
-   * False when the backing MediaLibrary file is missing/unreadable on disk.
+   * False when the backing file is missing/unreadable on disk
+   * (legacy rows that failed MediaLibrary migration, or deleted media files).
    * Omitted/true means the file can be opened.
    */
   available?: boolean;
-  /**
-   * Translated label for unavailable attachments — prefer over file_name when present.
-   */
-  label?: string;
+  /** @deprecated Prefer file_name — legacy custom-table field. */
+  filename?: string;
 }
 
 export interface Conversation extends Model {

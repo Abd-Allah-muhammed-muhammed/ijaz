@@ -804,8 +804,7 @@
     "this category has subcategories": "इस श्रेणी को हटाया नहीं जा सकता क्योंकि इसमें उपश्रेणियाँ हैं। कृपया पहले उन्हें हटाएँ या पुनः असाइन करें।",
     "this specialization has subspecializations": "इस विशेषज्ञता को हटाया नहीं जा सकता क्योंकि इसमें उप-विशेषज्ञताएँ हैं। कृपया पहले उन्हें हटाएँ या पुनः असाइन करें।",
     "messages.invalid_phone": "फ़ोन नंबर अमान्य है।",
-    "Attachment unavailable": "यह अटैचमेंट अब उपलब्ध नहीं है",
+    "Attachment unavailable": "अटैचमेंट उपलब्ध नहीं है",
     "Validation Failed": "सत्यापन विफल",
-    "One of your files exceeds the 5MB limit.": "आपकी किसी फ़ाइल का आकार 5MB की सीमा से अधिक है।",
-    "This attachment is no longer available": "यह अटैचमेंट अब उपलब्ध नहीं है"
+    "One of your files exceeds the 5MB limit.": "आपकी किसी फ़ाइल का आकार 5MB की सीमा से अधिक है।"
 }

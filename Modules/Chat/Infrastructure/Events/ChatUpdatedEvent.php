@@ -66,13 +66,13 @@ class ChatUpdatedEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterCom
 
     public function broadcastWith(): array
     {
-        $this->chat->loadMissing(['lastMessage.sender', 'lastMessage.media']);
+        $this->chat->loadMissing(['lastMessage.sender', 'lastMessage.media', 'lastMessage.attachments']);
 
         $user1 = $this->chat->user1()->is($this->sender) ? $this->sender : $this->receiver;
         $user2 = $this->chat->user2()->is($this->sender) ? $this->sender : $this->receiver;
         $lastMessage = $this->chat->lastMessage;
         $attachmentsCount = $lastMessage
-            ? $lastMessage->getMedia('attachments')->count()
+            ? ($lastMessage->getMedia('attachments')->count() ?: $lastMessage->attachments()->count())
             : 0;
 
         return [

@@ -3,6 +3,7 @@
 namespace Modules\Chat\Providers;
 
 use Illuminate\Support\Facades\Gate;
+use Modules\Chat\Console\Commands\MigrateChatAttachmentsToMediaLibraryCommand;
 use Modules\Chat\Contracts\Repositories\ConversationMessageRepositoryInterface;
 use Modules\Chat\Contracts\Repositories\ConversationRepositoryInterface;
 use Modules\Chat\Contracts\Repositories\SystemRepositoryInterface;
@@ -28,7 +29,9 @@ class ChatServiceProvider extends ModuleServiceProvider
         RouteServiceProvider::class,
     ];
 
-    protected array $commands = [];
+    protected array $commands = [
+        MigrateChatAttachmentsToMediaLibraryCommand::class,
+    ];
 
     public function register(): void
     {
