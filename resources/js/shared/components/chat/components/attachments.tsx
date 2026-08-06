@@ -1,87 +1,92 @@
-import {ConversationAttachment} from "@/shared/types/models";
-import React from "react";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFile } from '@fortawesome/free-solid-svg-icons';
+import { ConversationAttachment } from '@/shared/types/models';
+import React from 'react';
+import { KTIcon } from '@/vendor/metronic/helpers';
 import { url as appUrl } from '@/shared/helpers/general';
+import {
+  attachmentDisplayName,
+  isImageAttachment,
+  isPdfAttachment,
+} from '@/shared/components/chat/components/chat-attachment-utils';
 
 type Props = {
-  attachments: ConversationAttachment[]
-}
+  attachments: ConversationAttachment[];
+};
 
-function isImageAttachment(attachment: ConversationAttachment): boolean {
-  return attachment.type === 'image'
-    || Boolean(attachment.mime_type?.startsWith('image/'));
-}
-
-function isPdfAttachment(attachment: ConversationAttachment): boolean {
-  const name = displayName(attachment).toLowerCase();
-  return attachment.type === 'pdf'
-    || attachment.extension === 'pdf'
-    || name.endsWith('.pdf')
-    || Boolean(attachment.mime_type?.includes('pdf'));
-}
-
-function displayName(attachment: ConversationAttachment): string {
-  return attachment.file_name || attachment.filename || attachment.name || 'file';
-}
-
-const Attachments = ({attachments}: Props) => {
+/**
+ * Message-bubble attachment cards — mirrors Provider Order Show media rows
+ * (pdf.svg / doc.svg + filename + size + download).
+ */
+const Attachments = ({ attachments }: Props) => {
   return (
-    <div className="d-flex w-100 flex-wrap">
-      {attachments.map((attachment) => (
-        <div className="col-6 p-1 flex-grow-1" key={attachment.id}>
-          <div className="bg-white shadow-sm w-100 h-100 p-2 bg-opacity-25">
-            {isImageAttachment(attachment) ? (
-              <a href={attachment.url} target="_blank" rel="noreferrer">
-                <img
-                  src={attachment.url}
-                  alt={displayName(attachment)}
-                  className="w-100 rounded"
-                  style={{ maxHeight: 240, objectFit: 'cover' }}
-                />
+    <div className="d-flex flex-column w-100 gap-2 mb-2 min-w-0">
+      {attachments.map((attachment) => {
+        const name = attachmentDisplayName(attachment);
+
+        if (isImageAttachment(attachment)) {
+          return (
+            <a
+              key={attachment.id}
+              href={attachment.url}
+              target="_blank"
+              rel="noreferrer"
+              className="d-block min-w-0"
+            >
+              <img
+                src={attachment.url}
+                alt={name}
+                className="rounded w-100"
+                style={{
+                  maxHeight: 240,
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+            </a>
+          );
+        }
+
+        return (
+          <div
+            key={attachment.id}
+            className="d-flex align-items-center min-w-0 bg-white bg-opacity-25 rounded p-2"
+          >
+            <div className="symbol symbol-30px me-3 flex-shrink-0">
+              <img
+                alt=""
+                src={appUrl(
+                  isPdfAttachment(attachment)
+                    ? '/media/svg/files/pdf.svg'
+                    : '/media/svg/files/doc.svg',
+                )}
+              />
+            </div>
+            <div className="fw-semibold flex-grow-1 min-w-0">
+              <a
+                className="fs-6 fw-bold text-gray-900 text-hover-primary text-break d-block"
+                href={attachment.url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {name}
               </a>
-            ) : (
-              <div className="d-flex align-items-center gap-3 h-100">
-                <div className="symbol symbol-40px">
-                  <img
-                    alt=""
-                    src={appUrl(
-                      isPdfAttachment(attachment)
-                        ? '/media/svg/files/pdf.svg'
-                        : '/media/svg/files/doc.svg',
-                    )}
-                  />
-                </div>
-                <div className="fw-semibold flex-grow-1 min-w-0">
-                  <a
-                    className="fs-6 fw-bold text-gray-900 text-hover-primary text-break"
-                    href={attachment.url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {displayName(attachment)}
-                  </a>
-                  {attachment.size ? (
-                    <div className="text-gray-500 fs-8">{attachment.size}</div>
-                  ) : null}
-                </div>
-                <a
-                  href={attachment.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn btn-icon btn-sm btn-active-light-primary"
-                  aria-label="download"
-                >
-                  <FontAwesomeIcon icon={faFile} />
-                </a>
-              </div>
-            )}
+              {attachment.size ? (
+                <div className="text-gray-500 fs-8">{attachment.size}</div>
+              ) : null}
+            </div>
+            <a
+              href={attachment.url}
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-clean btn-sm btn-icon btn-icon-primary btn-active-light-primary ms-2 flex-shrink-0"
+              aria-label="download"
+            >
+              <KTIcon iconName="arrow-down" className="fs-1" />
+            </a>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
-}
+};
 
-
-export default Attachments
+export default Attachments;

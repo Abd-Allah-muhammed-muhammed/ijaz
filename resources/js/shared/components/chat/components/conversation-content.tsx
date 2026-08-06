@@ -6,12 +6,11 @@ import ProviderOrderChatController from "@/actions/Modules/Chat/Http/Controllers
 import { ChatEventEnum } from "@/Enums/Chat";
 import MessageIn from "@/shared/components/chat/components/message-in";
 import MessageOut from "@/shared/components/chat/components/message-out";
-import ActionButton from "@/shared/components/action-button";
+import ChatComposer from "@/shared/components/chat/components/chat-composer";
+import { formatFileSize } from "@/shared/components/chat/components/chat-attachment-utils";
 import { useTranslation } from "react-i18next";
 import { Button } from "react-bootstrap";
 import { KTIcon } from "@/vendor/metronic/helpers";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import type { SingleApiResponse, ConversationMessagePaginationResource } from "@/shared/types/api";
 
 type Props = {
@@ -44,8 +43,11 @@ const ConversationContent = ({ }: Props) => {
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [loadingMessages, setLoadingMessages] = useState<boolean>(false);
   const [sending, setSending] = useState<boolean>(false);
+  const [message, setMessage] = useState<ChatMessage>({
+    content: '',
+    files: []
+  });
   const messagesBox = useRef<HTMLDivElement>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
   const scrollToMessageEnd = () => {
     if (messagesBox.current) {
       messagesBox.current.scrollTop = messagesBox.current.scrollHeight;
@@ -107,7 +109,7 @@ const ConversationContent = ({ }: Props) => {
               type: (file.type.split('/')[0] || 'application'),
               url: URL.createObjectURL(file),
               extension: file.name.includes('.') ? file.name.split('.').pop() : '',
-              size: `${Math.max(1, Math.round(file.size / 1024))} KB`,
+              size: formatFileSize(file.size),
             })),
           } as ConversationMessage;
 
@@ -119,17 +121,6 @@ const ConversationContent = ({ }: Props) => {
       setSending(false);
     }
   }
-
-  const onEnterPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      void sendMessage();
-    }
-  }
-  const [message, setMessage] = useState<ChatMessage>({
-    content: '',
-    files: []
-  });
 
   const user = currentConversation?.user1?.socket_id !== currentSocketId ? currentConversation?.user1 : currentConversation?.user2;
   useEffect(() => {
@@ -197,7 +188,7 @@ const ConversationContent = ({ }: Props) => {
 
   }, [currentConversation]);
   return (
-    <div className='card d-flex h-100 flex-column'>
+    <div className='card d-flex h-100 flex-column min-w-0'>
       <div className='card-header' id='kt_chat_messenger_header'>
         <div className='card-title'>
           <div className='symbol-group symbol-hover'></div>
@@ -227,72 +218,31 @@ const ConversationContent = ({ }: Props) => {
           </div>
         </div>
       </div>
-      <div ref={messagesBox} className='card-body d-flex flex-column flex-grow-1 scroll-y me-n5 pe-5  mb-5'>
+      <div ref={messagesBox} className='card-body d-flex flex-column flex-grow-1 scroll-y me-n5 pe-5 mb-5 min-w-0'>
         {loadingMessages && messages.length === 0 ? (
           <div className="text-center text-muted py-10">{t('Please wait...')}</div>
         ) : null}
-        {messages.map((message, index) => {
-          const sender = message.sender as ConversationUser;
+        {messages.map((messageItem, index) => {
+          const sender = messageItem.sender as ConversationUser;
 
-          if (!message.read_at) {
+          if (!messageItem.read_at) {
             unreadMessageIndex.push(index);
           }
 
           if (sender.socket_id !== currentSocketId) {
-            return <MessageIn conversationMessage={message} key={message.id} />;
+            return <MessageIn conversationMessage={messageItem} key={messageItem.id} />;
           }
-          return <MessageOut conversationMessage={message} key={message.id} />;
+          return <MessageOut conversationMessage={messageItem} key={messageItem.id} />;
         })}
       </div>
-      <div className='card-footer pt-4'>
-        <textarea
-          className='form-control form-control-flush mb-3'
-          rows={1}
-          value={message.content}
-          data-kt-element='input'
-          placeholder={t('Type a message')}
-          onChange={(e) => setMessage(prevState => ({
-            ...prevState,
-            content: e.target.value
-          }))}
-          onKeyDown={onEnterPress}
-        />
-        <div className='d-flex justify-content-end gap-1'>
-          <input type="file" className="d-none"
-            ref={fileRef}
-            accept=".jpg,.jpeg,.png,.gif,.pdf,image/jpeg,image/png,image/gif,application/pdf"
-            onChange={(e) => setMessage(prevState => ({
-              ...prevState,
-              files: Array.from(e.target.files || []).map(i => i as File)
-            }))}
-            multiple
-          />
-          <div className="btn-group" role="group">
-            <a className="btn p-3 shadow-xs"
-              onClick={(e) => {
-                e.preventDefault();
-                if (fileRef.current?.disabled) return;
-                fileRef.current?.click();
-              }}
-            >
-              {message.files.length ||
-                <FontAwesomeIcon icon={faPaperclip} />}
-            </a>
-            {Boolean(message.files.length) &&
-              <a className="btn p-3 shadow-xs"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setMessage(prevState => ({
-                    ...prevState,
-                    files: [],
-                  }))
-                }}
-              >X</a>
-            }
-          </div>
-          <ActionButton isProcessing={sending} type="button" onClick={() => void sendMessage()} text={t('send')} />
-        </div>
-      </div>
+      <ChatComposer
+        content={message.content}
+        files={message.files}
+        isProcessing={sending}
+        onContentChange={(content) => setMessage((prev) => ({ ...prev, content }))}
+        onFilesChange={(files) => setMessage((prev) => ({ ...prev, files }))}
+        onSend={() => void sendMessage()}
+      />
     </div>
   );
 };
