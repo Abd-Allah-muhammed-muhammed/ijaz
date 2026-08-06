@@ -148,8 +148,11 @@ DB_USERNAME=ijaz_main
 DB_PASSWORD=
 
 # Firebase Cloud Messaging (config/services.php → services.firebase)
-# Service-account JSON path; defaults to storage/ijaz.json when empty
+# Place the Google service-account JSON at:
+#   storage/app/firebase/ijaz.json
+# (gitignored; not web-accessible). Or set an absolute path:
 FIREBASE_AUTH_FILE_PATH=
+# Default when empty: {project}/storage/app/firebase/ijaz.json
 ```
 
 Push notifications use Laravel’s Notification system (`firebase` channel →

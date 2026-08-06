@@ -363,7 +363,7 @@ Brief staleness is acceptable for badges / summary dashboards. **Do not** add `L
 - `config/auth.php` — guards / providers
 - `config/broadcasting.php` — Reverb
 - `config/cache.php` — default store + `serializable_classes` allow-list for LookupCache
-- `config/services.php` → `firebase` — FCM credentials path, OAuth cache key, token TTL skew, endpoints
+- `config/services.php` → `firebase` — FCM credentials path (`FIREBASE_AUTH_FILE_PATH`, default `storage/app/firebase/ijaz.json`), OAuth cache key, token TTL skew, endpoints. Credentials live under `storage/app/firebase/` (gitignored; never commit).
 - Push path: `DomainNotification` / Chat `NewMessageSentNotification` → `FirebaseChannel` (loops all `device_tokens` Targets) → `FirebaseService::send(OutgoingFirebaseMessage)` (stateless; no mutable fluent state)
 - Content DTO: `FirebaseNotificationContent` (renamed from `Message`)
 - Devices: polymorphic `device_tokens` via `HasDeviceTokens` on User/Provider (relationship + Firebase routing only). Business logic in `RegisterDeviceTokenAction` / `ClearDeviceTokenAction` / `ClearAllDeviceTokensAction`. Legacy `users.player_id` is backfilled via `device-tokens:backfill-from-player-id`, then dropped by a separate guarded migration — not auto-dropped on first migrate.
