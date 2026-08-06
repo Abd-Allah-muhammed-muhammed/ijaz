@@ -98,7 +98,16 @@ parallel pool and run alone via `composer test:serial`.
 | `POST /api/v1/user/auth/logout` | Revokes **only** the current Sanctum token; clears the FCM token if `player_id` or `device_token` is sent |
 | `POST /api/v1/user/auth/logout-all` | Revokes **all** Sanctum tokens and clears **all** `device_tokens` for the user |
 
-`users.player_id` was replaced by polymorphic `device_tokens` (auto-backfilled on migrate — no mobile migration step). Push notifications fan out to every registered device.
+Push notifications fan out to every registered `device_tokens` row. Mobile still sends `player_id` on verify/logout (legacy field name) — no mobile schema change.
+
+### Production deploy — `device_tokens` (3 deliberate steps)
+
+Do **not** treat create + backfill + drop as one automatic migrate. Sequence:
+
+1. **Deploy + migrate** — creates `device_tokens` only (`2026_08_06_064514_create_device_tokens_table`).
+2. **Backfill** — `php artisan device-tokens:backfill-from-player-id --dry-run` first, review counts, then run without `--dry-run`. Idempotent; safe to re-run.
+3. **Verify** — compare non-null `users.player_id` count vs matching `device_tokens` rows (command report + spot-check).
+4. **Drop column** — only then run `php artisan migrate` again (or `--path=database/migrations/2026_08_06_064515_drop_player_id_from_users_table.php`). That migration **aborts** if any unmigrated `player_id` remains.
 
 ## Notes
 

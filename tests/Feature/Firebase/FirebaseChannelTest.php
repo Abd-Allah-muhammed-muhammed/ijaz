@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\DeviceToken\RegisterDeviceTokenAction;
 use App\Models\DeviceToken;
 use App\Models\Provider;
 use App\Models\User;
@@ -157,7 +158,7 @@ test('a Firebase send failure does not prevent the database and broadcast channe
     });
 
     $user = User::factory()->create(['language' => 'en']);
-    $user->registerDeviceToken('device-token');
+    app(RegisterDeviceTokenAction::class)->handle($user, 'device-token');
 
     $user->notifyNow(new MultiChannelFirebaseIsolationNotification);
 
@@ -173,7 +174,7 @@ test('a Firebase send failure does not block database when firebase is listed fi
     });
 
     $user = User::factory()->create(['language' => 'en']);
-    $user->registerDeviceToken('device-token');
+    app(RegisterDeviceTokenAction::class)->handle($user, 'device-token');
 
     $user->notifyNow(new MultiChannelFirebaseIsolationNotification(
         viaOrder: ['firebase', 'database', 'broadcast'],

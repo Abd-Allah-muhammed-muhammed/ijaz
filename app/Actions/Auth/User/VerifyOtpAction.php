@@ -2,6 +2,7 @@
 
 namespace App\Actions\Auth\User;
 
+use App\Actions\DeviceToken\RegisterDeviceTokenAction;
 use App\Contracts\Auth\HasOTPsContract;
 use App\Contracts\Auth\OtpRepositoryInterface;
 use App\Contracts\Auth\OtpSessionRepositoryInterface;
@@ -23,6 +24,7 @@ class VerifyOtpAction
     public function __construct(
         private readonly OtpRepositoryInterface $otpRepository,
         private readonly OtpSessionRepositoryInterface $otpSessionRepository,
+        private readonly RegisterDeviceTokenAction $registerDeviceTokenAction,
     ) {}
 
     /**
@@ -144,7 +146,7 @@ class VerifyOtpAction
         $user->loadCount('unreadNotifications');
 
         if (filled($playerId)) {
-            $user->registerDeviceToken($playerId);
+            $this->registerDeviceTokenAction->handle($user, $playerId);
         }
 
         return OtpVerifyResult::sessionSuccess(

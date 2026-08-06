@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\DeviceToken\RegisterDeviceTokenAction;
 use App\Actions\User\UpdateUserStatusAction;
 use App\DTOs\User\UpdateUserStatusDTO;
 use App\Enums\Users\UserStatusEnum;
@@ -8,22 +9,20 @@ use App\Models\User;
 use App\NotificationChannels\FirebaseChannel;
 use App\Notifications\DomainNotification;
 use App\Services\Firebase\FirebaseService;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\Sanctum;
 use Mockery\MockInterface;
 
 test('registering a device token upserts and reassigns ownership if another account previously owned that token', function () {
     $ownerA = User::factory()->create();
     $ownerB = User::factory()->create();
+    $register = app(RegisterDeviceTokenAction::class);
 
-    $ownerA->registerDeviceToken('shared-fcm-token', 'android', 'Family Phone');
+    $register->handle($ownerA, 'shared-fcm-token', 'android', 'Family Phone');
 
     expect(DeviceToken::query()->where('token', 'shared-fcm-token')->count())->toBe(1)
         ->and($ownerA->deviceTokens()->where('token', 'shared-fcm-token')->exists())->toBeTrue();
 
-    $ownerB->registerDeviceToken('shared-fcm-token', 'android', 'Family Phone');
+    $register->handle($ownerB, 'shared-fcm-token', 'android', 'Family Phone');
 
     expect(DeviceToken::query()->where('token', 'shared-fcm-token')->count())->toBe(1)
         ->and($ownerA->fresh()->deviceTokens()->where('token', 'shared-fcm-token')->exists())->toBeFalse()
@@ -53,8 +52,9 @@ test('a user can be logged in on two devices simultaneously without either sessi
 
 test('firebase channel sends to every registered device token for a notifiable', function () {
     $user = User::factory()->create(['language' => 'en']);
-    $user->registerDeviceToken('device-one');
-    $user->registerDeviceToken('device-two');
+    $register = app(RegisterDeviceTokenAction::class);
+    $register->handle($user, 'device-one');
+    $register->handle($user, 'device-two');
 
     $sentTokens = [];
 
@@ -107,8 +107,9 @@ test('firebase channel sends to every registered device token for a notifiable',
 
 test('single-device logout revokes only the current session, other devices remain logged in', function () {
     $user = User::factory()->create(['status' => UserStatusEnum::Active]);
-    $user->registerDeviceToken('device-a');
-    $user->registerDeviceToken('device-b');
+    $register = app(RegisterDeviceTokenAction::class);
+    $register->handle($user, 'device-a');
+    $register->handle($user, 'device-b');
 
     $accessA = $user->createToken('user-app', ['*']);
     $accessB = $user->createToken('user-app', ['*']);
@@ -143,8 +144,9 @@ test('single-device logout revokes only the current session, other devices remai
 
 test('logout-all-devices revokes every sanctum token and clears every device token', function () {
     $user = User::factory()->create(['status' => UserStatusEnum::Active]);
-    $user->registerDeviceToken('device-a');
-    $user->registerDeviceToken('device-b');
+    $register = app(RegisterDeviceTokenAction::class);
+    $register->handle($user, 'device-a');
+    $register->handle($user, 'device-b');
     $user->createToken('user-app', ['*']);
     $user->createToken('user-app', ['*']);
 
@@ -160,7 +162,7 @@ test('logout-all-devices revokes every sanctum token and clears every device tok
 
 test('banning or deleting a user clears all their device tokens', function () {
     $banned = User::factory()->create(['status' => UserStatusEnum::Active]);
-    $banned->registerDeviceToken('ban-token');
+    app(RegisterDeviceTokenAction::class)->handle($banned, 'ban-token');
     $banned->createToken('user-app', ['*']);
 
     app(UpdateUserStatusAction::class)->handle(
@@ -172,7 +174,7 @@ test('banning or deleting a user clears all their device tokens', function () {
         ->and($banned->deviceTokens()->count())->toBe(0);
 
     $deleted = User::factory()->create(['status' => UserStatusEnum::Active]);
-    $deleted->registerDeviceToken('delete-token');
+    app(RegisterDeviceTokenAction::class)->handle($deleted, 'delete-token');
     $deleted->createToken('user-app', ['*']);
 
     app(UpdateUserStatusAction::class)->handle(
@@ -182,58 +184,4 @@ test('banning or deleting a user clears all their device tokens', function () {
 
     expect($deleted->fresh()->tokens()->count())->toBe(0)
         ->and($deleted->deviceTokens()->count())->toBe(0);
-});
-
-test('existing player_id values are automatically migrated into device_tokens on migration', function () {
-    // Simulate the pre-migration column, then re-run the backfill SQL from the migration.
-    if (! Schema::hasColumn('users', 'player_id')) {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('player_id')->nullable();
-        });
-    }
-
-    $user = User::factory()->create();
-    DB::table('users')->where('id', $user->id)->update([
-        'player_id' => 'legacy-player-token',
-        'updated_at' => now()->subDay(),
-    ]);
-
-    DeviceToken::query()->where('token', 'legacy-player-token')->delete();
-
-    $now = now();
-    $userClass = (new User)->getMorphClass();
-
-    DB::table('users')
-        ->whereNotNull('player_id')
-        ->where('player_id', '!=', '')
-        ->where('id', $user->id)
-        ->orderBy('id')
-        ->chunkById(200, function ($users) use ($userClass, $now): void {
-            $rows = [];
-
-            foreach ($users as $row) {
-                $rows[] = [
-                    'tokenable_type' => $userClass,
-                    'tokenable_id' => $row->id,
-                    'token' => $row->player_id,
-                    'platform' => null,
-                    'device_name' => null,
-                    'last_used_at' => $row->updated_at ?? $now,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
-            }
-
-            DB::table('device_tokens')->insertOrIgnore($rows);
-        });
-
-    expect(DeviceToken::query()
-        ->where('tokenable_id', $user->id)
-        ->where('tokenable_type', $userClass)
-        ->where('token', 'legacy-player-token')
-        ->exists())->toBeTrue();
-
-    Schema::table('users', function (Blueprint $table) {
-        $table->dropColumn('player_id');
-    });
 });

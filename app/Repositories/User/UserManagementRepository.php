@@ -81,7 +81,6 @@ class UserManagementRepository implements UserManagementRepositoryInterface
     public function revokeTokens(User $user): void
     {
         $user->tokens()->delete();
-        $user->clearAllDeviceTokens();
     }
 
     public function countAll(): int

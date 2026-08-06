@@ -72,9 +72,5 @@ class AccountRepository implements AccountRepositoryInterface
     public function revokeTokens(Model $user): void
     {
         $user->tokens()->delete();
-
-        if (method_exists($user, 'clearAllDeviceTokens')) {
-            $user->clearAllDeviceTokens();
-        }
     }
 }

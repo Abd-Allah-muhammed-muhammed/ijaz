@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\DeviceToken\RegisterDeviceTokenAction;
 use App\Enums\Users\UserStatusEnum;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
@@ -11,7 +12,7 @@ test('logout all devices endpoint requires authentication', function () {
 
 test('logout all devices clears tokens and device tokens for the authenticated user', function () {
     $user = User::factory()->create(['status' => UserStatusEnum::Active]);
-    $user->registerDeviceToken('endpoint-device');
+    app(RegisterDeviceTokenAction::class)->handle($user, 'endpoint-device');
     $user->createToken('user-app', ['*']);
 
     Sanctum::actingAs($user, ['*'], 'user-api');

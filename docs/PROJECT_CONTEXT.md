@@ -258,7 +258,7 @@ Shipped on `feature/project-wide-caching`. **Do not re-audit from scratch** or i
 | Tests | `tests/Unit/Support/LookupCacheTest.php` + per-domain `*LookupCacheTest.php` (cold vs warm equality + query-count drop) |
 | Test hygiene | `Tests\TestCase` flushes LookupCache between tests; `TestingDatabaseGuard` aborts if config is cached or DB is not sqlite `:memory:` |
 | Test runner | Default `composer test` = Pest Parallel (`--processes=8 --exclude-group=serial`). Quarantined race test: `composer test:serial`. Full coverage: `composer test:all` (see README) |
-| Push devices | Polymorphic `device_tokens` (User + Provider via `HasDeviceTokens`). OTP verify registers FCM token; logout = current Sanctum + optional device clear; `POST /api/v1/user/auth/logout-all` wipes all Sanctum + device tokens. Ban/delete also clears device tokens. |
+| Push devices | Polymorphic `device_tokens` (User + Provider via `HasDeviceTokens` data-access trait; register/clear via `App\Actions\DeviceToken\*`). OTP verify registers FCM token; logout = current Sanctum + optional device clear; `POST /api/v1/user/auth/logout-all` wipes all Sanctum + device tokens. Ban/delete also clears device tokens. **Prod:** create table → `device-tokens:backfill-from-player-id` → verify → drop `player_id` (migration aborts if unmigrated rows remain). |
 
 ```php
 // Forever — invalidate only via forget*()
@@ -366,7 +366,7 @@ Brief staleness is acceptable for badges / summary dashboards. **Do not** add `L
 - `config/services.php` → `firebase` — FCM credentials path, OAuth cache key, token TTL skew, endpoints
 - Push path: `DomainNotification` / Chat `NewMessageSentNotification` → `FirebaseChannel` (loops all `device_tokens` Targets) → `FirebaseService::send(OutgoingFirebaseMessage)` (stateless; no mutable fluent state)
 - Content DTO: `FirebaseNotificationContent` (renamed from `Message`)
-- Devices: polymorphic `device_tokens` via `HasDeviceTokens` on User/Provider; `users.player_id` removed (auto-backfilled on migrate)
+- Devices: polymorphic `device_tokens` via `HasDeviceTokens` on User/Provider (relationship + Firebase routing only). Business logic in `RegisterDeviceTokenAction` / `ClearDeviceTokenAction` / `ClearAllDeviceTokensAction`. Legacy `users.player_id` is backfilled via `device-tokens:backfill-from-player-id`, then dropped by a separate guarded migration — not auto-dropped on first migrate.
 - **Decision point:** live FCM payload is `notification` + `data` only. A former unused `notify()` path also set `android.priority` / APNs headers — never called from the channel; re-add only if mobile needs it.
 - `config/otp.php` — OTP TTLs by purpose
 - Spatie permission cache — `config('permission.cache')` (package default; key `spatie.permission.cache`)
