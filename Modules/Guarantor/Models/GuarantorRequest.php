@@ -2,6 +2,7 @@
 
 namespace Modules\Guarantor\Models;
 
+use App\Support\HasWebpImageConversion;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -19,10 +20,11 @@ use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class GuarantorRequest extends Model implements HasMedia
 {
-    use HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
+    use HasFactory, HasUuids, HasWebpImageConversion, InteractsWithMedia, SoftDeletes;
 
     protected $keyType = 'string';
 
@@ -129,6 +131,21 @@ class GuarantorRequest extends Model implements HasMedia
 
         $this->addMediaCollection('files')
             ->useDisk('public');
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->registerWebpImageConversion($media);
+    }
+
+    /**
+     * Images in `files` only — never convert signatures (legal document integrity).
+     *
+     * @return list<string>
+     */
+    protected function webpConversionCollections(): ?array
+    {
+        return ['files'];
     }
 
     protected static function booted(): void

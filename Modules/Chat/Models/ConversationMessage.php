@@ -2,6 +2,7 @@
 
 namespace Modules\Chat\Models;
 
+use App\Support\HasWebpImageConversion;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ConversationMessage extends Model implements HasMedia
 {
-    use HasUuids, InteractsWithMedia, SoftDeletes;
+    use HasUuids, HasWebpImageConversion, InteractsWithMedia, SoftDeletes;
 
     protected $keyType = 'string';
 
@@ -31,17 +32,15 @@ class ConversationMessage extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
-        // Images only — PDFs and other non-image attachments must never enter the WebP pipeline.
-        if ($media === null || ! str_starts_with((string) $media->mime_type, 'image/')) {
-            return;
-        }
+        $this->registerWebpImageConversion($media);
+    }
 
-        $this->addMediaConversion('webp')
-            ->performOnCollections('attachments')
-            ->format('webp')
-            ->quality(82)
-            ->width(1920)
-            ->queued();
+    /**
+     * @return list<string>
+     */
+    protected function webpConversionCollections(): ?array
+    {
+        return ['attachments'];
     }
 
     public function chat(): BelongsTo

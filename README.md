@@ -229,9 +229,9 @@ Paste this content:
 ```ini
 [program:ijaz-default-worker]
 process_name=%(program_name)s_%(process_num)02d
-; Listen to default + opportunities (hourly ExpireOpportunityJob — low volume,
-; no dedicated worker needed). Queue order = priority: default first.
-command=php /home/ijaz/project/artisan queue:work --sleep=3 --tries=3 --queue=default,opportunities --timeout=0
+; Listen to default + opportunities + media-conversions (WebP image conversions —
+; bursty with uploads, lower priority than default). Queue order = priority.
+command=php /home/ijaz/project/artisan queue:work --sleep=3 --tries=3 --queue=default,opportunities,media-conversions --timeout=0
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -314,9 +314,14 @@ this README):
 sudo nano /etc/supervisor/conf.d/ijaz.conf
 # Change the ijaz-default-worker command line from:
 #   --queue=default
+# (or --queue=default,opportunities)
 # to:
-#   --queue=default,opportunities
-
+#   --queue=default,opportunities,media-conversions
+#
+# media-conversions = Spatie MediaLibrary WebP conversions (Chat, Classifieds,
+# Orders, Opportunity, Jobs, Guarantor `files` images). Appended to the default
+# worker (not a dedicated program): conversion volume is bursty with uploads and
+# lower priority than notifications — keep default/opportunities ahead in the list.
 # 2. Reload Supervisor and restart only the default workers
 sudo supervisorctl reread
 sudo supervisorctl update
@@ -420,9 +425,8 @@ sudo nano /etc/supervisor/conf.d/ijaz.conf
 ; --- Replaced by [program:ijaz-horizon] (Redis + Horizon) ---
 ;[program:ijaz-default-worker]
 ;process_name=%(program_name)s_%(process_num)02d
-;; Listen to default + opportunities (hourly ExpireOpportunityJob — low volume,
-;; no dedicated worker needed). Queue order = priority: default first.
-;command=php /home/ijaz/project/artisan queue:work --sleep=3 --tries=3 --queue=default,opportunities --timeout=0
+;; Listen to default + opportunities + media-conversions. Queue order = priority.
+;command=php /home/ijaz/project/artisan queue:work --sleep=3 --tries=3 --queue=default,opportunities,media-conversions --timeout=0
 ;autostart=true
 ;autorestart=true
 ;stopasgroup=true
@@ -465,8 +469,8 @@ stopwaitsecs=3600
 ```
 
 Horizon supervisors in `config/horizon.php` already cover `default`,
-`opportunities`, and `guarantor` (same split as the old Worker programs).
-
+`opportunities`, `media-conversions`, and `guarantor` (same split as the old
+Worker programs — media conversions ride on `supervisor-default`).
 #### 5. Apply Supervisor changes
 
 ```bash

@@ -27,13 +27,15 @@ class MediaResource extends JsonResource
 
     protected function getUrlForUser(): string
     {
+        // Prefer queued WebP conversion when ready; otherwise original URL
+        // (PDFs / KYC / pending conversions never have `webp` generated).
         if ($this->disk === 'public') {
-            return $this->getFullUrl();
+            return $this->getAvailableFullUrl(['webp']);
         }
         if (in_array($this->collection_name, ProviderTypeFilesEnum::collect()->pluck('value')->toArray(), true)) {
             return route('media.file-path', $this);
         }
 
-        return $this->getFullUrl();
+        return $this->getAvailableFullUrl(['webp']);
     }
 }

@@ -512,7 +512,7 @@ test('uploading an image chat attachment queues a webp conversion', function () 
         )
         ->assertSuccessful();
 
-    Bus::assertDispatched(PerformConversionsJob::class);
+    Bus::assertDispatched(PerformConversionsJob::class, fn ($job) => $job->queue === 'media-conversions');
 });
 
 test('PDF attachments are never sent through webp conversion', function () {

@@ -4,6 +4,7 @@ namespace Modules\Orders\Models;
 
 use App\Models\Provider;
 use App\Models\User;
+use App\Support\HasWebpImageConversion;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -25,12 +26,13 @@ use Modules\Orders\Observers\OrderObserver;
 use Modules\Reviews\Concerns\Reviewable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[ObservedBy(OrderObserver::class)]
 class Order extends Model implements HasMedia
 {
     /** @use HasFactory<OrderFactory> */
-    use HasFactory, HasUuids, InteractsWithMedia, Reviewable;
+    use HasFactory, HasUuids, HasWebpImageConversion, InteractsWithMedia, Reviewable;
 
     protected $attributes = [
         'status' => OrderStatusEnum::New,
@@ -126,5 +128,10 @@ class Order extends Model implements HasMedia
     protected function providerTotal(): Attribute
     {
         return Attribute::get(static fn ($value, array $attributes) => $value ?? (($attributes['price'] ?? 0) - ($attributes['provider_fees'] ?? 0)));
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->registerWebpImageConversion($media);
     }
 }

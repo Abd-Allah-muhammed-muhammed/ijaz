@@ -202,7 +202,7 @@ return [
         // Mirrors former Supervisor split: default+opportunities vs dedicated guarantor.
         'supervisor-default' => [
             'connection' => 'redis',
-            'queue' => ['default', 'opportunities'],
+            'queue' => ['default', 'opportunities', 'media-conversions'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,

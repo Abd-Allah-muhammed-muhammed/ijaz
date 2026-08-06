@@ -3,6 +3,7 @@
 namespace Modules\Classifieds\Models;
 
 use App\Support\HasNormalizedAttributes;
+use App\Support\HasWebpImageConversion;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,10 +20,11 @@ use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class InstituteAdvisement extends Model implements HasMedia
 {
-    use HasFactory, HasNormalizedAttributes, InteractsWithMedia;
+    use HasFactory, HasNormalizedAttributes, HasWebpImageConversion, InteractsWithMedia;
 
     protected string $default_image = 'media/avatars/blank.png';
 
@@ -151,5 +153,10 @@ class InstituteAdvisement extends Model implements HasMedia
             'title' => 'normalized_title',
             'description' => 'normalized_description',
         ];
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->registerWebpImageConversion($media);
     }
 }

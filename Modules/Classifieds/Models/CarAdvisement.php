@@ -3,6 +3,7 @@
 namespace Modules\Classifieds\Models;
 
 use App\Support\HasNormalizedAttributes;
+use App\Support\HasWebpImageConversion;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,10 +23,11 @@ use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class CarAdvisement extends Model implements HasMedia
 {
-    use HasFactory, HasNormalizedAttributes, InteractsWithMedia;
+    use HasFactory, HasNormalizedAttributes, HasWebpImageConversion, InteractsWithMedia;
 
     protected string $default_image = 'media/avatars/blank.png';
 
@@ -168,5 +170,10 @@ class CarAdvisement extends Model implements HasMedia
     protected static function newFactory(): Factory
     {
         return CarAdvisementFactory::new();
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->registerWebpImageConversion($media);
     }
 }
