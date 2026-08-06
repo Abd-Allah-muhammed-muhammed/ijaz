@@ -36,7 +36,7 @@ const Attachments = ({ attachments }: Props) => {
               key={attachment.id}
               className={`d-flex align-items-center min-w-0 rounded px-2 py-2 border border-dashed border-gray-400 ${spacing}`}
               style={{ backgroundColor: 'rgba(255, 255, 255, 0.35)' }}
-              title={t('Attachment unavailable')}
+              title={t('This attachment is no longer available')}
             >
               <div className="symbol symbol-30px me-3 flex-shrink-0">
                 <span className="symbol-label bg-light-danger">
@@ -45,13 +45,10 @@ const Attachments = ({ attachments }: Props) => {
               </div>
               <div className="fw-semibold flex-grow-1 min-w-0 overflow-hidden">
                 <div className="fs-7 fw-bold text-gray-700 text-truncate">
-                  {t('Attachment unavailable')}
+                  {attachment.label?.trim()
+                    ? attachment.label
+                    : t('This attachment is no longer available')}
                 </div>
-                {name ? (
-                  <div className="text-gray-500 fs-8 text-truncate" title={name}>
-                    {name}
-                  </div>
-                ) : null}
               </div>
             </div>
           );

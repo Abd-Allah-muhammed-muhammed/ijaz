@@ -41,7 +41,7 @@ class ConversationMessageRepository implements ConversationMessageRepositoryInte
         int $perPage = 20,
     ): LengthAwarePaginator {
         return $conversation->messages()
-            ->with(['sender', 'receiver', 'media', 'attachments'])
+            ->with(['sender', 'receiver', 'media'])
             ->latest()
             ->paginate($perPage);
     }
@@ -51,7 +51,7 @@ class ConversationMessageRepository implements ConversationMessageRepositoryInte
         int $limit = 20,
     ): Collection {
         return $conversation->messages()
-            ->with(['media', 'sender', 'attachments'])
+            ->with(['media', 'sender'])
             ->latest()
             ->take($limit)
             ->get()

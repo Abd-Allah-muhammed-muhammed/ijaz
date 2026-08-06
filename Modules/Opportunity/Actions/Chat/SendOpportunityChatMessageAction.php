@@ -36,7 +36,7 @@ class SendOpportunityChatMessageAction
             $this->chatTypeRegistry->get(ChatTypeEnum::Opportunity),
         );
 
-        $message->loadMissing(['sender', 'media', 'attachments']);
+        $message->loadMissing(['sender', 'media']);
 
         return $message;
     }
