@@ -4,6 +4,7 @@ namespace Modules\Chat\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Chat\Actions\BroadcastTypingAction;
 use Modules\Chat\Actions\ListConversationsAction;
 use Modules\Chat\Actions\ListMessagesAction;
 use Modules\Chat\Actions\OpenConversationAction;
@@ -25,6 +26,7 @@ class ConversationService
         private readonly ListConversationsAction $listAction,
         private readonly ListMessagesAction $listMessagesAction,
         private readonly SendMessageAction $sendAction,
+        private readonly BroadcastTypingAction $broadcastTypingAction,
         private readonly ConversationRepositoryInterface $conversations,
         private readonly ConversationMessageRepositoryInterface $messages,
     ) {}
@@ -80,6 +82,14 @@ class ConversationService
         $handler = $this->registry->get($type);
 
         return $this->sendAction->handle($conversation, $actor, $data, $handler);
+    }
+
+    /**
+     * Lightweight presence-channel typing ping for other participants.
+     */
+    public function typing(Conversation $conversation, Model $actor): void
+    {
+        $this->broadcastTypingAction->handle($conversation, $actor);
     }
 
     public function getHandler(ChatTypeEnum $type): ChatTypeHandlerInterface

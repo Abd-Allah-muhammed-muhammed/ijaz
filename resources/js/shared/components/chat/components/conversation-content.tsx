@@ -8,7 +8,9 @@ import MessageIn from "@/shared/components/chat/components/message-in";
 import MessageOut from "@/shared/components/chat/components/message-out";
 import ChatComposer from "@/shared/components/chat/components/chat-composer";
 import ChatMessagesSkeleton from "@/shared/components/chat/components/chat-messages-skeleton";
+import ChatTypingIndicator from "@/shared/components/chat/components/chat-typing-indicator";
 import { formatFileSize } from "@/shared/components/chat/components/chat-attachment-utils";
+import { useChatTyping } from "@/shared/components/chat/hooks/use-chat-typing";
 import { useTranslation } from "react-i18next";
 import { Button } from "react-bootstrap";
 import { KTIcon } from "@/vendor/metronic/helpers";
@@ -152,6 +154,19 @@ const ConversationContent = ({ }: Props) => {
   const stickToBottomRef = useRef(true);
   /** Ignore onScroll while we programmatically jump to bottom. */
   const ignoreScrollRef = useRef(false);
+  const {
+    typingUser,
+    handleRemoteTyping,
+    notifyTyping,
+    clearTyping,
+    resetEmitThrottle,
+  } = useChatTyping({
+    conversationId: currentConversation?.id,
+    currentSocketId,
+    typingUrl: currentConversation
+      ? ProviderOrderChatController.typing(currentConversation.id).url
+      : null,
+  });
 
   const scrollToBottom = () => {
     const el = messagesBox.current;
@@ -261,8 +276,10 @@ const ConversationContent = ({ }: Props) => {
             has_attachments: message.files.length > 0,
           } as ConversationMessage;
 
-      // Own send — always jump to latest.
+      // Own send — always jump to latest; clear remote typing / emit throttle.
       stickToBottomRef.current = true;
+      clearTyping();
+      resetEmitThrottle();
       setMessages(prevMessages => [...prevMessages, newMessage]);
       updateConversationForNewMessages(
         buildSidebarPreviewFromMessage(newMessage, currentConversation),
@@ -319,26 +336,32 @@ const ConversationContent = ({ }: Props) => {
       window.Echo.leave(`chats.${prevConversation.id}`)
     }
 
-    window.Echo.join(`chats.${currentConversation.id}`).listen(`.${ChatEventEnum.New_Message}`, (incoming: ConversationMessage) => {
-      // Only follow if the user was already at/near the bottom.
-      if (messagesBox.current && !ignoreScrollRef.current) {
-        stickToBottomRef.current = isNearBottom(messagesBox.current);
-      }
-      setMessages((prevMessages) => [...prevMessages, incoming]);
-      updateConversationForNewMessages(
-        buildSidebarPreviewFromMessage(incoming, currentConversation),
-      );
-    }).joining((joiningUser: ConversationUser) => {
-      if (joiningUser.socket_id !== currentSocketId) {
-        setMessages((prevMessages) => {
-          unreadMessageIndex.forEach(index => {
-            prevMessages[index].read_at = new Date();
+    window.Echo.join(`chats.${currentConversation.id}`)
+      .listen(`.${ChatEventEnum.New_Message}`, (incoming: ConversationMessage) => {
+        // Only follow if the user was already at/near the bottom.
+        if (messagesBox.current && !ignoreScrollRef.current) {
+          stickToBottomRef.current = isNearBottom(messagesBox.current);
+        }
+        clearTyping();
+        setMessages((prevMessages) => [...prevMessages, incoming]);
+        updateConversationForNewMessages(
+          buildSidebarPreviewFromMessage(incoming, currentConversation),
+        );
+      })
+      .listen(`.${ChatEventEnum.Typing}`, (typing: ConversationUser) => {
+        handleRemoteTyping(typing);
+      })
+      .joining((joiningUser: ConversationUser) => {
+        if (joiningUser.socket_id !== currentSocketId) {
+          setMessages((prevMessages) => {
+            unreadMessageIndex.forEach(index => {
+              prevMessages[index].read_at = new Date();
+            })
+            unreadMessageIndex = [];
+            return [...prevMessages];
           })
-          unreadMessageIndex = [];
-          return [...prevMessages];
-        })
-      }
-    });
+        }
+      });
 
     let cancelled = false;
 
@@ -447,6 +470,7 @@ const ConversationContent = ({ }: Props) => {
             }
             return <MessageOut conversationMessage={messageItem} key={messageItem.id} />;
           })}
+          <ChatTypingIndicator user={typingUser} />
         </div>
       </div>
       <ChatComposer
@@ -457,6 +481,9 @@ const ConversationContent = ({ }: Props) => {
         onContentChange={(content) => {
           setErrorFileIndexes([]);
           setMessage((prev) => ({ ...prev, content }));
+          if (content.trim() !== '') {
+            notifyTyping();
+          }
         }}
         onFilesChange={(files) => {
           setErrorFileIndexes([]);

@@ -93,4 +93,13 @@ class OrderChatController extends Controller
             ConversationMessageResource::make($message->loadMissing(['sender', 'media']))
         );
     }
+
+    public function typing(Conversation $conversation): JsonResponse
+    {
+        $this->authorize('send', $conversation);
+
+        $this->service->typing($conversation, auth('provider')->user());
+
+        return $this->successResponse([]);
+    }
 }

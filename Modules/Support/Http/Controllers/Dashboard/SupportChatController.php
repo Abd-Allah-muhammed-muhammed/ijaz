@@ -27,7 +27,7 @@ class SupportChatController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:edit supportTicket', only: ['send', 'show']),
+            new Middleware('permission:edit supportTicket', only: ['send', 'show', 'typing']),
         ];
     }
 
@@ -67,5 +67,12 @@ class SupportChatController extends Controller implements HasMiddleware
         }
 
         return redirect()->route('dashboard.support.tickets.show', $ticket);
+    }
+
+    public function typing(TicketSupport $ticket): JsonResponse
+    {
+        $this->service->typingAsAdmin($ticket, auth('admin')->user());
+
+        return $this->successResponse([]);
     }
 }

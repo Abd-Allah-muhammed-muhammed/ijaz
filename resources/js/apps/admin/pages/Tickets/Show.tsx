@@ -18,6 +18,8 @@ import SupportChatController from "@/actions/Modules/Support/Http/Controllers/Da
 import MessageIn from "@/shared/components/chat/components/message-in";
 import MessageOut from "@/shared/components/chat/components/message-out";
 import ChatComposer from "@/shared/components/chat/components/chat-composer";
+import ChatTypingIndicator from "@/shared/components/chat/components/chat-typing-indicator";
+import { useChatTyping } from "@/shared/components/chat/hooks/use-chat-typing";
 import usePermissions from '@/shared/hooks/use-permissions';
 import {useConversations} from "@/store/use-chat";
 import {ChatEventEnum} from "@/Enums/Chat";
@@ -58,6 +60,18 @@ const Show = ({row, chat, chatMessages}: Props) => {
   const messagesBox = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<ConversationMessage[]>(chatMessages || []);
   const [errorFileIndexes, setErrorFileIndexes] = useState<number[]>([]);
+  const {
+    typingUser,
+    handleRemoteTyping,
+    notifyTyping,
+    clearTyping,
+    resetEmitThrottle,
+  } = useChatTyping({
+    conversationId: chat?.id,
+    currentSocketId,
+    typingUrl: chat ? SupportChatController.typing(row.id as number).url : null,
+    enabled: canEdit && Boolean(chat),
+  });
 
   useEffect(() => {
     if (auth.user?.socket_id) {
@@ -99,19 +113,25 @@ const Show = ({row, chat, chatMessages}: Props) => {
           }
         })
         .listen(`.${ChatEventEnum.New_Message}`, (message: ConversationMessage) => {
+          clearTyping();
           setMessages((prevMessages) => [...prevMessages, message]);
+        })
+        .listen(`.${ChatEventEnum.Typing}`, (typing: ConversationUser) => {
+          handleRemoteTyping(typing);
         });
 
       return () => {
         window.Echo.leave(`chats.${chat.id}`);
       };
     }
-  }, [chat])
+  }, [chat, clearTyping, currentSocketId, handleRemoteTyping])
   const sendMessage = () => {
     if (chat && (messageForm.data.content.trim() !== '' || Boolean(messageForm.data.files.length))) {
       setErrorFileIndexes([]);
       messageForm.submit(SupportChatController.send(row.id as number), {
         onSuccess: () => {
+          clearTyping();
+          resetEmitThrottle();
           messageForm.setData('content', '');
           messageForm.setData('files', []);
           setErrorFileIndexes([]);
@@ -360,6 +380,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
                     </div>
                   </div>
                 )}
+                <ChatTypingIndicator user={typingUser} />
               </div>
 
               {/* Chat Input Area */}
@@ -383,6 +404,9 @@ const Show = ({row, chat, chatMessages}: Props) => {
                     onContentChange={(content) => {
                       setErrorFileIndexes([]);
                       messageForm.setData('content', content);
+                      if (content.trim() !== '') {
+                        notifyTyping();
+                      }
                     }}
                     onFilesChange={(files) => {
                       setErrorFileIndexes([]);

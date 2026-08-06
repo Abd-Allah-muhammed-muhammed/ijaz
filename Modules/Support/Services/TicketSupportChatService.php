@@ -67,6 +67,15 @@ class TicketSupportChatService
         return $this->conversationService->messages($conversation, $actor, $perPage);
     }
 
+    public function typingAsAdmin(TicketSupport $ticket, Admin $admin): void
+    {
+        $conversation = $ticket->chat;
+
+        abort_unless($conversation instanceof Conversation, 404);
+
+        $this->conversationService->typing($conversation, $admin);
+    }
+
     /**
      * Dashboard ticket show: last N messages in chronological order.
      *
