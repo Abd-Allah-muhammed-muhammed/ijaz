@@ -3,7 +3,8 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
-Pusher.logToConsole = true;
+// Verbose pusher-js logs only in Vite dev — always false in production builds.
+Pusher.logToConsole = import.meta.env.DEV;
 
 /**
  * =============================================================================

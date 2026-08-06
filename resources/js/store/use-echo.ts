@@ -2,7 +2,8 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
-Pusher.logToConsole = true;
+// Keep in sync with resources/js/echo.js — off in production builds.
+Pusher.logToConsole = import.meta.env.DEV;
 
 /**
  * Keep in sync with resources/js/echo.js.
