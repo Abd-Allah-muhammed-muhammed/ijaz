@@ -27,4 +27,5 @@ return [
     'deleted' => 'Your account has been deleted',
     'inactive' => 'Your account is not active',
     'user_not_found' => 'User not found',
+    'logged_out_all_devices' => 'You have been logged out from all devices.',
 ];

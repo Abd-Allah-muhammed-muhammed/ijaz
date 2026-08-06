@@ -211,7 +211,7 @@ Possible `message` values:
 |---|---|---|---|
 | `verification_id` | string (UUID) | yes | From login/register/resend |
 | `code` | string | yes | SMS OTP code |
-| `player_id` | string | no | Optional push player id; saved on success |
+| `player_id` | string | no | Optional FCM registration token; upserted onto `device_tokens` on success (legacy field name kept for mobile) |
 
 #### Success — `200`
 
@@ -251,6 +251,7 @@ Notes:
 - Use **`data.access_token`** (or envelope `token` — identical) for subsequent requests.
 - The value is the **plain** token string (not `id|token`).
 - Send as: `Authorization: Bearer {access_token}`.
+- **Multi-device:** verifying OTP on a second device creates an additional Sanctum session; it does **not** revoke tokens on other devices.
 - One token grants access to **all** authenticated mobile endpoints after verification. You do not need to handle token “abilities” or scopes.
 
 #### Error: wrong code — `422`
@@ -350,13 +351,16 @@ Authorization: Bearer {access_token}
 Examples of protected mobile routes (after verify):
 
 - `GET /api/v1/user/auth/me`
-- `POST /api/v1/user/auth/logout`
+- `POST /api/v1/user/auth/logout` — **this device only** (revokes current Sanctum token; optionally clear FCM via `player_id` / `device_token` body field)
+- `POST /api/v1/user/auth/logout-all` — **every device** (all Sanctum tokens + all `device_tokens`)
 - `POST /api/v1/user/auth/profile/update`
 - `GET /api/v1/user/providers/get`
 - `/api/v1/user/orders…`
 - Plus shared authenticated APIs (wallet, chats, jobs, etc.) that accept a Bearer token
 
 Missing/invalid token → typically **401**.
+
+**Multi-device sessions:** logging in on phone B no longer kicks phone A offline. Use `logout-all` when the user explicitly wants every session gone (e.g. “sign out everywhere”).
 
 ---
 

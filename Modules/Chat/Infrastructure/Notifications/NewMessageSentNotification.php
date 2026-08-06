@@ -2,7 +2,7 @@
 
 namespace Modules\Chat\Infrastructure\Notifications;
 
-use App\Services\Firebase\DTO\Message;
+use App\Services\Firebase\DTO\FirebaseNotificationContent;
 use Illuminate\Bus\Queueable;
 use Illuminate\Foundation\Auth\User;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -53,9 +53,9 @@ class NewMessageSentNotification extends Notification
         ];
     }
 
-    public function toFirebase(object $notifiable): Message
+    public function toFirebase(object $notifiable): FirebaseNotificationContent
     {
-        return Message::make($this->sender->name ?? trans('system', $notifiable->language), $this->content ?? '📑', [
+        return FirebaseNotificationContent::make($this->sender->name ?? trans('system', $notifiable->language), $this->content ?? '📑', [
             'sender_name' => $this->sender->name ?? '',
             'sender_image' => $this->sender->image_url ?? '',
             'has_attachments' => (string) $this->hasAttachment,

@@ -3,8 +3,9 @@
 namespace App\NotificationChannels;
 
 use App\Services\Firebase\Contract\InteractWithFirebase;
-use App\Services\Firebase\DTO\Message;
+use App\Services\Firebase\DTO\FirebaseNotificationContent;
 use App\Services\Firebase\DTO\OutgoingFirebaseMessage;
+use App\Services\Firebase\DTO\Target;
 use App\Services\Firebase\Exceptions\FirebaseAuthenticationException;
 use App\Services\Firebase\Exceptions\FirebaseConfigurationException;
 use App\Services\Firebase\Exceptions\FirebaseSendException;
@@ -17,57 +18,83 @@ readonly class FirebaseChannel
     public function __construct(protected FirebaseService $firebaseService) {}
 
     /**
-     * Deliver via FCM. Typed Firebase failures are logged and swallowed so they
-     * cannot fail a multi-channel notification job or block database/broadcast.
+     * Deliver via FCM to every registered target. Typed Firebase failures are logged
+     * per-token and swallowed so they cannot fail sibling channels or block the job.
      * Unrelated exceptions still propagate.
      */
     public function send(InteractWithFirebase $notifiable, Notification $notification): bool
     {
-        $target = $notifiable->routeNotificationForFirebase();
+        $targets = $this->normalizeTargets($notifiable->routeNotificationForFirebase());
 
-        if ($target->isNotValid()) {
+        if ($targets === []) {
             return false;
         }
 
         $message = method_exists($notification, 'toFirebase')
             ? $notification->toFirebase($notifiable)
-            : Message::make('', '');
+            : FirebaseNotificationContent::make('', '');
 
-        if (! $message instanceof Message || $message->isNotValid()) {
+        if (! $message instanceof FirebaseNotificationContent || $message->isNotValid()) {
             return false;
         }
 
-        $outgoing = new OutgoingFirebaseMessage(
-            title: $message->getTitle(),
-            body: $message->getBody(),
-            targetType: $target->getType(),
-            targetValue: $target->getValue(),
-            data: array_merge($message->getData(), [
-                'title' => $message->getTitle(),
-                'body' => $message->getBody(),
-            ]),
-        );
+        $anySucceeded = false;
 
-        try {
-            $this->firebaseService->send($outgoing);
-        } catch (FirebaseConfigurationException|FirebaseAuthenticationException|FirebaseSendException $exception) {
-            // Service already logged transport/API details; channel adds notifiable context
-            // then returns false so Laravel does not fail/retry sibling channels or the job.
-            Log::warning('Firebase notification channel failed; continuing without push', [
-                'notification' => $notification::class,
-                'notifiable_type' => $notifiable::class,
-                'notifiable_id' => method_exists($notifiable, 'getKey') ? $notifiable->getKey() : null,
-                'target_type' => $target->getType(),
-                'exception' => $exception->getMessage(),
-                'status' => $exception instanceof FirebaseAuthenticationException
-                    || $exception instanceof FirebaseSendException
-                    ? $exception->status
-                    : null,
-            ]);
+        foreach ($targets as $target) {
+            if ($target->isNotValid()) {
+                continue;
+            }
 
-            return false;
+            $outgoing = new OutgoingFirebaseMessage(
+                title: $message->getTitle(),
+                body: $message->getBody(),
+                targetType: $target->getType(),
+                targetValue: $target->getValue(),
+                data: array_merge($message->getData(), [
+                    'title' => $message->getTitle(),
+                    'body' => $message->getBody(),
+                ]),
+            );
+
+            try {
+                $this->firebaseService->send($outgoing);
+                $anySucceeded = true;
+            } catch (FirebaseConfigurationException|FirebaseAuthenticationException|FirebaseSendException $exception) {
+                Log::warning('Firebase notification channel failed; continuing without push', [
+                    'notification' => $notification::class,
+                    'notifiable_type' => $notifiable::class,
+                    'notifiable_id' => method_exists($notifiable, 'getKey') ? $notifiable->getKey() : null,
+                    'target_type' => $target->getType(),
+                    'exception' => $exception->getMessage(),
+                    'status' => $exception instanceof FirebaseAuthenticationException
+                        || $exception instanceof FirebaseSendException
+                        ? $exception->status
+                        : null,
+                ]);
+            }
         }
 
-        return true;
+        return $anySucceeded;
+    }
+
+    /**
+     * @param  Target|iterable<int, Target>  $targets
+     * @return list<Target>
+     */
+    private function normalizeTargets(Target|iterable $targets): array
+    {
+        if ($targets instanceof Target) {
+            return [$targets];
+        }
+
+        $normalized = [];
+
+        foreach ($targets as $target) {
+            if ($target instanceof Target) {
+                $normalized[] = $target;
+            }
+        }
+
+        return $normalized;
     }
 }

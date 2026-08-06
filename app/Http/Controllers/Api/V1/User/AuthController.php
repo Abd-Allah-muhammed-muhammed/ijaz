@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\User\LoginRequest;
+use App\Http\Requests\Api\V1\User\LogoutRequest;
 use App\Http\Requests\Api\V1\User\RegisterRequest;
 use App\Http\Requests\Api\V1\User\UpdateRequest;
 use App\Http\Resources\Api\V1\User\UserResource;
@@ -43,11 +44,18 @@ class AuthController extends Controller
         return $this->successResponse($result->toData());
     }
 
-    public function logout(): JsonResponse
+    public function logout(LogoutRequest $request): JsonResponse
     {
-        $this->userAuthService->logout();
+        $this->userAuthService->logout($request->deviceToken());
 
         return $this->successMessageResponse(trans('success'));
+    }
+
+    public function logoutAll(): JsonResponse
+    {
+        $this->userAuthService->logoutAllDevices();
+
+        return $this->successMessageResponse(trans('auth.logged_out_all_devices'));
     }
 
     /**

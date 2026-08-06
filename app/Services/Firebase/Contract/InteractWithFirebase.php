@@ -3,8 +3,12 @@
 namespace App\Services\Firebase\Contract;
 
 use App\Services\Firebase\DTO\Target;
+use Illuminate\Support\Collection;
 
 interface InteractWithFirebase
 {
-    public function routeNotificationForFirebase(): Target;
+    /**
+     * @return Target|iterable<int, Target>|Collection<int, Target>
+     */
+    public function routeNotificationForFirebase(): Target|iterable;
 }

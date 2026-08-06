@@ -1,10 +1,11 @@
 <?php
 
+use App\Models\DeviceToken;
 use App\Models\Provider;
 use App\Models\User;
 use App\NotificationChannels\FirebaseChannel;
 use App\Notifications\DomainNotification;
-use App\Services\Firebase\DTO\Message;
+use App\Services\Firebase\DTO\FirebaseNotificationContent;
 use App\Services\Firebase\Exceptions\FirebaseSendException;
 use App\Services\Firebase\FirebaseService;
 use Illuminate\Support\Facades\Cache;
@@ -43,9 +44,23 @@ afterEach(function () {
     }
 });
 
+function userWithDeviceToken(string $token, array $attributes = []): User
+{
+    $user = User::factory()->make([
+        'id' => $attributes['id'] ?? 10,
+        'language' => $attributes['language'] ?? 'en',
+    ]);
+
+    $deviceToken = new DeviceToken(['token' => $token]);
+    $user->setRelation('deviceTokens', collect([$deviceToken]));
+
+    return $user;
+}
+
 test('firebase channel returns false gracefully for a notifiable with no valid token/topic', function () {
     $provider = new Provider;
     $provider->id = 1;
+    $provider->setRelation('deviceTokens', collect());
 
     $firebase = $this->mock(FirebaseService::class, function (MockInterface $mock) {
         $mock->shouldNotReceive('send');
@@ -80,9 +95,9 @@ test('firebase channel returns false gracefully for a notifiable with no valid t
             return 'test';
         }
 
-        public function toFirebase(object $notifiable): Message
+        public function toFirebase(object $notifiable): FirebaseNotificationContent
         {
-            return Message::make('Title', 'Body');
+            return FirebaseNotificationContent::make('Title', 'Body');
         }
     };
 
@@ -90,10 +105,7 @@ test('firebase channel returns false gracefully for a notifiable with no valid t
 });
 
 test('firebase channel returns false when the notification message is invalid', function () {
-    $user = User::factory()->make([
-        'id' => 10,
-        'player_id' => 'valid-device-token',
-    ]);
+    $user = userWithDeviceToken('valid-device-token');
 
     $firebase = $this->mock(FirebaseService::class, function (MockInterface $mock) {
         $mock->shouldNotReceive('send');
@@ -128,9 +140,9 @@ test('firebase channel returns false when the notification message is invalid', 
             return 'test';
         }
 
-        public function toFirebase(object $notifiable): Message
+        public function toFirebase(object $notifiable): FirebaseNotificationContent
         {
-            return Message::make('', '');
+            return FirebaseNotificationContent::make('', '');
         }
     };
 
@@ -144,13 +156,9 @@ test('a Firebase send failure does not prevent the database and broadcast channe
             ->andThrow(new FirebaseSendException('FCM unavailable', status: 503));
     });
 
-    $user = User::factory()->create([
-        'player_id' => 'device-token',
-        'language' => 'en',
-    ]);
+    $user = User::factory()->create(['language' => 'en']);
+    $user->registerDeviceToken('device-token');
 
-    // notifyNow runs every via() channel in one pass — a thrown Firebase exception
-    // must not abort the call after database/broadcast already ran (or before them).
     $user->notifyNow(new MultiChannelFirebaseIsolationNotification);
 
     expect($user->notifications()->count())->toBe(1)
@@ -164,10 +172,8 @@ test('a Firebase send failure does not block database when firebase is listed fi
             ->andThrow(new FirebaseSendException('bad token', status: 404));
     });
 
-    $user = User::factory()->create([
-        'player_id' => 'device-token',
-        'language' => 'en',
-    ]);
+    $user = User::factory()->create(['language' => 'en']);
+    $user->registerDeviceToken('device-token');
 
     $user->notifyNow(new MultiChannelFirebaseIsolationNotification(
         viaOrder: ['firebase', 'database', 'broadcast'],
@@ -177,11 +183,7 @@ test('a Firebase send failure does not block database when firebase is listed fi
 });
 
 test('firebase channel returns false instead of throwing on typed Firebase failures', function () {
-    $user = User::factory()->make([
-        'id' => 42,
-        'player_id' => 'device-token',
-        'language' => 'en',
-    ]);
+    $user = userWithDeviceToken('device-token', ['id' => 42]);
 
     $firebase = $this->mock(FirebaseService::class, function (MockInterface $mock) {
         $mock->shouldReceive('send')
@@ -195,11 +197,7 @@ test('firebase channel returns false instead of throwing on typed Firebase failu
 });
 
 test('firebase channel still propagates unrelated exceptions', function () {
-    $user = User::factory()->make([
-        'id' => 42,
-        'player_id' => 'device-token',
-        'language' => 'en',
-    ]);
+    $user = userWithDeviceToken('device-token', ['id' => 42]);
 
     $firebase = $this->mock(FirebaseService::class, function (MockInterface $mock) {
         $mock->shouldReceive('send')
@@ -213,7 +211,7 @@ test('firebase channel still propagates unrelated exceptions', function () {
         ->toThrow(RuntimeException::class, 'unexpected infrastructure failure');
 });
 
-test('firebase channel sends an outgoing message for a user with a valid player_id', function () {
+test('firebase channel sends an outgoing message for a user with a valid device token', function () {
     Http::fake([
         'oauth2.googleapis.com/token' => Http::response([
             'access_token' => 'ya29.channel-token',
@@ -223,11 +221,7 @@ test('firebase channel sends an outgoing message for a user with a valid player_
         'fcm.googleapis.com/*' => Http::response(['name' => 'projects/ijaz-test-project/messages/1'], 200),
     ]);
 
-    $user = User::factory()->make([
-        'id' => 99,
-        'player_id' => 'player-xyz',
-        'language' => 'en',
-    ]);
+    $user = userWithDeviceToken('player-xyz', ['id' => 99]);
 
     $notification = new class extends DomainNotification
     {

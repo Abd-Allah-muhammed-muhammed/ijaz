@@ -258,6 +258,7 @@ Shipped on `feature/project-wide-caching`. **Do not re-audit from scratch** or i
 | Tests | `tests/Unit/Support/LookupCacheTest.php` + per-domain `*LookupCacheTest.php` (cold vs warm equality + query-count drop) |
 | Test hygiene | `Tests\TestCase` flushes LookupCache between tests; `TestingDatabaseGuard` aborts if config is cached or DB is not sqlite `:memory:` |
 | Test runner | Default `composer test` = Pest Parallel (`--processes=8 --exclude-group=serial`). Quarantined race test: `composer test:serial`. Full coverage: `composer test:all` (see README) |
+| Push devices | Polymorphic `device_tokens` (User + Provider via `HasDeviceTokens`). OTP verify registers FCM token; logout = current Sanctum + optional device clear; `POST /api/v1/user/auth/logout-all` wipes all Sanctum + device tokens. Ban/delete also clears device tokens. |
 
 ```php
 // Forever — invalidate only via forget*()
@@ -363,7 +364,9 @@ Brief staleness is acceptable for badges / summary dashboards. **Do not** add `L
 - `config/broadcasting.php` — Reverb
 - `config/cache.php` — default store + `serializable_classes` allow-list for LookupCache
 - `config/services.php` → `firebase` — FCM credentials path, OAuth cache key, token TTL skew, endpoints
-- Push path: `DomainNotification` / Chat `NewMessageSentNotification` → `FirebaseChannel` → `FirebaseService::send(OutgoingFirebaseMessage)` (stateless; no mutable fluent state)
+- Push path: `DomainNotification` / Chat `NewMessageSentNotification` → `FirebaseChannel` (loops all `device_tokens` Targets) → `FirebaseService::send(OutgoingFirebaseMessage)` (stateless; no mutable fluent state)
+- Content DTO: `FirebaseNotificationContent` (renamed from `Message`)
+- Devices: polymorphic `device_tokens` via `HasDeviceTokens` on User/Provider; `users.player_id` removed (auto-backfilled on migrate)
 - **Decision point:** live FCM payload is `notification` + `data` only. A former unused `notify()` path also set `android.priority` / APNs headers — never called from the channel; re-add only if mobile needs it.
 - `config/otp.php` — OTP TTLs by purpose
 - Spatie permission cache — `config('permission.cache')` (package default; key `spatie.permission.cache`)
@@ -373,7 +376,7 @@ Brief staleness is acceptable for badges / summary dashboards. **Do not** add `L
 
 ### Core models still in `app/Models`
 
-`Admin`, `User`, `Provider`, `Employee`, `BlockHistory`, `Otp`
+`Admin`, `User`, `Provider`, `Employee`, `BlockHistory`, `Otp`, `DeviceToken`
 
 (Domain models such as Order, Conversation, Payment, Wallet, GuarantorRequest, Setting, Review, advisements, JobOffer, etc. live under their modules — see MODELS_REFERENCE.)
 

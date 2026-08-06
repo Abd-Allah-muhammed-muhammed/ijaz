@@ -67,7 +67,6 @@ trait HasOTPs
         app(OtpRepositoryInterface::class)->deleteForSubject($this, OtpPurposeEnum::Login);
 
         if ($token) {
-            $this->tokens()->delete();
             $plainTextToken = $this->createToken('user-app', ['*'])->plainTextToken;
 
             return explode('|', $plainTextToken)[1];

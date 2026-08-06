@@ -90,6 +90,16 @@ concurrent withdrawals cannot overdraw available balance. That nested process po
 unsafe to schedule alongside other ParaTest workers, so it is quarantined from the
 parallel pool and run alone via `composer test:serial`.
 
+### Mobile auth — multi-device sessions & push tokens
+
+| Endpoint | Behavior |
+|---|---|
+| OTP verify (`player_id` optional) | Creates a **new** Sanctum token **without** revoking other devices; registers/upserts the FCM token on `device_tokens` |
+| `POST /api/v1/user/auth/logout` | Revokes **only** the current Sanctum token; clears the FCM token if `player_id` or `device_token` is sent |
+| `POST /api/v1/user/auth/logout-all` | Revokes **all** Sanctum tokens and clears **all** `device_tokens` for the user |
+
+`users.player_id` was replaced by polymorphic `device_tokens` (auto-backfilled on migrate — no mobile migration step). Push notifications fan out to every registered device.
+
 ## Notes
 
 - API responses should use the `HasApiResponse` helpers and Resources.

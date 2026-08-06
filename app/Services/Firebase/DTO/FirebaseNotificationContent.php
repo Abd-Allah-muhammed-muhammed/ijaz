@@ -4,7 +4,11 @@ namespace App\Services\Firebase\DTO;
 
 use Illuminate\Contracts\Support\Arrayable;
 
-class Message implements Arrayable
+/**
+ * Content payload for a Firebase / push notification (title, body, data bag).
+ * Distinct from OutgoingFirebaseMessage, which is the FCM wire format including target.
+ */
+final class FirebaseNotificationContent implements Arrayable
 {
     protected array $data = [
         'title' => '',
