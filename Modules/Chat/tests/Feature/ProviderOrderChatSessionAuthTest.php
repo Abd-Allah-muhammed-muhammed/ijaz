@@ -1,12 +1,15 @@
 <?php
 
+use Illuminate\Http\UploadedFile;
 use Illuminate\Routing\Route as IlluminateRoute;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Modules\Chat\Http\Controllers\Provider\OrderChatController;
 use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
 use Modules\Chat\Infrastructure\Events\NewMessageEvent;
+use Modules\Chat\Models\ConversationMessage;
 
 beforeEach(function () {
     withoutOrdersLocaleMiddleware();
@@ -62,4 +65,64 @@ test('provider can send a chat message without a 401', function () {
         ])
         ->assertSuccessful()
         ->assertJsonPath('data.content', 'Provider session chat send');
+});
+
+test('provider can send a chat message with a file attachment', function () {
+    Bus::fake();
+    Event::fake([NewMessageEvent::class, ChatUpdatedEvent::class]);
+    Storage::fake('public');
+
+    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
+    $conversation = createOrderConversation($user, $provider, $order);
+    $conversation->load(['user1', 'user2']);
+
+    $this->actingAs($provider, 'provider')
+        ->post(
+            action([OrderChatController::class, 'send'], ['conversation' => $conversation->id]),
+            ['files' => [UploadedFile::fake()->image('chat-photo.jpg')]],
+            ['Accept' => 'application/json'],
+        )
+        ->assertSuccessful()
+        ->assertJsonCount(1, 'data.attachments');
+
+    expect(
+        ConversationMessage::query()
+            ->where('conversation_id', $conversation->id)
+            ->where('has_attachments', true)
+            ->exists()
+    )->toBeTrue();
+});
+
+test('provider order chat messages are paginated newest-first (UI must reverse for chronological display)', function () {
+    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
+    $conversation = createOrderConversation($user, $provider, $order);
+
+    $older = ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_type' => $provider::class,
+        'sender_id' => $provider->getKey(),
+        'receiver_type' => $user::class,
+        'receiver_id' => $user->getKey(),
+        'content' => 'Older message',
+    ]);
+    $older->forceFill(['created_at' => now()->subMinutes(5), 'updated_at' => now()->subMinutes(5)])->save();
+
+    $newer = ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_type' => $provider::class,
+        'sender_id' => $provider->getKey(),
+        'receiver_type' => $user::class,
+        'receiver_id' => $user->getKey(),
+        'content' => 'Newer message',
+    ]);
+    $newer->forceFill(['created_at' => now()->subMinute(), 'updated_at' => now()->subMinute()])->save();
+
+    $response = $this->actingAs($provider, 'provider')
+        ->getJson(action([OrderChatController::class, 'show'], ['conversation' => $conversation->id]))
+        ->assertSuccessful();
+
+    $ids = collect($response->json('data.items'))->pluck('id')->all();
+
+    expect($ids[0])->toBe($newer->id)
+        ->and($ids[1])->toBe($older->id);
 });

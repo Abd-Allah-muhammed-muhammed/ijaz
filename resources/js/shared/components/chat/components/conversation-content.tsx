@@ -68,6 +68,9 @@ const ConversationContent = ({ }: Props) => {
       formData.append('files[]', file);
     });
 
+    // Only extra headers — never set Content-Type. A manual multipart/form-data
+    // (no boundary) or the shared client's former application/json default both
+    // break file uploads (axios JSON-stringifies FormData when CT is JSON).
     const headers: Record<string, string> = {};
     const socketId = echoSocketId();
     if (socketId) {
@@ -164,8 +167,11 @@ const ConversationContent = ({ }: Props) => {
           return;
         }
 
+        // API paginates newest-first (listForConversation ->latest()). Chat UI
+        // needs chronological within the page (oldest → newest, newest at bottom).
+        // Same pattern as ConversationMessageRepository::listRecentForConversation.
         const items = response?.data?.items;
-        setMessages(Array.isArray(items) ? items : []);
+        setMessages(Array.isArray(items) ? [...items].reverse() : []);
       })
       .catch(() => {
         if (!cancelled) {

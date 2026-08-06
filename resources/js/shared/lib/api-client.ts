@@ -30,11 +30,29 @@ const apiClient: AxiosInstance = axios.create({
   withCredentials: true,
   headers: {
     Accept: 'application/json',
-    'Content-Type': 'application/json',
+    // Do NOT set Content-Type here. Axios transformRequest sets
+    // application/json for plain objects; a sticky application/json default
+    // makes FormData posts JSON.stringify(formDataToJSON(...)) and drops files.
     'X-Requested-With': 'XMLHttpRequest',
   },
   xsrfCookieName: 'XSRF-TOKEN',
   xsrfHeaderName: 'X-XSRF-TOKEN',
+});
+
+apiClient.interceptors.request.use((config) => {
+  // Belt-and-suspenders: if a caller (or a prior default) left application/json
+  // on a FormData body, strip it so the browser can set multipart + boundary.
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    const headers = config.headers;
+    if (headers && typeof headers.delete === 'function') {
+      headers.delete('Content-Type');
+    } else if (headers) {
+      delete (headers as Record<string, unknown>)['Content-Type'];
+      delete (headers as Record<string, unknown>)['content-type'];
+    }
+  }
+
+  return config;
 });
 
 apiClient.interceptors.response.use(

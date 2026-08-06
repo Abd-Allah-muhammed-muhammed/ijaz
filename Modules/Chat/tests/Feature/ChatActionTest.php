@@ -243,22 +243,66 @@ test('ConversationRepository listForActor filters by operation type', function (
         ->and($orderCount)->toBe(1);
 });
 
-test('ConversationMessageRepository listForConversation paginates messages', function () {
-    $conversation = createMemberConversation(User::factory()->create(), User::factory()->create());
-    $user = User::factory()->create();
+test('ConversationMessageRepository listForConversation paginates messages newest-first', function () {
+    $user1 = User::factory()->create();
+    $user2 = User::factory()->create();
+    $conversation = createMemberConversation($user1, $user2);
 
-    ConversationMessage::query()->create([
+    $older = ConversationMessage::query()->create([
         'conversation_id' => $conversation->id,
         'sender_type' => User::class,
-        'sender_id' => $user->getKey(),
+        'sender_id' => $user1->getKey(),
         'receiver_type' => User::class,
-        'receiver_id' => User::factory()->create()->getKey(),
-        'content' => 'Hi',
+        'receiver_id' => $user2->getKey(),
+        'content' => 'Older',
     ]);
+    $older->forceFill(['created_at' => now()->subMinutes(10), 'updated_at' => now()->subMinutes(10)])->save();
+
+    $newer = ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_type' => User::class,
+        'sender_id' => $user1->getKey(),
+        'receiver_type' => User::class,
+        'receiver_id' => $user2->getKey(),
+        'content' => 'Newer',
+    ]);
+    $newer->forceFill(['created_at' => now()->subMinute(), 'updated_at' => now()->subMinute()])->save();
 
     $paginator = app(ConversationMessageRepository::class)->listForConversation($conversation);
 
-    expect($paginator->total())->toBe(1);
+    expect($paginator->total())->toBe(2)
+        ->and($paginator->items()[0]->id)->toBe($newer->id)
+        ->and($paginator->items()[1]->id)->toBe($older->id);
+});
+
+test('ConversationMessageRepository listRecentForConversation returns chronological order', function () {
+    $user1 = User::factory()->create();
+    $user2 = User::factory()->create();
+    $conversation = createMemberConversation($user1, $user2);
+
+    $older = ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_type' => User::class,
+        'sender_id' => $user1->getKey(),
+        'receiver_type' => User::class,
+        'receiver_id' => $user2->getKey(),
+        'content' => 'Older',
+    ]);
+    $older->forceFill(['created_at' => now()->subMinutes(10), 'updated_at' => now()->subMinutes(10)])->save();
+
+    $newer = ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_type' => User::class,
+        'sender_id' => $user1->getKey(),
+        'receiver_type' => User::class,
+        'receiver_id' => $user2->getKey(),
+        'content' => 'Newer',
+    ]);
+    $newer->forceFill(['created_at' => now()->subMinute(), 'updated_at' => now()->subMinute()])->save();
+
+    $messages = app(ConversationMessageRepository::class)->listRecentForConversation($conversation);
+
+    expect($messages->pluck('content')->all())->toBe(['Older', 'Newer']);
 });
 
 test('ConversationMessageRepository markAsRead updates read_at', function () {
