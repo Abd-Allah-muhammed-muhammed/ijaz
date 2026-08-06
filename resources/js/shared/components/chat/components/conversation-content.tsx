@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useConversations } from "@/store/use-chat";
 import { Conversation, ConversationMessage, ConversationUser } from "@/shared/types/models";
 import axios from "@/shared/helpers/axios";
@@ -7,6 +7,7 @@ import { ChatEventEnum } from "@/Enums/Chat";
 import MessageIn from "@/shared/components/chat/components/message-in";
 import MessageOut from "@/shared/components/chat/components/message-out";
 import ChatComposer from "@/shared/components/chat/components/chat-composer";
+import ChatMessagesSkeleton from "@/shared/components/chat/components/chat-messages-skeleton";
 import { formatFileSize } from "@/shared/components/chat/components/chat-attachment-utils";
 import { useTranslation } from "react-i18next";
 import { Button } from "react-bootstrap";
@@ -23,6 +24,9 @@ type ChatMessage = {
   content: string;
   files: File[];
 };
+
+/** px from bottom — treat as "still following the live end". */
+const NEAR_BOTTOM_THRESHOLD_PX = 120;
 
 function echoSocketId(): string | undefined {
   try {
@@ -93,6 +97,10 @@ function buildSidebarPreviewFromMessage(
   };
 }
 
+function isNearBottom(el: HTMLElement, thresholdPx = NEAR_BOTTOM_THRESHOLD_PX): boolean {
+  return el.scrollHeight - el.scrollTop - el.clientHeight <= thresholdPx;
+}
+
 let unreadMessageIndex: number[] = [];
 const ConversationContent = ({ }: Props) => {
   const { t } = useTranslation();
@@ -113,15 +121,39 @@ const ConversationContent = ({ }: Props) => {
     files: []
   });
   const messagesBox = useRef<HTMLDivElement>(null);
-  const scrollToMessageEnd = () => {
-    if (messagesBox.current) {
-      messagesBox.current.scrollTop = messagesBox.current.scrollHeight;
-    }
-  }
+  /** User is following the live end — auto-scroll on new messages. */
+  const stickToBottomRef = useRef(true);
+  /** Force scroll once (conversation open / own send), ignoring stick state. */
+  const forceScrollRef = useRef(false);
 
-  useEffect(() => {
-    scrollToMessageEnd();
-  }, [messages])
+  const scrollToBottom = () => {
+    const el = messagesBox.current;
+    if (!el) {
+      return;
+    }
+    el.scrollTop = el.scrollHeight;
+  };
+
+  const scheduleScrollToBottom = () => {
+    // Double rAF: wait until layout after React commit (images/fonts may still shift).
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        scrollToBottom();
+        stickToBottomRef.current = true;
+        forceScrollRef.current = false;
+      });
+    });
+  };
+
+  useLayoutEffect(() => {
+    if (loadingMessages && messages.length === 0) {
+      return;
+    }
+
+    if (forceScrollRef.current || stickToBottomRef.current) {
+      scheduleScrollToBottom();
+    }
+  }, [messages, loadingMessages]);
 
   const sendMessage = async () => {
     if (!currentConversation || (message.content.trim() === '' && !message.files.length)) {
@@ -181,6 +213,9 @@ const ConversationContent = ({ }: Props) => {
             has_attachments: message.files.length > 0,
           } as ConversationMessage;
 
+      // Own send — always jump to latest.
+      forceScrollRef.current = true;
+      stickToBottomRef.current = true;
       setMessages(prevMessages => [...prevMessages, newMessage]);
       updateConversationForNewMessages(
         buildSidebarPreviewFromMessage(newMessage, currentConversation),
@@ -218,12 +253,18 @@ const ConversationContent = ({ }: Props) => {
     setMessages([]);
     setLoadingMessages(true);
     setErrorFileIndexes([]);
+    forceScrollRef.current = true;
+    stickToBottomRef.current = true;
 
     if (prevConversation) {
       window.Echo.leave(`chats.${prevConversation.id}`)
     }
 
     window.Echo.join(`chats.${currentConversation.id}`).listen(`.${ChatEventEnum.New_Message}`, (incoming: ConversationMessage) => {
+      // Only follow if the user was already at/near the bottom.
+      if (messagesBox.current) {
+        stickToBottomRef.current = isNearBottom(messagesBox.current);
+      }
       setMessages((prevMessages) => [...prevMessages, incoming]);
       updateConversationForNewMessages(
         buildSidebarPreviewFromMessage(incoming, currentConversation),
@@ -254,6 +295,8 @@ const ConversationContent = ({ }: Props) => {
         // needs chronological within the page (oldest → newest, newest at bottom).
         // Same pattern as ConversationMessageRepository::listRecentForConversation.
         const items = response?.data?.items;
+        forceScrollRef.current = true;
+        stickToBottomRef.current = true;
         setMessages(Array.isArray(items) ? [...items].reverse() : []);
       })
       .catch(() => {
@@ -320,9 +363,17 @@ const ConversationContent = ({ }: Props) => {
           </div>
         </div>
       </div>
-      <div ref={messagesBox} className='card-body d-flex flex-column flex-grow-1 scroll-y me-n5 pe-5 mb-5 min-w-0'>
+      <div
+        ref={messagesBox}
+        className='card-body d-flex flex-column flex-grow-1 scroll-y me-n5 pe-5 mb-5 min-w-0'
+        onScroll={() => {
+          if (messagesBox.current) {
+            stickToBottomRef.current = isNearBottom(messagesBox.current);
+          }
+        }}
+      >
         {loadingMessages && messages.length === 0 ? (
-          <div className="text-center text-muted py-10">{t('Please wait...')}</div>
+          <ChatMessagesSkeleton />
         ) : null}
         {messages.map((messageItem, index) => {
           const sender = messageItem.sender as ConversationUser;
