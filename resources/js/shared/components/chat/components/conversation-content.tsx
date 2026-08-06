@@ -226,14 +226,6 @@ const ConversationContent = ({ }: Props) => {
     }
 
     try {
-      // TEMP DEBUG — remove after diagnosing production upload failures
-      console.log('[CHAT UPLOAD DEBUG] Sending', {
-        fileCount: message.files.length,
-        fileSizes: message.files.map((f) => f.size),
-        totalSize: message.files.reduce((sum, f) => sum + f.size, 0),
-        hasSocketId: !!socketId,
-      });
-
       const { data: response } = await axios.post<SingleApiResponse<ConversationMessage>>(
         ProviderOrderChatController.send(currentConversation.id).url,
         formData,
@@ -278,17 +270,9 @@ const ConversationContent = ({ }: Props) => {
       setMessage({ content: '', files: [] });
       setErrorFileIndexes([]);
     } catch (error) {
-      // TEMP DEBUG — remove after diagnosing production upload failures
-      console.error('[CHAT UPLOAD DEBUG]', {
-        isAxiosError: isAxiosError(error),
-        hasResponse: isAxiosError(error) ? !!error.response : 'n/a',
-        responseStatus: isAxiosError(error) ? error.response?.status : 'n/a',
-        responseData: isAxiosError(error) ? error.response?.data : 'n/a',
-        errorMessage: error instanceof Error ? error.message : String(error),
-        errorCode: isAxiosError(error) ? error.code : 'n/a',
-        rawError: error,
-      });
-
+      // Axios timeout (ECONNABORTED) and network drops have no response body —
+      // extractValidationErrors returns empty → generic toast + red border below.
+      // `finally` clears `sending` so we never leave an infinite spinner.
       const attachedCount = message.files.length;
       const { messages: validationMessages, fileIndexes } = extractValidationErrors(
         error,
@@ -303,7 +287,7 @@ const ConversationContent = ({ }: Props) => {
         );
         validationMessages.forEach((msg) => toast.error(msg));
       } else {
-        // No body / network drop / unexpected failure — not a real validation payload.
+        // No body / timeout / network drop / unexpected failure.
         setErrorFileIndexes(message.files.map((_, index) => index));
         toast.error(t('Something went wrong, please try again'));
       }
