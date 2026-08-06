@@ -40,6 +40,10 @@ function echoSocketId(): string | undefined {
  * Parse MMAE-style validation envelopes (and PostTooLargeException, which uses
  * the same shape with `errors.files` when PHP rejects the body before Laravel
  * can attribute a specific file index).
+ *
+ * Returns empty `messages` when there is no response body, no field errors, or
+ * only the envelope title "Validation Failed" — callers must toast a generic
+ * fallback in that case (network drop / unexpected 5xx / empty payload).
  */
 function extractValidationErrors(
   error: unknown,
@@ -54,16 +58,17 @@ function extractValidationErrors(
 
   const data = error.response.data as {
     message?: string;
-    errors?: Record<string, string[]>;
+    errors?: Record<string, string[] | string>;
   };
 
   const messages: string[] = [];
   const fileIndexes: number[] = [];
 
-  if (data.errors && typeof data.errors === 'object') {
+  if (data.errors && typeof data.errors === 'object' && !Array.isArray(data.errors)) {
     for (const [key, value] of Object.entries(data.errors)) {
       const list = Array.isArray(value) ? value : [String(value)];
-      messages.push(...list.filter(Boolean));
+      const usable = list.map(String).map((s) => s.trim()).filter(Boolean);
+      messages.push(...usable);
 
       const match = key.match(/^files(?:\.|\[)(\d+)/);
       if (match) {
@@ -80,8 +85,13 @@ function extractValidationErrors(
     }
   }
 
-  if (messages.length === 0 && data.message) {
-    messages.push(data.message);
+  // Envelope title alone is not a real validation detail — leave messages empty
+  // so the UI shows the generic fallback instead of "Validation Failed".
+  if (messages.length === 0 && typeof data.message === 'string') {
+    const trimmed = data.message.trim();
+    if (trimmed !== '' && trimmed.toLowerCase() !== 'validation failed') {
+      messages.push(trimmed);
+    }
   }
 
   return { messages, fileIndexes: [...new Set(fileIndexes)] };
@@ -260,16 +270,23 @@ const ConversationContent = ({ }: Props) => {
       setMessage({ content: '', files: [] });
       setErrorFileIndexes([]);
     } catch (error) {
+      const attachedCount = message.files.length;
       const { messages: validationMessages, fileIndexes } = extractValidationErrors(
         error,
-        message.files.length,
+        attachedCount,
       );
-      setErrorFileIndexes(fileIndexes);
 
       if (validationMessages.length > 0) {
+        setErrorFileIndexes(
+          fileIndexes.length > 0
+            ? fileIndexes
+            : message.files.map((_, index) => index),
+        );
         validationMessages.forEach((msg) => toast.error(msg));
       } else {
-        toast.error(t('Validation Failed'));
+        // No body / network drop / unexpected failure — not a real validation payload.
+        setErrorFileIndexes(message.files.map((_, index) => index));
+        toast.error(t('Something went wrong, please try again'));
       }
       // Keep composer content so the user can retry.
     } finally {

@@ -144,7 +144,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
           if (messages.length > 0) {
             messages.forEach((msg) => toast.error(msg));
           } else {
-            toast.error(t('Validation Failed'));
+            toast.error(t('Something went wrong, please try again'));
           }
         },
       });
