@@ -24,8 +24,18 @@ import axios, {
  * Do not set Accept-Language on the global `axios` defaults — query hooks use this instance.
  */
 
+/** Default for JSON/API GETs — keep snappy for selects and catalog fetches. */
+const DEFAULT_TIMEOUT_MS = 10_000;
+
+/**
+ * Multipart uploads (chat attachments, etc.) need far longer than JSON calls —
+ * a 5MB image on a slow mobile link + server validation can exceed 10s, which
+ * aborts client-side with no server log (ECONNABORTED / timeout).
+ */
+export const FORM_DATA_TIMEOUT_MS = 60_000;
+
 const apiClient: AxiosInstance = axios.create({
-  timeout: 10_000,
+  timeout: DEFAULT_TIMEOUT_MS,
   baseURL: url('/'),
   withCredentials: true,
   headers: {
@@ -49,6 +59,11 @@ apiClient.interceptors.request.use((config) => {
     } else if (headers) {
       delete (headers as Record<string, unknown>)['Content-Type'];
       delete (headers as Record<string, unknown>)['content-type'];
+    }
+
+    // Project-wide: any shared-axios FormData upload gets ≥60s (not the 10s JSON default).
+    if ((config.timeout ?? 0) < FORM_DATA_TIMEOUT_MS) {
+      config.timeout = FORM_DATA_TIMEOUT_MS;
     }
   }
 
