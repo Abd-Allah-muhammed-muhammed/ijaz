@@ -20,6 +20,7 @@ import MessageOut from "@/shared/components/chat/components/message-out";
 import ChatComposer from "@/shared/components/chat/components/chat-composer";
 import ChatTypingIndicator from "@/shared/components/chat/components/chat-typing-indicator";
 import { useChatTyping } from "@/shared/components/chat/hooks/use-chat-typing";
+import { useChatNotificationSound } from "@/shared/components/chat/hooks/use-chat-notification-sound";
 import usePermissions from '@/shared/hooks/use-permissions';
 import {useConversations} from "@/store/use-chat";
 import {ChatEventEnum} from "@/Enums/Chat";
@@ -72,6 +73,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
     typingUrl: chat ? SupportChatController.typing(row.id as number).url : null,
     enabled: canEdit && Boolean(chat),
   });
+  const { notifyIncomingMessage } = useChatNotificationSound();
 
   useEffect(() => {
     if (auth.user?.socket_id) {
@@ -113,6 +115,8 @@ const Show = ({row, chat, chatMessages}: Props) => {
           }
         })
         .listen(`.${ChatEventEnum.New_Message}`, (message: ConversationMessage) => {
+          const isOwnMessage = message.sender?.socket_id === currentSocketId;
+          notifyIncomingMessage(Boolean(isOwnMessage));
           clearTyping();
           setMessages((prevMessages) => [...prevMessages, message]);
         })
@@ -124,7 +128,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
         window.Echo.leave(`chats.${chat.id}`);
       };
     }
-  }, [chat, clearTyping, currentSocketId, handleRemoteTyping])
+  }, [chat, clearTyping, currentSocketId, handleRemoteTyping, notifyIncomingMessage])
   const sendMessage = () => {
     if (chat && (messageForm.data.content.trim() !== '' || Boolean(messageForm.data.files.length))) {
       setErrorFileIndexes([]);

@@ -11,6 +11,7 @@ import ChatMessagesSkeleton from "@/shared/components/chat/components/chat-messa
 import ChatTypingIndicator from "@/shared/components/chat/components/chat-typing-indicator";
 import { formatFileSize } from "@/shared/components/chat/components/chat-attachment-utils";
 import { useChatTyping } from "@/shared/components/chat/hooks/use-chat-typing";
+import { useChatNotificationSound } from "@/shared/components/chat/hooks/use-chat-notification-sound";
 import { useTranslation } from "react-i18next";
 import { Button } from "react-bootstrap";
 import { KTIcon } from "@/vendor/metronic/helpers";
@@ -171,6 +172,7 @@ const ConversationContent = ({ }: Props) => {
       ? ProviderOrderChatController.typing(currentConversation.id).url
       : null,
   });
+  const { notifyIncomingMessage } = useChatNotificationSound();
 
   useEffect(() => {
     activeSearchRef.current = activeSearch;
@@ -356,6 +358,9 @@ const ConversationContent = ({ }: Props) => {
 
     window.Echo.join(`chats.${currentConversation.id}`)
       .listen(`.${ChatEventEnum.New_Message}`, (incoming: ConversationMessage) => {
+        const isOwnMessage = incoming.sender?.socket_id === currentSocketId;
+        notifyIncomingMessage(Boolean(isOwnMessage));
+
         // While filtering, only surface live messages that still match the query.
         const search = activeSearchRef.current.trim().toLowerCase();
         if (search !== '') {
