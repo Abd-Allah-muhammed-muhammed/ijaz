@@ -72,7 +72,8 @@ test('ConversationResource last_message_at is humanized relative text not ISO860
         ->and($payload['last_massage_at'])
         ->toBe($conversation->last_message_at->shortAbsoluteDiffForHumans())
         // Guard against accidentally shipping ISO timestamps that Provider UI Date-parses.
-        ->and($payload['last_message_at'])->not->toMatch('/^\d{4}-\d{2}-\d{2}T/');
+        ->and($payload['last_message_at'])->not->toMatch('/^\d{4}-\d{2}-\d{2}T/')
+        ->and($payload['last_message_at_iso'])->toMatch('/^\d{4}-\d{2}-\d{2}T/');
 });
 
 test('ConversationMessageResource created_at is humanized relative text not ISO8601', function () {
@@ -95,7 +96,8 @@ test('ConversationMessageResource created_at is humanized relative text not ISO8
 
         expect($payload['created_at'])
             ->toBe($message->created_at->shortAbsoluteDiffForHumans())
-            ->and($payload['created_at'])->not->toMatch('/^\d{4}-\d{2}-\d{2}T/');
+            ->and($payload['created_at'])->not->toMatch('/^\d{4}-\d{2}-\d{2}T/')
+            ->and($payload['created_at_iso'])->toMatch('/^\d{4}-\d{2}-\d{2}T/');
     });
 });
 

@@ -439,7 +439,13 @@ export interface ConversationMessage extends Model {
   sender?: ConversationUser;
   conversation_id: string;
   conversation?: Conversation;
-  created_at: Date;
+  /**
+   * API still sends Carbon shortAbsoluteDiffForHumans() here for freeze/compat.
+   * Prefer created_at_iso for live relative display.
+   */
+  created_at: string | Date;
+  /** ISO-8601 absolute time for live relative timestamps. */
+  created_at_iso?: string;
   read_at: Date;
   attachments?: ConversationAttachment[];
   has_attachments: boolean;
@@ -483,6 +489,8 @@ export interface Conversation extends Model {
   last_message_at?: string;
   /** @deprecated typo — use last_message_at; also humanized, not ISO. */
   last_massage_at?: string;
+  /** ISO-8601 absolute time for live relative sidebar timestamps. */
+  last_message_at_iso?: string;
 }
 
 export type OrderStatus = typeof OrderStatusEnum[keyof typeof OrderStatusEnum];

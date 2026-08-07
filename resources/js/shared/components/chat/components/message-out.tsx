@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import Attachments from '@/shared/components/chat/components/attachments';
 import { highlightSearchTerm } from '@/shared/components/chat/components/chat-search-highlight';
+import RelativeTimestamp from '@/shared/components/chat/components/relative-timestamp';
 
 type Props = {
   conversationMessage: ConversationMessage;
@@ -34,9 +35,15 @@ const MessageOut = ({ conversationMessage, highlightTerm }: Props) => {
         <div className="d-flex align-items-center mb-2 gap-2">
           <div className="min-w-0 text-end">
             <span className="fs-6 fw-semibold text-gray-900">{t('You')}</span>
-            <span className="text-muted fs-8 d-block lh-1 mt-1">
-              {String(conversationMessage.created_at ?? '')}
-            </span>
+            <RelativeTimestamp
+              className="text-muted fs-8 d-block lh-1 mt-1"
+              iso={conversationMessage.created_at_iso ?? conversationMessage.created_at}
+              fallback={
+                typeof conversationMessage.created_at === 'string'
+                  ? conversationMessage.created_at
+                  : ''
+              }
+            />
           </div>
           <div className="symbol symbol-35px symbol-circle flex-shrink-0">
             <img alt="" src={conversationMessage.sender?.image} />

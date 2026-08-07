@@ -140,6 +140,8 @@ function buildSidebarPreviewFromMessage(
     last_massage_at: typeof message.created_at === 'string'
       ? message.created_at
       : conversation.last_massage_at,
+    last_message_at_iso: message.created_at_iso
+      ?? (message.created_at instanceof Date ? message.created_at.toISOString() : conversation.last_message_at_iso),
     unread_count: 0,
   };
 }
@@ -364,6 +366,7 @@ const ConversationContent = ({
             id: '0',
             content: message.content,
             created_at: new Date(),
+            created_at_iso: new Date().toISOString(),
             updated_at: new Date(),
             sender: {
               id: 0,

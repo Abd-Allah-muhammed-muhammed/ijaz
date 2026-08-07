@@ -3,6 +3,7 @@ import { useConversations } from "@/store/use-chat";
 import { KTIcon } from "@/vendor/metronic/helpers";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
+import RelativeTimestamp from "@/shared/components/chat/components/relative-timestamp";
 
 type Props = {
   chat: Chat,
@@ -35,6 +36,8 @@ const Conversation = ({ chat, currentSocketId }: Props) => {
 
     return '';
   })();
+
+  const sidebarFallback = String(chat.last_massage_at || chat.last_message_at || '');
 
   return (
     <button
@@ -94,8 +97,11 @@ const Conversation = ({ chat, currentSocketId }: Props) => {
       </div>
 
       <div className='d-flex flex-column align-items-end ms-2 flex-shrink-0'>
-        {/* Backend sends Carbon shortAbsoluteDiffForHumans() (e.g. "2h ago"), not ISO — do not Date-parse. */}
-        <span className='text-muted fs-7 mb-1'>{chat.last_massage_at || chat.last_message_at || ''}</span>
+        <RelativeTimestamp
+          className='text-muted fs-7 mb-1'
+          iso={chat.last_message_at_iso ?? lastMessage?.created_at_iso}
+          fallback={sidebarFallback}
+        />
         {chat.unread_count && chat.unread_count > 0 ? (
           <span className='badge badge-sm badge-circle badge-light-warning'>{chat.unread_count}</span>
         ) : null}

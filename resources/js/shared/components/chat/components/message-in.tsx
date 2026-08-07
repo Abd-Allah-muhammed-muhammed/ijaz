@@ -2,6 +2,7 @@ import { ConversationAttachment, ConversationMessage } from '@/shared/types/mode
 import React from 'react';
 import Attachments from '@/shared/components/chat/components/attachments';
 import { highlightSearchTerm } from '@/shared/components/chat/components/chat-search-highlight';
+import RelativeTimestamp from '@/shared/components/chat/components/relative-timestamp';
 
 type Props = {
   conversationMessage: ConversationMessage;
@@ -35,9 +36,15 @@ const MessageIn = ({ conversationMessage, highlightTerm }: Props) => {
             >
               {conversationMessage.sender?.name}
             </span>
-            <span className="text-muted fs-8 d-block lh-1 mt-1">
-              {String(conversationMessage.created_at ?? '')}
-            </span>
+            <RelativeTimestamp
+              className="text-muted fs-8 d-block lh-1 mt-1"
+              iso={conversationMessage.created_at_iso ?? conversationMessage.created_at}
+              fallback={
+                typeof conversationMessage.created_at === 'string'
+                  ? conversationMessage.created_at
+                  : ''
+              }
+            />
           </div>
         </div>
 

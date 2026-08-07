@@ -31,6 +31,7 @@ function frozenConversationOpenKeys(): array
         'last_message',
         'last_message_at',
         'last_massage_at',
+        'last_message_at_iso',
     ];
 }
 
@@ -48,6 +49,7 @@ function frozenMessageSendKeys(): array
         'attachments',
         'read_at',
         'created_at',
+        'created_at_iso',
     ];
 }
 

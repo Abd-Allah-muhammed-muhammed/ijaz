@@ -136,6 +136,7 @@ class ChatUpdatedEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterCom
             ],
             'last_message_at' => $this->chat->last_message_at?->shortAbsoluteDiffForHumans(),
             'last_massage_at' => $this->chat->last_message_at?->shortAbsoluteDiffForHumans(), // @deprecated typo — use last_message_at
+            'last_message_at_iso' => $this->chat->last_message_at?->toIso8601String(),
         ];
     }
 }
