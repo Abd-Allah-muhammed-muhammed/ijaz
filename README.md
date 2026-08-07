@@ -204,14 +204,40 @@ php artisan view:cache
 ```
 
 #### 5. Frontend Assets
-Build locally (no npm on server):
-```bash
-# On local machine:
-npm run build
 
-# Upload public/build/ to server
+Production deploy (`.github/workflows/deploy.yml`) runs `npm run build` **on the server**.
+Vite **inlines** every `VITE_*` variable from the server's `.env` at build time — PHP
+runtime env alone cannot fix an already-built `public/build` bundle.
+
+**Before `npm run build` on production, confirm Reverb client env is correct:**
+
+```env
+# Typical production (TLS terminated at reverse proxy → Reverb):
+REVERB_HOST=ijaz.sa
+REVERB_PORT=443
+REVERB_SCHEME=https
+# VITE_* mirror REVERB_* via .env.example interpolation:
+VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
+VITE_REVERB_HOST="${REVERB_HOST}"
+VITE_REVERB_PORT="${REVERB_PORT}"
+VITE_REVERB_SCHEME="${REVERB_SCHEME}"
+```
+
+- `VITE_REVERB_SCHEME=http` / `ws` → local plain `ws://` (Laragon).
+- `VITE_REVERB_SCHEME=https` / `wss` → production `wss://`.
+- `wss://ijaz.sa:8080` usually means the bundle was built with scheme TLS **and**
+  `REVERB_PORT=8080`. Prefer `443` behind nginx/caddy, or terminate TLS on 8080.
+- After any Reverb/`VITE_REVERB_*` change: **re-run `npm run build`** (then hard-refresh).
+
+`npm run build` also runs `prebuild` → `php artisan wayfinder:generate` (actions under
+`resources/js/actions` are gitignored; without this, chat can crash with
+`.typing is not a function` on stale generated controllers).
+
+Local / offline upload alternative:
+```bash
+# On a machine with the same VITE_REVERB_* as production:
+npm run build
 rsync -avz public/build/ user@server:/home/ijaz/project/public/build/
-# or via FTP/cPanel File Manager
 ```
 
 ---
@@ -580,16 +606,25 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# 5. Restart workers
+# 5. Frontend — Vite inlines VITE_* from this server's .env at build time.
+# Ensure REVERB_SCHEME / VITE_REVERB_SCHEME (and HOST/PORT) are production-correct
+# before building. Wayfinder actions are regenerated in npm prebuild.
+php artisan wayfinder:generate --no-interaction
+npm ci --prefer-offline
+npm run build
+
+# 6. Restart workers
 # Before Horizon cutover:
 supervisorctl restart ijaz-default-worker:*
 supervisorctl restart ijaz-guarantor-worker:*
 # After Horizon cutover (see "Migrating to Horizon on Production"):
 # php artisan horizon:terminate
 # supervisorctl restart ijaz-horizon
-
-# 6. Upload public/build/ from local machine
 ```
+
+> **Removed:** uploading `public/build/` from a developer laptop as the primary path.
+> Server/CI build must use the production `.env` so Echo does not bake local
+> `http`/`localhost:8080` (or the wrong TLS port) into the bundle.
 
 ---
 

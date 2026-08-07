@@ -39,6 +39,9 @@ Pusher.logToConsole = import.meta.env.DEV;
  * Keep `resources/js/store/use-echo.ts` in sync if that file is revived.
  * =============================================================================
  */
+// BUILD-TIME ONLY: Vite inlines VITE_* from the shell / project `.env` during
+// `npm run build`. Changing production `.env` without rebuilding leaves the
+// previous scheme/host/port baked into public/build. See README + PROJECT_CONTEXT.
 const reverbScheme = String(import.meta.env.VITE_REVERB_SCHEME ?? 'https').toLowerCase();
 
 // TLS schemes used in production (`wss`) and Laravel docs (`https`).

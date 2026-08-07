@@ -194,6 +194,15 @@ const ConversationContent = ({
       return endpointsProp;
     }
 
+    // Defensive: Wayfinder actions are gitignored and only regenerated on
+    // `npm run build` (prebuild) / `npm run dev`. A stale server tree without
+    // `.typing` used to throw "G.typing is not a function" and crash the page.
+    const typingFn = ProviderOrderChatController.typing;
+    const typingUrl =
+      typeof typingFn === 'function'
+        ? typingFn(conversation.id).url
+        : null;
+
     return {
       messagesUrl: (options) => {
         const query: Record<string, string | number> = {};
@@ -208,7 +217,7 @@ const ConversationContent = ({
         return ProviderOrderChatController.show(conversation.id, params).url;
       },
       sendUrl: ProviderOrderChatController.send(conversation.id).url,
-      typingUrl: ProviderOrderChatController.typing(conversation.id).url,
+      typingUrl,
     };
   }, [endpointsProp]);
 

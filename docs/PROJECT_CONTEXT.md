@@ -217,6 +217,13 @@ Also still true (non-breaking quirks, documented in models/API docs):
 - ~~**Geo Regions/Cities/Nationalities search returned zero for seeded data**~~ — **RESOLVED**: seeders now use Eloquent; `TranslationSearch` unifies Dashboard+API; CI blocks raw inserts into normalized_*-bearing tables.
 - **CarBrand / CarType / PropertyType lack `normalized_*` translation columns** — search correctly uses raw `name` (`normalize: false`). Adding Arabic-insensitive search needs a future schema + save-hook pass, not filter-side fake normalization.
 
+### Deploy / realtime checklist (Reverb + Wayfinder)
+
+- **`VITE_REVERB_*` are build-time.** Vite reads the project `.env` during `npm run build` and inlines values into `public/build`. Changing PHP runtime `.env` without rebuilding does **not** fix Echo scheme/host/port (e.g. clients stuck on `wss://ijaz.sa:8080`).
+- Production `.env` before build: `REVERB_SCHEME=https` or `wss`, `REVERB_HOST` = public host, `REVERB_PORT` usually `443` behind a reverse proxy (not `8080` unless Reverb itself serves TLS there). `VITE_REVERB_*` mirror via `.env` interpolation (see `.env.example`).
+- **`resources/js/actions/*` is gitignored.** `vite-plugin-run` Wayfinder generation has `build: false` (avoids mid-bundle races). `npm run build` → `prebuild` must run `php artisan wayfinder:generate` so controller helpers like `.typing` / `.conversationTyping` exist. Deploy workflow also runs Wayfinder explicitly before `npm ci` / build.
+- Local Echo scheme gate (`resources/js/echo.js`): only overrides pusher-js protocol when `VITE_REVERB_SCHEME` is non-TLS (`http`/`ws`). Production `wss`/`https` is intentional — connection failures there are env/proxy/port, not that gate “failing open.”
+
 **Planned but not implemented (not a bug, not dead code to remove):**
 
 - **`Employee`** (`App\Models\Employee`) — model + `employee` guard/provider in `config/auth.php` exist as groundwork for future staff management. No migration, routes, controller, or CRUD. One live consumer: `Modules\Marketplace\Models\Category` checks `auth('employee')` (guard resolution is fine; no employee can log in yet). Build-out later must follow layered architecture. See the model docblock.
