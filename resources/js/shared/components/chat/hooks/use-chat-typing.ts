@@ -48,13 +48,6 @@ export function useChatTyping({
 
   const handleRemoteTyping = useCallback(
     (user: ConversationUser) => {
-      // TEMP DEBUG
-      const passedSelfFilter = Boolean(user?.socket_id) && user.socket_id !== currentSocketId;
-      console.log('[TYPING DEBUG] Passed self-filter?', passedSelfFilter, {
-        payloadSocketId: user?.socket_id,
-        currentSocketId,
-      });
-
       if (!user?.socket_id || user.socket_id === currentSocketId) {
         return;
       }
@@ -75,8 +68,6 @@ export function useChatTyping({
 
   const notifyTyping = useCallback(() => {
     if (!enabled || !typingUrl) {
-      // TEMP DEBUG
-      console.log('[TYPING DEBUG] notifyTyping skipped', { enabled, typingUrl, conversationId });
       return;
     }
 
@@ -93,15 +84,10 @@ export function useChatTyping({
       headers['X-Socket-Id'] = socketId;
     }
 
-    // TEMP DEBUG
-    console.log('[TYPING DEBUG] Emitting', { typingUrl, conversationId, timestamp: Date.now(), socketId });
-
-    void axios.post(typingUrl, {}, { headers })
-      // TEMP DEBUG
-      .then(() => console.log('[TYPING DEBUG] POST succeeded'))
-      // TEMP DEBUG
-      .catch((err) => console.log('[TYPING DEBUG] POST failed', err));
-  }, [enabled, typingUrl, conversationId]);
+    void axios.post(typingUrl, {}, { headers }).catch(() => {
+      // Best-effort signal — ignore network failures.
+    });
+  }, [enabled, typingUrl]);
 
   const resetEmitThrottle = useCallback(() => {
     lastEmitAtRef.current = 0;

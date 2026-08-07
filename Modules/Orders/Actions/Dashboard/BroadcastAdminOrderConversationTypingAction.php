@@ -15,6 +15,11 @@ class BroadcastAdminOrderConversationTypingAction
         private readonly ConversationService $conversations,
     ) {}
 
+    /**
+     * Admin HTTP routes bind the Order (`/orders/{order}/conversation-typing`).
+     * Presence listeners join `chats.{conversation_id}` — never `chats.{order_id}`.
+     * Always resolve the order's Conversation before broadcasting.
+     */
     public function handle(Order $order, Admin $admin): void
     {
         $conversation = $this->orders->findConversation($order);
@@ -23,6 +28,7 @@ class BroadcastAdminOrderConversationTypingAction
             throw new NotFoundHttpException('No conversation found for this order.');
         }
 
+        // Guaranteed: channel key is the conversation UUID, not the order UUID.
         $this->conversations->typing($conversation, $admin);
     }
 }
