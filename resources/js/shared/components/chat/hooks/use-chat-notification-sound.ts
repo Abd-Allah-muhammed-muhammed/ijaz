@@ -14,11 +14,14 @@ const SOUND_PATH = '/media/sounds/chat-notification.wav';
  *
  * Covers:
  * - Hidden tab (`visibilityState === 'hidden'`) — classic background-tab case
- * - Visible but unfocused window (`!window.hasFocus()`) — two side-by-side
- *   windows both report `visible`; only focus distinguishes them
+ * - Visible but unfocused window (`!document.hasFocus()`) — two side-by-side
+ *   windows both report `visible`; Document.hasFocus distinguishes them
+ *
+ * Note: hasFocus() is on Document, NOT Window. Calling window.hasFocus() throws
+ * TypeError in Chromium ("window.hasFocus is not a function").
  */
 export function isChatNotificationContextInactive(): boolean {
-  if (typeof document === 'undefined' || typeof window === 'undefined') {
+  if (typeof document === 'undefined') {
     return false;
   }
 
@@ -26,7 +29,13 @@ export function isChatNotificationContextInactive(): boolean {
     return true;
   }
 
-  return !window.hasFocus();
+  // Defensive: Document.hasFocus is standard, but fall back to visibility-only
+  // if it is ever missing (SSR stubs, exotic embeds).
+  if (typeof document.hasFocus === 'function') {
+    return !document.hasFocus();
+  }
+
+  return false;
 }
 
 /**
