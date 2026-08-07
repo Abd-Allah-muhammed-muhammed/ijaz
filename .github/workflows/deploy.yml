@@ -35,6 +35,16 @@ jobs:
             composer install --no-dev --optimize-autoloader --no-interaction
 
             # 4. Frontend build
+            # Wayfinder actions are gitignored and NOT generated during `vite build`
+            # (vite-plugin-run has build:false). `npm run build` → `prebuild` regenerates
+            # them; run explicitly here too so a missing prebuild never ships stale actions
+            # (e.g. missing `.typing` → "G.typing is not a function" on chat pages).
+            #
+            # VITE_REVERB_* are BUILD-TIME: Vite inlines them from this server's `.env`
+            # during `npm run build`. Runtime PHP `.env` alone does not fix an old bundle.
+            # Production must have REVERB_SCHEME=wss (or https) + correct HOST/PORT in
+            # `.env` BEFORE this step, then rebuild after any Reverb env change.
+            php artisan wayfinder:generate --no-interaction
             npm ci --prefer-offline
             npm run build
 
@@ -46,9 +56,5 @@ jobs:
             php artisan route:cache
             php artisan view:cache
             php artisan event:cache
-
-            # 7. Restart workers
-            supervisorctl restart ijaz-default-worker:*
-            supervisorctl restart ijaz-guarantor-worker:*
 
             echo "Deployed successfully"

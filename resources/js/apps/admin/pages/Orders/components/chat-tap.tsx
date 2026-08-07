@@ -29,6 +29,11 @@ const ChatTap = ({ order }: Props) => {
   const endpoints = useMemo(() => {
     const orderId = order.id as string | number;
 
+    // Defensive: stale Wayfinder actions without conversationTyping must not crash chat.
+    const typingFn = OrderController.conversationTyping;
+    const typingUrl =
+      typeof typingFn === 'function' ? typingFn(orderId).url : null;
+
     return {
       messagesUrl: (options?: { search?: string; page?: number }) => {
         const query: Record<string, string | number> = {};
@@ -43,7 +48,7 @@ const ChatTap = ({ order }: Props) => {
         return OrderController.conversationMessages(orderId, params).url;
       },
       sendUrl: OrderController.sendConversationMessage(orderId).url,
-      typingUrl: OrderController.conversationTyping(orderId).url,
+      typingUrl,
     };
   }, [order.id]);
 

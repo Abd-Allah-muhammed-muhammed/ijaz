@@ -84,7 +84,13 @@ const Show = ({row, chat, chatMessages}: Props) => {
   } = useChatTyping({
     conversationId: chat?.id,
     currentSocketId,
-    typingUrl: chat ? SupportChatController.typing(row.id as number).url : null,
+    typingUrl: (() => {
+      if (!chat) {
+        return null;
+      }
+      const typingFn = SupportChatController.typing;
+      return typeof typingFn === 'function' ? typingFn(row.id as number).url : null;
+    })(),
     enabled: canEdit && Boolean(chat),
   });
   const { notifyIncomingMessage } = useChatNotificationSound();
