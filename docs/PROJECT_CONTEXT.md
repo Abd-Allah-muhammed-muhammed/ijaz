@@ -219,10 +219,11 @@ Also still true (non-breaking quirks, documented in models/API docs):
 
 ### Deploy / realtime checklist (Reverb + Wayfinder)
 
-- **`VITE_REVERB_*` are build-time.** Vite reads the project `.env` during `npm run build` and inlines values into `public/build`. Changing PHP runtime `.env` without rebuilding does **not** fix Echo scheme/host/port (e.g. clients stuck on `wss://ijaz.sa:8080`).
-- Production `.env` before build: `REVERB_SCHEME=https` or `wss`, `REVERB_HOST` = public host, `REVERB_PORT` usually `443` behind a reverse proxy (not `8080` unless Reverb itself serves TLS there). `VITE_REVERB_*` mirror via `.env` interpolation (see `.env.example`).
+- **`VITE_REVERB_*` are build-time.** Vite reads the project `.env` during `npm run build` and inlines values into `public/build`. Changing PHP runtime `.env` without rebuilding does **not** fix Echo scheme/host/port.
+- **Cloudflare WebSocket port:** production domain is Cloudflare-proxied. Cloudflare only upgrades WebSockets on supported ports (443, 2052–2087, 2095–2096, **8443**, …) — **not 8080**. Unsupported ports: TCP/TLS may succeed while the WS upgrade is silently dropped. This project uses public **`VITE_REVERB_PORT=8443`** + Nginx `listen 8443 ssl` → internal Reverb `REVERB_SERVER_PORT=6002`. Keep `REVERB_PORT` / `REVERB_SERVER_PORT` as the internal publish/bind ports; do **not** set `VITE_REVERB_PORT` from them.
+- Production client env: `VITE_REVERB_HOST=ijaz.sa`, `VITE_REVERB_PORT=8443`, `VITE_REVERB_SCHEME=wss` (see `.env.example` + README).
 - **`resources/js/actions/*` is gitignored.** `vite-plugin-run` Wayfinder generation has `build: false` (avoids mid-bundle races). `npm run build` → `prebuild` must run `php artisan wayfinder:generate` so controller helpers like `.typing` / `.conversationTyping` exist. Deploy workflow also runs Wayfinder explicitly before `npm ci` / build.
-- Local Echo scheme gate (`resources/js/echo.js`): only overrides pusher-js protocol when `VITE_REVERB_SCHEME` is non-TLS (`http`/`ws`). Production `wss`/`https` is intentional — connection failures there are env/proxy/port, not that gate “failing open.”
+- Local Echo scheme gate (`resources/js/echo.js`): only overrides pusher-js protocol when `VITE_REVERB_SCHEME` is non-TLS (`http`/`ws`). Production `wss`/`https` is intentional — connection failures there are env/proxy/Cloudflare port, not that gate “failing open.”
 
 **Planned but not implemented (not a bug, not dead code to remove):**
 

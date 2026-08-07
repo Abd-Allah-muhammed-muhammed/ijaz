@@ -193,6 +193,8 @@ const Show = ({row, chat, chatMessages}: Props) => {
           setMessages((prevMessages) => [...prevMessages, message]);
         })
         .listen(`.${ChatEventEnum.Typing}`, (typing: ConversationUser) => {
+          // TEMP DEBUG
+          console.log('[TYPING DEBUG] Received typing event', typing);
           handleRemoteTyping(typing);
         })
         .listen(`.${ChatEventEnum.Messages_Read}`, (payload: {

@@ -42,6 +42,10 @@ Pusher.logToConsole = import.meta.env.DEV;
 // BUILD-TIME ONLY: Vite inlines VITE_* from the shell / project `.env` during
 // `npm run build`. Changing production `.env` without rebuilding leaves the
 // previous scheme/host/port baked into public/build. See README + PROJECT_CONTEXT.
+//
+// Production (Cloudflare orange-cloud): VITE_REVERB_PORT must be a Cloudflare-
+// supported WebSocket port (this project: 8443). Port 8080 is NOT supported —
+// TCP/TLS can succeed while the WS upgrade is silently dropped.
 const reverbScheme = String(import.meta.env.VITE_REVERB_SCHEME ?? 'https').toLowerCase();
 
 // TLS schemes used in production (`wss`) and Laravel docs (`https`).

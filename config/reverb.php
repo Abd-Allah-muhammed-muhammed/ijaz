@@ -29,6 +29,8 @@ return [
     'servers' => [
 
         'reverb' => [
+            // Internal bind only (e.g. production 6002). Public browser port is
+            // VITE_REVERB_PORT → Nginx (8443 when behind Cloudflare — not 8080).
             'host' => env('REVERB_SERVER_HOST', '0.0.0.0'),
             'port' => env('REVERB_SERVER_PORT', 8080),
             'path' => env('REVERB_SERVER_PATH', ''),
@@ -76,6 +78,8 @@ return [
                 'key' => env('REVERB_APP_KEY'),
                 'secret' => env('REVERB_APP_SECRET'),
                 'app_id' => env('REVERB_APP_ID'),
+                // PHP → Reverb publish path (same host as SERVER_PORT in prod).
+                // Browser clients use VITE_REVERB_* (public Nginx/Cloudflare port).
                 'options' => [
                     'host' => env('REVERB_HOST'),
                     'port' => env('REVERB_PORT', 443),
