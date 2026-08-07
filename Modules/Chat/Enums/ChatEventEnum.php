@@ -10,4 +10,5 @@ enum ChatEventEnum: string
     case New_Message = 'new-message';
     case Chat_Updated = 'chat-updated';
     case Typing = 'typing';
+    case Messages_Read = 'messages-read';
 }

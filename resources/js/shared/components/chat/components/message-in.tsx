@@ -1,6 +1,5 @@
 import { ConversationAttachment, ConversationMessage } from '@/shared/types/models';
 import React from 'react';
-import { KTIcon } from '@/vendor/metronic/helpers';
 import Attachments from '@/shared/components/chat/components/attachments';
 import { highlightSearchTerm } from '@/shared/components/chat/components/chat-search-highlight';
 
@@ -12,39 +11,43 @@ type Props = {
 const hasCaption = (content?: string | null): boolean =>
   Boolean(content && String(content).trim() !== '');
 
+/**
+ * Incoming (other party's) bubble — no read-receipt checkmarks (outgoing-only UX).
+ */
 const MessageIn = ({ conversationMessage, highlightTerm }: Props) => {
   return (
     <div
-      className="d-flex justify-content-start mb-10 mw-100 min-w-0"
+      className="d-flex justify-content-start mb-8 mw-100 min-w-0"
       data-kt-element="template-in"
     >
       <div
         className="d-flex flex-column align-items-start min-w-0"
-        style={{ maxWidth: '100%' }}
+        style={{ maxWidth: 'min(100%, 28rem)' }}
       >
-        <div className="d-flex align-items-center mb-2">
-          <div className="symbol symbol-35px symbol-circle">
-            <img alt="Pic" src={conversationMessage.sender?.image} />
+        <div className="d-flex align-items-center mb-2 gap-2">
+          <div className="symbol symbol-35px symbol-circle flex-shrink-0">
+            <img alt="" src={conversationMessage.sender?.image} />
           </div>
-          <div className="ms-3 min-w-0">
-            <a
-              href="#"
-              className="fs-5 fw-bolder text-gray-900 text-hover-primary me-1 text-truncate d-inline-block"
+          <div className="min-w-0">
+            <span
+              className="fs-6 fw-semibold text-gray-900 text-truncate d-inline-block"
               style={{ maxWidth: 220 }}
             >
               {conversationMessage.sender?.name}
-            </a>
-            {/* Backend / broadcast payloads use shortAbsoluteDiffForHumans(), not ISO. */}
-            <span className="text-muted fs-7 mb-1 d-block">
+            </span>
+            <span className="text-muted fs-8 d-block lh-1 mt-1">
               {String(conversationMessage.created_at ?? '')}
             </span>
           </div>
         </div>
 
         <div
-          className="p-3 rounded bg-light-info text-gray-900 fw-bold w-100 min-w-0 overflow-hidden"
+          className="px-4 py-3 text-gray-900 fw-normal w-100 min-w-0 overflow-hidden"
           style={{
-            maxWidth: 400,
+            maxWidth: '100%',
+            borderRadius: '1.125rem 1.125rem 1.125rem 0.35rem',
+            background: 'var(--bs-gray-100)',
+            boxShadow: '0 1px 2px rgba(16, 24, 40, 0.06)',
             overflowWrap: 'anywhere',
             wordBreak: 'break-word',
           }}
@@ -63,17 +66,10 @@ const MessageIn = ({ conversationMessage, highlightTerm }: Props) => {
                   ? highlightSearchTerm(String(conversationMessage.content), highlightTerm)
                   : String(conversationMessage.content),
               }}
-              className="text-start mb-2 text-break"
+              className="text-start mb-0 text-break fs-6 lh-base"
               style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
             ></p>
           ) : null}
-          <div className="d-flex justify-content-end">
-            {conversationMessage.read_at ? (
-              <KTIcon iconName="double-check" className="text-primary fs-1" />
-            ) : (
-              <KTIcon iconName="check" className="text-muted fs-1" />
-            )}
-          </div>
         </div>
       </div>
     </div>

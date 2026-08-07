@@ -70,16 +70,26 @@ class ConversationMessageRepository implements ConversationMessageRepositoryInte
     public function markAsRead(
         Conversation $conversation,
         Model $reader,
-    ): void {
-        $conversation->messages()
+    ): array {
+        $ids = $conversation->messages()
             ->where('receiver_type', $reader::class)
             ->where('receiver_id', $reader->getKey())
             ->whereNull('read_at')
+            ->pluck('id');
+
+        if ($ids->isEmpty()) {
+            return [];
+        }
+
+        $conversation->messages()
+            ->whereIn('id', $ids)
             ->update([
                 'read_at' => now(),
                 'read_by_id' => $reader->getKey(),
                 'read_by_type' => $reader::class,
             ]);
+
+        return $ids->map(static fn ($id): string => (string) $id)->values()->all();
     }
 
     public function countUnreadFor(Model $receiver): int

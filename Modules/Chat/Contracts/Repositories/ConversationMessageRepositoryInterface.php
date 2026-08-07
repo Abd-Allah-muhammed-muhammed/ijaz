@@ -37,10 +37,15 @@ interface ConversationMessageRepositoryInterface
         int $limit = 20,
     ): Collection;
 
+    /**
+     * Mark unread messages addressed to $reader as read.
+     *
+     * @return list<string> IDs of messages that were updated
+     */
     public function markAsRead(
         Conversation $conversation,
         Model $reader,
-    ): void;
+    ): array;
 
     public function countUnreadFor(Model $receiver): int;
 }

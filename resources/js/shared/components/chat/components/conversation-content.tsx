@@ -478,6 +478,34 @@ const ConversationContent = ({
       .listen(`.${ChatEventEnum.Typing}`, (typing: ConversationUser) => {
         handleRemoteTyping(typing);
       })
+      .listen(`.${ChatEventEnum.Messages_Read}`, (payload: {
+        conversation_id?: string;
+        message_ids?: string[];
+        read_at?: string;
+      }) => {
+        const ids = new Set((payload.message_ids ?? []).map(String));
+        if (ids.size === 0) {
+          return;
+        }
+
+        const readAt = payload.read_at ?? new Date().toISOString();
+
+        setMessages((prevMessages) => prevMessages.map((message) => (
+          ids.has(String(message.id))
+            ? { ...message, read_at: readAt as unknown as Date }
+            : message
+        )));
+
+        if (syncSidebar && activeConversation?.last_message && ids.has(String(activeConversation.last_message.id))) {
+          updateConversationForNewMessages({
+            ...activeConversation,
+            last_message: {
+              ...activeConversation.last_message,
+              read_at: readAt as unknown as Date,
+            },
+          });
+        }
+      })
       .joining((joiningUser: ConversationUser) => {
         if (joiningUser.socket_id !== currentSocketId) {
           setMessages((prevMessages) => {
