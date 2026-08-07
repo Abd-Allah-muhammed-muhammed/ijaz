@@ -24,6 +24,7 @@ class ConversationResource extends JsonResource
             'last_message' => ConversationMessageResource::make($this->whenLoaded('lastMessage')),
             'last_message_at' => $this->last_message_at?->shortAbsoluteDiffForHumans(),
             'last_massage_at' => $this->last_message_at?->shortAbsoluteDiffForHumans(), // @deprecated typo — use last_message_at
+            'last_message_at_iso' => $this->last_message_at?->toIso8601String(),
             'unread_count' => $this->when(isset($this->unread_messages_count), (int) $this->unread_messages_count),
         ];
     }

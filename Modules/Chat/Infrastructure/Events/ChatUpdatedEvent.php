@@ -40,23 +40,39 @@ class ChatUpdatedEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterCom
     public function broadcastOn(): array
     {
         if ($this->sender instanceof Admin) {
-            $channels = [
+            $this->chat->loadMissing(['user1', 'user2']);
+
+            // Support tickets: System ↔ User — notify systems + the end user.
+            if ($this->chat->user1_type === System::class || $this->chat->user2_type === System::class) {
+                return [
+                    new PrivateChannel('systems.1'),
+                    new PrivateChannel($this->receiver->getAuthIdentifierForBroadcasting()),
+                ];
+            }
+
+            // Admin intervention on bilateral chats (e.g. Order User ↔ Provider).
+            $channels = [new PrivateChannel('systems.1')];
+
+            foreach ([$this->chat->user1, $this->chat->user2] as $participant) {
+                if ($participant instanceof HasConversation) {
+                    $channels[] = new PrivateChannel($participant->getAuthIdentifierForBroadcasting());
+                }
+            }
+
+            return $channels;
+        }
+
+        if ($this->receiver instanceof System) {
+            return [
                 new PrivateChannel('systems.1'),
-                new PrivateChannel($this->receiver->getAuthIdentifierForBroadcasting()),
-            ];
-        } elseif ($this->receiver instanceof System) {
-            $channels = [
-                new PrivateChannel('systems.1'),
-                new PrivateChannel($this->sender->getAuthIdentifierForBroadcasting()),
-            ];
-        } else {
-            $channels = [
-                new PrivateChannel($this->receiver->getAuthIdentifierForBroadcasting()),
                 new PrivateChannel($this->sender->getAuthIdentifierForBroadcasting()),
             ];
         }
 
-        return $channels;
+        return [
+            new PrivateChannel($this->receiver->getAuthIdentifierForBroadcasting()),
+            new PrivateChannel($this->sender->getAuthIdentifierForBroadcasting()),
+        ];
     }
 
     public function broadcastAs(): string
@@ -68,8 +84,18 @@ class ChatUpdatedEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterCom
     {
         $this->chat->loadMissing(['lastMessage.sender', 'lastMessage.media']);
 
-        $user1 = $this->chat->user1()->is($this->sender) ? $this->sender : $this->receiver;
-        $user2 = $this->chat->user2()->is($this->sender) ? $this->sender : $this->receiver;
+        // Admin is not a participant on order chats — keep real user1/user2 in the payload.
+        if (
+            $this->sender instanceof Admin
+            && ! $this->chat->user1()->is($this->sender)
+            && ! $this->chat->user2()->is($this->sender)
+        ) {
+            $user1 = $this->chat->user1;
+            $user2 = $this->chat->user2;
+        } else {
+            $user1 = $this->chat->user1()->is($this->sender) ? $this->sender : $this->receiver;
+            $user2 = $this->chat->user2()->is($this->sender) ? $this->sender : $this->receiver;
+        }
         $lastMessage = $this->chat->lastMessage;
         $attachmentsCount = $lastMessage
             ? $lastMessage->getMedia('attachments')->count()
@@ -110,6 +136,7 @@ class ChatUpdatedEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterCom
             ],
             'last_message_at' => $this->chat->last_message_at?->shortAbsoluteDiffForHumans(),
             'last_massage_at' => $this->chat->last_message_at?->shortAbsoluteDiffForHumans(), // @deprecated typo — use last_message_at
+            'last_message_at_iso' => $this->chat->last_message_at?->toIso8601String(),
         ];
     }
 }

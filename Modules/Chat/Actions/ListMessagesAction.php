@@ -11,6 +11,7 @@ class ListMessagesAction
 {
     public function __construct(
         private readonly ConversationMessageRepositoryInterface $messageRepository,
+        private readonly MarkMessagesAsReadAction $markMessagesAsRead,
     ) {}
 
     public function handle(
@@ -21,7 +22,7 @@ class ListMessagesAction
     ): LengthAwarePaginator {
         // Searching is a read-only filter — don't side-effect mark-as-read.
         if ($search === null || $search === '') {
-            $this->messageRepository->markAsRead($conversation, $actor);
+            $this->markMessagesAsRead->handle($conversation, $actor);
         }
 
         return $this->messageRepository->listForConversation($conversation, $perPage, $search);

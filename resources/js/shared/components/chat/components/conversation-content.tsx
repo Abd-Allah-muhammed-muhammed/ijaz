@@ -20,9 +20,26 @@ import type { SingleApiResponse, ConversationMessagePaginationResource } from "@
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
 
+export type ConversationContentEndpoints = {
+  messagesUrl: (options?: { search?: string; page?: number }) => string;
+  sendUrl: string;
+  typingUrl?: string | null;
+};
+
 type Props = {
-  // Define any props if needed
-}
+  /** Controlled conversation (Admin Orders). When omitted, uses Provider chat store. */
+  conversation?: Conversation | null;
+  /** Override API URLs. Defaults to Provider OrderChatController. */
+  endpoints?: ConversationContentEndpoints;
+  /** Hide the inbox close (X) button — used for embedded Admin views. */
+  showCloseButton?: boolean;
+  /** When false, hides ChatComposer (read-only). Default true. */
+  showComposer?: boolean;
+  /** When false, skips Provider inbox sidebar preview updates. Default true. */
+  syncSidebar?: boolean;
+  /** Shown when there is no conversation to display. */
+  emptyFallback?: React.ReactNode;
+};
 
 type ChatMessage = {
   content: string;
@@ -123,6 +140,8 @@ function buildSidebarPreviewFromMessage(
     last_massage_at: typeof message.created_at === 'string'
       ? message.created_at
       : conversation.last_massage_at,
+    last_message_at_iso: message.created_at_iso
+      ?? (message.created_at instanceof Date ? message.created_at.toISOString() : conversation.last_message_at_iso),
     unread_count: 0,
   };
 }
@@ -132,7 +151,14 @@ function isNearBottom(el: HTMLElement, thresholdPx = NEAR_BOTTOM_THRESHOLD_PX): 
 }
 
 let unreadMessageIndex: number[] = [];
-const ConversationContent = ({ }: Props) => {
+const ConversationContent = ({
+  conversation: conversationProp,
+  endpoints: endpointsProp,
+  showCloseButton = true,
+  showComposer = true,
+  syncSidebar = true,
+  emptyFallback = null,
+}: Props) => {
   const { t } = useTranslation();
   const {
     currentConversation,
@@ -142,6 +168,8 @@ const ConversationContent = ({ }: Props) => {
     setPrevConversation,
     updateConversationForNewMessages,
   } = useConversations();
+  const isControlled = conversationProp !== undefined;
+  const activeConversation = isControlled ? conversationProp : currentConversation;
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [loadingMessages, setLoadingMessages] = useState<boolean>(false);
   const [sending, setSending] = useState<boolean>(false);
@@ -160,6 +188,32 @@ const ConversationContent = ({ }: Props) => {
   const stickToBottomRef = useRef(true);
   /** Ignore onScroll while we programmatically jump to bottom. */
   const ignoreScrollRef = useRef(false);
+
+  const resolveEndpoints = useCallback((conversation: Conversation): ConversationContentEndpoints => {
+    if (endpointsProp) {
+      return endpointsProp;
+    }
+
+    return {
+      messagesUrl: (options) => {
+        const query: Record<string, string | number> = {};
+        if (options?.search && options.search.trim() !== '') {
+          query.search = options.search.trim();
+        }
+        if (options?.page && options.page > 1) {
+          query.page = options.page;
+        }
+        const params = Object.keys(query).length > 0 ? { query } : undefined;
+
+        return ProviderOrderChatController.show(conversation.id, params).url;
+      },
+      sendUrl: ProviderOrderChatController.send(conversation.id).url,
+      typingUrl: ProviderOrderChatController.typing(conversation.id).url,
+    };
+  }, [endpointsProp]);
+
+  const activeEndpoints = activeConversation ? resolveEndpoints(activeConversation) : null;
+
   const {
     typingUser,
     handleRemoteTyping,
@@ -167,11 +221,10 @@ const ConversationContent = ({ }: Props) => {
     clearTyping,
     resetEmitThrottle,
   } = useChatTyping({
-    conversationId: currentConversation?.id,
+    conversationId: activeConversation?.id,
     currentSocketId,
-    typingUrl: currentConversation
-      ? ProviderOrderChatController.typing(currentConversation.id).url
-      : null,
+    typingUrl: showComposer ? (activeEndpoints?.typingUrl ?? null) : null,
+    enabled: showComposer && Boolean(activeConversation),
   });
   const { notifyIncomingMessage } = useChatNotificationSound();
 
@@ -179,31 +232,23 @@ const ConversationContent = ({ }: Props) => {
     activeSearchRef.current = activeSearch;
   }, [activeSearch]);
 
-  const fetchMessages = (
-    conversationId: string | number,
+  const fetchMessages = useCallback((
+    conversation: Conversation,
     options?: { search?: string; page?: number },
   ) => {
-    const query: Record<string, string | number> = {};
-    if (options?.search && options.search.trim() !== '') {
-      query.search = options.search.trim();
-    }
-    if (options?.page && options.page > 1) {
-      query.page = options.page;
-    }
-
-    const params = Object.keys(query).length > 0 ? { query } : undefined;
+    const endpoints = resolveEndpoints(conversation);
 
     return axios.get<SingleApiResponse<ConversationMessagePaginationResource>>(
-      ProviderOrderChatController.show(conversationId, params).url,
+      endpoints.messagesUrl(options),
     );
-  };
+  }, [resolveEndpoints]);
 
   const fetchOlderPage = useCallback(async (page: number) => {
-    if (!currentConversation) {
+    if (!activeConversation) {
       return { items: [], hasMorePages: false, currentPage: page };
     }
 
-    const { data: response } = await fetchMessages(currentConversation.id, { page });
+    const { data: response } = await fetchMessages(activeConversation, { page });
     const paginate = response?.data?.paginate;
 
     return {
@@ -211,7 +256,7 @@ const ConversationContent = ({ }: Props) => {
       hasMorePages: Boolean(paginate?.has_more_pages),
       currentPage: paginate?.current_page ?? page,
     };
-  }, [currentConversation]);
+  }, [activeConversation, fetchMessages]);
 
   const prependOlderMessages = useCallback((older: ConversationMessage[]) => {
     setMessages((prev) => {
@@ -227,7 +272,7 @@ const ConversationContent = ({ }: Props) => {
     resetPagination,
     onScroll: onLoadOlderScroll,
   } = useChatLoadOlderMessages({
-    enabled: Boolean(currentConversation) && activeSearch.trim() === '' && !searchOpen,
+    enabled: Boolean(activeConversation) && activeSearch.trim() === '' && !searchOpen,
     messagesBoxRef: messagesBox,
     fetchOlderPage,
     onPrepend: prependOlderMessages,
@@ -274,7 +319,7 @@ const ConversationContent = ({ }: Props) => {
     return () => {
       observer.disconnect();
     };
-  }, [currentConversation?.id]);
+  }, [activeConversation?.id]);
 
   useLayoutEffect(() => {
     if (loadingMessages && messages.length === 0) {
@@ -287,7 +332,7 @@ const ConversationContent = ({ }: Props) => {
   }, [messages, loadingMessages]);
 
   const sendMessage = async () => {
-    if (!currentConversation || (message.content.trim() === '' && !message.files.length)) {
+    if (!activeConversation || !activeEndpoints || (message.content.trim() === '' && !message.files.length)) {
       return;
     }
 
@@ -310,7 +355,7 @@ const ConversationContent = ({ }: Props) => {
 
     try {
       const { data: response } = await axios.post<SingleApiResponse<ConversationMessage>>(
-        ProviderOrderChatController.send(currentConversation.id).url,
+        activeEndpoints.sendUrl,
         formData,
         { headers },
       );
@@ -321,6 +366,7 @@ const ConversationContent = ({ }: Props) => {
             id: '0',
             content: message.content,
             created_at: new Date(),
+            created_at_iso: new Date().toISOString(),
             updated_at: new Date(),
             sender: {
               id: 0,
@@ -349,9 +395,11 @@ const ConversationContent = ({ }: Props) => {
       clearTyping();
       resetEmitThrottle();
       setMessages(prevMessages => [...prevMessages, newMessage]);
-      updateConversationForNewMessages(
-        buildSidebarPreviewFromMessage(newMessage, currentConversation),
-      );
+      if (syncSidebar) {
+        updateConversationForNewMessages(
+          buildSidebarPreviewFromMessage(newMessage, activeConversation),
+        );
+      }
       setMessage({ content: '', files: [] });
       setErrorFileIndexes([]);
     } catch (error) {
@@ -382,16 +430,16 @@ const ConversationContent = ({ }: Props) => {
     }
   }
 
-  const user = currentConversation?.user1?.socket_id !== currentSocketId ? currentConversation?.user1 : currentConversation?.user2;
+  const user = activeConversation?.user1?.socket_id !== currentSocketId ? activeConversation?.user1 : activeConversation?.user2;
   const displayName = user?.name ?? t('conversation');
   const avatarInitial = displayName.replace(/[_\-\\/]/i, ' ').split(' ')[0]?.charAt(0)?.toUpperCase() || '?';
 
   useEffect(() => {
-    if (!currentConversation) {
+    if (!activeConversation) {
       return;
     }
 
-    if (currentConversation.id === prevConversation?.id) {
+    if (!isControlled && activeConversation.id === prevConversation?.id) {
       return;
     }
 
@@ -400,11 +448,11 @@ const ConversationContent = ({ }: Props) => {
     setErrorFileIndexes([]);
     stickToBottomRef.current = true;
 
-    if (prevConversation) {
+    if (!isControlled && prevConversation) {
       window.Echo.leave(`chats.${prevConversation.id}`)
     }
 
-    window.Echo.join(`chats.${currentConversation.id}`)
+    window.Echo.join(`chats.${activeConversation.id}`)
       .listen(`.${ChatEventEnum.New_Message}`, (incoming: ConversationMessage) => {
         const isOwnMessage = incoming.sender?.socket_id === currentSocketId;
         notifyIncomingMessage(Boolean(isOwnMessage));
@@ -424,12 +472,42 @@ const ConversationContent = ({ }: Props) => {
         }
         clearTyping();
         setMessages((prevMessages) => [...prevMessages, incoming]);
-        updateConversationForNewMessages(
-          buildSidebarPreviewFromMessage(incoming, currentConversation),
-        );
+        if (syncSidebar) {
+          updateConversationForNewMessages(
+            buildSidebarPreviewFromMessage(incoming, activeConversation),
+          );
+        }
       })
       .listen(`.${ChatEventEnum.Typing}`, (typing: ConversationUser) => {
         handleRemoteTyping(typing);
+      })
+      .listen(`.${ChatEventEnum.Messages_Read}`, (payload: {
+        conversation_id?: string;
+        message_ids?: string[];
+        read_at?: string;
+      }) => {
+        const ids = new Set((payload.message_ids ?? []).map(String));
+        if (ids.size === 0) {
+          return;
+        }
+
+        const readAt = payload.read_at ?? new Date().toISOString();
+
+        setMessages((prevMessages) => prevMessages.map((message) => (
+          ids.has(String(message.id))
+            ? { ...message, read_at: readAt as unknown as Date }
+            : message
+        )));
+
+        if (syncSidebar && activeConversation?.last_message && ids.has(String(activeConversation.last_message.id))) {
+          updateConversationForNewMessages({
+            ...activeConversation,
+            last_message: {
+              ...activeConversation.last_message,
+              read_at: readAt as unknown as Date,
+            },
+          });
+        }
       })
       .joining((joiningUser: ConversationUser) => {
         if (joiningUser.socket_id !== currentSocketId) {
@@ -450,7 +528,7 @@ const ConversationContent = ({ }: Props) => {
     setActiveSearch('');
     activeSearchRef.current = '';
 
-    fetchMessages(currentConversation.id)
+    fetchMessages(activeConversation)
       .then(({ data: response }) => {
         if (cancelled) {
           return;
@@ -482,15 +560,15 @@ const ConversationContent = ({ }: Props) => {
 
     return () => {
       cancelled = true;
-      window.Echo.leave(`chats.${currentConversation.id}`);
+      window.Echo.leave(`chats.${activeConversation.id}`);
       setMessages([]);
     };
 
-  }, [currentConversation]);
+  }, [activeConversation?.id, isControlled]);
 
   // Debounced in-conversation search — replaces the message list with matches only.
   useEffect(() => {
-    if (!currentConversation || !searchOpen) {
+    if (!activeConversation || !searchOpen) {
       return;
     }
 
@@ -500,7 +578,7 @@ const ConversationContent = ({ }: Props) => {
       setLoadingMessages(true);
       stickToBottomRef.current = true;
 
-      fetchMessages(currentConversation.id, { search: term || undefined })
+      fetchMessages(activeConversation, { search: term || undefined })
         .then(({ data: response }) => {
           const items = response?.data?.items;
           const paginate = response?.data?.paginate;
@@ -520,7 +598,12 @@ const ConversationContent = ({ }: Props) => {
     return () => {
       window.clearTimeout(handle);
     };
-  }, [searchInput, searchOpen, currentConversation?.id]);
+  }, [searchInput, searchOpen, activeConversation?.id, fetchMessages]);
+
+  if (!activeConversation) {
+    return emptyFallback ? <>{emptyFallback}</> : null;
+  }
+
   return (
     <div className='card d-flex h-100 flex-column min-w-0'>
       <div className='card-header' id='kt_chat_messenger_header'>
@@ -585,12 +668,12 @@ const ConversationContent = ({ }: Props) => {
                   setSearchInput('');
                   setActiveSearch('');
                   activeSearchRef.current = '';
-                  if (!currentConversation) {
+                  if (!activeConversation) {
                     return;
                   }
                   setLoadingMessages(true);
                   stickToBottomRef.current = true;
-                  fetchMessages(currentConversation.id)
+                  fetchMessages(activeConversation)
                     .then(({ data: response }) => {
                       const items = response?.data?.items;
                       const paginate = response?.data?.paginate;
@@ -612,12 +695,14 @@ const ConversationContent = ({ }: Props) => {
             >
               <KTIcon iconName='magnifier' className="fs-2" />
             </Button>
-            <Button variant={'outline-secondary'} size='sm' onClick={() => {
-              setPrevConversation(currentConversation);
-              setCurrentConversation(null)
-            }}>
-              <KTIcon iconName='cross' className="fs-2" />
-            </Button>
+            {showCloseButton ? (
+              <Button variant={'outline-secondary'} size='sm' onClick={() => {
+                setPrevConversation(activeConversation);
+                setCurrentConversation(null)
+              }}>
+                <KTIcon iconName='cross' className="fs-2" />
+              </Button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -694,24 +779,26 @@ const ConversationContent = ({ }: Props) => {
           <ChatTypingIndicator user={typingUser} />
         </div>
       </div>
-      <ChatComposer
-        content={message.content}
-        files={message.files}
-        isProcessing={sending}
-        errorFileIndexes={errorFileIndexes}
-        onContentChange={(content) => {
-          setErrorFileIndexes([]);
-          setMessage((prev) => ({ ...prev, content }));
-          if (content.trim() !== '') {
-            notifyTyping();
-          }
-        }}
-        onFilesChange={(files) => {
-          setErrorFileIndexes([]);
-          setMessage((prev) => ({ ...prev, files }));
-        }}
-        onSend={() => void sendMessage()}
-      />
+      {showComposer ? (
+        <ChatComposer
+          content={message.content}
+          files={message.files}
+          isProcessing={sending}
+          errorFileIndexes={errorFileIndexes}
+          onContentChange={(content) => {
+            setErrorFileIndexes([]);
+            setMessage((prev) => ({ ...prev, content }));
+            if (content.trim() !== '') {
+              notifyTyping();
+            }
+          }}
+          onFilesChange={(files) => {
+            setErrorFileIndexes([]);
+            setMessage((prev) => ({ ...prev, files }));
+          }}
+          onSend={() => void sendMessage()}
+        />
+      ) : null}
     </div>
   );
 };

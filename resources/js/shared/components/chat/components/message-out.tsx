@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import Attachments from '@/shared/components/chat/components/attachments';
 import { highlightSearchTerm } from '@/shared/components/chat/components/chat-search-highlight';
+import RelativeTimestamp from '@/shared/components/chat/components/relative-timestamp';
 
 type Props = {
   conversationMessage: ConversationMessage;
@@ -13,38 +14,48 @@ type Props = {
 const hasCaption = (content?: string | null): boolean =>
   Boolean(content && String(content).trim() !== '');
 
+/**
+ * Outgoing (current user) bubble — WhatsApp-style sent/read ticks only here.
+ * - Single muted check = sent
+ * - Double primary check = read by the other core participant
+ */
 const MessageOut = ({ conversationMessage, highlightTerm }: Props) => {
   const { t } = useTranslation();
+  const isRead = Boolean(conversationMessage.read_at);
+
   return (
     <div
-      className="d-flex justify-content-end mb-10 mw-100 min-w-0"
+      className="d-flex justify-content-end mb-8 mw-100 min-w-0"
       data-kt-element="template-out"
     >
       <div
         className="d-flex flex-column align-items-end min-w-0"
-        style={{ maxWidth: '100%' }}
+        style={{ maxWidth: 'min(100%, 28rem)' }}
       >
-        <div className="d-flex align-items-center mb-2">
-          <div className="me-3 min-w-0 text-end">
-            {/* Backend / broadcast payloads use shortAbsoluteDiffForHumans(), not ISO. */}
-            <span className="text-muted fs-7 mb-1">
-              {String(conversationMessage.created_at ?? '')}
-            </span>
-            <a
-              href="#"
-              className="fs-5 fw-bolder text-gray-900 text-hover-primary ms-1"
-            >
-              {t('You')}
-            </a>
+        <div className="d-flex align-items-center mb-2 gap-2">
+          <div className="min-w-0 text-end">
+            <span className="fs-6 fw-semibold text-gray-900">{t('You')}</span>
+            <RelativeTimestamp
+              className="text-muted fs-8 d-block lh-1 mt-1"
+              iso={conversationMessage.created_at_iso ?? conversationMessage.created_at}
+              fallback={
+                typeof conversationMessage.created_at === 'string'
+                  ? conversationMessage.created_at
+                  : ''
+              }
+            />
           </div>
-          <div className="symbol symbol-35px symbol-circle">
-            <img alt="Pic" src={conversationMessage.sender?.image} />
+          <div className="symbol symbol-35px symbol-circle flex-shrink-0">
+            <img alt="" src={conversationMessage.sender?.image} />
           </div>
         </div>
         <div
-          className="p-3 rounded bg-light-primary text-gray-900 fw-bold w-100 d-flex flex-column min-w-0 overflow-hidden"
+          className="px-4 py-3 text-gray-900 fw-normal w-100 d-flex flex-column min-w-0 overflow-hidden"
           style={{
-            maxWidth: 400,
+            maxWidth: '100%',
+            borderRadius: '1.125rem 1.125rem 0.35rem 1.125rem',
+            background: 'var(--bs-primary-bg-subtle, #e8f1ff)',
+            boxShadow: '0 1px 2px rgba(16, 24, 40, 0.08)',
             overflowWrap: 'anywhere',
             wordBreak: 'break-word',
           }}
@@ -63,15 +74,18 @@ const MessageOut = ({ conversationMessage, highlightTerm }: Props) => {
                   ? highlightSearchTerm(String(conversationMessage.content), highlightTerm)
                   : String(conversationMessage.content),
               }}
-              className="text-end mb-2 text-break"
+              className="text-end mb-1 text-break fs-6 lh-base"
               style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
             ></p>
           ) : null}
-          <div className="d-flex justify-content-start">
-            {conversationMessage.read_at ? (
-              <KTIcon iconName="double-check" className="text-primary fs-1" />
+          <div
+            className="d-flex align-items-center justify-content-end gap-1 mt-1"
+            aria-label={isRead ? t('read', { defaultValue: 'Read' }) : t('sent', { defaultValue: 'Sent' })}
+          >
+            {isRead ? (
+              <KTIcon iconName="double-check" className="text-primary fs-5" />
             ) : (
-              <KTIcon iconName="check" className="text-muted fs-1" />
+              <KTIcon iconName="check" className="text-gray-500 fs-5" />
             )}
           </div>
         </div>

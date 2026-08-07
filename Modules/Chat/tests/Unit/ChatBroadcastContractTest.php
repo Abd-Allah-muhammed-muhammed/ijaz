@@ -8,6 +8,7 @@ use Modules\Chat\Enums\ChatEventEnum;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\ConversationResource;
 use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
+use Modules\Chat\Infrastructure\Events\MessagesReadEvent;
 use Modules\Chat\Infrastructure\Events\NewMessageEvent;
 use Modules\Chat\Models\ConversationMessage;
 
@@ -71,7 +72,8 @@ test('ConversationResource last_message_at is humanized relative text not ISO860
         ->and($payload['last_massage_at'])
         ->toBe($conversation->last_message_at->shortAbsoluteDiffForHumans())
         // Guard against accidentally shipping ISO timestamps that Provider UI Date-parses.
-        ->and($payload['last_message_at'])->not->toMatch('/^\d{4}-\d{2}-\d{2}T/');
+        ->and($payload['last_message_at'])->not->toMatch('/^\d{4}-\d{2}-\d{2}T/')
+        ->and($payload['last_message_at_iso'])->toMatch('/^\d{4}-\d{2}-\d{2}T/');
 });
 
 test('ConversationMessageResource created_at is humanized relative text not ISO8601', function () {
@@ -94,6 +96,17 @@ test('ConversationMessageResource created_at is humanized relative text not ISO8
 
         expect($payload['created_at'])
             ->toBe($message->created_at->shortAbsoluteDiffForHumans())
-            ->and($payload['created_at'])->not->toMatch('/^\d{4}-\d{2}-\d{2}T/');
+            ->and($payload['created_at'])->not->toMatch('/^\d{4}-\d{2}-\d{2}T/')
+            ->and($payload['created_at_iso'])->toMatch('/^\d{4}-\d{2}-\d{2}T/');
     });
+});
+
+test('MessagesReadEvent broadcasts on presence chats.{id} as messages-read', function () {
+    $event = new MessagesReadEvent('conv-1', ['msg-1', 'msg-2'], now()->toIso8601String());
+
+    expect($event)->toBeInstanceOf(ShouldBroadcastNow::class)
+        ->and($event->broadcastAs())->toBe(ChatEventEnum::Messages_Read->value)
+        ->and($event->broadcastOn()[0])->toBeInstanceOf(PresenceChannel::class)
+        ->and($event->broadcastOn()[0]->name)->toBe('presence-chats.conv-1')
+        ->and($event->broadcastWith()['message_ids'])->toBe(['msg-1', 'msg-2']);
 });

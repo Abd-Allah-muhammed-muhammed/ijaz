@@ -35,8 +35,6 @@ const ShowPropertyAdvisement = ({ row }: Props) => {
   const canEdit = hasPermission('edit propertyAdvisements');
   const canDelete = hasPermission('delete propertyAdvisements');
 
-  console.log(row);
-
   const handleStatusChange = (newStatus: string) => {
     // We'll submit a form or an API request to change the status, depending on your controller setup
     router.put(PropertyAdvisementController.update(row.id as number).url, { status: newStatus }, { preserveScroll: true });

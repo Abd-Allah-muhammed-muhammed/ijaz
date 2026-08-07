@@ -37,7 +37,9 @@ class ConversationMessageResource extends JsonResource
             // Only present when at least one attachment payload exists.
             'last_attachment' => $this->when($lastAttachment !== null, $lastAttachment),
             'read_at' => $this->read_at,
+            // Humanized for display fallback / API freeze; ISO enables live client-side ticks.
             'created_at' => $this->created_at?->shortAbsoluteDiffForHumans() ?: '',
+            'created_at_iso' => $this->created_at?->toIso8601String(),
         ];
     }
 

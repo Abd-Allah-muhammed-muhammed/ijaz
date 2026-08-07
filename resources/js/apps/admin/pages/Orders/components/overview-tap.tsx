@@ -9,7 +9,6 @@ type Props = {
 const OverviewTap = ({ order }: Props) => {
   const { t } = useTranslation();
   const accepted_offer = order.offers?.find(offer => offer.id === order.accepted_offer_id);
-  console.log(accepted_offer);
   return (
     <Row>
       <Col xl="4" className="transition-all duration-300">
