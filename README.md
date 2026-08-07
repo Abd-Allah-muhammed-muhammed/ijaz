@@ -212,21 +212,29 @@ runtime env alone cannot fix an already-built `public/build` bundle.
 **Before `npm run build` on production, confirm Reverb client env is correct:**
 
 ```env
-# Typical production (TLS terminated at reverse proxy → Reverb):
-REVERB_HOST=ijaz.sa
-REVERB_PORT=443
-REVERB_SCHEME=https
-# VITE_* mirror REVERB_* via .env.example interpolation:
+# Internal (PHP ↔ Reverb on the box — do NOT expose these as VITE_*):
+REVERB_HOST="localhost"
+REVERB_PORT=6002
+REVERB_SERVER_PORT=6002
+REVERB_SCHEME=http
+
+# Public (browser → Nginx; baked into JS at build time):
 VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
-VITE_REVERB_HOST="${REVERB_HOST}"
-VITE_REVERB_PORT="${REVERB_PORT}"
-VITE_REVERB_SCHEME="${REVERB_SCHEME}"
+VITE_REVERB_HOST="ijaz.sa"
+VITE_REVERB_PORT="8443"
+VITE_REVERB_SCHEME="wss"
 ```
+
+**Cloudflare WebSocket ports (required):** `ijaz.sa` is orange-cloud proxied.
+Cloudflare only completes WebSocket upgrades on specific ports (443, 2052–2087,
+2095–2096, **8443**, …). **Port 8080 is not supported** — TCP/TLS through
+Cloudflare can succeed while the WS upgrade is silently dropped (browser shows
+a generic `wss://ijaz.sa:8080` failure with no useful response headers). This
+project’s public Reverb edge is **Nginx `listen 8443 ssl`** →
+`proxy_pass http://127.0.0.1:6002/app`.
 
 - `VITE_REVERB_SCHEME=http` / `ws` → local plain `ws://` (Laragon).
 - `VITE_REVERB_SCHEME=https` / `wss` → production `wss://`.
-- `wss://ijaz.sa:8080` usually means the bundle was built with scheme TLS **and**
-  `REVERB_PORT=8080`. Prefer `443` behind nginx/caddy, or terminate TLS on 8080.
 - After any Reverb/`VITE_REVERB_*` change: **re-run `npm run build`** (then hard-refresh).
 
 `npm run build` also runs `prebuild` → `php artisan wayfinder:generate` (actions under
@@ -624,9 +632,34 @@ supervisorctl restart ijaz-guarantor-worker:*
 
 > **Removed:** uploading `public/build/` from a developer laptop as the primary path.
 > Server/CI build must use the production `.env` so Echo does not bake local
-> `http`/`localhost:8080` (or the wrong TLS port) into the bundle.
+> `http`/`localhost` (or Cloudflare-unsupported public ports like `8080`) into
+> the bundle. Production public WS port is **8443**.
 
 ---
+
+### Production Reverb Nginx (Cloudflare → 8443)
+
+`/etc/nginx/conf.d/ijaz-reverb.conf` must listen on a Cloudflare-supported
+WebSocket port (**8443**). Internal upstream stays `127.0.0.1:6002`:
+
+```nginx
+server {
+    listen 8443 ssl;
+    server_name ijaz.sa;
+    ssl_certificate /var/cpanel/ssl/apache_tls/ijaz.sa/combined;
+    ssl_certificate_key /var/cpanel/ssl/apache_tls/ijaz.sa/combined;
+    location /app {
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_pass http://127.0.0.1:6002/app;
+    }
+}
+```
+
+After editing: `nginx -t && systemctl reload nginx` (or `service nginx reload`),
+set `VITE_REVERB_PORT="8443"`, then `npm run build` so Echo bakes `wss://ijaz.sa:8443`.
+
 
 ### Adding a New Module (Queue)
 

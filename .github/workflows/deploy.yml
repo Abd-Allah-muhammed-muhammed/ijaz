@@ -42,8 +42,10 @@ jobs:
             #
             # VITE_REVERB_* are BUILD-TIME: Vite inlines them from this server's `.env`
             # during `npm run build`. Runtime PHP `.env` alone does not fix an old bundle.
-            # Production must have REVERB_SCHEME=wss (or https) + correct HOST/PORT in
-            # `.env` BEFORE this step, then rebuild after any Reverb env change.
+            # Production (Cloudflare): VITE_REVERB_HOST=ijaz.sa, VITE_REVERB_PORT=8443,
+            # VITE_REVERB_SCHEME=wss — NOT 8080 (Cloudflare drops WS upgrades on 8080).
+            # Internal REVERB_SERVER_PORT/REVERB_PORT (e.g. 6002) stay unchanged.
+            # Rebuild after any Reverb / VITE_REVERB_* env change.
             php artisan wayfinder:generate --no-interaction
             npm ci --prefer-offline
             npm run build
