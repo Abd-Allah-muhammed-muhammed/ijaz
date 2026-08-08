@@ -1,136 +1,41 @@
 import { useTranslation } from 'react-i18next';
 import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
-import {PageTitle} from "@/vendor/metronic/layout/core";
+import { PageTitle } from '@/vendor/metronic/layout/core';
 import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
 import { Content } from '@/vendor/metronic/layout/components/content';
-import {Head, Link, router, useForm, usePage} from "@inertiajs/react";
-import {
-  Conversation,
-  ConversationMessage,
-  ConversationUser,
-  Order,
-  TicketSupport
-} from "@/shared/types/models";
-import {KTCard} from "@/vendor/metronic/helpers";
-import React, {ReactNode, useCallback, useEffect, useRef, useState} from "react";
-import SupportController from "@/actions/Modules/Support/Http/Controllers/Dashboard/SupportController";
-import SupportChatController from "@/actions/Modules/Support/Http/Controllers/Dashboard/SupportChatController";
-import MessageIn from "@/shared/components/chat/components/message-in";
-import MessageOut from "@/shared/components/chat/components/message-out";
-import ChatComposer from "@/shared/components/chat/components/chat-composer";
-import ChatTypingIndicator from "@/shared/components/chat/components/chat-typing-indicator";
-import { useChatTyping } from "@/shared/components/chat/hooks/use-chat-typing";
-import { useChatNotificationSound } from "@/shared/components/chat/hooks/use-chat-notification-sound";
-import { useChatLoadOlderMessages } from "@/shared/components/chat/hooks/use-chat-load-older-messages";
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Conversation, ConversationMessage, Order, TicketSupport } from '@/shared/types/models';
+import { KTCard } from '@/vendor/metronic/helpers';
+import React, { ReactNode, useEffect, useMemo } from 'react';
+import SupportController from '@/actions/Modules/Support/Http/Controllers/Dashboard/SupportController';
+import SupportChatController from '@/actions/Modules/Support/Http/Controllers/Dashboard/SupportChatController';
+import ConversationContent from '@/shared/components/chat/components/conversation-content';
 import usePermissions from '@/shared/hooks/use-permissions';
-import {useConversations} from "@/store/use-chat";
-import {ChatEventEnum} from "@/Enums/Chat";
-import {TicketSupportStatusEnum} from "@/Enums/SupportTickets";
-import {toast} from "sonner";
-import axios from "@/shared/helpers/axios";
-import type { SingleApiResponse, ConversationMessagePaginationResource } from "@/shared/types/api";
-import { Spinner } from "react-bootstrap";
+import { useConversations } from '@/store/use-chat';
+import { TicketSupportStatusEnum } from '@/Enums/SupportTickets';
 
 type Props = {
-  row: TicketSupport<Order>,
-  chat?: Conversation
-  chatMessages?: ConversationMessage[]
+  row: TicketSupport<Order>;
+  chat?: Conversation;
+  chatMessages?: ConversationMessage[];
 };
 
-type ChatMessage = {
-  content: string;
-  files: File[];
-};
-
-/** px from bottom — treat as "still following the live end". */
-const NEAR_BOTTOM_THRESHOLD_PX = 120;
-
-function isNearBottom(el: HTMLElement, thresholdPx = NEAR_BOTTOM_THRESHOLD_PX): boolean {
-  return el.scrollHeight - el.scrollTop - el.clientHeight <= thresholdPx;
-}
-
-const Show = ({row, chat, chatMessages}: Props) => {
+const Show = ({ row, chat, chatMessages }: Props) => {
   const { t } = useTranslation();
   const { hasPermission } = usePermissions();
   const canEdit = hasPermission('edit supportTicket');
+  const { setCurrentSocketId } = useConversations();
+  const { auth } = usePage<{ auth: { user?: { socket_id?: string } } }>().props;
+
   const formatDate = (date: string | Date) => {
     return new Date(date).toLocaleString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
-
-  const messageForm = useForm<ChatMessage>({
-    content: '',
-    files: []
-  })
-  const {currentSocketId, setCurrentSocketId} = useConversations();
-  const {auth} = usePage<{ auth: { user?: { socket_id?: string } } }>().props;
-  const messagesBox = useRef<HTMLDivElement>(null);
-  /** Per-instance unread ids for presence .joining() optimistic read receipts. */
-  const unreadMessageIdsRef = useRef<Set<string>>(new Set());
-  const stickToBottomRef = useRef(true);
-  const ignoreScrollRef = useRef(false);
-  const [messages, setMessages] = useState<ConversationMessage[]>(chatMessages || []);
-  const [errorFileIndexes, setErrorFileIndexes] = useState<number[]>([]);
-  const {
-    typingUser,
-    handleRemoteTyping,
-    notifyTyping,
-    clearTyping,
-    resetEmitThrottle,
-  } = useChatTyping({
-    conversationId: chat?.id,
-    currentSocketId,
-    typingUrl: (() => {
-      if (!chat) {
-        return null;
-      }
-      const typingFn = SupportChatController.typing;
-      return typeof typingFn === 'function' ? typingFn(row.id as number).url : null;
-    })(),
-    enabled: canEdit && Boolean(chat),
-  });
-  const { notifyIncomingMessage } = useChatNotificationSound();
-
-  const fetchOlderPage = useCallback(async (page: number) => {
-    const { data: response } = await axios.get<SingleApiResponse<ConversationMessagePaginationResource>>(
-      SupportChatController.show(row.id as number, { query: { page, per_page: 20 } }).url,
-    );
-    const paginate = response?.data?.paginate;
-
-    return {
-      items: Array.isArray(response?.data?.items) ? response.data.items : [],
-      hasMorePages: Boolean(paginate?.has_more_pages),
-      currentPage: paginate?.current_page ?? page,
-    };
-  }, [row.id]);
-
-  const prependOlderMessages = useCallback((older: ConversationMessage[]) => {
-    setMessages((prev) => {
-      const existingIds = new Set(prev.map((m) => m.id));
-      const uniqueOlder = older.filter((m) => !existingIds.has(m.id));
-      return [...uniqueOlder, ...prev];
-    });
-  }, []);
-
-  const {
-    loadingOlder,
-    reachedBeginning,
-    resetPagination,
-    onScroll: onLoadOlderScroll,
-  } = useChatLoadOlderMessages({
-    enabled: Boolean(chat),
-    messagesBoxRef: messagesBox,
-    fetchOlderPage,
-    onPrepend: prependOlderMessages,
-    onDisableStickToBottom: () => {
-      stickToBottomRef.current = false;
-    },
-  });
 
   useEffect(() => {
     if (auth.user?.socket_id) {
@@ -138,172 +43,60 @@ const Show = ({row, chat, chatMessages}: Props) => {
     }
   }, [auth.user?.socket_id, setCurrentSocketId]);
 
-  const scrollToMessageEnd = () => {
-    const el = messagesBox.current;
-    if (!el) {
-      return;
-    }
+  const endpoints = useMemo(() => {
+    const ticketId = row.id as string | number;
 
-    ignoreScrollRef.current = true;
-    el.scrollTop = el.scrollHeight;
-    requestAnimationFrame(() => {
-      ignoreScrollRef.current = false;
-      stickToBottomRef.current = true;
-    });
-  }
+    // Defensive: stale Wayfinder actions without typing must not crash chat.
+    const typingFn = SupportChatController.typing;
+    const typingUrl =
+      typeof typingFn === 'function' ? typingFn(ticketId).url : null;
 
-  // Sync messages state with chatMessages prop when it updates
-  useEffect(() => {
-    if (chatMessages) {
-      stickToBottomRef.current = true;
-      setMessages(chatMessages);
-      // Inertia seeds ~20 newest (chronological). Assume more exist at that size.
-      resetPagination(chatMessages.length >= 20, 1);
-    }
-  }, [chatMessages, resetPagination]);
+    return {
+      messagesUrl: (options?: { search?: string; page?: number }) => {
+        const query: Record<string, string | number> = { per_page: 20 };
+        if (options?.search && options.search.trim() !== '') {
+          query.search = options.search.trim();
+        }
+        if (options?.page && options.page > 1) {
+          query.page = options.page;
+        }
 
-  useEffect(() => {
-    if (stickToBottomRef.current) {
-      scrollToMessageEnd();
-    }
-  }, [messages])
+        return SupportChatController.show(ticketId, { query }).url;
+      },
+      sendUrl: SupportChatController.send(ticketId).url,
+      typingUrl,
+    };
+  }, [row.id]);
 
-  // Connect to conversation channel via Echo
-  useEffect(() => {
-    if (chat) {
-      window.Echo.join(`chats.${chat.id}`)
-        .joining((user: ConversationUser) => {
-          if (user.socket_id !== currentSocketId) {
-            setMessages((prevMessages) => {
-              const unreadIds = unreadMessageIdsRef.current;
-              if (unreadIds.size === 0) {
-                return prevMessages;
-              }
-
-              const readAt = new Date().toISOString();
-              let changed = false;
-              const next = prevMessages.map((messageItem) => {
-                if (!unreadIds.has(String(messageItem.id)) || messageItem.read_at) {
-                  return messageItem;
-                }
-                changed = true;
-                return { ...messageItem, read_at: readAt as unknown as Date };
-              });
-
-              unreadMessageIdsRef.current = new Set();
-              return changed ? next : prevMessages;
-            });
-          }
-        })
-        .listen(`.${ChatEventEnum.New_Message}`, (message: ConversationMessage) => {
-          const isOwnMessage = message.sender?.socket_id === currentSocketId;
-          notifyIncomingMessage(Boolean(isOwnMessage));
-          if (messagesBox.current && !ignoreScrollRef.current) {
-            stickToBottomRef.current = isNearBottom(messagesBox.current);
-          }
-          clearTyping();
-          setMessages((prevMessages) => [...prevMessages, message]);
-        })
-        .listen(`.${ChatEventEnum.Typing}`, (typing: ConversationUser) => {
-          handleRemoteTyping(typing);
-        })
-        .listen(`.${ChatEventEnum.Messages_Read}`, (payload: {
-          message_ids?: string[];
-          read_at?: string;
-        }) => {
-          const ids = new Set((payload.message_ids ?? []).map(String));
-          if (ids.size === 0) {
-            return;
-          }
-
-          const readAt = payload.read_at ?? new Date().toISOString();
-          setMessages((prevMessages) => prevMessages.map((message) => (
-            ids.has(String(message.id))
-              ? { ...message, read_at: readAt as unknown as Date }
-              : message
-          )));
-        });
-
-      return () => {
-        window.Echo.leave(`chats.${chat.id}`);
-      };
-    }
-  }, [chat, clearTyping, currentSocketId, handleRemoteTyping, notifyIncomingMessage])
-  const sendMessage = () => {
-    if (chat && (messageForm.data.content.trim() !== '' || Boolean(messageForm.data.files.length))) {
-      setErrorFileIndexes([]);
-      messageForm.submit(SupportChatController.send(row.id as number), {
-        onSuccess: () => {
-          clearTyping();
-          resetEmitThrottle();
-          messageForm.setData('content', '');
-          messageForm.setData('files', []);
-          setErrorFileIndexes([]);
-        },
-        onError: (errors) => {
-          const fileIndexes: number[] = [];
-          const messages: string[] = [];
-          const attachedFileCount = messageForm.data.files.length;
-
-          Object.entries(errors).forEach(([key, value]) => {
-            const text = Array.isArray(value) ? value[0] : String(value);
-            if (text) {
-              messages.push(text);
-            }
-            const match = key.match(/^files(?:\.|\[)(\d+)/);
-            if (match) {
-              fileIndexes.push(Number(match[1]));
-              return;
-            }
-
-            // PostTooLarge / bag-level "files" — highlight every attached preview.
-            if (key === 'files' && attachedFileCount > 0) {
-              for (let i = 0; i < attachedFileCount; i++) {
-                fileIndexes.push(i);
-              }
-            }
-          });
-
-          setErrorFileIndexes([...new Set(fileIndexes)]);
-          if (messages.length > 0) {
-            messages.forEach((msg) => toast.error(msg));
-          } else {
-            toast.error(t('Something went wrong, please try again'));
-          }
-        },
-      });
-    }
-  }
-
-  // Recalculate each render — scoped ref for .joining() optimistic receipts (not module state).
-  unreadMessageIdsRef.current = new Set(
-    messages.filter((m) => !m.read_at).map((m) => String(m.id)),
-  );
+  const conversation = (chat ?? null) as Conversation | null;
+  const seededMessageCount = chatMessages?.length ?? 0;
 
   return (
     <>
-      <Head title={t('tickets')}/>      <PageTitle breadcrumbs={[
-        {
-          title: t('tickets'),
-          path: SupportController.index().url,
-          isSeparator: false,
-          isActive: false,
-        },
-        {
-          title: t('show'),
-          path: '',
-          isSeparator: true,
-          isActive: false,
-        },
-      ]}>
+      <Head title={t('tickets')} />
+      <PageTitle
+        breadcrumbs={[
+          {
+            title: t('tickets'),
+            path: SupportController.index().url,
+            isSeparator: false,
+            isActive: false,
+          },
+          {
+            title: t('show'),
+            path: '',
+            isSeparator: true,
+            isActive: false,
+          },
+        ]}
+      >
         {t('support_ticket')}
       </PageTitle>
-      <ToolbarWrapper/>
+      <ToolbarWrapper />
       <Content>
         <div className="row g-5 g-xl-8">
           {/* Column 1: Ticket Information & User Information */}
           <div className="col-xl-3">
-            {/* Ticket Information Card */}
             <KTCard className="mb-5 mb-xl-8">
               <div className="card-header border-0 pt-5">
                 <h3 className="card-title align-items-start flex-column">
@@ -335,7 +128,6 @@ const Show = ({row, chat, chatMessages}: Props) => {
               </div>
             </KTCard>
 
-            {/* User Information Card */}
             {row.user && (
               <KTCard className="mb-5 mb-xl-8">
                 <div className="card-header border-0 pt-5">
@@ -349,7 +141,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
                     <div className="d-flex align-items-center">
                       {row.user.image && (
                         <div className="symbol symbol-35px symbol-circle me-3">
-                          <img src={row.user.image} alt={row.user.name}/>
+                          <img src={row.user.image} alt={row.user.name} />
                         </div>
                       )}
                       <span className="fw-bold fs-6 text-gray-800">{row.user.name}</span>
@@ -369,7 +161,6 @@ const Show = ({row, chat, chatMessages}: Props) => {
               </KTCard>
             )}
 
-            {/* Operation Information Card */}
             {row.operation && (
               <KTCard className="mb-5 mb-xl-8">
                 <div className="card-header border-0 pt-5">
@@ -377,10 +168,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
                     <span className="card-label fw-bold fs-3 mb-1">{t('operation_information')}</span>
                   </h3>
                   <div className="card-toolbar">
-                    <Link
-                      href={row.operation.show_url}
-                      className="btn btn-sm btn-light-primary"
-                    >
+                    <Link href={row.operation.show_url} className="btn btn-sm btn-light-primary">
                       {t('view_operation')}
                     </Link>
                   </div>
@@ -395,10 +183,8 @@ const Show = ({row, chat, chatMessages}: Props) => {
                     <span className="fw-bold fs-6 text-gray-800">#{row.operation.id}</span>
                   </div>
 
-                  {/* Display operation-specific data */}
                   {row.operation.data && (
                     <>
-                      {/* Common operation fields */}
                       {row.operation.data.title && (
                         <div className="mt-7">
                           <label className="fw-semibold text-muted d-block mb-2">{t('title')}</label>
@@ -417,18 +203,21 @@ const Show = ({row, chat, chatMessages}: Props) => {
                         <div className="mt-7">
                           <label className="fw-semibold text-muted d-block mb-2">{t('status')}</label>
                           <span
-                            className={`badge badge-light-${typeof row.operation.data.status === 'string' ? 'primary' : row.operation.data.status.color} fs-7 fw-bold`}>
-                            {typeof row.operation.data.status === 'string' ? row.operation.data.status : row.operation.data.status.label}
+                            className={`badge badge-light-${typeof row.operation.data.status === 'string' ? 'primary' : row.operation.data.status.color} fs-7 fw-bold`}
+                          >
+                            {typeof row.operation.data.status === 'string'
+                              ? row.operation.data.status
+                              : row.operation.data.status.label}
                           </span>
                         </div>
                       )}
 
-                      {/* Order-specific fields */}
                       {'budget_start' in row.operation.data && row.operation.data.budget_start && (
                         <div className="mt-7">
                           <label className="fw-semibold text-muted d-block mb-2">{t('budget_range')}</label>
                           <span className="fw-bold fs-6 text-gray-800">
-                            {row.operation.data.budget_start as string} - {row.operation.data.budget_end as string}
+                            {row.operation.data.budget_start as string} -{' '}
+                            {row.operation.data.budget_end as string}
                           </span>
                         </div>
                       )}
@@ -436,15 +225,18 @@ const Show = ({row, chat, chatMessages}: Props) => {
                       {'price' in row.operation.data && row.operation.data.price && (
                         <div className="mt-7">
                           <label className="fw-semibold text-muted d-block mb-2">{t('price')}</label>
-                          <span className="fw-bold fs-6 text-gray-800">{row.operation.data.price as string}</span>
+                          <span className="fw-bold fs-6 text-gray-800">
+                            {row.operation.data.price as string}
+                          </span>
                         </div>
                       )}
 
                       {row.operation.data.created_at && (
                         <div className="mt-7">
                           <label className="fw-semibold text-muted d-block mb-2">{t('created_at')}</label>
-                          <span
-                            className="fw-normal fs-6 text-gray-700">{formatDate(row.operation.data.created_at)}</span>
+                          <span className="fw-normal fs-6 text-gray-700">
+                            {formatDate(row.operation.data.created_at)}
+                          </span>
                         </div>
                       )}
                     </>
@@ -454,7 +246,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
             )}
           </div>
 
-          {/* Column 2: Chat Section */}
+          {/* Column 2: Chat — shared ConversationContent (controlled, Admin Orders pattern) */}
           <div className="col-xl-6">
             <KTCard className="mb-5 mb-xl-8">
               <div className="card-header border-0 pt-5">
@@ -463,92 +255,53 @@ const Show = ({row, chat, chatMessages}: Props) => {
                   <span className="text-muted mt-1 fw-semibold fs-7">{t('ticket_chat_messages')}</span>
                 </h3>
               </div>
-              <div
-                ref={messagesBox}
-                className='card-body d-flex flex-column flex-grow-1 scroll-y me-n5 pe-5  mb-5'
-                style={{
-                  height: 'calc(100vh - 400px)',
-                }}
-                onScroll={() => {
-                  if (ignoreScrollRef.current || !messagesBox.current) {
-                    return;
-                  }
-                  stickToBottomRef.current = isNearBottom(messagesBox.current);
-                  onLoadOlderScroll();
-                }}
-              >
-                {loadingOlder ? (
-                  <div className="d-flex justify-content-center align-items-center py-3" aria-live="polite">
-                    <Spinner animation="border" size="sm" className="text-primary" />
-                  </div>
-                ) : null}
-                {reachedBeginning && messages.length > 0 ? (
-                  <div className="text-center py-3">
-                    <span className="fs-8 fw-semibold text-gray-500">
-                      {t('Beginning of conversation', { defaultValue: 'Beginning of conversation' })}
-                    </span>
-                  </div>
-                ) : null}
-                {messages && messages.length > 0 ? (
-                  messages.map((message) => {
-                    const sender = message.sender as ConversationUser | undefined;
-
-                    if (!sender?.socket_id || sender.socket_id !== currentSocketId) {
-                      return <MessageIn conversationMessage={message} key={message.id}/>;
+              <div className="card-body p-0">
+                <div
+                  style={{ minHeight: 520, height: 'min(70vh, 720px)' }}
+                  className="overflow-hidden"
+                >
+                  <ConversationContent
+                    conversation={conversation}
+                    endpoints={endpoints}
+                    showCloseButton={false}
+                    showComposer={canEdit}
+                    syncSidebar={false}
+                    emptyFallback={
+                      <div className="d-flex flex-column h-100">
+                        <div className="flex-grow-1 d-flex align-items-center justify-content-center py-10">
+                          <div className="text-center">
+                            <div className="mb-5">
+                              <i className="bi bi-chat-dots fs-3x text-gray-400"></i>
+                            </div>
+                            <div className="fw-semibold text-gray-600 fs-6 mb-5">
+                              {t('no_messages_yet')}
+                            </div>
+                          </div>
+                        </div>
+                        {canEdit ? (
+                          <div className="card-footer pt-4 border-top">
+                            <button
+                              type="button"
+                              className="btn btn-primary w-100"
+                              onClick={() => {
+                                router.post(SupportController.openChat(row.id as number).url);
+                              }}
+                            >
+                              <i className="bi bi-chat-left-text me-2"></i>
+                              {t('open_chat')}
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
                     }
-                    return <MessageOut conversationMessage={message} key={message.id}/>;
-                  })
-                ) : (
-                  <div className="text-center py-10">
-                    <div className="mb-5">
-                      <i className="bi bi-chat-dots fs-3x text-gray-400"></i>
-                    </div>
-                    <div className="fw-semibold text-gray-600 fs-6">
-                      {t('no_messages_yet')}
-                    </div>
-                  </div>
-                )}
-                <ChatTypingIndicator user={typingUser} />
-              </div>
-
-              {/* Chat Input Area */}
-              {canEdit && (!chat ? (
-                  <div className="card-footer pt-4 border-top">
-                    <button className="btn btn-primary w-100" onClick={() => {
-                      router.post(SupportController.openChat(row.id as number).url);
-                    }}
-                    >
-                      <i className="bi bi-chat-left-text me-2"></i>
-                      {t('open_chat')}
-                    </button>
-                  </div>
-                )
-                : (
-                  <ChatComposer
-                    content={messageForm.data.content}
-                    files={messageForm.data.files}
-                    isProcessing={messageForm.processing}
-                    errorFileIndexes={errorFileIndexes}
-                    onContentChange={(content) => {
-                      setErrorFileIndexes([]);
-                      messageForm.setData('content', content);
-                      if (content.trim() !== '') {
-                        notifyTyping();
-                      }
-                    }}
-                    onFilesChange={(files) => {
-                      setErrorFileIndexes([]);
-                      messageForm.setData('files', files);
-                    }}
-                    onSend={sendMessage}
                   />
-                ))}
+                </div>
+              </div>
             </KTCard>
           </div>
 
           {/* Column 3: Actions & Status Management */}
           <div className="col-xl-3">
-            {/* Status Management Card */}
             <KTCard className="mb-5 mb-xl-8">
               <div className="card-header border-0 pt-5">
                 <h3 className="card-title align-items-start flex-column">
@@ -556,50 +309,48 @@ const Show = ({row, chat, chatMessages}: Props) => {
                 </h3>
               </div>
               <div className="card-body py-3">
-                {/* Action Buttons */}
                 {canEdit && (
-                <div className="d-flex flex-column gap-3">
-                  <button
-                    className="btn btn-light-success w-100"
-                    onClick={() => {
-                      router.put(SupportController.updateStatus(row.id as number).url, {
-                        status: TicketSupportStatusEnum.Open
-                      });
-                    }}
-                  >
-                    <i className="bi bi-check-circle me-2"></i>
-                    {t('mark_as_open')}
-                  </button>
+                  <div className="d-flex flex-column gap-3">
+                    <button
+                      className="btn btn-light-success w-100"
+                      onClick={() => {
+                        router.put(SupportController.updateStatus(row.id as number).url, {
+                          status: TicketSupportStatusEnum.Open,
+                        });
+                      }}
+                    >
+                      <i className="bi bi-check-circle me-2"></i>
+                      {t('mark_as_open')}
+                    </button>
 
-                  <button
-                    className="btn btn-light-warning w-100"
-                    onClick={() => {
-                      router.put(SupportController.updateStatus(row.id as number).url, {
-                        status: TicketSupportStatusEnum.Pending
-                      });
-                    }}
-                  >
-                    <i className="bi bi-clock-history me-2"></i>
-                    {t('mark_as_pending')}
-                  </button>
+                    <button
+                      className="btn btn-light-warning w-100"
+                      onClick={() => {
+                        router.put(SupportController.updateStatus(row.id as number).url, {
+                          status: TicketSupportStatusEnum.Pending,
+                        });
+                      }}
+                    >
+                      <i className="bi bi-clock-history me-2"></i>
+                      {t('mark_as_pending')}
+                    </button>
 
-                  <button
-                    className="btn btn-light-danger w-100"
-                    onClick={() => {
-                      router.put(SupportController.updateStatus(row.id as number).url, {
-                        status: TicketSupportStatusEnum.Closed
-                      });
-                    }}
-                  >
-                    <i className="bi bi-x-circle me-2"></i>
-                    {t('close_ticket')}
-                  </button>
-                </div>
+                    <button
+                      className="btn btn-light-danger w-100"
+                      onClick={() => {
+                        router.put(SupportController.updateStatus(row.id as number).url, {
+                          status: TicketSupportStatusEnum.Closed,
+                        });
+                      }}
+                    >
+                      <i className="bi bi-x-circle me-2"></i>
+                      {t('close_ticket')}
+                    </button>
+                  </div>
                 )}
               </div>
             </KTCard>
 
-            {/* Quick Info Card */}
             <KTCard className="mb-5 mb-xl-8 card-flush">
               <div className="card-header border-0 pt-5">
                 <h3 className="card-title align-items-start flex-column">
@@ -639,7 +390,9 @@ const Show = ({row, chat, chatMessages}: Props) => {
                   </div>
                   <div className="d-flex flex-column">
                     <span className="text-gray-800 fw-bold fs-7">{t('messages_count')}</span>
-                    <span className="text-muted fw-semibold fs-8">{messages.length} {t('messages')}</span>
+                    <span className="text-muted fw-semibold fs-8">
+                      {seededMessageCount} {t('messages')}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -649,7 +402,7 @@ const Show = ({row, chat, chatMessages}: Props) => {
       </Content>
     </>
   );
-}
-Show.layout = (page: ReactNode) => <MasterLayout children={page}/>
+};
+Show.layout = (page: ReactNode) => <MasterLayout children={page} />;
 
 export default Show;

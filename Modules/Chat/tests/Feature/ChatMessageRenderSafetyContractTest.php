@@ -9,7 +9,8 @@
  * - highlightSearchTerm escapes HTML entities first, then optionally wraps matches
  *   in <mark> — never injects raw user HTML.
  * - unreadMessageIndex must be instance-scoped React state/ref, never a module-level
- *   mutable array shared across ConversationContent / Tickets Show mounts.
+ *   mutable array shared across ConversationContent mounts.
+ * - Admin Tickets/Show must use shared ConversationContent (no forked Echo/unread logic).
  */
 test('message content with HTML characters renders escaped, never as raw HTML, in both search and non-search display paths', function () {
     $highlight = file_get_contents(resource_path('js/shared/components/chat/components/chat-search-highlight.ts'));
@@ -37,13 +38,24 @@ test('unread message indexes for presence joining are instance-scoped refs, not 
     $conversationContent = file_get_contents(
         resource_path('js/shared/components/chat/components/conversation-content.tsx')
     );
+
+    expect($conversationContent)->not->toMatch('/^let unreadMessageIndex\b/m')
+        ->and($conversationContent)->not->toContain('let unreadMessageIndex: number[] = []')
+        ->and($conversationContent)->toContain('unreadMessageIdsRef')
+        ->and($conversationContent)->toContain('useRef')
+        ->and($conversationContent)->toContain('.joining(');
+});
+
+test('admin Tickets Show uses shared ConversationContent instead of a forked Echo chat implementation', function () {
     $ticketsShow = file_get_contents(resource_path('js/apps/admin/pages/Tickets/Show.tsx'));
 
-    foreach (['conversation-content' => $conversationContent, 'Tickets/Show' => $ticketsShow] as $label => $source) {
-        expect($source)->not->toMatch('/^let unreadMessageIndex\b/m')
-            ->and($source)->not->toContain('let unreadMessageIndex: number[] = []')
-            ->and($source)->toContain('unreadMessageIdsRef')
-            ->and($source)->toContain('useRef')
-            ->and($source)->toContain('.joining(');
-    }
+    expect($ticketsShow)->toContain('ConversationContent')
+        ->and($ticketsShow)->toContain('endpoints={endpoints}')
+        ->and($ticketsShow)->not->toContain('unreadMessageIdsRef')
+        ->and($ticketsShow)->not->toMatch('/^let unreadMessageIndex\b/m')
+        ->and($ticketsShow)->not->toContain('window.Echo.join')
+        ->and($ticketsShow)->not->toContain('ChatEventEnum')
+        ->and($ticketsShow)->not->toContain('MessageIn')
+        ->and($ticketsShow)->not->toContain('MessageOut')
+        ->and($ticketsShow)->not->toContain('ChatComposer');
 });
