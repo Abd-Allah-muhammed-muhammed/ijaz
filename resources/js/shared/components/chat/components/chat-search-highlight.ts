@@ -1,6 +1,7 @@
 /**
- * Escape HTML, then wrap case-insensitive matches of `term` in <mark> for search results.
- * Safe for dangerouslySetInnerHTML — content is escaped first.
+ * Escape HTML, then optionally wrap case-insensitive matches of `term` in <mark>.
+ * Safe for dangerouslySetInnerHTML in BOTH search and non-search paths — content
+ * is always escaped first; an empty/null term returns escaped text only.
  */
 export function highlightSearchTerm(content: string, term?: string | null): string {
   const raw = String(content ?? '');

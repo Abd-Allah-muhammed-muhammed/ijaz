@@ -49,7 +49,6 @@ function isNearBottom(el: HTMLElement, thresholdPx = NEAR_BOTTOM_THRESHOLD_PX): 
   return el.scrollHeight - el.scrollTop - el.clientHeight <= thresholdPx;
 }
 
-let unreadMessageIndex: number[] = [];
 const Show = ({row, chat, chatMessages}: Props) => {
   const { t } = useTranslation();
   const { hasPermission } = usePermissions();
@@ -71,6 +70,8 @@ const Show = ({row, chat, chatMessages}: Props) => {
   const {currentSocketId, setCurrentSocketId} = useConversations();
   const {auth} = usePage<{ auth: { user?: { socket_id?: string } } }>().props;
   const messagesBox = useRef<HTMLDivElement>(null);
+  /** Per-instance unread ids for presence .joining() optimistic read receipts. */
+  const unreadMessageIdsRef = useRef<Set<string>>(new Set());
   const stickToBottomRef = useRef(true);
   const ignoreScrollRef = useRef(false);
   const [messages, setMessages] = useState<ConversationMessage[]>(chatMessages || []);
@@ -174,13 +175,24 @@ const Show = ({row, chat, chatMessages}: Props) => {
         .joining((user: ConversationUser) => {
           if (user.socket_id !== currentSocketId) {
             setMessages((prevMessages) => {
-              unreadMessageIndex.forEach(index => {
-                prevMessages[index].read_at = new Date().toISOString();
-              })
-              unreadMessageIndex = [];
-              return [...prevMessages];
-            })
+              const unreadIds = unreadMessageIdsRef.current;
+              if (unreadIds.size === 0) {
+                return prevMessages;
+              }
 
+              const readAt = new Date().toISOString();
+              let changed = false;
+              const next = prevMessages.map((messageItem) => {
+                if (!unreadIds.has(String(messageItem.id)) || messageItem.read_at) {
+                  return messageItem;
+                }
+                changed = true;
+                return { ...messageItem, read_at: readAt as unknown as Date };
+              });
+
+              unreadMessageIdsRef.current = new Set();
+              return changed ? next : prevMessages;
+            });
           }
         })
         .listen(`.${ChatEventEnum.New_Message}`, (message: ConversationMessage) => {
@@ -262,6 +274,12 @@ const Show = ({row, chat, chatMessages}: Props) => {
       });
     }
   }
+
+  // Recalculate each render — scoped ref for .joining() optimistic receipts (not module state).
+  unreadMessageIdsRef.current = new Set(
+    messages.filter((m) => !m.read_at).map((m) => String(m.id)),
+  );
+
   return (
     <>
       <Head title={t('tickets')}/>      <PageTitle breadcrumbs={[
@@ -472,12 +490,8 @@ const Show = ({row, chat, chatMessages}: Props) => {
                   </div>
                 ) : null}
                 {messages && messages.length > 0 ? (
-                  messages.map((message, index) => {
+                  messages.map((message) => {
                     const sender = message.sender as ConversationUser | undefined;
-
-                    if (!message.read_at) {
-                      unreadMessageIndex.push(index);
-                    }
 
                     if (!sender?.socket_id || sender.socket_id !== currentSocketId) {
                       return <MessageIn conversationMessage={message} key={message.id}/>;

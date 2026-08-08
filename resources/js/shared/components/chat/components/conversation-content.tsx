@@ -150,7 +150,6 @@ function isNearBottom(el: HTMLElement, thresholdPx = NEAR_BOTTOM_THRESHOLD_PX): 
   return el.scrollHeight - el.scrollTop - el.clientHeight <= thresholdPx;
 }
 
-let unreadMessageIndex: number[] = [];
 const ConversationContent = ({
   conversation: conversationProp,
   endpoints: endpointsProp,
@@ -181,6 +180,8 @@ const ConversationContent = ({
     content: '',
     files: []
   });
+  /** Per-instance unread ids for presence .joining() optimistic read receipts. */
+  const unreadMessageIdsRef = useRef<Set<string>>(new Set());
   const messagesBox = useRef<HTMLDivElement>(null);
   const messagesContentRef = useRef<HTMLDivElement>(null);
   const activeSearchRef = useRef('');
@@ -521,12 +522,24 @@ const ConversationContent = ({
       .joining((joiningUser: ConversationUser) => {
         if (joiningUser.socket_id !== currentSocketId) {
           setMessages((prevMessages) => {
-            unreadMessageIndex.forEach(index => {
-              prevMessages[index].read_at = new Date();
-            })
-            unreadMessageIndex = [];
-            return [...prevMessages];
-          })
+            const unreadIds = unreadMessageIdsRef.current;
+            if (unreadIds.size === 0) {
+              return prevMessages;
+            }
+
+            const readAt = new Date();
+            let changed = false;
+            const next = prevMessages.map((messageItem) => {
+              if (!unreadIds.has(String(messageItem.id)) || messageItem.read_at) {
+                return messageItem;
+              }
+              changed = true;
+              return { ...messageItem, read_at: readAt as unknown as Date };
+            });
+
+            unreadMessageIdsRef.current = new Set();
+            return changed ? next : prevMessages;
+          });
         }
       });
 
@@ -612,6 +625,11 @@ const ConversationContent = ({
   if (!activeConversation) {
     return emptyFallback ? <>{emptyFallback}</> : null;
   }
+
+  // Recalculate each render — scoped ref for .joining() optimistic receipts (not module state).
+  unreadMessageIdsRef.current = new Set(
+    messages.filter((m) => !m.read_at).map((m) => String(m.id)),
+  );
 
   return (
     <div className='card d-flex h-100 flex-column min-w-0'>
@@ -761,12 +779,8 @@ const ConversationContent = ({
               </div>
             </div>
           ) : null}
-          {messages.map((messageItem, index) => {
+          {messages.map((messageItem) => {
             const sender = messageItem.sender as ConversationUser;
-
-            if (!messageItem.read_at) {
-              unreadMessageIndex.push(index);
-            }
 
             if (sender.socket_id !== currentSocketId) {
               return (

@@ -69,9 +69,8 @@ const MessageIn = ({ conversationMessage, highlightTerm }: Props) => {
           {hasCaption(conversationMessage.content) ? (
             <p
               dangerouslySetInnerHTML={{
-                __html: highlightTerm
-                  ? highlightSearchTerm(String(conversationMessage.content), highlightTerm)
-                  : String(conversationMessage.content),
+                // Always escape first (highlightSearchTerm); <mark> only wraps escaped text.
+                __html: highlightSearchTerm(String(conversationMessage.content), highlightTerm),
               }}
               className="text-start mb-0 text-break fs-6 lh-base"
               style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
