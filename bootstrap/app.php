@@ -108,8 +108,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('opportunities:expire')->hourly();
         $schedule->command('guarantor:check-overdue')->dailyAt('00:00');
         $schedule->command('auth:prune-expired-otp-sessions')->hourly();
-        // Telescope is toggle-based (off by default); keep 48h when enabled for production debugging.
-        $schedule->command('telescope:prune --hours=48')->daily();
+        // Telescope is toggle-based (off by default); prune daily (this means it will prune all records older than 24 hours by default)
+        $schedule->command('telescope:prune')->daily();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $renderModelNotFound = function (ModelNotFoundException $e, $request) {
