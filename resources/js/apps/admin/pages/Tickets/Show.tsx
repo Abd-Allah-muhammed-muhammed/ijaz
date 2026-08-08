@@ -264,6 +264,7 @@ const Show = ({ row, chat, chatMessages }: Props) => {
                     conversation={conversation}
                     endpoints={endpoints}
                     showCloseButton={false}
+                    showHeader={false}
                     showComposer={canEdit}
                     syncSidebar={false}
                     emptyFallback={

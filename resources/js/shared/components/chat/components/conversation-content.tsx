@@ -33,6 +33,11 @@ type Props = {
   endpoints?: ConversationContentEndpoints;
   /** Hide the inbox close (X) button — used for embedded Admin views. */
   showCloseButton?: boolean;
+  /**
+   * When false, hides the peer name/avatar/online block (Admin Tickets already
+   * shows that context in the page sidebar). Search toolbar remains. Default true.
+   */
+  showHeader?: boolean;
   /** When false, hides ChatComposer (read-only). Default true. */
   showComposer?: boolean;
   /** When false, skips Provider inbox sidebar preview updates. Default true. */
@@ -154,6 +159,7 @@ const ConversationContent = ({
   conversation: conversationProp,
   endpoints: endpointsProp,
   showCloseButton = true,
+  showHeader = true,
   showComposer = true,
   syncSidebar = true,
   emptyFallback = null,
@@ -633,38 +639,43 @@ const ConversationContent = ({
 
   return (
     <div className='card d-flex h-100 flex-column min-w-0'>
-      <div className='card-header' id='kt_chat_messenger_header'>
-        <div className='card-title min-w-0'>
-          <div className='d-flex align-items-center me-3 min-w-0'>
-            <div className='symbol symbol-45px symbol-circle flex-shrink-0 me-3'>
-              {user?.image ? (
-                <img alt='' src={user.image} />
-              ) : (
-                <div className="symbol-label bg-light-primary text-primary fs-4 fw-bold">
-                  {avatarInitial}
-                </div>
-              )}
-              <div
-                className={`symbol-badge bg-success start-100 top-100 border-4 h-15px w-15px ms-n2 mt-n2 ${user?.online ? '' : 'd-none'}`}
-              />
-            </div>
-            <div className='d-flex flex-column me-3 min-w-0'>
-              <a
-                href='#'
-                className='fs-4 fw-bolder text-gray-900 text-hover-primary me-1 mb-2 lh-1 text-truncate d-block'
-                style={{ maxWidth: 280 }}
-                title={displayName}
-              >
-                {displayName}
-              </a>
+      <div
+        className={`card-header${showHeader ? '' : ' border-0 min-h-auto py-3 justify-content-end'}`}
+        id='kt_chat_messenger_header'
+      >
+        {showHeader ? (
+          <div className='card-title min-w-0'>
+            <div className='d-flex align-items-center me-3 min-w-0'>
+              <div className='symbol symbol-45px symbol-circle flex-shrink-0 me-3'>
+                {user?.image ? (
+                  <img alt='' src={user.image} />
+                ) : (
+                  <div className="symbol-label bg-light-primary text-primary fs-4 fw-bold">
+                    {avatarInitial}
+                  </div>
+                )}
+                <div
+                  className={`symbol-badge bg-success start-100 top-100 border-4 h-15px w-15px ms-n2 mt-n2 ${user?.online ? '' : 'd-none'}`}
+                />
+              </div>
+              <div className='d-flex flex-column me-3 min-w-0'>
+                <a
+                  href='#'
+                  className='fs-4 fw-bolder text-gray-900 text-hover-primary me-1 mb-2 lh-1 text-truncate d-block'
+                  style={{ maxWidth: 280 }}
+                  title={displayName}
+                >
+                  {displayName}
+                </a>
 
-              <div className={`mb-0 lh-1 ${user?.online ? '' : 'd-none'}`}>
-                <span className='badge badge-success badge-circle w-10px h-10px me-1'></span>
-                <span className='fs-7 fw-bold text-gray-500'>Active</span>
+                <div className={`mb-0 lh-1 ${user?.online ? '' : 'd-none'}`}>
+                  <span className='badge badge-success badge-circle w-10px h-10px me-1'></span>
+                  <span className='fs-7 fw-bold text-gray-500'>Active</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        ) : null}
 
         <div className='card-toolbar'>
           <div className='d-flex align-items-center gap-1 me-n1'>

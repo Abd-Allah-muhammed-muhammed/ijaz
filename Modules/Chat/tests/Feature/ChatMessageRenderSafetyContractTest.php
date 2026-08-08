@@ -51,6 +51,7 @@ test('admin Tickets Show uses shared ConversationContent instead of a forked Ech
 
     expect($ticketsShow)->toContain('ConversationContent')
         ->and($ticketsShow)->toContain('endpoints={endpoints}')
+        ->and($ticketsShow)->toContain('showHeader={false}')
         ->and($ticketsShow)->not->toContain('unreadMessageIdsRef')
         ->and($ticketsShow)->not->toMatch('/^let unreadMessageIndex\b/m')
         ->and($ticketsShow)->not->toContain('window.Echo.join')
