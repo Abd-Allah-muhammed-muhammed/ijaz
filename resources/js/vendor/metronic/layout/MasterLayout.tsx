@@ -54,7 +54,6 @@ export default function MasterLayout({ children, head }: Props) {
 
       {/* begin:: Drawers */}
       {/*<ActivityDrawer/>*/}
-      {/*<DrawerMessenger/>*/}
       {/* end:: Drawers */}
 
       {/* begin:: Modals */}

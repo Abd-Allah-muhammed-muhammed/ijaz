@@ -9,7 +9,7 @@ import {
   formatFileSize,
   isImageFile,
   isPdfFile,
-} from '@/shared/components/chat/components/chat-attachment-utils';
+} from '@/shared/chat/utils/attachments';
 
 export type ChatComposerProps = {
   content: string;

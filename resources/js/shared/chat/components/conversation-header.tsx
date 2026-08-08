@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ConversationUser } from '@/shared/types/models';
-import ConversationSearchToolbar from '@/shared/components/chat/components/conversation-search-toolbar';
+import ConversationSearchToolbar from '@/shared/chat/components/conversation-search-toolbar';
 
 export type ConversationHeaderProps = {
   user?: ConversationUser | null;

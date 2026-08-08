@@ -1,7 +1,7 @@
 import { useEffect, type Dispatch, type MutableRefObject, type RefObject, type SetStateAction } from 'react';
 import { ChatEventEnum } from '@/Enums/Chat';
 import type { Conversation, ConversationMessage, ConversationUser } from '@/shared/types/models';
-import { buildSidebarPreviewFromMessage, isNearBottom } from '@/shared/components/chat/components/conversation-content-utils';
+import { buildSidebarPreviewFromMessage, isNearBottom } from '@/shared/chat/utils/conversation';
 
 type UseConversationChannelArgs = {
   activeConversation: Conversation | null | undefined;

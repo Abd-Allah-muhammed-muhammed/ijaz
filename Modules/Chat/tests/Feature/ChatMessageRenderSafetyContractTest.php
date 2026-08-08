@@ -13,9 +13,9 @@
  * - Admin Tickets/Show must use shared ConversationContent (no forked Echo/unread logic).
  */
 test('message content with HTML characters renders escaped, never as raw HTML, in both search and non-search display paths', function () {
-    $highlight = file_get_contents(resource_path('js/shared/components/chat/components/chat-search-highlight.ts'));
-    $messageIn = file_get_contents(resource_path('js/shared/components/chat/components/message-in.tsx'));
-    $messageOut = file_get_contents(resource_path('js/shared/components/chat/components/message-out.tsx'));
+    $highlight = file_get_contents(resource_path('js/shared/chat/utils/search-highlight.ts'));
+    $messageIn = file_get_contents(resource_path('js/shared/chat/components/message-in.tsx'));
+    $messageOut = file_get_contents(resource_path('js/shared/chat/components/message-out.tsx'));
 
     expect($highlight)->toContain("replace(/&/g, '&amp;')")
         ->and($highlight)->toContain("replace(/</g, '&lt;')")
@@ -36,10 +36,10 @@ test('message content with HTML characters renders escaped, never as raw HTML, i
 
 test('unread message indexes for presence joining are instance-scoped refs, not module-level mutable state', function () {
     $conversationContent = file_get_contents(
-        resource_path('js/shared/components/chat/components/conversation-content.tsx')
+        resource_path('js/shared/chat/components/conversation-content.tsx')
     );
     $conversationChannel = file_get_contents(
-        resource_path('js/shared/components/chat/hooks/use-conversation-channel.ts')
+        resource_path('js/shared/chat/hooks/use-conversation-channel.ts')
     );
 
     expect($conversationContent)->not->toMatch('/^let unreadMessageIndex\b/m')
@@ -76,7 +76,7 @@ test('admin Tickets Show uses shared ConversationContent with search integrated 
 
 test('ConversationContent exposes showHeader and headerSlot — no per-context title/avatar props', function () {
     $conversationContent = file_get_contents(
-        resource_path('js/shared/components/chat/components/conversation-content.tsx')
+        resource_path('js/shared/chat/components/conversation-content.tsx')
     );
 
     expect($conversationContent)->toContain('showHeader?: boolean')

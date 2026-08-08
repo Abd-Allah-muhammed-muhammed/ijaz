@@ -8,7 +8,7 @@ import './vendor/metronic/assets/keenicons/solid/style.css';
 import { MasterInit } from '@/vendor/metronic/layout/MasterInit';
 import { ThemeModeProvider } from '@/vendor/metronic/partials';
 import { RecommendedOrdersProvider } from '@/store/recommend-orders-context';
-import { ConversationProvider } from '@/store/use-chat';
+import { ConversationProvider } from '@/shared/chat';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import { createInertiaApp } from '@inertiajs/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

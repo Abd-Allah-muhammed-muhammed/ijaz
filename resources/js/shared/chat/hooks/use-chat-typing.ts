@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ConversationUser } from '@/shared/types/models';
 import axios from '@/shared/helpers/axios';
+import { echoSocketId } from '@/shared/chat/utils/conversation';
 
 /** Throttle while actively typing — avoid a request per keystroke. */
 export const TYPING_EMIT_INTERVAL_MS = 2500;
@@ -8,19 +9,19 @@ export const TYPING_EMIT_INTERVAL_MS = 2500;
 /** Auto-hide indicator if no further typing events arrive. */
 export const TYPING_DISPLAY_TTL_MS = 3000;
 
-function echoSocketId(): string | undefined {
-  try {
-    return window.Echo?.socketId() ?? undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 type Options = {
   conversationId?: string | number | null;
   currentSocketId?: string | null;
   typingUrl?: string | null;
   enabled?: boolean;
+};
+
+type UseChatTypingResult = {
+  typingUser: ConversationUser | null;
+  handleRemoteTyping: (user: ConversationUser) => void;
+  notifyTyping: () => void;
+  clearTyping: () => void;
+  resetEmitThrottle: () => void;
 };
 
 /**
@@ -33,7 +34,7 @@ export function useChatTyping({
   currentSocketId,
   typingUrl,
   enabled = true,
-}: Options) {
+}: Options): UseChatTypingResult {
   const [typingUser, setTypingUser] = useState<ConversationUser | null>(null);
   const lastEmitAtRef = useRef(0);
   const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

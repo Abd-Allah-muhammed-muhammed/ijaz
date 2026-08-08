@@ -1,40 +1,32 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useConversations } from '@/store/use-chat';
+import { useConversations } from '@/shared/chat/store';
 import { Conversation, ConversationMessage } from '@/shared/types/models';
 import axios from '@/shared/helpers/axios';
 import ProviderOrderChatController from '@/actions/Modules/Chat/Http/Controllers/Provider/OrderChatController';
-import ChatComposer from '@/shared/components/chat/components/chat-composer';
-import ConversationHeader from '@/shared/components/chat/components/conversation-header';
-import ConversationMessageList from '@/shared/components/chat/components/conversation-message-list';
-import ConversationSearchToolbar from '@/shared/components/chat/components/conversation-search-toolbar';
-import { formatFileSize } from '@/shared/components/chat/components/chat-attachment-utils';
+import ChatComposer from '@/shared/chat/components/chat-composer';
+import ConversationHeader from '@/shared/chat/components/conversation-header';
+import ConversationMessageList from '@/shared/chat/components/conversation-message-list';
+import ConversationSearchToolbar from '@/shared/chat/components/conversation-search-toolbar';
+import { formatFileSize } from '@/shared/chat/utils/attachments';
 import {
   buildSidebarPreviewFromMessage,
   echoSocketId,
   extractValidationErrors,
   isNearBottom,
-} from '@/shared/components/chat/components/conversation-content-utils';
-import { useChatTyping } from '@/shared/components/chat/hooks/use-chat-typing';
-import { useChatNotificationSound } from '@/shared/components/chat/hooks/use-chat-notification-sound';
-import { useChatLoadOlderMessages } from '@/shared/components/chat/hooks/use-chat-load-older-messages';
-import { useConversationChannel } from '@/shared/components/chat/hooks/use-conversation-channel';
+} from '@/shared/chat/utils/conversation';
+import { useChatTyping } from '@/shared/chat/hooks/use-chat-typing';
+import { useChatNotificationSound } from '@/shared/chat/hooks/use-chat-notification-sound';
+import { useChatLoadOlderMessages } from '@/shared/chat/hooks/use-chat-load-older-messages';
+import { useConversationChannel } from '@/shared/chat/hooks/use-conversation-channel';
 import { useTranslation } from 'react-i18next';
 import type { SingleApiResponse, ConversationMessagePaginationResource } from '@/shared/types/api';
 import { toast } from 'sonner';
+import type {
+  ConversationContentEndpoints,
+  ConversationHeaderSlotContext,
+} from '@/shared/chat/types';
 
-export type ConversationContentEndpoints = {
-  messagesUrl: (options?: { search?: string; page?: number }) => string;
-  sendUrl: string;
-  typingUrl?: string | null;
-};
-
-export type ConversationHeaderSlotContext = {
-  /**
-   * Search toggle + input for the consumer to place in its header row.
-   * `null` when there is no active conversation (empty state) — hide the control.
-   */
-  searchToolbar: React.ReactNode;
-};
+export type { ConversationContentEndpoints, ConversationHeaderSlotContext };
 
 type Props = {
   /** Controlled conversation (Admin Orders). When omitted, uses Provider chat store. */

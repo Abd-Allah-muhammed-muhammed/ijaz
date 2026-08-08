@@ -9,9 +9,8 @@ import { KTCard } from '@/vendor/metronic/helpers';
 import React, { ReactNode, useEffect, useMemo } from 'react';
 import SupportController from '@/actions/Modules/Support/Http/Controllers/Dashboard/SupportController';
 import SupportChatController from '@/actions/Modules/Support/Http/Controllers/Dashboard/SupportChatController';
-import ConversationContent from '@/shared/components/chat/components/conversation-content';
+import { ConversationContent, useConversations } from '@/shared/chat';
 import usePermissions from '@/shared/hooks/use-permissions';
-import { useConversations } from '@/store/use-chat';
 import { TicketSupportStatusEnum } from '@/Enums/SupportTickets';
 
 type Props = {

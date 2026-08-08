@@ -1,6 +1,6 @@
 import { ThemeModeProvider } from '@/vendor/metronic/partials';
 import { RecommendedOrdersProvider } from '@/store/recommend-orders-context';
-import { ConversationProvider } from '@/store/use-chat';
+import { ConversationProvider } from '@/shared/chat';
 import { createInertiaApp } from '@inertiajs/react';
 import createServer from '@inertiajs/react/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
