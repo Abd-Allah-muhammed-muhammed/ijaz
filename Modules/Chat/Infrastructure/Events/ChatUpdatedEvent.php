@@ -23,12 +23,17 @@ class ChatUpdatedEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterCom
     /**
      * Create a new event instance.
      *
-     * @param  Model & HasConversation  $sender
-     * @param  Model & HasConversation  $receiver
+     * @param  Model&HasConversation  $sender
+     * @param  Model&HasConversation  $receiver
+     * @param  int|null  $unreadCount  Precomputed unread for the sender's inbox. When null, broadcastWith falls back to a COUNT query (avoid in hot paths).
      * @return void
      */
-    public function __construct(public Conversation $chat, public HasConversation $sender, public HasConversation $receiver)
-    {
+    public function __construct(
+        public Conversation $chat,
+        public HasConversation $sender,
+        public HasConversation $receiver,
+        public ?int $unreadCount = null,
+    ) {
         //
     }
 
@@ -119,7 +124,7 @@ class ChatUpdatedEvent implements ShouldBroadcastNow, ShouldHandleEventsAfterCom
                 'online' => $user2->online,
             ],
 
-            'unread_count' => $this->chat->unread_count ?: $this->chat->messages()->whereNull('read_at')
+            'unread_count' => $this->unreadCount ?? $this->chat->messages()->whereNull('read_at')
                 ->whereMorphedTo('receiver', $this->sender)
                 ->count(),
             'last_message' => [
