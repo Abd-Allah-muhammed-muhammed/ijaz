@@ -170,18 +170,8 @@ const Show = ({row, chat, chatMessages}: Props) => {
   // Connect to conversation channel via Echo
   useEffect(() => {
     if (chat) {
-      // TEMP DEBUG
-      console.log('[TYPING DEBUG] Joining presence channel', `chats.${chat.id}`);
-      // TEMP DEBUG — same event name as Provider/Admin Orders: ChatEventEnum.Typing === 'typing'
-      console.log('[TYPING DEBUG] Attaching typing listener on', `chats.${chat.id}`, {
-        listenEvent: `.${ChatEventEnum.Typing}`,
-        expectedBroadcastAs: 'typing',
-      });
-
       window.Echo.join(`chats.${chat.id}`)
         .joining((user: ConversationUser) => {
-          // TEMP DEBUG
-          console.log('[TYPING DEBUG] Presence .joining()', user);
           if (user.socket_id !== currentSocketId) {
             setMessages((prevMessages) => {
               unreadMessageIndex.forEach(index => {
@@ -203,8 +193,6 @@ const Show = ({row, chat, chatMessages}: Props) => {
           setMessages((prevMessages) => [...prevMessages, message]);
         })
         .listen(`.${ChatEventEnum.Typing}`, (typing: ConversationUser) => {
-          // TEMP DEBUG
-          console.log('[TYPING DEBUG] RAW EVENT RECEIVED', typing);
           handleRemoteTyping(typing);
         })
         .listen(`.${ChatEventEnum.Messages_Read}`, (payload: {
