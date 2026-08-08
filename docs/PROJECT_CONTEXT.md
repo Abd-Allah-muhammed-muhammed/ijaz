@@ -16,6 +16,7 @@ This is the entry-point map of the Ijaz codebase after the modularization and cl
 | **[.cursor/rules/layered-architecture.mdc](../.cursor/rules/layered-architecture.mdc)** | **Authoritative** Controller → Service → Action → Repository / DTO / FormRequest rules |
 | **This file §9** | LookupCache Tier 1 / Tier 2 keys, invalidation, TTL, and deliberately deferred items |
 | **[docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](DEFERRED_MOBILE_BREAKING_CHANGES.md)** | Mobile-breaking items deliberately deferred until post-MVP (15/8) |
+| **This file §6 — API Contract Change Policy** | MVP-phase safe-vs-breaking classification for mobile-consumed API/broadcast changes (time-bound) |
 | **[modules_statuses.json](../modules_statuses.json)** | Enabled nwidart modules (all **16** currently `true`) |
 
 ---
@@ -193,13 +194,36 @@ Shared notification shape: `App\Notifications\DomainNotification` — used by Or
 - ❌ Reintroduce deleted `lib/` Payment/SMS/WhatsApp scaffolding or deleted OTP models
 - ❌ Put domain notification subclasses back under `app/Notifications/{Provider,User}`
 
+### API Contract Change Policy (Current — MVP Delivery Phase)
+
+**Status: Active during MVP delivery. Revisit once the mobile app has shipped/stabilized and a formal API versioning strategy is in place.**
+
+While the mobile app is being actively delivered, treat any API/broadcast response change as follows:
+
+**Safe (no mobile coordination needed right now):**
+
+- Adding a NEW field to a response (mobile clients ignore unknown fields by default)
+- Internal performance/query optimizations that don't change the response shape
+
+**Breaking (requires mobile team coordination before deploying, during this phase):**
+
+- Renaming/removing an existing field
+- Changing a field's data type
+- Changing an endpoint's URL/method or auth requirements
+
+**When in doubt:** capture a real baseline response, make the change, capture again, and diff — if only NEW fields appeared and nothing existing changed, it's safe for this phase.
+
+Apply this classification to any future change on mobile-consumed surfaces (especially `Modules/Chat`, `Modules/Orders`, and shared Sanctum `/api/v1/*` chat/order paths). See also [docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](DEFERRED_MOBILE_BREAKING_CHANGES.md) for items already parked as breaking.
+
+**Why this is temporary:** once the mobile app is stable and versioned API practices (e.g. `/v2` endpoints, deprecation windows) are in place, breaking changes can be handled through normal versioning instead of ad-hoc coordination. This subsection should be revisited/removed at that point.
+
 ---
 
 ## 7 — Known Issues (current / deferred)
 
 > The old “Known Issues” list in pre-extraction docs is **resolved** (recoverable from git history if needed).
 
-**Open mobile-breaking work lives in [docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](DEFERRED_MOBILE_BREAKING_CHANGES.md)** — revisit after MVP ship (**15/8**). Do not land these on v1 without mobile coordination / versioning.
+**Open mobile-breaking work lives in [docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](DEFERRED_MOBILE_BREAKING_CHANGES.md)** — revisit after MVP ship (**15/8**). Do not land these on v1 without mobile coordination / versioning. Classify new Chat/Orders (and other mobile) contract edits with **§6 — API Contract Change Policy** first.
 
 | # | Item | Why deferred |
 |---|---|---|
@@ -399,7 +423,8 @@ Brief staleness is acceptable for badges / summary dashboards. **Do not** add `L
 |---|---|
 | New module added / enabled, or a domain moves between `app/` and `Modules/` | This file §4 + `modules_statuses.json` |
 | Layering rule or exception established | **Only** [`.cursor/rules/layered-architecture.mdc`](../.cursor/rules/layered-architecture.mdc) (link from here if needed) |
-| New / changed API endpoint or response shape | [docs/API_INVENTORY.md](API_INVENTORY.md) (regen from `route:list --json` preferred) |
+| New / changed API endpoint or response shape | [docs/API_INVENTORY.md](API_INVENTORY.md) (regen from `route:list --json` preferred); classify safe vs breaking via **§6 — API Contract Change Policy** while MVP policy is active |
+| MVP API contract policy superseded by versioning | Remove/rewrite **§6 — API Contract Change Policy** and drop the §1 index row |
 | Model / relation / trait / enum cast change | [docs/MODELS_REFERENCE.md](MODELS_REFERENCE.md) |
 | Enum cases or new enum | [docs/ENUMS_REFERENCE.md](ENUMS_REFERENCE.md) |
 | Deferred mobile item fixed or newly deferred | [docs/DEFERRED_MOBILE_BREAKING_CHANGES.md](DEFERRED_MOBILE_BREAKING_CHANGES.md) + Known Issues §7 here |
