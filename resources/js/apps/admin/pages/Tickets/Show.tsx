@@ -246,13 +246,25 @@ const Show = ({ row, chat, chatMessages }: Props) => {
             )}
           </div>
 
-          {/* Column 2: Chat — shared ConversationContent (controlled, Admin Orders pattern) */}
+          {/* Column 2: Chat — page-owned header + shared ConversationContent */}
           <div className="col-xl-6">
             <KTCard className="mb-5 mb-xl-8">
               <div className="card-header border-0 pt-5">
                 <h3 className="card-title align-items-start flex-column">
-                  <span className="card-label fw-bold fs-3 mb-1">{t('conversation')}</span>
-                  <span className="text-muted mt-1 fw-semibold fs-7">{t('ticket_chat_messages')}</span>
+                  <span className="card-label fw-bold fs-3 mb-1">
+                    {t('support_ticket')} #{row.id}
+                  </span>
+                  <span className="text-muted mt-1 fw-semibold fs-7 d-flex flex-wrap align-items-center gap-2">
+                    <span className={`badge badge-light-${row.status.color} fs-8 fw-bold`}>
+                      {row.status.label}
+                    </span>
+                    <span>{formatDate(row.created_at)}</span>
+                    {row.title ? (
+                      <span className="text-truncate" style={{ maxWidth: 280 }} title={row.title}>
+                        · {row.title}
+                      </span>
+                    ) : null}
+                  </span>
                 </h3>
               </div>
               <div className="card-body p-0">

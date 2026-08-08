@@ -52,6 +52,10 @@ test('admin Tickets Show uses shared ConversationContent instead of a forked Ech
     expect($ticketsShow)->toContain('ConversationContent')
         ->and($ticketsShow)->toContain('endpoints={endpoints}')
         ->and($ticketsShow)->toContain('showHeader={false}')
+        ->and($ticketsShow)->toContain("t('support_ticket')")
+        ->and($ticketsShow)->not->toContain('headerTitle')
+        ->and($ticketsShow)->not->toContain('headerSubtitle')
+        ->and($ticketsShow)->not->toContain('showAvatar')
         ->and($ticketsShow)->not->toContain('unreadMessageIdsRef')
         ->and($ticketsShow)->not->toMatch('/^let unreadMessageIndex\b/m')
         ->and($ticketsShow)->not->toContain('window.Echo.join')
@@ -61,6 +65,18 @@ test('admin Tickets Show uses shared ConversationContent instead of a forked Ech
         ->and($ticketsShow)->not->toContain('ChatComposer')
         ->and($ticketsShow)->not->toContain('useForm')
         ->and($ticketsShow)->not->toContain('messageForm.submit');
+});
+
+test('ConversationContent only exposes showHeader boolean — no per-context title/avatar props', function () {
+    $conversationContent = file_get_contents(
+        resource_path('js/shared/components/chat/components/conversation-content.tsx')
+    );
+
+    expect($conversationContent)->toContain('showHeader?: boolean')
+        ->and($conversationContent)->toContain('showHeader = true')
+        ->and($conversationContent)->not->toContain('headerTitle')
+        ->and($conversationContent)->not->toContain('headerSubtitle')
+        ->and($conversationContent)->not->toContain('showAvatar');
 });
 
 test('SupportChatController send always returns JsonResponse with no Inertia redirect branch', function () {
