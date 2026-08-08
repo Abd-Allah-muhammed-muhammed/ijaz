@@ -38,20 +38,27 @@ test('unread message indexes for presence joining are instance-scoped refs, not 
     $conversationContent = file_get_contents(
         resource_path('js/shared/components/chat/components/conversation-content.tsx')
     );
+    $conversationChannel = file_get_contents(
+        resource_path('js/shared/components/chat/hooks/use-conversation-channel.ts')
+    );
 
     expect($conversationContent)->not->toMatch('/^let unreadMessageIndex\b/m')
         ->and($conversationContent)->not->toContain('let unreadMessageIndex: number[] = []')
         ->and($conversationContent)->toContain('unreadMessageIdsRef')
         ->and($conversationContent)->toContain('useRef')
-        ->and($conversationContent)->toContain('.joining(');
+        ->and($conversationChannel)->toContain('unreadMessageIdsRef')
+        ->and($conversationChannel)->toContain('.joining(')
+        ->and($conversationChannel)->not->toMatch('/^let unreadMessageIndex\b/m');
 });
 
-test('admin Tickets Show uses shared ConversationContent instead of a forked Echo chat implementation', function () {
+test('admin Tickets Show uses shared ConversationContent with search integrated via headerSlot', function () {
     $ticketsShow = file_get_contents(resource_path('js/apps/admin/pages/Tickets/Show.tsx'));
 
     expect($ticketsShow)->toContain('ConversationContent')
         ->and($ticketsShow)->toContain('endpoints={endpoints}')
         ->and($ticketsShow)->toContain('showHeader={false}')
+        ->and($ticketsShow)->toContain('headerSlot=')
+        ->and($ticketsShow)->toContain('searchToolbar')
         ->and($ticketsShow)->toContain("t('support_ticket')")
         ->and($ticketsShow)->not->toContain('headerTitle')
         ->and($ticketsShow)->not->toContain('headerSubtitle')
@@ -67,13 +74,15 @@ test('admin Tickets Show uses shared ConversationContent instead of a forked Ech
         ->and($ticketsShow)->not->toContain('messageForm.submit');
 });
 
-test('ConversationContent only exposes showHeader boolean — no per-context title/avatar props', function () {
+test('ConversationContent exposes showHeader and headerSlot — no per-context title/avatar props', function () {
     $conversationContent = file_get_contents(
         resource_path('js/shared/components/chat/components/conversation-content.tsx')
     );
 
     expect($conversationContent)->toContain('showHeader?: boolean')
         ->and($conversationContent)->toContain('showHeader = true')
+        ->and($conversationContent)->toContain('headerSlot?:')
+        ->and($conversationContent)->toContain('searchToolbar')
         ->and($conversationContent)->not->toContain('headerTitle')
         ->and($conversationContent)->not->toContain('headerSubtitle')
         ->and($conversationContent)->not->toContain('showAvatar');
