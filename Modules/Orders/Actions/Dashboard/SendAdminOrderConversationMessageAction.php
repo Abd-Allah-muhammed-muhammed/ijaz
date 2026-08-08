@@ -24,18 +24,10 @@ class SendAdminOrderConversationMessageAction
             throw new NotFoundHttpException('No conversation found for this order.');
         }
 
-        (new AdminInterventionMessenger($conversation))->sendAs(
+        return (new AdminInterventionMessenger($conversation))->sendAs(
             $admin,
             $data->content,
             $data->files ?? [],
-        );
-
-        $message = $conversation->messages()->latest('id')->first();
-
-        if (! $message instanceof ConversationMessage) {
-            throw new NotFoundHttpException('Message could not be created.');
-        }
-
-        return $message->loadMissing(['sender', 'media']);
+        )->loadMissing(['sender', 'media']);
     }
 }

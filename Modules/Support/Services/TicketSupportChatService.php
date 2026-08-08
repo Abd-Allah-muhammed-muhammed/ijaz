@@ -38,25 +38,21 @@ class TicketSupportChatService
         Admin $admin,
         ChatMessageData $data,
     ): ConversationMessage {
-        $conversation = (new SupportChat($ticket))->replyAsAdmin(
+        return (new SupportChat($ticket))->replyAsAdmin(
             $admin,
             $data->content,
             $data->files ?? [],
-        );
-
-        return $conversation->lastMessage->loadMissing(['sender', 'media']);
+        )->loadMissing(['sender', 'media']);
     }
 
     public function sendAsUser(
         TicketSupport $ticket,
         ChatMessageData $data,
     ): ConversationMessage {
-        $conversation = (new SupportChat($ticket))->replyAsSupportable(
+        return (new SupportChat($ticket))->replyAsSupportable(
             $data->content,
             $data->files ?? [],
-        );
-
-        return $conversation->lastMessage->loadMissing(['sender', 'media']);
+        )->loadMissing(['sender', 'media']);
     }
 
     public function listMessages(

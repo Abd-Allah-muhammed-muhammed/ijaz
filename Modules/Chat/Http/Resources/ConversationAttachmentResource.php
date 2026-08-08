@@ -16,6 +16,12 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class ConversationAttachmentResource extends JsonResource
 {
     /**
+     * Request attribute bag key for disk+path → exists memoization.
+     * Request-scoped only — never persist across requests.
+     */
+    public const EXISTS_CACHE_ATTRIBUTE = 'chat.attachment_exists_cache';
+
+    /**
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
@@ -79,10 +85,25 @@ class ConversationAttachmentResource extends JsonResource
 
     private function mediaFileExists(Media $media): bool
     {
-        try {
-            return Storage::disk($media->disk)->exists($media->getPathRelativeToRoot());
-        } catch (\Throwable) {
-            return false;
+        $path = $media->getPathRelativeToRoot();
+        $cacheKey = $media->disk.'|'.$path;
+
+        /** @var array<string, bool> $cache */
+        $cache = request()->attributes->get(self::EXISTS_CACHE_ATTRIBUTE, []);
+
+        if (array_key_exists($cacheKey, $cache)) {
+            return $cache[$cacheKey];
         }
+
+        try {
+            $exists = Storage::disk($media->disk)->exists($path);
+        } catch (\Throwable) {
+            $exists = false;
+        }
+
+        $cache[$cacheKey] = $exists;
+        request()->attributes->set(self::EXISTS_CACHE_ATTRIBUTE, $cache);
+
+        return $exists;
     }
 }

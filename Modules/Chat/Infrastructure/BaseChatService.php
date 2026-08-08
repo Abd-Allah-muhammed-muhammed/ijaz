@@ -78,7 +78,7 @@ abstract class BaseChatService
      *
      * @throws ApiErrorException
      */
-    protected function send(HasConversation $sender, ?string $message = null, array $attachments = []): Conversation
+    protected function send(HasConversation $sender, ?string $message = null, array $attachments = []): ConversationMessage
     {
         $onlineUsers = $this->getOnlineUsers();
         $receiver = $this->getReceiver($sender);
@@ -101,7 +101,7 @@ abstract class BaseChatService
             report($e);
         }
 
-        return $this->chat;
+        return $lastMessage;
     }
 
     /**
