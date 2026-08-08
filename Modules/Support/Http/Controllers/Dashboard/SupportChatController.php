@@ -4,7 +4,6 @@ namespace Modules\Support\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use MMAE\ApiResponse\Traits\HasApiResponse;
@@ -55,20 +54,19 @@ class SupportChatController extends Controller implements HasMiddleware
     public function send(
         SendSupportMessageRequest $request,
         TicketSupport $ticket,
-    ): JsonResponse|RedirectResponse {
+    ): JsonResponse {
         $message = $this->service->sendAsAdmin(
             $ticket,
             auth('admin')->user(),
             ChatMessageData::fromRequest($request),
         );
 
-        if ($request->expectsJson()) {
-            return $this->successResponse(
-                ConversationMessageResource::make($message)
-            );
-        }
-
-        return redirect()->route('dashboard.support.tickets.show', $ticket);
+        // Always JSON — ConversationContent (and any XHR client) posts via axios.
+        // The previous dual-path redirect-to-Show was leftover from the old Inertia
+        // useForm send and caused a full page visit for non-JSON Accept headers.
+        return $this->successResponse(
+            ConversationMessageResource::make($message)
+        );
     }
 
     public function typing(TicketSupport $ticket): JsonResponse

@@ -71,3 +71,30 @@ test('admin can still view and send support ticket messages after the frontend m
             ->has('row.id')
         );
 });
+
+test('ticket chat send always returns JSON and never redirects, matching Admin Orders', function () {
+    withoutSupportDashboardLocaleMiddleware();
+    Bus::fake();
+    Event::fake([NewMessageEvent::class, ChatUpdatedEvent::class]);
+
+    $admin = createSupportDashboardAdmin([
+        'show supportTicket',
+        'edit supportTicket',
+    ]);
+
+    ['ticket' => $ticket] = createTicketSupportConversation();
+
+    // Simulate a non-Accept:application/json POST (the old dual-path redirected here).
+    // ConversationContent's axios path must still get a JSON body, never a 302 to Show.
+    $this->actingAs($admin, 'admin')
+        ->post(
+            action([SupportChatController::class, 'send'], ['ticket' => $ticket]),
+            ['content' => 'JSON-only send path'],
+            ['Accept' => 'text/html,application/xhtml+xml'],
+        )
+        ->assertSuccessful()
+        ->assertJsonPath('success', true)
+        ->assertJsonPath('data.content', 'JSON-only send path')
+        ->assertHeader('content-type', 'application/json')
+        ->assertHeaderMissing('Location');
+});

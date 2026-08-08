@@ -57,5 +57,19 @@ test('admin Tickets Show uses shared ConversationContent instead of a forked Ech
         ->and($ticketsShow)->not->toContain('ChatEventEnum')
         ->and($ticketsShow)->not->toContain('MessageIn')
         ->and($ticketsShow)->not->toContain('MessageOut')
-        ->and($ticketsShow)->not->toContain('ChatComposer');
+        ->and($ticketsShow)->not->toContain('ChatComposer')
+        ->and($ticketsShow)->not->toContain('useForm')
+        ->and($ticketsShow)->not->toContain('messageForm.submit');
+});
+
+test('SupportChatController send always returns JsonResponse with no Inertia redirect branch', function () {
+    $controller = file_get_contents(
+        base_path('Modules/Support/Http/Controllers/Dashboard/SupportChatController.php')
+    );
+
+    expect($controller)->toContain('function send(')
+        ->and($controller)->toContain(': JsonResponse')
+        ->and($controller)->not->toContain('RedirectResponse')
+        ->and($controller)->not->toContain("redirect()->route('dashboard.support.tickets.show'")
+        ->and($controller)->not->toContain('expectsJson()');
 });
