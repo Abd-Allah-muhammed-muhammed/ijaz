@@ -35,10 +35,12 @@ jobs:
             composer install --no-dev --optimize-autoloader --no-interaction
 
             # 4. Frontend build
-            # Wayfinder actions are gitignored and NOT generated during `vite build`
-            # (vite-plugin-run has build:false). `npm run build` → `prebuild` regenerates
-            # them; run explicitly here too so a missing prebuild never ships stale actions
-            # (e.g. missing `.typing` → "G.typing is not a function" on chat pages).
+            # Wayfinder actions + JS Enums are gitignored and NOT generated during
+            # `vite build` (vite-plugin-run has build:false). `npm run build` →
+            # `prebuild` regenerates them; run explicitly here too so a missing
+            # prebuild never ships stale artifacts (e.g. missing Wayfinder `.typing`
+            # → crash, or stale ChatEventEnum without Typing → Echo listens for
+            # literal `.undefined` instead of `.typing`).
             #
             # VITE_REVERB_* are BUILD-TIME: Vite inlines them from this server's `.env`
             # during `npm run build`. Runtime PHP `.env` alone does not fix an old bundle.
@@ -47,6 +49,7 @@ jobs:
             # Internal REVERB_SERVER_PORT/REVERB_PORT (e.g. 6002) stay unchanged.
             # Rebuild after any Reverb / VITE_REVERB_* env change.
             php artisan wayfinder:generate --no-interaction
+            php artisan make:js-enums --no-interaction
             npm ci --prefer-offline
             npm run build
 

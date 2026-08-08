@@ -2,7 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "prebuild": "rimraf public/hot && php artisan wayfinder:generate --no-interaction && php artisan make:js-translations",
+    "prebuild": "rimraf public/hot && php artisan wayfinder:generate --no-interaction && php artisan make:js-enums --no-interaction && php artisan make:js-translations",
     "build": "vite build",
     "build:ssr": "vite build && vite build --ssr",
     "dev": "vite",

@@ -449,10 +449,6 @@ const ConversationContent = ({
     }
 
     if (!isControlled && activeConversation.id === prevConversation?.id) {
-      // TEMP DEBUG
-      console.log('[TYPING DEBUG] Skipping Echo join — activeConversation === prevConversation', {
-        conversationId: activeConversation.id,
-      });
       return;
     }
 
@@ -464,14 +460,6 @@ const ConversationContent = ({
     if (!isControlled && prevConversation) {
       window.Echo.leave(`chats.${prevConversation.id}`)
     }
-
-    // TEMP DEBUG
-    console.log('[TYPING DEBUG] Joining presence channel', `chats.${activeConversation.id}`);
-    // TEMP DEBUG — Admin + Provider both use ChatEventEnum.Typing === 'typing' (same as UserTypingEvent::broadcastAs)
-    console.log('[TYPING DEBUG] Attaching typing listener on', `chats.${activeConversation.id}`, {
-      listenEvent: `.${ChatEventEnum.Typing}`,
-      expectedBroadcastAs: 'typing',
-    });
 
     window.Echo.join(`chats.${activeConversation.id}`)
       .listen(`.${ChatEventEnum.New_Message}`, (incoming: ConversationMessage) => {
@@ -500,8 +488,6 @@ const ConversationContent = ({
         }
       })
       .listen(`.${ChatEventEnum.Typing}`, (typing: ConversationUser) => {
-        // TEMP DEBUG
-        console.log('[TYPING DEBUG] RAW EVENT RECEIVED', typing);
         handleRemoteTyping(typing);
       })
       .listen(`.${ChatEventEnum.Messages_Read}`, (payload: {
@@ -533,8 +519,6 @@ const ConversationContent = ({
         }
       })
       .joining((joiningUser: ConversationUser) => {
-        // TEMP DEBUG
-        console.log('[TYPING DEBUG] Presence .joining()', joiningUser);
         if (joiningUser.socket_id !== currentSocketId) {
           setMessages((prevMessages) => {
             unreadMessageIndex.forEach(index => {
