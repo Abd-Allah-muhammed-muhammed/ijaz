@@ -2,9 +2,9 @@ import { ConversationAttachment, ConversationMessage } from '@/shared/types/mode
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { KTIcon } from '@/vendor/metronic/helpers';
-import Attachments from '@/shared/components/chat/components/attachments';
-import { highlightSearchTerm } from '@/shared/components/chat/components/chat-search-highlight';
-import RelativeTimestamp from '@/shared/components/chat/components/relative-timestamp';
+import Attachments from '@/shared/chat/components/attachments';
+import { highlightSearchTerm } from '@/shared/chat/utils/search-highlight';
+import RelativeTimestamp from '@/shared/chat/components/relative-timestamp';
 
 type Props = {
   conversationMessage: ConversationMessage;
@@ -70,9 +70,8 @@ const MessageOut = ({ conversationMessage, highlightTerm }: Props) => {
           {hasCaption(conversationMessage.content) ? (
             <p
               dangerouslySetInnerHTML={{
-                __html: highlightTerm
-                  ? highlightSearchTerm(String(conversationMessage.content), highlightTerm)
-                  : String(conversationMessage.content),
+                // Always escape first (highlightSearchTerm); <mark> only wraps escaped text.
+                __html: highlightSearchTerm(String(conversationMessage.content), highlightTerm),
               }}
               className="text-end mb-1 text-break fs-6 lh-base"
               style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}

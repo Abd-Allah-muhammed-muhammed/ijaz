@@ -49,7 +49,8 @@ class TicketSupportChatHandler implements ChatTypeHandlerInterface
                         ->where('user2_id', $actor->getKey());
                 });
             })
-            ->with(['user1', 'user2', 'lastMessage', 'operation'])
+            ->with(['user1', 'user2', 'lastMessage.sender', 'lastMessage.media', 'operation'])
+            ->withCountUnreadMessagesFor($actor)
             ->latest('last_message_at');
     }
 

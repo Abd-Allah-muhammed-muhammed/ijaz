@@ -83,3 +83,37 @@ test('conversation search respects participant authorization (cannot search a co
         ]))
         ->assertForbidden();
 });
+
+test('searching within a conversation does not mark messages as read', function () {
+    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
+    $conversation = createOrderConversation($user, $provider, $order);
+
+    $unread = ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_id' => $user->getKey(),
+        'sender_type' => $user::class,
+        'receiver_id' => $provider->getKey(),
+        'receiver_type' => $provider::class,
+        'content' => 'Please review the invoice draft',
+        'has_attachments' => false,
+        'read_at' => null,
+    ]);
+
+    $this->actingAs($provider, 'provider')
+        ->getJson(action([OrderChatController::class, 'show'], [
+            'conversation' => $conversation->id,
+            'search' => 'invoice',
+        ]))
+        ->assertSuccessful();
+
+    expect($unread->fresh()->read_at)->toBeNull();
+
+    // Control: listing without search still marks as read for the actor.
+    $this->actingAs($provider, 'provider')
+        ->getJson(action([OrderChatController::class, 'show'], [
+            'conversation' => $conversation->id,
+        ]))
+        ->assertSuccessful();
+
+    expect($unread->fresh()->read_at)->not->toBeNull();
+});

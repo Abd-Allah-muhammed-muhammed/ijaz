@@ -26,7 +26,7 @@ class AdminInterventionMessenger extends BaseChatService
     /**
      * @param  array<int, UploadedFile>  $attachments
      */
-    public function sendAs(Admin $admin, ?string $message = null, array $attachments = []): Conversation
+    public function sendAs(Admin $admin, ?string $message = null, array $attachments = []): ConversationMessage
     {
         $this->chat->loadMissing(['user1', 'user2']);
 

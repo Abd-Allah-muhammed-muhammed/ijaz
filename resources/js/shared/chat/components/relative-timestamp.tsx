@@ -1,5 +1,5 @@
-import { formatShortAbsoluteDiff, parseChatAbsoluteTime } from '@/shared/components/chat/utils/format-short-absolute-diff';
-import { useSharedRelativeNow } from '@/shared/components/chat/hooks/use-shared-relative-now';
+import { formatShortAbsoluteDiff, parseChatAbsoluteTime } from '@/shared/chat/utils/format-short-absolute-diff';
+import { useSharedRelativeNow } from '@/shared/chat/hooks/use-shared-relative-now';
 
 type Props = {
   /** Prefer ISO / Date — enables live updates via the shared tick. */

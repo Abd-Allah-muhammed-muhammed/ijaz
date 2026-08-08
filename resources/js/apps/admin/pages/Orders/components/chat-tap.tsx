@@ -1,12 +1,11 @@
 import { Col, Card, Row } from "react-bootstrap";
 import { useEffect, useMemo } from "react";
 import { usePage } from "@inertiajs/react";
-import ConversationContent from "@/shared/components/chat/components/conversation-content";
-import { useTranslation } from "react-i18next";
-import { Conversation, Order } from "@/shared/types/models";
-import OrderController from "@/actions/Modules/Orders/Http/Controllers/Dashboard/OrderController";
-import usePermissions from "@/shared/hooks/use-permissions";
-import { useConversations } from "@/store/use-chat";
+import { ConversationContent, useConversations } from '@/shared/chat';
+import { useTranslation } from 'react-i18next';
+import { Conversation, Order } from '@/shared/types/models';
+import OrderController from '@/actions/Modules/Orders/Http/Controllers/Dashboard/OrderController';
+import usePermissions from '@/shared/hooks/use-permissions';
 
 type Props = {
   order: Order

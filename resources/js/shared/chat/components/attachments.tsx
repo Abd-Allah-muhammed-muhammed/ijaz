@@ -7,7 +7,7 @@ import {
   attachmentDisplayName,
   isImageAttachment,
   isPdfAttachment,
-} from '@/shared/components/chat/components/chat-attachment-utils';
+} from '@/shared/chat/utils/attachments';
 
 type Props = {
   attachments: ConversationAttachment[];

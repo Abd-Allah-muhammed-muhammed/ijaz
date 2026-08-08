@@ -13,8 +13,8 @@ import {Conversation, Order, Provider} from "@/shared/types/models";
 import {makeOffline, makeOnline} from "@/shared/helpers/general";
 import {useRecommendedOrdersContext} from "@/store/recommend-orders-context";
 import {useTranslation} from "react-i18next";
-import {useConversations} from "@/store/use-chat";
-import {ChatEventEnum} from "@/Enums/Chat";
+import { useConversations } from '@/shared/chat';
+import { ChatEventEnum } from '@/Enums/Chat';
 import ProviderChatIndexController from "@/actions/Modules/Orders/Http/Controllers/Provider/ProviderChatIndexController";
 import {Button} from "react-bootstrap";
 

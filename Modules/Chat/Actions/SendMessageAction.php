@@ -20,8 +20,6 @@ class SendMessageAction
         $messenger = $handler->messenger($conversation);
 
         /** @var ParticipantConversationMessenger $messenger */
-        $messenger->sendAs($sender, $data->content, $data->files ?? []);
-
-        return $conversation->messages()->latest()->first();
+        return $messenger->sendAs($sender, $data->content, $data->files ?? []);
     }
 }

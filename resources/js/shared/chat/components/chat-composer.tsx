@@ -9,7 +9,7 @@ import {
   formatFileSize,
   isImageFile,
   isPdfFile,
-} from '@/shared/components/chat/components/chat-attachment-utils';
+} from '@/shared/chat/utils/attachments';
 
 export type ChatComposerProps = {
   content: string;
@@ -43,6 +43,10 @@ const ChatComposer = ({
 }: ChatComposerProps) => {
   const { t } = useTranslation();
   const fileRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const composerRootRef = useRef<HTMLDivElement>(null);
+  /** Set when this composer initiates a send; cleared after post-send focus restore. */
+  const restoreFocusAfterSendRef = useRef(false);
   const errorIndexSet = useMemo(
     () => new Set(errorFileIndexes),
     [errorFileIndexes],
@@ -64,10 +68,44 @@ const ChatComposer = ({
     };
   }, [previewUrls]);
 
+  /**
+   * Cause: `disabled={isProcessing}` blurs the textarea (browsers drop focus from
+   * disabled controls). Clearing `content` / file previews does not remount it.
+   * After send finishes, restore focus only if nothing outside the composer took it
+   * (e.g. user opened search mid-flight) — otherwise we would steal focus.
+   */
+  useEffect(() => {
+    if (isProcessing || !restoreFocusAfterSendRef.current) {
+      return;
+    }
+
+    restoreFocusAfterSendRef.current = false;
+
+    const active = document.activeElement;
+    const root = composerRootRef.current;
+    const safeToRestore =
+      !active ||
+      active === document.body ||
+      active === textareaRef.current ||
+      (root != null && root.contains(active));
+
+    if (safeToRestore) {
+      textareaRef.current?.focus();
+    }
+  }, [isProcessing]);
+
   const canSend =
     !disabled &&
     !isProcessing &&
     (content.trim() !== '' || files.length > 0);
+
+  const requestSend = () => {
+    if (!canSend) {
+      return;
+    }
+    restoreFocusAfterSendRef.current = true;
+    onSend();
+  };
 
   const removeFileAt = (index: number) => {
     onFilesChange(files.filter((_, i) => i !== index));
@@ -76,14 +114,12 @@ const ChatComposer = ({
   const onEnterPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (canSend) {
-        onSend();
-      }
+      requestSend();
     }
   };
 
   return (
-    <div className="card-footer pt-4 min-w-0 w-100">
+    <div ref={composerRootRef} className="card-footer pt-4 min-w-0 w-100">
       {files.length > 0 ? (
         <div className="d-flex flex-wrap gap-2 mb-4 w-100 min-w-0">
           {files.map((file, index) => {
@@ -158,6 +194,7 @@ const ChatComposer = ({
       ) : null}
 
       <textarea
+        ref={textareaRef}
         className="form-control form-control-flush mb-3"
         rows={1}
         value={content}
@@ -214,11 +251,7 @@ const ChatComposer = ({
         <ActionButton
           isProcessing={isProcessing}
           type="button"
-          onClick={() => {
-            if (canSend) {
-              onSend();
-            }
-          }}
+          onClick={requestSend}
           text={t('send')}
         />
       </div>

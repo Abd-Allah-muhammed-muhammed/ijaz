@@ -1,9 +1,9 @@
 import { Conversation as Chat } from "@/shared/types/models";
-import { useConversations } from "@/store/use-chat";
+import { useConversations } from "@/shared/chat/store";
 import { KTIcon } from "@/vendor/metronic/helpers";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
-import RelativeTimestamp from "@/shared/components/chat/components/relative-timestamp";
+import RelativeTimestamp from "@/shared/chat/components/relative-timestamp";
 
 type Props = {
   chat: Chat,

@@ -78,7 +78,7 @@ abstract class BaseChatService
      *
      * @throws ApiErrorException
      */
-    protected function send(HasConversation $sender, ?string $message = null, array $attachments = []): Conversation
+    protected function send(HasConversation $sender, ?string $message = null, array $attachments = []): ConversationMessage
     {
         $onlineUsers = $this->getOnlineUsers();
         $receiver = $this->getReceiver($sender);
@@ -101,7 +101,7 @@ abstract class BaseChatService
             report($e);
         }
 
-        return $this->chat;
+        return $lastMessage;
     }
 
     /**
@@ -190,8 +190,15 @@ abstract class BaseChatService
      */
     protected function triggerEvents(ConversationMessage $lastMessage, HasConversation $sender, HasConversation $receiver): void
     {
+        // Precompute before broadcast — SerializesModels rehydrates Conversation from DB
+        // and would drop a dynamic attribute; pass as constructor arg instead.
+        $unreadCount = $this->chat->messages()
+            ->whereNull('read_at')
+            ->whereMorphedTo('receiver', $sender)
+            ->count();
+
         broadcast(new NewMessageEvent($lastMessage))->toOthers();
-        broadcast(new ChatUpdatedEvent($this->chat, $sender, $receiver));
+        broadcast(new ChatUpdatedEvent($this->chat, $sender, $receiver, $unreadCount));
     }
 
     /**

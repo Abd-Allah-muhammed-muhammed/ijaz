@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Modules\Chat\Contracts\HasConversation;
 use Modules\Chat\Infrastructure\BaseChatService;
 use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\ConversationMessage;
 use RuntimeException;
 
 class ParticipantConversationMessenger extends BaseChatService
@@ -20,7 +21,7 @@ class ParticipantConversationMessenger extends BaseChatService
     /**
      * @param  array<int, UploadedFile>  $attachments
      */
-    public function sendAs(Model $sender, ?string $message = null, array $attachments = []): Conversation
+    public function sendAs(Model $sender, ?string $message = null, array $attachments = []): ConversationMessage
     {
         if (! $sender instanceof HasConversation) {
             throw new RuntimeException('Sender must implement HasConversation.');
