@@ -16,6 +16,7 @@ import {useTranslation} from "react-i18next";
 import { useConversations } from '@/shared/chat';
 import { ChatEventEnum } from '@/Enums/Chat';
 import ProviderChatIndexController from "@/actions/Modules/Orders/Http/Controllers/Provider/ProviderChatIndexController";
+import {PROVIDER_NOTIFICATION_RECEIVED_EVENT} from "@/apps/provider/layouts/header-menus/HeaderNotificationsMenu";
 import {Button} from "react-bootstrap";
 
 type Props = {
@@ -70,6 +71,7 @@ export default function ProviderLayout({children, head}: Props) {
         toast.info(notification.title, {
           description: notification.body
         })
+        window.dispatchEvent(new CustomEvent(PROVIDER_NOTIFICATION_RECEIVED_EVENT))
       })
       .listen(`.${ChatEventEnum.Chat_Updated}`, (chat: Conversation) => {
         const cleanUrl = urlRef.current.split('?')[0];
