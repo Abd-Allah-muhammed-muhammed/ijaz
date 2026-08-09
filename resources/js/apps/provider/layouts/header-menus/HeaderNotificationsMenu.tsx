@@ -149,7 +149,7 @@ const HeaderNotificationsMenu: FC = () => {
       </div>
 
       <div
-        className='menu menu-sub menu-sub-dropdown menu-column w-350px w-lg-375px'
+        className='menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-600 menu-state-bg fw-bold w-350px w-lg-375px'
         data-kt-menu='true'
       >
         <div
@@ -166,11 +166,11 @@ const HeaderNotificationsMenu: FC = () => {
 
         <div className='scroll-y mh-325px my-5 px-8'>
           {loading && !loaded && (
-            <div className='text-center text-gray-500 py-10'>{t('loading')}</div>
+            <div className='text-center text-muted py-10'>{t('loading')}</div>
           )}
 
           {loaded && items.length === 0 && (
-            <div className='text-center text-gray-500 py-10'>{t('no_notifications')}</div>
+            <div className='text-center text-muted py-10'>{t('no_notifications')}</div>
           )}
 
           {items.map((notification) => (
@@ -178,7 +178,7 @@ const HeaderNotificationsMenu: FC = () => {
               type='button'
               key={notification.id}
               className={clsx(
-                'd-flex flex-stack py-4 w-100 text-start border-0 bg-transparent',
+                'd-flex flex-stack py-4 w-100 text-start border-0 bg-transparent text-gray-800',
                 !notification.read_at && 'bg-light-primary rounded px-2',
               )}
               onClick={() => {
@@ -195,18 +195,20 @@ const HeaderNotificationsMenu: FC = () => {
                   >
                     <KTIcon
                       iconName='notification-on'
-                      className={clsx('fs-2', notification.read_at ? 'text-gray-500' : 'text-primary')}
+                      className={clsx('fs-2', notification.read_at ? 'text-gray-600' : 'text-primary')}
                     />
                   </span>
                 </div>
 
                 <div className='mb-0 me-2'>
-                  <span className='fs-6 text-gray-800 fw-bolder d-block'>{notification.title}</span>
-                  <div className='text-gray-500 fs-7'>{notification.body}</div>
+                  <span className='fs-6 text-gray-800 text-hover-primary fw-bolder d-block'>
+                    {notification.title}
+                  </span>
+                  <div className='text-muted fs-7'>{notification.body}</div>
                 </div>
               </div>
 
-              <span className='badge badge-light fs-8 flex-shrink-0 ms-2'>
+              <span className='badge badge-light fs-8 flex-shrink-0 ms-2 text-gray-700'>
                 {notification.created_at}
               </span>
             </button>
@@ -216,7 +218,7 @@ const HeaderNotificationsMenu: FC = () => {
         <div className='py-3 text-center border-top'>
           <button
             type='button'
-            className='btn btn-color-gray-600 btn-active-color-primary'
+            className='btn btn-sm btn-light-primary'
             disabled={unreadCount === 0}
             onClick={() => {
               void markAllAsRead()

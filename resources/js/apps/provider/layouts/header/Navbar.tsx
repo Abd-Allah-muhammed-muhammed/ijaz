@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import {KTIcon} from '@/vendor/metronic/helpers'
+import {ThemeModeSwitcher} from '@/vendor/metronic/partials'
 import {HeaderNotificationsMenu} from '@/apps/provider/layouts/header-menus/HeaderNotificationsMenu'
 import {HeaderUserMenu} from '@/apps/provider/layouts/header-menus/HeaderUserMenu'
 import {useLayout} from '@/vendor/metronic/layout/core'
@@ -22,6 +23,10 @@ const Navbar = () => {
 
       <div className={clsx('app-navbar-item', itemClass)}>
         <HeaderNotificationsMenu/>
+      </div>
+
+      <div className={clsx('app-navbar-item', itemClass)}>
+        <ThemeModeSwitcher toggleBtnClass={clsx('btn-active-light-primary btn-custom')}/>
       </div>
 
       <div className={clsx('app-navbar-item', itemClass)}>
