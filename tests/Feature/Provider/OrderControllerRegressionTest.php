@@ -228,6 +228,9 @@ it('ends an in-progress order as the assigned provider', function () {
 /**
  * Provider review must store consistent reviewer (provider) and reviewee (user) type/id pairs.
  * (Previously crossed: reviewer_id=order.user_id with reviewer_type=Provider, reviewee_id=provider.)
+ *
+ * Also guards the Inertia field contract: snake_case `rating` + `comment` (not Description/Rating)
+ * must pass OrderReviewRequest without false validation errors when both are filled.
  */
 it('stores review with consistent reviewer provider and reviewee user ids', function () {
     $provider = createWalletProvider();
@@ -246,7 +249,9 @@ it('stores review with consistent reviewer provider and reviewee user ids', func
             'rating' => 4,
             'comment' => 'Good client',
         ])
-        ->assertRedirect();
+        ->assertRedirect()
+        ->assertSessionHasNoErrors()
+        ->assertSessionHas('success');
 
     $review = Review::query()->where([
         'operation_type' => Order::class,
@@ -258,5 +263,46 @@ it('stores review with consistent reviewer provider and reviewee user ids', func
         ->and($review->reviewer_id)->toBe($provider->id)
         ->and($review->reviewee_type)->toBe(User::class)
         ->and($review->reviewee_id)->toBe($owner->id)
-        ->and($review->rating)->toBe(4);
+        ->and($review->rating)->toBe(4)
+        ->and($review->comment)->toBe('Good client');
+});
+
+it('accepts a first provider client review with rating and comment without validation errors', function () {
+    $provider = createWalletProvider();
+    $owner = User::factory()->create();
+    $order = Order::factory()->create([
+        'user_id' => $owner->id,
+        'provider_id' => $provider->id,
+        'status' => OrderStatusEnum::EndedByClient,
+    ]);
+
+    $this->actingAs($provider, 'provider');
+    auth()->shouldUse('provider');
+
+    expect(Review::query()->where([
+        'operation_type' => Order::class,
+        'operation_id' => $order->id,
+        'reviewer_type' => Provider::class,
+    ])->exists())->toBeFalse();
+
+    $this->from(route('provider.orders.show', $order))
+        ->post(action([OrderController::class, 'updateReview'], ['order' => $order]), [
+            'rating' => 5,
+            'comment' => 'Excellent cooperation throughout the job.',
+        ])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors()
+        ->assertSessionHas('success');
+
+    $review = Review::query()->where([
+        'operation_type' => Order::class,
+        'operation_id' => $order->id,
+        'reviewer_type' => Provider::class,
+    ])->first();
+
+    expect($review)->not->toBeNull()
+        ->and($review->rating)->toBe(5)
+        ->and($review->comment)->toBe('Excellent cooperation throughout the job.')
+        ->and($review->reviewer_id)->toBe($provider->id)
+        ->and($review->reviewee_id)->toBe($owner->id);
 });

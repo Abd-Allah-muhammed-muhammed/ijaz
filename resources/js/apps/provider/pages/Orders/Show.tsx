@@ -34,20 +34,20 @@ const Show = ({order}: Props) => {
   const reviews = order.reviews;
   const providerReview = reviews?.find(i => i.reviewer_type === "Provider");
   const userReview = reviews?.find(i => i.reviewer_type === "User");
-  const [reviewRating, _setReviewRating] = useState(providerReview?.rating ?? 0);
-  const [reviewComment, _setReviewComment] = useState(providerReview?.comment ?? "");
   const OfferForm = useForm<OfferSchemaType>()
-  const reviewForm = useForm<ReviewSchemaType>(providerReview);
+  // useForm(undefined) leaves data undefined; Inertia setData no-ops on undefined
+  // (es-toolkit set), so UI state updated while rating/comment never reached the form.
+  const reviewForm = useForm<ReviewSchemaType>({
+    rating: providerReview?.rating ?? 0,
+    comment: providerReview?.comment ?? '',
+  });
   const auth = usePage().props.auth.user
   const setReviewRating = (rating: number) => {
-    _setReviewRating(rating);
     reviewForm.setData('rating', rating);
   }
 
   const setReviewComment = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    const comment = e.target.value;
-    _setReviewComment(comment);
-    reviewForm.setData('comment', comment);
+    reviewForm.setData('comment', e.target.value);
   }
 
   const closeCreateOfferModal = () => {
@@ -407,19 +407,26 @@ const Show = ({order}: Props) => {
                 <Card.Body>
                   <div className="d-flex gap-1 mb-2">
                     {[1, 2, 3, 4, 5].map((i) => (
-                      <div className={`cursor-pointer ${i <= reviewRating ? "text-warning" : ""} fs-2`}>
+                      <div key={i} className={`cursor-pointer ${i <= reviewForm.data.rating ? "text-warning" : ""} fs-2`}>
                         <FontAwesomeIcon icon={faStar} onClick={() => setReviewRating(i)}/>
                       </div>
                     ))}
                   </div>
-                  <textarea className="form-control" onChange={(e) => setReviewComment(e)}>{reviewComment}</textarea>
+                  <textarea
+                    className="form-control"
+                    value={reviewForm.data.comment}
+                    onChange={(e) => setReviewComment(e)}
+                  />
                   <InputError message={reviewForm.errors.rating}/>
                   <InputError message={reviewForm.errors.comment}/>
                 </Card.Body>
                 <Card.Footer className="text-end pt-0">
                   <Button variant={"primary"}
                           onClick={submitReview}
-                          disabled={!(providerReview?.rating !== reviewRating || providerReview?.comment !== reviewComment)}
+                          disabled={!(
+                            providerReview?.rating !== reviewForm.data.rating
+                            || providerReview?.comment !== reviewForm.data.comment
+                          )}
                   >
                     {
                       reviewForm.processing ?
