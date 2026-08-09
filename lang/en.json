@@ -76,6 +76,8 @@
     "resend_code_in": "Resend code in",
     "resend": "Resend",
     "completed": "Completed",
+    "registration_step_label": ":number. :title",
+    "registration_step_of": "Step :current of :total:",
     "end_register": "<strong>Welcome to the Ijaz Family 💚</strong>\nYour registration as a Service Provider has been successfully received!\nOur team is now reviewing your information to verify and approve your account as soon as possible.\n\n🔔 What Happens Next?\n\nYou’ll receive an instant notification once your account is approved 🎯\n\nIf we need any clarification or additional documents, our team will contact you directly via your registered phone or email.\n\nOnce approved, you can start your journey with Ijaz — add your services and begin receiving client requests easily and confidently.\n\n🚀 We’re Now in the Service Providers Registration Phase!\n\n🎊 You joined us at the perfect time!\nWe’re currently building a strong base of service providers from across Saudi Arabia\nto launch together when the platform officially opens.\nYour early registration gives you priority visibility and a golden opportunity to grow from day one 💪🇸🇦",
     "registration_summary": "<strong>🧾 Your Registration Summary</strong>\n\nAccount Type: ‎:account_type\n\nMobile Number: ‎:phone\n\nRegistration Date: ‎:created_at\n\n✅ What You Can Do Now\n\nWait for the approval notification — it’ll arrive soon.\n\nKeep an eye on your email and phone for updates.\n\nGet ready to add your services and start your journey with Ijaz ✨",
     "previous": "Previous",
