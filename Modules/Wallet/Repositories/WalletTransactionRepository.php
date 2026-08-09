@@ -30,6 +30,23 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
         ]);
     }
 
+    public function existsCreditForOperation(
+        Model $owner,
+        Model $operation,
+        array $descriptions,
+    ): bool {
+        if ($descriptions === []) {
+            return false;
+        }
+
+        return $owner->walletTransactions()
+            ->where('operation_type', $operation::class)
+            ->where('operation_id', (string) $operation->getKey())
+            ->where('credit', '>', 0)
+            ->whereIn('description', $descriptions)
+            ->exists();
+    }
+
     public function listForOwner(
         Model $owner,
         int $perPage = 15,

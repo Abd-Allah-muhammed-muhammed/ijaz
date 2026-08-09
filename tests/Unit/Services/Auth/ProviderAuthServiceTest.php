@@ -1,5 +1,6 @@
 <?php
 
+use App\Contracts\Auth\ProviderRepositoryInterface;
 use App\Enums\Auth\OtpPurposeEnum;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Http\Requests\Provider\Auth\LoginRequest;
@@ -15,7 +16,6 @@ use Modules\Geo\Models\Region;
 use Modules\Marketplace\Models\ProviderType;
 use Modules\Sms\DTOs\SmsResult;
 use Modules\Sms\Services\SmsService;
-use Modules\Wallet\Actions\CreditProviderRegistrationBonusAction;
 
 function providerRegistrationData(array $overrides = []): array
 {
@@ -105,7 +105,7 @@ test('register creates provider with pending status inside a transaction', funct
         ->and(Provider::whereKey($result->provider->id)->exists())->toBeTrue();
 });
 
-test('register credits registration bonus via CreditProviderRegistrationBonusAction', function () {
+test('register does not credit registration bonus while provider is still pending', function () {
     Storage::fake('public');
     Storage::fake('local');
 
@@ -117,7 +117,9 @@ test('register credits registration bonus via CreditProviderRegistrationBonusAct
         providerRegistrationRequest(),
     );
 
-    expect((float) $result->provider->wallet->fresh()->balance)->toBe(50.0);
+    expect($result->success)->toBeTrue()
+        ->and($result->provider->status)->toBe(ProviderStatusEnum::Pending)
+        ->and((float) $result->provider->wallet->fresh()->balance)->toBe(0.0);
 });
 
 test('register returns failed result with specific message on invalid logo upload', function () {
@@ -138,9 +140,9 @@ test('register rolls back transaction on generic failure', function () {
     Storage::fake('public');
     Storage::fake('local');
 
-    $bonus = Mockery::mock(CreditProviderRegistrationBonusAction::class);
-    $bonus->shouldReceive('handle')->andThrow(new RuntimeException('boom'));
-    app()->instance(CreditProviderRegistrationBonusAction::class, $bonus);
+    $repo = Mockery::mock(ProviderRepositoryInterface::class);
+    $repo->shouldReceive('create')->andThrow(new RuntimeException('boom'));
+    app()->instance(ProviderRepositoryInterface::class, $repo);
 
     $register = fn () => app(ProviderAuthService::class)->register(
         providerRegistrationData(),

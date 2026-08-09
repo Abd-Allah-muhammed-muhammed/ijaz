@@ -8,7 +8,7 @@ use Modules\Wallet\Http\Controllers\Api\V1\WalletController;
 use Modules\Wallet\Models\WalletTransaction;
 use Modules\Wallet\Models\WithdrawRequest;
 
-test('provider registration credits bonus when enabled', function () {
+test('provider registration bonus credits when enabled', function () {
     setWalletSetting('provider_registration_bonus_enabled', '1');
     setWalletSetting('provider_registration_bonus_amount', '50');
 
@@ -20,7 +20,7 @@ test('provider registration credits bonus when enabled', function () {
         ->and(WalletTransaction::query()->where('wallet_id', $provider->wallet->id)->where('description', __('Registration bonus'))->exists())->toBeTrue();
 });
 
-test('provider registration does not credit bonus when disabled', function () {
+test('provider registration bonus does not credit when disabled', function () {
     setWalletSetting('provider_registration_bonus_enabled', '0');
     setWalletSetting('provider_registration_bonus_amount', '50');
 
@@ -32,7 +32,7 @@ test('provider registration does not credit bonus when disabled', function () {
         ->and(WalletTransaction::query()->where('wallet_id', $provider->wallet->id)->count())->toBe(0);
 });
 
-test('provider registration uses configured bonus amount from settings', function () {
+test('provider registration bonus uses configured amount from settings', function () {
     setWalletSetting('provider_registration_bonus_enabled', '1');
     setWalletSetting('provider_registration_bonus_amount', '75');
 
@@ -41,6 +41,27 @@ test('provider registration uses configured bonus amount from settings', functio
     DB::transaction(fn () => app(CreditProviderRegistrationBonusAction::class)->handle($provider));
 
     expect((float) $provider->wallet->fresh()->balance)->toBe(75.0);
+});
+
+test('provider registration bonus is idempotent and does not double-credit', function () {
+    setWalletSetting('provider_registration_bonus_enabled', '1');
+    setWalletSetting('provider_registration_bonus_amount', '50');
+
+    $provider = createWalletProvider();
+
+    DB::transaction(function () use ($provider): void {
+        $action = app(CreditProviderRegistrationBonusAction::class);
+        $action->handle($provider);
+        $action->handle($provider);
+    });
+
+    expect((float) $provider->wallet->fresh()->balance)->toBe(50.0)
+        ->and(
+            WalletTransaction::query()
+                ->where('wallet_id', $provider->wallet->id)
+                ->where('description', __('Registration bonus'))
+                ->count()
+        )->toBe(1);
 });
 
 test('withdraw request rejects amount below configured minimum', function () {

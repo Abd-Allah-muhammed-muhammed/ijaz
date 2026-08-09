@@ -4,3 +4,56 @@
 .form-check-input:not(:checked){
   background-color: var(--bs-gray-400) !important;
 }
+
+/*
+ * Register stepper sits on a dark sidebar. Metronic multistep vars expect white text,
+ * but without a solid fallback (and when auth-bg is missing) labels become near-invisible.
+ * Force high-contrast colors for all step states on this page only.
+ */
+[data-pan="register-page"] .register-stepper-aside {
+  background-color: #1e1e2d;
+  background-size: cover;
+  background-position: center;
+}
+
+[data-pan="register-page"] .stepper.stepper-pills.stepper-multistep {
+  --bs-stepper-icon-bg-color: rgba(255, 255, 255, 0.12);
+  --bs-stepper-icon-bg-color-current: var(--bs-success);
+  --bs-stepper-icon-bg-color-completed: rgba(255, 255, 255, 0.12);
+  --bs-stepper-icon-border: 1px dashed rgba(255, 255, 255, 0.45);
+  --bs-stepper-icon-border-completed: 1px dashed rgba(255, 255, 255, 0.45);
+  --bs-stepper-icon-number-color: #ffffff;
+  --bs-stepper-icon-number-color-current: #ffffff;
+  --bs-stepper-icon-check-color-completed: #50cd89;
+  --bs-stepper-label-title-opacity: 1;
+  --bs-stepper-label-title-opacity-current: 1;
+  --bs-stepper-label-title-opacity-completed: 1;
+  --bs-stepper-label-title-color: #ffffff;
+  --bs-stepper-label-title-color-current: #ffffff;
+  --bs-stepper-label-title-color-completed: #ffffff;
+  --bs-stepper-label-desc-opacity: 0.9;
+  --bs-stepper-label-desc-opacity-current: 0.95;
+  --bs-stepper-label-desc-opacity-completed: 0.9;
+  --bs-stepper-label-desc-color: rgba(255, 255, 255, 0.92);
+  --bs-stepper-label-desc-color-current: rgba(255, 255, 255, 0.95);
+  --bs-stepper-label-desc-color-completed: rgba(255, 255, 255, 0.92);
+  --bs-stepper-line-border: 1px dashed rgba(255, 255, 255, 0.4);
+}
+
+[data-pan="register-page"] .stepper.stepper-pills .stepper-item .stepper-label .stepper-title,
+[data-pan="register-page"] .stepper.stepper-pills .stepper-item.current .stepper-label .stepper-title,
+[data-pan="register-page"] .stepper.stepper-pills .stepper-item.completed .stepper-label .stepper-title {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+[data-pan="register-page"] .stepper.stepper-pills .stepper-item .stepper-label .stepper-desc,
+[data-pan="register-page"] .stepper.stepper-pills .stepper-item.current .stepper-label .stepper-desc,
+[data-pan="register-page"] .stepper.stepper-pills .stepper-item.completed .stepper-label .stepper-desc {
+  color: rgba(255, 255, 255, 0.92) !important;
+  opacity: 1 !important;
+}
+
+[data-pan="register-page"] .stepper.stepper-pills .stepper-item .stepper-icon .stepper-number {
+  color: #ffffff !important;
+}

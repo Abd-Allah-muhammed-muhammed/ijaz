@@ -215,7 +215,7 @@ test('newly registered provider has pending status', function () {
         ->and($provider->status)->toBe(ProviderStatusEnum::Pending);
 });
 
-test('newly registered provider receives registration bonus when enabled', function () {
+test('newly registered provider does not receive registration bonus while pending', function () {
     setWalletSetting('provider_registration_bonus_enabled', '1');
     setWalletSetting('provider_registration_bonus_amount', '50');
 
@@ -229,13 +229,9 @@ test('newly registered provider receives registration bonus when enabled', funct
     $provider = Provider::query()->where('email', 'provider@example.com')->first();
 
     expect($provider)->not->toBeNull()
-        ->and((float) $provider->wallet->fresh()->balance)->toBe(50.0)
-        ->and(
-            WalletTransaction::query()
-                ->where('wallet_id', $provider->wallet->id)
-                ->where('description', __('Registration bonus'))
-                ->exists()
-        )->toBeTrue();
+        ->and($provider->status)->toBe(ProviderStatusEnum::Pending)
+        ->and((float) $provider->wallet->fresh()->balance)->toBe(0.0)
+        ->and(WalletTransaction::query()->where('wallet_id', $provider->wallet->id)->count())->toBe(0);
 });
 
 test('newly registered provider does not receive bonus when setting disabled', function () {

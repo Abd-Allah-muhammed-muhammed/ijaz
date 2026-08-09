@@ -1,12 +1,10 @@
-
 import {useState, FC} from 'react'
+import {useTranslation} from 'react-i18next'
 import {KTIcon} from '@/vendor/metronic/helpers'
-import {deactivateAccount, IDeactivateAccount} from '../SettingsModel'
-
-
 
 const DeactivateAccount: FC = () => {
-  const [loading, setLoading] = useState(false)
+  const {t} = useTranslation()
+  const [loading] = useState(false)
 
   return (
     <div className='card'>
@@ -19,7 +17,7 @@ const DeactivateAccount: FC = () => {
         aria-controls='kt_account_deactivate'
       >
         <div className='card-title m-0'>
-          <h3 className='fw-bolder m-0'>Deactivate Account</h3>
+          <h3 className='fw-bolder m-0'>{t('deactivate_account')}</h3>
         </div>
       </div>
 
@@ -31,13 +29,12 @@ const DeactivateAccount: FC = () => {
 
               <div className='d-flex flex-stack flex-grow-1'>
                 <div className='fw-bold'>
-                  <h4 className='text-gray-800 fw-bolder'>You Are Deactivating Your Account</h4>
+                  <h4 className='text-gray-800 fw-bolder'>{t('you_are_deactivating_your_account')}</h4>
                   <div className='fs-6 text-gray-600'>
-                    For extra security, this requires you to confirm your email or phone number when
-                    you reset yousignr password.
+                    {t('deactivate_account_disclaimer')}
                     <br />
                     <a className='fw-bolder' href='#'>
-                      Learn more
+                      {t('learn_more')}
                     </a>
                   </div>
                 </div>
@@ -48,10 +45,10 @@ const DeactivateAccount: FC = () => {
               <input
                 className='form-check-input'
                 type='checkbox'
-
+                id='deactivate'
               />
               <label className='form-check-label fw-bold ps-2 fs-6' htmlFor='deactivate'>
-                I confirm my account deactivation
+                {t('i_confirm_my_account_deactivation')}
               </label>
             </div>
 
@@ -63,10 +60,10 @@ const DeactivateAccount: FC = () => {
               type='submit'
               className='btn btn-danger fw-bold'
             >
-              {!loading && 'Deactivate Account'}
+              {!loading && t('deactivate_account')}
               {loading && (
                 <span className='indicator-progress' style={{display: 'block'}}>
-                  Please wait...{' '}
+                  {t('Please wait...')}{' '}
                   <span className='spinner-border spinner-border-sm align-middle ms-2'></span>
                 </span>
               )}

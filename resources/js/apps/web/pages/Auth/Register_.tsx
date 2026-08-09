@@ -39,7 +39,6 @@ import {
   faTrash
 } from "@fortawesome/free-solid-svg-icons";
 import ActionButton from "@/shared/components/action-button";
-import I18nextEffect from "@/lang/I18next-effect";
 
 const MINUTES = 2;
 
@@ -101,6 +100,8 @@ const Register_ = (
     totalSteps: availableSteps.length,
   })
   const { t } = useTranslation();
+  const formatStepTitle = (stepNumber: number, titleKey: string) =>
+    t('registration_step_label', { number: stepNumber, title: t(titleKey) });
   // const categoriesSelect = useMemo(() => {
   //   return <TreeSelect
   //     treeData={categories}
@@ -210,7 +211,6 @@ const Register_ = (
   }, [seconds])
 
   return (
-    <I18nextEffect>
     <div className="d-flex flex-column flex-root h-100" id="kt_app_root" data-pan="register-page">
       
       <ToastContainer />
@@ -221,8 +221,8 @@ const Register_ = (
       >
         <div className="d-flex flex-column flex-lg-row-auto w-lg-350px w-xl-500px">
           <div
-            className="d-flex flex-column position-lg-fixed top-0 bottom-0 w-lg-350px w-xl-500px scroll-y bgi-size-cover bgi-position-center"
-            style={{ backgroundImage: `url(${url('/media/misc/auth-bg.png')})` }}>
+            className="d-flex flex-column position-lg-fixed top-0 bottom-0 w-lg-350px w-xl-500px scroll-y bgi-size-cover bgi-position-center register-stepper-aside"
+            style={{ backgroundImage: `url(${url('/media/auth/bg10-dark.jpeg')})` }}>
             <div className="d-flex flex-center py-10 py-lg-20 mt-lg-20 d-none d-lg-flex">
               <a href="/">
                 <img alt="Logo" src={url("/media/logos/default.svg")} className="h-70px" />
@@ -244,9 +244,11 @@ const Register_ = (
                           <KTIcon iconName='check' className='ki-duotone ki-check fs-2 stepper-check' />
                           <span className="stepper-number">{stepNumber}</span>
                         </div>
-                        <div className="stepper-label d-flex">
-                          <h3 className="stepper-title fs-2">{step.title}</h3>
-                          <div className="stepper-desc fw-normal">{step.description}</div>
+                        <div className="stepper-label d-flex flex-column">
+                          <h3 className="stepper-title fs-2">
+                            {formatStepTitle(stepNumber, step.titleKey)}
+                          </h3>
+                          <div className="stepper-desc fw-normal">{t(step.descriptionKey)}</div>
                         </div>
                       </div>
                       {stepNumber < availableSteps.length && (<div className="stepper-line h-40px"></div>)}
@@ -298,9 +300,9 @@ const Register_ = (
                                   stepNumber
                                 )}
                               </div>
-                              <div className={`mt-2 px-2 text-center ${isActive ? 'text-white' : 'text-white-50'}`}
-                                style={{ fontSize: '9px', lineHeight: '1.2', maxWidth: '60px' }}>
-                                <div className="fw-bold">{step.title}</div>
+                              <div className={`mt-2 px-2 text-center ${isActive ? 'text-white' : 'text-white'}`}
+                                style={{ fontSize: '9px', lineHeight: '1.2', maxWidth: '70px', opacity: isActive ? 1 : 0.9 }}>
+                                <div className="fw-bold">{formatStepTitle(stepNumber, step.titleKey)}</div>
                               </div>
                             </div>
                             {stepNumber < availableSteps.length && (
@@ -326,11 +328,20 @@ const Register_ = (
                 <div className="text-center mb-3">
                   <div className="bg-white bg-opacity-10 rounded-3 px-3 py-2" style={{ backdropFilter: 'blur(10px)' }}>
                     <div className="text-white fw-semibold" style={{ fontSize: '14px' }}>
-                      <span
-                        className="opacity-75">خطوة {steps.currentStep} من {availableSteps.length}:</span> {availableSteps[steps.currentStep - 1]?.title}
+                      <span className="opacity-75">
+                        {t('registration_step_of', {
+                          current: steps.currentStep,
+                          total: availableSteps.length,
+                        })}
+                      </span>{' '}
+                      {availableSteps[steps.currentStep - 1]
+                        ? t(availableSteps[steps.currentStep - 1].titleKey)
+                        : ''}
                     </div>
                     <div className="text-white opacity-90 mt-1" style={{ fontSize: '12px' }}>
-                      {availableSteps[steps.currentStep - 1]?.description}
+                      {availableSteps[steps.currentStep - 1]
+                        ? t(availableSteps[steps.currentStep - 1].descriptionKey)
+                        : ''}
                     </div>
                   </div>
                 </div>
@@ -1171,7 +1182,6 @@ const Register_ = (
         </div>
       </div>
     </div>
-    </I18nextEffect>
   );  
 }
 

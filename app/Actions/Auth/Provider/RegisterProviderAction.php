@@ -9,7 +9,6 @@ use App\Enums\ProviderTypeFilesEnum;
 use App\Support\HandlesTransactionalFileUpload;
 use App\Support\Phone;
 use Illuminate\Http\Request;
-use Modules\Wallet\Actions\CreditProviderRegistrationBonusAction;
 use RuntimeException;
 use Throwable;
 
@@ -94,7 +93,6 @@ class RegisterProviderAction
                 }
                 $categories = collect($validatedData['categories']);
                 $provider->categories()->sync($categories->pluck('id')->toArray());
-                app(CreditProviderRegistrationBonusAction::class)->handle($provider);
 
                 return ProviderRegisterResult::success($provider);
             },

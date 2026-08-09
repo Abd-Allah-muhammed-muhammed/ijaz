@@ -155,17 +155,21 @@ export type Inputs = {
 
 
 
+/**
+ * Step metadata for the provider registration sidebar.
+ * Store translation KEYS (not i18n.t() results) so labels re-resolve when the locale changes.
+ */
 export const availableSteps = [
   {
-    title: i18n.t('account_type'),
-    description: i18n.t('select_account_type'),
+    titleKey: 'account_type',
+    descriptionKey: 'select_account_type',
     rules: formSchema.pick({
       provider_type_id: true,
     }),
   },
   {
-    title: i18n.t('account_information'),
-    description: i18n.t('setup_your_account_information'),
+    titleKey: 'account_information',
+    descriptionKey: 'setup_your_account_information',
     rules: formSchema.pick({
       name: true,
       about: true,
@@ -182,15 +186,15 @@ export const availableSteps = [
   },
 
   {
-    title: i18n.t('categories & skills'),
-    description: i18n.t('select_your_categories & skills'),
+    titleKey: 'categories & skills',
+    descriptionKey: 'select_your_categories & skills',
     rules: formSchema.pick({
       categories: true,
     }),
   },
   {
-    title: i18n.t('files'),
-    description: i18n.t('provide_your_files'),
+    titleKey: 'files',
+    descriptionKey: 'provide_your_files',
     rules: formSchema.pick({
       requiredFiles: true,
       id_image: true,
@@ -229,20 +233,20 @@ export const availableSteps = [
     ,
   },
   {
-    title: i18n.t('summary'),
-    description: i18n.t('review_your_information'),
+    titleKey: 'summary',
+    descriptionKey: 'review_your_information',
 
   },
   {
-    title: i18n.t('phone_verification'),
-    description: i18n.t('setup_your_phone_verification'),
+    titleKey: 'phone_verification',
+    descriptionKey: 'setup_your_phone_verification',
     rules: formSchema.pick({
       otp: true,
     }),
   },
 
   {
-    title: i18n.t('completed'),
-    description: i18n.t('your_account_is_created'),
+    titleKey: 'completed',
+    descriptionKey: 'your_account_is_created',
   },
 ];

@@ -17,6 +17,7 @@ use Modules\Geo\Models\Region;
 use Modules\Marketplace\Models\Category;
 use Modules\Marketplace\Models\ProviderType;
 use Modules\Marketplace\Models\Skill;
+use Modules\Wallet\Models\WalletTransaction;
 use Spatie\Permission\Models\Permission;
 
 beforeEach(function (): void {
@@ -257,6 +258,86 @@ it('blocks a provider when the status becomes blocked', function (): void {
         ->and($provider->blocked_at)->not->toBeNull()
         ->and($provider->blocked_until)->not->toBeNull()
         ->and($provider->blockHistories()->where('reason', 'policy')->exists())->toBeTrue();
+});
+
+it('credits registration bonus on first pending to approved transition', function (): void {
+    setWalletSetting('provider_registration_bonus_enabled', '1');
+    setWalletSetting('provider_registration_bonus_amount', '50');
+
+    $admin = createProviderManagementAdmin(['process providers']);
+    $provider = createWalletProvider(['status' => ProviderStatusEnum::Pending]);
+
+    expect((float) $provider->wallet->fresh()->balance)->toBe(0.0);
+
+    $this->actingAs($admin, 'admin')
+        ->put(route('dashboard.providers.update-status', $provider), [
+            'status' => ProviderStatusEnum::Approved->value,
+        ])
+        ->assertRedirect(route('dashboard.providers.index'));
+
+    $provider->refresh();
+
+    expect($provider->status)->toBe(ProviderStatusEnum::Approved)
+        ->and((float) $provider->wallet->fresh()->balance)->toBe(50.0)
+        ->and(
+            WalletTransaction::query()
+                ->where('wallet_id', $provider->wallet->id)
+                ->where('description', __('Registration bonus'))
+                ->exists()
+        )->toBeTrue();
+});
+
+it('does not credit registration bonus again on re-approval after suspension', function (): void {
+    setWalletSetting('provider_registration_bonus_enabled', '1');
+    setWalletSetting('provider_registration_bonus_amount', '50');
+
+    $admin = createProviderManagementAdmin(['process providers']);
+    $provider = createWalletProvider(['status' => ProviderStatusEnum::Pending]);
+
+    $this->actingAs($admin, 'admin')
+        ->put(route('dashboard.providers.update-status', $provider), [
+            'status' => ProviderStatusEnum::Approved->value,
+        ])
+        ->assertRedirect(route('dashboard.providers.index'));
+
+    expect((float) $provider->wallet->fresh()->balance)->toBe(50.0);
+
+    $this->actingAs($admin, 'admin')
+        ->put(route('dashboard.providers.update-status', $provider), [
+            'status' => ProviderStatusEnum::Suspended->value,
+        ])
+        ->assertRedirect(route('dashboard.providers.index'));
+
+    $this->actingAs($admin, 'admin')
+        ->put(route('dashboard.providers.update-status', $provider), [
+            'status' => ProviderStatusEnum::Approved->value,
+        ])
+        ->assertRedirect(route('dashboard.providers.index'));
+
+    expect((float) $provider->wallet->fresh()->balance)->toBe(50.0)
+        ->and(
+            WalletTransaction::query()
+                ->where('wallet_id', $provider->wallet->id)
+                ->where('description', __('Registration bonus'))
+                ->count()
+        )->toBe(1);
+});
+
+it('does not credit registration bonus when approving a non-pending provider', function (): void {
+    setWalletSetting('provider_registration_bonus_enabled', '1');
+    setWalletSetting('provider_registration_bonus_amount', '50');
+
+    $admin = createProviderManagementAdmin(['process providers']);
+    $provider = createWalletProvider(['status' => ProviderStatusEnum::Rejected]);
+
+    $this->actingAs($admin, 'admin')
+        ->put(route('dashboard.providers.update-status', $provider), [
+            'status' => ProviderStatusEnum::Approved->value,
+        ])
+        ->assertRedirect(route('dashboard.providers.index'));
+
+    expect((float) $provider->wallet->fresh()->balance)->toBe(0.0)
+        ->and(WalletTransaction::query()->where('wallet_id', $provider->wallet->id)->count())->toBe(0);
 });
 
 it('loads a provider for the user API get endpoint through the service', function (): void {
