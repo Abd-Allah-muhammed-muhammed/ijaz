@@ -10,6 +10,9 @@ use Modules\Orders\Models\Order;
  */
 it('locks NewOrderCreated broadcast wire contract', function () {
     $order = Order::factory()->create();
+    $provider = createWalletProvider();
+    $provider->categories()->attach($order->category_id);
+
     $event = new NewOrderCreated($order);
 
     expect($event->broadcastAs())->toBe('new-order');
@@ -18,7 +21,7 @@ it('locks NewOrderCreated broadcast wire contract', function () {
 
     expect($channels)->toHaveCount(1)
         ->and($channels[0])->toBeInstanceOf(PrivateChannel::class)
-        ->and($channels[0]->name)->toBe('private-category.'.$order->category_id);
+        ->and($channels[0]->name)->toBe('private-provider-'.$provider->id);
 
     expect(array_keys($event->broadcastWith()))->toBe([
         'id',

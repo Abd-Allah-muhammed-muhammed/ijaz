@@ -2,6 +2,7 @@
 
 namespace Modules\Orders\Events;
 
+use App\Models\Provider;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -24,13 +25,20 @@ class NewOrderCreated implements ShouldBroadcast
     /**
      * Get the channels the event should broadcast on.
      *
-     * @return array<int, Channel>
+     * Fans out to each provider in the order's category on their own
+     * private provider-{id} channel (ProviderLayout already subscribes there).
+     *
+     * @return array<int, PrivateChannel>
      */
     public function broadcastOn(): array
     {
-        return [
-            new PrivateChannel('category.'.$this->order->category_id),
-        ];
+        return Provider::query()
+            ->whereHas('categories', function ($query): void {
+                $query->where('categories.id', $this->order->category_id);
+            })
+            ->pluck('id')
+            ->map(fn (int|string $id): PrivateChannel => new PrivateChannel('provider-'.$id))
+            ->all();
     }
 
     public function broadcastAs(): string
