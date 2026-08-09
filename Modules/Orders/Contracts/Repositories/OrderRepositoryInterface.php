@@ -23,7 +23,10 @@ interface OrderRepositoryInterface
      */
     public function paginateForProvider(Provider $provider, array $filters, int $perPage): LengthAwarePaginator;
 
-    public function paginateRecommendedForProvider(Provider $provider, int $perPage): LengthAwarePaginator;
+    /**
+     * @param  array{date_from?: mixed, search?: mixed}  $filters
+     */
+    public function paginateRecommendedForProvider(Provider $provider, array $filters, int $perPage): LengthAwarePaginator;
 
     /**
      * @return EloquentCollection<int, Order>

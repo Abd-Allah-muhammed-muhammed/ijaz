@@ -1,5 +1,5 @@
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
-import {Head, router} from "@inertiajs/react";
+import {Head} from "@inertiajs/react";
 import { useTranslation } from 'react-i18next';
 import {PageTitle} from "@/vendor/metronic/layout/core";
 import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
@@ -11,6 +11,7 @@ import {Order} from "@/shared/types/models";
 import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/OrderController";
 import OrderCard from "@/shared/components/order/order-card";
 import {Col, Row} from "react-bootstrap";
+import {applyFilterParam, visitWithFilters} from "@/shared/lib/filters";
 
 type Props = {
   rows: PaginationResource<Order>,
@@ -20,8 +21,16 @@ type Props = {
 type SearchPrams = {
   per_page: number;
   search: string;
-
+  period?: string;
 };
+
+const PERIOD_OPTIONS = [
+  { value: '30', labelKey: 'period_30_days' },
+  { value: '90', labelKey: 'period_90_days' },
+  { value: '180', labelKey: 'period_6_months' },
+  { value: '365', labelKey: 'period_1_year' },
+] as const;
+
 const Recommended = (
   {
     rows,
@@ -34,12 +43,12 @@ const Recommended = (
     search: '',
   };
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    if (value) {
-      searchPrams[name] = value as never;
-    } else {
-      delete searchPrams[name];
-    }
-    router.get(OrderController.index().url, searchPrams);
+    const next = applyFilterParam(
+      { ...searchPrams } as Record<string, unknown>,
+      name,
+      value,
+    );
+    visitWithFilters(OrderController.new().url, next, { only: ['rows', 'prams'] });
   };
   return (
     <>
@@ -78,21 +87,20 @@ const Recommended = (
           <div className='d-flex align-items-center my-2'>
             <div className=' me-5'>
               <select
-                name='status'
+                name='period'
                 data-control='select2'
                 data-hide-search='true'
                 className='form-select form-select-white form-select-sm'
-                defaultValue='1'
+                defaultValue={searchPrams.period ?? '30'}
+                onChange={(e) => searchPramsChanged('period', e.target.value)}
               >
-                <option value='1'>30 Days</option>
-                <option value='2'>90 Days</option>
-                <option value='3'>6 Months</option>
-                <option value='4'>1 Year</option>
+                {PERIOD_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {t(option.labelKey)}
+                  </option>
+                ))}
               </select>
             </div>
-            {/*<button className='btn btn-primary btn-sm' data-bs-toggle='tooltip' title='Coming soon'>*/}
-            {/*  Add Campaign*/}
-            {/*</button>*/}
           </div>
         </div>
         {rows.data.length === 0 ? (

@@ -63,15 +63,26 @@ class OrderController extends Controller
      */
     public function new(Request $request)
     {
+        $filters = [];
+        if ($request->filled('period')) {
+            $filters['period'] = $request->period;
+        }
+        if ($request->filled('date_from')) {
+            $filters['date_from'] = $request->date_from;
+        }
+        if ($request->filled('search')) {
+            $filters['search'] = $request->search;
+        }
+
         $rows = $this->orderService->listRecommendedForProvider(
             auth('provider')->user(),
+            $filters,
             $request->integer('perPage', 16),
         );
 
         return inertia('Provider/Orders/Recommended', [
             'rows' => OrderCollection::make($rows),
             'prams' => $request->all() ?: [],
-
         ]);
     }
 
