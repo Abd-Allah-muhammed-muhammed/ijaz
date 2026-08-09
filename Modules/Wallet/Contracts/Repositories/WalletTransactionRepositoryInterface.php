@@ -12,6 +12,18 @@ interface WalletTransactionRepositoryInterface
 {
     public function create(Wallet $wallet, Model $owner, WalletTransactionData $data): WalletTransaction;
 
+    /**
+     * True when the owner already has a credit for this operation whose description
+     * matches any of the given strings (used for idempotent registration-bonus grants).
+     *
+     * @param  list<string>  $descriptions
+     */
+    public function existsCreditForOperation(
+        Model $owner,
+        Model $operation,
+        array $descriptions,
+    ): bool;
+
     public function listForOwner(
         Model $owner,
         int $perPage = 15,
