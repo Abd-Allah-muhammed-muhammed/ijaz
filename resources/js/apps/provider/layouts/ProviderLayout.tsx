@@ -4,7 +4,7 @@ import {ScrollTop} from '@/apps/provider/layouts/scroll-top'
 import {FooterWrapper} from '@/apps/provider/layouts/footer'
 import {Sidebar} from '@/apps/provider/layouts/sidebar'
 import {PageDataProvider} from '@/apps/provider/layouts/core'
-import {ReactNode, useEffect, useRef, useState} from "react";
+import {ReactNode, useEffect, useRef} from "react";
 import {Head, router, usePage} from "@inertiajs/react";
 import {KTIcon, reInitMenu} from "@/vendor/metronic/helpers";
 import ToastEffect from "@/shared/components/toaster/toast-effect";
@@ -26,9 +26,6 @@ type Props = {
 
 export default function ProviderLayout({children, head}: Props) {
   const user = usePage().props.auth.user as unknown as Provider
-  const [categories, setCategories] = useState<Set<number>>(new Set)
-  const [oldCategories, setOldCategories] = useState<Set<number>>(new Set)
-  const userCategories = user.categories || []
   const url = usePage().url
   const locale = usePage().props.app.locale
   const {setOrders} = useRecommendedOrdersContext();
@@ -43,18 +40,6 @@ export default function ProviderLayout({children, head}: Props) {
   localeRef.current = locale;
   currentConversationRef.current = currentConversation;
   updateConversationRef.current = updateConversationForNewMessages;
-
-  useEffect(() => {
-    const newCategories = new Set(userCategories.map((category) => category.id as number))
-    if (newCategories.size == 0) {
-      setCategories(new Set());
-      setOldCategories(categories);
-    } else if (newCategories.difference(categories).size) {
-      setOldCategories(categories)
-      setCategories(newCategories);
-    }
-  }, [userCategories]);
-
 
   useEffect(() => {
     reInitMenu()
@@ -138,32 +123,19 @@ export default function ProviderLayout({children, head}: Props) {
         }
 
       })
-    ;
+      .listen('.new-order', (order: Order) => {
+        toast.warning(t('you have a new order in category') + ` ${order.category?.title}`,)
+        setOrders((prevOrders) => {
+          return [
+            order,
+            ...prevOrders
+          ]
+        })
+      });
     return () => {
       window.Echo.leave(user.socket_id);
     }
   }, []);
-
-  useEffect(() => {
-    if (categories.size === 0 && oldCategories.size === 0) {
-      return;
-    }
-    oldCategories.difference(categories).forEach(id => {
-      window.Echo.leave(`category.${id}`);
-    })
-    categories.difference(oldCategories).forEach((category) => {
-      window.Echo.private(`category.${category}`)
-        .listen('.new-order', (order: Order) => {
-          toast.warning(t('you have a new order in category') + ` ${order.category?.title}`,)
-          setOrders((prevOrders) => {
-            return [
-              order,
-              ...prevOrders
-            ]
-          })
-        });
-    });
-  }, [categories]);
 
 
   return (
@@ -191,4 +163,3 @@ export default function ProviderLayout({children, head}: Props) {
 
   )
 }
-
