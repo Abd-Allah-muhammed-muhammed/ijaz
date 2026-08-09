@@ -2,8 +2,8 @@ import React, { type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Spinner } from 'react-bootstrap';
 import type { ConversationMessage, ConversationUser } from '@/shared/types/models';
-import MessageIn from '@/shared/chat/components/message-in';
-import MessageOut from '@/shared/chat/components/message-out';
+import MessageIn from '@/shared/chat/components/bubbles/message-in';
+import MessageOut from '@/shared/chat/components/bubbles/message-out';
 import ChatMessagesSkeleton from '@/shared/chat/components/chat-messages-skeleton';
 import ChatTypingIndicator from '@/shared/chat/components/chat-typing-indicator';
 

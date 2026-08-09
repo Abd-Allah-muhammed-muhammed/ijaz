@@ -1,7 +1,7 @@
 import { ConversationAttachment, ConversationMessage } from '@/shared/types/models';
 import React from 'react';
-import Attachments from '@/shared/chat/components/attachments';
-import { highlightSearchTerm } from '@/shared/chat/utils/search-highlight';
+import Attachments from '@/shared/chat/components/bubbles/attachments';
+import { highlightSearchTerm } from '@/shared/chat/components/bubbles/chat-search-highlight';
 import RelativeTimestamp from '@/shared/chat/components/relative-timestamp';
 
 type Props = {

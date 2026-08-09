@@ -13,9 +13,9 @@
  * - Admin Tickets/Show must use shared ConversationContent (no forked Echo/unread logic).
  */
 test('message content with HTML characters renders escaped, never as raw HTML, in both search and non-search display paths', function () {
-    $highlight = file_get_contents(resource_path('js/shared/chat/utils/search-highlight.ts'));
-    $messageIn = file_get_contents(resource_path('js/shared/chat/components/message-in.tsx'));
-    $messageOut = file_get_contents(resource_path('js/shared/chat/components/message-out.tsx'));
+    $highlight = file_get_contents(resource_path('js/shared/chat/components/bubbles/chat-search-highlight.ts'));
+    $messageIn = file_get_contents(resource_path('js/shared/chat/components/bubbles/message-in.tsx'));
+    $messageOut = file_get_contents(resource_path('js/shared/chat/components/bubbles/message-out.tsx'));
 
     expect($highlight)->toContain("replace(/&/g, '&amp;')")
         ->and($highlight)->toContain("replace(/</g, '&lt;')")
