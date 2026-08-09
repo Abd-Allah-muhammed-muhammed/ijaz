@@ -26,18 +26,18 @@ type SearchPrams = {
 const Index = ({ rows, prams }: Props) => {
   const { t } = useTranslation();
   const { hasPermission } = usePermissions();
-  const searchPrams: SearchPrams = prams || {
-    per_page: 10,
-    search: '',
-  };
-
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
+    // prams is $request->all() and may include `page` from the current URL.
+    // Always drop it when filters change so parent_id/search navigation does not
+    // land on an empty page of a smaller filtered result set.
+    const next: Record<string, string | number> = { ...(prams || { per_page: 10, search: '' }) };
     if (value) {
-      searchPrams[name] = value as never;
+      next[name] = value;
     } else {
-      delete searchPrams[name];
+      delete next[name];
     }
-    router.get(DeviceCategoryController.index().url, searchPrams);
+    delete next.page;
+    router.get(DeviceCategoryController.index().url, next);
   };
   return (
     <>
