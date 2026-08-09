@@ -5,6 +5,7 @@ namespace Modules\Reviews\Actions\Review;
 use Modules\Reviews\Contracts\Repositories\ReviewRepositoryInterface;
 use Modules\Reviews\DTOs\CreateReviewDTO;
 use Modules\Reviews\Models\Review;
+use Modules\Reviews\Notifications\ReviewReceivedNotification;
 
 class CreateOrUpdateReviewAction
 {
@@ -14,7 +15,7 @@ class CreateOrUpdateReviewAction
 
     public function handle(CreateReviewDTO $dto): Review
     {
-        return $this->repository->createOrUpdate(
+        $review = $this->repository->createOrUpdate(
             [
                 'type' => $dto->reviewer::class,
                 'id' => $dto->reviewer->getKey(),
@@ -30,5 +31,10 @@ class CreateOrUpdateReviewAction
             $dto->rating,
             $dto->comment,
         );
+
+        $reviewee = $dto->reviewee;
+        $reviewee->notify(new ReviewReceivedNotification($review));
+
+        return $review;
     }
 }

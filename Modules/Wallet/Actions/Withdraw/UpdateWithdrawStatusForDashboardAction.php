@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Wallet\Contracts\Repositories\WithdrawRequestRepositoryInterface;
 use Modules\Wallet\Exceptions\WalletException;
 use Modules\Wallet\Models\WithdrawRequest;
+use Modules\Wallet\Notifications\WithdrawStatusChangedNotification;
 use Modules\Wallet\Services\WalletService;
 
 class UpdateWithdrawStatusForDashboardAction
@@ -32,6 +33,8 @@ class UpdateWithdrawStatusForDashboardAction
                 throw new WalletException('wallet.cannot_update_withdraw_request_status');
             }
 
+            $previousStatus = $withdrawRequest->status->value;
+
             $withdrawRequest = $this->repository->update($withdrawRequest, [
                 'status' => $status,
                 'admin_notes' => $adminNotes,
@@ -43,6 +46,17 @@ class UpdateWithdrawStatusForDashboardAction
                 request: $withdrawRequest,
                 approved: $approved,
             );
+
+            if (
+                $previousStatus !== $status
+                && WithdrawStatusChangedNotification::shouldNotify($status)
+                && $withdrawRequest->user !== null
+            ) {
+                $withdrawRequest->user->notify(new WithdrawStatusChangedNotification(
+                    withdrawRequest: $withdrawRequest,
+                    status: $status,
+                ));
+            }
 
             return $withdrawRequest;
         });
