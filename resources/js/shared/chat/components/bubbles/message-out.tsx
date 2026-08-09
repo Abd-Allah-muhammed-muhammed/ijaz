@@ -2,8 +2,8 @@ import { ConversationAttachment, ConversationMessage } from '@/shared/types/mode
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { KTIcon } from '@/vendor/metronic/helpers';
-import Attachments from '@/shared/chat/components/attachments';
-import { highlightSearchTerm } from '@/shared/chat/utils/search-highlight';
+import Attachments from '@/shared/chat/components/bubbles/attachments';
+import { highlightSearchTerm } from '@/shared/chat/components/bubbles/chat-search-highlight';
 import RelativeTimestamp from '@/shared/chat/components/relative-timestamp';
 
 type Props = {

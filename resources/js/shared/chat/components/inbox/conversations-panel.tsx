@@ -1,5 +1,5 @@
 import { KTIcon } from '@/vendor/metronic/helpers';
-import ConversationsList from '@/shared/chat/components/conversations-list';
+import ConversationsList from '@/shared/chat/components/inbox/conversations-list';
 import { useTranslation } from 'react-i18next';
 import { Card } from 'react-bootstrap';
 

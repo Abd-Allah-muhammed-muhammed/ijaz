@@ -6,7 +6,7 @@
  */
 
 export { default as ConversationContent } from '@/shared/chat/components/conversation-content';
-export { default as ConversationsPanel } from '@/shared/chat/components/conversations-panel';
+export { default as ConversationsPanel } from '@/shared/chat/components/inbox/conversations-panel';
 export { default as ChatComposer } from '@/shared/chat/components/chat-composer';
 export type { ChatComposerProps } from '@/shared/chat/components/chat-composer';
 

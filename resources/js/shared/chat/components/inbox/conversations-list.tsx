@@ -1,4 +1,4 @@
-import Conversation from '@/shared/chat/components/conversation';
+import Conversation from '@/shared/chat/components/inbox/conversation';
 import { useConversations } from '@/shared/chat/store';
 import { useTranslation } from 'react-i18next';
 import { KTIcon } from '@/vendor/metronic/helpers';

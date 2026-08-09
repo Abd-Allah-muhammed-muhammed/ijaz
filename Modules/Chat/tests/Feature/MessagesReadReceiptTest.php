@@ -114,8 +114,8 @@ test('admin viewing/sending on an order conversation never marks messages as rea
 });
 
 test('read receipt checkmarks only render on messages sent by the current user, never on incoming messages', function () {
-    $messageIn = file_get_contents(resource_path('js/shared/chat/components/message-in.tsx'));
-    $messageOut = file_get_contents(resource_path('js/shared/chat/components/message-out.tsx'));
+    $messageIn = file_get_contents(resource_path('js/shared/chat/components/bubbles/message-in.tsx'));
+    $messageOut = file_get_contents(resource_path('js/shared/chat/components/bubbles/message-out.tsx'));
 
     expect($messageIn)->not->toContain('double-check')
         ->and($messageIn)->not->toContain('iconName="check"')
