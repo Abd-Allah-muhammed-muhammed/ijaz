@@ -899,5 +899,12 @@
     "One of your files exceeds the 5MB limit.": "أحد ملفاتك يتجاوز حد 5 ميغابايت.",
     "This attachment is no longer available": "هذا المرفق لم يعد متاحًا",
     "One of your files exceeds the upload limit.": "أحد ملفاتك يتجاوز حد الرفع.",
-    "Something went wrong, please try again": "حدث خطأ ما، يرجى المحاولة مرة أخرى"
+    "Something went wrong, please try again": "حدث خطأ ما، يرجى المحاولة مرة أخرى",
+    "add category & skills": "إضافة فئة ومهارات",
+    "download existing file": "تحميل الملف الحالي",
+    "deactivate_account": "إلغاء تفعيل الحساب",
+    "you_are_deactivating_your_account": "أنت تقوم بإلغاء تفعيل حسابك",
+    "deactivate_account_disclaimer": "لأغراض أمنية إضافية، يتطلب هذا تأكيد بريدك الإلكتروني أو رقم هاتفك عند إعادة تعيين كلمة المرور.",
+    "learn_more": "اعرف المزيد",
+    "i_confirm_my_account_deactivation": "أؤكد إلغاء تفعيل حسابي"
 }

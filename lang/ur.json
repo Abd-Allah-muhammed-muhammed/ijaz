@@ -808,5 +808,12 @@
     "One of your files exceeds the 5MB limit.": "آپ کی کسی فائل کا سائز 5MB کی حد سے زیادہ ہے۔",
     "This attachment is no longer available": "یہ منسلکہ اب دستیاب نہیں",
     "One of your files exceeds the upload limit.": "آپ کی کسی فائل کا سائز اپلوڈ کی حد سے زیادہ ہے۔",
-    "Something went wrong, please try again": "کچھ غلط ہو گیا، براہ کرم دوبارہ کوشش کریں"
+    "Something went wrong, please try again": "کچھ غلط ہو گیا، براہ کرم دوبارہ کوشش کریں",
+    "add category & skills": "زمرہ اور مہارتیں شامل کریں",
+    "download existing file": "موجودہ فائل ڈاؤن لوڈ کریں",
+    "deactivate_account": "اکاؤنٹ غیر فعال کریں",
+    "you_are_deactivating_your_account": "آپ اپنا اکاؤنٹ غیر فعال کر رہے ہیں",
+    "deactivate_account_disclaimer": "اضافی سیکیورٹی کے لیے، پاس ورڈ دوبارہ ترتیب دیتے وقت آپ کو اپنا ای میل یا فون نمبر تصدیق کرنا ہوگا۔",
+    "learn_more": "مزید جانیں",
+    "i_confirm_my_account_deactivation": "میں اپنے اکاؤنٹ کی غیر فعالی کی تصدیق کرتا/کرتی ہوں"
 }

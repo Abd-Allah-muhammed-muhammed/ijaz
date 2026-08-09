@@ -980,5 +980,10 @@
     "One of your files exceeds the 5MB limit.": "One of your files exceeds the 5MB limit.",
     "This attachment is no longer available": "This attachment is no longer available",
     "One of your files exceeds the upload limit.": "One of your files exceeds the upload limit.",
-    "Something went wrong, please try again": "Something went wrong, please try again"
+    "Something went wrong, please try again": "Something went wrong, please try again",
+    "deactivate_account": "Deactivate Account",
+    "you_are_deactivating_your_account": "You Are Deactivating Your Account",
+    "deactivate_account_disclaimer": "For extra security, this requires you to confirm your email or phone number when you reset your password.",
+    "learn_more": "Learn more",
+    "i_confirm_my_account_deactivation": "I confirm my account deactivation"
 }

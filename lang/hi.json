@@ -809,5 +809,12 @@
     "One of your files exceeds the 5MB limit.": "आपकी किसी फ़ाइल का आकार 5MB की सीमा से अधिक है।",
     "This attachment is no longer available": "यह अटैचमेंट अब उपलब्ध नहीं है",
     "One of your files exceeds the upload limit.": "आपकी किसी फ़ाइल का आकार अपलोड सीमा से अधिक है।",
-    "Something went wrong, please try again": "कुछ गलत हो गया, कृपया फिर से प्रयास करें"
+    "Something went wrong, please try again": "कुछ गलत हो गया, कृपया फिर से प्रयास करें",
+    "add category & skills": "श्रेणी और कौशल जोड़ें",
+    "download existing file": "मौजूदा फ़ाइल डाउनलोड करें",
+    "deactivate_account": "खाता निष्क्रिय करें",
+    "you_are_deactivating_your_account": "आप अपना खाता निष्क्रिय कर रहे हैं",
+    "deactivate_account_disclaimer": "अतिरिक्त सुरक्षा के लिए, पासवर्ड रीसेट करते समय आपको अपना ईमेल या फ़ोन नंबर पुष्टि करना होगा।",
+    "learn_more": "और जानें",
+    "i_confirm_my_account_deactivation": "मैं अपने खाते को निष्क्रिय करने की पुष्टि करता/करती हूँ"
 }

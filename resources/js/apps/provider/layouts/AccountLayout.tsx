@@ -100,7 +100,7 @@ const AccountLayout = ({children, provider}: Props) => {
                         className='d-flex align-items-center text-gray-500 text-hover-primary me-5 mb-2'
                       >
                         <KTIcon iconName='profile-circle' className='fs-4 me-1'/>
-                        Developer
+                        {provider.provider_type?.name || t('provider')}
                       </a>
                       <a
                         href='#'
