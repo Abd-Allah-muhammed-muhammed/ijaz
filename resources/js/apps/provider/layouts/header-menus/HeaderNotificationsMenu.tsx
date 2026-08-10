@@ -5,6 +5,13 @@ import {KTIcon, toAbsoluteUrl} from '@/vendor/metronic/helpers'
 import NotificationController from '@/actions/App/Http/Controllers/Provider/NotificationController'
 import apiClient from '@/shared/lib/api-client'
 import type {SingleApiResponse} from '@/shared/types/api'
+import {
+  dismissDesktopNotificationPrompt,
+  getDesktopNotificationPermission,
+  isDesktopNotificationPromptDismissed,
+  requestDesktopNotificationPermission,
+  type DesktopNotificationPermission,
+} from '@/shared/notifications/desktop-notification'
 
 export const PROVIDER_NOTIFICATION_RECEIVED_EVENT = 'provider-notification-received'
 
@@ -37,6 +44,13 @@ const HeaderNotificationsMenu: FC = () => {
   const [items, setItems] = useState<ProviderNotification[]>([])
   const [loading, setLoading] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  const [permission, setPermission] = useState<DesktopNotificationPermission>(() =>
+    getDesktopNotificationPermission(),
+  )
+  const [promptDismissed, setPromptDismissed] = useState(() =>
+    isDesktopNotificationPromptDismissed(),
+  )
+  const [requestingPermission, setRequestingPermission] = useState(false)
 
   const refreshUnreadCount = useCallback(async () => {
     try {
@@ -87,6 +101,7 @@ const HeaderNotificationsMenu: FC = () => {
   }, [loaded, loadNotifications, refreshUnreadCount])
 
   const handleMenuOpen = () => {
+    setPermission(getDesktopNotificationPermission())
     if (!loaded && !loading) {
       void loadNotifications()
     }
@@ -126,6 +141,27 @@ const HeaderNotificationsMenu: FC = () => {
     }
   }
 
+  const enableDesktopAlerts = async () => {
+    setRequestingPermission(true)
+    try {
+      const next = await requestDesktopNotificationPermission()
+      setPermission(next)
+      if (next !== 'default') {
+        dismissDesktopNotificationPrompt()
+        setPromptDismissed(true)
+      }
+    } finally {
+      setRequestingPermission(false)
+    }
+  }
+
+  const dismissOptIn = () => {
+    dismissDesktopNotificationPrompt()
+    setPromptDismissed(true)
+  }
+
+  const showDesktopOptIn = permission === 'default' && !promptDismissed
+
   return (
     <>
       <div
@@ -163,6 +199,45 @@ const HeaderNotificationsMenu: FC = () => {
             </span>
           </h3>
         </div>
+
+        {showDesktopOptIn && (
+          <div className='px-8 py-4 border-bottom'>
+            <div className='text-gray-800 fw-semibold fs-7 mb-1'>
+              {t('enable_desktop_alerts')}
+            </div>
+            <div className='text-gray-700 fs-8 mb-3'>
+              {t('enable_desktop_alerts_hint')}
+            </div>
+            <div className='d-flex flex-wrap gap-2'>
+              <button
+                type='button'
+                className='btn btn-sm btn-primary'
+                disabled={requestingPermission}
+                onClick={() => {
+                  void enableDesktopAlerts()
+                }}
+              >
+                {t('enable_desktop_alerts')}
+              </button>
+              <button
+                type='button'
+                className='btn btn-sm btn-light'
+                disabled={requestingPermission}
+                onClick={dismissOptIn}
+              >
+                {t('not_now')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {permission === 'granted' && (
+          <div className='px-8 py-3 border-bottom'>
+            <span className='badge badge-light-success fs-8'>
+              {t('desktop_alerts_enabled')}
+            </span>
+          </div>
+        )}
 
         <div className='scroll-y mh-325px my-5 px-8'>
           {loading && !loaded && (
