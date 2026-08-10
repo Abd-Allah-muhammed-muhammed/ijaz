@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Provider\AuthController;
+use App\Http\Controllers\Provider\DeviceTokenController;
 use App\Http\Controllers\Provider\HomeController;
 use App\Http\Controllers\Provider\NotificationController;
 use App\Http\Middleware\EnsureProviderIsApprovedMiddleware;
@@ -38,6 +39,7 @@ Route::group(
                     Route::post('/mark-all-as-read', 'markAllAsRead')->name('mark-all-as-read');
                     Route::post('/{notification}/mark-as-read', 'markAsRead')->name('mark-as-read');
                 });
+                Route::post('/device-tokens', [DeviceTokenController::class, 'store'])->name('device-tokens.store');
             });
         });
     });

@@ -11,6 +11,7 @@ import {
   requestDesktopNotificationPermission,
   type DesktopNotificationPermission,
 } from '@/shared/notifications/desktop-notification'
+import {registerProviderWebPush} from '@/shared/firebase/web-push'
 
 export type InboxNotification = {
   id: string
@@ -116,6 +117,16 @@ const HeaderNotificationsInbox: FC<HeaderNotificationsInboxProps> = ({
     }
   }, [loaded, loadNotifications, receivedEventName, refreshUnreadCount])
 
+  useEffect(() => {
+    if (!enableDesktopAlerts) {
+      return
+    }
+
+    if (getDesktopNotificationPermission() === 'granted') {
+      void registerProviderWebPush()
+    }
+  }, [enableDesktopAlerts])
+
   const handleMenuOpen = () => {
     setPermission(getDesktopNotificationPermission())
     if (!loaded && !loading) {
@@ -165,6 +176,9 @@ const HeaderNotificationsInbox: FC<HeaderNotificationsInboxProps> = ({
       if (next !== 'default') {
         dismissDesktopNotificationPrompt(desktopPromptStorageKey)
         setPromptDismissed(true)
+      }
+      if (next === 'granted') {
+        void registerProviderWebPush()
       }
     } finally {
       setRequestingPermission(false)

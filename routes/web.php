@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FirebaseWebConfigController;
 use App\Http\Controllers\Frontend\AuthController;
 use App\Http\Controllers\Frontend\GeneralController;
 use App\Http\Controllers\General\AjaxController;
@@ -8,6 +9,9 @@ use App\Http\Controllers\General\ReactSelectController;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Modules\Catalog\Http\Controllers\General\CatalogSelectController;
+
+// Public Firebase web config for firebase-messaging-sw.js (no locale prefix — SW scope is origin root).
+Route::get('/firebase-web-config', FirebaseWebConfigController::class)->name('firebase.web-config');
 
 Route::group(['prefix' => 'media', 'as' => 'media.'], static function () {
     Route::controller(MediaController::class)->middleware('auth:admin,provider')->group(function () {

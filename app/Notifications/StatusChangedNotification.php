@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
@@ -13,7 +14,7 @@ use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
  * field (e.g. Reviews) must extend DomainNotification directly.
  *
  * Translation key convention: {domain}_status_{status}_{title|body}
- * Default Firebase: User notifiables only (Provider push is not wired yet).
+ * Default Firebase: User and Provider notifiables (mobile + Provider dashboard web push).
  */
 abstract class StatusChangedNotification extends DomainNotification implements ShouldBroadcastNow, ShouldDispatchAfterCommit
 {
@@ -69,7 +70,7 @@ abstract class StatusChangedNotification extends DomainNotification implements S
 
     protected function sendsFirebase(object $notifiable): bool
     {
-        return $notifiable instanceof User;
+        return $notifiable instanceof User || $notifiable instanceof Provider;
     }
 
     public function broadcastType(): string
