@@ -156,9 +156,9 @@ const HeaderNotificationsMenu: FC = () => {
           className='d-flex flex-column bgi-no-repeat rounded-top'
           style={{backgroundImage: `url('${toAbsoluteUrl('media/misc/menu-header-bg.jpg')}')`}}
         >
-          <h3 className='text-white fw-bold px-9 mt-10 mb-6'>
+          <h3 className='text-gray-900 fw-bold px-9 mt-10 mb-6'>
             {t('notifications')}{' '}
-            <span className='fs-8 opacity-75 ps-3'>
+            <span className='fs-8 text-muted ps-3'>
               {unreadCount} {t('unread')}
             </span>
           </h3>
@@ -204,7 +204,7 @@ const HeaderNotificationsMenu: FC = () => {
                   <span className='fs-6 text-gray-800 text-hover-primary fw-bolder d-block'>
                     {notification.title}
                   </span>
-                  <div className='text-muted fs-7'>{notification.body}</div>
+                  <div className='text-gray-700 fs-7'>{notification.body}</div>
                 </div>
               </div>
 
