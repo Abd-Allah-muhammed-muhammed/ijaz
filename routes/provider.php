@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Provider\AuthController;
+use App\Http\Controllers\Provider\DeviceTokenController;
 use App\Http\Controllers\Provider\HomeController;
+use App\Http\Controllers\Provider\NotificationController;
 use App\Http\Middleware\EnsureProviderIsApprovedMiddleware;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
@@ -31,6 +33,13 @@ Route::group(
                 Route::prefix('dashboard')->group(static function () {
                     Route::get('/', HomeController::class)->name('home');
                 });
+                Route::prefix('notifications')->as('notifications.')->controller(NotificationController::class)->group(static function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('/unread-count', 'unreadCount')->name('unread-count');
+                    Route::post('/mark-all-as-read', 'markAllAsRead')->name('mark-all-as-read');
+                    Route::post('/{notification}/mark-as-read', 'markAsRead')->name('mark-as-read');
+                });
+                Route::post('/device-tokens', [DeviceTokenController::class, 'store'])->name('device-tokens.store');
             });
         });
     });

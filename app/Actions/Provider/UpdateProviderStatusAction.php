@@ -6,6 +6,7 @@ use App\Contracts\Provider\ProviderManagementRepositoryInterface;
 use App\DTOs\Provider\UpdateProviderStatusDTO;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Models\Provider;
+use App\Notifications\AccountStatusChangedNotification;
 use Modules\Wallet\Actions\CreditProviderRegistrationBonusAction;
 
 class UpdateProviderStatusAction
@@ -19,6 +20,9 @@ class UpdateProviderStatusAction
     {
         $wasPending = $provider->status === ProviderStatusEnum::Pending;
         $becomingApproved = $dto->status === ProviderStatusEnum::Approved->value;
+        $previousStatus = $provider->status instanceof ProviderStatusEnum
+            ? $provider->status->value
+            : (string) $provider->status;
 
         $provider = $this->repository->saveStatus($provider, $dto->status);
 
@@ -30,6 +34,16 @@ class UpdateProviderStatusAction
         // from Suspended / Rejected / Blocked, and never on non-approval status writes.
         if ($wasPending && $becomingApproved) {
             $this->creditRegistrationBonusAction->handle($provider);
+        }
+
+        if (
+            $previousStatus !== $dto->status
+            && AccountStatusChangedNotification::shouldNotify($provider, $dto->status)
+        ) {
+            $provider->notify(new AccountStatusChangedNotification(
+                account: $provider,
+                status: $dto->status,
+            ));
         }
 
         return $provider;

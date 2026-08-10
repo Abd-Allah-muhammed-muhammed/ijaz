@@ -173,6 +173,36 @@ Skill shortcut: `.claude/skills/layered-architecture/`. Explicit `use` imports e
 
 Shared notification shape: `App\Notifications\DomainNotification` — used by Orders / Guarantor / Opportunity. Chat `NewMessageSentNotification` stays independent.
 
+### Owner status-change notifications
+
+When an Admin (dashboard) Action changes a record’s **status** and the owner should know, use this convention — do not invent a new pattern per module.
+
+| Concern | Use |
+|---|---|
+| Genuine status-field change (approve/reject/publish/block/…) | `App\Notifications\StatusChangedNotification` (extends `DomainNotification`) |
+| Peer/entity events **without** a status field (e.g. new review) | `DomainNotification` directly — never force-fit into `StatusChangedNotification` |
+| Chat push | `NewMessageSentNotification` (unchanged; Firebase-only) |
+
+**Wiring (mandatory):**
+
+1. Fire `$owner->notify(...)` at the **end of the mutating Action** (or via a thin `Notify*Action` composed by that Action).
+2. Never from Controller, Repository, Observer, or Model hooks.
+3. Guard: only when status **actually changed** to a notify-worthy final value (not every intermediate write).
+4. Default channels come from `DomainNotification` / `StatusChangedNotification`: database + broadcast; Firebase only for `User` until Provider push exists.
+5. Account block/delete: **notify before** clearing `device_tokens` so push can still target a token.
+
+**Translation keys for status changes:** `{domain}_status_{status}_{title|body}` (e.g. `withdraw_status_approved_title`).
+
+**Reference implementations:**
+
+- `Modules\Wallet\Notifications\WithdrawStatusChangedNotification` + `UpdateWithdrawStatusForDashboardAction` (approved/rejected)
+- `Modules\Support\Notifications\TicketStatusChangedNotification` + `UpdateTicketSupportStatusAction` (closed only — enum has no `resolved`)
+- `Modules\Classifieds\Notifications\AdvisementStatusChangedNotification` (one class, `advisementKind`) + four Update*Actions via `NotifyAdvisementOwnerOfStatusChangeAction` (published/rejected)
+- `App\Notifications\AccountStatusChangedNotification` + `UpdateUserStatusAction` / `UpdateProviderStatusAction` (Provider: approved/rejected/blocked/suspended; User: blocked)
+- `Modules\Reviews\Notifications\ReviewReceivedNotification` (DomainNotification directly) + `CreateOrUpdateReviewAction`
+
+Contract/wiring tests: `tests/Feature/StatusChangedNotificationWiringTest.php`.
+
 ---
 
 ## 6 — Conventions worth remembering
@@ -267,7 +297,7 @@ This cleanup / modularization effort turned a mostly-monolithic `app/` into a **
 5. **Architecture rule** — `.cursor/rules/layered-architecture.mdc` always-on; Pint-safe same-namespace import alias pattern documented.
 6. **OTP unification** — Single `App\Models\Otp` + `OtpPurposeEnum`; `VerificationCode` / `RegisterVerificationCode` deleted.
 7. **Catalog / Classifieds DRY** — transactional file-upload concern; shared Classifieds Actions; shared `TranslationSearchFilter` + `ParentFilter`.
-8. **Notifications** — Order notifications moved to `Modules/Orders/Notifications`; shared `DomainNotification` base for Orders/Guarantor/Opportunity (Chat excluded).
+8. **Notifications** — Order notifications moved to `Modules/Orders/Notifications`; shared `DomainNotification` base for Orders/Guarantor/Opportunity (Chat excluded). Owner status-change gaps use `StatusChangedNotification` — see §5 “Owner status-change notifications”.
 9. **Docs regen** — `MODELS_REFERENCE` (72), `ENUMS_REFERENCE` (31), `API_INVENTORY` (151 `api/*`), and this `PROJECT_CONTEXT` rewritten from live sources (not memory).
 10. **Other polish** — Unified Inertia `Errors/ErrorPage` + i18n; deferred mobile-breaking items captured rather than silently “fixed.”
 

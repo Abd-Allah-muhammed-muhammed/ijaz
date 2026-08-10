@@ -59,6 +59,24 @@ return [
         'oauth_token_url' => 'https://oauth2.googleapis.com/token',
         'fcm_send_url' => 'https://fcm.googleapis.com/v1/projects/{project_id}/messages:send',
         'http_timeout' => 15,
+
+        /*
+        | Web Push (browser FCM). Prefer FIREBASE_* (server/.env source), with
+        | VITE_FIREBASE_* as fallback — Vite bakes VITE_* into the JS bundle.
+        | The VAPID key here must be the *public* Web Push certificate only
+        | (safe in the browser). Never store or expose a VAPID private key in
+        | VITE_* or this config.
+        */
+        'web' => [
+            'api_key' => env('FIREBASE_API_KEY', env('VITE_FIREBASE_API_KEY')),
+            'auth_domain' => env('FIREBASE_AUTH_DOMAIN', env('VITE_FIREBASE_AUTH_DOMAIN')),
+            'project_id' => env('FIREBASE_PROJECT_ID', env('VITE_FIREBASE_PROJECT_ID')),
+            'messaging_sender_id' => env('FIREBASE_MESSAGING_SENDER_ID', env('VITE_FIREBASE_MESSAGING_SENDER_ID')),
+            'app_id' => env('FIREBASE_APP_ID', env('VITE_FIREBASE_APP_ID')),
+            'vapid_key' => env('FIREBASE_VAPID_KEY', env('VITE_FIREBASE_VAPID_KEY')),
+            // Compat SDK scripts loaded by public/firebase-messaging-sw.js — keep in sync with package.json "firebase".
+            'sdk_compat_version' => '12.17.1',
+        ],
     ],
 
 ];

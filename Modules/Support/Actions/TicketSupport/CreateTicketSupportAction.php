@@ -13,6 +13,7 @@ class CreateTicketSupportAction
 {
     public function __construct(
         private readonly TicketSupportRepositoryInterface $repository,
+        private readonly NotifyAdminsOfTicketCreatedAction $notifyAdminsOfTicketCreatedAction,
     ) {}
 
     /**
@@ -20,9 +21,13 @@ class CreateTicketSupportAction
      */
     public function handle(StoreTicketSupportDTO $dto): TicketSupport
     {
-        return DB::transaction(fn (): TicketSupport => $this->repository->create([
+        $ticket = DB::transaction(fn (): TicketSupport => $this->repository->create([
             ...$dto->toArray(),
             'status' => TicketSupportStatusEnum::Pending,
         ]));
+
+        $this->notifyAdminsOfTicketCreatedAction->handle($ticket);
+
+        return $ticket;
     }
 }

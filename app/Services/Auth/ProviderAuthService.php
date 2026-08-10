@@ -5,12 +5,14 @@ namespace App\Services\Auth;
 use App\Actions\Auth\Provider\LoginProviderAction;
 use App\Actions\Auth\Provider\RegisterProviderAction;
 use App\Actions\Auth\Provider\SendProviderRegistrationOtpAction;
+use App\Actions\DeviceToken\ClearDeviceTokenByTokenAction;
 use App\Actions\Provider\UpdateProviderAction;
 use App\DTOs\Auth\ProviderLoginResult;
 use App\DTOs\Auth\ProviderRegisterResult;
 use App\DTOs\Provider\UpdateProviderDTO;
 use App\Http\Requests\Provider\Auth\LoginRequest;
 use App\Models\Provider;
+use App\Services\Provider\ProviderDeviceTokenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Random\RandomException;
@@ -23,6 +25,7 @@ class ProviderAuthService
         private readonly RegisterProviderAction $registerProviderAction,
         private readonly SendProviderRegistrationOtpAction $sendProviderRegistrationOtpAction,
         private readonly UpdateProviderAction $updateProviderAction,
+        private readonly ClearDeviceTokenByTokenAction $clearDeviceTokenByTokenAction,
     ) {}
 
     public function login(LoginRequest $request): ProviderLoginResult
@@ -34,6 +37,13 @@ class ProviderAuthService
 
     public function logout(Request $request): void
     {
+        $provider = auth('provider')->user();
+        $webToken = $request->session()->get(ProviderDeviceTokenService::SESSION_WEB_FCM_TOKEN_KEY);
+
+        if ($provider instanceof Provider && is_string($webToken) && trim($webToken) !== '') {
+            $this->clearDeviceTokenByTokenAction->handle($provider, $webToken);
+        }
+
         auth('provider')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
