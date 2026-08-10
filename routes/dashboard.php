@@ -3,6 +3,7 @@
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\AuthController;
 use App\Http\Controllers\Dashboard\HomeController;
+use App\Http\Controllers\Dashboard\NotificationController;
 use App\Http\Controllers\Dashboard\PanAnalyticsController;
 use App\Http\Controllers\Dashboard\ProviderController;
 use App\Http\Controllers\Dashboard\RoleController;
@@ -26,6 +27,12 @@ Route::group(
                 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
                 Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
                 Route::post('/profile', [AuthController::class, 'updateProfile'])->name('profile.update');
+                Route::prefix('notifications')->as('notifications.')->controller(NotificationController::class)->group(static function () {
+                    Route::get('/', 'index')->name('index');
+                    Route::get('/unread-count', 'unreadCount')->name('unread-count');
+                    Route::post('/mark-all-as-read', 'markAllAsRead')->name('mark-all-as-read');
+                    Route::post('/{notification}/mark-as-read', 'markAsRead')->name('mark-as-read');
+                });
                 Route::resource('roles', RoleController::class)->except(['show']);
                 Route::resource('admins', AdminController::class)->except(['show']);
                 Route::controller(ProviderController::class)->prefix('providers')->as('providers.')->group(function () {

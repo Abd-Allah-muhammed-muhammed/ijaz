@@ -840,6 +840,8 @@
     "withdraw_status_rejected_body": "आपका निकासी अनुरोध अस्वीकृत कर दिया गया है।",
     "support_ticket_status_closed_title": "सपोर्ट टिकट बंद",
     "support_ticket_status_closed_body": "आपका सपोर्ट टिकट बंद कर दिया गया है।",
+    "support_ticket_created_title": "नया सपोर्ट टिकट",
+    "support_ticket_created_body": "एक नया सपोर्ट टिकट सबमिट किया गया है और समीक्षा की आवश्यकता है।",
     "advisement_status_published_title": "सूची प्रकाशित",
     "advisement_status_published_body": "आपकी सूची प्रकाशित कर दी गई है और अब दिखाई दे रही है।",
     "advisement_status_rejected_title": "सूची अस्वीकृत",

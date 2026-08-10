@@ -1009,6 +1009,8 @@
     "withdraw_status_rejected_body": "Your withdrawal request has been rejected.",
     "support_ticket_status_closed_title": "Support ticket closed",
     "support_ticket_status_closed_body": "Your support ticket has been closed.",
+    "support_ticket_created_title": "New support ticket",
+    "support_ticket_created_body": "A new support ticket has been submitted and needs review.",
     "advisement_status_published_title": "Listing published",
     "advisement_status_published_body": "Your listing has been published and is now visible.",
     "advisement_status_rejected_title": "Listing rejected",

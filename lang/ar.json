@@ -930,6 +930,8 @@
     "withdraw_status_rejected_body": "تم رفض طلب السحب الخاص بك.",
     "support_ticket_status_closed_title": "تم إغلاق تذكرة الدعم",
     "support_ticket_status_closed_body": "تم إغلاق تذكرة الدعم الخاصة بك.",
+    "support_ticket_created_title": "تذكرة دعم جديدة",
+    "support_ticket_created_body": "تم إرسال تذكرة دعم جديدة وتحتاج إلى المراجعة.",
     "advisement_status_published_title": "تم نشر الإعلان",
     "advisement_status_published_body": "تم نشر إعلانك وهو ظاهر الآن.",
     "advisement_status_rejected_title": "تم رفض الإعلان",

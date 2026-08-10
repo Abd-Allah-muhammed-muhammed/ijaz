@@ -1,14 +1,13 @@
 import {FC} from 'react'
-import NotificationController from '@/actions/App/Http/Controllers/Provider/NotificationController'
+import NotificationController from '@/actions/App/Http/Controllers/Dashboard/NotificationController'
 import {HeaderNotificationsInbox} from '@/shared/notifications/HeaderNotificationsInbox'
 
-export const PROVIDER_NOTIFICATION_RECEIVED_EVENT = 'provider-notification-received'
+export const ADMIN_NOTIFICATION_RECEIVED_EVENT = 'admin-notification-received'
 
 const HeaderNotificationsMenu: FC = () => (
   <HeaderNotificationsInbox
-    receivedEventName={PROVIDER_NOTIFICATION_RECEIVED_EVENT}
-    enableDesktopAlerts
-    desktopPromptStorageKey='provider_desktop_notification_prompt_dismissed'
+    receivedEventName={ADMIN_NOTIFICATION_RECEIVED_EVENT}
+    enableDesktopAlerts={false}
     endpoints={{
       listUrl: (query) => NotificationController.index.url({query}),
       unreadCountUrl: () => NotificationController.unreadCount.url(),

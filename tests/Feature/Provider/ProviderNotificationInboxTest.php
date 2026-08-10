@@ -64,25 +64,15 @@ test('provider can mark a notification as read', function () {
         ->assertJsonPath('data.unread_count', 0);
 });
 
-test('admin has no notification inbox yet — confirm this scope is Provider-only for this pass, Admin addressed separately', function () {
+test('provider and admin both expose notification inbox routes', function () {
     expect(Route::has('provider.notifications.index'))->toBeTrue()
         ->and(Route::has('provider.notifications.unread-count'))->toBeTrue()
         ->and(Route::has('provider.notifications.mark-as-read'))->toBeTrue()
-        ->and(Route::has('provider.notifications.mark-all-as-read'))->toBeTrue();
-
-    $adminInboxRouteNames = collect(Route::getRoutes())
-        ->map(fn ($route) => $route->getName())
-        ->filter(fn (?string $name) => is_string($name) && str_contains($name, 'notifications') && (
-            str_starts_with($name, 'dashboard.')
-            || str_starts_with($name, 'admin.')
-        ))
-        ->values()
-        ->all();
-
-    expect($adminInboxRouteNames)->toBeEmpty();
-
-    $this->getJson('/admin/notifications')->assertNotFound();
-    $this->getJson('/dashboard/notifications')->assertNotFound();
+        ->and(Route::has('provider.notifications.mark-all-as-read'))->toBeTrue()
+        ->and(Route::has('dashboard.notifications.index'))->toBeTrue()
+        ->and(Route::has('dashboard.notifications.unread-count'))->toBeTrue()
+        ->and(Route::has('dashboard.notifications.mark-as-read'))->toBeTrue()
+        ->and(Route::has('dashboard.notifications.mark-all-as-read'))->toBeTrue();
 });
 
 test('withdraw approved StatusChangedNotification shows readable translated title and body in provider inbox', function () {

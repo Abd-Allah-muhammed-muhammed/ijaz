@@ -1,7 +1,7 @@
 import { isChatNotificationContextInactive } from '@/shared/chat/hooks/use-chat-notification-sound'
 import { url as appUrl } from '@/shared/helpers/general'
 
-const PROMPT_DISMISSED_KEY = 'provider_desktop_notification_prompt_dismissed'
+const DEFAULT_PROMPT_DISMISSED_KEY = 'provider_desktop_notification_prompt_dismissed'
 
 const DEFAULT_ICON_PATH = '/logo-success-no-bg.svg'
 
@@ -46,17 +46,21 @@ export async function requestDesktopNotificationPermission(): Promise<DesktopNot
   }
 }
 
-export function isDesktopNotificationPromptDismissed(): boolean {
+export function isDesktopNotificationPromptDismissed(
+  storageKey: string = DEFAULT_PROMPT_DISMISSED_KEY,
+): boolean {
   try {
-    return window.localStorage.getItem(PROMPT_DISMISSED_KEY) === '1'
+    return window.localStorage.getItem(storageKey) === '1'
   } catch {
     return false
   }
 }
 
-export function dismissDesktopNotificationPrompt(): void {
+export function dismissDesktopNotificationPrompt(
+  storageKey: string = DEFAULT_PROMPT_DISMISSED_KEY,
+): void {
   try {
-    window.localStorage.setItem(PROMPT_DISMISSED_KEY, '1')
+    window.localStorage.setItem(storageKey, '1')
   } catch {
     // Private mode / blocked storage — ignore.
   }

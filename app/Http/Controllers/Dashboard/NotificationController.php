@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Provider;
+namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Provider\NotificationCollection;
-use App\Models\Provider;
+use App\Http\Resources\Dashboard\NotificationCollection;
+use App\Models\Admin;
 use App\Services\Account\AccountService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,7 +12,8 @@ use Illuminate\Notifications\DatabaseNotification;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 
 /**
- * Provider dashboard notification inbox — reuses AccountService / Notifiable DB relations.
+ * Admin dashboard notification inbox — mirrors Provider NotificationController,
+ * reusing AccountService / Notifiable DB relations. Broadcasts arrive on admin-{id}.
  */
 class NotificationController extends Controller
 {
@@ -24,13 +25,13 @@ class NotificationController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        /** @var Provider $provider */
-        $provider = $request->user('provider');
+        /** @var Admin $admin */
+        $admin = $request->user('admin');
 
         return $this->successResponse(
             NotificationCollection::make(
                 $this->accountService->listNotifications(
-                    $provider,
+                    $admin,
                     $request->integer('per_page', 15),
                 )
             ),
@@ -39,19 +40,19 @@ class NotificationController extends Controller
 
     public function unreadCount(Request $request): JsonResponse
     {
-        /** @var Provider $provider */
-        $provider = $request->user('provider');
+        /** @var Admin $admin */
+        $admin = $request->user('admin');
 
         return $this->successResponse([
-            'unread_count' => $this->accountService->unreadNotificationsCount($provider),
+            'unread_count' => $this->accountService->unreadNotificationsCount($admin),
         ]);
     }
 
     public function markAsRead(Request $request, DatabaseNotification $notification): JsonResponse
     {
-        /** @var Provider $provider */
-        $provider = $request->user('provider');
-        $result = $this->accountService->markNotificationAsRead($provider, $notification);
+        /** @var Admin $admin */
+        $admin = $request->user('admin');
+        $result = $this->accountService->markNotificationAsRead($admin, $notification);
 
         abort_if($result->isNotFound(), $result->statusCode, $result->message);
 
@@ -60,9 +61,9 @@ class NotificationController extends Controller
 
     public function markAllAsRead(Request $request): JsonResponse
     {
-        /** @var Provider $provider */
-        $provider = $request->user('provider');
-        $this->accountService->markAllNotificationsRead($provider);
+        /** @var Admin $admin */
+        $admin = $request->user('admin');
+        $this->accountService->markAllNotificationsRead($admin);
 
         return $this->successMessageResponse(message: 'All notifications marked as read.');
     }

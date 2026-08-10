@@ -839,6 +839,8 @@
     "withdraw_status_rejected_body": "آپ کی رقمہ کی درخواست مسترد کر دی گئی ہے۔",
     "support_ticket_status_closed_title": "سپورٹ ٹکٹ بند",
     "support_ticket_status_closed_body": "آپ کا سپورٹ ٹکٹ بند کر دیا گیا ہے۔",
+    "support_ticket_created_title": "نیا سپورٹ ٹکٹ",
+    "support_ticket_created_body": "ایک نیا سپورٹ ٹکٹ جمع کرایا گیا ہے اور جائزہ درکار ہے۔",
     "advisement_status_published_title": "اشتہار شائع",
     "advisement_status_published_body": "آپ کا اشتہار شائع ہو گیا ہے اور اب نظر آ رہا ہے۔",
     "advisement_status_rejected_title": "اشتہار مسترد",
