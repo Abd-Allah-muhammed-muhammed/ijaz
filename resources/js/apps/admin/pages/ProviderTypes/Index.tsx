@@ -77,7 +77,7 @@ const Index = ({rows, prams,}: Props) => {
                 property: 'name',
               },
               {
-                title: t('providers_count'),
+                title: t('provider_count'),
                 property: 'providers_count',
                 render: (row) => {
                   return (
