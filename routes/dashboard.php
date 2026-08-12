@@ -9,13 +9,14 @@ use App\Http\Controllers\Dashboard\PanAnalyticsController;
 use App\Http\Controllers\Dashboard\ProviderController;
 use App\Http\Controllers\Dashboard\RoleController;
 use App\Http\Controllers\Dashboard\UserController;
+use App\Http\Middleware\SetLocaleFromRequest;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 Route::group(
     [
         'prefix' => LaravelLocalization::setLocale(),
-        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
+        'middleware' => [SetLocaleFromRequest::class, 'localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
     ],
     static function () {
         Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], static function () {

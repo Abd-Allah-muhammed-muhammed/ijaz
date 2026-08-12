@@ -1,12 +1,13 @@
 import * as Yup from 'yup'
 import clsx from 'clsx'
-import {Link, useForm} from '@inertiajs/react'
+import {Link, useForm, usePage} from '@inertiajs/react'
 import AuthController from "@/actions/App/Http/Controllers/Dashboard/AuthController";
 import ActionButton from "@/shared/components/action-button";
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { useTranslation } from "react-i18next";
+import type { SharedData } from '@/shared/types';
 
 const loginSchema = Yup.object().shape({
   email: Yup.string()
@@ -32,6 +33,7 @@ type LoginFormInputs = {
 export function Login() {
   const form = useForm<LoginFormInputs>(initialValues)
   const [showPassword, setShowPassword] = useState(false);
+  const locale = usePage<SharedData>().props.app.locale;
 
   const togglePassword = () => {
     setShowPassword(!showPassword);
@@ -42,7 +44,13 @@ export function Login() {
       className='form w-100 h-100'
       onSubmit={(e) => {
         e.preventDefault()
-        form.submit(AuthController.login())
+        // Wayfinder emits /dashboard/login without the mcamara locale prefix;
+        // POST must hit /{locale}/dashboard/login so App::setLocale matches the page.
+        const login = AuthController.login()
+        form.submit({
+          ...login,
+          url: `/${locale}${login.url}`,
+        })
       }}
       id='kt_login_signin_form'
     >
