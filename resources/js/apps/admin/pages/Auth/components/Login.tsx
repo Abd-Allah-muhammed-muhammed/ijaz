@@ -44,8 +44,12 @@ export function Login() {
       className='form w-100 h-100'
       onSubmit={(e) => {
         e.preventDefault()
-        // Wayfinder emits /dashboard/login without the mcamara locale prefix;
-        // POST must hit /{locale}/dashboard/login so App::setLocale matches the page.
+        // Wayfinder has no mcamara-aware localized helper: dashboard routes are
+        // registered via LaravelLocalization::setLocale() as a dynamic prefix
+        // (not a {locale} route parameter), so generated actions are always
+        // `/dashboard/login`. Manual `/${locale}` prefix matches the established
+        // pattern in select-query hooks (e.g. use-cities-query) and is the only
+        // option until Wayfinder emits locale-prefixed URLs.
         const login = AuthController.login()
         form.submit({
           ...login,

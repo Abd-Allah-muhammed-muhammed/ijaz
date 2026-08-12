@@ -16,11 +16,11 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 Route::group(
     [
         'prefix' => LaravelLocalization::setLocale(),
-        'middleware' => [SetLocaleFromRequest::class, 'localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
+        'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath'],
     ],
     static function () {
         Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], static function () {
-            Route::group(['middleware' => ['guest:admin']], static function () {
+            Route::group(['middleware' => ['guest:admin', SetLocaleFromRequest::class]], static function () {
                 Route::get('/login', [AuthController::class, 'loginForm'])->name('login.form');
                 Route::post('/login', [AuthController::class, 'login'])->name('login');
             });

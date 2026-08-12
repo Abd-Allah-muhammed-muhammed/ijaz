@@ -23,7 +23,7 @@ beforeEach(function (): void {
     app()->setLocale('ar');
 
     // Keep redirect middlewares off so the Wayfinder-style unprefixed POST
-    // reaches authenticate(); SetLocaleFromRequest still runs on the route group.
+    // reaches authenticate(); SetLocaleFromRequest still runs on guest login routes.
     $this->withoutMiddleware([
         LocaleSessionRedirect::class,
         LaravelLocalizationRedirectFilter::class,

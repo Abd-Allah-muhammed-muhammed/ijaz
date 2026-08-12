@@ -8,14 +8,15 @@ use Illuminate\Support\Facades\App;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 /**
- * Ensure App::setLocale() matches the URL (or Referer) locale for web requests.
+ * Login-only: set App locale from the URL segment or Referer for admin login.
  *
- * mcamara's route-group prefix calls LaravelLocalization::setLocale() while
- * routes are loading, which works when the request path is /{locale}/....
- * Wayfinder-generated form actions are unprefixed (/dashboard/login), so that
- * side effect never sees the locale and App falls back to config('app.locale').
- * The named localization middlewares (localeSessionRedirect, etc.) do not call
- * App::setLocale() for those unprefixed POSTs either.
+ * Scoped exclusively to dashboard guest login routes. Do not register on the
+ * shared dashboard locale group — that overrides session('locale') on every
+ * authenticated AJAX request when Referer differs (notifications, device-tokens, etc.).
+ *
+ * Needed because Wayfinder emits unprefixed /dashboard/login while the login
+ * page lives at /{locale}/dashboard/login; without this, __() falls back to
+ * config('app.locale') for auth.failed.
  */
 class SetLocaleFromRequest
 {
