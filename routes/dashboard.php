@@ -9,6 +9,7 @@ use App\Http\Controllers\Dashboard\PanAnalyticsController;
 use App\Http\Controllers\Dashboard\ProviderController;
 use App\Http\Controllers\Dashboard\RoleController;
 use App\Http\Controllers\Dashboard\UserController;
+use App\Http\Middleware\SetLocaleFromRequest;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
@@ -19,7 +20,7 @@ Route::group(
     ],
     static function () {
         Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], static function () {
-            Route::group(['middleware' => ['guest:admin']], static function () {
+            Route::group(['middleware' => ['guest:admin', SetLocaleFromRequest::class]], static function () {
                 Route::get('/login', [AuthController::class, 'loginForm'])->name('login.form');
                 Route::post('/login', [AuthController::class, 'login'])->name('login');
             });

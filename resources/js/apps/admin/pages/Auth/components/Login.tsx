@@ -1,12 +1,13 @@
 import * as Yup from 'yup'
 import clsx from 'clsx'
-import {Link, useForm} from '@inertiajs/react'
+import {Link, useForm, usePage} from '@inertiajs/react'
 import AuthController from "@/actions/App/Http/Controllers/Dashboard/AuthController";
 import ActionButton from "@/shared/components/action-button";
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
 import { useTranslation } from "react-i18next";
+import type { SharedData } from '@/shared/types';
 
 const loginSchema = Yup.object().shape({
   email: Yup.string()
@@ -32,6 +33,7 @@ type LoginFormInputs = {
 export function Login() {
   const form = useForm<LoginFormInputs>(initialValues)
   const [showPassword, setShowPassword] = useState(false);
+  const locale = usePage<SharedData>().props.app.locale;
 
   const togglePassword = () => {
     setShowPassword(!showPassword);
@@ -42,13 +44,23 @@ export function Login() {
       className='form w-100 h-100'
       onSubmit={(e) => {
         e.preventDefault()
-        form.submit(AuthController.login())
+        // Wayfinder has no mcamara-aware localized helper: dashboard routes are
+        // registered via LaravelLocalization::setLocale() as a dynamic prefix
+        // (not a {locale} route parameter), so generated actions are always
+        // `/dashboard/login`. Manual `/${locale}` prefix matches the established
+        // pattern in select-query hooks (e.g. use-cities-query) and is the only
+        // option until Wayfinder emits locale-prefixed URLs.
+        const login = AuthController.login()
+        form.submit({
+          ...login,
+          url: `/${locale}${login.url}`,
+        })
       }}
       id='kt_login_signin_form'
     >
       {/* begin::Heading */}
       <div className='text-center mb-11'>
-        <h1 className='text-gray-900 fw-bolder mb-3'>Sign In</h1>
+        <h1 className='text-gray-900 fw-bolder mb-3'>{t('sign_in')}</h1>
       </div>
       {form.hasErrors && (
         <div className='mb-lg-15 alert alert-danger'>
@@ -60,9 +72,9 @@ export function Login() {
 
       {/* begin::Form group */}
       <div className='fv-row mb-8'>
-        <label className='form-label fs-6 fw-bolder text-gray-900'>Email</label>
+        <label className='form-label fs-6 fw-bolder text-gray-900'>{t('email')}</label>
         <input
-          placeholder='Email'
+          placeholder={t('email')}
           className='form-control bg-transparent'
           type='email'
           name='email'
@@ -79,7 +91,7 @@ export function Login() {
 
       {/* begin::Form group */}
       <div className='fv-row mb-3'>
-        <label className='form-label fw-bolder text-gray-900 fs-6 mb-0'>Password</label>
+        <label className='form-label fw-bolder text-gray-900 fs-6 mb-0'>{t('password')}</label>
         <div className="input-group">
           <input
             type={showPassword ? 'text' : 'password'}

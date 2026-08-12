@@ -1,5 +1,6 @@
 import {FC} from 'react'
 import {Link, useForm, usePage} from '@inertiajs/react'
+import {useTranslation} from 'react-i18next'
 import {Languages} from './Languages'
 import AuthController from "@/actions/App/Http/Controllers/Dashboard/AuthController";
 import {Admin} from "@/shared/types/models";
@@ -7,6 +8,7 @@ import {Admin} from "@/shared/types/models";
 
 const HeaderUserMenu: FC = () => {
   const logoutForm = useForm()
+  const {t} = useTranslation()
   const currentUser = (usePage().props.auth?.user ?? null) as Admin | null
   if (!currentUser) {
     return null
@@ -41,7 +43,7 @@ const HeaderUserMenu: FC = () => {
 
       <div className='menu-item px-5'>
         <Link href={AuthController.profile().url} className='menu-link px-5'>
-          My Profile
+          {t('profile')}
         </Link>
       </div>
 
@@ -58,7 +60,7 @@ const HeaderUserMenu: FC = () => {
         <a onClick={() => {
           logoutForm.submit(AuthController.logout())
         }} className='menu-link px-5'>
-          Sign Out
+          {t('logout')}
         </a>
       </div>
     </div>
