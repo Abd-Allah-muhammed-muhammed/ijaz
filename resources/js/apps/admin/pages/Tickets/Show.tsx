@@ -23,7 +23,7 @@ const Show = ({ row, chat, chatMessages }: Props) => {
   const { t } = useTranslation();
   const { hasPermission } = usePermissions();
   const canEdit = hasPermission('edit supportTicket');
-  const { setCurrentSocketId } = useConversations();
+  const { setCurrentSocketId, setCurrentConversation } = useConversations();
   const { auth } = usePage<{ auth: { user?: { socket_id?: string } } }>().props;
 
   const formatDate = (date: string | Date) => {
@@ -41,6 +41,18 @@ const Show = ({ row, chat, chatMessages }: Props) => {
       setCurrentSocketId(auth.user.socket_id);
     }
   }, [auth.user?.socket_id, setCurrentSocketId]);
+
+  const conversation = (chat ?? null) as Conversation | null;
+
+  useEffect(() => {
+    if (conversation) {
+      setCurrentConversation(conversation);
+    }
+
+    return () => {
+      setCurrentConversation(null);
+    };
+  }, [conversation?.id, setCurrentConversation]);
 
   const endpoints = useMemo(() => {
     const ticketId = row.id as string | number;
@@ -67,7 +79,6 @@ const Show = ({ row, chat, chatMessages }: Props) => {
     };
   }, [row.id]);
 
-  const conversation = (chat ?? null) as Conversation | null;
   const seededMessageCount = chatMessages?.length ?? 0;
 
   return (

@@ -10,6 +10,7 @@ use Modules\Wallet\Actions\Withdraw\CancelWithdrawRequestAction;
 use Modules\Wallet\Actions\Withdraw\CreateWithdrawRequestAction;
 use Modules\Wallet\Actions\Withdraw\ListAllWithdrawRequestsAction;
 use Modules\Wallet\Actions\Withdraw\ListWithdrawRequestsForOwnerAction;
+use Modules\Wallet\Actions\Withdraw\NotifyAdminsOfWithdrawPendingAction;
 use Modules\Wallet\Actions\Withdraw\UpdateWithdrawStatusForDashboardAction;
 use Modules\Wallet\DTOs\CreateWithdrawData;
 use Modules\Wallet\Models\WithdrawRequest;
@@ -22,6 +23,7 @@ class WithdrawRequestService
         private readonly UpdateWithdrawStatusForDashboardAction $updateStatusForDashboardAction,
         private readonly ListWithdrawRequestsForOwnerAction $listForOwnerAction,
         private readonly ListAllWithdrawRequestsAction $listAllAction,
+        private readonly NotifyAdminsOfWithdrawPendingAction $notifyAdminsOfWithdrawPendingAction,
     ) {}
 
     /**
@@ -29,7 +31,11 @@ class WithdrawRequestService
      */
     public function create(Model $owner, CreateWithdrawData $data): WithdrawRequest
     {
-        return DB::transaction(fn (): WithdrawRequest => $this->createAction->handle($owner, $data));
+        $withdrawRequest = DB::transaction(fn (): WithdrawRequest => $this->createAction->handle($owner, $data));
+
+        $this->notifyAdminsOfWithdrawPendingAction->handle($withdrawRequest);
+
+        return $withdrawRequest;
     }
 
     /**

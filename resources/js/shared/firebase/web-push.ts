@@ -1,6 +1,7 @@
 import {initializeApp, type FirebaseApp} from 'firebase/app'
 import {getMessaging, getToken, isSupported, type Messaging} from 'firebase/messaging'
-import DeviceTokenController from '@/actions/App/Http/Controllers/Provider/DeviceTokenController'
+import AdminDeviceTokenController from '@/actions/App/Http/Controllers/Dashboard/DeviceTokenController'
+import ProviderDeviceTokenController from '@/actions/App/Http/Controllers/Provider/DeviceTokenController'
 import apiClient from '@/shared/lib/api-client'
 import {getDesktopNotificationPermission} from '@/shared/notifications/desktop-notification'
 
@@ -65,11 +66,11 @@ async function getFirebaseMessaging(): Promise<Messaging | null> {
 
 /**
  * After Notification permission is granted (same gesture as Desktop Notifications),
- * obtain an FCM registration token and POST it to the Provider device-token endpoint.
+ * obtain an FCM registration token and POST it to the given device-token endpoint.
  *
  * No-ops when VITE_FIREBASE_* is empty (scaffolded until env is filled + rebuilt).
  */
-export async function registerProviderWebPush(): Promise<string | null> {
+export async function registerWebPush(registerUrl: string): Promise<string | null> {
   if (getDesktopNotificationPermission() !== 'granted') {
     return null
   }
@@ -104,7 +105,7 @@ export async function registerProviderWebPush(): Promise<string | null> {
         return null
       }
 
-      await apiClient.post(DeviceTokenController.store.url(), {token})
+      await apiClient.post(registerUrl, {token})
 
       return token
     } catch (error) {
@@ -116,4 +117,12 @@ export async function registerProviderWebPush(): Promise<string | null> {
   })()
 
   return registrationInFlight
+}
+
+export async function registerProviderWebPush(): Promise<string | null> {
+  return registerWebPush(ProviderDeviceTokenController.store.url())
+}
+
+export async function registerAdminWebPush(): Promise<string | null> {
+  return registerWebPush(AdminDeviceTokenController.store.url())
 }
