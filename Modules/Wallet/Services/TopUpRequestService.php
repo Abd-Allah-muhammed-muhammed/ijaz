@@ -11,6 +11,7 @@ use Modules\Wallet\Actions\TopUp\CancelTopUpRequestAction;
 use Modules\Wallet\Actions\TopUp\CreateTopUpRequestAction;
 use Modules\Wallet\Actions\TopUp\ListAllTopUpRequestsAction;
 use Modules\Wallet\Actions\TopUp\ListTopUpRequestsForOwnerAction;
+use Modules\Wallet\Actions\TopUp\NotifyAdminsOfOfflineTopUpPendingAction;
 use Modules\Wallet\Actions\TopUp\UpdateTopUpStatusForDashboardAction;
 use Modules\Wallet\DTOs\CreateTopUpData;
 use Modules\Wallet\Models\TopUpRequest;
@@ -23,6 +24,7 @@ class TopUpRequestService
         private readonly UpdateTopUpStatusForDashboardAction $updateStatusForDashboardAction,
         private readonly ListTopUpRequestsForOwnerAction $listForOwnerAction,
         private readonly ListAllTopUpRequestsAction $listAllAction,
+        private readonly NotifyAdminsOfOfflineTopUpPendingAction $notifyAdminsOfOfflineTopUpPendingAction,
     ) {}
 
     /**
@@ -32,7 +34,13 @@ class TopUpRequestService
      */
     public function create(Model $owner, CreateTopUpData $data): array
     {
-        return DB::transaction(fn (): array => $this->createAction->handle($owner, $data));
+        $result = DB::transaction(fn (): array => $this->createAction->handle($owner, $data));
+
+        if ($data->paymentMethod->isOffline()) {
+            $this->notifyAdminsOfOfflineTopUpPendingAction->handle($result['topUpRequest']);
+        }
+
+        return $result;
     }
 
     public function cancel(TopUpRequest $topUpRequest): void

@@ -11,7 +11,6 @@ import {
   requestDesktopNotificationPermission,
   type DesktopNotificationPermission,
 } from '@/shared/notifications/desktop-notification'
-import {registerProviderWebPush} from '@/shared/firebase/web-push'
 
 export type InboxNotification = {
   id: string
@@ -48,6 +47,8 @@ export type HeaderNotificationsInboxProps = {
   receivedEventName: string
   enableDesktopAlerts?: boolean
   desktopPromptStorageKey?: string
+  /** FCM web token registration after Notification permission is granted. */
+  registerWebPush?: () => Promise<string | null>
 }
 
 const HeaderNotificationsInbox: FC<HeaderNotificationsInboxProps> = ({
@@ -55,6 +56,7 @@ const HeaderNotificationsInbox: FC<HeaderNotificationsInboxProps> = ({
   receivedEventName,
   enableDesktopAlerts = false,
   desktopPromptStorageKey = 'provider_desktop_notification_prompt_dismissed',
+  registerWebPush,
 }) => {
   const {t} = useTranslation()
   const [unreadCount, setUnreadCount] = useState(0)
@@ -118,14 +120,14 @@ const HeaderNotificationsInbox: FC<HeaderNotificationsInboxProps> = ({
   }, [loaded, loadNotifications, receivedEventName, refreshUnreadCount])
 
   useEffect(() => {
-    if (!enableDesktopAlerts) {
+    if (!enableDesktopAlerts || !registerWebPush) {
       return
     }
 
     if (getDesktopNotificationPermission() === 'granted') {
-      void registerProviderWebPush()
+      void registerWebPush()
     }
-  }, [enableDesktopAlerts])
+  }, [enableDesktopAlerts, registerWebPush])
 
   const handleMenuOpen = () => {
     setPermission(getDesktopNotificationPermission())
@@ -178,7 +180,7 @@ const HeaderNotificationsInbox: FC<HeaderNotificationsInboxProps> = ({
         setPromptDismissed(true)
       }
       if (next === 'granted') {
-        void registerProviderWebPush()
+        void registerWebPush?.()
       }
     } finally {
       setRequestingPermission(false)

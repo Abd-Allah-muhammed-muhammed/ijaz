@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Dashboard\AdminController;
 use App\Http\Controllers\Dashboard\AuthController;
+use App\Http\Controllers\Dashboard\DeviceTokenController;
 use App\Http\Controllers\Dashboard\HomeController;
 use App\Http\Controllers\Dashboard\NotificationController;
 use App\Http\Controllers\Dashboard\PanAnalyticsController;
@@ -33,6 +34,7 @@ Route::group(
                     Route::post('/mark-all-as-read', 'markAllAsRead')->name('mark-all-as-read');
                     Route::post('/{notification}/mark-as-read', 'markAsRead')->name('mark-as-read');
                 });
+                Route::post('/device-tokens', [DeviceTokenController::class, 'store'])->name('device-tokens.store');
                 Route::resource('roles', RoleController::class)->except(['show']);
                 Route::resource('admins', AdminController::class)->except(['show']);
                 Route::controller(ProviderController::class)->prefix('providers')->as('providers.')->group(function () {

@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Services\Firebase\Contract\InteractWithFirebase;
 use App\Support\HasBroadcastChannel;
 use App\Support\HasStoredFileUrl;
+use App\Traits\HasDeviceTokens;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,10 +15,10 @@ use Illuminate\Support\Facades\Storage;
 use Modules\Chat\Contracts\HasConversation;
 use Spatie\Permission\Traits\HasRoles;
 
-class Admin extends Authenticatable implements HasConversation
+class Admin extends Authenticatable implements HasConversation, InteractWithFirebase
 {
     /** @use HasFactory<UserFactory> */
-    use HasBroadcastChannel, HasFactory, HasRoles, HasStoredFileUrl, Notifiable;
+    use HasBroadcastChannel, HasDeviceTokens, HasFactory, HasRoles, HasStoredFileUrl, Notifiable;
 
     public string $guard_name = 'admin';
 
@@ -69,7 +71,7 @@ class Admin extends Authenticatable implements HasConversation
     /**
      * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     protected function casts(): array
     {

@@ -6,6 +6,7 @@ use App\Actions\Auth\Provider\LoginProviderAction;
 use App\Actions\Auth\Provider\RegisterProviderAction;
 use App\Actions\Auth\Provider\SendProviderRegistrationOtpAction;
 use App\Actions\DeviceToken\ClearDeviceTokenByTokenAction;
+use App\Actions\Provider\NotifyAdminsOfProviderPendingApprovalAction;
 use App\Actions\Provider\UpdateProviderAction;
 use App\DTOs\Auth\ProviderLoginResult;
 use App\DTOs\Auth\ProviderRegisterResult;
@@ -26,6 +27,7 @@ class ProviderAuthService
         private readonly SendProviderRegistrationOtpAction $sendProviderRegistrationOtpAction,
         private readonly UpdateProviderAction $updateProviderAction,
         private readonly ClearDeviceTokenByTokenAction $clearDeviceTokenByTokenAction,
+        private readonly NotifyAdminsOfProviderPendingApprovalAction $notifyAdminsOfProviderPendingApprovalAction,
     ) {}
 
     public function login(LoginRequest $request): ProviderLoginResult
@@ -68,7 +70,13 @@ class ProviderAuthService
      */
     public function register(array $validatedData, Request $request): ProviderRegisterResult
     {
-        return DB::transaction(fn () => $this->registerProviderAction->handle($validatedData, $request));
+        $result = DB::transaction(fn () => $this->registerProviderAction->handle($validatedData, $request));
+
+        if ($result->success && $result->provider instanceof Provider) {
+            $this->notifyAdminsOfProviderPendingApprovalAction->handle($result->provider);
+        }
+
+        return $result;
     }
 
     /**

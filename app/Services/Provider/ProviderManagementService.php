@@ -12,6 +12,7 @@ use App\Actions\Provider\GetProviderStatusCountsAction;
 use App\Actions\Provider\ListLatestProvidersForDashboardAction;
 use App\Actions\Provider\ListProvidersAction;
 use App\Actions\Provider\ListProviderWalletTransactionsAction;
+use App\Actions\Provider\NotifyAdminsOfProviderPendingApprovalAction;
 use App\Actions\Provider\ShowProviderAction;
 use App\Actions\Provider\StoreProviderAction;
 use App\Actions\Provider\UpdateProviderAction;
@@ -54,6 +55,7 @@ class ProviderManagementService
         private readonly ProviderTypeService $providerTypeService,
         private readonly RegionService $regionService,
         private readonly CityService $cityService,
+        private readonly NotifyAdminsOfProviderPendingApprovalAction $notifyAdminsOfProviderPendingApprovalAction,
     ) {}
 
     public function index(Request $request): LengthAwarePaginator
@@ -73,7 +75,11 @@ class ProviderManagementService
 
     public function store(StoreProviderDTO $dto): Provider
     {
-        return DB::transaction(fn (): Provider => $this->storeAction->handle($dto));
+        $provider = DB::transaction(fn (): Provider => $this->storeAction->handle($dto));
+
+        $this->notifyAdminsOfProviderPendingApprovalAction->handle($provider);
+
+        return $provider;
     }
 
     public function update(Provider $provider, UpdateProviderDTO $dto): Provider

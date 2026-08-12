@@ -2,6 +2,7 @@
 
 namespace Modules\Support\Notifications;
 
+use App\Models\Admin;
 use App\Notifications\DomainNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
@@ -43,8 +44,7 @@ class TicketCreatedNotification extends DomainNotification implements ShouldBroa
 
     protected function sendsFirebase(object $notifiable): bool
     {
-        // Admins have no device tokens / FCM registration on the web dashboard.
-        return false;
+        return $notifiable instanceof Admin;
     }
 
     public function broadcastType(): string
