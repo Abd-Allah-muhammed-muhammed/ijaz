@@ -60,7 +60,7 @@ export function Login() {
     >
       {/* begin::Heading */}
       <div className='text-center mb-11'>
-        <h1 className='text-gray-900 fw-bolder mb-3'>Sign In</h1>
+        <h1 className='text-gray-900 fw-bolder mb-3'>{t('sign_in')}</h1>
       </div>
       {form.hasErrors && (
         <div className='mb-lg-15 alert alert-danger'>
@@ -72,9 +72,9 @@ export function Login() {
 
       {/* begin::Form group */}
       <div className='fv-row mb-8'>
-        <label className='form-label fs-6 fw-bolder text-gray-900'>Email</label>
+        <label className='form-label fs-6 fw-bolder text-gray-900'>{t('email')}</label>
         <input
-          placeholder='Email'
+          placeholder={t('email')}
           className='form-control bg-transparent'
           type='email'
           name='email'
@@ -91,7 +91,7 @@ export function Login() {
 
       {/* begin::Form group */}
       <div className='fv-row mb-3'>
-        <label className='form-label fw-bolder text-gray-900 fs-6 mb-0'>Password</label>
+        <label className='form-label fw-bolder text-gray-900 fs-6 mb-0'>{t('password')}</label>
         <div className="input-group">
           <input
             type={showPassword ? 'text' : 'password'}
