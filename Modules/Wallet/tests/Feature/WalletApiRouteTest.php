@@ -862,3 +862,25 @@ test('an entry_kind=null transaction (e.g. an Order-related row) still uses its 
         ->and($fundingItem)->not->toBeNull()
         ->and($fundingItem['description'])->toBe('Test wallet funding');
 });
+
+test('mobile wallet transaction list returns a short, translated operation_type label (e.g. "Withdraw Request"), not the raw PHP class name (Modules\\Wallet\\Models\\WithdrawRequest)', function () {
+    $user = createWalletUser();
+    fundWallet($user, 400);
+    $withdraw = app(WithdrawRequestService::class)->create(
+        $user,
+        new CreateWithdrawData(amount: 200, userNotes: null),
+    );
+    Sanctum::actingAs($user);
+
+    $item = collect($this->getJson(
+        action([WalletController::class, 'transactions'], ['per_page' => 20]),
+        ['Accept-Language' => 'en'],
+    )->assertSuccessful()->json('data.items'))
+        ->firstWhere('operation_id', $withdraw->id);
+
+    expect($item)->not->toBeNull()
+        ->and($item['operation_type'])->toBe(__('WithdrawRequest', [], 'en'))
+        ->and($item['operation_type'])->toBe('Withdraw Request')
+        ->and($item['operation_type'])->not->toContain('Modules\\Wallet')
+        ->and($item['operation_type'])->not->toBe(WithdrawRequest::class);
+});

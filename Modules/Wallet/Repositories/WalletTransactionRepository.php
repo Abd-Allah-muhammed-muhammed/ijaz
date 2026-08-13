@@ -146,7 +146,46 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
         return WalletTransaction::query()
             ->whereIn('id', $ids)
             ->whereNull('entry_kind')
-            ->update(['entry_kind' => $kind->value]);
+            ->update([
+                'entry_kind' => $kind->value,
+                'description' => $kind->translationKey(),
+            ]);
+    }
+
+    public function countStaleDescriptions(WalletTransactionEntryKindEnum $kind): int
+    {
+        return WalletTransaction::query()
+            ->where(function (Builder $query) use ($kind): void {
+                $this->constrainStaleDescription($query, $kind);
+            })
+            ->count();
+    }
+
+    public function chunkStaleDescriptionsById(WalletTransactionEntryKindEnum $kind, int $chunkSize, Closure $callback): void
+    {
+        WalletTransaction::query()
+            ->where(function (Builder $query) use ($kind): void {
+                $this->constrainStaleDescription($query, $kind);
+            })
+            ->chunkById($chunkSize, $callback);
+    }
+
+    public function stampDescriptionKey(array $ids, WalletTransactionEntryKindEnum $kind): int
+    {
+        if ($ids === []) {
+            return 0;
+        }
+
+        $key = $kind->translationKey();
+
+        return WalletTransaction::query()
+            ->whereIn('id', $ids)
+            ->where('entry_kind', $kind->value)
+            ->where(function (Builder $query) use ($key): void {
+                $query->whereNull('description')
+                    ->orWhere('description', '!=', $key);
+            })
+            ->update(['description' => $key]);
     }
 
     public function withdrawOperationIdsWithDebit(): Collection
@@ -155,5 +194,16 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
             ->where('operation_type', WithdrawRequest::class)
             ->where('debit', '>', 0)
             ->pluck('operation_id');
+    }
+
+    private function constrainStaleDescription(Builder $query, WalletTransactionEntryKindEnum $kind): void
+    {
+        $key = $kind->translationKey();
+
+        $query->where('entry_kind', $kind->value)
+            ->where(function (Builder $query) use ($key): void {
+                $query->whereNull('description')
+                    ->orWhere('description', '!=', $key);
+            });
     }
 }

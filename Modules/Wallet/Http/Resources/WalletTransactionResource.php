@@ -30,7 +30,7 @@ class WalletTransactionResource extends JsonResource
             'balance_before' => (float) $this->balance_before,
             'balance_after' => (float) $this->balance_after,
             'description' => $this->description,
-            'operation_type' => $this->operation_type,
+            'operation_type' => trans(str($this->operation_type)->afterLast('\\')->value()),
             'operation_id' => $this->operation_id,
             'created_at' => $this->created_at?->toIso8601String(),
         ];

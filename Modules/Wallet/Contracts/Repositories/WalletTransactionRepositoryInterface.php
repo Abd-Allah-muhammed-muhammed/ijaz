@@ -60,6 +60,18 @@ interface WalletTransactionRepositoryInterface
      */
     public function stampEntryKind(array $ids, WalletTransactionEntryKindEnum $kind): int;
 
+    public function countStaleDescriptions(WalletTransactionEntryKindEnum $kind): int;
+
+    /**
+     * @param  Closure(Collection<int, WalletTransaction>): void  $callback
+     */
+    public function chunkStaleDescriptionsById(WalletTransactionEntryKindEnum $kind, int $chunkSize, Closure $callback): void;
+
+    /**
+     * @param  list<string>  $ids
+     */
+    public function stampDescriptionKey(array $ids, WalletTransactionEntryKindEnum $kind): int;
+
     /**
      * @return Collection<int, string>
      */

@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Support\Str;
+use Modules\Wallet\Actions\BackfillWalletTransactionEntryKindAction;
 use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Models\WalletTransaction;
@@ -9,6 +10,14 @@ use Modules\Wallet\Models\WithdrawRequest;
 
 test('wallet:backfill-entry-kind command classifies existing rows correctly in --dry-run mode without writing anything', function () {
     $rows = seedUnstampedEntryKindShapes();
+
+    $result = app(BackfillWalletTransactionEntryKindAction::class)->handle(dryRun: true);
+    $oldDescriptions = implode("\n", array_column($result->samples, 0));
+    $newKeys = implode("\n", array_column($result->samples, 1));
+
+    expect($result->samples)->not->toBeEmpty()
+        ->and($oldDescriptions)->toContain('Wallet withdraw for')
+        ->and($newKeys)->toContain('wallet.entry_kind.withdraw_approved');
 
     $this->artisan('wallet:backfill-entry-kind', ['--dry-run' => true])
         ->expectsOutputToContain('withdraw_requested')
@@ -26,7 +35,9 @@ test('wallet:backfill-entry-kind command classifies existing rows correctly in -
         ->and($rows['cancelled']->fresh()->entry_kind)->toBeNull()
         ->and($rows['topup']->fresh()->entry_kind)->toBeNull()
         ->and($rows['order']->fresh()->entry_kind)->toBeNull()
-        ->and($rows['alreadyStamped']->fresh()->entry_kind)->toBe(WalletTransactionEntryKindEnum::WithdrawRequested);
+        ->and($rows['alreadyStamped']->fresh()->entry_kind)->toBe(WalletTransactionEntryKindEnum::WithdrawRequested)
+        ->and($rows['alreadyStamped']->fresh()->getRawOriginal('description'))->toStartWith('Withdraw Request Created')
+        ->and($rows['approved']->fresh()->getRawOriginal('description'))->toStartWith('Wallet withdraw for');
 });
 
 test('wallet:backfill-entry-kind command writes entry_kind when run for real, and is safe to run twice (idempotent)', function () {
@@ -55,6 +66,69 @@ test('wallet:backfill-entry-kind command writes entry_kind when run for real, an
         ->and($rows['topup']->fresh()->entry_kind)->toBe(WalletTransactionEntryKindEnum::TopupCredited)
         ->and($rows['order']->fresh()->entry_kind)->toBeNull()
         ->and($rows['alreadyStamped']->fresh()->entry_kind)->toBe(WalletTransactionEntryKindEnum::WithdrawRequested);
+});
+
+test('running wallet:backfill-entry-kind on an old row whose description is a stored English sentence rewrites description to the matching translation key (e.g. "wallet.entry_kind.withdraw_approved"), not just entry_kind', function () {
+    $rows = seedUnstampedEntryKindShapes();
+
+    $this->artisan('wallet:backfill-entry-kind')
+        ->assertSuccessful();
+
+    $approved = $rows['approved']->fresh();
+
+    expect($approved->entry_kind)->toBe(WalletTransactionEntryKindEnum::WithdrawApproved)
+        ->and($approved->getRawOriginal('description'))->toBe('wallet.entry_kind.withdraw_approved')
+        ->and($rows['requested']->fresh()->getRawOriginal('description'))->toBe('wallet.entry_kind.withdraw_requested')
+        ->and($rows['rejected']->fresh()->getRawOriginal('description'))->toBe('wallet.entry_kind.withdraw_rejected')
+        ->and($rows['cancelled']->fresh()->getRawOriginal('description'))->toBe('wallet.entry_kind.withdraw_cancelled')
+        ->and($rows['topup']->fresh()->getRawOriginal('description'))->toBe('wallet.entry_kind.topup_credited')
+        ->and($rows['holdReleased']->fresh()->getRawOriginal('description'))->toBe('wallet.entry_kind.withdraw_hold_released')
+        ->and($rows['alreadyStamped']->fresh()->getRawOriginal('description'))->toBe('wallet.entry_kind.withdraw_requested');
+});
+
+test('after backfill, reading ->description on that row returns a properly translated string via the accessor, not the raw stored English text', function () {
+    $rows = seedUnstampedEntryKindShapes();
+
+    $this->artisan('wallet:backfill-entry-kind')
+        ->assertSuccessful();
+
+    $approved = $rows['approved']->fresh();
+    $ref = strtoupper(substr((string) $approved->operation_id, -8));
+    app()->setLocale('en');
+
+    expect($approved->description)
+        ->toBe(__('wallet.entry_kind.withdraw_approved', ['ref' => $ref], 'en'))
+        ->toContain($ref)
+        ->not->toContain('Wallet withdraw for')
+        ->not->toBe($approved->getRawOriginal('description'));
+});
+
+test('backfill is still idempotent — running it twice does not double-wrap or corrupt an already-migrated description', function () {
+    $rows = seedUnstampedEntryKindShapes();
+
+    $this->artisan('wallet:backfill-entry-kind')->assertSuccessful();
+    $this->artisan('wallet:backfill-entry-kind')->assertSuccessful();
+
+    $approved = $rows['approved']->fresh();
+
+    expect($approved->getRawOriginal('description'))->toBe('wallet.entry_kind.withdraw_approved')
+        ->and($approved->getRawOriginal('description'))->not->toContain('wallet.entry_kind.wallet.entry_kind')
+        ->and($rows['alreadyStamped']->fresh()->getRawOriginal('description'))->toBe('wallet.entry_kind.withdraw_requested')
+        ->and($rows['requested']->fresh()->entry_kind)->toBe(WalletTransactionEntryKindEnum::WithdrawRequested);
+});
+
+test('rows with entry_kind staying NULL (Orders/Guarantor/bonus) are completely untouched by the backfill — description stays exactly as it was', function () {
+    $rows = seedUnstampedEntryKindShapes();
+    $originalOrderDescription = $rows['order']->getRawOriginal('description');
+
+    $this->artisan('wallet:backfill-entry-kind')
+        ->assertSuccessful();
+
+    $order = $rows['order']->fresh();
+
+    expect($order->entry_kind)->toBeNull()
+        ->and($order->getRawOriginal('description'))->toBe($originalOrderDescription)
+        ->and($order->getRawOriginal('description'))->toBe('Order settlement #legacy-order');
 });
 
 /**

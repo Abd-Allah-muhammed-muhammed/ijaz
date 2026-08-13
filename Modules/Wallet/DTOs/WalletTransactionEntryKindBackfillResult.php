@@ -4,6 +4,9 @@ namespace Modules\Wallet\DTOs;
 
 final readonly class WalletTransactionEntryKindBackfillResult
 {
+    /**
+     * @param  list<array{0: string, 1: string}>  $samples
+     */
     public function __construct(
         public int $withdrawRequested,
         public int $withdrawHoldReleased,
@@ -13,6 +16,7 @@ final readonly class WalletTransactionEntryKindBackfillResult
         public int $topupCredited,
         public int $total,
         public bool $dryRun,
+        public array $samples = [],
     ) {}
 
     public function processed(): int
