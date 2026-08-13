@@ -1,14 +1,35 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Modules\Payment\Enums\PaymentDriverEnum;
 use Modules\Payment\Enums\PaymentMethodEnum;
 use Modules\Payment\Models\Payment;
+use Modules\Wallet\Actions\FinalizeWithdrawAction;
 use Modules\Wallet\Http\Controllers\Api\V1\WalletController;
 use Modules\Wallet\Models\TopUpRequest;
+use Modules\Wallet\Models\WalletTransaction;
 use Modules\Wallet\Models\WithdrawRequest;
+use Modules\Wallet\Services\WalletService;
+
+function completeWalletWithdrawViaApi(User $user, float $amount, bool $approved): WithdrawRequest
+{
+    test()->postJson(action([WalletController::class, 'withdraw']), [
+        'amount' => $amount,
+    ])->assertSuccessful();
+
+    $withdraw = WithdrawRequest::query()
+        ->where('user_id', $user->id)
+        ->latest()
+        ->firstOrFail();
+
+    DB::transaction(fn () => app(FinalizeWithdrawAction::class)->handle($user, $withdraw, $approved));
+
+    return $withdraw;
+}
 
 test('unauthenticated cannot get balance → 401', function () {
     $this->getJson(action([WalletController::class, 'balance']))
@@ -115,7 +136,7 @@ test('wallet addBalance response shape is unchanged', function () {
         ->and($data['data'])->toHaveKeys(['id', 'amount', 'status', 'payment_method']);
 });
 
-test('wallet transactions API response shape is unchanged', function () {
+test('wallet transactions API response shape matches grouped lifecycle events', function () {
     $user = createWalletUser();
     fundWallet($user, 100);
     Sanctum::actingAs($user);
@@ -139,22 +160,40 @@ test('wallet transactions API response shape is unchanged', function () {
         ->and($data['items'])->not->toBeEmpty();
 
     expect(array_keys($data['items'][0]))->toBe([
-        'id',
+        'operation_id',
+        'operation_type',
+        'status',
         'amount',
-        'credit',
-        'debit',
-        'pending_credit',
-        'pending_debit',
         'balance_before',
         'balance_after',
         'description',
-        'operation_type',
-        'operation_id',
         'created_at',
     ]);
 });
 
-test('mobile wallet transaction list exposes a non-zero display amount for a withdraw hold entry', function () {
+test('a completed withdraw appears as ONE item with status completed, showing the real balance_before/after from the final debit', function () {
+    $user = createWalletUser();
+    fundWallet($user, 400);
+    Sanctum::actingAs($user);
+
+    $withdraw = completeWalletWithdrawViaApi($user, 200, approved: true);
+
+    $items = $this->getJson(action([WalletController::class, 'transactions'], ['per_page' => 10]))
+        ->assertSuccessful()
+        ->json('data.items');
+
+    $withdrawItems = collect($items)->where('operation_id', $withdraw->id)->values();
+
+    expect(WalletTransaction::query()->where('operation_id', $withdraw->id)->count())->toBe(3)
+        ->and($withdrawItems)->toHaveCount(1)
+        ->and($withdrawItems[0]['status'])->toBe('completed')
+        ->and((float) $withdrawItems[0]['amount'])->toBe(200.0)
+        ->and((float) $withdrawItems[0]['balance_before'])->toBe(400.0)
+        ->and((float) $withdrawItems[0]['balance_after'])->toBe(200.0)
+        ->and($withdrawItems[0]['operation_type'])->toBe(WithdrawRequest::class);
+});
+
+test('a withdraw request still pending admin approval appears as ONE item with status pending', function () {
     $user = createWalletUser();
     fundWallet($user, 400);
     Sanctum::actingAs($user);
@@ -163,17 +202,104 @@ test('mobile wallet transaction list exposes a non-zero display amount for a wit
         'amount' => 200,
     ])->assertSuccessful();
 
+    $withdraw = WithdrawRequest::query()->where('user_id', $user->id)->latest()->firstOrFail();
+
     $items = $this->getJson(action([WalletController::class, 'transactions'], ['per_page' => 10]))
         ->assertSuccessful()
         ->json('data.items');
 
-    $hold = collect($items)->first(
-        fn (array $item): bool => (float) $item['pending_debit'] === 200.0
-    );
+    $withdrawItems = collect($items)->where('operation_id', $withdraw->id)->values();
 
-    expect($hold)->not->toBeNull()
-        ->and($hold)->toHaveKey('amount')
-        ->and((float) $hold['amount'])->toBe(200.0);
+    expect(WalletTransaction::query()->where('operation_id', $withdraw->id)->count())->toBe(1)
+        ->and($withdrawItems)->toHaveCount(1)
+        ->and($withdrawItems[0]['status'])->toBe('pending')
+        ->and((float) $withdrawItems[0]['amount'])->toBe(200.0);
+});
+
+test('a rejected withdraw request appears as ONE item with status rejected', function () {
+    $user = createWalletUser();
+    fundWallet($user, 400);
+    Sanctum::actingAs($user);
+
+    $withdraw = completeWalletWithdrawViaApi($user, 200, approved: false);
+
+    $items = $this->getJson(action([WalletController::class, 'transactions'], ['per_page' => 10]))
+        ->assertSuccessful()
+        ->json('data.items');
+
+    $withdrawItems = collect($items)->where('operation_id', $withdraw->id)->values();
+
+    expect(WalletTransaction::query()->where('operation_id', $withdraw->id)->count())->toBe(2)
+        ->and($withdrawItems)->toHaveCount(1)
+        ->and($withdrawItems[0]['status'])->toBe('rejected')
+        ->and((float) $withdrawItems[0]['amount'])->toBe(200.0)
+        ->and((float) $withdrawItems[0]['balance_before'])->toBe(400.0)
+        ->and((float) $withdrawItems[0]['balance_after'])->toBe(400.0);
+});
+
+test('a top-up credit (single-row operation) still appears as ONE item with status completed, unchanged in substance', function () {
+    $user = createWalletUser();
+    $topUp = createTopUpFor($user, ['amount' => 150]);
+
+    DB::transaction(fn () => app(WalletService::class)->credit(
+        $user,
+        150,
+        $topUp,
+        "Online top-up approved — TopUpRequest#{$topUp->id}",
+    ));
+
+    Sanctum::actingAs($user);
+
+    $items = $this->getJson(action([WalletController::class, 'transactions'], ['per_page' => 10]))
+        ->assertSuccessful()
+        ->json('data.items');
+
+    $topUpItems = collect($items)->where('operation_id', (string) $topUp->id)->values();
+
+    expect(WalletTransaction::query()->where('operation_id', (string) $topUp->id)->count())->toBe(1)
+        ->and($topUpItems)->toHaveCount(1)
+        ->and($topUpItems[0]['status'])->toBe('completed')
+        ->and((float) $topUpItems[0]['amount'])->toBe(150.0)
+        ->and($topUpItems[0]['operation_type'])->toBe(TopUpRequest::class)
+        ->and((float) $topUpItems[0]['balance_before'])->toBe(0.0)
+        ->and((float) $topUpItems[0]['balance_after'])->toBe(150.0);
+});
+
+test('pagination counts grouped lifecycle events, not raw ledger rows — e.g. 3 withdraws (9 raw rows total) with per_page=2 returns exactly 2 grouped items on page 1, not a partial/split group', function () {
+    $user = createWalletUser();
+    $user->wallet->update(['balance' => 5000]);
+    Sanctum::actingAs($user);
+
+    $first = completeWalletWithdrawViaApi($user, 200, approved: true);
+    $this->travel(1)->second();
+    $second = completeWalletWithdrawViaApi($user, 300, approved: true);
+    $this->travel(1)->second();
+    $third = completeWalletWithdrawViaApi($user, 400, approved: true);
+
+    expect(WalletTransaction::query()->where('user_id', $user->id)->count())->toBe(9);
+
+    $page1 = $this->getJson(action([WalletController::class, 'transactions'], ['per_page' => 2]))
+        ->assertSuccessful()
+        ->assertJsonPath('data.total', 3)
+        ->assertJsonPath('data.per_page', 2)
+        ->assertJsonPath('data.last_page', 2)
+        ->assertJsonCount(2, 'data.items')
+        ->json('data.items');
+
+    expect(collect($page1)->pluck('status')->unique()->values()->all())->toBe(['completed'])
+        ->and(collect($page1)->pluck('operation_id')->all())->toBe([$third->id, $second->id])
+        ->and(collect($page1)->pluck('amount')->map(fn ($amount) => (float) $amount)->all())->toBe([400.0, 300.0]);
+
+    $page2 = $this->getJson(action([WalletController::class, 'transactions'], [
+        'per_page' => 2,
+        'page' => 2,
+    ]))->assertSuccessful()
+        ->assertJsonCount(1, 'data.items')
+        ->json('data.items');
+
+    expect($page2[0]['operation_id'])->toBe($first->id)
+        ->and($page2[0]['status'])->toBe('completed')
+        ->and((float) $page2[0]['amount'])->toBe(200.0);
 });
 
 test('add-balance and withdraw response envelopes are byte-identical after refactor', function () {
@@ -480,15 +606,18 @@ test('authenticated user can list transactions → 200', function () {
 
 test('transactions are paginated', function () {
     $user = createWalletUser();
-
-    for ($i = 0; $i < 3; $i++) {
-        fundWallet($user, 10);
-    }
-
+    $user->wallet->update(['balance' => 2000]);
     Sanctum::actingAs($user);
+
+    foreach ([200, 200, 200] as $amount) {
+        $this->postJson(action([WalletController::class, 'withdraw']), [
+            'amount' => $amount,
+        ])->assertSuccessful();
+    }
 
     $this->getJson(action([WalletController::class, 'transactions'], ['per_page' => 2]))
         ->assertSuccessful()
         ->assertJsonPath('data.per_page', 2)
+        ->assertJsonPath('data.total', 3)
         ->assertJsonCount(2, 'data.items');
 });
