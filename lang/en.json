@@ -555,6 +555,8 @@
     "order_offer_has_been_rejected": "The order offer has been rejected.",
     "order_offer_created": "Order offer created",
     "order_offer_has_been_created": "The order offer has been created.",
+    "order_cancelled": "Order cancelled",
+    "order_has_been_cancelled": "The order has been cancelled.",
     "days_count": "Days Count",
     "blocked_at": "Blocked At",
     "blocked_until": "Blocked Until",

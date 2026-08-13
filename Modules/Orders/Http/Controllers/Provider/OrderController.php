@@ -5,10 +5,12 @@ namespace Modules\Orders\Http\Controllers\Provider;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Modules\Orders\DTOs\CancelOrderDTO;
 use Modules\Orders\DTOs\EndAndReviewDTO;
 use Modules\Orders\DTOs\StoreOrderOfferDTO;
 use Modules\Orders\DTOs\UpdateOrderOfferDTO;
 use Modules\Orders\Exceptions\OrdersException;
+use Modules\Orders\Http\Requests\Provider\CancelOrderRequest;
 use Modules\Orders\Http\Requests\Provider\OrderReviewRequest;
 use Modules\Orders\Http\Requests\Provider\SubmitOfferRequest;
 use Modules\Orders\Http\Resources\Dashboard\OfferCollection;
@@ -167,6 +169,21 @@ class OrderController extends Controller
     {
         try {
             $this->orderService->endForProvider($order, auth('provider')->user());
+
+            return redirect()->back()->with('success', __('data updated successfully'));
+        } catch (OrdersException $e) {
+            return redirect()->back()->with('error', __($e->getTranslationKey()));
+        }
+    }
+
+    public function cancel(Order $order, CancelOrderRequest $request): RedirectResponse
+    {
+        try {
+            $this->orderService->cancel(
+                $order,
+                auth('provider')->user(),
+                CancelOrderDTO::fromValidated($request->validated()),
+            );
 
             return redirect()->back()->with('success', __('data updated successfully'));
         } catch (OrdersException $e) {

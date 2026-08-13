@@ -427,6 +427,8 @@
     "order_offer_has_been_rejected": "آرڈر آفر مسترد کر دی گئی ہے۔",
     "order_offer_created": "آرڈر آفر بنائی گئی",
     "order_offer_has_been_created": "آرڈر آفر بنائی گئی ہے۔",
+    "order_cancelled": "آرڈر منسوخ کر دیا گیا",
+    "order_has_been_cancelled": "آرڈر منسوخ کر دیا گیا ہے۔",
     "days_count": "دنوں کی تعداد",
     "blocked_at": "روکنے کا وقت",
     "blocked_until": "تک روکا گیا",

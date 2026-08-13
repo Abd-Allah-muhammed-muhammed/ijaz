@@ -459,6 +459,8 @@
     "order_offer_has_been_rejected": "تم رفض عرض الطلب.",
     "order_offer_created": "تم إنشاء عرض الطلب",
     "order_offer_has_been_created": "تم إنشاء عرض الطلب.",
+    "order_cancelled": "تم إلغاء الطلب",
+    "order_has_been_cancelled": "تم إلغاء الطلب.",
     "days_count": "عدد الأيام",
     "blocked_at": "تم الحظر في",
     "blocked_until": "محظور حتى",

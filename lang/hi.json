@@ -429,6 +429,8 @@
     "order_offer_has_been_rejected": "ऑर्डर ऑफ़र अस्वीकार कर दिया गया है।",
     "order_offer_created": "ऑर्डर ऑफ़र बनाया गया",
     "order_offer_has_been_created": "ऑर्डर ऑफ़र बनाया गया है।",
+    "order_cancelled": "ऑर्डर रद्द किया गया",
+    "order_has_been_cancelled": "ऑर्डर रद्द कर दिया गया है।",
     "days_count": "दिनों की संख्या",
     "blocked_at": "ब्लॉक किया गया समय",
     "blocked_until": "तक ब्लॉक किया गया",

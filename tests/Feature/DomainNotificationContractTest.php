@@ -27,9 +27,11 @@ use Modules\Opportunity\Notifications\OpportunityOfferRejectedNotification;
 use Modules\Opportunity\Notifications\OpportunityOfferSubmittedNotification;
 use Modules\Orders\Database\Factories\OrderOfferFactory;
 use Modules\Orders\Enums\OfferStatusEnum;
+use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Notifications\NewOrderAssignNotification;
 use Modules\Orders\Notifications\OrderAcceptedOfferUpdatedNotification;
+use Modules\Orders\Notifications\OrderCancelledNotification;
 use Modules\Orders\Notifications\OrderOfferAcceptedNotification;
 use Modules\Orders\Notifications\OrderOfferCanceledNotification;
 use Modules\Orders\Notifications\OrderOfferCreatedNotification;
@@ -245,6 +247,49 @@ describe('Orders domain notification contracts', function (): void {
             'order_id' => $offer->order_id,
             'offer_id' => $offer->id,
         ]);
+    });
+
+    it('locks OrderCancelledNotification channel outputs', function (): void {
+        /** @var TestCase $this */
+        $order = Order::factory()->create([
+            'status' => OrderStatusEnum::CancelledByClient,
+            'cancellation_reason' => 'Provider did not start the work as agreed',
+        ]);
+        $notification = new OrderCancelledNotification($order);
+        $user = domainNotifiableUser();
+        $provider = domainNotifiableProvider();
+
+        expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
+            ->and($notification->broadcastType())->toBe('order cancelled')
+            ->and($notification->toArray($user))->toBe([
+                'title_translated_key' => 'order_cancelled',
+                'body_translated_key' => 'order_has_been_cancelled',
+                'translated_attributes' => [],
+                'order_id' => $order->id,
+                'final_status' => $order->status->value,
+                'cancellation_reason' => $order->cancellation_reason,
+            ]);
+
+        assertBroadcastPayload($notification->toBroadcast($user), [
+            'title' => trans('order_cancelled', locale: 'en'),
+            'body' => trans('order_has_been_cancelled', locale: 'en'),
+            'order_id' => $order->id,
+            'final_status' => $order->status->value,
+            'cancellation_reason' => $order->cancellation_reason,
+        ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans('order_cancelled', locale: 'en'),
+            trans('order_has_been_cancelled', locale: 'en'),
+            [
+                'order_id' => $order->id,
+                'final_status' => $order->status->value,
+                'cancellation_reason' => $order->cancellation_reason,
+            ],
+        );
     });
 });
 

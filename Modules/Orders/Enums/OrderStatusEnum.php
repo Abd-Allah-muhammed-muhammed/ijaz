@@ -41,4 +41,13 @@ enum OrderStatusEnum: string
             self::Refunded => 'secondary',
         };
     }
+
+    public static function isAllowed(self $old, self $new, string $actor): bool
+    {
+        return match ($actor) {
+            'provider' => $old === self::InProgress && $new === self::CancelledByProvider,
+            'user' => $old === self::InProgress && $new === self::CancelledByClient,
+            default => false,
+        };
+    }
 }

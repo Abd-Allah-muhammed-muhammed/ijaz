@@ -1,36 +1,9 @@
 <?php
 
-use App\Models\Provider;
-use App\Models\User;
 use Modules\Orders\Actions\CancelOrderPaymentAction;
 use Modules\Orders\Actions\SettleOrderPaymentAction;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Exceptions\OrdersException;
-use Modules\Orders\Models\Order;
-use Modules\Orders\Models\OrderOffer;
-use Modules\Payment\Enums\PaymentStatusEnum;
-use Modules\Payment\Events\PaymentCompleted;
-
-/**
- * @return array{user: User, provider: Provider, order: Order, offer: OrderOffer}
- */
-function paidInProgressOrder(float $price = 500.0): array
-{
-    $context = createOrderPaymentContext($price);
-
-    $payment = createPaymentFor($context['user'], $context['offer'], [
-        'amount' => $price,
-        'driver' => 'testing',
-        'status' => PaymentStatusEnum::Accepted,
-    ]);
-
-    event(new PaymentCompleted($payment));
-
-    return [
-        ...$context,
-        'order' => $context['order']->fresh(),
-    ];
-}
 
 test('cancelling a paid order reverses the user pending_debit hold in full', function () {
     ['user' => $user, 'order' => $order] = paidInProgressOrder(500.0);
