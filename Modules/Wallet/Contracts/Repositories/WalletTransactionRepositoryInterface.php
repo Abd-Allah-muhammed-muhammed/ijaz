@@ -4,7 +4,6 @@ namespace Modules\Wallet\Contracts\Repositories;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 use Modules\Wallet\DTOs\WalletTransactionData;
 use Modules\Wallet\Models\Wallet;
 use Modules\Wallet\Models\WalletTransaction;
@@ -25,14 +24,7 @@ interface WalletTransactionRepositoryInterface
         array $descriptions,
     ): bool;
 
-    /**
-     * Paginate distinct (operation_id, operation_type) groups, with every ledger
-     * row for each group on the page. Used to assemble lifecycle events without
-     * splitting a group across pages.
-     *
-     * @return LengthAwarePaginator<int, Collection<int, WalletTransaction>>
-     */
-    public function listGroupedRowsForOwner(
+    public function listForOwner(
         Model $owner,
         int $perPage = 15,
         ?string $dateFrom = null,
