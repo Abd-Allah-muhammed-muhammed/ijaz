@@ -30,7 +30,7 @@ class CancelWithdrawRequestAction
             owner: $owner,
             amount: (float) $withdrawRequest->amount,
             operation: $withdrawRequest,
-            description: "Withdraw Request Cancelled #{$withdrawRequest->id}",
+            description: '',
             entryKind: WalletTransactionEntryKindEnum::WithdrawCancelled,
         );
 

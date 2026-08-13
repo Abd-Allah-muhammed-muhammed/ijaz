@@ -2,9 +2,13 @@
 
 namespace Modules\Wallet\Contracts\Repositories;
 
+use Closure;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Modules\Wallet\DTOs\WalletTransactionData;
+use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 use Modules\Wallet\Models\Wallet;
 use Modules\Wallet\Models\WalletTransaction;
 
@@ -39,4 +43,25 @@ interface WalletTransactionRepositoryInterface
         ?string $search = null,
         int $perPage = 25,
     ): LengthAwarePaginator;
+
+    /**
+     * @param  Closure(Builder): void  $constraints
+     */
+    public function countUnstamped(Closure $constraints): int;
+
+    /**
+     * @param  Closure(Builder): void  $constraints
+     * @param  Closure(Collection<int, WalletTransaction>): void  $callback
+     */
+    public function chunkUnstampedById(Closure $constraints, int $chunkSize, Closure $callback): void;
+
+    /**
+     * @param  list<string>  $ids
+     */
+    public function stampEntryKind(array $ids, WalletTransactionEntryKindEnum $kind): int;
+
+    /**
+     * @return Collection<int, string>
+     */
+    public function withdrawOperationIdsWithDebit(): Collection;
 }

@@ -4,6 +4,7 @@ use App\Enums\OperationStatusEnum;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use Modules\Payment\Enums\PaymentDriverEnum;
 use Modules\Payment\Enums\PaymentMethodEnum;
@@ -761,4 +762,102 @@ test('a withdraw_requested row becomes invisible once its sibling approved or re
         ->pluck('id');
 
     expect($after)->not->toContain($requestedId);
+});
+
+test('a withdraw_requested transaction returns a translated description in the request locale, not a raw class name', function () {
+    $user = createWalletUser();
+    fundWallet($user, 400);
+    $withdraw = app(WithdrawRequestService::class)->create(
+        $user,
+        new CreateWithdrawData(amount: 200, userNotes: null),
+    );
+    Sanctum::actingAs($user);
+
+    $ref = strtoupper(substr((string) $withdraw->id, -8));
+    $expected = __('wallet.entry_kind.withdraw_requested', ['ref' => $ref], 'en');
+
+    $item = collect($this->getJson(
+        action([WalletController::class, 'transactions'], ['per_page' => 20]),
+        ['Accept-Language' => 'en'],
+    )->assertSuccessful()->json('data.items'))
+        ->firstWhere('operation_id', $withdraw->id);
+
+    $stored = WalletTransaction::query()
+        ->where('operation_id', $withdraw->id)
+        ->where('entry_kind', WalletTransactionEntryKindEnum::WithdrawRequested)
+        ->sole();
+
+    expect($item)->not->toBeNull()
+        ->and($item['description'])->toBe($expected)
+        ->and($item['description'])->toContain($ref)
+        ->and($item['description'])->not->toContain('Modules\\Wallet')
+        ->and($item['description'])->not->toContain(WithdrawRequest::class)
+        ->and($item['description'])->not->toContain('Withdraw Request Created')
+        ->and($stored->description)->toBe('');
+});
+
+test('the same transaction returns a different description string when requested with a different Accept-Language / locale', function () {
+    $user = createWalletUser();
+    fundWallet($user, 400);
+    $withdraw = app(WithdrawRequestService::class)->create(
+        $user,
+        new CreateWithdrawData(amount: 200, userNotes: null),
+    );
+    Sanctum::actingAs($user);
+
+    $ref = strtoupper(substr((string) $withdraw->id, -8));
+
+    $english = collect($this->getJson(
+        action([WalletController::class, 'transactions'], ['per_page' => 20]),
+        ['Accept-Language' => 'en'],
+    )->assertSuccessful()->json('data.items'))
+        ->firstWhere('operation_id', $withdraw->id)['description'];
+
+    $arabic = collect($this->getJson(
+        action([WalletController::class, 'transactions'], ['per_page' => 20]),
+        ['Accept-Language' => 'ar'],
+    )->assertSuccessful()->json('data.items'))
+        ->firstWhere('operation_id', $withdraw->id)['description'];
+
+    expect($english)->toBe(__('wallet.entry_kind.withdraw_requested', ['ref' => $ref], 'en'))
+        ->and($arabic)->toBe(__('wallet.entry_kind.withdraw_requested', ['ref' => $ref], 'ar'))
+        ->and($english)->not->toBe($arabic)
+        ->and($english)->toContain($ref)
+        ->and($arabic)->toContain($ref);
+});
+
+test('an entry_kind=null transaction (e.g. an Order-related row) still uses its original stored description, unaffected by this change', function () {
+    $user = createWalletUser();
+    fundWallet($user, 100);
+
+    $orderRow = WalletTransaction::query()->create([
+        'wallet_id' => $user->wallet->id,
+        'user_id' => $user->id,
+        'user_type' => $user::class,
+        'credit' => 25,
+        'debit' => 0,
+        'pending_credit' => 0,
+        'pending_debit' => 0,
+        'balance_before' => 100,
+        'balance_after' => 125,
+        'description' => 'Order settlement for completed job',
+        'operation_type' => 'Modules\\Orders\\Models\\Order',
+        'operation_id' => (string) Str::uuid(),
+        'entry_kind' => null,
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $items = collect($this->getJson(
+        action([WalletController::class, 'transactions'], ['per_page' => 20]),
+        ['Accept-Language' => 'ar'],
+    )->assertSuccessful()->json('data.items'));
+
+    $orderItem = $items->firstWhere('id', $orderRow->id);
+    $fundingItem = $items->firstWhere('description', 'Test wallet funding');
+
+    expect($orderItem)->not->toBeNull()
+        ->and($orderItem['description'])->toBe('Order settlement for completed job')
+        ->and($fundingItem)->not->toBeNull()
+        ->and($fundingItem['description'])->toBe('Test wallet funding');
 });

@@ -46,7 +46,7 @@ class HandleTopUpPaymentCompleted
                 owner: $payment->user,
                 amount: $payment->amount,
                 operation: $topUp,
-                description: "Online top-up approved — TopUpRequest#{$topUp->id}",
+                description: '',
                 entryKind: WalletTransactionEntryKindEnum::TopupCredited,
             );
         });

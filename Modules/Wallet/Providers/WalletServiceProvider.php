@@ -5,6 +5,7 @@ namespace Modules\Wallet\Providers;
 use Illuminate\Support\Facades\Event;
 use Modules\Payment\Events\PaymentCompleted;
 use Modules\Payment\Events\PaymentFailed;
+use Modules\Wallet\Console\Commands\BackfillWalletTransactionEntryKindCommand;
 use Modules\Wallet\Contracts\Repositories\TopUpRequestRepositoryInterface;
 use Modules\Wallet\Contracts\Repositories\WalletRepositoryInterface;
 use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
@@ -78,6 +79,12 @@ class WalletServiceProvider extends ModuleServiceProvider
         Event::listen(PaymentCompleted::class, HandleTopUpPaymentCompleted::class);
         Event::listen(PaymentFailed::class, HandleTopUpPaymentFailed::class);
         Event::listen(PaymentFailed::class, NotifyTopUpPaymentFailed::class);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                BackfillWalletTransactionEntryKindCommand::class,
+            ]);
+        }
 
         // Policies — added in later phases
     }

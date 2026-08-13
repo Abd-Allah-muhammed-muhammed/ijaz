@@ -19,13 +19,11 @@ class FinalizeWithdrawAction
 
     public function handle(Model $owner, WithdrawRequest $request, bool $approved): void
     {
-        $description = 'Wallet withdraw for '.get_class($request).' #'.$request->id;
-
         $this->reversePendingDebitAction->handle(
             $owner,
             (float) $request->amount,
             $request,
-            $description,
+            '',
             WalletTransactionEntryKindEnum::WithdrawHoldReleased,
         );
 
@@ -34,13 +32,13 @@ class FinalizeWithdrawAction
                 $owner,
                 (float) $request->amount,
                 $request,
-                $description,
+                '',
                 WalletTransactionEntryKindEnum::WithdrawApproved,
             );
 
             return;
         }
 
-        $this->recordWithdrawRejectedAction->handle($owner, $request, $description);
+        $this->recordWithdrawRejectedAction->handle($owner, $request, '');
     }
 }

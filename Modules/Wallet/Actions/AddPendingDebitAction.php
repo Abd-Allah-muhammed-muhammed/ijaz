@@ -44,7 +44,9 @@ class AddPendingDebitAction
 
         $this->transactionRepo->create($wallet, $owner, new WalletTransactionData(
             amount: $amount,
-            description: $description ?: 'Pending debit for '.$operation::class.'#'.$operation->getKey(),
+            description: $entryKind !== null
+                ? $description
+                : ($description ?: 'Pending debit for '.$operation::class.'#'.$operation->getKey()),
             operation_type: $operation::class,
             operation_id: (string) $operation->getKey(),
             type: TransactionTypeEnum::PendingDebit,

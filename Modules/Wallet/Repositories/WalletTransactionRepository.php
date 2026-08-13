@@ -2,14 +2,17 @@
 
 namespace Modules\Wallet\Repositories;
 
+use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
 use Modules\Wallet\DTOs\WalletTransactionData;
 use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 use Modules\Wallet\Models\Wallet;
 use Modules\Wallet\Models\WalletTransaction;
+use Modules\Wallet\Models\WithdrawRequest;
 use Modules\Wallet\Support\WalletSearch;
 
 class WalletTransactionRepository implements WalletTransactionRepositoryInterface
@@ -112,5 +115,45 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
                             ]);
                     });
             });
+    }
+
+    public function countUnstamped(Closure $constraints): int
+    {
+        return WalletTransaction::query()
+            ->where(function (Builder $query) use ($constraints): void {
+                $query->whereNull('entry_kind');
+                $constraints($query);
+            })
+            ->count();
+    }
+
+    public function chunkUnstampedById(Closure $constraints, int $chunkSize, Closure $callback): void
+    {
+        WalletTransaction::query()
+            ->where(function (Builder $query) use ($constraints): void {
+                $query->whereNull('entry_kind');
+                $constraints($query);
+            })
+            ->chunkById($chunkSize, $callback);
+    }
+
+    public function stampEntryKind(array $ids, WalletTransactionEntryKindEnum $kind): int
+    {
+        if ($ids === []) {
+            return 0;
+        }
+
+        return WalletTransaction::query()
+            ->whereIn('id', $ids)
+            ->whereNull('entry_kind')
+            ->update(['entry_kind' => $kind->value]);
+    }
+
+    public function withdrawOperationIdsWithDebit(): Collection
+    {
+        return WalletTransaction::query()
+            ->where('operation_type', WithdrawRequest::class)
+            ->where('debit', '>', 0)
+            ->pluck('operation_id');
     }
 }

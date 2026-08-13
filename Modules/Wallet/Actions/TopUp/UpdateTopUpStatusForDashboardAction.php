@@ -58,7 +58,7 @@ class UpdateTopUpStatusForDashboardAction
                     owner: $topUpRequest->user,
                     amount: $topUpRequest->amount,
                     operation: $topUpRequest,
-                    description: "Offline top-up approved #{$topUpRequest->id}",
+                    description: '',
                     entryKind: WalletTransactionEntryKindEnum::TopupCredited,
                 );
             }

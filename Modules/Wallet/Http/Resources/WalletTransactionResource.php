@@ -5,6 +5,7 @@ namespace Modules\Wallet\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Wallet\Models\WalletTransaction;
+use Modules\Wallet\Support\WalletTransactionDescription;
 
 /**
  * @mixin WalletTransaction
@@ -29,7 +30,7 @@ class WalletTransactionResource extends JsonResource
             'pending_debit' => (float) $this->pending_debit,
             'balance_before' => (float) $this->balance_before,
             'balance_after' => (float) $this->balance_after,
-            'description' => $this->description,
+            'description' => WalletTransactionDescription::for($this->resource),
             'operation_type' => $this->operation_type,
             'operation_id' => $this->operation_id,
             'created_at' => $this->created_at?->toIso8601String(),

@@ -61,7 +61,7 @@ class CreateWithdrawRequestAction
             owner: $owner,
             amount: $data->amount,
             operation: $withdrawRequest,
-            description: "Withdraw Request Created #{$withdrawRequest->id}",
+            description: '',
             requireSufficientAvailable: false,
             skipBalanceIncrement: true,
             entryKind: WalletTransactionEntryKindEnum::WithdrawRequested,
