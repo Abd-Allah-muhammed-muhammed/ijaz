@@ -52,6 +52,8 @@ class OrderResource extends JsonResource
             'provider_total' => $this->provider_total,
             'user_fees' => $this->user_fees,
             'provider_fees' => $this->provider_fees,
+            'cancellation_reason' => $this->cancellation_reason,
+            'cancelled_at' => $this->cancelled_at?->toIso8601String(),
         ];
     }
 }

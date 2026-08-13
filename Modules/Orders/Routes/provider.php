@@ -24,6 +24,7 @@ Route::prefix('/orders')->controller(OrderController::class)->as('orders.')->gro
         Route::delete('{offer}', 'deleteOffer')->name('offers.delete');
     });
     Route::post('/{order}/end', 'end');
+    Route::post('/{order}/cancel', 'cancel');
     Route::post('/{order}/review', 'updateReview')->name('review.update');
     Route::get('/{order}', 'show')->name('show');
 });

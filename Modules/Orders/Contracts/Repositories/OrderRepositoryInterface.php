@@ -4,9 +4,11 @@ namespace Modules\Orders\Contracts\Repositories;
 
 use App\Models\Provider;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
+use Illuminate\Support\LazyCollection;
 use Modules\Chat\Models\Conversation;
 use Modules\Orders\Models\Order;
 
@@ -85,4 +87,14 @@ interface OrderRepositoryInterface
     public function loadForProviderShow(Order $order, Provider $provider): Order;
 
     public function loadForDashboardShow(Order $order): Order;
+
+    public function lockForUpdate(Order $order): Order;
+
+    /**
+     * Completed orders whose first Ended* history is at or before $endedBefore
+     * and whose wallet holds have not been settled.
+     *
+     * @return LazyCollection<int, Order>
+     */
+    public function listDueForWalletSettlement(CarbonInterface $endedBefore): LazyCollection;
 }

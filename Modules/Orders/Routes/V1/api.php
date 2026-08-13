@@ -17,6 +17,7 @@ Route::prefix('user')->group(static function () {
             Route::post('/{order}/{offer}/update-status', 'updateOfferStatus');
             Route::post('/{order}/{offer}/pay', 'pay');
             Route::post('/{order}/end-and-review', 'endAndReview');
+            Route::post('/{order}/cancel', 'cancel');
             Route::delete('/{order}/{media:uuid}/delete', 'deleteMedia');
             Route::delete('/{order}', 'destroy');
         });

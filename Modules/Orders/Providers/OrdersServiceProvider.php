@@ -5,6 +5,7 @@ namespace Modules\Orders\Providers;
 use Illuminate\Support\Facades\Event;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Registry\ChatTypeRegistry;
+use Modules\Orders\Console\Commands\SettleCompletedOrdersCommand;
 use Modules\Orders\Contracts\Repositories\OrderOfferRepositoryInterface;
 use Modules\Orders\Contracts\Repositories\OrderRepositoryInterface;
 use Modules\Orders\Handlers\OrderChatHandler;
@@ -47,5 +48,11 @@ class OrdersServiceProvider extends ModuleServiceProvider
 
         $this->app->make(ChatTypeRegistry::class)
             ->register(ChatTypeEnum::Order, new OrderChatHandler);
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                SettleCompletedOrdersCommand::class,
+            ]);
+        }
     }
 }

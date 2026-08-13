@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Models\ConversationMessage;
+use Modules\Orders\Actions\CancelOrderAction;
 use Modules\Orders\Actions\Dashboard\BroadcastAdminOrderConversationTypingAction;
 use Modules\Orders\Actions\Dashboard\CountAllOrdersAction;
 use Modules\Orders\Actions\Dashboard\GetOrderStatusDistributionAction;
@@ -35,6 +36,7 @@ use Modules\Orders\Actions\User\EditOrderAction;
 use Modules\Orders\Actions\User\EndAndReviewOrderAction;
 use Modules\Orders\Actions\User\ListUserOrdersAction;
 use Modules\Orders\Actions\User\ShowOrderAction;
+use Modules\Orders\DTOs\CancelOrderDTO;
 use Modules\Orders\DTOs\EndAndReviewDTO;
 use Modules\Orders\DTOs\StoreOrderDTO;
 use Modules\Orders\DTOs\UpdateOrderDTO;
@@ -52,6 +54,7 @@ class OrderService
         private readonly DeleteOrderAction $deleteOrder,
         private readonly DeleteOrderMediaAction $deleteOrderMedia,
         private readonly EndAndReviewOrderAction $endAndReviewOrder,
+        private readonly CancelOrderAction $cancelOrder,
         private readonly ListProviderOrdersAction $listProviderOrders,
         private readonly ListRecommendedOrdersAction $listRecommendedOrders,
         private readonly ListProviderHomeRecommendedOrdersAction $listProviderHomeRecommendedOrders,
@@ -119,6 +122,14 @@ class OrderService
     public function endAndReview(Order $order, User $user, EndAndReviewDTO $data): void
     {
         $this->endAndReviewOrder->handle($order, $user, $data);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function cancel(Order $order, ?Authenticatable $actor, CancelOrderDTO $data): void
+    {
+        $this->cancelOrder->handle($order, $actor, $data);
     }
 
     /**
