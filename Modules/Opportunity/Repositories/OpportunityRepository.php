@@ -35,7 +35,7 @@ class OpportunityRepository implements OpportunityRepositoryInterface
         return Opportunity::query()->findOrFail($id);
     }
 
-    public function listPublic(?Model $actor = null, int $perPage = 10): LengthAwarePaginator
+    public function listPublic(?Model $actor = null, int $perPage = 10, ?int $regionId = null, ?int $cityId = null): LengthAwarePaginator
     {
         return Opportunity::query()
             ->with(['author', 'region.translation', 'city.translation', 'media'])
@@ -43,12 +43,14 @@ class OpportunityRepository implements OpportunityRepositoryInterface
                 'offers' => fn (Builder $query) => $this->constrainOffersCountForViewer($query, $actor),
                 'comments',
             ])
+            ->when($regionId, fn (Builder $query, int $value) => $query->where('region_id', $value))
+            ->when($cityId, fn (Builder $query, int $value) => $query->where('city_id', $value))
             ->active()
             ->latest()
             ->paginate($perPage);
     }
 
-    public function listByActor(Model $actor, int $perPage = 10): LengthAwarePaginator
+    public function listByActor(Model $actor, int $perPage = 10, ?string $status = null): LengthAwarePaginator
     {
         return Opportunity::query()
             ->byActor($actor)
@@ -57,6 +59,7 @@ class OpportunityRepository implements OpportunityRepositoryInterface
                 'offers' => fn (Builder $query) => $this->constrainOffersCountForViewer($query, $actor),
                 'comments',
             ])
+            ->when($status, fn (Builder $query, string $value) => $query->where('status', $value))
             ->latest()
             ->paginate($perPage);
     }
