@@ -117,3 +117,28 @@ test('SettleOrderPaymentAction correctly computes net = gross - provider_fees, m
     expect((float) $provider->wallet->fresh()->balance)->toBe($net)
         ->and((float) $provider->wallet->fresh()->pending_credit)->toBe(0.0);
 });
+
+test('after order settlement, the provider pending_debit fee hold is fully cleared to zero — not left at a negative residual value that would inflate available balance', function () {
+    ['provider' => $provider, 'order' => $order] = paidEndedOrder(500.0);
+
+    $fees = (float) $order->provider_fees;
+    $net = (float) $order->price - $fees;
+    $providerWallet = $provider->wallet->fresh();
+
+    expect($fees)->toBe(50.0)
+        ->and((float) $providerWallet->pending_debit)->toBe(-50.0)
+        ->and((float) $providerWallet->pending_debit)->toBe(-$fees);
+
+    app(SettleOrderPaymentAction::class)->handle($order);
+
+    $providerWallet = $provider->wallet->fresh();
+
+    expect((float) $providerWallet->pending_debit)->toBe(0.0)
+        ->and((float) $providerWallet->balance)->toBe($net)
+        ->and((float) ($providerWallet->balance - $providerWallet->pending_debit))->toBe($net);
+
+    app(SettleOrderPaymentAction::class)->handle($order->fresh());
+
+    expect((float) $provider->wallet->fresh()->pending_debit)->toBe(0.0)
+        ->and((float) $provider->wallet->fresh()->balance)->toBe($net);
+});

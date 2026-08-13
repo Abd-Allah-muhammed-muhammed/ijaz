@@ -17,9 +17,10 @@ class SettleOrderPaymentAction
 
     /**
      * Close order wallet holds after the dispute window: reverse the user's
-     * pending_debit in full, and release the provider's pending_credit to
-     * balance net of provider_fees (fee stays inside pending_credit, matching
-     * EndGuarantorAction). Idempotent — a second call is a no-op.
+     * pending_debit in full, release the provider's pending_credit to balance
+     * net of provider_fees (fee stays inside pending_credit, matching
+     * EndGuarantorAction), and zero the provider's leftover negative
+     * pending_debit from AdjustPendingAction. Idempotent — a second call is a no-op.
      *
      * @throws Throwable
      */
@@ -59,6 +60,18 @@ class SettleOrderPaymentAction
                         $net,
                         $operation,
                         "Order#{$order->id} settled — funds released",
+                    );
+                }
+
+                // AdjustPendingAction subtracts debitDelta; payment left a negative
+                // fee residual. reversePendingDebit($leftover) increments it to 0.
+                $feeHold = (float) $providerWallet->pending_debit;
+                if ($feeHold < 0) {
+                    $this->walletService->reversePendingDebit(
+                        $order->provider,
+                        $feeHold,
+                        $operation,
+                        "Order#{$order->id} settled — fee hold closed",
                     );
                 }
             }
