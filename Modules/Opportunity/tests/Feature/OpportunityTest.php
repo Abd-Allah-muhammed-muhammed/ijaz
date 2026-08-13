@@ -14,6 +14,7 @@ use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
 use Modules\Chat\Infrastructure\Events\NewMessageEvent;
 use Modules\Chat\Models\Conversation;
 use Modules\Opportunity\Actions\Opportunity\ExpireOpportunityAction;
+use Modules\Opportunity\Actions\Opportunity\RenewOpportunityAction;
 use Modules\Opportunity\Enums\OfferStatusEnum;
 use Modules\Opportunity\Enums\OpportunityStatusEnum;
 use Modules\Opportunity\Http\Controllers\Api\V1\CommentController;
@@ -1582,6 +1583,50 @@ test('expire job sends notification to author', function () {
     ]);
 
     (new ExpireOpportunityJob($opportunity))->handle(app(ExpireOpportunityAction::class));
+
+    Notification::assertSentTo($author, OpportunityExpiredNotification::class);
+});
+
+test('an opportunity renewed after being queued for expiry is NOT expired by the job — expires_at is back in the future by the time the job runs, so the job must no-op instead of overwriting status to Expired', function () {
+    Notification::fake();
+
+    $author = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'expires_at' => now()->subHour(),
+        'status' => OpportunityStatusEnum::New,
+    ]);
+
+    $job = new ExpireOpportunityJob($opportunity);
+
+    app(RenewOpportunityAction::class)->handle($opportunity->fresh());
+
+    $job->handle(app(ExpireOpportunityAction::class));
+
+    $opportunity->refresh();
+
+    expect($opportunity->status)->toBe(OpportunityStatusEnum::New)
+        ->and($opportunity->expires_at?->isFuture())->toBeTrue();
+
+    Notification::assertNotSentTo($author, OpportunityExpiredNotification::class);
+});
+
+test('an opportunity that is still genuinely past-due when the job runs IS expired normally — this must keep working exactly as before', function () {
+    Notification::fake();
+
+    $author = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'expires_at' => now()->subHour(),
+        'status' => OpportunityStatusEnum::New,
+    ]);
+
+    (new ExpireOpportunityJob($opportunity))->handle(app(ExpireOpportunityAction::class));
+
+    expect($opportunity->fresh()->status)->toBe(OpportunityStatusEnum::Expired)
+        ->and($opportunity->fresh()->expires_at?->isPast())->toBeTrue();
 
     Notification::assertSentTo($author, OpportunityExpiredNotification::class);
 });
