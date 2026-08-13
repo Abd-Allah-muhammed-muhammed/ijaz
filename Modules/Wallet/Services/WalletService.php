@@ -10,7 +10,6 @@ use Modules\Wallet\Actions\AdjustPendingAction;
 use Modules\Wallet\Actions\CreditWalletAction;
 use Modules\Wallet\Actions\DebitWalletAction;
 use Modules\Wallet\Actions\FinalizeWithdrawAction;
-use Modules\Wallet\Actions\ListWalletTransactionLifecyclesAction;
 use Modules\Wallet\Actions\ReleasePendingCreditToBalanceAction;
 use Modules\Wallet\Actions\ReversePendingCreditAction;
 use Modules\Wallet\Actions\ReversePendingDebitAction;
@@ -34,7 +33,6 @@ class WalletService
         private readonly ReversePendingCreditAction $reversePendingCreditAction,
         private readonly AdjustPendingAction $adjustPendingAction,
         private readonly FinalizeWithdrawAction $finalizeWithdrawAction,
-        private readonly ListWalletTransactionLifecyclesAction $listLifecyclesAction,
     ) {}
 
     public function credit(Model $owner, float $amount, Model $operation, string $description = ''): void
@@ -107,6 +105,6 @@ class WalletService
         ?string $dateFrom = null,
         ?string $dateTo = null,
     ): LengthAwarePaginator {
-        return $this->listLifecyclesAction->handle($owner, $perPage, $dateFrom, $dateTo);
+        return $this->transactionRepo->listForOwner($owner, $perPage, $dateFrom, $dateTo);
     }
 }
