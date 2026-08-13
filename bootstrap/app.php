@@ -106,6 +106,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withSchedule(function (Schedule $schedule) {
         $schedule->command('opportunities:expire')->hourly();
+        $schedule->command('orders:settle-completed')->hourly();
         $schedule->command('guarantor:check-overdue')->dailyAt('00:00');
         $schedule->command('auth:prune-expired-otp-sessions')->hourly();
         // Telescope is toggle-based (off by default); prune daily with 48h retention.

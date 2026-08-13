@@ -44,6 +44,7 @@ class Order extends Model implements HasMedia
         'title', 'description', 'user_id', 'provider_id', 'category_id', 'price', 'status', 'expected_time', 'budget_start',
         'budget_end', 'accepted_offer_id', 'city_id', 'region_id',
         'user_fees', 'provider_fees', 'total_fees', 'user_total', 'provider_total',
+        'wallet_settled_at',
     ];
 
     protected static function newFactory(): Factory
@@ -111,6 +112,7 @@ class Order extends Model implements HasMedia
     {
         return [
             'status' => OrderStatusEnum::class,
+            'wallet_settled_at' => 'datetime',
         ];
     }
 

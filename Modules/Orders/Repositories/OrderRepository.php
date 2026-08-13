@@ -5,10 +5,12 @@ namespace Modules\Orders\Repositories;
 use App\Models\Provider;
 use App\Models\User;
 use App\Support\LookupCache;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\LazyCollection;
 use Modules\Chat\Models\Conversation;
 use Modules\Orders\Contracts\Repositories\OrderRepositoryInterface;
 use Modules\Orders\Enums\OfferStatusEnum;
@@ -290,6 +292,38 @@ class OrderRepository implements OrderRepositoryInterface
         ]);
 
         return $order;
+    }
+
+    public function lockForUpdate(Order $order): Order
+    {
+        /** @var Order $locked */
+        $locked = Order::query()
+            ->whereKey($order->getKey())
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        return $locked;
+    }
+
+    /**
+     * @return LazyCollection<int, Order>
+     */
+    public function listDueForWalletSettlement(CarbonInterface $endedBefore): LazyCollection
+    {
+        $endedStatuses = [
+            OrderStatusEnum::EndedByProvider,
+            OrderStatusEnum::EndedByClient,
+        ];
+
+        return Order::query()
+            ->whereIn('status', $endedStatuses)
+            ->whereNull('wallet_settled_at')
+            ->whereHas('histories', function ($query) use ($endedBefore, $endedStatuses): void {
+                $query->whereIn('status', $endedStatuses)
+                    ->where('created_at', '<=', $endedBefore);
+            })
+            ->with(['user', 'provider', 'acceptedOffer'])
+            ->lazyById();
     }
 
     public function loadForDashboardShow(Order $order): Order
