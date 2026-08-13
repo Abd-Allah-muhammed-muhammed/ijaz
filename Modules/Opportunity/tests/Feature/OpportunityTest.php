@@ -13,6 +13,8 @@ use Laravel\Sanctum\Sanctum;
 use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
 use Modules\Chat\Infrastructure\Events\NewMessageEvent;
 use Modules\Chat\Models\Conversation;
+use Modules\Geo\Models\City;
+use Modules\Geo\Models\Region;
 use Modules\Opportunity\Actions\Opportunity\ExpireOpportunityAction;
 use Modules\Opportunity\Actions\Opportunity\RenewOpportunityAction;
 use Modules\Opportunity\Enums\OfferStatusEnum;
@@ -31,6 +33,17 @@ use Modules\Opportunity\Notifications\OpportunityOfferRejectedNotification;
 use Modules\Opportunity\Notifications\OpportunityOfferSubmittedNotification;
 
 // Uses LazilyRefreshDatabase from tests/Pest.php
+
+/**
+ * @return array{0: Region, 1: City}
+ */
+function createRegionWithCity(): array
+{
+    $region = Region::factory()->create();
+    $city = City::factory()->create(['region_id' => $region->id]);
+
+    return [$region, $city];
+}
 
 /**
  * @return array{author: User, offerer: User, opportunity: Opportunity, offer: OpportunityOffer}
@@ -78,6 +91,179 @@ test('guest can list all public opportunities', function () {
                 'per_page',
             ],
         ]);
+});
+
+test('public opportunity listing filters by region_id when provided', function () {
+    [$regionA, $cityA] = createRegionWithCity();
+    [$regionB, $cityB] = createRegionWithCity();
+
+    $inRegionA = Opportunity::factory()->create([
+        'region_id' => $regionA->id,
+        'city_id' => $cityA->id,
+    ]);
+    $inRegionB = Opportunity::factory()->create([
+        'region_id' => $regionB->id,
+        'city_id' => $cityB->id,
+    ]);
+
+    $ids = collect($this->getJson(action([OpportunityController::class, 'all'], [
+        'region_id' => $regionA->id,
+    ]))->assertSuccessful()->json('data.items'))->pluck('id');
+
+    expect($ids)->toHaveCount(1)
+        ->toContain($inRegionA->id)
+        ->not->toContain($inRegionB->id);
+});
+
+test('public opportunity listing filters by city_id when provided', function () {
+    [$regionA, $cityA] = createRegionWithCity();
+    [$regionB, $cityB] = createRegionWithCity();
+
+    $inCityA = Opportunity::factory()->create([
+        'region_id' => $regionA->id,
+        'city_id' => $cityA->id,
+    ]);
+    $inCityB = Opportunity::factory()->create([
+        'region_id' => $regionB->id,
+        'city_id' => $cityB->id,
+    ]);
+
+    $ids = collect($this->getJson(action([OpportunityController::class, 'all'], [
+        'city_id' => $cityA->id,
+    ]))->assertSuccessful()->json('data.items'))->pluck('id');
+
+    expect($ids)->toHaveCount(1)
+        ->toContain($inCityA->id)
+        ->not->toContain($inCityB->id);
+});
+
+test('public opportunity listing filters by both region_id and city_id together when both provided', function () {
+    [$regionA, $cityA1] = createRegionWithCity();
+    $cityA2 = City::factory()->create(['region_id' => $regionA->id]);
+    [$regionB, $cityB] = createRegionWithCity();
+
+    $matching = Opportunity::factory()->create([
+        'region_id' => $regionA->id,
+        'city_id' => $cityA1->id,
+    ]);
+    $sameRegionDifferentCity = Opportunity::factory()->create([
+        'region_id' => $regionA->id,
+        'city_id' => $cityA2->id,
+    ]);
+    $otherRegion = Opportunity::factory()->create([
+        'region_id' => $regionB->id,
+        'city_id' => $cityB->id,
+    ]);
+
+    $ids = collect($this->getJson(action([OpportunityController::class, 'all'], [
+        'region_id' => $regionA->id,
+        'city_id' => $cityA1->id,
+    ]))->assertSuccessful()->json('data.items'))->pluck('id');
+
+    expect($ids)->toHaveCount(1)
+        ->toContain($matching->id)
+        ->not->toContain($sameRegionDifferentCity->id)
+        ->not->toContain($otherRegion->id);
+});
+
+test('public opportunity listing returns unfiltered results when neither is provided — no behavior change from before this task', function () {
+    [$regionA, $cityA] = createRegionWithCity();
+    [$regionB, $cityB] = createRegionWithCity();
+
+    $inRegionA = Opportunity::factory()->create([
+        'region_id' => $regionA->id,
+        'city_id' => $cityA->id,
+    ]);
+    $inRegionB = Opportunity::factory()->create([
+        'region_id' => $regionB->id,
+        'city_id' => $cityB->id,
+    ]);
+    Opportunity::factory()->create([
+        'region_id' => $regionA->id,
+        'city_id' => $cityA->id,
+        'status' => OpportunityStatusEnum::Cancelled,
+    ]);
+
+    $ids = collect($this->getJson(action([OpportunityController::class, 'all']))
+        ->assertSuccessful()
+        ->assertJsonPath('data.total', 2)
+        ->json('data.items'))->pluck('id');
+
+    expect($ids)
+        ->toContain($inRegionA->id)
+        ->toContain($inRegionB->id);
+});
+
+test('author opportunity listing filters by status when provided', function () {
+    $author = User::factory()->create();
+    $other = User::factory()->create();
+
+    $expired = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::Expired,
+    ]);
+    $active = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::New,
+    ]);
+    Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $other->id,
+        'status' => OpportunityStatusEnum::Expired,
+    ]);
+
+    Sanctum::actingAs($author);
+
+    $ids = collect($this->getJson(action([OpportunityController::class, 'index'], [
+        'status' => OpportunityStatusEnum::Expired->value,
+    ]))->assertSuccessful()->json('data.items'))->pluck('id');
+
+    expect($ids)->toHaveCount(1)
+        ->toContain($expired->id)
+        ->not->toContain($active->id);
+});
+
+test('author opportunity listing returns unfiltered results (all statuses) when status is not provided — no behavior change from before this task', function () {
+    $author = User::factory()->create();
+
+    $new = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::New,
+    ]);
+    $expired = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::Expired,
+    ]);
+    $cancelled = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::Cancelled,
+    ]);
+
+    Sanctum::actingAs($author);
+
+    $ids = collect($this->getJson(action([OpportunityController::class, 'index']))
+        ->assertSuccessful()
+        ->assertJsonPath('data.total', 3)
+        ->json('data.items'))->pluck('id');
+
+    expect($ids)
+        ->toContain($new->id)
+        ->toContain($expired->id)
+        ->toContain($cancelled->id);
+});
+
+test('author opportunity listing rejects an invalid status value with a validation error, not a silent empty result', function () {
+    Sanctum::actingAs(User::factory()->create());
+
+    $this->getJson(action([OpportunityController::class, 'index'], [
+        'status' => 'not-a-real-status',
+    ]))->assertUnprocessable()
+        ->assertJsonValidationErrors(['status']);
 });
 
 test('guest can view single opportunity', function () {

@@ -11,6 +11,8 @@ use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Opportunity\DTOs\OpportunityData;
 use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Http\Controllers\Concerns\AuthorizesOpportunityRequests;
+use Modules\Opportunity\Http\Requests\ListActorOpportunitiesRequest;
+use Modules\Opportunity\Http\Requests\ListPublicOpportunitiesRequest;
 use Modules\Opportunity\Http\Requests\RenewOpportunityRequest;
 use Modules\Opportunity\Http\Requests\StoreOpportunityRequest;
 use Modules\Opportunity\Http\Requests\UpdateOpportunityRequest;
@@ -40,6 +42,8 @@ class OpportunityController extends Controller
      * @unauthenticated
      *
      * @queryParam per_page int Number of results per page. Example: 10
+     * @queryParam region_id int Optional region filter. Example: 1
+     * @queryParam city_id int Optional city filter. Example: 5
      *
      * @response 200 {
      *   "status": true,
@@ -70,13 +74,15 @@ class OpportunityController extends Controller
      *   }
      * }
      */
-    public function all(Request $request): JsonResponse
+    public function all(ListPublicOpportunitiesRequest $request): JsonResponse
     {
         return $this->successResponse(
             OpportunityCollection::make(
                 $this->service->listPublic(
                     $request->user('sanctum') ?? $request->user(),
                     $request->integer('per_page', 10),
+                    $request->regionId(),
+                    $request->cityId(),
                 )
             )
         );
@@ -90,6 +96,7 @@ class OpportunityController extends Controller
      * @authenticated
      *
      * @queryParam per_page int Number of results per page. Example: 10
+     * @queryParam status string Optional status filter (new, offer_accepted, in_progress, ended, cancelled, expired). Example: expired
      *
      * @response 200 {
      *   "status": true,
@@ -108,11 +115,15 @@ class OpportunityController extends Controller
      *   "message": "Unauthenticated."
      * }
      */
-    public function index(Request $request): JsonResponse
+    public function index(ListActorOpportunitiesRequest $request): JsonResponse
     {
         return $this->successResponse(
             OpportunityCollection::make(
-                $this->service->listByActor(auth()->user(), $request->integer('per_page', 10))
+                $this->service->listByActor(
+                    auth()->user(),
+                    $request->integer('per_page', 10),
+                    $request->status(),
+                )
             )
         );
     }

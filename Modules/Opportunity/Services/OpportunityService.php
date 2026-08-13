@@ -35,14 +35,14 @@ class OpportunityService
         return $this->listForDashboardAction->handle($request);
     }
 
-    public function listPublic(?Model $actor = null, int $perPage = 10): LengthAwarePaginator
+    public function listPublic(?Model $actor = null, int $perPage = 10, ?int $regionId = null, ?int $cityId = null): LengthAwarePaginator
     {
-        return $this->opportunities->listPublic($actor, $perPage);
+        return $this->opportunities->listPublic($actor, $perPage, $regionId, $cityId);
     }
 
-    public function listByActor(Model $actor, int $perPage = 10): LengthAwarePaginator
+    public function listByActor(Model $actor, int $perPage = 10, ?string $status = null): LengthAwarePaginator
     {
-        return $this->opportunities->listByActor($actor, $perPage);
+        return $this->opportunities->listByActor($actor, $perPage, $status);
     }
 
     public function loadForShow(Opportunity $opportunity, ?Model $actor = null): Opportunity
