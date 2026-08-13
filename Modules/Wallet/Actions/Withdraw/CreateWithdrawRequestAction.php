@@ -61,7 +61,7 @@ class CreateWithdrawRequestAction
             owner: $owner,
             amount: $data->amount,
             operation: $withdrawRequest,
-            description: '',
+            description: WalletTransactionEntryKindEnum::WithdrawRequested->translationKey(),
             requireSufficientAvailable: false,
             skipBalanceIncrement: true,
             entryKind: WalletTransactionEntryKindEnum::WithdrawRequested,

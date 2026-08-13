@@ -58,7 +58,7 @@ class UpdateTopUpStatusForDashboardAction
                     owner: $topUpRequest->user,
                     amount: $topUpRequest->amount,
                     operation: $topUpRequest,
-                    description: '',
+                    description: WalletTransactionEntryKindEnum::TopupCredited->translationKey(),
                     entryKind: WalletTransactionEntryKindEnum::TopupCredited,
                 );
             }

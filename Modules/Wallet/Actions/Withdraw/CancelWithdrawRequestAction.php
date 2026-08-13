@@ -30,7 +30,7 @@ class CancelWithdrawRequestAction
             owner: $owner,
             amount: (float) $withdrawRequest->amount,
             operation: $withdrawRequest,
-            description: '',
+            description: WalletTransactionEntryKindEnum::WithdrawCancelled->translationKey(),
             entryKind: WalletTransactionEntryKindEnum::WithdrawCancelled,
         );
 

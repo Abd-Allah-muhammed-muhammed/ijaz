@@ -50,4 +50,9 @@ enum WalletTransactionEntryKindEnum: string
             'value' => $this->value,
         ];
     }
+
+    public function translationKey(): string
+    {
+        return 'wallet.entry_kind.'.$this->value;
+    }
 }

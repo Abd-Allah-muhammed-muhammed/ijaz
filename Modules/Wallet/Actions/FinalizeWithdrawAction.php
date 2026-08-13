@@ -23,7 +23,7 @@ class FinalizeWithdrawAction
             $owner,
             (float) $request->amount,
             $request,
-            '',
+            WalletTransactionEntryKindEnum::WithdrawHoldReleased->translationKey(),
             WalletTransactionEntryKindEnum::WithdrawHoldReleased,
         );
 
@@ -32,13 +32,17 @@ class FinalizeWithdrawAction
                 $owner,
                 (float) $request->amount,
                 $request,
-                '',
+                WalletTransactionEntryKindEnum::WithdrawApproved->translationKey(),
                 WalletTransactionEntryKindEnum::WithdrawApproved,
             );
 
             return;
         }
 
-        $this->recordWithdrawRejectedAction->handle($owner, $request, '');
+        $this->recordWithdrawRejectedAction->handle(
+            $owner,
+            $request,
+            WalletTransactionEntryKindEnum::WithdrawRejected->translationKey(),
+        );
     }
 }

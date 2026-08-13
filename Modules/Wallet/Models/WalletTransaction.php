@@ -2,6 +2,7 @@
 
 namespace Modules\Wallet\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -40,5 +41,29 @@ class WalletTransaction extends Model
         return [
             'entry_kind' => WalletTransactionEntryKindEnum::class,
         ];
+    }
+
+    /**
+     * Withdraw/top-up rows store a trans() key in description. Translate it for
+     * the current locale; leave Orders/Guarantor/bonus (and hold-release) as stored.
+     */
+    protected function description(): Attribute
+    {
+        return Attribute::make(
+            get: function (?string $value): string {
+                $kind = $this->entry_kind;
+
+                if (
+                    ! $kind instanceof WalletTransactionEntryKindEnum
+                    || $kind === WalletTransactionEntryKindEnum::WithdrawHoldReleased
+                ) {
+                    return (string) $value;
+                }
+
+                return trans((string) $value, [
+                    'ref' => strtoupper(substr((string) $this->operation_id, -8)),
+                ]);
+            },
+        );
     }
 }

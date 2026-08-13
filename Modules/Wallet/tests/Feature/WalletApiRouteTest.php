@@ -793,7 +793,8 @@ test('a withdraw_requested transaction returns a translated description in the r
         ->and($item['description'])->not->toContain('Modules\\Wallet')
         ->and($item['description'])->not->toContain(WithdrawRequest::class)
         ->and($item['description'])->not->toContain('Withdraw Request Created')
-        ->and($stored->description)->toBe('');
+        ->and($stored->getRawOriginal('description'))->toBe('wallet.entry_kind.withdraw_requested')
+        ->and($stored->description)->toBe($expected);
 });
 
 test('the same transaction returns a different description string when requested with a different Accept-Language / locale', function () {

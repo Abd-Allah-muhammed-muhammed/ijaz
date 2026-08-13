@@ -46,7 +46,7 @@ class HandleTopUpPaymentCompleted
                 owner: $payment->user,
                 amount: $payment->amount,
                 operation: $topUp,
-                description: '',
+                description: WalletTransactionEntryKindEnum::TopupCredited->translationKey(),
                 entryKind: WalletTransactionEntryKindEnum::TopupCredited,
             );
         });
