@@ -7,6 +7,7 @@ use Modules\Wallet\Actions\AddPendingDebitAction;
 use Modules\Wallet\Contracts\Repositories\WalletRepositoryInterface;
 use Modules\Wallet\Contracts\Repositories\WithdrawRequestRepositoryInterface;
 use Modules\Wallet\DTOs\CreateWithdrawData;
+use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 use Modules\Wallet\Exceptions\InsufficientBalanceException;
 use Modules\Wallet\Models\WithdrawRequest;
 
@@ -63,6 +64,7 @@ class CreateWithdrawRequestAction
             description: "Withdraw Request Created #{$withdrawRequest->id}",
             requireSufficientAvailable: false,
             skipBalanceIncrement: true,
+            entryKind: WalletTransactionEntryKindEnum::WithdrawRequested,
         );
 
         return $withdrawRequest;

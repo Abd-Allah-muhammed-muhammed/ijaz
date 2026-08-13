@@ -6,6 +6,7 @@ use App\Enums\OperationStatusEnum;
 use Illuminate\Support\Facades\DB;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Wallet\Contracts\Repositories\TopUpRequestRepositoryInterface;
+use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 use Modules\Wallet\Exceptions\WalletException;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Services\WalletService;
@@ -58,6 +59,7 @@ class UpdateTopUpStatusForDashboardAction
                     amount: $topUpRequest->amount,
                     operation: $topUpRequest,
                     description: "Offline top-up approved #{$topUpRequest->id}",
+                    entryKind: WalletTransactionEntryKindEnum::TopupCredited,
                 );
             }
 

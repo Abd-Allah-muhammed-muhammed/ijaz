@@ -1,14 +1,26 @@
 <?php
 
+use App\Enums\OperationStatusEnum;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Modules\Payment\Enums\PaymentDriverEnum;
 use Modules\Payment\Enums\PaymentMethodEnum;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Events\PaymentCompleted;
 use Modules\Payment\Models\Payment;
+use Modules\Wallet\Actions\Withdraw\CancelWithdrawRequestAction;
+use Modules\Wallet\DTOs\CreateWithdrawData;
+use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 use Modules\Wallet\Http\Controllers\Api\V1\WalletController;
+use Modules\Wallet\Http\Controllers\Dashboard\TopUpRequestController as DashboardTopUpRequestController;
+use Modules\Wallet\Http\Controllers\Dashboard\WithdrawRequestController as DashboardWithdrawRequestController;
+use Modules\Wallet\Listeners\HandleTopUpPaymentCompleted;
 use Modules\Wallet\Models\TopUpRequest;
+use Modules\Wallet\Models\WalletTransaction;
 use Modules\Wallet\Models\WithdrawRequest;
+use Modules\Wallet\Services\WithdrawRequestService;
 
 test('unauthenticated cannot get balance → 401', function () {
     $this->getJson(action([WalletController::class, 'balance']))
@@ -491,4 +503,262 @@ test('transactions are paginated', function () {
         ->assertSuccessful()
         ->assertJsonPath('data.per_page', 2)
         ->assertJsonCount(2, 'data.items');
+});
+
+test('WalletTransactionEntryKindEnum has the expected 6 cases with correct string values', function () {
+    expect(WalletTransactionEntryKindEnum::cases())->toHaveCount(6)
+        ->and(WalletTransactionEntryKindEnum::WithdrawRequested->value)->toBe('withdraw_requested')
+        ->and(WalletTransactionEntryKindEnum::WithdrawHoldReleased->value)->toBe('withdraw_hold_released')
+        ->and(WalletTransactionEntryKindEnum::WithdrawApproved->value)->toBe('withdraw_approved')
+        ->and(WalletTransactionEntryKindEnum::WithdrawRejected->value)->toBe('withdraw_rejected')
+        ->and(WalletTransactionEntryKindEnum::WithdrawCancelled->value)->toBe('withdraw_cancelled')
+        ->and(WalletTransactionEntryKindEnum::TopupCredited->value)->toBe('topup_credited');
+});
+
+test('creating a withdraw request writes entry_kind=WalletTransactionEntryKindEnum::WithdrawRequested', function () {
+    $user = createWalletUser();
+    fundWallet($user, 400);
+
+    $withdraw = app(WithdrawRequestService::class)->create(
+        $user,
+        new CreateWithdrawData(amount: 200, userNotes: null),
+    );
+
+    $row = WalletTransaction::query()->where('operation_id', $withdraw->id)->sole();
+
+    expect($row->entry_kind)->toBe(WalletTransactionEntryKindEnum::WithdrawRequested);
+});
+
+test('approving a withdraw writes HoldReleased then Approved, in that order', function () {
+    withoutWalletLocaleMiddleware();
+    $user = createWalletUser();
+    fundWallet($user, 400);
+    $withdraw = app(WithdrawRequestService::class)->create(
+        $user,
+        new CreateWithdrawData(amount: 200, userNotes: null),
+    );
+    $admin = createWalletAdmin();
+
+    $this->actingAs($admin, 'admin')
+        ->from(action([DashboardWithdrawRequestController::class, 'index']))
+        ->put(action([DashboardWithdrawRequestController::class, 'updateStatus'], ['withdrawRequest' => $withdraw->id]), [
+            'status' => OperationStatusEnum::Approved->value,
+        ])->assertRedirect();
+
+    $kinds = WalletTransaction::query()
+        ->where('operation_id', $withdraw->id)
+        ->orderBy('created_at')
+        ->orderBy('id')
+        ->get()
+        ->map(fn (WalletTransaction $row) => $row->entry_kind)
+        ->all();
+
+    expect($kinds)->toBe([
+        WalletTransactionEntryKindEnum::WithdrawRequested,
+        WalletTransactionEntryKindEnum::WithdrawHoldReleased,
+        WalletTransactionEntryKindEnum::WithdrawApproved,
+    ]);
+});
+
+test('rejecting a withdraw writes HoldReleased then Rejected', function () {
+    withoutWalletLocaleMiddleware();
+    $user = createWalletUser();
+    fundWallet($user, 400);
+    $withdraw = app(WithdrawRequestService::class)->create(
+        $user,
+        new CreateWithdrawData(amount: 200, userNotes: null),
+    );
+    $admin = createWalletAdmin();
+
+    $this->actingAs($admin, 'admin')
+        ->from(action([DashboardWithdrawRequestController::class, 'index']))
+        ->put(action([DashboardWithdrawRequestController::class, 'updateStatus'], ['withdrawRequest' => $withdraw->id]), [
+            'status' => OperationStatusEnum::Rejected->value,
+        ])->assertRedirect();
+
+    $kinds = WalletTransaction::query()
+        ->where('operation_id', $withdraw->id)
+        ->orderBy('created_at')
+        ->orderBy('id')
+        ->get()
+        ->map(fn (WalletTransaction $row) => $row->entry_kind)
+        ->all();
+
+    expect($kinds)->toBe([
+        WalletTransactionEntryKindEnum::WithdrawRequested,
+        WalletTransactionEntryKindEnum::WithdrawHoldReleased,
+        WalletTransactionEntryKindEnum::WithdrawRejected,
+    ]);
+});
+
+test('cancelling a withdraw writes Cancelled', function () {
+    $user = createWalletUser();
+    fundWallet($user, 400);
+    $withdraw = app(WithdrawRequestService::class)->create(
+        $user,
+        new CreateWithdrawData(amount: 200, userNotes: null),
+    );
+
+    DB::transaction(fn () => app(CancelWithdrawRequestAction::class)->handle($user, $withdraw));
+
+    $kinds = WalletTransaction::query()
+        ->where('operation_id', $withdraw->id)
+        ->orderBy('created_at')
+        ->orderBy('id')
+        ->get()
+        ->map(fn (WalletTransaction $row) => $row->entry_kind)
+        ->all();
+
+    expect($kinds)->toBe([
+        WalletTransactionEntryKindEnum::WithdrawRequested,
+        WalletTransactionEntryKindEnum::WithdrawCancelled,
+    ]);
+});
+
+test('an online top-up credit writes TopupCredited', function () {
+    $user = createWalletUser();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 150]);
+    $payment = createPaymentFor($user, $topUp, [
+        'amount' => 150,
+        'driver' => 'testing',
+        'transaction_id' => 'topup-entry-kind',
+        'status' => PaymentStatusEnum::Accepted,
+    ]);
+
+    DB::transaction(fn () => app(HandleTopUpPaymentCompleted::class)->handle(new PaymentCompleted($payment)));
+
+    $row = WalletTransaction::query()->where('operation_id', (string) $topUp->id)->sole();
+
+    expect($row->entry_kind)->toBe(WalletTransactionEntryKindEnum::TopupCredited);
+});
+
+test('an offline top-up approval writes TopupCredited', function () {
+    withoutWalletLocaleMiddleware();
+    $admin = createWalletAdmin();
+    $user = createWalletUser();
+    $topUp = createTopUpFor($user, [
+        'amount' => 80,
+        'payment_method' => PaymentMethodEnum::Offline->value,
+        'status' => OperationStatusEnum::Pending->value,
+    ]);
+
+    $this->actingAs($admin, 'admin')
+        ->from(action([DashboardTopUpRequestController::class, 'index']))
+        ->put(action([DashboardTopUpRequestController::class, 'updateStatus'], ['topUpRequest' => $topUp->id]), [
+            'status' => OperationStatusEnum::Approved->value,
+        ])->assertRedirect();
+
+    $row = WalletTransaction::query()->where('operation_id', (string) $topUp->id)->sole();
+
+    expect($row->entry_kind)->toBe(WalletTransactionEntryKindEnum::TopupCredited);
+});
+
+test('GET /api/v1/wallet/transaction excludes HoldReleased rows but includes all other entry_kind rows, using the EXACT same response shape as before grouping (credit/debit/pending_*/balance_before/balance_after/description/operation_type/operation_id/created_at/id/amount)', function () {
+    withoutWalletLocaleMiddleware();
+    $user = createWalletUser();
+    fundWallet($user, 1000);
+    $pending = app(WithdrawRequestService::class)->create(
+        $user,
+        new CreateWithdrawData(amount: 100, userNotes: null),
+    );
+    $approved = app(WithdrawRequestService::class)->create(
+        $user,
+        new CreateWithdrawData(amount: 200, userNotes: null),
+    );
+    $admin = createWalletAdmin();
+    $this->actingAs($admin, 'admin')
+        ->from(action([DashboardWithdrawRequestController::class, 'index']))
+        ->put(action([DashboardWithdrawRequestController::class, 'updateStatus'], ['withdrawRequest' => $approved->id]), [
+            'status' => OperationStatusEnum::Approved->value,
+        ])->assertRedirect();
+
+    Sanctum::actingAs($user);
+
+    $items = $this->getJson(action([WalletController::class, 'transactions'], ['per_page' => 20]))
+        ->assertSuccessful()
+        ->json('data.items');
+
+    expect(array_keys($items[0]))->toBe([
+        'id',
+        'amount',
+        'credit',
+        'debit',
+        'pending_credit',
+        'pending_debit',
+        'balance_before',
+        'balance_after',
+        'description',
+        'operation_type',
+        'operation_id',
+        'created_at',
+    ]);
+
+    $itemIds = collect($items)->pluck('id');
+    $ledger = WalletTransaction::query()
+        ->where('user_id', $user->id)
+        ->get()
+        ->keyBy('id');
+
+    $holdReleasedIds = $ledger->filter(
+        fn (WalletTransaction $row): bool => $row->entry_kind === WalletTransactionEntryKindEnum::WithdrawHoldReleased,
+    )->keys();
+    $approvedRequestedId = $ledger->first(
+        fn (WalletTransaction $row): bool => $row->operation_id === $approved->id
+            && $row->entry_kind === WalletTransactionEntryKindEnum::WithdrawRequested,
+    )?->id;
+    $approvedId = $ledger->first(
+        fn (WalletTransaction $row): bool => $row->entry_kind === WalletTransactionEntryKindEnum::WithdrawApproved,
+    )?->id;
+    $pendingRequestedId = $ledger->first(
+        fn (WalletTransaction $row): bool => $row->operation_id === $pending->id
+            && $row->entry_kind === WalletTransactionEntryKindEnum::WithdrawRequested,
+    )?->id;
+    $fundingId = $ledger->first(
+        fn (WalletTransaction $row): bool => $row->entry_kind === null && (float) $row->credit > 0,
+    )?->id;
+
+    expect($holdReleasedIds)->not->toBeEmpty()
+        ->and($itemIds->intersect($holdReleasedIds)->all())->toBe([])
+        ->and($itemIds)->not->toContain($approvedRequestedId)
+        ->and($itemIds)->toContain($approvedId)
+        ->and($itemIds)->toContain($pendingRequestedId)
+        ->and($itemIds)->toContain($fundingId);
+});
+
+test('a withdraw_requested row becomes invisible once its sibling approved or rejected row exists for the same operation_id', function () {
+    withoutWalletLocaleMiddleware();
+    $user = createWalletUser();
+    fundWallet($user, 400);
+    $withdraw = app(WithdrawRequestService::class)->create(
+        $user,
+        new CreateWithdrawData(amount: 200, userNotes: null),
+    );
+
+    Sanctum::actingAs($user);
+    $before = collect($this->getJson(action([WalletController::class, 'transactions'], ['per_page' => 20]))
+        ->assertSuccessful()
+        ->json('data.items'))
+        ->pluck('id');
+
+    $requestedId = WalletTransaction::query()
+        ->where('operation_id', $withdraw->id)
+        ->where('entry_kind', WalletTransactionEntryKindEnum::WithdrawRequested)
+        ->value('id');
+
+    expect($before)->toContain($requestedId);
+
+    $admin = createWalletAdmin();
+    $this->actingAs($admin, 'admin')
+        ->from(action([DashboardWithdrawRequestController::class, 'index']))
+        ->put(action([DashboardWithdrawRequestController::class, 'updateStatus'], ['withdrawRequest' => $withdraw->id]), [
+            'status' => OperationStatusEnum::Rejected->value,
+        ])->assertRedirect();
+
+    Sanctum::actingAs($user);
+    $after = collect($this->getJson(action([WalletController::class, 'transactions'], ['per_page' => 20]))
+        ->assertSuccessful()
+        ->json('data.items'))
+        ->pluck('id');
+
+    expect($after)->not->toContain($requestedId);
 });

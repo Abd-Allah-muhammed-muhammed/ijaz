@@ -3,6 +3,7 @@
 namespace Modules\Wallet\DTOs;
 
 use Modules\Wallet\Enums\TransactionTypeEnum;
+use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 
 final readonly class WalletTransactionData
 {
@@ -19,5 +20,6 @@ final readonly class WalletTransactionData
         public float $balance_before = 0,
         public float $balance_after = 0,
         public ?string $payment_id = null,
+        public ?WalletTransactionEntryKindEnum $entry_kind = null,
     ) {}
 }

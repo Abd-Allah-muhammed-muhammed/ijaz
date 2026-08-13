@@ -8,35 +8,35 @@ use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
 use Modules\Wallet\DTOs\WalletTransactionData;
 use Modules\Wallet\Enums\TransactionTypeEnum;
 use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
+use Modules\Wallet\Models\WithdrawRequest;
 
-class CreditWalletAction
+class RecordWithdrawRejectedAction
 {
     public function __construct(
         private readonly WalletRepositoryInterface $walletRepo,
         private readonly WalletTransactionRepositoryInterface $transactionRepo,
     ) {}
 
-    public function handle(
-        Model $owner,
-        float $amount,
-        Model $operation,
-        string $description = '',
-        ?WalletTransactionEntryKindEnum $entryKind = null,
-    ): void {
+    /**
+     * Visible reject marker. The hold is already released by ReversePendingDebitAction;
+     * this row must not change wallet balances a second time.
+     */
+    public function handle(Model $owner, WithdrawRequest $request, string $description): void
+    {
         $wallet = $this->walletRepo->lockForUpdate($owner);
         $balanceBefore = (float) $wallet->balance;
-        $wallet->increment('balance', $amount);
+        $amount = (float) $request->amount;
 
         $this->transactionRepo->create($wallet, $owner, new WalletTransactionData(
             amount: $amount,
-            description: $description ?: 'Credit for '.$operation::class.'#'.$operation->getKey(),
-            operation_type: $operation::class,
-            operation_id: (string) $operation->getKey(),
-            type: TransactionTypeEnum::Credit,
-            credit: $amount,
+            description: $description,
+            operation_type: $request::class,
+            operation_id: (string) $request->getKey(),
+            type: TransactionTypeEnum::PendingDebit,
+            pending_debit: -$amount,
             balance_before: $balanceBefore,
-            balance_after: $balanceBefore + $amount,
-            entry_kind: $entryKind,
+            balance_after: $balanceBefore,
+            entry_kind: WalletTransactionEntryKindEnum::WithdrawRejected,
         ));
     }
 }

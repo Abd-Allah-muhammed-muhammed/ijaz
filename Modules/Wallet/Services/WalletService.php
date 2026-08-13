@@ -16,6 +16,7 @@ use Modules\Wallet\Actions\ReversePendingDebitAction;
 use Modules\Wallet\Contracts\Repositories\WalletRepositoryInterface;
 use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
 use Modules\Wallet\DTOs\WalletBalanceData;
+use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 use Modules\Wallet\Models\Wallet;
 use Modules\Wallet\Models\WithdrawRequest;
 
@@ -35,14 +36,24 @@ class WalletService
         private readonly FinalizeWithdrawAction $finalizeWithdrawAction,
     ) {}
 
-    public function credit(Model $owner, float $amount, Model $operation, string $description = ''): void
-    {
-        $this->creditAction->handle($owner, $amount, $operation, $description);
+    public function credit(
+        Model $owner,
+        float $amount,
+        Model $operation,
+        string $description = '',
+        ?WalletTransactionEntryKindEnum $entryKind = null,
+    ): void {
+        $this->creditAction->handle($owner, $amount, $operation, $description, $entryKind);
     }
 
-    public function debit(Model $owner, float $amount, Model $operation, string $description = ''): void
-    {
-        $this->debitAction->handle($owner, $amount, $operation, $description);
+    public function debit(
+        Model $owner,
+        float $amount,
+        Model $operation,
+        string $description = '',
+        ?WalletTransactionEntryKindEnum $entryKind = null,
+    ): void {
+        $this->debitAction->handle($owner, $amount, $operation, $description, $entryKind);
     }
 
     public function addPendingCredit(Model $owner, float $amount, Model $operation, string $description = ''): void
@@ -60,9 +71,14 @@ class WalletService
         $this->releasePendingCreditAction->handle($owner, $gross, $net, $operation, $description);
     }
 
-    public function reversePendingDebit(Model $owner, float $amount, Model $operation, string $description = ''): void
-    {
-        $this->reversePendingDebitAction->handle($owner, $amount, $operation, $description);
+    public function reversePendingDebit(
+        Model $owner,
+        float $amount,
+        Model $operation,
+        string $description = '',
+        ?WalletTransactionEntryKindEnum $entryKind = null,
+    ): void {
+        $this->reversePendingDebitAction->handle($owner, $amount, $operation, $description, $entryKind);
     }
 
     public function reversePendingCredit(Model $owner, float $amount, Model $operation, string $description = ''): void

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
 use Modules\Wallet\DTOs\WalletTransactionData;
+use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 use Modules\Wallet\Models\Wallet;
 use Modules\Wallet\Models\WalletTransaction;
 use Modules\Wallet\Support\WalletSearch;
@@ -27,6 +28,7 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
             'operation_type' => $data->operation_type,
             'operation_id' => $data->operation_id,
             'payment_id' => $data->payment_id,
+            'entry_kind' => $data->entry_kind,
         ]);
     }
 
@@ -54,6 +56,7 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
         ?string $dateTo = null,
     ): LengthAwarePaginator {
         return $owner->walletTransactions()
+            ->tap(fn (Builder $query) => $this->excludeInternalWithdrawRows($query))
             ->when($dateFrom, fn ($query, $value) => $query->where('created_at', '>=', $value))
             ->when($dateTo, fn ($query, $value) => $query->where('created_at', '<=', $value))
             ->with(['operation'])
@@ -79,5 +82,35 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
             })
             ->paginate($perPage)
             ->withQueryString();
+    }
+
+    /**
+     * Hide hold-release rows, and hide the original withdraw request once a
+     * terminal sibling (approved / rejected / cancelled) exists for the group.
+     */
+    private function excludeInternalWithdrawRows(Builder $query): void
+    {
+        $table = $query->getModel()->getTable();
+
+        $query
+            ->where(function (Builder $visible) use ($table): void {
+                $visible->whereNull($table.'.entry_kind')
+                    ->orWhere($table.'.entry_kind', '!=', WalletTransactionEntryKindEnum::WithdrawHoldReleased);
+            })
+            ->where(function (Builder $requested) use ($table): void {
+                $requested->whereNull($table.'.entry_kind')
+                    ->orWhere($table.'.entry_kind', '!=', WalletTransactionEntryKindEnum::WithdrawRequested)
+                    ->orWhereNotExists(function ($siblings) use ($table): void {
+                        $siblings->selectRaw('1')
+                            ->from($table.' as entry_kind_siblings')
+                            ->whereColumn('entry_kind_siblings.operation_id', $table.'.operation_id')
+                            ->whereColumn('entry_kind_siblings.operation_type', $table.'.operation_type')
+                            ->whereIn('entry_kind_siblings.entry_kind', [
+                                WalletTransactionEntryKindEnum::WithdrawApproved,
+                                WalletTransactionEntryKindEnum::WithdrawRejected,
+                                WalletTransactionEntryKindEnum::WithdrawCancelled,
+                            ]);
+                    });
+            });
     }
 }

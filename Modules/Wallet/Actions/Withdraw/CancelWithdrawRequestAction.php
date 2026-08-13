@@ -4,6 +4,7 @@ namespace Modules\Wallet\Actions\Withdraw;
 
 use Illuminate\Database\Eloquent\Model;
 use Modules\Wallet\Contracts\Repositories\WithdrawRequestRepositoryInterface;
+use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 use Modules\Wallet\Exceptions\WalletException;
 use Modules\Wallet\Models\WithdrawRequest;
 use Modules\Wallet\Services\WalletService;
@@ -30,6 +31,7 @@ class CancelWithdrawRequestAction
             amount: (float) $withdrawRequest->amount,
             operation: $withdrawRequest,
             description: "Withdraw Request Cancelled #{$withdrawRequest->id}",
+            entryKind: WalletTransactionEntryKindEnum::WithdrawCancelled,
         );
 
         $this->repository->delete($withdrawRequest);

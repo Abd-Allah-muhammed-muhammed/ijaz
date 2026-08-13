@@ -7,6 +7,7 @@ use Modules\Wallet\Contracts\Repositories\WalletRepositoryInterface;
 use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
 use Modules\Wallet\DTOs\WalletTransactionData;
 use Modules\Wallet\Enums\TransactionTypeEnum;
+use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 
 class ReversePendingDebitAction
 {
@@ -15,8 +16,13 @@ class ReversePendingDebitAction
         private readonly WalletTransactionRepositoryInterface $transactionRepo,
     ) {}
 
-    public function handle(Model $owner, float $amount, Model $operation, string $description = ''): void
-    {
+    public function handle(
+        Model $owner,
+        float $amount,
+        Model $operation,
+        string $description = '',
+        ?WalletTransactionEntryKindEnum $entryKind = null,
+    ): void {
         $wallet = $this->walletRepo->lockForUpdate($owner);
         $balanceBefore = (float) $wallet->balance;
         $wallet->decrement('pending_debit', $amount);
@@ -30,6 +36,7 @@ class ReversePendingDebitAction
             pending_debit: -$amount,
             balance_before: $balanceBefore,
             balance_after: $balanceBefore,
+            entry_kind: $entryKind,
         ));
     }
 }

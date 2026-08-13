@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Events\PaymentCompleted;
 use Modules\Wallet\Contracts\Repositories\TopUpRequestRepositoryInterface;
+use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Services\WalletService;
 
@@ -46,6 +47,7 @@ class HandleTopUpPaymentCompleted
                 amount: $payment->amount,
                 operation: $topUp,
                 description: "Online top-up approved — TopUpRequest#{$topUp->id}",
+                entryKind: WalletTransactionEntryKindEnum::TopupCredited,
             );
         });
     }
