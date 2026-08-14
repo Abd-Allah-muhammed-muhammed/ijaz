@@ -3,11 +3,13 @@ import AccountLayout from '@/apps/provider/layouts/AccountLayout'
 import {Content} from "@/vendor/metronic/layout/components/content";
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
 import {Provider, WalletTransaction} from "@/shared/types/models";
-import {Head, router} from "@inertiajs/react";
+import {Head} from "@inertiajs/react";
 import {Card} from "react-bootstrap";
 import {PaginationResource} from "@/shared/types";
 import Table from "@/shared/components/Table";
 import { useTranslation } from 'react-i18next';
+import AuthController from '@/actions/App/Http/Controllers/Provider/AuthController';
+import {applyFilterParam, visitWithFilters} from '@/shared/lib/filters';
 
 type Props = {
   transactions: PaginationResource<WalletTransaction>,
@@ -27,19 +29,12 @@ const Wallet = ({transactions, provider, prams}: Props) => {
     search: '',
   };
   const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    if (value) {
-      searchPrams[name] = value as never;
-    } else {
-      delete searchPrams[name];
-    }
-    router.reload<SearchPrams>({
-      only: ['transactions'],
-      data: searchPrams,
-      // @ts-ignore
-      preserveState: true,
-      preserveScroll: true,
-      replace: true
-    });
+    const next = applyFilterParam(
+      { ...searchPrams } as Record<string, unknown>,
+      name,
+      value,
+    );
+    visitWithFilters(AuthController.statements().url, next, { only: ['transactions', 'prams'] });
   };
   return (
     <>
@@ -57,7 +52,8 @@ const Wallet = ({transactions, provider, prams}: Props) => {
                 },
               }}
               only={[
-                'transactions'
+                'transactions',
+                'prams',
               ]}
               headers={[
                 {

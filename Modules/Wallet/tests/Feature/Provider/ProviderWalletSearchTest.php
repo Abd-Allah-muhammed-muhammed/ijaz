@@ -72,3 +72,44 @@ test('provider can search wallet statements by reference number copied with a le
             ->where('transactions.data.0.id', $transaction->id)
         );
 });
+
+test('submitting an empty search value removes the search query parameter and returns the full unfiltered transaction list', function (): void {
+    withoutWalletLocaleMiddleware();
+
+    $provider = createWalletProvider();
+    fundWallet($provider, 100);
+    fundWallet($provider, 50);
+
+    $matching = $provider->wallet->transactions()->latest()->first();
+
+    expect($matching)->not->toBeNull();
+    expect($provider->wallet->transactions()->count())->toBe(2);
+
+    $this->actingAs($provider, 'provider')
+        ->get(action([AuthController::class, 'statements'], [
+            'search' => '#'.$matching->id,
+        ]))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Provider/Auth/Profile/wallet')
+            ->has('transactions.data', 1)
+            ->where('transactions.data.0.id', $matching->id)
+        );
+
+    $this->actingAs($provider, 'provider')
+        ->get(action([AuthController::class, 'statements'], [
+            'search' => '',
+        ]))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Provider/Auth/Profile/wallet')
+            ->has('transactions.data', 2)
+        );
+
+    $source = file_get_contents(resource_path('js/apps/provider/pages/Auth/Profile/wallet.tsx'));
+
+    expect($source)->not->toBeFalse()
+        ->and($source)->toContain('visitWithFilters')
+        ->and($source)->toContain('applyFilterParam')
+        ->and($source)->not->toContain('router.reload');
+});
