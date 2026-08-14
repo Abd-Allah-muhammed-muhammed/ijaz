@@ -80,7 +80,7 @@ const Index = (
                 defaultValue={searchPrams.search}
                 data-kt-user-table-filter='search'
                 className='form-control  ps-14'
-                placeholder='Search'
+                placeholder={t('search')}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     searchPramsChanged('search', e.currentTarget.value)

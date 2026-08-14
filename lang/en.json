@@ -445,6 +445,7 @@
     "delivered": "Delivered",
     "under_review": "Under Review",
     "hold": "Hold",
+    "payment_completed": "Payment Completed",
     "rate_service": "Rate Service",
     "offer_provided": "Offer Provided",
     "no_offers_yet": "No offers yet",
