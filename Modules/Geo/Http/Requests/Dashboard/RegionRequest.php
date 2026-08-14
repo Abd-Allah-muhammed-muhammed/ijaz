@@ -29,9 +29,7 @@ class RegionRequest extends FormRequest
                 'max:255',
                 Rule::unique('region_translations', 'title')
                     ->where('locale', $locale)
-                    ->when($this->route('region'), function ($query) {
-                        return $query->whereNot('region_id', $this->route('region')->id);
-                    }),
+                    ->ignore($this->region?->id, 'region_id'),
             ];
         }
 
