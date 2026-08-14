@@ -51,7 +51,7 @@ class CategoryRequest extends FormRequest
             $rules['translations.'.$locale.'.title'] = [
                 'required',
                 'string',
-                'max:255',
+                'max:191',
                 Rule::unique('category_translations', 'title')
                     ->where('locale', $locale)
                     ->when($this->route('category'), function ($query) {
@@ -62,6 +62,7 @@ class CategoryRequest extends FormRequest
             $rules['translations.'.$locale.'.description'] = [
                 'nullable',
                 'string',
+                'max:191',
             ];
         }
 
