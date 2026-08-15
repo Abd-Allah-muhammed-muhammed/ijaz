@@ -444,7 +444,7 @@ Example `data` (truncated):
 | 422 | Counterparty User missing at write time (race) | envelope `message`: `"The counterparty phone number is not registered in the system"` |
 | 403 | Same person as requester and counterparty (second guard) | envelope `message`: `"You are not authorized to perform this action"` |
 
-The counterparty is **not** notified on create. Only the requester gets “submitted / pending admin” (see [Notifications](#7-notifications-the-mobile-app-should-expect)). Admin is **not** notified.
+The counterparty is **not** notified on create. Only the requester gets “submitted / pending admin” (see [Notifications](#7-notifications-the-mobile-app-should-expect)). Admins with the `manage guarantors` permission **are** notified (`GuarantorPendingReviewNotification`, Firebase enabled).
 
 ---
 
@@ -609,7 +609,7 @@ Admin-only transitions (`approved_by_admin`, `rejected_by_admin`, `cancelled`, `
 
 - `accepted` → a chat conversation is created (if not already). Requester is notified. Counterparty is not sent an “you accepted” notification.
 - `rejected` → requester notified. Terminal.
-- `ended` → both parties notified with title/body of “ended” (same notification type as cancel). Individual: escrow wallets settle. Company: the **latest `paid` installment** (if any) is released to the requester.
+- `ended` → both parties notified with `GuarantorEndedNotification` (title/body of “ended”). Individual: escrow wallets settle. Company: the **latest `paid` installment** (if any) is released to the requester. Cancel is a **separate** notification (`GuarantorCancelledNotification`); it does **not** reuse Ended.
 
 **Errors:** `401`, `403` (not a party), `404`, `422` validation (`status` required / invalid enum; `reason` required for reject), `422` transition / already-set.
 
@@ -956,7 +956,7 @@ Same as Individual through `accepted`, then:
 | Past due but request still `accepted` | Days 1–2 after due: reminder may have been sent; request status **unchanged**. Show `is_past_due` on the installment. | Same. | Pay still allowed. |
 | `ended` | Closed. Last `paid` installment is released if one existed. | Funds for that installment released (minus fee share). | Show only. |
 
-Admin may leave the request in `pending_admin` for a long time — **not a mobile bug** (admin is not notified on create).
+Admin may leave the request in `pending_admin` for a long time if they do not act — **not a mobile bug**. Admins with `manage guarantors` **are** notified on create; a long wait still means Dashboard review, not a missing mobile push.
 
 ---
 
@@ -1033,11 +1033,11 @@ After `ended` / `cancelled` / `rejected*`, **do not** offer “Open guarantor ch
 
 ## 7. Notifications the mobile app should expect
 
-Channels for every Guarantor notification:
+Channels for Guarantor notifications:
 
-- **In-app / database** — always (both User and Provider notifiables).
+- **In-app / database** — always (User and Provider notifiables for party events; Admin for pending-review).
 - **Broadcast (websocket)** — always.
-- **Firebase push** — **only if the notifiable is a User**. Providers never get FCM from these notifications, even if they have device tokens.
+- **Firebase push** — **User** for party events; **Admin** for pending-review (`GuarantorPendingReviewNotification`). Providers never get FCM from these notifications, even if they have device tokens.
 
 Firebase `data` is a **subset** of the database payload (usually ids only). Database records use `title_translated_key` / `body_translated_key` (keys below) plus extra fields.
 
@@ -1046,11 +1046,13 @@ English title/body (keys resolve via `Accept-Language`):
 | Event | Title | Body | Who receives it | Push (User)? | Extra payload |
 |---|---|---|---|---|---|
 | Request created | Guarantor Request Submitted | Your guarantor request has been submitted and is pending admin review | **Requester only** | yes if User | `guarantor_request_id`, `type`. FCM data: `guarantor_request_id` only. Broadcast type: `guarantor created` |
+| New request needs admin review | New guarantor request | A guarantor request is awaiting your review. | **Admins** with `manage guarantors` (`GuarantorPendingReviewNotification`) | yes if **Admin** (Firebase enabled; not User/Provider) | `guarantor_request_id`, `type`. FCM data: `guarantor_request_id`, `screen: 'guarantor'`. Broadcast type: `guarantor pending review` |
 | Admin approved | Guarantor Request Approved by Admin | …approved by admin and is waiting for counterparty response | **Requester and counterparty** | yes if User | same shape. Type: `guarantor admin approved` |
 | Admin rejected | Guarantor Request Rejected by Admin | Your guarantor request has been rejected by admin | **Requester only** | yes if User | Type: `guarantor admin rejected` |
 | Counterparty accepted | Guarantor Request Accepted | The counterparty has accepted your guarantor request | **Requester only** | yes if User | Type: `guarantor accepted` |
 | Counterparty rejected | Guarantor Request Rejected | The counterparty has rejected your guarantor request | **Requester only** | yes if User | Type: `guarantor counterparty rejected` |
-| Ended **or** cancelled | Guarantor Request Ended | Your guarantor request has been ended | **Both parties** | yes if User | `guarantor_request_id`, `type`, `final_status` (`ended` or `cancelled`). FCM: `guarantor_request_id`, `final_status`. Type: `guarantor ended` |
+| Ended | Guarantor Request Ended | Your guarantor request has been ended | **Both parties** (`GuarantorEndedNotification`) | yes if User | `guarantor_request_id`, `type`, `final_status` (`ended`). FCM: `guarantor_request_id`, `final_status`. Type: `guarantor ended` |
+| Cancelled (admin) | Guarantor Request Cancelled | Your guarantor request has been cancelled | **Both parties** (`GuarantorCancelledNotification`) | yes if User | `guarantor_request_id`, `type`, `cancellation_reason`. FCM: `guarantor_request_id`, `cancellation_reason`. Type: `guarantor cancelled` |
 | Installment due (day 1–2) | Installment Payment Due | An installment payment is due for your guarantor request | **Counterparty only** | yes if User | `guarantor_request_id`, `installment_id`, `installment_order`, `amount`, `due_date`. FCM: request + installment ids. Type: `installment due` |
 | Installment overdue (day ≥ 3) | Installment Payment Overdue | An installment payment is overdue for your guarantor request | **Both parties** | yes if User | same as due. Type: `installment overdue` |
 | Installment released | Installment Payment Released | An installment payment has been released to your account | **Requester only** | yes if User | includes `released_at`. Type: `installment released` |
@@ -1061,7 +1063,6 @@ Do **not** build UI that waits for a push for these:
 
 | Event | Reality |
 |---|---|
-| **New request needs admin review** | Admin is **not** notified. `pending_admin` can sit indefinitely. |
 | **Counterparty: “a request was created naming you”** | Counterparty is **not** notified at create. They first hear at **admin approved** (if they are a User, via push). |
 | **Counterparty: “you accepted”** | No self-notification on accept. |
 | **Payment captured / gateway success** | **No user notification.** Server logs only. Refresh show after checkout; Individual should move to `in_progress`. |
@@ -1104,23 +1105,21 @@ Be explicit with QA and with UI copy:
 
 2. **Create is not User-app product.** Create endpoints have no requester-role check, and Sanctum tokens are User tokens today — a User app *could* call create. **Do not ship a create flow on the User app.** The User is the counterparty / payer.
 
-3. **Admin is not notified** when a request enters `pending_admin`. A request can remain pending for a long time. That is not a mobile bug.
+3. **No payment-received push.** After opening the checkout `url`, poll or return-to-app refresh. Individual: expect `in_progress` after success. Company: expect that installment `paid`; request may stay `accepted`.
 
-4. **No payment-received push.** After opening the checkout `url`, poll or return-to-app refresh. Individual: expect `in_progress` after success. Company: expect that installment `paid`; request may stay `accepted`.
+4. **Parties cannot cancel** via `POST .../status` with `cancelled` (422). Only admin can cancel. Cancel notifies both parties with `GuarantorCancelledNotification` (not the Ended notification).
 
-5. **Parties cannot cancel** via `POST .../status` with `cancelled` (422). Only admin can cancel.
+5. **Company cannot be ended from `accepted`**, even if installments are already paid. End is only from `in_progress` or `overdue`.
 
-6. **Company cannot be ended from `accepted`**, even if installments are already paid. End is only from `in_progress` or `overdue`.
+6. **Installment `overdue` / `refunded` status values are unused.** Drive overdue UI from request `overdue` + installment `is_past_due`.
 
-7. **Installment `overdue` / `refunded` status values are unused.** Drive overdue UI from request `overdue` + installment `is_past_due`.
+7. **Status `new` is unused.** Create starts at `pending_admin`. Ignore examples that show `"status": "new"` after create.
 
-8. **Status `new` is unused.** Create starts at `pending_admin`. Ignore examples that show `"status": "new"` after create.
+8. **Chat id is not on the guarantor resource.** Use the chat endpoints.
 
-9. **Chat id is not on the guarantor resource.** Use the chat endpoints.
+9. **Fees are not client-controlled** (`10.00`). Individual checkout charges `total`; company installment checkout charges the installment `amount` only.
 
-10. **Fees are not client-controlled** (`10.00`). Individual checkout charges `total`; company installment checkout charges the installment `amount` only.
-
-11. **Company create has no description field**; show will have `description: ""`. Use `project_type` / `title` for headings.
+10. **Company create has no description field**; show will have `description: ""`. Use `project_type` / `title` for headings.
 
 ---
 
