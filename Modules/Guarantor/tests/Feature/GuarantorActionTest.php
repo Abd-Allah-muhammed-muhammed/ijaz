@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\Sanctum;
 use Modules\Chat\Models\Conversation;
 use Modules\Guarantor\Actions\Chat\OpenGuarantorChatAction;
+use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateCompanyGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateIndividualGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\DeleteGuarantorAction;
@@ -38,13 +39,16 @@ use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Guarantor\Notifications\GuarantorAcceptedNotification;
 use Modules\Guarantor\Notifications\GuarantorAdminApprovedNotification;
 use Modules\Guarantor\Notifications\GuarantorAdminRejectedNotification;
+use Modules\Guarantor\Notifications\GuarantorCancelledNotification;
 use Modules\Guarantor\Notifications\GuarantorCounterpartyRejectedNotification;
 use Modules\Guarantor\Notifications\GuarantorCreatedNotification;
 use Modules\Guarantor\Notifications\GuarantorEndedNotification;
+use Modules\Guarantor\Notifications\GuarantorPendingReviewNotification;
 use Modules\Guarantor\Notifications\InstallmentReleasedNotification;
 use Modules\Guarantor\Services\GuarantorService;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Models\Payment;
+use Spatie\Permission\Models\Permission;
 
 const TEST_COUNTERPARTY_PHONE = '0501234567';
 
@@ -225,6 +229,62 @@ function guarantorActionAdmin(): Admin
         'password' => 'password',
         'language' => 'en',
     ]);
+}
+
+/**
+ * @param  list<string>  $permissions
+ */
+function createGuarantorPermissionAdmin(array $permissions): Admin
+{
+    foreach ($permissions as $permission) {
+        Permission::firstOrCreate([
+            'name' => $permission,
+            'guard_name' => 'admin',
+        ]);
+    }
+
+    $admin = Admin::query()->create([
+        'name' => 'Guarantor Permission Admin',
+        'phone' => fake()->unique()->phoneNumber(),
+        'email' => fake()->unique()->safeEmail(),
+        'password' => 'password',
+        'language' => 'en',
+    ]);
+
+    $admin->givePermissionTo($permissions);
+
+    return $admin;
+}
+
+function companyGuarantorCreateArgs(User $requester): array
+{
+    return [
+        new GuarantorData(
+            title: 'Company project',
+            description: 'Commercial guarantor',
+            amount: 1000,
+            counterparty_phone: TEST_COUNTERPARTY_PHONE,
+            project_type: 'Construction',
+        ),
+        new CompanyDetailData(
+            company_name: 'Acme Corp',
+            commercial_register: 'CR-123456',
+            region_id: null,
+            city_id: null,
+            authorized_name: 'John Doe',
+            authorized_id_number: '1234567890',
+            authorization_type: 'power_of_attorney',
+            requester_account_holder: 'Requester Name',
+            requester_iban: 'SA1234567890123456789012',
+            counterparty_account_holder: 'Counterparty Name',
+        ),
+        [
+            new InstallmentData(1, 500, now()->addDays(30)->toDateString()),
+            new InstallmentData(2, 500, now()->addDays(60)->toDateString()),
+        ],
+        $requester,
+        companyGuarantorUploads(),
+    ];
 }
 
 test('admin can approve pending request', function () {
@@ -523,6 +583,84 @@ test('creating individual guarantor notifies requester', function () {
     );
 
     Notification::assertSentTo($requester, GuarantorCreatedNotification::class);
+});
+
+test('creating a new individual guarantor request notifies all admins with the correct permission — permission-scoped, not all admins blindly', function () {
+    $manageAdmin = createGuarantorPermissionAdmin(['manage guarantors']);
+    $otherManageAdmin = createGuarantorPermissionAdmin(['manage guarantors']);
+    $viewOnlyAdmin = createGuarantorPermissionAdmin(['show guarantors']);
+
+    ['requester' => $requester] = createGuarantorActors();
+    Sanctum::actingAs($requester);
+
+    app(CreateIndividualGuarantorAction::class)->handle(
+        new GuarantorData(
+            title: 'Test title',
+            description: 'Test description',
+            amount: 1000,
+            counterparty_phone: TEST_COUNTERPARTY_PHONE,
+        ),
+        $requester,
+        individualGuarantorUploads(),
+    );
+
+    Notification::assertSentTo($manageAdmin, GuarantorPendingReviewNotification::class);
+    Notification::assertSentTo($otherManageAdmin, GuarantorPendingReviewNotification::class);
+    Notification::assertNotSentTo($viewOnlyAdmin, GuarantorPendingReviewNotification::class);
+});
+
+test('creating a new company guarantor request notifies all admins with the correct permission', function () {
+    $manageAdmin = createGuarantorPermissionAdmin(['manage guarantors']);
+    $viewOnlyAdmin = createGuarantorPermissionAdmin(['show guarantors']);
+
+    ['requester' => $requester] = createGuarantorActors();
+    Sanctum::actingAs($requester);
+
+    app(CreateCompanyGuarantorAction::class)->handle(
+        ...companyGuarantorCreateArgs($requester),
+    );
+
+    Notification::assertSentTo($manageAdmin, GuarantorPendingReviewNotification::class);
+    Notification::assertNotSentTo($viewOnlyAdmin, GuarantorPendingReviewNotification::class);
+});
+
+test('admin cancelling a guarantor request sends a dedicated Cancelled notification to both parties, not the Ended notification', function () {
+    $guarantorRequest = GuarantorRequest::factory()->accepted()->create();
+    $requester = $guarantorRequest->requester;
+    $counterparty = $guarantorRequest->counterparty;
+    $admin = guarantorActionAdmin();
+
+    app(CancelGuarantorAction::class)->handle(
+        $guarantorRequest,
+        'Client withdrew from the contract',
+        null,
+        $admin,
+    );
+
+    Notification::assertSentTo($requester, GuarantorCancelledNotification::class);
+    Notification::assertSentTo($counterparty, GuarantorCancelledNotification::class);
+    Notification::assertNotSentTo($requester, GuarantorEndedNotification::class);
+    Notification::assertNotSentTo($counterparty, GuarantorEndedNotification::class);
+});
+
+test('ending a guarantor request still sends the existing Ended notification unchanged — no regression on the end path', function () {
+    $guarantorRequest = GuarantorRequest::factory()->inProgress()->create(['amount' => 1000, 'fees' => 10]);
+    $requester = $guarantorRequest->requester;
+    $counterparty = $guarantorRequest->counterparty;
+
+    $requester->wallet->update(['pending_credit' => 1010]);
+    $counterparty->wallet->update(['pending_debit' => 1010]);
+
+    app(EndGuarantorAction::class)->handle(
+        $guarantorRequest,
+        $requester,
+        'requester',
+    );
+
+    Notification::assertSentTo($requester, GuarantorEndedNotification::class);
+    Notification::assertSentTo($counterparty, GuarantorEndedNotification::class);
+    Notification::assertNotSentTo($requester, GuarantorCancelledNotification::class);
+    Notification::assertNotSentTo($counterparty, GuarantorCancelledNotification::class);
 });
 
 test('ending guarantor notifies both parties', function () {

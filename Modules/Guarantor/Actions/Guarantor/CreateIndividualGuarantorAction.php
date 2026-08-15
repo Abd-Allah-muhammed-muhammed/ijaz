@@ -5,6 +5,7 @@ namespace Modules\Guarantor\Actions\Guarantor;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Modules\Guarantor\Actions\Guarantor\NotifyAdminsOfGuarantorPendingAction as NotifyAdminsOfGuarantorPending;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\DTOs\GuarantorData;
 use Modules\Guarantor\DTOs\GuarantorUploadData;
@@ -20,6 +21,7 @@ class CreateIndividualGuarantorAction
     public function __construct(
         private readonly GuarantorRepositoryInterface $guarantorRepository,
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
+        private readonly NotifyAdminsOfGuarantorPending $notifyAdminsOfGuarantorPendingAction,
     ) {}
 
     /**
@@ -66,6 +68,8 @@ class CreateIndividualGuarantorAction
             $guarantorRequest->requester->notify(
                 new GuarantorCreatedNotification($guarantorRequest)
             );
+
+            $this->notifyAdminsOfGuarantorPendingAction->handle($guarantorRequest);
 
             return $guarantorRequest;
         });

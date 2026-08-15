@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Admin;
 use App\Models\Provider;
 use App\Models\User;
 use App\Services\Firebase\DTO\FirebaseNotificationContent;
@@ -13,9 +14,11 @@ use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Guarantor\Notifications\GuarantorAcceptedNotification;
 use Modules\Guarantor\Notifications\GuarantorAdminApprovedNotification;
 use Modules\Guarantor\Notifications\GuarantorAdminRejectedNotification;
+use Modules\Guarantor\Notifications\GuarantorCancelledNotification;
 use Modules\Guarantor\Notifications\GuarantorCounterpartyRejectedNotification;
 use Modules\Guarantor\Notifications\GuarantorCreatedNotification;
 use Modules\Guarantor\Notifications\GuarantorEndedNotification;
+use Modules\Guarantor\Notifications\GuarantorPendingReviewNotification;
 use Modules\Guarantor\Notifications\InstallmentDueNotification;
 use Modules\Guarantor\Notifications\InstallmentOverdueNotification;
 use Modules\Guarantor\Notifications\InstallmentReleasedNotification;
@@ -477,6 +480,85 @@ describe('Guarantor domain notification contracts', function (): void {
             [
                 'guarantor_request_id' => $request->id,
                 'final_status' => $request->status->value,
+            ],
+        );
+    });
+
+    it('locks GuarantorCancelledNotification channel outputs', function (): void {
+        /** @var TestCase $this */
+        [$request, $user, $provider] = guarantorFixture();
+        $request->cancellation_reason = 'Client withdrew from the contract';
+        $notification = new GuarantorCancelledNotification($request);
+
+        expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
+            ->and($notification->broadcastType())->toBe('guarantor cancelled')
+            ->and($notification->toArray($user))->toBe([
+                'title_translated_key' => 'guarantor_cancelled',
+                'body_translated_key' => 'guarantor_has_been_cancelled',
+                'translated_attributes' => [],
+                'guarantor_request_id' => $request->id,
+                'type' => $request->type->value,
+                'cancellation_reason' => 'Client withdrew from the contract',
+            ]);
+
+        assertBroadcastPayload($notification->toBroadcast($user), [
+            'title' => trans('guarantor_cancelled', locale: 'en'),
+            'body' => trans('guarantor_has_been_cancelled', locale: 'en'),
+            'guarantor_request_id' => $request->id,
+            'cancellation_reason' => 'Client withdrew from the contract',
+        ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans('guarantor_cancelled', locale: 'en'),
+            trans('guarantor_has_been_cancelled', locale: 'en'),
+            [
+                'guarantor_request_id' => $request->id,
+                'cancellation_reason' => 'Client withdrew from the contract',
+            ],
+        );
+    });
+
+    it('locks GuarantorPendingReviewNotification channel outputs', function (): void {
+        /** @var TestCase $this */
+        [$request, $user] = guarantorFixture();
+        $notification = new GuarantorPendingReviewNotification($request);
+        $admin = Admin::query()->create([
+            'name' => 'Guarantor Review Admin',
+            'phone' => fake()->unique()->phoneNumber(),
+            'email' => fake()->unique()->safeEmail(),
+            'password' => 'password',
+            'language' => 'en',
+        ]);
+
+        expect($notification->via($admin))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($user))->toBe(['database', 'broadcast'])
+            ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
+            ->and($notification->broadcastType())->toBe('guarantor pending review')
+            ->and($notification->toArray($admin))->toBe([
+                'title_translated_key' => 'guarantor_pending_review_title',
+                'body_translated_key' => 'guarantor_pending_review_body',
+                'translated_attributes' => [],
+                'guarantor_request_id' => $request->id,
+                'type' => $request->type->value,
+            ]);
+
+        assertBroadcastPayload($notification->toBroadcast($admin), [
+            'title' => trans('guarantor_pending_review_title', locale: 'en'),
+            'body' => trans('guarantor_pending_review_body', locale: 'en'),
+            'guarantor_request_id' => $request->id,
+            'type' => $request->type->value,
+        ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($admin),
+            trans('guarantor_pending_review_title', locale: 'en'),
+            trans('guarantor_pending_review_body', locale: 'en'),
+            [
+                'guarantor_request_id' => $request->id,
+                'screen' => 'guarantor',
             ],
         );
     });

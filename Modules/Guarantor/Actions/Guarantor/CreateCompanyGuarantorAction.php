@@ -5,6 +5,7 @@ namespace Modules\Guarantor\Actions\Guarantor;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Modules\Guarantor\Actions\Guarantor\NotifyAdminsOfGuarantorPendingAction as NotifyAdminsOfGuarantorPending;
 use Modules\Guarantor\Contracts\Repositories\CompanyDetailRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
@@ -27,6 +28,7 @@ class CreateCompanyGuarantorAction
         private readonly CompanyDetailRepositoryInterface $companyDetailRepository,
         private readonly InstallmentRepositoryInterface $installmentRepository,
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
+        private readonly NotifyAdminsOfGuarantorPending $notifyAdminsOfGuarantorPendingAction,
     ) {}
 
     /**
@@ -125,6 +127,8 @@ class CreateCompanyGuarantorAction
             $guarantorRequest->requester->notify(
                 new GuarantorCreatedNotification($guarantorRequest)
             );
+
+            $this->notifyAdminsOfGuarantorPendingAction->handle($guarantorRequest);
 
             return $guarantorRequest;
         });
