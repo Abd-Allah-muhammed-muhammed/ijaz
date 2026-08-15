@@ -37,11 +37,6 @@ class AdminCancelGuarantorAction
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }
 
-            $hadPayment = $request->status->isIn([
-                GuarantorStatusEnum::InProgress,
-                GuarantorStatusEnum::Overdue,
-            ]);
-
             $this->updateStatusAction->handle(
                 $request,
                 new UpdateGuarantorStatusData(
@@ -53,9 +48,7 @@ class AdminCancelGuarantorAction
                 'admin'
             );
 
-            if ($hadPayment) {
-                $this->reverseWalletHolds($request->fresh());
-            }
+            $this->reverseWalletHolds($request->fresh());
         });
     }
 
@@ -63,23 +56,23 @@ class AdminCancelGuarantorAction
     {
         $request->loadMissing(['requester', 'counterparty']);
 
-        $total = (float) $request->amount + (float) $request->fees;
-
-        $counterpartyWallet = $request->counterparty->wallet()->lockForUpdate()->firstOrCreate();
-        if ((float) $counterpartyWallet->pending_debit >= $total) {
+        $counterpartyWallet = $request->counterparty->wallet()->lockForUpdate()->first();
+        $pendingDebit = (float) ($counterpartyWallet?->pending_debit ?? 0);
+        if ($pendingDebit > 0) {
             $this->walletService->reversePendingDebit(
                 $request->counterparty,
-                $total,
+                $pendingDebit,
                 $request,
                 "Guarantor#{$request->id} cancelled",
             );
         }
 
-        $requesterWallet = $request->requester->wallet()->lockForUpdate()->firstOrCreate();
-        if ((float) $requesterWallet->pending_credit >= $total) {
+        $requesterWallet = $request->requester->wallet()->lockForUpdate()->first();
+        $pendingCredit = (float) ($requesterWallet?->pending_credit ?? 0);
+        if ($pendingCredit > 0) {
             $this->walletService->reversePendingCredit(
                 $request->requester,
-                $total,
+                $pendingCredit,
                 $request,
                 "Guarantor#{$request->id} cancelled",
             );
