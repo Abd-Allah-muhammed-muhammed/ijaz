@@ -6,6 +6,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Modules\Geo\Models\Nationality;
+use Modules\Geo\Models\NationalityTranslation;
 
 interface NationalityRepositoryInterface
 {
@@ -25,4 +26,8 @@ interface NationalityRepositoryInterface
     public function listForSelect(?string $search = null): Collection;
 
     public function paginateForApi(?string $search = null, int $perPage = 10): LengthAwarePaginator;
+
+    public function findTranslation(int $nationalityId, string $locale): ?NationalityTranslation;
+
+    public function saveTranslationName(NationalityTranslation $translation, string $name): NationalityTranslation;
 }

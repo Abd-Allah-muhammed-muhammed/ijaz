@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Modules\Geo\Contracts\Repositories\NationalityRepositoryInterface;
 use Modules\Geo\Exceptions\GeoException;
 use Modules\Geo\Models\Nationality;
+use Modules\Geo\Models\NationalityTranslation;
 
 class NationalityRepository implements NationalityRepositoryInterface
 {
@@ -81,5 +82,21 @@ class NationalityRepository implements NationalityRepositoryInterface
             ->withTranslation()
             ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v, 'normalized_name'))
             ->paginate($perPage);
+    }
+
+    public function findTranslation(int $nationalityId, string $locale): ?NationalityTranslation
+    {
+        return NationalityTranslation::query()
+            ->where('nationality_id', $nationalityId)
+            ->where('locale', $locale)
+            ->first();
+    }
+
+    public function saveTranslationName(NationalityTranslation $translation, string $name): NationalityTranslation
+    {
+        $translation->name = $name;
+        $translation->save();
+
+        return $translation;
     }
 }
