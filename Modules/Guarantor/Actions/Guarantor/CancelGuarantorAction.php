@@ -2,10 +2,10 @@
 
 namespace Modules\Guarantor\Actions\Guarantor;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Admin;
 use Illuminate\Support\Facades\DB;
-use Modules\Guarantor\Actions\Guarantor\NotifyGuarantorPartiesAction as NotifyGuarantorParties;
-use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
+use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorStatusAction as UpdateGuarantorStatus;
+use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
@@ -15,47 +15,40 @@ use Throwable;
 class CancelGuarantorAction
 {
     public function __construct(
-        private readonly GuarantorRepositoryInterface $guarantorRepository,
-        private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
+        private readonly UpdateGuarantorStatus $updateStatusAction,
         private readonly WalletService $walletService,
-        private readonly NotifyGuarantorParties $notifyGuarantorPartiesAction,
     ) {}
 
     /**
      * @throws Throwable
      */
-    public function handle(GuarantorRequest $request, string $reason, Model $actor, string $actorRole): void
-    {
-        DB::transaction(function () use ($request, $reason, $actor, $actorRole) {
-            if (! GuarantorStatusEnum::isAllowed($request->status, GuarantorStatusEnum::Cancelled, $actorRole)) {
+    public function handle(
+        GuarantorRequest $request,
+        string $reason,
+        ?string $notes,
+        Admin $admin,
+    ): void {
+        DB::transaction(function () use ($request, $reason, $notes, $admin) {
+            if ($request->status->isIn([
+                GuarantorStatusEnum::Cancelled,
+                GuarantorStatusEnum::Refunded,
+                GuarantorStatusEnum::Ended,
+            ])) {
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }
 
-            $fromStatus = $request->status->value;
-            $hadPayment = in_array($request->status, [
-                GuarantorStatusEnum::InProgress,
-                GuarantorStatusEnum::Overdue,
-            ], true);
-
-            $guarantorRequest = $this->guarantorRepository->update($request, [
-                'status' => GuarantorStatusEnum::Cancelled,
-                'cancelled_at' => now(),
-                'cancellation_reason' => $reason,
-            ]);
-
-            if ($hadPayment) {
-                $this->reverseWalletHolds($guarantorRequest);
-            }
-
-            $this->logStatusHistory->handle(
-                $guarantorRequest,
-                $actor,
-                $fromStatus,
-                GuarantorStatusEnum::Cancelled->value,
-                $reason,
+            $this->updateStatusAction->handle(
+                $request,
+                new UpdateGuarantorStatusData(
+                    status: GuarantorStatusEnum::Cancelled,
+                    reason: $reason,
+                    notes: $notes,
+                ),
+                $admin,
+                'admin'
             );
 
-            $this->notifyGuarantorPartiesAction->handle($guarantorRequest);
+            $this->reverseWalletHolds($request->fresh());
         });
     }
 
@@ -63,23 +56,23 @@ class CancelGuarantorAction
     {
         $request->loadMissing(['requester', 'counterparty']);
 
-        $total = (float) $request->amount + (float) $request->fees;
-
-        $counterpartyWallet = $request->counterparty->wallet()->lockForUpdate()->firstOrCreate();
-        if ((float) $counterpartyWallet->pending_debit >= $total) {
+        $counterpartyWallet = $request->counterparty->wallet()->lockForUpdate()->first();
+        $pendingDebit = (float) ($counterpartyWallet?->pending_debit ?? 0);
+        if ($pendingDebit > 0) {
             $this->walletService->reversePendingDebit(
                 $request->counterparty,
-                $total,
+                $pendingDebit,
                 $request,
                 "Guarantor#{$request->id} cancelled",
             );
         }
 
-        $requesterWallet = $request->requester->wallet()->lockForUpdate()->firstOrCreate();
-        if ((float) $requesterWallet->pending_credit >= $total) {
+        $requesterWallet = $request->requester->wallet()->lockForUpdate()->first();
+        $pendingCredit = (float) ($requesterWallet?->pending_credit ?? 0);
+        if ($pendingCredit > 0) {
             $this->walletService->reversePendingCredit(
                 $request->requester,
-                $total,
+                $pendingCredit,
                 $request,
                 "Guarantor#{$request->id} cancelled",
             );

@@ -65,8 +65,8 @@ class GuarantorServiceProvider extends ModuleServiceProvider
         // Services are resolved via constructor injection:
         // GuarantorService, GuarantorInstallmentService, GuarantorChatService,
         // GuarantorDashboardService
-        // Dashboard actions: AdminApproveGuarantorAction, AdminRejectGuarantorAction,
-        // AdminCancelGuarantorAction
+        // Dashboard actions: AdminApproveGuarantorAction, AdminRejectGuarantorAction
+        // Cancel: CancelGuarantorAction
     }
 
     public function boot(): void

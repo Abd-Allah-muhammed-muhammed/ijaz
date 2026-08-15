@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\Sanctum;
 use Modules\Chat\Models\Conversation;
 use Modules\Guarantor\Actions\Chat\OpenGuarantorChatAction;
-use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateCompanyGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateIndividualGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\DeleteGuarantorAction;
@@ -505,30 +504,6 @@ test('PayInstallmentAction fails if previous installment not paid', function () 
         $guarantorRequest->counterparty,
     );
 })->throws(GuarantorException::class);
-
-test('CancelGuarantorAction reverses wallet on cancel after payment', function () {
-    $guarantorRequest = GuarantorRequest::factory()->inProgress()->create(['amount' => 1000, 'fees' => 10]);
-    $requester = $guarantorRequest->requester;
-    $counterparty = $guarantorRequest->counterparty;
-    $admin = guarantorActionAdmin();
-
-    $requester->wallet->update(['pending_credit' => 1010]);
-    $counterparty->wallet->update(['pending_debit' => 1010]);
-
-    app(CancelGuarantorAction::class)->handle(
-        $guarantorRequest,
-        'Changed plans',
-        $admin,
-        'admin',
-    );
-
-    $requester->wallet->refresh();
-    $counterparty->wallet->refresh();
-
-    expect($guarantorRequest->fresh()->status)->toBe(GuarantorStatusEnum::Cancelled)
-        ->and((float) $requester->wallet->pending_credit)->toBe(0.0)
-        ->and((float) $counterparty->wallet->pending_debit)->toBe(0.0);
-});
 
 test('creating individual guarantor notifies requester', function () {
     Notification::fake();

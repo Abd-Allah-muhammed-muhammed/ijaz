@@ -4,7 +4,7 @@ use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
-use Modules\Guarantor\Actions\Dashboard\AdminCancelGuarantorAction;
+use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Jobs\ReleaseInstallmentJob;
@@ -57,7 +57,7 @@ function completeAdminCancelHoldPayment($owner, $product, float $amount): void
 
 function cancelGuarantorAsAdmin(GuarantorRequest $request, Admin $admin): void
 {
-    app(AdminCancelGuarantorAction::class)->handle(
+    app(CancelGuarantorAction::class)->handle(
         $request->fresh(),
         'Admin cancelled',
         null,

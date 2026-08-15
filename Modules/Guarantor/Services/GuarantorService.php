@@ -4,7 +4,6 @@ namespace Modules\Guarantor\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateCompanyGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateIndividualGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\DeleteGuarantorAction;
@@ -38,7 +37,6 @@ class GuarantorService
         private readonly DeleteGuarantorMediaAction $deleteMediaAction,
         private readonly PayIndividualGuarantorAction $payIndividualAction,
         private readonly EndGuarantorAction $endAction,
-        private readonly CancelGuarantorAction $cancelAction,
     ) {}
 
     /**
@@ -139,18 +137,6 @@ class GuarantorService
         string $actorRole,
     ): GuarantorRequest {
         return $this->endAction->handle($request, $actor, $actorRole);
-    }
-
-    /**
-     * @throws Throwable
-     */
-    public function cancel(
-        GuarantorRequest $request,
-        string $reason,
-        Model $actor,
-        string $actorRole,
-    ): void {
-        $this->cancelAction->handle($request, $reason, $actor, $actorRole);
     }
 
     public function findById(string $id): GuarantorRequest

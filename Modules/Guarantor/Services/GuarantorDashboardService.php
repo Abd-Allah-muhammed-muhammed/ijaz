@@ -6,9 +6,9 @@ use App\Models\Admin;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Modules\Guarantor\Actions\Dashboard\AdminApproveGuarantorAction;
-use Modules\Guarantor\Actions\Dashboard\AdminCancelGuarantorAction;
 use Modules\Guarantor\Actions\Dashboard\AdminRejectGuarantorAction;
 use Modules\Guarantor\Actions\Dashboard\DeleteGuarantorForDashboardAction;
+use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
 use Modules\Guarantor\Actions\Installment\ReleaseInstallmentAction;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Http\Requests\Dashboard\ApproveGuarantorRequest;
@@ -23,7 +23,7 @@ class GuarantorDashboardService
         private readonly GuarantorRepositoryInterface $repository,
         private readonly AdminApproveGuarantorAction $approveAction,
         private readonly AdminRejectGuarantorAction $rejectAction,
-        private readonly AdminCancelGuarantorAction $cancelAction,
+        private readonly CancelGuarantorAction $cancelAction,
         private readonly ReleaseInstallmentAction $releaseAction,
         private readonly DeleteGuarantorForDashboardAction $deleteForDashboardAction,
     ) {}
