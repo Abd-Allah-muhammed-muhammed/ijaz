@@ -40,9 +40,12 @@ class OpportunityService
         return $this->opportunities->listPublic($actor, $perPage, $regionId, $cityId);
     }
 
-    public function listByActor(Model $actor, int $perPage = 10, ?string $status = null): LengthAwarePaginator
+    /**
+     * @param  array<int, string>|null  $statuses
+     */
+    public function listByActor(Model $actor, int $perPage = 10, ?array $statuses = null): LengthAwarePaginator
     {
-        return $this->opportunities->listByActor($actor, $perPage, $status);
+        return $this->opportunities->listByActor($actor, $perPage, $statuses);
     }
 
     public function loadForShow(Opportunity $opportunity, ?Model $actor = null): Opportunity

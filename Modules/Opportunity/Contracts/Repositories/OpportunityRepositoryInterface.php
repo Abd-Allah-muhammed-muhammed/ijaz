@@ -24,7 +24,10 @@ interface OpportunityRepositoryInterface
 
     public function listPublic(?Model $actor = null, int $perPage = 10, ?int $regionId = null, ?int $cityId = null): LengthAwarePaginator;
 
-    public function listByActor(Model $actor, int $perPage = 10, ?string $status = null): LengthAwarePaginator;
+    /**
+     * @param  array<int, string>|null  $statuses
+     */
+    public function listByActor(Model $actor, int $perPage = 10, ?array $statuses = null): LengthAwarePaginator;
 
     public function loadForShow(Opportunity $opportunity, ?Model $actor = null): Opportunity;
 

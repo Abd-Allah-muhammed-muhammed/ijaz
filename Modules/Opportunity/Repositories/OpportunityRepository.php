@@ -50,7 +50,10 @@ class OpportunityRepository implements OpportunityRepositoryInterface
             ->paginate($perPage);
     }
 
-    public function listByActor(Model $actor, int $perPage = 10, ?string $status = null): LengthAwarePaginator
+    /**
+     * @param  array<int, string>|null  $statuses
+     */
+    public function listByActor(Model $actor, int $perPage = 10, ?array $statuses = null): LengthAwarePaginator
     {
         return Opportunity::query()
             ->byActor($actor)
@@ -59,7 +62,7 @@ class OpportunityRepository implements OpportunityRepositoryInterface
                 'offers' => fn (Builder $query) => $this->constrainOffersCountForViewer($query, $actor),
                 'comments',
             ])
-            ->when($status, fn (Builder $query, string $value) => $query->where('status', $value))
+            ->when($statuses, fn (Builder $query, array $values) => $query->whereIn('status', $values))
             ->latest()
             ->paginate($perPage);
     }

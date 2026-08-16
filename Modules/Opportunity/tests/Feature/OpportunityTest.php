@@ -266,6 +266,125 @@ test('author opportunity listing rejects an invalid status value with a validati
         ->assertJsonValidationErrors(['status']);
 });
 
+test('author opportunity listing filters by a single status value (unchanged behavior from yesterday)', function () {
+    $author = User::factory()->create();
+
+    $inProgress = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::InProgress,
+    ]);
+    Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::New,
+    ]);
+
+    Sanctum::actingAs($author);
+
+    $ids = collect($this->getJson(action([OpportunityController::class, 'index'], [
+        'status' => OpportunityStatusEnum::InProgress->value,
+    ]))->assertSuccessful()->json('data.items'))->pluck('id');
+
+    expect($ids)->toHaveCount(1)
+        ->toContain($inProgress->id);
+});
+
+test('author opportunity listing filters by multiple comma-separated status values, e.g. status=new,offer_accepted,in_progress', function () {
+    $author = User::factory()->create();
+
+    $new = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::New,
+    ]);
+    $offerAccepted = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::OfferAccepted,
+    ]);
+    $inProgress = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::InProgress,
+    ]);
+    $ended = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::Ended,
+    ]);
+
+    Sanctum::actingAs($author);
+
+    $ids = collect($this->getJson(action([OpportunityController::class, 'index'], [
+        'status' => implode(',', [
+            OpportunityStatusEnum::New->value,
+            OpportunityStatusEnum::OfferAccepted->value,
+            OpportunityStatusEnum::InProgress->value,
+        ]),
+    ]))->assertSuccessful()->json('data.items'))->pluck('id');
+
+    expect($ids)->toHaveCount(3)
+        ->toContain($new->id)
+        ->toContain($offerAccepted->id)
+        ->toContain($inProgress->id)
+        ->not->toContain($ended->id);
+});
+
+test('author opportunity listing filters by multiple status values sent as an array, e.g. status[]=new&status[]=offer_accepted', function () {
+    $author = User::factory()->create();
+
+    $new = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::New,
+    ]);
+    $offerAccepted = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::OfferAccepted,
+    ]);
+    $inProgress = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::InProgress,
+    ]);
+
+    Sanctum::actingAs($author);
+
+    $ids = collect($this->getJson(action([OpportunityController::class, 'index'], [
+        'status' => [
+            OpportunityStatusEnum::New->value,
+            OpportunityStatusEnum::OfferAccepted->value,
+        ],
+    ]))->assertSuccessful()->json('data.items'))->pluck('id');
+
+    expect($ids)->toHaveCount(2)
+        ->toContain($new->id)
+        ->toContain($offerAccepted->id)
+        ->not->toContain($inProgress->id);
+});
+
+test('an invalid status value anywhere in a multi-value request still returns a 422 validation error, not a silently filtered result', function () {
+    Sanctum::actingAs(User::factory()->create());
+
+    $this->getJson(action([OpportunityController::class, 'index'], [
+        'status' => implode(',', [
+            OpportunityStatusEnum::New->value,
+            'not-a-real-status',
+        ]),
+    ]))->assertUnprocessable()
+        ->assertJsonValidationErrors(['status']);
+
+    $this->getJson(action([OpportunityController::class, 'index'], [
+        'status' => [
+            OpportunityStatusEnum::New->value,
+            'not-a-real-status',
+        ],
+    ]))->assertUnprocessable()
+        ->assertJsonValidationErrors(['status']);
+});
+
 test('guest can view single opportunity', function () {
     $opportunity = Opportunity::factory()->create();
 

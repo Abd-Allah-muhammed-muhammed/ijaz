@@ -96,7 +96,7 @@ class OpportunityController extends Controller
      * @authenticated
      *
      * @queryParam per_page int Number of results per page. Example: 10
-     * @queryParam status string Optional status filter (new, offer_accepted, in_progress, ended, cancelled, expired). Example: expired
+     * @queryParam status string Optional status filter. Accepts a single value, comma-separated values, or an array (new, offer_accepted, in_progress, ended, cancelled, expired). Example: new,offer_accepted,in_progress
      *
      * @response 200 {
      *   "status": true,
