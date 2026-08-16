@@ -98,4 +98,19 @@ class RegionRepository implements RegionRepositoryInterface
             ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v))
             ->paginate($perPage);
     }
+
+    /**
+     * @param  list<int>  $ids
+     * @return Collection<int, Region>
+     */
+    public function listByIds(array $ids): Collection
+    {
+        /** @var Collection<int, Region> */
+        return Region::query()
+            ->with(['translations'])
+            ->withCount('cities')
+            ->whereIn('id', $ids)
+            ->orderBy('id')
+            ->get();
+    }
 }

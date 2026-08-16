@@ -32,4 +32,10 @@ interface RegionRepositoryInterface
     public function listForSelect(?string $search = null): Collection;
 
     public function paginateForApi(?string $search = null, int $perPage = 10): LengthAwarePaginator;
+
+    /**
+     * @param  list<int>  $ids
+     * @return Collection<int, Region>
+     */
+    public function listByIds(array $ids): Collection;
 }

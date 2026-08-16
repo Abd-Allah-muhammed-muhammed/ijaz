@@ -2,6 +2,7 @@
 
 namespace Modules\Geo\Providers;
 
+use Modules\Geo\Console\Commands\CleanupDuplicateRegionsCommand;
 use Modules\Geo\Contracts\Repositories\CityRepositoryInterface;
 use Modules\Geo\Contracts\Repositories\NationalityRepositoryInterface;
 use Modules\Geo\Contracts\Repositories\RegionRepositoryInterface;
@@ -32,5 +33,11 @@ class GeoServiceProvider extends ModuleServiceProvider
     public function boot(): void
     {
         parent::boot();
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                CleanupDuplicateRegionsCommand::class,
+            ]);
+        }
     }
 }

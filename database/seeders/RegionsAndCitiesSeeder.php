@@ -50,16 +50,26 @@ class RegionsAndCitiesSeeder extends Seeder
             ['en' => 'Rimah', 'ar' => 'رماح'],
         ];
 
+        $created = 0;
+        $skipped = 0;
+
         foreach ($regions as $region) {
+            if (Region::query()->whereTranslation('title', $region['ar'], 'ar')->exists()) {
+                $skipped++;
+
+                continue;
+            }
+
             Region::query()->create([
                 'translations' => [
                     'en' => ['title' => $region['en']],
                     'ar' => ['title' => $region['ar']],
                 ],
             ]);
+            $created++;
         }
 
-        echo 'Added '.count($regions)." regions with translations.\n";
+        echo "Added {$created} regions with translations ({$skipped} skipped — Arabic title already exists).\n";
     }
 
     private function seedCities(): void
