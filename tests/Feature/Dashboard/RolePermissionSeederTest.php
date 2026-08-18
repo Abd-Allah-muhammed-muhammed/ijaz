@@ -19,7 +19,7 @@ beforeEach(function (): void {
 function expectedRolePermissionCounts(): array
 {
     return [
-        'super-admin' => 119,
+        'super-admin' => 121,
         'operations' => 11,
         'finance' => 4,
         'support' => 8,
@@ -40,7 +40,7 @@ it('seeds every declared admin permission name', function (): void {
         ->all();
 
     expect($actual)->toEqualCanonicalizing($expected)
-        ->and($actual)->toHaveCount(119);
+        ->and($actual)->toHaveCount(121);
 });
 
 it('keeps super-admin synced to every admin permission', function (): void {
@@ -49,7 +49,7 @@ it('keeps super-admin synced to every admin permission', function (): void {
 
     expect($role->permissions->pluck('name')->sort()->values()->all())
         ->toEqual($all->all())
-        ->and($role->permissions)->toHaveCount(119);
+        ->and($role->permissions)->toHaveCount(121);
 });
 
 it('is idempotent when re-seeded', function (): void {
@@ -97,6 +97,8 @@ it('does not grant developer sensitive finance write or privilege-escalation per
         ->and($role->hasPermissionTo('show topUpRequests'))->toBeTrue()
         ->and($role->hasPermissionTo('edit topUpRequests'))->toBeFalse()
         ->and($role->hasPermissionTo('edit withdrawRequests'))->toBeFalse()
+        ->and($role->hasPermissionTo('request payouts'))->toBeFalse()
+        ->and($role->hasPermissionTo('confirm payouts'))->toBeFalse()
         ->and($role->hasPermissionTo('manage guarantors'))->toBeFalse()
         ->and($role->hasPermissionTo('process providers'))->toBeFalse()
         ->and($role->hasPermissionTo('create roles'))->toBeFalse()

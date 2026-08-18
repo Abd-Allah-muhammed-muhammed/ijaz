@@ -61,6 +61,7 @@
             "Modules\\Payment\\Database\\Factories\\": "Modules/Payment/Database/Factories/",
             "Modules\\Support\\Database\\Factories\\": "Modules/Support/database/factories/",
             "Modules\\Orders\\Database\\Factories\\": "Modules/Orders/database/factories/",
+            "Modules\\Payout\\Database\\Factories\\": "Modules/Payout/database/factories/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         }
