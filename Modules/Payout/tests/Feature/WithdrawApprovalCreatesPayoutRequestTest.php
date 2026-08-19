@@ -34,7 +34,8 @@ test('approving a withdraw request creates a PayoutRequest linked to it via oper
         ->first();
 
     expect($payout)->not->toBeNull()
-        ->and($payout->status)->toBe(PayoutStatusEnum::Pending);
+        ->and($payout->status)->toBe(PayoutStatusEnum::Pending)
+        ->and($payout->maker_admin_id)->toBe($admin->id);
 });
 
 test('the PayoutRequest amount and recipient match the withdraw request exactly', function () {

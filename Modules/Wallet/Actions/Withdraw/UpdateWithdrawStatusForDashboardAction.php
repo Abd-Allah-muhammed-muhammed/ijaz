@@ -54,6 +54,7 @@ class UpdateWithdrawStatusForDashboardAction
                     operation: $withdrawRequest,
                     recipient: $withdrawRequest->user,
                     amount: (float) $withdrawRequest->amount,
+                    makerAdminId: $adminId,
                 );
             }
 

@@ -27,6 +27,7 @@ class PayoutRequest extends Model
         'gateway_reference',
         'processed_by_admin_id',
         'failure_reason',
+        'maker_admin_id',
     ];
 
     protected $attributes = [
@@ -46,6 +47,11 @@ class PayoutRequest extends Model
     public function processedByAdmin(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'processed_by_admin_id');
+    }
+
+    public function makerAdmin(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'maker_admin_id');
     }
 
     protected function casts(): array

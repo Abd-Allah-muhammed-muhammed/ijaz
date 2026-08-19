@@ -22,6 +22,7 @@ class CreatePayoutRequestAction
             'recipient_id' => $data->recipient->getKey(),
             'amount' => $data->amount,
             'status' => PayoutStatusEnum::Pending,
+            'maker_admin_id' => $data->makerAdminId,
         ]);
     }
 }

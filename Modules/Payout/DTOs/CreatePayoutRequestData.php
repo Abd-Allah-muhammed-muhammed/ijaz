@@ -10,5 +10,6 @@ final readonly class CreatePayoutRequestData
         public Model $operation,
         public Model $recipient,
         public float $amount,
+        public ?int $makerAdminId = null,
     ) {}
 }

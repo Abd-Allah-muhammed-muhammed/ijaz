@@ -35,7 +35,7 @@ Layer 1 only wires **withdraw approval**. Other sources are planned, not built.
 
 ## 2. Status
 
-### Layer 1 — **this task (built)**
+### Layer 1 — **built**
 
 - `PayoutRequest` model + module migration
 - Create-on-withdraw-approval (purely additive)
@@ -43,14 +43,35 @@ Layer 1 only wires **withdraw approval**. Other sources are planned, not built.
   (granted to `super-admin` only; nothing checks them yet)
 - This document
 
+### Layer 2 — **built**
+
+Mandatory maker-checker for **every** payout, with **no amount threshold**:
+
+- `maker_admin_id` (nullable FK → `admins`) set at creation from whichever
+  admin's action created the payout (for withdraw-sourced payouts: the admin
+  who approved the withdraw, passed through from
+  `UpdateWithdrawStatusForDashboardAction`)
+- `ConfirmPayoutTransferAction` — requires `confirm payouts` permission
+  (controller middleware); rejects when confirming admin equals
+  `maker_admin_id` (422); requires `gateway_reference`; sets
+  `processed_by_admin_id`, status → `completed`
+- `FailPayoutTransferAction` — marks status → `failed` with required
+  `failure_reason`; failed payouts can be confirmed later by any eligible
+  (different) admin
+- Minimal dashboard: list pending/failed payouts, confirm, fail
+  (`dashboard.payout-requests.*`)
+
+**Core rule:** the admin who triggered the source operation (the maker) can
+never confirm the actual bank transfer — even if they hold `confirm payouts`.
+A different admin must record the `gateway_reference`.
+
 ### Not built — planned future layers
 
 | Layer | Intent |
 |---|---|
-| Maker-checker | Two distinct admins: one requests / one confirms. No codebase precedent; new workflow + data. Permissions already reserved. |
 | Audit log | Who created, who confirmed, timestamps, notes, gateway reference |
 | Reconciliation report | Outstanding vs completed vs failed; match `gateway_reference` to bank statements |
-| Unified admin dashboard | List/filter/confirm payouts (Inertia). Layer 1 has **no HTTP surface**. |
+| Full unified admin dashboard | Rich list/filter UX beyond Layer 2 minimum |
 | Guarantor / order sources | Create `PayoutRequest` from end, installment release, cancel-refund, order refunds |
 | Automated gateway payout | Out of scope until a driver actually supports outbound transfers |
 
@@ -59,24 +80,26 @@ Layer 1 only wires **withdraw approval**. Other sources are planned, not built.
 Table: `payout_requests` (UUID PK). Module migration only — **does not** alter
 `wallets` or `withdraw_requests`.
 
-| Column | Type | Layer 1 use |
+| Column | Type | Use |
 |---|---|---|
 | `id` | UUID | PK |
 | `operation_type` / `operation_id` | morph (`char(36)` id, same as `wallet_transactions`) | Source row, e.g. `Modules\Wallet\Models\WithdrawRequest` |
 | `recipient_type` / `recipient_id` | morph (bigint; `User` / `Provider`) | Who should receive the cash |
 | `amount` | `decimal(12,2)` | Copied from the source operation |
-| `status` | `PayoutStatusEnum` | Created as `pending` |
-| `gateway_reference` | nullable string | Filled when admin confirms the external transfer (later layer) |
-| `processed_by_admin_id` | nullable FK → `admins` | Confirmer, not the withdraw approver (later layer) |
-| `failure_reason` | nullable text | Later layer |
+| `status` | `PayoutStatusEnum` | Created as `pending`; transitions via confirm/fail |
+| `gateway_reference` | nullable string | Required on confirm; bank/gateway txn id |
+| `processed_by_admin_id` | nullable FK → `admins` | Checker who confirmed the transfer |
+| `failure_reason` | nullable text | Set on fail; cleared on successful confirm retry |
+| `maker_admin_id` | nullable FK → `admins` | Admin whose action created the payout obligation |
 | `created_at` / `updated_at` | timestamps | |
 
 Statuses: `pending` → `processing` → `completed` \| `failed`.
 
-Layer 1 only **inserts** `pending` rows. No status transitions yet.
+Layer 2 confirm/fail: `pending` or `failed` → `completed` (confirm) or `failed`
+(fail). `completed` is terminal for confirm/fail.
 
 Relations on `PayoutRequest`: `operation()` morphTo, `recipient()` morphTo,
-`processedByAdmin()` belongsTo `Admin`.
+`processedByAdmin()` belongsTo `Admin`, `makerAdmin()` belongsTo `Admin`.
 
 ## 4. Layer 1 wiring (withdraw only)
 
@@ -98,6 +121,7 @@ insert:
 - `recipient` = `$withdrawRequest->user` (User or Provider)
 - `amount` = withdraw amount
 - `status` = `pending`
+- `maker_admin_id` = approving admin's id (Layer 2)
 - `gateway_reference` / `processed_by_admin_id` / `failure_reason` = null
 
 Reject and cancel do **not** create a `PayoutRequest` (no cash should leave).
@@ -105,7 +129,19 @@ Reject and cancel do **not** create a `PayoutRequest` (no cash should leave).
 Wallet still does not talk to any payment gateway on approve. The new row is
 the to-do item for the human transfer that already happened off-system.
 
-## 5. Module conventions
+## 5. Layer 2 wiring (maker-checker confirm/fail)
+
+Dashboard routes (middleware: `auth:admin`, `confirm payouts`):
+
+- `GET dashboard/payout-requests` — list `pending` + `failed` rows
+- `PUT dashboard/payout-requests/{id}/confirm` — body: `gateway_reference`
+  (required)
+- `PUT dashboard/payout-requests/{id}/fail` — body: `failure_reason` (required)
+
+Confirm rejects when `auth('admin')->id() === maker_admin_id` with 422 and a
+clear message. Confirm rejects when status is already `completed`.
+
+## 6. Module conventions
 
 Follow `Modules/Reviews` / `Modules/Marketplace`, **not** Wallet's older
 `RouteServiceProvider` (custom `boot()`, `Routes/V1/wallet.php`).
@@ -117,10 +153,11 @@ Follow `Modules/Reviews` / `Modules/Marketplace`, **not** Wallet's older
 - Enable in `modules_statuses.json`
 - Permissions live in `RolePermissionSeeder` (source of truth)
 
-Layering: Controller (later) → Service → Action → Repository / DTO.
+Layering: Controller → Service → Action → Repository / DTO.
 
-## 6. Changelog
+## 7. Changelog
 
 | Date | Layer | Change |
 |---|---|---|
 | 2026-08-18 | 1 | Scaffold module; create `PayoutRequest` on withdraw approve |
+| 2026-08-19 | 2 | Maker-checker: `maker_admin_id`, confirm/fail actions, minimal dashboard |
