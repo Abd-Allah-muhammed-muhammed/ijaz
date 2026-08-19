@@ -19,6 +19,7 @@ class ConfirmPayoutTransferRequest extends FormRequest
     {
         return [
             'gateway_reference' => 'required|string|max:255',
+            'proof_image' => ['required', 'file', 'mimes:jpeg,jpg,png,gif,webp', 'max:5120'],
         ];
     }
 }

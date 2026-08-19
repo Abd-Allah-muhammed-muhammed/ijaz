@@ -47,6 +47,7 @@ class PayoutRequestController extends Controller implements HasMiddleware
                 $payoutRequest,
                 (int) auth('admin')->id(),
                 $request->validated('gateway_reference'),
+                $request->file('proof_image'),
             );
         } catch (PayoutException $e) {
             return redirect()->back()->with('error', __($e->getMessage()));

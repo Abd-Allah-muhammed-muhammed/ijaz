@@ -4,6 +4,7 @@ namespace Modules\Payout\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Modules\Payout\Actions\Payout\ConfirmPayoutTransferAction;
 use Modules\Payout\Actions\Payout\CreatePayoutRequestAction;
@@ -44,8 +45,9 @@ class PayoutService
         PayoutRequest $payoutRequest,
         int $adminId,
         string $gatewayReference,
+        UploadedFile $proofImage,
     ): PayoutRequest {
-        return $this->confirmAction->handle($payoutRequest, $adminId, $gatewayReference);
+        return $this->confirmAction->handle($payoutRequest, $adminId, $gatewayReference, $proofImage);
     }
 
     public function failTransfer(PayoutRequest $payoutRequest, string $failureReason): PayoutRequest

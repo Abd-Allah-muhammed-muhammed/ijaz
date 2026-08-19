@@ -65,6 +65,25 @@ Mandatory maker-checker for **every** payout, with **no amount threshold**:
 never confirm the actual bank transfer — even if they hold `confirm payouts`.
 A different admin must record the `gateway_reference`.
 
+### Layer 2.5 — **built**
+
+Permanent manual-confirm audit trail (not a placeholder for automated gateway
+payout):
+
+- Every confirm requires **both** `gateway_reference` (free text) **and**
+  `proof_image` (required upload) — independently required, same validation
+  limits as Chat attachments (`jpeg,jpg,png,gif,webp`, max 5120 KB).
+- `PayoutRequest` implements MediaLibrary: collection `transfer_proof` on
+  `public` disk, `singleFile()` so a retried confirm after `failed` replaces
+  the previous proof (never appends). WebP conversion via `HasWebpImageConversion`.
+- Dashboard index supports optional `?status=` filter (`pending`, `failed`,
+  `completed`); default (no filter) still lists **pending + failed** only.
+  Completed payouts are visible via the Completed tab/filter; each row exposes
+  `transfer_proof_url` (prefers WebP when ready) for a "view proof" modal.
+- **Automated gateway payout** (e.g. future Adfa Pay outbound driver) remains
+  out of scope — when it lands it will be a **separate parallel path**, not a
+  replacement for this manual confirm + proof design.
+
 ### Not built — planned future layers
 
 | Layer | Intent |
@@ -73,7 +92,7 @@ A different admin must record the `gateway_reference`.
 | Reconciliation report | Outstanding vs completed vs failed; match `gateway_reference` to bank statements |
 | Full unified admin dashboard | Rich list/filter UX beyond Layer 2 minimum |
 | Guarantor / order sources | Create `PayoutRequest` from end, installment release, cancel-refund, order refunds |
-| Automated gateway payout | Out of scope until a driver actually supports outbound transfers |
+| Automated gateway payout | Out of scope until a driver actually supports outbound transfers; parallel path when Adfa Pay lands — does not replace Layer 2.5 manual confirm |
 
 ## 3. Data model
 
@@ -135,7 +154,7 @@ Dashboard routes (middleware: `auth:admin`, `confirm payouts`):
 
 - `GET dashboard/payout-requests` — list `pending` + `failed` rows
 - `PUT dashboard/payout-requests/{id}/confirm` — body: `gateway_reference`
-  (required)
+  (required) and `proof_image` (required file upload)
 - `PUT dashboard/payout-requests/{id}/fail` — body: `failure_reason` (required)
 
 Confirm rejects when `auth('admin')->id() === maker_admin_id` with 422 and a
@@ -161,3 +180,4 @@ Layering: Controller → Service → Action → Repository / DTO.
 |---|---|---|
 | 2026-08-18 | 1 | Scaffold module; create `PayoutRequest` on withdraw approve |
 | 2026-08-19 | 2 | Maker-checker: `maker_admin_id`, confirm/fail actions, minimal dashboard |
+| 2026-08-19 | 2.5 | Required `transfer_proof` image on confirm; completed payout list + proof viewer |

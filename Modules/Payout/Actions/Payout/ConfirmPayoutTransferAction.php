@@ -2,6 +2,7 @@
 
 namespace Modules\Payout\Actions\Payout;
 
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Modules\Payout\Contracts\Repositories\PayoutRequestRepositoryInterface;
 use Modules\Payout\Enums\PayoutStatusEnum;
@@ -14,9 +15,13 @@ class ConfirmPayoutTransferAction
         private readonly PayoutRequestRepositoryInterface $repository,
     ) {}
 
-    public function handle(PayoutRequest $payoutRequest, int $adminId, string $gatewayReference): PayoutRequest
-    {
-        return DB::transaction(function () use ($payoutRequest, $adminId, $gatewayReference): PayoutRequest {
+    public function handle(
+        PayoutRequest $payoutRequest,
+        int $adminId,
+        string $gatewayReference,
+        UploadedFile $proofImage,
+    ): PayoutRequest {
+        return DB::transaction(function () use ($payoutRequest, $adminId, $gatewayReference, $proofImage): PayoutRequest {
             $payoutRequest = $this->repository->lockForUpdate($payoutRequest);
 
             if ($payoutRequest->status === PayoutStatusEnum::Completed) {
@@ -31,12 +36,16 @@ class ConfirmPayoutTransferAction
                 throw new PayoutException('payout.maker_cannot_confirm');
             }
 
-            return $this->repository->update($payoutRequest, [
+            $payoutRequest = $this->repository->update($payoutRequest, [
                 'status' => PayoutStatusEnum::Completed,
                 'gateway_reference' => $gatewayReference,
                 'processed_by_admin_id' => $adminId,
                 'failure_reason' => null,
             ]);
+
+            $payoutRequest->addMedia($proofImage)->toMediaCollection('transfer_proof', 'public');
+
+            return $payoutRequest->fresh();
         });
     }
 }

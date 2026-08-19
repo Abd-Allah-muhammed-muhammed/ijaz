@@ -3,6 +3,7 @@
 namespace Modules\Payout\Models;
 
 use App\Models\Admin;
+use App\Support\HasWebpImageConversion;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,10 +11,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Modules\Payout\Database\Factories\PayoutRequestFactory;
 use Modules\Payout\Enums\PayoutStatusEnum;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class PayoutRequest extends Model
+class PayoutRequest extends Model implements HasMedia
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, HasWebpImageConversion, InteractsWithMedia;
 
     protected $keyType = 'string';
 
@@ -60,6 +64,26 @@ class PayoutRequest extends Model
             'amount' => 'decimal:2',
             'status' => PayoutStatusEnum::class,
         ];
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('transfer_proof')
+            ->useDisk('public')
+            ->singleFile();
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->registerWebpImageConversion($media);
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected function webpConversionCollections(): ?array
+    {
+        return ['transfer_proof'];
     }
 
     protected static function newFactory(): PayoutRequestFactory

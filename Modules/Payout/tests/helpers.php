@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Admin;
+use Illuminate\Http\UploadedFile;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
@@ -41,4 +42,9 @@ function withoutPayoutDashboardLocaleMiddleware(): void
         LaravelLocalizationViewPath::class,
     ]);
     test()->withoutVite();
+}
+
+function payoutTransferProofImage(): UploadedFile
+{
+    return UploadedFile::fake()->image('transfer-proof.jpg', 200, 200);
 }

@@ -48,13 +48,25 @@ class PayoutRequestRepository implements PayoutRequestRepositoryInterface
     public function paginateActionableForDashboard(Request $request): LengthAwarePaginator
     {
         $perPage = (int) $request->input('per_page', 10);
+        $status = $request->input('status');
 
-        return PayoutRequest::query()
-            ->with(['recipient', 'makerAdmin', 'processedByAdmin'])
-            ->whereIn('status', [
+        $query = PayoutRequest::query()
+            ->with(['recipient', 'makerAdmin', 'processedByAdmin', 'media']);
+
+        if ($status === PayoutStatusEnum::Completed->value) {
+            $query->where('status', PayoutStatusEnum::Completed->value);
+        } elseif ($status === PayoutStatusEnum::Pending->value) {
+            $query->where('status', PayoutStatusEnum::Pending->value);
+        } elseif ($status === PayoutStatusEnum::Failed->value) {
+            $query->where('status', PayoutStatusEnum::Failed->value);
+        } else {
+            $query->whereIn('status', [
                 PayoutStatusEnum::Pending->value,
                 PayoutStatusEnum::Failed->value,
-            ])
+            ]);
+        }
+
+        return $query
             ->latest()
             ->paginate($perPage > 0 ? $perPage : 10)
             ->withQueryString();

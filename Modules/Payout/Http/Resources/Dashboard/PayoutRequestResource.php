@@ -11,11 +11,14 @@ class PayoutRequestResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $transferProof = $this->getFirstMedia('transfer_proof');
+
         return [
             'id' => $this->id,
             'amount' => (float) $this->amount,
             'status' => $this->status->toArray(),
             'gateway_reference' => $this->gateway_reference,
+            'transfer_proof_url' => $transferProof?->getAvailableFullUrl(['webp']),
             'failure_reason' => $this->failure_reason,
             'operation_type' => str($this->operation_type)->afterLast('\\')->toString(),
             'recipient' => $this->whenLoaded('recipient', fn ($recipient) => [
