@@ -11,6 +11,8 @@ use Inertia\Response;
 use Modules\Payout\Exceptions\PayoutException;
 use Modules\Payout\Http\Requests\Dashboard\ConfirmPayoutTransferRequest;
 use Modules\Payout\Http\Requests\Dashboard\FailPayoutTransferRequest;
+use Modules\Payout\Http\Requests\Dashboard\RejectPayoutTransferRequest;
+use Modules\Payout\Http\Requests\Dashboard\SubmitPayoutTransferRequest;
 use Modules\Payout\Http\Resources\Dashboard\PayoutRequestCollection;
 use Modules\Payout\Models\PayoutRequest;
 use Modules\Payout\Services\PayoutService;
@@ -24,7 +26,9 @@ class PayoutRequestController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:confirm payouts', only: ['index', 'confirm', 'fail']),
+            new Middleware('permission:request payouts|confirm payouts', only: ['index']),
+            new Middleware('permission:request payouts', only: ['submit']),
+            new Middleware('permission:confirm payouts', only: ['confirm', 'fail', 'reject']),
         ];
     }
 
@@ -38,6 +42,24 @@ class PayoutRequestController extends Controller implements HasMiddleware
         ]);
     }
 
+    public function submit(
+        PayoutRequest $payoutRequest,
+        SubmitPayoutTransferRequest $request,
+    ): RedirectResponse {
+        try {
+            $this->payoutService->submitTransfer(
+                $payoutRequest,
+                (int) auth('admin')->id(),
+                $request->validated('gateway_reference'),
+                $request->file('proof_image'),
+            );
+        } catch (PayoutException $e) {
+            return redirect()->back()->with('error', __($e->getMessage()));
+        }
+
+        return redirect()->route('dashboard.payout-requests.index')->with('success', __('data saved successfully'));
+    }
+
     public function confirm(
         PayoutRequest $payoutRequest,
         ConfirmPayoutTransferRequest $request,
@@ -46,8 +68,6 @@ class PayoutRequestController extends Controller implements HasMiddleware
             $this->payoutService->confirmTransfer(
                 $payoutRequest,
                 (int) auth('admin')->id(),
-                $request->validated('gateway_reference'),
-                $request->file('proof_image'),
             );
         } catch (PayoutException $e) {
             return redirect()->back()->with('error', __($e->getMessage()));
@@ -63,6 +83,23 @@ class PayoutRequestController extends Controller implements HasMiddleware
         try {
             $this->payoutService->failTransfer(
                 $payoutRequest,
+                $request->validated('failure_reason'),
+            );
+        } catch (PayoutException $e) {
+            return redirect()->back()->with('error', __($e->getMessage()));
+        }
+
+        return redirect()->route('dashboard.payout-requests.index')->with('success', __('data saved successfully'));
+    }
+
+    public function reject(
+        PayoutRequest $payoutRequest,
+        RejectPayoutTransferRequest $request,
+    ): RedirectResponse {
+        try {
+            $this->payoutService->rejectTransfer(
+                $payoutRequest,
+                (int) auth('admin')->id(),
                 $request->validated('failure_reason'),
             );
         } catch (PayoutException $e) {

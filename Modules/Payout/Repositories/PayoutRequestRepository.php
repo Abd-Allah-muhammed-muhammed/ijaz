@@ -51,17 +51,20 @@ class PayoutRequestRepository implements PayoutRequestRepositoryInterface
         $status = $request->input('status');
 
         $query = PayoutRequest::query()
-            ->with(['recipient', 'makerAdmin', 'processedByAdmin', 'media']);
+            ->with(['recipient', 'makerAdmin', 'submittedByAdmin', 'processedByAdmin', 'media']);
 
         if ($status === PayoutStatusEnum::Completed->value) {
             $query->where('status', PayoutStatusEnum::Completed->value);
         } elseif ($status === PayoutStatusEnum::Pending->value) {
             $query->where('status', PayoutStatusEnum::Pending->value);
+        } elseif ($status === PayoutStatusEnum::Submitted->value) {
+            $query->where('status', PayoutStatusEnum::Submitted->value);
         } elseif ($status === PayoutStatusEnum::Failed->value) {
             $query->where('status', PayoutStatusEnum::Failed->value);
         } else {
             $query->whereIn('status', [
                 PayoutStatusEnum::Pending->value,
+                PayoutStatusEnum::Submitted->value,
                 PayoutStatusEnum::Failed->value,
             ]);
         }

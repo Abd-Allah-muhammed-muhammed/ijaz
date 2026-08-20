@@ -9,7 +9,7 @@ use Modules\Wallet\Http\Controllers\Provider\WithdrawController;
 use Modules\Wallet\Models\WithdrawRequest;
 use Modules\Wallet\Services\WalletService;
 
-test('approving a withdraw request creates a PayoutRequest linked to it via operation_type/operation_id, with status pending', function () {
+test('WithdrawRequest approval creates a PayoutRequest in pending status, unaffected by this change (Layer 1 regression)', function () {
     withoutWalletLocaleMiddleware();
     $admin = createWalletAdmin();
     $user = createWalletUser();

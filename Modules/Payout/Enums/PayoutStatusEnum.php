@@ -11,6 +11,7 @@ enum PayoutStatusEnum: string
     use Collectable, HasOperations, Stringable;
 
     case Pending = 'pending';
+    case Submitted = 'submitted';
     case Processing = 'processing';
     case Completed = 'completed';
     case Failed = 'failed';
@@ -31,6 +32,7 @@ enum PayoutStatusEnum: string
     {
         return match ($this) {
             self::Pending => 'primary',
+            self::Submitted => 'warning',
             self::Processing => 'info',
             self::Completed => 'success',
             self::Failed => 'danger',

@@ -8,23 +8,23 @@ use Modules\Payout\Enums\PayoutStatusEnum;
 use Modules\Payout\Exceptions\PayoutException;
 use Modules\Payout\Models\PayoutRequest;
 
-class ConfirmPayoutTransferAction
+class RejectPayoutTransferAction
 {
     public function __construct(
         private readonly PayoutRequestRepositoryInterface $repository,
     ) {}
 
-    public function handle(PayoutRequest $payoutRequest, int $adminId): PayoutRequest
+    /**
+     * Review-reject a submitted payout's transfer evidence.
+     * The submitting admin cannot reject their own submission.
+     */
+    public function handle(PayoutRequest $payoutRequest, int $adminId, string $failureReason): PayoutRequest
     {
-        return DB::transaction(function () use ($payoutRequest, $adminId): PayoutRequest {
+        return DB::transaction(function () use ($payoutRequest, $adminId, $failureReason): PayoutRequest {
             $payoutRequest = $this->repository->lockForUpdate($payoutRequest);
 
-            if ($payoutRequest->status === PayoutStatusEnum::Completed) {
-                throw new PayoutException('payout.already_completed');
-            }
-
             if ($payoutRequest->status !== PayoutStatusEnum::Submitted) {
-                throw new PayoutException('payout.cannot_confirm_status');
+                throw new PayoutException('payout.cannot_reject_status');
             }
 
             if ($payoutRequest->submitted_by_admin_id === $adminId) {
@@ -32,9 +32,8 @@ class ConfirmPayoutTransferAction
             }
 
             return $this->repository->update($payoutRequest, [
-                'status' => PayoutStatusEnum::Completed,
-                'processed_by_admin_id' => $adminId,
-                'failure_reason' => null,
+                'status' => PayoutStatusEnum::Failed,
+                'failure_reason' => $failureReason,
             ]);
         });
     }

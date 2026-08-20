@@ -3,7 +3,7 @@ import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
 import { Content } from '@/vendor/metronic/layout/components/content';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { KTCard } from '@/vendor/metronic/helpers';
 import Table from '@/shared/components/Table';
 import usePermissions from '@/shared/hooks/use-permissions';
@@ -24,6 +24,7 @@ type PayoutRequestRow = {
   operation_type: string;
   recipient?: { name: string };
   maker_admin?: { id: number; name: string };
+  submitted_by_admin?: { id: number; name: string };
   processed_by_admin?: { id: number; name: string };
   created_at: string;
 };
@@ -33,23 +34,29 @@ type Props = {
   prams: Record<string, unknown> | null;
 };
 
-type StatusFilter = '' | 'pending' | 'failed' | 'completed';
+type StatusFilter = '' | 'pending' | 'submitted' | 'failed' | 'completed';
 
 const Index = ({ rows, prams }: Props) => {
   const { t } = useTranslation();
   const { hasPermission } = usePermissions();
-  const canConfirm = hasPermission('confirm payouts');
+  const canSubmit = hasPermission('request payouts');
+  const canReview = hasPermission('confirm payouts');
+  const currentAdminId = usePage<{ auth: { user?: { id?: number } } }>().props.auth.user?.id;
 
   const activeStatus = (prams?.status as StatusFilter | undefined) ?? '';
 
-  const [confirmTarget, setConfirmTarget] = useState<PayoutRequestRow | null>(null);
+  const [submitTarget, setSubmitTarget] = useState<PayoutRequestRow | null>(null);
+  const [approveTarget, setApproveTarget] = useState<PayoutRequestRow | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<PayoutRequestRow | null>(null);
   const [failTarget, setFailTarget] = useState<PayoutRequestRow | null>(null);
   const [proofTarget, setProofTarget] = useState<PayoutRequestRow | null>(null);
 
-  const confirmForm = useForm<{ gateway_reference: string; proof_image: File | null }>({
+  const submitForm = useForm<{ gateway_reference: string; proof_image: File | null }>({
     gateway_reference: '',
     proof_image: null,
   });
+  const approveForm = useForm({});
+  const rejectForm = useForm({ failure_reason: '' });
   const failForm = useForm({ failure_reason: '' });
 
   const changeStatusFilter = (status: StatusFilter) => {
@@ -61,17 +68,45 @@ const Index = ({ rows, prams }: Props) => {
     visitWithFilters(PayoutRequestController.index().url, next, { only: ['rows', 'prams'] });
   };
 
-  const submitConfirm = () => {
-    if (!confirmTarget) {
+  const submitTransfer = () => {
+    if (!submitTarget) {
       return;
     }
 
-    confirmForm.put(PayoutRequestController.confirm(confirmTarget).url, {
+    submitForm.put(PayoutRequestController.submit(submitTarget).url, {
       forceFormData: true,
       preserveScroll: true,
       onSuccess: () => {
-        setConfirmTarget(null);
-        confirmForm.reset();
+        setSubmitTarget(null);
+        submitForm.reset();
+      },
+    });
+  };
+
+  const submitApprove = () => {
+    if (!approveTarget) {
+      return;
+    }
+
+    approveForm.put(PayoutRequestController.confirm(approveTarget).url, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setApproveTarget(null);
+        approveForm.reset();
+      },
+    });
+  };
+
+  const submitReject = () => {
+    if (!rejectTarget) {
+      return;
+    }
+
+    rejectForm.put(PayoutRequestController.reject(rejectTarget).url, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setRejectTarget(null);
+        rejectForm.reset();
       },
     });
   };
@@ -90,8 +125,8 @@ const Index = ({ rows, prams }: Props) => {
     });
   };
 
-  const isActionableRow = (row: PayoutRequestRow) =>
-    row.status.value === 'pending' || row.status.value === 'failed';
+  const isOwnSubmission = (row: PayoutRequestRow) =>
+    currentAdminId !== undefined && row.submitted_by_admin?.id === currentAdminId;
 
   return (
     <>
@@ -127,6 +162,15 @@ const Index = ({ rows, prams }: Props) => {
               role="button"
             >
               {t('pending')}
+            </Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link
+              active={activeStatus === 'submitted'}
+              onClick={() => changeStatusFilter('submitted')}
+              role="button"
+            >
+              {t('submitted')}
             </Nav.Link>
           </Nav.Item>
           <Nav.Item>
@@ -175,50 +219,89 @@ const Index = ({ rows, prams }: Props) => {
                 render: (row) => row.maker_admin?.name ?? '—',
               },
               {
+                title: t('submitter'),
+                property: 'submitted_by_admin',
+                render: (row) => row.submitted_by_admin?.name ?? '—',
+              },
+              {
                 title: t('created_at'),
                 property: 'created_at',
                 render: (row) => build_date(row.created_at),
               },
-              ...(canConfirm
+              ...(canSubmit || canReview
                 ? [
                     {
                       title: t('actions'),
                       property: 'id' as const,
                       render: (row: PayoutRequestRow) => (
                         <div className="d-flex gap-2 flex-wrap">
-                          {isActionableRow(row) && (
+                          {canSubmit && row.status.value === 'pending' && (
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              onClick={() => {
+                                setSubmitTarget(row);
+                                submitForm.reset();
+                              }}
+                            >
+                              {t('submit_transfer')}
+                            </Button>
+                          )}
+                          {canSubmit && row.status.value === 'failed' && (
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              onClick={() => {
+                                setSubmitTarget(row);
+                                submitForm.reset();
+                              }}
+                            >
+                              {t('resubmit_transfer')}
+                            </Button>
+                          )}
+                          {canReview && row.status.value === 'pending' && (
+                            <Button
+                              size="sm"
+                              variant="danger"
+                              onClick={() => {
+                                setFailTarget(row);
+                                failForm.reset();
+                              }}
+                            >
+                              {t('mark_failed')}
+                            </Button>
+                          )}
+                          {canReview && row.status.value === 'submitted' && !isOwnSubmission(row) && (
                             <>
                               <Button
                                 size="sm"
                                 variant="success"
-                                onClick={() => {
-                                  setConfirmTarget(row);
-                                  confirmForm.reset();
-                                }}
+                                onClick={() => setApproveTarget(row)}
                               >
-                                {t('confirm_transfer')}
+                                {t('approve_transfer')}
                               </Button>
                               <Button
                                 size="sm"
                                 variant="danger"
                                 onClick={() => {
-                                  setFailTarget(row);
-                                  failForm.reset();
+                                  setRejectTarget(row);
+                                  rejectForm.reset();
                                 }}
                               >
-                                {t('mark_failed')}
+                                {t('reject_transfer')}
                               </Button>
                             </>
                           )}
-                          {row.status.value === 'completed' && row.transfer_proof_url && (
-                            <Button
-                              size="sm"
-                              variant="light-primary"
-                              onClick={() => setProofTarget(row)}
-                            >
-                              {t('view_proof')}
-                            </Button>
-                          )}
+                          {(row.status.value === 'completed' || row.status.value === 'submitted') &&
+                            row.transfer_proof_url && (
+                              <Button
+                                size="sm"
+                                variant="light-primary"
+                                onClick={() => setProofTarget(row)}
+                              >
+                                {t('view_proof')}
+                              </Button>
+                            )}
                         </div>
                       ),
                     },
@@ -229,19 +312,21 @@ const Index = ({ rows, prams }: Props) => {
         </KTCard>
       </Content>
 
-      <Modal show={confirmTarget !== null} onHide={() => setConfirmTarget(null)} centered>
+      <Modal show={submitTarget !== null} onHide={() => setSubmitTarget(null)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>{t('confirm_transfer')}</Modal.Title>
+          <Modal.Title>
+            {submitTarget?.status.value === 'failed' ? t('resubmit_transfer') : t('submit_transfer')}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form.Group className="mb-3">
             <Form.Label>{t('gateway_reference')}</Form.Label>
             <Form.Control
-              value={confirmForm.data.gateway_reference}
-              onChange={(e) => confirmForm.setData('gateway_reference', e.target.value)}
-              isInvalid={!!confirmForm.errors.gateway_reference}
+              value={submitForm.data.gateway_reference}
+              onChange={(e) => submitForm.setData('gateway_reference', e.target.value)}
+              isInvalid={!!submitForm.errors.gateway_reference}
             />
-            <Form.Control.Feedback type="invalid">{confirmForm.errors.gateway_reference}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">{submitForm.errors.gateway_reference}</Form.Control.Feedback>
           </Form.Group>
           <Form.Group>
             <Form.Label>{t('transfer_proof')}</Form.Label>
@@ -250,20 +335,79 @@ const Index = ({ rows, prams }: Props) => {
               accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
               onChange={(e) => {
                 const file = e.currentTarget.files?.[0] ?? null;
-                confirmForm.setData('proof_image', file);
+                submitForm.setData('proof_image', file);
               }}
-              isInvalid={!!confirmForm.errors.proof_image}
+              isInvalid={!!submitForm.errors.proof_image}
             />
             <Form.Text className="text-muted">{t('transfer_proof_hint')}</Form.Text>
-            <Form.Control.Feedback type="invalid">{confirmForm.errors.proof_image}</Form.Control.Feedback>
+            <Form.Control.Feedback type="invalid">{submitForm.errors.proof_image}</Form.Control.Feedback>
           </Form.Group>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setConfirmTarget(null)}>
+          <Button variant="secondary" onClick={() => setSubmitTarget(null)}>
             {t('cancel')}
           </Button>
-          <Button variant="success" onClick={submitConfirm} disabled={confirmForm.processing}>
-            {t('confirm_transfer')}
+          <Button variant="primary" onClick={submitTransfer} disabled={submitForm.processing}>
+            {submitTarget?.status.value === 'failed' ? t('resubmit_transfer') : t('submit_transfer')}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={approveTarget !== null} onHide={() => setApproveTarget(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{t('approve_transfer')}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {approveTarget && (
+            <>
+              <p className="mb-3">
+                <strong>{t('gateway_reference')}:</strong> {approveTarget.gateway_reference ?? '—'}
+              </p>
+              {approveTarget.transfer_proof_url ? (
+                <img
+                  src={approveTarget.transfer_proof_url}
+                  alt={t('transfer_proof')}
+                  className="img-fluid rounded border"
+                />
+              ) : (
+                <p className="text-muted mb-0">{t('transfer_proof_unavailable')}</p>
+              )}
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setApproveTarget(null)}>
+            {t('cancel')}
+          </Button>
+          <Button variant="success" onClick={submitApprove} disabled={approveForm.processing}>
+            {t('approve_transfer')}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={rejectTarget !== null} onHide={() => setRejectTarget(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{t('reject_transfer')}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Label>{t('failure_reason')}</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              value={rejectForm.data.failure_reason}
+              onChange={(e) => rejectForm.setData('failure_reason', e.target.value)}
+              isInvalid={!!rejectForm.errors.failure_reason}
+            />
+            <Form.Control.Feedback type="invalid">{rejectForm.errors.failure_reason}</Form.Control.Feedback>
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setRejectTarget(null)}>
+            {t('cancel')}
+          </Button>
+          <Button variant="danger" onClick={submitReject} disabled={rejectForm.processing}>
+            {t('reject_transfer')}
           </Button>
         </Modal.Footer>
       </Modal>

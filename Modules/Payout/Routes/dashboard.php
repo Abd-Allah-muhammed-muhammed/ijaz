@@ -10,7 +10,9 @@ Route::middleware(['localeSessionRedirect', 'localizationRedirect', 'localeViewP
             ->as('payout-requests.')
             ->group(function () {
                 Route::get('/', 'index')->name('index');
+                Route::put('/{payoutRequest}/submit', 'submit')->name('submit');
                 Route::put('/{payoutRequest}/confirm', 'confirm')->name('confirm');
                 Route::put('/{payoutRequest}/fail', 'fail')->name('fail');
+                Route::put('/{payoutRequest}/reject', 'reject')->name('reject');
             });
     });

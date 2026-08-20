@@ -32,6 +32,8 @@ It unifies, over time:
 | Future order refunds | Manual return of funds to a user |
 
 Layer 1 only wires **withdraw approval**. Other sources are planned, not built.
+Submit/review lives entirely on `PayoutRequest` (source-agnostic) — never
+duplicated inside Wallet, Guarantor, or future source modules.
 
 ## 2. Status
 
@@ -40,59 +42,74 @@ Layer 1 only wires **withdraw approval**. Other sources are planned, not built.
 - `PayoutRequest` model + module migration
 - Create-on-withdraw-approval (purely additive)
 - Reserved Spatie permission names `request payouts` / `confirm payouts`
-  (granted to `super-admin` only; nothing checks them yet)
 - This document
 
-### Layer 2 — **built**
+### Layer 2 — **built** (superseded in part by 2.6)
 
-Mandatory maker-checker for **every** payout, with **no amount threshold**:
-
-- `maker_admin_id` (nullable FK → `admins`) set at creation from whichever
-  admin's action created the payout (for withdraw-sourced payouts: the admin
-  who approved the withdraw, passed through from
-  `UpdateWithdrawStatusForDashboardAction`)
-- `ConfirmPayoutTransferAction` — requires `confirm payouts` permission
-  (controller middleware); rejects when confirming admin equals
-  `maker_admin_id` (422); requires `gateway_reference`; sets
-  `processed_by_admin_id`, status → `completed`
-- `FailPayoutTransferAction` — marks status → `failed` with required
-  `failure_reason`; failed payouts can be confirmed later by any eligible
-  (different) admin
-- Minimal dashboard: list pending/failed payouts, confirm, fail
-  (`dashboard.payout-requests.*`)
-
-**Core rule:** the admin who triggered the source operation (the maker) can
-never confirm the actual bank transfer — even if they hold `confirm payouts`.
-A different admin must record the `gateway_reference`.
+Originally: one-shot confirm with `maker_admin_id` blocking the confirming
+admin. Layer 2.6 splits that into submit + review (below). `maker_admin_id`
+remains as audit metadata of who created the payout obligation.
 
 ### Layer 2.5 — **built**
 
-Permanent manual-confirm audit trail (not a placeholder for automated gateway
-payout):
+Permanent manual transfer-proof audit trail (not a placeholder for automated
+gateway payout):
 
-- Every confirm requires **both** `gateway_reference` (free text) **and**
-  `proof_image` (required upload) — independently required, same validation
-  limits as Chat attachments (`jpeg,jpg,png,gif,webp`, max 5120 KB).
+- Submit requires **both** `gateway_reference` (free text) **and**
+  `proof_image` (required upload) — same validation limits as Chat attachments
+  (`jpeg,jpg,png,gif,webp`, max 5120 KB).
 - `PayoutRequest` implements MediaLibrary: collection `transfer_proof` on
-  `public` disk, `singleFile()` so a retried confirm after `failed` replaces
-  the previous proof (never appends). WebP conversion via `HasWebpImageConversion`.
-- Dashboard index supports optional `?status=` filter (`pending`, `failed`,
-  `completed`); default (no filter) still lists **pending + failed** only.
-  Completed payouts are visible via the Completed tab/filter; each row exposes
-  `transfer_proof_url` (prefers WebP when ready) for a "view proof" modal.
+  `public` disk, `singleFile()` so a re-submit after `failed` replaces the
+  previous proof (never appends). WebP conversion via `HasWebpImageConversion`.
 - **Automated gateway payout** (e.g. future Adfa Pay outbound driver) remains
   out of scope — when it lands it will be a **separate parallel path**, not a
-  replacement for this manual confirm + proof design.
+  replacement for this manual submit + proof design.
+
+### Layer 2.6 — **built**
+
+Splits one-shot "Confirm" into two roles (four-eyes / maker-checker practice).
+Applies to **every** `PayoutRequest` regardless of source:
+
+1. **Submit** (`request payouts`) — any eligible admin, **including** the
+   original `maker_admin_id`, uploads `gateway_reference` + `proof_image`.
+   Transitions `pending` \| `failed` → `submitted`. Records
+   `submitted_by_admin_id`. Clears `failure_reason` on a fresh attempt.
+2. **Review-approve** (`confirm payouts`) — an admin **different from**
+   `submitted_by_admin_id`. Transitions `submitted` → `completed`. Sets
+   `processed_by_admin_id`, clears `failure_reason`. Does **not** re-upload
+   proof (already set at submit).
+3. **Review-reject** (`confirm payouts`) — same identity guard as approve.
+   Transitions `submitted` → `failed` with required `failure_reason`.
+4. **Direct fail** (`confirm payouts`) — separate path: `pending` → `failed`
+   with required `failure_reason`, **no** submitter/maker restriction. Used
+   when a payout can never be transferred (e.g. bad bank details) before any
+   evidence is submitted.
+
+**What review verifies:** legitimacy of the submitted evidence (amount /
+reference consistency, receipt looks genuine). Review does **not** wait for
+recipient confirmation of receipt. A post-completion dispute / "disputed" flag
+is a separate future flow, out of scope here.
+
+**`maker_admin_id`:** audit-only metadata (who approved the source operation).
+It no longer blocks submit or review. The enforced separation is
+`submitted_by_admin_id` vs the reviewing admin.
+
+Permissions: `request payouts` granted to `super-admin` and `finance`;
+`confirm payouts` remains `super-admin`-only for now.
+
+Dashboard: tabs for active queue (pending + submitted + failed), pending,
+submitted, failed, completed. Sidebar visible for either payout permission.
 
 ### Not built — planned future layers
 
 | Layer | Intent |
 |---|---|
-| Audit log | Who created, who confirmed, timestamps, notes, gateway reference |
+| Audit log | Who created, who submitted, who reviewed, timestamps, notes |
 | Reconciliation report | Outstanding vs completed vs failed; match `gateway_reference` to bank statements |
 | Full unified admin dashboard | Rich list/filter UX beyond Layer 2 minimum |
 | Guarantor / order sources | Create `PayoutRequest` from end, installment release, cancel-refund, order refunds |
-| Automated gateway payout | Out of scope until a driver actually supports outbound transfers; parallel path when Adfa Pay lands — does not replace Layer 2.5 manual confirm |
+| Automated gateway payout | Out of scope until a driver actually supports outbound transfers; parallel path when Adfa Pay lands — does not replace manual submit + proof |
+| Post-completion dispute | Recipient claims non-receipt after `completed` — investigation flow, not a blocker on this state machine |
 
 ## 3. Data model
 
@@ -105,20 +122,20 @@ Table: `payout_requests` (UUID PK). Module migration only — **does not** alter
 | `operation_type` / `operation_id` | morph (`char(36)` id, same as `wallet_transactions`) | Source row, e.g. `Modules\Wallet\Models\WithdrawRequest` |
 | `recipient_type` / `recipient_id` | morph (bigint; `User` / `Provider`) | Who should receive the cash |
 | `amount` | `decimal(12,2)` | Copied from the source operation |
-| `status` | `PayoutStatusEnum` | Created as `pending`; transitions via confirm/fail |
-| `gateway_reference` | nullable string | Required on confirm; bank/gateway txn id |
-| `processed_by_admin_id` | nullable FK → `admins` | Checker who confirmed the transfer |
-| `failure_reason` | nullable text | Set on fail; cleared on successful confirm retry |
-| `maker_admin_id` | nullable FK → `admins` | Admin whose action created the payout obligation |
+| `status` | `PayoutStatusEnum` (string column + PHP cast) | See transitions below |
+| `gateway_reference` | nullable string | Required on submit; bank/gateway txn id |
+| `processed_by_admin_id` | nullable FK → `admins` | Reviewer who approved |
+| `failure_reason` | nullable text | Set on direct-fail or review-reject; cleared on submit / approve |
+| `maker_admin_id` | nullable FK → `admins` | Audit: admin whose action created the payout obligation |
+| `submitted_by_admin_id` | nullable FK → `admins` | Admin who submitted transfer proof (enforced at review) |
 | `created_at` / `updated_at` | timestamps | |
 
-Statuses: `pending` → `processing` → `completed` \| `failed`.
-
-Layer 2 confirm/fail: `pending` or `failed` → `completed` (confirm) or `failed`
-(fail). `completed` is terminal for confirm/fail.
+Statuses: `pending` → `submitted` → `completed` \| `failed`. Also:
+`pending` → `failed` (direct fail). `failed` → `submitted` (re-submit).
+`processing` exists on the enum but is unused (do not repurpose).
 
 Relations on `PayoutRequest`: `operation()` morphTo, `recipient()` morphTo,
-`processedByAdmin()` belongsTo `Admin`, `makerAdmin()` belongsTo `Admin`.
+`processedByAdmin()` / `makerAdmin()` / `submittedByAdmin()` belongsTo `Admin`.
 
 ## 4. Layer 1 wiring (withdraw only)
 
@@ -140,25 +157,24 @@ insert:
 - `recipient` = `$withdrawRequest->user` (User or Provider)
 - `amount` = withdraw amount
 - `status` = `pending`
-- `maker_admin_id` = approving admin's id (Layer 2)
-- `gateway_reference` / `processed_by_admin_id` / `failure_reason` = null
+- `maker_admin_id` = approving admin's id
+- `gateway_reference` / `processed_by_admin_id` / `submitted_by_admin_id` /
+  `failure_reason` = null
 
 Reject and cancel do **not** create a `PayoutRequest` (no cash should leave).
 
-Wallet still does not talk to any payment gateway on approve. The new row is
-the to-do item for the human transfer that already happened off-system.
+## 5. Layer 2.6 wiring (submit / review / direct-fail)
 
-## 5. Layer 2 wiring (maker-checker confirm/fail)
+Dashboard routes (`auth:admin`):
 
-Dashboard routes (middleware: `auth:admin`, `confirm payouts`):
+- `GET dashboard/payout-requests` — middleware: `request payouts` **or**
+  `confirm payouts`; default list pending + submitted + failed
+- `PUT …/submit` — `request payouts`; body: `gateway_reference` + `proof_image`
+- `PUT …/confirm` — `confirm payouts`; review-approve (no body)
+- `PUT …/reject` — `confirm payouts`; body: `failure_reason`
+- `PUT …/fail` — `confirm payouts`; direct-fail from pending; body: `failure_reason`
 
-- `GET dashboard/payout-requests` — list `pending` + `failed` rows
-- `PUT dashboard/payout-requests/{id}/confirm` — body: `gateway_reference`
-  (required) and `proof_image` (required file upload)
-- `PUT dashboard/payout-requests/{id}/fail` — body: `failure_reason` (required)
-
-Confirm rejects when `auth('admin')->id() === maker_admin_id` with 422 and a
-clear message. Confirm rejects when status is already `completed`.
+Review rejects when `auth('admin')->id() === submitted_by_admin_id`.
 
 ## 6. Module conventions
 
@@ -181,3 +197,4 @@ Layering: Controller → Service → Action → Repository / DTO.
 | 2026-08-18 | 1 | Scaffold module; create `PayoutRequest` on withdraw approve |
 | 2026-08-19 | 2 | Maker-checker: `maker_admin_id`, confirm/fail actions, minimal dashboard |
 | 2026-08-19 | 2.5 | Required `transfer_proof` image on confirm; completed payout list + proof viewer |
+| 2026-08-20 | 2.6 | Split submit vs review; `submitted` status + `submitted_by_admin_id`; maker audit-only; direct-fail vs review-reject |

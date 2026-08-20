@@ -5,7 +5,7 @@ namespace Modules\Payout\Http\Requests\Dashboard;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ConfirmPayoutTransferRequest extends FormRequest
+class SubmitPayoutTransferRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,6 +17,9 @@ class ConfirmPayoutTransferRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [];
+        return [
+            'gateway_reference' => 'required|string|max:255',
+            'proof_image' => ['required', 'file', 'mimes:jpeg,jpg,png,gif,webp', 'max:5120'],
+        ];
     }
 }

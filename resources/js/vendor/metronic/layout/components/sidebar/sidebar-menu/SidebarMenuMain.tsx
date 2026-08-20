@@ -353,7 +353,7 @@ const SidebarMenuMain = () => {
       />
 
       {/* 12. Finance */}
-      {hasAnyPermission(['show topUpRequests', 'show withdrawRequests', 'confirm payouts']) && (
+      {hasAnyPermission(['show topUpRequests', 'show withdrawRequests', 'request payouts', 'confirm payouts']) && (
         <div className="menu-item">
           <div className="menu-content pt-8 pb-2">
             <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('finance')}</span>
@@ -382,7 +382,7 @@ const SidebarMenuMain = () => {
         icon="dollar"
         fontIcon="bi-cash-stack"
         isActive={matchComponents('dashboard.payout-requests.*')}
-        show={hasPermission('confirm payouts')}
+        show={hasAnyPermission(['request payouts', 'confirm payouts'])}
       />
 
       {/* 13. Content / CMS → Banners, Pages, Questions, Messages */}

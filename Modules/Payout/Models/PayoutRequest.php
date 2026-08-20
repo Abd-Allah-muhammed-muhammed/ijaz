@@ -32,6 +32,7 @@ class PayoutRequest extends Model implements HasMedia
         'processed_by_admin_id',
         'failure_reason',
         'maker_admin_id',
+        'submitted_by_admin_id',
     ];
 
     protected $attributes = [
@@ -56,6 +57,11 @@ class PayoutRequest extends Model implements HasMedia
     public function makerAdmin(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'maker_admin_id');
+    }
+
+    public function submittedByAdmin(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'submitted_by_admin_id');
     }
 
     protected function casts(): array

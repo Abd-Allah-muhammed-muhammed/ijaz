@@ -28,6 +28,10 @@ class PayoutRequestResource extends JsonResource
                 'id' => $admin->id,
                 'name' => $admin->name,
             ]),
+            'submitted_by_admin' => $this->whenLoaded('submittedByAdmin', fn ($admin) => [
+                'id' => $admin->id,
+                'name' => $admin->name,
+            ]),
             'processed_by_admin' => $this->whenLoaded('processedByAdmin', fn ($admin) => [
                 'id' => $admin->id,
                 'name' => $admin->name,

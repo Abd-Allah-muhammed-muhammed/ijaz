@@ -14,13 +14,17 @@ class FailPayoutTransferAction
         private readonly PayoutRequestRepositoryInterface $repository,
     ) {}
 
+    /**
+     * Direct-fail a pending payout that was never submitted (e.g. bad bank details).
+     * No submitter/maker restriction.
+     */
     public function handle(PayoutRequest $payoutRequest, string $failureReason): PayoutRequest
     {
         return DB::transaction(function () use ($payoutRequest, $failureReason): PayoutRequest {
             $payoutRequest = $this->repository->lockForUpdate($payoutRequest);
 
-            if ($payoutRequest->status === PayoutStatusEnum::Completed) {
-                throw new PayoutException('payout.already_completed');
+            if ($payoutRequest->status !== PayoutStatusEnum::Pending) {
+                throw new PayoutException('payout.cannot_fail_status');
             }
 
             return $this->repository->update($payoutRequest, [
