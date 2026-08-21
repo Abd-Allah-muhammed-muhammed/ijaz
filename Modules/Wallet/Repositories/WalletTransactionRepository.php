@@ -5,6 +5,7 @@ namespace Modules\Wallet\Repositories;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
@@ -62,7 +63,11 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
             ->tap(fn (Builder $query) => $this->excludeInternalWithdrawRows($query))
             ->when($dateFrom, fn ($query, $value) => $query->where('created_at', '>=', $value))
             ->when($dateTo, fn ($query, $value) => $query->where('created_at', '<=', $value))
-            ->with(['operation'])
+            ->with(['operation' => function (MorphTo $morphTo): void {
+                $morphTo->morphWith([
+                    WithdrawRequest::class => ['payoutRequest'],
+                ]);
+            }])
             ->latest()
             ->paginate($perPage);
     }

@@ -27,6 +27,14 @@ class PayoutRequestRepository implements PayoutRequestRepositoryInterface
             ->exists();
     }
 
+    public function findForOperation(Model $operation): ?PayoutRequest
+    {
+        return PayoutRequest::query()
+            ->where('operation_type', $operation::class)
+            ->where('operation_id', $operation->getKey())
+            ->first();
+    }
+
     public function lockForUpdate(PayoutRequest $payoutRequest): PayoutRequest
     {
         return PayoutRequest::query()

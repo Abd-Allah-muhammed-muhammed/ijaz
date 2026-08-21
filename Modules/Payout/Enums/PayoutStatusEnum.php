@@ -38,4 +38,29 @@ enum PayoutStatusEnum: string
             self::Failed => 'danger',
         };
     }
+
+    /**
+     * Provider-facing transfer status for mobile (wallet history). Never exposes
+     * admin/audit fields — only a collapsed status with label + color.
+     *
+     * @return array{value: string, label: string, color: string}
+     */
+    public function toProviderStatus(): array
+    {
+        $value = match ($this) {
+            self::Pending, self::Submitted, self::Processing => 'in_progress',
+            self::Completed => 'transferred',
+            self::Failed => 'delayed',
+        };
+
+        return [
+            'value' => $value,
+            'label' => __('payout.transfer_status.'.$value),
+            'color' => match ($value) {
+                'in_progress' => 'warning',
+                'transferred' => 'success',
+                'delayed' => 'danger',
+            },
+        ];
+    }
 }

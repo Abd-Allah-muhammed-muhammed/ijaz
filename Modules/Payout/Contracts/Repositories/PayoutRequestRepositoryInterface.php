@@ -16,6 +16,8 @@ interface PayoutRequestRepositoryInterface
 
     public function existsForOperation(Model $operation): bool;
 
+    public function findForOperation(Model $operation): ?PayoutRequest;
+
     public function lockForUpdate(PayoutRequest $payoutRequest): PayoutRequest;
 
     /**

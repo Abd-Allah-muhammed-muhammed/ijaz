@@ -164,6 +164,7 @@ test('wallet transactions API response shape is unchanged', function () {
         'operation_type',
         'operation_id',
         'created_at',
+        'transfer_status',
     ]);
 });
 
@@ -692,6 +693,7 @@ test('GET /api/v1/wallet/transaction excludes HoldReleased rows but includes all
         'operation_type',
         'operation_id',
         'created_at',
+        'transfer_status',
     ]);
 
     $itemIds = collect($items)->pluck('id');

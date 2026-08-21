@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Modules\Payout\Models\PayoutRequest;
 use Modules\Wallet\Database\Factories\WithdrawRequestFactory;
 
 class WithdrawRequest extends Model
@@ -38,6 +40,11 @@ class WithdrawRequest extends Model
     public function admin(): BelongsTo
     {
         return $this->belongsTo(Admin::class);
+    }
+
+    public function payoutRequest(): MorphOne
+    {
+        return $this->morphOne(PayoutRequest::class, 'operation');
     }
 
     protected function casts(): array

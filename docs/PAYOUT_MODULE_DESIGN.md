@@ -100,6 +100,23 @@ Permissions: `request payouts` granted to `super-admin` and `finance`;
 Dashboard: tabs for active queue (pending + submitted + failed), pending,
 submitted, failed, completed. Sidebar visible for either payout permission.
 
+**Provider-facing status (mobile):** `GET /api/v1/wallet/transaction` exposes
+an additive `transfer_status` on withdraw-related ledger rows — mapped from
+internal `PayoutStatusEnum` via `toProviderStatus()`:
+
+| Internal | Provider `value` |
+|---|---|
+| `pending` / `submitted` (/ unused `processing`) | `in_progress` |
+| `completed` | `transferred` |
+| `failed` | `delayed` |
+
+Shape matches Guarantor API status objects: `{ value, label, color }` with
+labels under `payout.transfer_status.*`. Never exposes `maker_admin_id`,
+`submitted_by_admin_id`, `gateway_reference`, proof images, or
+`failure_reason`. Non-withdraw operations get `transfer_status: null` (no
+payout lookup). Eager-loaded via `operation` morphWith `payoutRequest` on
+`WithdrawRequest` to avoid N+1.
+
 ### Not built — planned future layers
 
 | Layer | Intent |
@@ -198,3 +215,4 @@ Layering: Controller → Service → Action → Repository / DTO.
 | 2026-08-19 | 2 | Maker-checker: `maker_admin_id`, confirm/fail actions, minimal dashboard |
 | 2026-08-19 | 2.5 | Required `transfer_proof` image on confirm; completed payout list + proof viewer |
 | 2026-08-20 | 2.6 | Split submit vs review; `submitted` status + `submitted_by_admin_id`; maker audit-only; direct-fail vs review-reject |
+| 2026-08-22 | 2.6 | Provider `transfer_status` on mobile wallet transaction history for withdraw ops |
