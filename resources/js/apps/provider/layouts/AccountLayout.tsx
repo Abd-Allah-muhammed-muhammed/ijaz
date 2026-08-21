@@ -193,6 +193,12 @@ const AccountLayout = ({children, provider}: Props) => {
                         </div>
                         <div className='fw-bold fs-6 text-gray-500'>{t('pending_debit')}</div>
                       </div>
+                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
+                        <div className='d-flex align-items-center'>
+                          <div className='fs-2 fw-bolder'>{provider.wallet?.amount_in_transfer ?? 0}</div>
+                        </div>
+                        <div className='fw-bold fs-6 text-gray-500'>{t('amount_in_transfer')}</div>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -40,6 +40,32 @@ enum PayoutStatusEnum: string
     }
 
     /**
+     * Statuses that map to provider-facing `in_progress` (money mid-transfer).
+     * Single source of truth for transfer_status mapping and amount_in_transfer sums.
+     *
+     * @return list<self>
+     */
+    public static function inProgressCases(): array
+    {
+        return [
+            self::Pending,
+            self::Submitted,
+            self::Processing,
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function inProgressValues(): array
+    {
+        return array_map(
+            static fn (self $case): string => $case->value,
+            self::inProgressCases(),
+        );
+    }
+
+    /**
      * Provider-facing transfer status for mobile (wallet history). Never exposes
      * admin/audit fields — only a collapsed status with label + color.
      *
@@ -47,11 +73,12 @@ enum PayoutStatusEnum: string
      */
     public function toProviderStatus(): array
     {
-        $value = match ($this) {
-            self::Pending, self::Submitted, self::Processing => 'in_progress',
-            self::Completed => 'transferred',
-            self::Failed => 'delayed',
-        };
+        $value = in_array($this, self::inProgressCases(), true)
+            ? 'in_progress'
+            : match ($this) {
+                self::Completed => 'transferred',
+                self::Failed => 'delayed',
+            };
 
         return [
             'value' => $value,

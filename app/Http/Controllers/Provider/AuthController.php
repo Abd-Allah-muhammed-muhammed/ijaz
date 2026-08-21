@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Provider\Auth\LoginRequest;
 use App\Http\Requests\Provider\Auth\UpdateProfileRequest;
 use App\Http\Resources\Dashboard\ProviderResource;
+use App\Models\Provider;
 use App\Services\Auth\ProviderAuthService;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -20,6 +21,7 @@ use Modules\Geo\Services\CityService;
 use Modules\Geo\Services\RegionService;
 use Modules\Marketplace\Http\Resources\Dashboard\ProviderTypeResource;
 use Modules\Marketplace\Services\ProviderTypeService;
+use Modules\Payout\Services\PayoutService;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
 use Modules\Wallet\Support\WalletSearch;
 use Throwable;
@@ -32,6 +34,7 @@ class AuthController extends Controller
         private readonly ProviderTypeService $providerTypeService,
         private readonly RegionService $regionService,
         private readonly CityService $cityService,
+        private readonly PayoutService $payoutService,
     ) {}
 
     public function loginForm()
@@ -74,6 +77,7 @@ class AuthController extends Controller
             'providerType',
             'media',
         ]);
+        $this->attachAmountInTransfer($provider);
 
         return inertia('Provider/Auth/Profile/Index', [
             'provider' => fn () => ProviderResource::make($provider),
@@ -115,6 +119,7 @@ class AuthController extends Controller
         $provider->load([
             'wallet',
         ]);
+        $this->attachAmountInTransfer($provider);
 
         return inertia('Provider/Auth/Profile/wallet', [
             'provider' => function () use ($provider) {
@@ -157,6 +162,18 @@ class AuthController extends Controller
         ]);
 
         return redirect()->to($url);
+    }
+
+    /**
+     * Attach the summed in-progress payout amount onto the loaded wallet so
+     * WalletResource can expose `amount_in_transfer` without querying Eloquent.
+     */
+    private function attachAmountInTransfer(Provider $provider): void
+    {
+        $provider->wallet->setAttribute(
+            'amount_in_transfer',
+            $this->payoutService->sumInProgressAmountForRecipient($provider),
+        );
     }
 
     /**

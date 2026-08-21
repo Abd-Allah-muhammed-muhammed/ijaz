@@ -82,4 +82,12 @@ class PayoutRequestRepository implements PayoutRequestRepositoryInterface
             ->paginate($perPage > 0 ? $perPage : 10)
             ->withQueryString();
     }
+
+    public function sumInProgressAmountForRecipient(Model $recipient): float
+    {
+        return (float) PayoutRequest::query()
+            ->whereMorphedTo('recipient', $recipient)
+            ->whereIn('status', PayoutStatusEnum::inProgressValues())
+            ->sum('amount');
+    }
 }

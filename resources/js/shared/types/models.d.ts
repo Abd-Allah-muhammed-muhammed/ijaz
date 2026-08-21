@@ -407,6 +407,7 @@ export interface Wallet extends Model {
   total_earning: number;
   total_spent: number;
   balance: number;
+  amount_in_transfer?: number;
   transactions?: WalletTransaction[];
 }
 

@@ -470,6 +470,7 @@
     "no_details": "No Details",
     "pending_credit": "Pending Credit",
     "pending_debit": "Pending Debit",
+    "amount_in_transfer": "Currently being transferred",
     "balance_after": "Balance After",
     "balance_before": "Balance Before",
     "OrderOffer": "Order Offer",

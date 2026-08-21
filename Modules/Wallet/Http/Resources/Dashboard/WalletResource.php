@@ -22,6 +22,7 @@ class WalletResource extends JsonResource
             'debit' => $this->debit,
             'total_earning' => $this->total_earning,
             'total_spent' => $this->total_spent,
+            'amount_in_transfer' => (float) ($this->amount_in_transfer ?? 0),
             'transactions_count' => $this->whenCounted('transactions', $this->transactions_count),
             'transactions' => WalletTransactionResource::collection($this->whenLoaded('transactions')),
         ];

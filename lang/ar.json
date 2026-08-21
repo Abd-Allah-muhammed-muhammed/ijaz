@@ -906,6 +906,7 @@
     "pending_credit": "دائن معلق",
     "debit": "مدين",
     "pending_debit": "مدين معلق",
+    "amount_in_transfer": "جاري تحويله إليك",
     "close": "إغلاق",
     "reference_number": "الرقم المرجعي",
     "operation": "العملية",

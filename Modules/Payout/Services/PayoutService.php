@@ -12,6 +12,7 @@ use Modules\Payout\Actions\Payout\FailPayoutTransferAction;
 use Modules\Payout\Actions\Payout\ListPendingPayoutRequestsForDashboardAction;
 use Modules\Payout\Actions\Payout\RejectPayoutTransferAction;
 use Modules\Payout\Actions\Payout\SubmitPayoutTransferAction;
+use Modules\Payout\Actions\Payout\SumInProgressPayoutAmountForRecipientAction;
 use Modules\Payout\DTOs\CreatePayoutRequestData;
 use Modules\Payout\Models\PayoutRequest;
 
@@ -24,6 +25,7 @@ class PayoutService
         private readonly FailPayoutTransferAction $failAction,
         private readonly RejectPayoutTransferAction $rejectAction,
         private readonly ListPendingPayoutRequestsForDashboardAction $listPendingForDashboardAction,
+        private readonly SumInProgressPayoutAmountForRecipientAction $sumInProgressAmountForRecipientAction,
     ) {}
 
     public function createForOperation(
@@ -70,5 +72,10 @@ class PayoutService
         string $failureReason,
     ): PayoutRequest {
         return $this->rejectAction->handle($payoutRequest, $adminId, $failureReason);
+    }
+
+    public function sumInProgressAmountForRecipient(Model $recipient): float
+    {
+        return $this->sumInProgressAmountForRecipientAction->handle($recipient);
     }
 }

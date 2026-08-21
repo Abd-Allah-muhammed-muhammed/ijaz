@@ -26,4 +26,6 @@ interface PayoutRequestRepositoryInterface
     public function update(PayoutRequest $payoutRequest, array $attributes): PayoutRequest;
 
     public function paginateActionableForDashboard(Request $request): LengthAwarePaginator;
+
+    public function sumInProgressAmountForRecipient(Model $recipient): float;
 }

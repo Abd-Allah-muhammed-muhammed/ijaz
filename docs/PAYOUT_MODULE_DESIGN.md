@@ -100,14 +100,15 @@ Permissions: `request payouts` granted to `super-admin` and `finance`;
 Dashboard: tabs for active queue (pending + submitted + failed), pending,
 submitted, failed, completed. Sidebar visible for either payout permission.
 
-**Provider-facing status:** Surfaced on **both**:
+**Provider-facing status:** Surfaced on **three** surfaces:
 
 1. Mobile `GET /api/v1/wallet/transaction` (withdraw-related ledger rows)
 2. Provider web `provider.withdraw-requests.*` Inertia list/show (`WithdrawResource`)
+3. Provider profile / wallet statements (`amount_in_transfer` tile — see below)
 
-Both use the same shared `PayoutStatusEnum::toProviderStatus()` mapping
-and `WithdrawRequest::payoutRequest()` morphOne — one source of truth, two
-surfaces:
+Surfaces 1–2 use the same shared `PayoutStatusEnum::toProviderStatus()`
+mapping and `WithdrawRequest::payoutRequest()` morphOne — one source of
+truth for per-request status:
 
 | Internal | Provider `value` |
 |---|---|
@@ -121,6 +122,17 @@ labels under `payout.transfer_status.*`. Never exposes `maker_admin_id`,
 `failure_reason`. Non-withdraw / no-payout cases get `transfer_status: null`.
 Eager-loaded (`morphWith` on mobile transaction list; `with('payoutRequest')`
 on provider/admin withdraw lists) to avoid N+1.
+
+Surface 3 (Provider dashboard profile / wallet statements via
+`AccountLayout` → `provider.wallet.amount_in_transfer`): a single summed
+float of all `PayoutRequest`s for that recipient whose status is in
+`PayoutStatusEnum::inProgressCases()` (`pending` + `submitted` + unused
+`processing`) — the same set that maps to `in_progress` above. Computed
+once via `PayoutRequestRepository::sumInProgressAmountForRecipient` and
+attached on `AuthController::profile()` / `statements()`. This closes the
+gap where, after withdraw approval, `wallet.pending_debit` is already
+released and no longer represents money mid-bank-transfer. No admin/audit
+fields — only the summed amount.
 
 ### Not built — planned future layers
 
@@ -222,3 +234,4 @@ Layering: Controller → Service → Action → Repository / DTO.
 | 2026-08-20 | 2.6 | Split submit vs review; `submitted` status + `submitted_by_admin_id`; maker audit-only; direct-fail vs review-reject |
 | 2026-08-22 | 2.6 | Provider `transfer_status` on mobile wallet transaction history for withdraw ops |
 | 2026-08-22 | 2.6 | Same `transfer_status` on provider web withdraw-requests list (shared mapping) |
+| 2026-08-22 | 2.6 | Provider profile/wallet statements `amount_in_transfer` sum (pending+submitted; same in_progress set) |
