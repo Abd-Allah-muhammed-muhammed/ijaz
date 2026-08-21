@@ -100,9 +100,14 @@ Permissions: `request payouts` granted to `super-admin` and `finance`;
 Dashboard: tabs for active queue (pending + submitted + failed), pending,
 submitted, failed, completed. Sidebar visible for either payout permission.
 
-**Provider-facing status (mobile):** `GET /api/v1/wallet/transaction` exposes
-an additive `transfer_status` on withdraw-related ledger rows — mapped from
-internal `PayoutStatusEnum` via `toProviderStatus()`:
+**Provider-facing status:** Surfaced on **both**:
+
+1. Mobile `GET /api/v1/wallet/transaction` (withdraw-related ledger rows)
+2. Provider web `provider.withdraw-requests.*` Inertia list/show (`WithdrawResource`)
+
+Both use the same shared `PayoutStatusEnum::toProviderStatus()` mapping
+and `WithdrawRequest::payoutRequest()` morphOne — one source of truth, two
+surfaces:
 
 | Internal | Provider `value` |
 |---|---|
@@ -113,9 +118,9 @@ internal `PayoutStatusEnum` via `toProviderStatus()`:
 Shape matches Guarantor API status objects: `{ value, label, color }` with
 labels under `payout.transfer_status.*`. Never exposes `maker_admin_id`,
 `submitted_by_admin_id`, `gateway_reference`, proof images, or
-`failure_reason`. Non-withdraw operations get `transfer_status: null` (no
-payout lookup). Eager-loaded via `operation` morphWith `payoutRequest` on
-`WithdrawRequest` to avoid N+1.
+`failure_reason`. Non-withdraw / no-payout cases get `transfer_status: null`.
+Eager-loaded (`morphWith` on mobile transaction list; `with('payoutRequest')`
+on provider/admin withdraw lists) to avoid N+1.
 
 ### Not built — planned future layers
 
@@ -216,3 +221,4 @@ Layering: Controller → Service → Action → Repository / DTO.
 | 2026-08-19 | 2.5 | Required `transfer_proof` image on confirm; completed payout list + proof viewer |
 | 2026-08-20 | 2.6 | Split submit vs review; `submitted` status + `submitted_by_admin_id`; maker audit-only; direct-fail vs review-reject |
 | 2026-08-22 | 2.6 | Provider `transfer_status` on mobile wallet transaction history for withdraw ops |
+| 2026-08-22 | 2.6 | Same `transfer_status` on provider web withdraw-requests list (shared mapping) |

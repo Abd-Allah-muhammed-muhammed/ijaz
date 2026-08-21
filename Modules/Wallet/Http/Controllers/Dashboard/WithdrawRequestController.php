@@ -41,7 +41,7 @@ class WithdrawRequestController extends Controller implements HasMiddleware
 
     public function show(WithdrawRequest $withdrawRequest): Response
     {
-        $withdrawRequest->load('user');
+        $withdrawRequest->load(['user', 'payoutRequest']);
 
         return inertia('Dashboard/WithdrawRequests/Show', [
             'row' => WithdrawResource::make($withdrawRequest),

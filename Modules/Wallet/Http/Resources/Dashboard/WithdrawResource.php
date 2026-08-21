@@ -20,6 +20,9 @@ class WithdrawResource extends JsonResource
             'admin_notes' => $this->admin_notes,
             'user_notes' => $this->user_notes,
             'created_at' => $this->created_at,
+            'transfer_status' => $this->relationLoaded('payoutRequest')
+                ? $this->payoutRequest?->status->toProviderStatus()
+                : null,
         ];
     }
 }

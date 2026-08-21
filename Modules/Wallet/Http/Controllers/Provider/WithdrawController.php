@@ -41,6 +41,8 @@ class WithdrawController extends Controller
 
     public function show(WithdrawRequest $withdrawRequest): Response
     {
+        $withdrawRequest->loadMissing('payoutRequest');
+
         return inertia('Provider/WithdrawRequests/Show', [
             'row' => WithdrawResource::make($withdrawRequest),
             'paymentResponse' => null,
