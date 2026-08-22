@@ -33,7 +33,7 @@ interface OrderRepositoryInterface
     /**
      * @return EloquentCollection<int, Order>
      */
-    public function listRecommendedForProviderHome(Provider $provider, int $limit = 10): EloquentCollection;
+    public function listRecommendedForProviderHome(Provider $provider, int $limit = 10, ?array $categoryIds = null): EloquentCollection;
 
     /**
      * @return Collection<string, Collection<int, Order>>

@@ -414,8 +414,12 @@ export interface Wallet extends Model {
 export interface WalletTransaction extends Model {
   user_id: number;
   user_type: string;
+  amount: number;
+  is_pending?: boolean;
   credit: number;
   debit: number;
+  pending_credit?: number;
+  pending_debit?: number;
   description: string;
   operation_id: number;
   operation_type: string;

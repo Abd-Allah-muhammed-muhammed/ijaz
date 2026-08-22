@@ -355,17 +355,24 @@ const Home = (
               <div className="text-gray-500">{t('no_data')}</div>
             ) : (
               recentTransactions.map((transaction, i) => {
-                const credit = Number(transaction.credit) || 0
-                const debit = Number(transaction.debit) || 0
-                const isCredit = credit > 0
+                const amount = Number(transaction.amount) || 0
+                const isPending = Boolean(transaction.is_pending)
+                const isCredit = ! isPending && Number(transaction.credit) > 0
 
                 return (
                   <div key={transaction.id}>
                     <div className="d-flex align-items-center justify-content-between">
                       <span className="fw-semibold fs-6 text-gray-800">{transaction.description}</span>
-                      <span className={`fw-bold fs-6 ${isCredit ? 'text-success' : 'text-gray-800'}`}>
-                        {isCredit ? `+${credit}` : `-${debit}`}
-                      </span>
+                      {isPending ? (
+                        <span className="d-flex align-items-center gap-2">
+                          <span className="fw-bold fs-6 text-gray-500">{amount}</span>
+                          <span className="badge badge-light-warning fs-8">{t('pending')}</span>
+                        </span>
+                      ) : (
+                        <span className={`fw-bold fs-6 ${isCredit ? 'text-success' : 'text-gray-800'}`}>
+                          {isCredit ? `+${amount}` : `-${amount}`}
+                        </span>
+                      )}
                     </div>
                     {i !== recentTransactions.length - 1 && (
                       <div className="separator separator-dashed my-4"></div>

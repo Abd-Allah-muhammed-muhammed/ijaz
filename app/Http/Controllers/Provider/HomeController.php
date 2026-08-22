@@ -34,7 +34,11 @@ class HomeController extends Controller
         );
 
         $stats = $this->orderService->providerHomeStats($auth);
-        $recommendOrders = $this->orderService->listRecommendedForProviderHome($auth);
+        $auth->loadMissing('categories');
+        $recommendOrders = $this->orderService->listRecommendedForProviderHome(
+            $auth,
+            categoryIds: $auth->categories->pluck('id')->all(),
+        );
         $orders = $this->orderService->listWindowedForProviderHome($auth);
         $banners = $this->bannerService->all();
 

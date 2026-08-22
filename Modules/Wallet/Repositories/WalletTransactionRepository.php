@@ -15,6 +15,7 @@ use Modules\Wallet\Models\Wallet;
 use Modules\Wallet\Models\WalletTransaction;
 use Modules\Wallet\Models\WithdrawRequest;
 use Modules\Wallet\Support\WalletSearch;
+use Modules\Wallet\Support\WalletTransactionQueryFilters;
 
 class WalletTransactionRepository implements WalletTransactionRepositoryInterface
 {
@@ -60,7 +61,7 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
         ?string $dateTo = null,
     ): LengthAwarePaginator {
         return $owner->walletTransactions()
-            ->tap(fn (Builder $query) => $this->excludeInternalWithdrawRows($query))
+            ->tap(fn (Builder $query) => WalletTransactionQueryFilters::excludeInternalWithdrawRows($query))
             ->when($dateFrom, fn ($query, $value) => $query->where('created_at', '>=', $value))
             ->when($dateTo, fn ($query, $value) => $query->where('created_at', '<=', $value))
             ->with(['operation' => function (MorphTo $morphTo): void {
@@ -95,39 +96,10 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
     public function latestForWallet(Wallet $wallet, int $limit = 2): Collection
     {
         return $wallet->transactions()
+            ->tap(fn (Builder $query) => WalletTransactionQueryFilters::excludeInternalWithdrawRows($query))
             ->latest()
             ->limit($limit)
             ->get();
-    }
-
-    /**
-     * Hide hold-release rows, and hide the original withdraw request once a
-     * terminal sibling (approved / rejected / cancelled) exists for the group.
-     */
-    private function excludeInternalWithdrawRows(Builder $query): void
-    {
-        $table = $query->getModel()->getTable();
-
-        $query
-            ->where(function (Builder $visible) use ($table): void {
-                $visible->whereNull($table.'.entry_kind')
-                    ->orWhere($table.'.entry_kind', '!=', WalletTransactionEntryKindEnum::WithdrawHoldReleased);
-            })
-            ->where(function (Builder $requested) use ($table): void {
-                $requested->whereNull($table.'.entry_kind')
-                    ->orWhere($table.'.entry_kind', '!=', WalletTransactionEntryKindEnum::WithdrawRequested)
-                    ->orWhereNotExists(function ($siblings) use ($table): void {
-                        $siblings->selectRaw('1')
-                            ->from($table.' as entry_kind_siblings')
-                            ->whereColumn('entry_kind_siblings.operation_id', $table.'.operation_id')
-                            ->whereColumn('entry_kind_siblings.operation_type', $table.'.operation_type')
-                            ->whereIn('entry_kind_siblings.entry_kind', [
-                                WalletTransactionEntryKindEnum::WithdrawApproved,
-                                WalletTransactionEntryKindEnum::WithdrawRejected,
-                                WalletTransactionEntryKindEnum::WithdrawCancelled,
-                            ]);
-                    });
-            });
     }
 
     public function countUnstamped(Closure $constraints): int

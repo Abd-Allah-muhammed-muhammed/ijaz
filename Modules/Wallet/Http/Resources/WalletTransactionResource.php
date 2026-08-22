@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Wallet\Models\WalletTransaction;
 use Modules\Wallet\Models\WithdrawRequest;
+use Modules\Wallet\Support\WalletTransactionDisplay;
 
 /**
  * @mixin WalletTransaction
@@ -16,13 +17,11 @@ class WalletTransactionResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            // Single display amount for mobile: verified against live rows —
-            // top-up credit, withdraw pending hold, reverse hold, and final debit.
-            'amount' => (float) max(
-                abs((float) $this->credit),
-                abs((float) $this->debit),
-                abs((float) $this->pending_credit),
-                abs((float) $this->pending_debit),
+            'amount' => WalletTransactionDisplay::amount(
+                (float) $this->credit,
+                (float) $this->debit,
+                (float) $this->pending_credit,
+                (float) $this->pending_debit,
             ),
             'credit' => (float) $this->credit,
             'debit' => (float) $this->debit,

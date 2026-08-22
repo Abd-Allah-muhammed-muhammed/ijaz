@@ -100,9 +100,13 @@ class OrderRepository implements OrderRepositoryInterface
     /**
      * @return EloquentCollection<int, Order>
      */
-    public function listRecommendedForProviderHome(Provider $provider, int $limit = 10): EloquentCollection
+    public function listRecommendedForProviderHome(Provider $provider, int $limit = 10, ?array $categoryIds = null): EloquentCollection
     {
-        $categories = $provider->providerCategories()->pluck('category_id')->toArray();
+        $categories = $categoryIds ?? $provider->providerCategories()->pluck('category_id')->toArray();
+
+        if ($categories === []) {
+            return new EloquentCollection;
+        }
 
         return Order::query()
             ->where('status', OrderStatusEnum::New)
@@ -190,11 +194,16 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function providerHomeStats(Provider $provider): array
     {
+        $stats = $provider->orders()
+            ->selectRaw(
+                'COUNT(*) as total_orders, SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as total_finished_orders',
+                [OrderStatusEnum::EndedByClient->value],
+            )
+            ->first();
+
         return [
-            'totalOrders' => $provider->orders()->count(),
-            'totalFinishedOrders' => $provider->orders()
-                ->where('status', OrderStatusEnum::EndedByClient)
-                ->count(),
+            'totalOrders' => (int) ($stats->total_orders ?? 0),
+            'totalFinishedOrders' => (int) ($stats->total_finished_orders ?? 0),
         ];
     }
 
