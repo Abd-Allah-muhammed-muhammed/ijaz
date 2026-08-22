@@ -917,6 +917,7 @@
     "wallet_being_transferred": "جاري التحويل",
     "wallet_total_earned": "إجمالي الأرباح",
     "view_all_wallet_details": "عرض كل تفاصيل المحفظة",
+    "hide_wallet_details": "إخفاء تفاصيل المحفظة",
     "reference": "المرجع",
     "transfer_status": "حالة التحويل",
     "close": "إغلاق",

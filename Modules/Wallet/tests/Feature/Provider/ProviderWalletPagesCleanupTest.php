@@ -24,13 +24,8 @@ test('provider top-up requests index page can open the create/recharge flow dire
     $source = file_get_contents(resource_path('js/apps/provider/pages/TopUpRequests/Index.tsx'));
 
     expect($source)->not->toBeFalse()
-        ->and($source)->toContain('WalletQuickActions')
+        ->and($source)->toContain('RechargeTrigger')
         ->and($source)->toContain('addButton');
-
-    $quickActionsSource = file_get_contents(resource_path('js/apps/provider/components/wallet/WalletQuickActions.tsx'));
-
-    expect($quickActionsSource)->not->toBeFalse()
-        ->and($quickActionsSource)->toContain('RechargeModal');
 });
 
 test('provider withdraw requests index page can open the create/withdraw flow directly from the list page', function (): void {
@@ -46,13 +41,8 @@ test('provider withdraw requests index page can open the create/withdraw flow di
     $source = file_get_contents(resource_path('js/apps/provider/pages/WithdrawRequests/Index.tsx'));
 
     expect($source)->not->toBeFalse()
-        ->and($source)->toContain('WalletQuickActions')
+        ->and($source)->toContain('WithdrawTrigger')
         ->and($source)->toContain('addButton');
-
-    $quickActionsSource = file_get_contents(resource_path('js/apps/provider/components/wallet/WalletQuickActions.tsx'));
-
-    expect($quickActionsSource)->not->toBeFalse()
-        ->and($quickActionsSource)->toContain('WithdrawModal');
 });
 
 test('wallet statements rows expose transfer_status for withdraw operations, consistent with other surfaces', function (): void {

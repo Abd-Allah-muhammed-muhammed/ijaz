@@ -119,7 +119,7 @@ test('a wallet transaction exposes transfer_status as delayed when the payout is
     ]);
 });
 
-test('a wallet transaction exposes transfer_status as null when no payout exists yet for the operation', function () {
+test('a wallet transaction exposes transfer_status as the withdraw operation status when no payout exists yet for the operation', function () {
     withoutWalletLocaleMiddleware();
     $user = createWalletUser();
     fundWallet($user, 500);
@@ -138,10 +138,10 @@ test('a wallet transaction exposes transfer_status as null when no payout exists
         ->first(fn (array $row): bool => $row['operation_id'] === $withdraw->id);
 
     expect($item)->not->toBeNull()
-        ->and($item['transfer_status'])->toBeNull();
+        ->and($item['transfer_status'])->toMatchArray(OperationStatusEnum::Pending->toArray());
 });
 
-test('a wallet transaction for non-withdraw operations does not attempt a payout lookup and has no transfer_status key or a null one', function () {
+test('a wallet transaction for non-withdraw operations exposes a generic completed transfer_status without loading the operation relation', function () {
     withoutWalletLocaleMiddleware();
     $user = createWalletUser();
     fundWallet($user, 250);
@@ -155,7 +155,11 @@ test('a wallet transaction for non-withdraw operations does not attempt a payout
 
     expect($item)->not->toBeNull()
         ->and(array_key_exists('transfer_status', $item))->toBeTrue()
-        ->and($item['transfer_status'])->toBeNull();
+        ->and($item['transfer_status'])->toMatchArray([
+            'value' => 'completed',
+            'label' => __('completed'),
+            'color' => 'success',
+        ]);
 });
 
 test('transfer_status never includes admin names, gateway_reference, submitted_by_admin_id, or proof image data', function () {

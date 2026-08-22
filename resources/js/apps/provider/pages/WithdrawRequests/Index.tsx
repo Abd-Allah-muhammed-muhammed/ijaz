@@ -11,7 +11,7 @@ import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
 import {OperationStatusEnum} from "@/Enums/Enums";
 import WithdrawController from "@/actions/Modules/Wallet/Http/Controllers/Provider/WithdrawController";
-import WalletQuickActions from '@/apps/provider/components/wallet/WalletQuickActions';
+import {WithdrawTrigger} from '@/apps/provider/components/wallet/WalletQuickActions';
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
 
 
@@ -102,9 +102,7 @@ const Index = (
                 title: t('transfer_status'),
                 property: 'transfer_status',
                 render: (row) => (
-                  row.transfer_status
-                    ? <span className={`badge badge-light-${row.transfer_status.color}`}>{row.transfer_status.label}</span>
-                    : null
+                  <span className={`badge badge-light-${row.transfer_status.color}`}>{row.transfer_status.label}</span>
                 )
               },
               {
@@ -141,7 +139,7 @@ const Index = (
               },
             ]}
             addButton={
-              <WalletQuickActions reloadOnly={['rows']} className="d-flex" />
+              <WithdrawTrigger reloadOnly={['rows']} />
             }
           />
         </KTCard>

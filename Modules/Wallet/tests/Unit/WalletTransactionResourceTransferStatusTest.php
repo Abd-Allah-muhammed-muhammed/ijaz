@@ -73,7 +73,7 @@ test('accessing operation without eager-loading throws LazyLoadingViolationExcep
         ->toThrow(LazyLoadingViolationException::class);
 });
 
-test('non-withdraw wallet transactions return null transfer_status without attempting any relation traversal', function () {
+test('non-withdraw wallet transactions return a generic completed transfer_status without loading the operation relation', function () {
     $user = createWalletUser();
     fundWallet($user, 250);
 
@@ -85,5 +85,9 @@ test('non-withdraw wallet transactions return null transfer_status without attem
     $payload = WalletTransactionResource::make($transaction)->resolve();
 
     expect($transaction->relationLoaded('operation'))->toBeFalse()
-        ->and($payload['transfer_status'])->toBeNull();
+        ->and($payload['transfer_status'])->toMatchArray([
+            'value' => 'completed',
+            'label' => __('completed'),
+            'color' => 'success',
+        ]);
 });

@@ -138,7 +138,7 @@ test('provider web withdraw-requests index does not leak admin/audit fields (mak
         ->and($encoded)->not->toContain('maker_admin');
 });
 
-test('a withdraw request with no linked payout yet exposes transfer_status as null on the web dashboard too', function () {
+test('a withdraw request with no linked payout yet exposes the operation status as transfer_status on the web dashboard too', function () {
     withoutWalletLocaleMiddleware();
     $provider = createWalletProvider();
     $withdraw = createWithdrawFor($provider, [
@@ -154,7 +154,9 @@ test('a withdraw request with no linked payout yet exposes transfer_status as nu
             ->component('Provider/WithdrawRequests/Index')
             ->has('rows.data', 1)
             ->where('rows.data.0.id', $withdraw->id)
-            ->where('rows.data.0.transfer_status', null)
+            ->where('rows.data.0.transfer_status.value', OperationStatusEnum::Pending->value)
+            ->where('rows.data.0.transfer_status.label', OperationStatusEnum::Pending->toString())
+            ->where('rows.data.0.transfer_status.color', OperationStatusEnum::Pending->color())
         );
 });
 
@@ -203,7 +205,7 @@ test('the web dashboard withdraw-requests list query does not introduce N+1 quer
     }
 });
 
-test('provider withdraw Index and Show pages render transfer_status when present and gate the badge on a non-null value', function () {
+test('provider withdraw Index and Show pages always render transfer_status badges', function () {
     withoutWalletLocaleMiddleware();
 
     $indexSource = file_get_contents(resource_path('js/apps/provider/pages/WithdrawRequests/Index.tsx'));
@@ -217,7 +219,6 @@ test('provider withdraw Index and Show pages render transfer_status when present
         ->and($showSource)->not->toBeFalse()
         ->and($showSource)->toContain('transfer_status')
         ->and($showSource)->toContain('row.transfer_status')
-        ->and($showSource)->toContain('{row.transfer_status ? (')
         ->and($showSource)->toContain('badge-light-${row.transfer_status.color}')
         ->and($showSource)->toContain('row.transfer_status.label')
         // Show status badge must use Metronic semantic classes, not CSS color names as backgroundColor
@@ -250,7 +251,7 @@ test('provider withdraw Index and Show pages render transfer_status when present
         );
 });
 
-test('provider withdraw Show page exposes transfer_status as null when no payout exists yet', function () {
+test('provider withdraw Show page exposes the operation status as transfer_status when no payout exists yet', function () {
     withoutWalletLocaleMiddleware();
 
     $provider = createWalletProvider();
@@ -266,6 +267,8 @@ test('provider withdraw Show page exposes transfer_status as null when no payout
         ->assertInertia(fn ($page) => $page
             ->component('Provider/WithdrawRequests/Show')
             ->where('row.id', $withdraw->id)
-            ->where('row.transfer_status', null)
+            ->where('row.transfer_status.value', OperationStatusEnum::Pending->value)
+            ->where('row.transfer_status.label', OperationStatusEnum::Pending->toString())
+            ->where('row.transfer_status.color', OperationStatusEnum::Pending->color())
         );
 });

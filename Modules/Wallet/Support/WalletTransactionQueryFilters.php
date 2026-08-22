@@ -3,10 +3,21 @@
 namespace Modules\Wallet\Support;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
+use Modules\Wallet\Models\WithdrawRequest;
 
 final class WalletTransactionQueryFilters
 {
+    public static function withOperationForStatus(Builder $query): void
+    {
+        $query->with(['operation' => function (MorphTo $morphTo): void {
+            $morphTo->morphWith([
+                WithdrawRequest::class => ['payoutRequest'],
+            ]);
+        }]);
+    }
+
     /**
      * Hide hold-release rows, and hide the original withdraw request once a
      * terminal sibling (approved / rejected / cancelled) exists for the group.

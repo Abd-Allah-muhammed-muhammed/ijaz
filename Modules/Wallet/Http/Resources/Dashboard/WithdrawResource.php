@@ -6,6 +6,7 @@ use App\Http\Resources\Dashboard\OperationUserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Wallet\Models\WithdrawRequest;
+use Modules\Wallet\Support\WalletTransactionStatusResolver;
 
 /** @mixin WithdrawRequest */
 class WithdrawResource extends JsonResource
@@ -20,9 +21,7 @@ class WithdrawResource extends JsonResource
             'admin_notes' => $this->admin_notes,
             'user_notes' => $this->user_notes,
             'created_at' => $this->created_at,
-            'transfer_status' => $this->relationLoaded('payoutRequest')
-                ? $this->payoutRequest?->status->toProviderStatus()
-                : null,
+            'transfer_status' => WalletTransactionStatusResolver::forWithdrawRequest($this->resource),
         ];
     }
 }

@@ -430,7 +430,7 @@ export interface WalletTransaction extends Model {
   operation?: Model;
   wallet?: Wallet;
   wallet_id: number;
-  transfer_status?: EnumWithColors<TransferStatusValue> | null;
+  transfer_status: EnumWithColors<TransferStatusValue>;
   created_at: Date;
 }
 
@@ -612,7 +612,7 @@ export interface WithdrawRequest extends Model {
   user?: User | Provider;
   amount: number;
   status: EnumWithColors<TopUpRequestStatus>;
-  transfer_status?: EnumWithColors<TransferStatusValue> | null;
+  transfer_status: EnumWithColors<TransferStatusValue>;
   created_at: Date;
 }
 

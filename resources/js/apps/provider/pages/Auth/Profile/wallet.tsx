@@ -69,9 +69,9 @@ const Wallet = ({transactions, prams}: Props) => {
                   render: (row) => (
                     <span
                       className="font-monospace text-gray-700"
-                      title={String(row.id)}
+                      title={String(row.operation_id)}
                     >
-                      {row.reference_short ?? String(row.id).slice(-8).toUpperCase()}
+                      {row.reference_short ?? String(row.operation_id).slice(-8).toUpperCase()}
                     </span>
                   ),
                 },
@@ -108,9 +108,7 @@ const Wallet = ({transactions, prams}: Props) => {
                   title: t('status'),
                   property: 'transfer_status',
                   render: (row) => (
-                    row.transfer_status
-                      ? <span className={`badge badge-light-${row.transfer_status.color}`}>{row.transfer_status.label}</span>
-                      : <span className="text-muted">—</span>
+                    <span className={`badge badge-light-${row.transfer_status.color}`}>{row.transfer_status.label}</span>
                   )
                 },
                 {

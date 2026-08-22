@@ -4,6 +4,11 @@ namespace Modules\Wallet\Support;
 
 final class WalletTransactionDisplay
 {
+    public static function operationReference(?string $operationId): string
+    {
+        return strtoupper(substr((string) $operationId, -8));
+    }
+
     public static function amount(
         float $credit,
         float $debit,

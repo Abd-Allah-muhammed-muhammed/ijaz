@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 use Modules\Wallet\Models\Wallet as WalletOwner;
+use Modules\Wallet\Support\WalletTransactionDisplay;
 
 class WalletTransaction extends Model
 {
@@ -61,7 +62,7 @@ class WalletTransaction extends Model
                 }
 
                 return trans((string) $value, [
-                    'ref' => strtoupper(substr((string) $this->operation_id, -8)),
+                    'ref' => WalletTransactionDisplay::operationReference($this->operation_id),
                 ]);
             },
         );

@@ -6,7 +6,6 @@ import {Provider} from "@/shared/types/models";
 import {useTranslation} from "react-i18next";
 import RatingStars from '@/shared/components/RatingStars';
 import WalletQuickActions from '@/apps/provider/components/wallet/WalletQuickActions';
-import {Collapse} from "react-bootstrap";
 
 
 type Props = {
@@ -99,16 +98,16 @@ const AccountLayout = ({children, provider}: Props) => {
                       onClick={() => setShowWalletDetails((open) => !open)}
                       aria-expanded={showWalletDetails}
                     >
-                      {t('view_all_wallet_details')}
+                      {showWalletDetails ? t('hide_wallet_details') : t('view_all_wallet_details')}
                     </button>
-                    <Collapse in={showWalletDetails}>
+                    {showWalletDetails && (
                       <div className="d-flex flex-wrap">
                         <MetricTile value={provider.wallet?.total_spent} label={t('total_spent')} />
                         <MetricTile value={provider.wallet?.credit} label={t('credit')} />
                         <MetricTile value={provider.wallet?.pending_credit} label={t('pending_credit')} />
                         <MetricTile value={provider.wallet?.debit} label={t('debit')} />
                       </div>
-                    </Collapse>
+                    )}
                   </div>
                 </div>
               </div>

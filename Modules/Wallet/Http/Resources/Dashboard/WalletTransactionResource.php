@@ -5,8 +5,8 @@ namespace Modules\Wallet\Http\Resources\Dashboard;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Wallet\Models\WalletTransaction;
-use Modules\Wallet\Models\WithdrawRequest;
 use Modules\Wallet\Support\WalletTransactionDisplay;
+use Modules\Wallet\Support\WalletTransactionStatusResolver;
 
 /** @mixin WalletTransaction */
 class WalletTransactionResource extends JsonResource
@@ -20,7 +20,7 @@ class WalletTransactionResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'reference_short' => strtoupper(substr((string) $this->id, -8)),
+            'reference_short' => WalletTransactionDisplay::operationReference($this->operation_id),
             'user_id' => $this->user_id,
             'user_type' => $this->user_type,
             'amount' => WalletTransactionDisplay::amount($credit, $debit, $pendingCredit, $pendingDebit),
@@ -36,12 +36,7 @@ class WalletTransactionResource extends JsonResource
             'pending_debit' => number_format($pendingDebit, 2),
             'wallet_id' => $this->wallet_id,
             'created_at' => $this->created_at,
-            'transfer_status' => $this->operation_type === WithdrawRequest::class
-                && $this->relationLoaded('operation')
-                && $this->operation instanceof WithdrawRequest
-                && $this->operation->relationLoaded('payoutRequest')
-                ? $this->operation->payoutRequest?->status->toProviderStatus()
-                : null,
+            'transfer_status' => WalletTransactionStatusResolver::forTransaction($this->resource),
             'wallet' => WalletResource::make($this->whenLoaded('wallet')),
         ];
     }

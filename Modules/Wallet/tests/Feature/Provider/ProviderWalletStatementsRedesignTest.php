@@ -84,13 +84,14 @@ test('wallet statements header tiles all format numbers consistently with 2 deci
     }
 });
 
-test('a wallet transaction row with null transfer_status renders a placeholder dash, not an empty cell, on the frontend', function (): void {
+test('wallet statements rows always expose a non-null transfer_status badge on the frontend', function (): void {
     $source = file_get_contents(resource_path('js/apps/provider/pages/Auth/Profile/wallet.tsx'));
 
     expect($source)->not->toBeFalse()
         ->and($source)->toContain('transfer_status')
-        ->and($source)->toMatch('/row\.transfer_status\s*\?/')
-        ->and($source)->toContain('—');
+        ->and($source)->toContain('row.transfer_status.color')
+        ->and($source)->toContain('row.transfer_status.label')
+        ->and($source)->not->toContain('text-muted">—');
 });
 
 test('the redesigned statements table combines credit/debit/pending into a single signed amount field from the backend, reusing WalletTransactionDisplay (not a new formula)', function (): void {

@@ -11,7 +11,7 @@ import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
 import {OperationStatusEnum} from "@/Enums/Enums";
 import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/TopUpController";
-import WalletQuickActions from '@/apps/provider/components/wallet/WalletQuickActions';
+import {RechargeTrigger} from '@/apps/provider/components/wallet/WalletQuickActions';
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
 
 
@@ -146,7 +146,7 @@ const Index = (
               },
             ]}
             addButton={
-              <WalletQuickActions reloadOnly={['rows']} className="d-flex" />
+              <RechargeTrigger reloadOnly={['rows']} />
             }
           />
         </KTCard>

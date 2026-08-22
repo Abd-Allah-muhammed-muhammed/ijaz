@@ -69,16 +69,14 @@ const Show = ({ row, paymentResponse }: Props) => {
                     </span>
                   </dd>
                 </div>
-                {row.transfer_status ? (
-                  <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
-                    <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('transfer_status')}</dt>
-                    <dd>
-                      <span className={`badge badge-light-${row.transfer_status.color}`}>
-                        {row.transfer_status.label}
-                      </span>
-                    </dd>
-                  </div>
-                ) : null}
+                <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
+                  <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('transfer_status')}</dt>
+                  <dd>
+                    <span className={`badge badge-light-${row.transfer_status.color}`}>
+                      {row.transfer_status.label}
+                    </span>
+                  </dd>
+                </div>
                 <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
                   <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('created_at')}</dt>
                   <dd className="text-gray-900 dark:text-white">{build_date(row.created_at)}</dd>
