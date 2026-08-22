@@ -87,7 +87,14 @@ class RolePermissionSeeder extends Seeder
         'finance' => [
             'topUpRequests',
             'withdrawRequests',
+            'orders',
             'payouts' => ['request payouts'],
+        ],
+        'finance-manager' => [
+            'topUpRequests',
+            'withdrawRequests',
+            'orders',
+            'payouts' => ['request payouts', 'confirm payouts'],
         ],
         'support' => [
             'supportTicket',
