@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Payout\Actions\Payout;
+namespace Modules\Payout\Actions;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;

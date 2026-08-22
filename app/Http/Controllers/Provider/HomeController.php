@@ -9,7 +9,7 @@ use Modules\Cms\Services\BannerService;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Http\Resources\Dashboard\OrderResource;
 use Modules\Orders\Services\OrderService;
-use Modules\Payout\Actions\Payout\AttachAmountInTransferToWalletAction;
+use Modules\Payout\Actions\AttachAmountInTransferToWalletAction;
 use Modules\Wallet\Http\Resources\Dashboard\WalletResource;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionResource;
 use Modules\Wallet\Services\WalletService;

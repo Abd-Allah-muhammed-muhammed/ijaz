@@ -1,15 +1,15 @@
 <?php
 
-namespace Modules\Payout\Actions\Payout;
+namespace Modules\Payout\Actions;
 
 use Illuminate\Support\Facades\DB;
-use Modules\Payout\Actions\Payout\Concerns\EnsuresPayoutReviewerIsNotSubmitter;
+use Modules\Payout\Concerns\EnsuresPayoutReviewerIsNotSubmitter;
 use Modules\Payout\Contracts\Repositories\PayoutRequestRepositoryInterface;
 use Modules\Payout\Enums\PayoutStatusEnum;
 use Modules\Payout\Exceptions\PayoutException;
 use Modules\Payout\Models\PayoutRequest;
 
-class RejectPayoutTransferAction
+class ConfirmPayoutTransferAction
 {
     use EnsuresPayoutReviewerIsNotSubmitter;
 
@@ -17,24 +17,25 @@ class RejectPayoutTransferAction
         private readonly PayoutRequestRepositoryInterface $repository,
     ) {}
 
-    /**
-     * Review-reject a submitted payout's transfer evidence.
-     * The submitting admin cannot reject their own submission.
-     */
-    public function handle(PayoutRequest $payoutRequest, int $adminId, string $failureReason): PayoutRequest
+    public function handle(PayoutRequest $payoutRequest, int $adminId): PayoutRequest
     {
-        return DB::transaction(function () use ($payoutRequest, $adminId, $failureReason): PayoutRequest {
+        return DB::transaction(function () use ($payoutRequest, $adminId): PayoutRequest {
             $payoutRequest = $this->repository->lockForUpdate($payoutRequest);
 
+            if ($payoutRequest->status === PayoutStatusEnum::Completed) {
+                throw new PayoutException('payout.already_completed');
+            }
+
             if ($payoutRequest->status !== PayoutStatusEnum::Submitted) {
-                throw new PayoutException('payout.cannot_reject_status');
+                throw new PayoutException('payout.cannot_confirm_status');
             }
 
             $this->ensurePayoutReviewerIsNotSubmitter($payoutRequest, $adminId);
 
             return $this->repository->update($payoutRequest, [
-                'status' => PayoutStatusEnum::Failed,
-                'failure_reason' => $failureReason,
+                'status' => PayoutStatusEnum::Completed,
+                'processed_by_admin_id' => $adminId,
+                'failure_reason' => null,
             ]);
         });
     }

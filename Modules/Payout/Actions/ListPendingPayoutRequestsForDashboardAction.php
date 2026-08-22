@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Payout\Actions\Payout;
+namespace Modules\Payout\Actions;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;

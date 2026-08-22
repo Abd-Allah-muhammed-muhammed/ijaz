@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Payout\Actions\Payout\Concerns;
+namespace Modules\Payout\Concerns;
 
 use Modules\Payout\Exceptions\PayoutException;
 use Modules\Payout\Models\PayoutRequest;

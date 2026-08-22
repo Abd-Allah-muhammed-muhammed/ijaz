@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Payout\Actions\Payout;
+namespace Modules\Payout\Actions;
 
 use Illuminate\Support\Facades\DB;
 use Modules\Payout\Contracts\Repositories\PayoutRequestRepositoryInterface;

@@ -21,7 +21,7 @@ use Modules\Geo\Services\CityService;
 use Modules\Geo\Services\RegionService;
 use Modules\Marketplace\Http\Resources\Dashboard\ProviderTypeResource;
 use Modules\Marketplace\Services\ProviderTypeService;
-use Modules\Payout\Actions\Payout\AttachAmountInTransferToWalletAction;
+use Modules\Payout\Actions\AttachAmountInTransferToWalletAction;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
 use Modules\Wallet\Support\WalletSearch;
 use Throwable;
