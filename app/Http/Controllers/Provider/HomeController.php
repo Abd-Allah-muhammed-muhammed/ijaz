@@ -47,7 +47,7 @@ class HomeController extends Controller
             'totalFinishedOrders' => $stats['totalFinishedOrders'],
             'wallet' => WalletResource::make($auth->wallet),
             'recentTransactions' => WalletTransactionResource::collection(
-                $this->walletService->listRecentForWallet($auth->wallet, 2),
+                $this->walletService->listRecentForWallet($auth->wallet, 5),
             ),
             'recommendOrders' => OrderResource::collection($recommendOrders),
             'banners' => BannerResource::collection($banners),

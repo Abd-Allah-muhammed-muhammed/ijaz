@@ -129,7 +129,7 @@ class WalletService
     /**
      * @return Collection<int, WalletTransaction>
      */
-    public function listRecentForWallet(Wallet $wallet, int $limit = 2): Collection
+    public function listRecentForWallet(Wallet $wallet, int $limit = 5): Collection
     {
         return $this->transactionRepo->latestForWallet($wallet, $limit);
     }

@@ -49,7 +49,7 @@ interface WalletTransactionRepositoryInterface
      *
      * @return Collection<int, WalletTransaction>
      */
-    public function latestForWallet(Wallet $wallet, int $limit = 2): Collection;
+    public function latestForWallet(Wallet $wallet, int $limit = 5): Collection;
 
     /**
      * @param  Closure(Builder): void  $constraints

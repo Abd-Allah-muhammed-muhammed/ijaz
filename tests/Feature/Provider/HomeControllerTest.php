@@ -114,33 +114,62 @@ test('provider home page no longer includes any conversations-card-specific prop
         );
 });
 
-test('provider home page exposes recent wallet transactions, limited to 2, most recent first', function () {
+test('provider home page exposes recent wallet transactions, limited to 5, most recent first', function () {
     $provider = createWalletProvider();
 
-    fundWallet($provider, 10);
-    fundWallet($provider, 20);
-    fundWallet($provider, 30);
+    foreach ([10, 20, 30, 40, 50, 60] as $amount) {
+        fundWallet($provider, $amount);
+    }
 
     $transactions = $provider->walletTransactions()->orderBy('id')->get();
-    expect($transactions)->toHaveCount(3);
+    expect($transactions)->toHaveCount(6);
 
-    $oldest = $transactions[0];
-    $middle = $transactions[1];
-    $newest = $transactions[2];
-
-    $oldest->forceFill(['created_at' => now()->subDays(3)])->save();
-    $middle->forceFill(['created_at' => now()->subDays(2)])->save();
-    $newest->forceFill(['created_at' => now()->subDay()])->save();
+    $ordered = $transactions->values();
+    $ordered[0]->forceFill(['created_at' => now()->subDays(6)])->save();
+    $ordered[1]->forceFill(['created_at' => now()->subDays(5)])->save();
+    $ordered[2]->forceFill(['created_at' => now()->subDays(4)])->save();
+    $ordered[3]->forceFill(['created_at' => now()->subDays(3)])->save();
+    $ordered[4]->forceFill(['created_at' => now()->subDays(2)])->save();
+    $ordered[5]->forceFill(['created_at' => now()->subDay()])->save();
 
     $this->actingAs($provider, 'provider')
         ->get(action(HomeController::class))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
             ->component('Provider/Home')
-            ->has('recentTransactions', 2)
-            ->where('recentTransactions.0.id', $newest->id)
-            ->where('recentTransactions.1.id', $middle->id)
-            ->missing('recentTransactions.2')
+            ->has('recentTransactions', 5)
+            ->where('recentTransactions.0.id', $ordered[5]->id)
+            ->where('recentTransactions.4.id', $ordered[1]->id)
+            ->missing('recentTransactions.5')
+        );
+});
+
+test('Home recent wallet activity now shows 5 transactions, not 2, most recent first', function () {
+    $provider = createWalletProvider();
+
+    foreach ([5, 15, 25, 35, 45, 55] as $amount) {
+        fundWallet($provider, $amount);
+    }
+
+    $transactions = $provider->walletTransactions()->orderBy('id')->get();
+    expect($transactions)->toHaveCount(6);
+
+    $transactions[0]->forceFill(['created_at' => now()->subDays(6)])->save();
+    $transactions[1]->forceFill(['created_at' => now()->subDays(5)])->save();
+    $transactions[2]->forceFill(['created_at' => now()->subDays(4)])->save();
+    $transactions[3]->forceFill(['created_at' => now()->subDays(3)])->save();
+    $transactions[4]->forceFill(['created_at' => now()->subDays(2)])->save();
+    $transactions[5]->forceFill(['created_at' => now()->subDay()])->save();
+
+    $this->actingAs($provider, 'provider')
+        ->get(action(HomeController::class))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Provider/Home')
+            ->has('recentTransactions', 5)
+            ->where('recentTransactions.0.id', $transactions[5]->id)
+            ->where('recentTransactions.4.id', $transactions[1]->id)
+            ->missing('recentTransactions.5')
         );
 });
 

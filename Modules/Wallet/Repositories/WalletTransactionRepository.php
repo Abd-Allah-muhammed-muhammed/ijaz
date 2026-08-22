@@ -93,7 +93,7 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
             ->withQueryString();
     }
 
-    public function latestForWallet(Wallet $wallet, int $limit = 2): Collection
+    public function latestForWallet(Wallet $wallet, int $limit = 5): Collection
     {
         return $wallet->transactions()
             ->tap(fn (Builder $query) => WalletTransactionQueryFilters::excludeInternalWithdrawRows($query))
