@@ -280,14 +280,14 @@ test('amount_in_transfer is computed identically whether attached via Profile (A
         ->get(action([AuthController::class, 'profile']))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->where('provider.wallet.amount_in_transfer', 175)
+            ->where('provider.wallet.amount_in_transfer', '175.00')
         );
 
     $this->actingAs($provider, 'provider')
         ->get(route('provider.home'))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->where('wallet.amount_in_transfer', 175)
+            ->where('wallet.amount_in_transfer', '175.00')
         );
 });
 

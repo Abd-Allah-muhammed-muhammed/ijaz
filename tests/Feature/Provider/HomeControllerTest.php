@@ -70,7 +70,7 @@ test('provider home page exposes real wallet balance and amount_in_transfer, not
         ->assertInertia(fn ($page) => $page
             ->component('Provider/Home')
             ->where('wallet.balance', number_format(4321.75, 2))
-            ->where('wallet.amount_in_transfer', 150)
+            ->where('wallet.amount_in_transfer', '150.00')
         );
 });
 
@@ -235,7 +235,7 @@ test('provider home page still exposes balance, amount_in_transfer, totalOrders,
         ->assertInertia(fn ($page) => $page
             ->component('Provider/Home')
             ->where('wallet.balance', number_format(4321.75, 2))
-            ->where('wallet.amount_in_transfer', 150)
+            ->where('wallet.amount_in_transfer', '150.00')
             ->where('totalOrders', 3)
             ->where('totalFinishedOrders', 2)
         );

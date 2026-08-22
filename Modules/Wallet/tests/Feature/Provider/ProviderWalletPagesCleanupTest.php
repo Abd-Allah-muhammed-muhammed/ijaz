@@ -87,7 +87,8 @@ test('wallet statements rows expose transfer_status for withdraw operations, con
 
     $row = collect($props['transactions']['data'] ?? [])
         ->first(fn (array $row): bool => (string) ($row['operation_id'] ?? '') === (string) $withdraw->id
-            && (float) ($row['debit'] ?? 0) > 0);
+            && (float) ($row['amount'] ?? 0) === 100.0
+            && ($row['is_pending'] ?? true) === false);
 
     expect($row)->not->toBeNull()
         ->and($row['transfer_status']['value'])->toBe($expected['value'])

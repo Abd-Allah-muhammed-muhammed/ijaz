@@ -20,13 +20,14 @@ class WalletTransactionResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'reference_short' => strtoupper(substr((string) $this->id, -8)),
             'user_id' => $this->user_id,
             'user_type' => $this->user_type,
             'amount' => WalletTransactionDisplay::amount($credit, $debit, $pendingCredit, $pendingDebit),
             'is_pending' => WalletTransactionDisplay::isPendingOnly($credit, $debit, $pendingCredit, $pendingDebit),
+            'is_credit' => ! WalletTransactionDisplay::isPendingOnly($credit, $debit, $pendingCredit, $pendingDebit) && $credit > 0,
             'credit' => number_format($credit, 2),
             'debit' => number_format($debit, 2),
-            'balance_before' => number_format((float) $this->balance_before, 2),
             'balance_after' => number_format((float) $this->balance_after, 2),
             'description' => $this->description,
             'operation_id' => $this->operation_id,

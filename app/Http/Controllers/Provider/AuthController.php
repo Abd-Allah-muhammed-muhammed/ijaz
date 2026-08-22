@@ -26,6 +26,7 @@ use Modules\Payout\Actions\AttachAmountInTransferToWalletAction;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
 use Modules\Wallet\Models\WithdrawRequest;
 use Modules\Wallet\Support\WalletSearch;
+use Modules\Wallet\Support\WalletTransactionQueryFilters;
 use Throwable;
 
 class AuthController extends Controller
@@ -136,6 +137,7 @@ class AuthController extends Controller
                 $provider
                     ->wallet
                     ->transactions()
+                    ->tap(fn ($query) => WalletTransactionQueryFilters::excludeInternalWithdrawRows($query))
                     ->with(['operation' => function (MorphTo $morphTo): void {
                         $morphTo->morphWith([
                             WithdrawRequest::class => ['payoutRequest'],

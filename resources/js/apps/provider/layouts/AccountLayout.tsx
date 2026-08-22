@@ -1,11 +1,12 @@
 import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
 import {Content} from "@/vendor/metronic/layout/components/content";
 import {KTIcon} from "@/vendor/metronic/helpers";
-import {ReactElement} from "react";
+import {ReactElement, useState} from "react";
 import {Provider} from "@/shared/types/models";
 import {useTranslation} from "react-i18next";
 import RatingStars from '@/shared/components/RatingStars';
 import WalletQuickActions from '@/apps/provider/components/wallet/WalletQuickActions';
+import {Collapse} from "react-bootstrap";
 
 
 type Props = {
@@ -13,9 +14,18 @@ type Props = {
   provider: Provider
 }
 
+const MetricTile = ({value, label}: { value?: string | number | null; label: string }) => (
+  <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
+    <div className='d-flex align-items-center'>
+      <div className='fs-2 fw-bolder'>{value ?? '0.00'}</div>
+    </div>
+    <div className='fw-bold fs-6 text-gray-500'>{label}</div>
+  </div>
+)
 
 const AccountLayout = ({children, provider}: Props) => {
   const {t} = useTranslation();
+  const [showWalletDetails, setShowWalletDetails] = useState(false);
 
   return (
     <>
@@ -78,63 +88,27 @@ const AccountLayout = ({children, provider}: Props) => {
                 <div className='d-flex flex-wrap flex-stack'>
                   <div className='d-flex flex-column flex-grow-1 pe-8'>
                     <div className='d-flex flex-wrap'>
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.balance}</div>
-                        </div>
-
-                        <div className='fw-bold fs-6 text-gray-500'>{t('balance')}</div>
-                      </div>
-
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.total_earning}</div>
-                        </div>
-
-                        <div className='fw-bold fs-6 text-gray-500'>{t('total_earning')}</div>
-                      </div>
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.total_spent}</div>
-                        </div>
-
-                        <div className='fw-bold fs-6 text-gray-500'>{t('total_spent')}</div>
-                      </div>
-
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.credit}</div>
-                        </div>
-
-                        <div className='fw-bold fs-6 text-gray-500'>{t('credit')}</div>
-                      </div>
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.pending_credit}</div>
-                        </div>
-
-                        <div className='fw-bold fs-6 text-gray-500'>{t('pending_credit')}</div>
-                      </div>
-
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.debit}</div>
-                        </div>
-                        <div className='fw-bold fs-6 text-gray-500'>{t('debit')}</div>
-                      </div>
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.pending_debit}</div>
-                        </div>
-                        <div className='fw-bold fs-6 text-gray-500'>{t('pending_debit')}</div>
-                      </div>
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.amount_in_transfer ?? 0}</div>
-                        </div>
-                        <div className='fw-bold fs-6 text-gray-500'>{t('amount_in_transfer')}</div>
-                      </div>
+                      <MetricTile value={provider.wallet?.balance} label={t('balance')} />
+                      <MetricTile value={provider.wallet?.pending_debit} label={t('wallet_on_hold')} />
+                      <MetricTile value={provider.wallet?.amount_in_transfer} label={t('wallet_being_transferred')} />
+                      <MetricTile value={provider.wallet?.total_earning} label={t('wallet_total_earned')} />
                     </div>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-light mb-3"
+                      onClick={() => setShowWalletDetails((open) => !open)}
+                      aria-expanded={showWalletDetails}
+                    >
+                      {t('view_all_wallet_details')}
+                    </button>
+                    <Collapse in={showWalletDetails}>
+                      <div className="d-flex flex-wrap">
+                        <MetricTile value={provider.wallet?.total_spent} label={t('total_spent')} />
+                        <MetricTile value={provider.wallet?.credit} label={t('credit')} />
+                        <MetricTile value={provider.wallet?.pending_credit} label={t('pending_credit')} />
+                        <MetricTile value={provider.wallet?.debit} label={t('debit')} />
+                      </div>
+                    </Collapse>
                   </div>
                 </div>
               </div>

@@ -400,27 +400,29 @@ export interface Wallet extends Model {
   user_id: number;
   user_type: string;
   user?: User;
-  credit: number;
-  pending_credit: number;
-  debit: number;
-  pending_debit: number;
-  total_earning: number;
-  total_spent: number;
-  balance: number;
-  amount_in_transfer?: number;
+  credit: number | string;
+  pending_credit: number | string;
+  debit: number | string;
+  pending_debit: number | string;
+  total_earning: number | string;
+  total_spent: number | string;
+  balance: number | string;
+  amount_in_transfer?: number | string;
   transactions?: WalletTransaction[];
 }
 
 export interface WalletTransaction extends Model {
+  id: number | string;
+  reference_short?: string;
   user_id: number;
   user_type: string;
   amount: number;
   is_pending?: boolean;
+  is_credit?: boolean;
   credit: number | string;
   debit: number | string;
   pending_credit?: number | string;
   pending_debit?: number | string;
-  balance_before?: number | string;
   balance_after?: number | string;
   description: string;
   operation_id: number;

@@ -35,7 +35,7 @@ test('provider profile wallet payload exposes amount_in_transfer summing pending
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
             ->component('Provider/Auth/Profile/Index')
-            ->where('provider.wallet.amount_in_transfer', 150)
+            ->where('provider.wallet.amount_in_transfer', '150.00')
         );
 });
 
@@ -76,7 +76,7 @@ test('completed and failed PayoutRequests are excluded from amount_in_transfer',
         ->get(action([AuthController::class, 'profile']))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->where('provider.wallet.amount_in_transfer', 80)
+            ->where('provider.wallet.amount_in_transfer', '80.00')
         );
 });
 
@@ -89,7 +89,7 @@ test('a provider with no PayoutRequests at all sees amount_in_transfer as zero, 
         ->get(action([AuthController::class, 'profile']))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->where('provider.wallet.amount_in_transfer', 0)
+            ->where('provider.wallet.amount_in_transfer', '0.00')
         );
 });
 
@@ -123,7 +123,7 @@ test('amount_in_transfer only sums payouts where recipient is the authenticated 
         ->get(action([AuthController::class, 'profile']))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->where('provider.wallet.amount_in_transfer', 40)
+            ->where('provider.wallet.amount_in_transfer', '40.00')
         );
 });
 
@@ -151,7 +151,7 @@ test('the wallet statements page (Provider/Auth/Profile/wallet) also exposes amo
         ->get(action([AuthController::class, 'profile']))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->where('provider.wallet.amount_in_transfer', 125)
+            ->where('provider.wallet.amount_in_transfer', '125.00')
         );
 
     $this->actingAs($provider, 'provider')
@@ -159,6 +159,6 @@ test('the wallet statements page (Provider/Auth/Profile/wallet) also exposes amo
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
             ->component('Provider/Auth/Profile/wallet')
-            ->where('provider.wallet.amount_in_transfer', 125)
+            ->where('provider.wallet.amount_in_transfer', '125.00')
         );
 });

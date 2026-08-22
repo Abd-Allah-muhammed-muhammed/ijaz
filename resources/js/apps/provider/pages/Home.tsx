@@ -357,7 +357,7 @@ const Home = (
               recentTransactions.map((transaction, i) => {
                 const amount = Number(transaction.amount) || 0
                 const isPending = Boolean(transaction.is_pending)
-                const isCredit = ! isPending && Number(transaction.credit) > 0
+                const isCredit = Boolean(transaction.is_credit)
 
                 return (
                   <div key={transaction.id}>

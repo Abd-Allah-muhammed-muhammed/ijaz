@@ -26,6 +26,11 @@ it('defines critical Provider Dashboard translation keys in every locale JSON so
         'finance',
         'welcome_back',
         'view_statements',
+        'view_all_wallet_details',
+        'wallet_on_hold',
+        'wallet_being_transferred',
+        'wallet_total_earned',
+        'reference',
         'recent_wallet_activity',
 
         // Wallet UI
