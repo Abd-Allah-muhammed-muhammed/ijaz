@@ -416,16 +416,19 @@ export interface WalletTransaction extends Model {
   user_type: string;
   amount: number;
   is_pending?: boolean;
-  credit: number;
-  debit: number;
-  pending_credit?: number;
-  pending_debit?: number;
+  credit: number | string;
+  debit: number | string;
+  pending_credit?: number | string;
+  pending_debit?: number | string;
+  balance_before?: number | string;
+  balance_after?: number | string;
   description: string;
   operation_id: number;
   operation_type: string;
   operation?: Model;
   wallet?: Wallet;
   wallet_id: number;
+  transfer_status?: EnumWithColors<TransferStatusValue> | null;
   created_at: Date;
 }
 

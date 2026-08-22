@@ -32,10 +32,10 @@ const Show = ({row, paymentResponse}: Props) => {
 
   return (
     <>
-      <Head title={t('top_up_requests')}/>
+      <Head title={t('recharge_requests')}/>
       <PageTitle breadcrumbs={[
         {
-          title: t('top_up_requests'),
+          title: t('recharge_requests'),
           path: TopUpController.index().url,
           isSeparator: false,
           isActive: false,
@@ -47,7 +47,7 @@ const Show = ({row, paymentResponse}: Props) => {
           isActive: false,
         },
       ]}>
-        {t('top_up_requests')}
+        {t('recharge_requests')}
       </PageTitle>
       <ToolbarWrapper/>
       <Content>
@@ -55,7 +55,7 @@ const Show = ({row, paymentResponse}: Props) => {
           {/* Details Card */}
           <div className="col-12 col-lg-7">
             <KTCard className="p-4 h-100">
-              <h2 className="text-xl font-bold mb-6">{t('top_up_request_details')}</h2>
+              <h2 className="text-xl font-bold mb-6">{t('recharge_request_details')}</h2>
               <dl className="divide-y divide-gray-200 dark:divide-gray-700">
                 <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
                   <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('amount')}</dt>

@@ -11,6 +11,7 @@ import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
 import {OperationStatusEnum} from "@/Enums/Enums";
 import WithdrawController from "@/actions/Modules/Wallet/Http/Controllers/Provider/WithdrawController";
+import WalletQuickActions from '@/apps/provider/components/wallet/WalletQuickActions';
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
 
 
@@ -139,14 +140,9 @@ const Index = (
                   : <></>,
               },
             ]}
-            // addButton={
-            //   <Link
-            //     href={WithdrawController.create().url}
-            //     className="btn btn-primary"
-            //   >
-            //     <KTIcon iconName='plus' className='fs-2'/>
-            //   </Link>
-            // }
+            addButton={
+              <WalletQuickActions reloadOnly={['rows']} className="d-flex" />
+            }
           />
         </KTCard>
       </Content>

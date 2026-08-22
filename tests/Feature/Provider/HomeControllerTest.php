@@ -258,9 +258,9 @@ test('Home recent wallet activity shows the pending_debit amount, labeled as on 
             ->has('recentTransactions', 2)
             ->where('recentTransactions.0.amount', 200)
             ->where('recentTransactions.0.is_pending', true)
-            ->where('recentTransactions.0.credit', 0)
-            ->where('recentTransactions.0.debit', 0)
-            ->where('recentTransactions.0.pending_debit', 200)
+            ->where('recentTransactions.0.credit', '0.00')
+            ->where('recentTransactions.0.debit', '0.00')
+            ->where('recentTransactions.0.pending_debit', '200.00')
         );
 });
 
@@ -276,7 +276,7 @@ test('Home recent wallet activity shows a normal credit/debit amount unchanged f
             ->has('recentTransactions', 1)
             ->where('recentTransactions.0.amount', 75)
             ->where('recentTransactions.0.is_pending', false)
-            ->where('recentTransactions.0.credit', 75)
+            ->where('recentTransactions.0.credit', '75.00')
         );
 });
 

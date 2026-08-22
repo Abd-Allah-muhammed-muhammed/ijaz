@@ -91,6 +91,15 @@ const Wallet = ({transactions, provider, prams}: Props) => {
                   property: "balance_after"
                 },
                 {
+                  title: t('transfer_status'),
+                  property: 'transfer_status',
+                  render: (row) => (
+                    row.transfer_status
+                      ? <span className={`badge badge-light-${row.transfer_status.color}`}>{row.transfer_status.label}</span>
+                      : null
+                  )
+                },
+                {
                   title: t('date'),
                   property: "created_at",
                   render: (row) => new Date(row.created_at).toLocaleDateString() + ' ' + new Date(row.created_at).toLocaleTimeString(),

@@ -12,6 +12,7 @@ use App\Http\Resources\Dashboard\ProviderResource;
 use App\Models\Provider;
 use App\Services\Auth\ProviderAuthService;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -23,6 +24,7 @@ use Modules\Marketplace\Http\Resources\Dashboard\ProviderTypeResource;
 use Modules\Marketplace\Services\ProviderTypeService;
 use Modules\Payout\Actions\AttachAmountInTransferToWalletAction;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
+use Modules\Wallet\Models\WithdrawRequest;
 use Modules\Wallet\Support\WalletSearch;
 use Throwable;
 
@@ -134,6 +136,11 @@ class AuthController extends Controller
                 $provider
                     ->wallet
                     ->transactions()
+                    ->with(['operation' => function (MorphTo $morphTo): void {
+                        $morphTo->morphWith([
+                            WithdrawRequest::class => ['payoutRequest'],
+                        ]);
+                    }])
                     ->latest()
                     ->when(WalletSearch::normalize($request->input('search')), function ($query, string $search): void {
                         $query->where(function (Builder $q) use ($search): void {

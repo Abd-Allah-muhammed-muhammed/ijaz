@@ -14,6 +14,10 @@ it('defines critical Provider Dashboard translation keys in every locale JSON so
         'tickets',
         'opportunities',
         'top_up_requests',
+        'recharge_requests',
+        'recharge_request_details',
+        'recharge_request',
+        'no_matching_records_found',
 
         // Provider sidebar
         'wallet',
