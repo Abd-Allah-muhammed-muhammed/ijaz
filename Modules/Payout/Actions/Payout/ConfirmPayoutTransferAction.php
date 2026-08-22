@@ -3,6 +3,7 @@
 namespace Modules\Payout\Actions\Payout;
 
 use Illuminate\Support\Facades\DB;
+use Modules\Payout\Actions\Payout\Concerns\EnsuresPayoutReviewerIsNotSubmitter;
 use Modules\Payout\Contracts\Repositories\PayoutRequestRepositoryInterface;
 use Modules\Payout\Enums\PayoutStatusEnum;
 use Modules\Payout\Exceptions\PayoutException;
@@ -10,6 +11,8 @@ use Modules\Payout\Models\PayoutRequest;
 
 class ConfirmPayoutTransferAction
 {
+    use EnsuresPayoutReviewerIsNotSubmitter;
+
     public function __construct(
         private readonly PayoutRequestRepositoryInterface $repository,
     ) {}
@@ -27,9 +30,7 @@ class ConfirmPayoutTransferAction
                 throw new PayoutException('payout.cannot_confirm_status');
             }
 
-            if ($payoutRequest->submitted_by_admin_id === $adminId) {
-                throw new PayoutException('payout.submitter_cannot_review');
-            }
+            $this->ensurePayoutReviewerIsNotSubmitter($payoutRequest, $adminId);
 
             return $this->repository->update($payoutRequest, [
                 'status' => PayoutStatusEnum::Completed,

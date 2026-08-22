@@ -34,7 +34,7 @@ type Props = {
   prams: Record<string, unknown> | null;
 };
 
-type StatusFilter = '' | 'pending' | 'submitted' | 'failed' | 'completed';
+type StatusFilter = '' | 'pending' | 'submitted' | 'processing' | 'failed' | 'completed';
 
 const Index = ({ rows, prams }: Props) => {
   const { t } = useTranslation();
@@ -171,6 +171,15 @@ const Index = ({ rows, prams }: Props) => {
               role="button"
             >
               {t('submitted')}
+            </Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link
+              active={activeStatus === 'processing'}
+              onClick={() => changeStatusFilter('processing')}
+              role="button"
+            >
+              {t('processing')}
             </Nav.Link>
           </Nav.Item>
           <Nav.Item>

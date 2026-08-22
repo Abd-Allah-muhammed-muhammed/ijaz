@@ -9,7 +9,7 @@ use Modules\Cms\Services\BannerService;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Http\Resources\Dashboard\OrderResource;
 use Modules\Orders\Services\OrderService;
-use Modules\Payout\Services\PayoutService;
+use Modules\Payout\Actions\Payout\AttachAmountInTransferToWalletAction;
 use Modules\Wallet\Http\Resources\Dashboard\WalletResource;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionResource;
 use Modules\Wallet\Services\WalletService;
@@ -19,7 +19,7 @@ class HomeController extends Controller
     public function __construct(
         private readonly BannerService $bannerService,
         private readonly OrderService $orderService,
-        private readonly PayoutService $payoutService,
+        private readonly AttachAmountInTransferToWalletAction $attachAmountInTransferToWalletAction,
         private readonly WalletService $walletService,
     ) {}
 
@@ -28,10 +28,7 @@ class HomeController extends Controller
         /** @var Provider $auth */
         $auth = auth('provider')->user();
         $auth->load('wallet');
-        $auth->wallet->setAttribute(
-            'amount_in_transfer',
-            $this->payoutService->sumInProgressAmountForRecipient($auth),
-        );
+        $this->attachAmountInTransferToWalletAction->handle($auth);
 
         $stats = $this->orderService->providerHomeStats($auth);
         $auth->loadMissing('categories');

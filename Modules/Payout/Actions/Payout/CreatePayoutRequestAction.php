@@ -5,6 +5,7 @@ namespace Modules\Payout\Actions\Payout;
 use Modules\Payout\Contracts\Repositories\PayoutRequestRepositoryInterface;
 use Modules\Payout\DTOs\CreatePayoutRequestData;
 use Modules\Payout\Enums\PayoutStatusEnum;
+use Modules\Payout\Exceptions\PayoutException;
 use Modules\Payout\Models\PayoutRequest;
 
 class CreatePayoutRequestAction
@@ -15,6 +16,10 @@ class CreatePayoutRequestAction
 
     public function handle(CreatePayoutRequestData $data): PayoutRequest
     {
+        if ($this->repository->findForOperation($data->operation) !== null) {
+            throw new PayoutException('payout.already_exists_for_operation');
+        }
+
         return $this->repository->create([
             'operation_type' => $data->operation::class,
             'operation_id' => (string) $data->operation->getKey(),

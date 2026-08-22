@@ -12,6 +12,7 @@ enum PayoutStatusEnum: string
 
     case Pending = 'pending';
     case Submitted = 'submitted';
+    /** Reserved for future automated gateway outbound transfer; no Action sets this today. */
     case Processing = 'processing';
     case Completed = 'completed';
     case Failed = 'failed';

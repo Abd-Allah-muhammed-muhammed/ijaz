@@ -166,7 +166,18 @@ Table: `payout_requests` (UUID PK). Module migration only — **does not** alter
 
 Statuses: `pending` → `submitted` → `completed` \| `failed`. Also:
 `pending` → `failed` (direct fail). `failed` → `submitted` (re-submit).
-`processing` exists on the enum but is unused (do not repurpose).
+
+`processing` is reserved for a future automated gateway path (e.g. Adfa Pay
+outbound transfer): once a driver submits to the bank API, the row would move
+from `submitted` to `processing` until the gateway confirms. **No Action sets
+this status today** — manual submit + proof remains the only path. It is still
+included in `inProgressCases()` / `amount_in_transfer` sums and exposed as its
+own dashboard filter tab so rows are not orphaned if we start writing it before
+the full gateway UI ships. Do not repurpose for unrelated states.
+
+**Integrity:** `(operation_type, operation_id)` is unique at the DB level;
+`CreatePayoutRequestAction` also checks `findForOperation()` and throws
+`payout.already_exists_for_operation` before insert.
 
 Relations on `PayoutRequest`: `operation()` morphTo, `recipient()` morphTo,
 `processedByAdmin()` / `makerAdmin()` / `submittedByAdmin()` belongsTo `Admin`.

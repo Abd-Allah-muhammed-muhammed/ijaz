@@ -464,6 +464,7 @@
     "approve_transfer": "موافقة",
     "reject_transfer": "رفض",
     "payout.already_completed": "تم إكمال هذا الصرف مسبقاً",
+    "payout.already_exists_for_operation": "يوجد طلب صرف بالفعل لهذه العملية",
     "payout.submitter_cannot_review": "لا يمكن للمسؤول الذي قدّم إثبات التحويل مراجعة هذا الصرف — يجب أن يوافق أو يرفض مسؤول آخر",
     "payout.cannot_confirm_status": "لا يمكن الموافقة على هذا الصرف في حالته الحالية",
     "payout.cannot_submit_status": "لا يمكن تقديم هذا الصرف في حالته الحالية",

@@ -69,11 +69,14 @@ class PayoutRequestRepository implements PayoutRequestRepositoryInterface
             $query->where('status', PayoutStatusEnum::Submitted->value);
         } elseif ($status === PayoutStatusEnum::Failed->value) {
             $query->where('status', PayoutStatusEnum::Failed->value);
+        } elseif ($status === PayoutStatusEnum::Processing->value) {
+            $query->where('status', PayoutStatusEnum::Processing->value);
         } else {
             $query->whereIn('status', [
                 PayoutStatusEnum::Pending->value,
                 PayoutStatusEnum::Submitted->value,
                 PayoutStatusEnum::Failed->value,
+                PayoutStatusEnum::Processing->value,
             ]);
         }
 

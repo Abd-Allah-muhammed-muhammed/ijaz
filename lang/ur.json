@@ -432,6 +432,7 @@
     "approve_transfer": "منظور کریں",
     "reject_transfer": "مسترد کریں",
     "payout.already_completed": "یہ ادائیگی پہلے ہی مکمل ہو چکی ہے",
+    "payout.already_exists_for_operation": "اس آپریشن کے لیے پہلے سے ایک ادائیگی کی درخواست موجود ہے",
     "payout.submitter_cannot_review": "جس ایڈمن نے منتقلی کا ثبوت جمع کرایا، وہ اس ادائیگی کا جائزہ نہیں لے سکتا — کسی دوسرے ایڈمن کو منظور یا مسترد کرنا ہوگا",
     "payout.cannot_confirm_status": "موجودہ حالت میں اس ادائیگی کی منظوری نہیں دی جا سکتی",
     "payout.cannot_submit_status": "موجودہ حالت میں یہ ادائیگی جمع نہیں کرائی جا سکتی",

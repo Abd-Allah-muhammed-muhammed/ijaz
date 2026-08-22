@@ -21,7 +21,7 @@ use Modules\Geo\Services\CityService;
 use Modules\Geo\Services\RegionService;
 use Modules\Marketplace\Http\Resources\Dashboard\ProviderTypeResource;
 use Modules\Marketplace\Services\ProviderTypeService;
-use Modules\Payout\Services\PayoutService;
+use Modules\Payout\Actions\Payout\AttachAmountInTransferToWalletAction;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
 use Modules\Wallet\Support\WalletSearch;
 use Throwable;
@@ -34,7 +34,7 @@ class AuthController extends Controller
         private readonly ProviderTypeService $providerTypeService,
         private readonly RegionService $regionService,
         private readonly CityService $cityService,
-        private readonly PayoutService $payoutService,
+        private readonly AttachAmountInTransferToWalletAction $attachAmountInTransferToWalletAction,
     ) {}
 
     public function loginForm()
@@ -170,10 +170,7 @@ class AuthController extends Controller
      */
     private function attachAmountInTransfer(Provider $provider): void
     {
-        $provider->wallet->setAttribute(
-            'amount_in_transfer',
-            $this->payoutService->sumInProgressAmountForRecipient($provider),
-        );
+        $this->attachAmountInTransferToWalletAction->handle($provider);
     }
 
     /**
