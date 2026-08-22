@@ -45,6 +45,13 @@ interface WalletTransactionRepositoryInterface
     ): LengthAwarePaginator;
 
     /**
+     * Most recent transactions for a wallet, newest first.
+     *
+     * @return Collection<int, WalletTransaction>
+     */
+    public function latestForWallet(Wallet $wallet, int $limit = 2): Collection;
+
+    /**
      * @param  Closure(Builder): void  $constraints
      */
     public function countUnstamped(Closure $constraints): int;

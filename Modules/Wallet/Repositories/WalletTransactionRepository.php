@@ -92,6 +92,14 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
             ->withQueryString();
     }
 
+    public function latestForWallet(Wallet $wallet, int $limit = 2): Collection
+    {
+        return $wallet->transactions()
+            ->latest()
+            ->limit($limit)
+            ->get();
+    }
+
     /**
      * Hide hold-release rows, and hide the original withdraw request once a
      * terminal sibling (approved / rejected / cancelled) exists for the group.

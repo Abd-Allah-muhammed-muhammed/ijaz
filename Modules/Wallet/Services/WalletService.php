@@ -4,6 +4,7 @@ namespace Modules\Wallet\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Modules\Wallet\Actions\AddPendingCreditAction;
 use Modules\Wallet\Actions\AddPendingDebitAction;
 use Modules\Wallet\Actions\AdjustPendingAction;
@@ -18,6 +19,7 @@ use Modules\Wallet\Contracts\Repositories\WalletTransactionRepositoryInterface;
 use Modules\Wallet\DTOs\WalletBalanceData;
 use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 use Modules\Wallet\Models\Wallet;
+use Modules\Wallet\Models\WalletTransaction;
 use Modules\Wallet\Models\WithdrawRequest;
 
 class WalletService
@@ -122,5 +124,13 @@ class WalletService
         ?string $dateTo = null,
     ): LengthAwarePaginator {
         return $this->transactionRepo->listForOwner($owner, $perPage, $dateFrom, $dateTo);
+    }
+
+    /**
+     * @return Collection<int, WalletTransaction>
+     */
+    public function listRecentForWallet(Wallet $wallet, int $limit = 2): Collection
+    {
+        return $this->transactionRepo->latestForWallet($wallet, $limit);
     }
 }

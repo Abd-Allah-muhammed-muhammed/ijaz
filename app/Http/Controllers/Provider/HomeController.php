@@ -11,6 +11,8 @@ use Modules\Orders\Http\Resources\Dashboard\OrderResource;
 use Modules\Orders\Services\OrderService;
 use Modules\Payout\Services\PayoutService;
 use Modules\Wallet\Http\Resources\Dashboard\WalletResource;
+use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionResource;
+use Modules\Wallet\Services\WalletService;
 
 class HomeController extends Controller
 {
@@ -18,6 +20,7 @@ class HomeController extends Controller
         private readonly BannerService $bannerService,
         private readonly OrderService $orderService,
         private readonly PayoutService $payoutService,
+        private readonly WalletService $walletService,
     ) {}
 
     public function __invoke()
@@ -39,6 +42,9 @@ class HomeController extends Controller
             'totalOrders' => $stats['totalOrders'],
             'totalFinishedOrders' => $stats['totalFinishedOrders'],
             'wallet' => WalletResource::make($auth->wallet),
+            'recentTransactions' => WalletTransactionResource::collection(
+                $this->walletService->listRecentForWallet($auth->wallet, 2),
+            ),
             'recommendOrders' => OrderResource::collection($recommendOrders),
             'banners' => BannerResource::collection($banners),
             'pendingOrders' => OrderResource::collection($orders->get(OrderStatusEnum::New->value, fn () => collect())?->take(3)),

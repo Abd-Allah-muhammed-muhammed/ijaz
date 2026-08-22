@@ -2,13 +2,15 @@ import {PageTitle} from '@/vendor/metronic/layout/core'
 import {ToolbarWrapper} from '@/vendor/metronic/layout/components/toolbar'
 import {Content} from '@/vendor/metronic/layout/components/content'
 import { useTranslation } from 'react-i18next';
-import {Head, Link} from "@inertiajs/react";
+import {Head, Link, usePage} from "@inertiajs/react";
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
 import { Card, Col, Image, Nav, Row, Tab } from 'react-bootstrap';
 import {useRecommendedOrdersContext} from "@/store/recommend-orders-context";
-import { Banner, Order, Wallet } from '@/shared/types/models';
+import { Banner, Order, Provider, Wallet, WalletTransaction } from '@/shared/types/models';
 import {useEffect} from "react";
 import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/OrderController";
+import AuthController from '@/actions/App/Http/Controllers/Provider/AuthController';
+import WalletQuickActions from '@/apps/provider/components/wallet/WalletQuickActions';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
 
@@ -19,6 +21,7 @@ type Props = {
   totalOrders: number
   totalFinishedOrders: number,
   wallet?: Wallet,
+  recentTransactions?: WalletTransaction[],
   recommendOrders: Order[],
   banners: Banner[],
   pendingOrders: Order[],
@@ -28,13 +31,21 @@ type Props = {
 };
 
 const Home = (
-  {totalOrders, totalFinishedOrders, wallet, recommendOrders, banners, pendingOrders, approvedOrders, inProgressOrders, endedByProviderOrders}: Props
+  {totalOrders, totalFinishedOrders, wallet, recentTransactions = [], recommendOrders, banners, pendingOrders, approvedOrders, inProgressOrders, endedByProviderOrders}: Props
 ) => {
   const { t } = useTranslation();
+  const user = usePage().props.auth.user as unknown as Provider
   const {setOrders} = useRecommendedOrdersContext();
   useEffect(() => {
     setOrders(recommendOrders)
   }, []);
+
+  const metrics = [
+    {value: wallet?.balance, label: t('balance')},
+    {value: wallet?.amount_in_transfer ?? 0, label: t('amount_in_transfer')},
+    {value: totalOrders, label: t('total_orders')},
+    {value: totalFinishedOrders, label: t('completed_orders')},
+  ]
 
   return (
     <>
@@ -42,6 +53,44 @@ const Home = (
       <PageTitle breadcrumbs={[]}>{t('dashboard')}</PageTitle>
       <ToolbarWrapper />
       <Content>
+        <div className="card mb-5">
+          <div className="card-body py-5">
+            <div className="d-flex flex-wrap justify-content-between align-items-center gap-3">
+              <div className="d-flex align-items-center">
+                <div className="symbol symbol-50px symbol-circle me-4">
+                  {user.logo ? (
+                    <img src={user.logo} alt={user.name} className="object-fit-contain" />
+                  ) : (
+                    <span className="symbol-label fs-3 fw-bold text-primary">
+                      {(user.name ?? '').charAt(0)}
+                    </span>
+                  )}
+                </div>
+                <h2 className="fs-3 fw-bold text-gray-900 mb-0">
+                  {t('welcome_back', { name: user.name })}
+                </h2>
+              </div>
+              <WalletQuickActions
+                className="d-flex"
+                reloadOnly={['wallet', 'recentTransactions']}
+              />
+            </div>
+          </div>
+        </div>
+
+        <Row className="mb-5 g-5">
+          {metrics.map((metric) => (
+            <Col key={metric.label} xs={6} md={3}>
+              <Card className="h-100">
+                <Card.Body className="py-5">
+                  <div className="fs-2 fw-bolder text-gray-900">{metric.value}</div>
+                  <div className="fw-bold fs-6 text-gray-500">{metric.label}</div>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+
         <Row className="mb-5">
           <Col md={6}>
             <Card>
@@ -290,46 +339,41 @@ const Home = (
           </Col>
         </Row>
 
-        <Row className="mb-5">
-          <Col md={6}>
-            <Card>
-              <Card.Header className="align-items-center border-bottom-0 min-h-auto pt-4">
-                <h3 className="card-title fs-3 fw-bold mb-0 py-0 text-gray-900">{t('wallet')}</h3>
-              </Card.Header>
-              <Card.Body>
-                <div className="d-flex flex-wrap">
-                  <div className="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3">
-                    <div className="fs-2 fw-bolder">{wallet?.balance}</div>
-                    <div className="fw-bold fs-6 text-gray-500">{t('balance')}</div>
+        <Card className="mb-5">
+          <Card.Header className="align-items-center border-bottom-0 min-h-auto pt-4">
+            <h3 className="card-title fs-3 fw-bold mb-0 py-0 text-gray-900">{t('recent_wallet_activity')}</h3>
+            <div className="card-toolbar mb-0">
+              <Link href={AuthController.statements().url} className="btn btn-sm btn-light">
+                {t('view_statements')}
+              </Link>
+            </div>
+          </Card.Header>
+          <Card.Body>
+            {recentTransactions.length === 0 ? (
+              <div className="text-gray-500">{t('no_data')}</div>
+            ) : (
+              recentTransactions.map((transaction, i) => {
+                const credit = Number(transaction.credit) || 0
+                const debit = Number(transaction.debit) || 0
+                const isCredit = credit > 0
+
+                return (
+                  <div key={transaction.id}>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <span className="fw-semibold fs-6 text-gray-800">{transaction.description}</span>
+                      <span className={`fw-bold fs-6 ${isCredit ? 'text-success' : 'text-gray-800'}`}>
+                        {isCredit ? `+${credit}` : `-${debit}`}
+                      </span>
+                    </div>
+                    {i !== recentTransactions.length - 1 && (
+                      <div className="separator separator-dashed my-4"></div>
+                    )}
                   </div>
-                  <div className="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3">
-                    <div className="fs-2 fw-bolder">{wallet?.amount_in_transfer ?? 0}</div>
-                    <div className="fw-bold fs-6 text-gray-500">{t('amount_in_transfer')}</div>
-                  </div>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col md={6}>
-            <Card>
-              <Card.Header className="align-items-center border-bottom-0 min-h-auto pt-4">
-                <h3 className="card-title fs-3 fw-bold mb-0 py-0 text-gray-900">{t('order_count')}</h3>
-              </Card.Header>
-              <Card.Body>
-                <div className="d-flex flex-wrap">
-                  <div className="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3">
-                    <div className="fs-2 fw-bolder">{totalOrders}</div>
-                    <div className="fw-bold fs-6 text-gray-500">{t('total_orders')}</div>
-                  </div>
-                  <div className="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3">
-                    <div className="fs-2 fw-bolder">{totalFinishedOrders}</div>
-                    <div className="fw-bold fs-6 text-gray-500">{t('completed_orders')}</div>
-                  </div>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
+                )
+              })
+            )}
+          </Card.Body>
+        </Card>
       </Content>
     </>
   );
