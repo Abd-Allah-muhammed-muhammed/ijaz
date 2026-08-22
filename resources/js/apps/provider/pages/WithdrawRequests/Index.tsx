@@ -6,7 +6,7 @@ import {Head, router} from "@inertiajs/react";
 import {KTCard} from "@/vendor/metronic/helpers";
 import Table, {LinkAction} from "@/shared/components/Table";
 import {PaginationResource} from "@/shared/types";
-import {TopUpRequest} from "@/shared/types/models";
+import {WithdrawRequest} from "@/shared/types/models";
 import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
 import {OperationStatusEnum} from "@/Enums/Enums";
@@ -15,7 +15,7 @@ import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
 
 
 type Props = {
-  rows: PaginationResource<TopUpRequest>,
+  rows: PaginationResource<WithdrawRequest>,
   prams: SearchPrams | null;
 };
 
@@ -69,7 +69,7 @@ const Index = (
       <Content>
         <KTCard>
           <Table
-            <TopUpRequest>
+            <WithdrawRequest>
             only={[
               'rows'
             ]}
@@ -95,6 +95,15 @@ const Index = (
                 property: 'status',
                 render: (row) => (
                   <span className={`badge badge-light-${row.status.color}`}> {row.status.label}</span>
+                )
+              },
+              {
+                title: t('transfer_status'),
+                property: 'transfer_status',
+                render: (row) => (
+                  row.transfer_status
+                    ? <span className={`badge badge-light-${row.transfer_status.color}`}>{row.transfer_status.label}</span>
+                    : null
                 )
               },
               {

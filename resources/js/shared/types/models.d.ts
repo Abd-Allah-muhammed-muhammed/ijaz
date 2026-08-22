@@ -594,6 +594,8 @@ export interface TopUpRequest extends Model {
   created_at: Date;
 }
 
+export type TransferStatusValue = 'in_progress' | 'transferred' | 'delayed';
+
 export interface WithdrawRequest extends Model {
   id: string;
   user_id: number;
@@ -601,6 +603,7 @@ export interface WithdrawRequest extends Model {
   user?: User | Provider;
   amount: number;
   status: EnumWithColors<TopUpRequestStatus>;
+  transfer_status?: EnumWithColors<TransferStatusValue> | null;
   created_at: Date;
 }
 

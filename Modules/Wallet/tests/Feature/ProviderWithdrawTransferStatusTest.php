@@ -202,3 +202,70 @@ test('the web dashboard withdraw-requests list query does not introduce N+1 quer
         Model::preventLazyLoading(false);
     }
 });
+
+test('provider withdraw Index and Show pages render transfer_status when present and gate the badge on a non-null value', function () {
+    withoutWalletLocaleMiddleware();
+
+    $indexSource = file_get_contents(resource_path('js/apps/provider/pages/WithdrawRequests/Index.tsx'));
+    $showSource = file_get_contents(resource_path('js/apps/provider/pages/WithdrawRequests/Show.tsx'));
+
+    expect($indexSource)->not->toBeFalse()
+        ->and($indexSource)->toContain('transfer_status')
+        ->and($indexSource)->toContain('row.transfer_status')
+        ->and($indexSource)->toContain('badge-light-${row.transfer_status.color}')
+        ->and($indexSource)->toContain('row.transfer_status.label')
+        ->and($showSource)->not->toBeFalse()
+        ->and($showSource)->toContain('transfer_status')
+        ->and($showSource)->toContain('row.transfer_status')
+        ->and($showSource)->toContain('{row.transfer_status ? (')
+        ->and($showSource)->toContain('badge-light-${row.transfer_status.color}')
+        ->and($showSource)->toContain('row.transfer_status.label')
+        // Show status badge must use Metronic semantic classes, not CSS color names as backgroundColor
+        ->and($showSource)->toContain('badge-light-${row.status?.color || \'secondary\'}')
+        ->and($showSource)->not->toContain('backgroundColor: row.status?.color');
+
+    $provider = createWalletProvider();
+    fundWallet($provider, 500);
+    $withdraw = app(WithdrawRequestService::class)->create(
+        $provider,
+        new CreateWithdrawData(amount: 100, userNotes: null),
+    );
+    $admin = createWalletAdmin();
+    $this->actingAs($admin, 'admin')
+        ->put(action([DashboardWithdrawRequestController::class, 'updateStatus'], ['withdrawRequest' => $withdraw->id]), [
+            'status' => OperationStatusEnum::Approved->value,
+        ])->assertRedirect();
+
+    $expected = PayoutStatusEnum::Pending->toProviderStatus();
+
+    $this->actingAs($provider, 'provider')
+        ->get(action([WithdrawController::class, 'show'], ['withdraw_request' => $withdraw->id]))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Provider/WithdrawRequests/Show')
+            ->where('row.id', $withdraw->id)
+            ->where('row.transfer_status.value', $expected['value'])
+            ->where('row.transfer_status.label', $expected['label'])
+            ->where('row.transfer_status.color', $expected['color'])
+        );
+});
+
+test('provider withdraw Show page exposes transfer_status as null when no payout exists yet', function () {
+    withoutWalletLocaleMiddleware();
+
+    $provider = createWalletProvider();
+    $withdraw = createWithdrawFor($provider, [
+        'status' => OperationStatusEnum::Pending->value,
+    ]);
+
+    expect(PayoutRequest::query()->where('operation_id', $withdraw->id)->exists())->toBeFalse();
+
+    $this->actingAs($provider, 'provider')
+        ->get(action([WithdrawController::class, 'show'], ['withdraw_request' => $withdraw->id]))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Provider/WithdrawRequests/Show')
+            ->where('row.id', $withdraw->id)
+            ->where('row.transfer_status', null)
+        );
+});

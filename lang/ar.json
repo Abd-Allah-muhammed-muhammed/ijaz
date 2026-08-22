@@ -907,6 +907,7 @@
     "debit": "مدين",
     "pending_debit": "مدين معلق",
     "amount_in_transfer": "جاري تحويله إليك",
+    "transfer_status": "حالة التحويل",
     "close": "إغلاق",
     "reference_number": "الرقم المرجعي",
     "operation": "العملية",

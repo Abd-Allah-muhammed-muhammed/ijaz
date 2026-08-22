@@ -808,6 +808,7 @@
     "debit": "ڈیبٹ",
     "pending_debit": "زیر التواء ڈیبٹ",
     "amount_in_transfer": "آپ کو منتقل کیا جا رہا ہے",
+    "transfer_status": "منتقلی کی حالت",
     "close": "بند کریں",
     "reference_number": "حوالہ نمبر",
     "operation": "عمل",

@@ -810,6 +810,7 @@
     "debit": "डेबिट",
     "pending_debit": "लंबित डेबिट",
     "amount_in_transfer": "आपको ट्रांसफर किया जा रहा है",
+    "transfer_status": "ट्रांसफर स्थिति",
     "reference_number": "संदर्भ संख्या",
     "operation": "कार्य",
     "balance_before": "पहले का बैलेंस",
