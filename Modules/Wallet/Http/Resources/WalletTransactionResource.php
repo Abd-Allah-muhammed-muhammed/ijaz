@@ -5,8 +5,8 @@ namespace Modules\Wallet\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Wallet\Models\WalletTransaction;
+use Modules\Wallet\Models\WithdrawRequest;
 use Modules\Wallet\Support\WalletTransactionDisplay;
-use Modules\Wallet\Support\WalletTransactionTransferStatusResolver;
 
 /**
  * @mixin WalletTransaction
@@ -33,8 +33,12 @@ class WalletTransactionResource extends JsonResource
             'operation_type' => trans(str($this->operation_type)->afterLast('\\')->value()),
             'operation_id' => $this->operation_id,
             'created_at' => $this->created_at?->toIso8601String(),
-            'transfer_status' => app(WalletTransactionTransferStatusResolver::class)
-                ->resolve($this->resource),
+            'transfer_status' => $this->operation_type === WithdrawRequest::class
+                && $this->relationLoaded('operation')
+                && $this->operation instanceof WithdrawRequest
+                && $this->operation->relationLoaded('payoutRequest')
+                ? $this->operation->payoutRequest?->status->toProviderStatus()
+                : null,
         ];
     }
 }
