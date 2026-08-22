@@ -40,6 +40,8 @@ const Home = (
     setOrders(recommendOrders)
   }, []);
 
+  const displayBanners = banners.filter((banner) => Boolean(banner.image))
+  const hasBanners = displayBanners.length > 0
   const metrics = [
     {value: wallet?.balance, label: t('balance')},
     {value: wallet?.amount_in_transfer ?? 0, label: t('amount_in_transfer')},
@@ -92,7 +94,7 @@ const Home = (
         </Row>
 
         <Row className="mb-5">
-          <Col md={6}>
+          <Col md={hasBanners ? 6 : 12}>
             <Card>
               <Card.Header className="align-items-center border-bottom-0 min-h-auto pt-4">
                 <h3 className="card-title fs-3 fw-bold mb-0 py-0 text-gray-900">{t('my orders')}</h3>
@@ -308,6 +310,7 @@ const Home = (
               </Card.Body>
             </Card>
           </Col>
+          {hasBanners && (
           <Col md={6}>
             <Card>
               <Card.Body>
@@ -319,24 +322,23 @@ const Home = (
                   }}
                   className="mySwiper d-block"
                 >
-                  {banners.map((el) => (
-                    <SwiperSlide>
+                  {displayBanners.map((el) => (
+                    <SwiperSlide key={el.id}>
                       <Link href={el?.link ?? '#'}>
-                        <Image src={el.image} alt={'banner-' + el.id} className="w-100" />
+                        <Image
+                          src={el.image ?? undefined}
+                          alt={'banner-' + el.id}
+                          className="w-100 object-fit-cover"
+                          style={{ aspectRatio: '16 / 9' }}
+                        />
                       </Link>
                     </SwiperSlide>
                   ))}
                 </Swiper>
-                {/*<Carousel controls={true} indicators={true} >*/}
-                {/*  {banners.map(el => (*/}
-                {/*    <Carousel.Item>*/}
-                {/*      <Image src={el.image} alt={"banner-" + el.id} className="w-100"/>*/}
-                {/*    </Carousel.Item>*/}
-                {/*  ))}*/}
-                {/*</Carousel>*/}
               </Card.Body>
             </Card>
           </Col>
+          )}
         </Row>
 
         <Card className="mb-5">

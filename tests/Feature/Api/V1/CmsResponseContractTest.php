@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Support\LookupCache;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Modules\Cms\Models\Banner;
@@ -13,6 +14,8 @@ use Modules\Cms\Models\Question;
  */
 test('catalog banners response shape contract', function () {
     Storage::fake('public');
+    Storage::disk('public')->put('banners/contract.png', 'ok');
+    LookupCache::forget('banners:all');
 
     Banner::query()->create([
         'link' => 'https://example.com',

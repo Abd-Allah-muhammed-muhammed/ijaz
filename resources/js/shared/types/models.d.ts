@@ -556,7 +556,7 @@ export interface OrderOffer extends Model {
 }
 
 export interface Banner extends Model {
-  image: string;
+  image: string | null;
   link: string | null;
 
 }

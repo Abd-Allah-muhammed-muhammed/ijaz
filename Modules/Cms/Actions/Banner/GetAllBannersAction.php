@@ -17,6 +17,8 @@ class GetAllBannersAction
      */
     public function handle(): Collection
     {
-        return $this->repository->all();
+        return $this->repository->all()
+            ->filter(fn (Banner $banner): bool => filled($banner->image_url))
+            ->values();
     }
 }

@@ -35,6 +35,6 @@ class Banner extends Model
 
     protected function defaultImagePlaceholder(): ?string
     {
-        return asset('media/avatars/blank.png');
+        return null;
     }
 }
