@@ -21,7 +21,7 @@ function expectedRolePermissionCounts(): array
     return [
         'super-admin' => 121,
         'operations' => 11,
-        'finance' => 5,
+        'finance' => 7,
         'support' => 8,
         'content-manager' => 52,
         'viewer-monitor' => 1,

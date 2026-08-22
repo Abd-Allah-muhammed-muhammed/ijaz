@@ -9,18 +9,26 @@ use Modules\Cms\Services\BannerService;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Http\Resources\Dashboard\OrderResource;
 use Modules\Orders\Services\OrderService;
+use Modules\Payout\Services\PayoutService;
+use Modules\Wallet\Http\Resources\Dashboard\WalletResource;
 
 class HomeController extends Controller
 {
     public function __construct(
         private readonly BannerService $bannerService,
         private readonly OrderService $orderService,
+        private readonly PayoutService $payoutService,
     ) {}
 
     public function __invoke()
     {
         /** @var Provider $auth */
         $auth = auth('provider')->user();
+        $auth->load('wallet');
+        $auth->wallet->setAttribute(
+            'amount_in_transfer',
+            $this->payoutService->sumInProgressAmountForRecipient($auth),
+        );
 
         $stats = $this->orderService->providerHomeStats($auth);
         $recommendOrders = $this->orderService->listRecommendedForProviderHome($auth);
@@ -30,6 +38,7 @@ class HomeController extends Controller
         return inertia('Provider/Home', [
             'totalOrders' => $stats['totalOrders'],
             'totalFinishedOrders' => $stats['totalFinishedOrders'],
+            'wallet' => WalletResource::make($auth->wallet),
             'recommendOrders' => OrderResource::collection($recommendOrders),
             'banners' => BannerResource::collection($banners),
             'pendingOrders' => OrderResource::collection($orders->get(OrderStatusEnum::New->value, fn () => collect())?->take(3)),

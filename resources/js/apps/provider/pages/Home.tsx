@@ -6,7 +6,7 @@ import {Head, Link} from "@inertiajs/react";
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
 import { Card, Col, Image, Nav, Row, Tab } from 'react-bootstrap';
 import {useRecommendedOrdersContext} from "@/store/recommend-orders-context";
-import { Banner, Order } from '@/shared/types/models';
+import { Banner, Order, Wallet } from '@/shared/types/models';
 import {useEffect} from "react";
 import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/OrderController";
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -14,14 +14,11 @@ import { Pagination } from 'swiper/modules';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMessage } from '@fortawesome/free-solid-svg-icons';
-import ChartWidget1 from '@/shared/components/charts/ChartWidget1';
-import ChartWidget2 from '@/shared/components/charts/ChartWidget2';
 
 type Props = {
   totalOrders: number
   totalFinishedOrders: number,
+  wallet?: Wallet,
   recommendOrders: Order[],
   banners: Banner[],
   pendingOrders: Order[],
@@ -31,10 +28,10 @@ type Props = {
 };
 
 const Home = (
-  {totalOrders, totalFinishedOrders, recommendOrders, banners, pendingOrders, approvedOrders, inProgressOrders, endedByProviderOrders}: Props
+  {totalOrders, totalFinishedOrders, wallet, recommendOrders, banners, pendingOrders, approvedOrders, inProgressOrders, endedByProviderOrders}: Props
 ) => {
   const { t } = useTranslation();
-  const {setOrders, orders} = useRecommendedOrdersContext();
+  const {setOrders} = useRecommendedOrdersContext();
   useEffect(() => {
     setOrders(recommendOrders)
   }, []);
@@ -294,67 +291,41 @@ const Home = (
         </Row>
 
         <Row className="mb-5">
-          <Col md={4}>
+          <Col md={6}>
             <Card>
               <Card.Header className="align-items-center border-bottom-0 min-h-auto pt-4">
                 <h3 className="card-title fs-3 fw-bold mb-0 py-0 text-gray-900">{t('wallet')}</h3>
-                <div className="d-flex justify-content-between w-100">
-                  <p>{t('orders provided by client')}</p>
-                  <p>
-                    2500
-                    <img src="/media/svg/Riyal.svg" alt="Wallet" className="mx-1" style={{ width: '20px' }} />
-                  </p>
+              </Card.Header>
+              <Card.Body>
+                <div className="d-flex flex-wrap">
+                  <div className="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3">
+                    <div className="fs-2 fw-bolder">{wallet?.balance}</div>
+                    <div className="fw-bold fs-6 text-gray-500">{t('balance')}</div>
+                  </div>
+                  <div className="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3">
+                    <div className="fs-2 fw-bolder">{wallet?.amount_in_transfer ?? 0}</div>
+                    <div className="fw-bold fs-6 text-gray-500">{t('amount_in_transfer')}</div>
+                  </div>
                 </div>
-              </Card.Header>
-              <Card.Body>
-                <ChartWidget1 data={[3500, 5700, 2800, 5900, 4200, 5600, 4300, 4500, 5900, 4500, 5700, 4800, 5700]}/>
               </Card.Body>
             </Card>
           </Col>
-          <Col md={4}>
-            <Card>
-              <Card.Header className="align-items-center border-bottom-0 min-h-auto pt-4">
-                <h3 className="card-title fs-3 fw-bold mb-0 py-0 text-gray-900">{t('conversations')}</h3>
-                <p className="w-100">{t('orders provided by client')}</p>
-              </Card.Header>
-              <Card.Body>
-                {endedByProviderOrders.map((order, i) => (
-                  <>
-                    <div className="m-0">
-                      <div className="d-flex align-items-sm-center mb-5">
-                        <div className="d-flex align-items-center flex-row-fluid flex-wrap">
-                          <img src="/media/icons/wallet.svg" alt="Wallet" className="me-1" style={{ width: '30px' }} />
-                          <div className="me-2 flex-grow-1">
-                            <span className="fw-bold d-block fs-5 text-gray-800">{order.title}</span>
-                            <span className="fw-bold fs-6 text-gray-500">متاح الان</span>
-                          </div>
-                          <Link href="#" className="btn btn-success">
-                            <FontAwesomeIcon  icon={faMessage} className="me-1"/>
-                            محادثة الان
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                    {i != endedByProviderOrders.length -1 && (<div className="separator separator-dashed mt-5 mb-6"></div>)}
-                  </>
-                ))}
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col md={4}>
+          <Col md={6}>
             <Card>
               <Card.Header className="align-items-center border-bottom-0 min-h-auto pt-4">
                 <h3 className="card-title fs-3 fw-bold mb-0 py-0 text-gray-900">{t('order_count')}</h3>
-                <div className="d-flex justify-content-between w-100">
-                  <p>{t('orders provided by client')}</p>
-                  <p>
-                    2500
-                    <img src="/media/svg/Riyal.svg" alt="Wallet" className="mx-1" style={{ width: '20px' }} />
-                  </p>
-                </div>
               </Card.Header>
-              <Card.Body className="bg-none">
-                <ChartWidget2 data={[34.5, 34.5, 35, 35, 35.5, 35.5, 35, 35, 35.5, 35.5, 35, 35, 34.5, 34.5, 35, 35, 35.5, 35.5, 35]} tooltipExtraLabel={"Count"} />
+              <Card.Body>
+                <div className="d-flex flex-wrap">
+                  <div className="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3">
+                    <div className="fs-2 fw-bolder">{totalOrders}</div>
+                    <div className="fw-bold fs-6 text-gray-500">{t('total_orders')}</div>
+                  </div>
+                  <div className="border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3">
+                    <div className="fs-2 fw-bolder">{totalFinishedOrders}</div>
+                    <div className="fw-bold fs-6 text-gray-500">{t('completed_orders')}</div>
+                  </div>
+                </div>
               </Card.Body>
             </Card>
           </Col>
