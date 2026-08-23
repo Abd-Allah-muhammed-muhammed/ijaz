@@ -1091,6 +1091,7 @@
     "offline_topup_pending_review_body": "An offline top-up request is awaiting your review.",
     "stuck_order_settlements_title": "Orders awaiting wallet settlement",
     "stuck_order_settlements_body": ":count paid ended order(s) remain unsettled past the dispute window.",
+    "order_wallet_hold_insufficient": "This order cannot be cancelled because wallet holds are insufficient to fully reverse the payment.",
     "provider_pending_approval_title": "New provider registration",
     "provider_pending_approval_body": "A provider registration is awaiting your approval."
 }

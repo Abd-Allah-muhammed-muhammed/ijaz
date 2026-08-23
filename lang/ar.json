@@ -481,6 +481,7 @@
     "wallet.entry_kind.withdraw_cancelled": "تم إلغاء السحب — المرجع #:ref",
     "wallet.entry_kind.topup_credited": "تم إضافة مبلغ الإيداع — المرجع #:ref",
     "insufficient_available_balance": "الرصيد المتاح غير كافٍ. المتاح: :available، المطلوب: :requested",
+    "order_wallet_hold_insufficient": "لا يمكن إلغاء هذا الطلب لأن حجوزات المحفظة غير كافية لعكس الدفع بالكامل.",
     "minimum_withdrawal_amount": "الحد الأدنى للسحب هو :amount ريال",
     "Registration bonus": "مكافأة التسجيل",
     "logo upload failed, please try again": "فشل رفع الشعار، يرجى المحاولة مرة أخرى",

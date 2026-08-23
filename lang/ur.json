@@ -802,6 +802,7 @@
     "communications": "مواصلات",
     "withdraw": "رقم نکالیں",
     "insufficient_available_balance": "دستیاب بیلنس ناکافی ہے۔ دستیاب: :available، درخواست کردہ: :requested",
+    "order_wallet_hold_insufficient": "والیٹ ہولڈز ادائیگی مکمل طور پر واپس کرنے کے لیے ناکافی ہیں، اس لیے یہ آرڈر منسوخ نہیں کیا جا سکتا۔",
     "recharge": "ریچارج",
     "recharge_requests": "ریچارج درخواستیں",
     "recharge_request_details": "ریچارج درخواست کی تفصیلات",

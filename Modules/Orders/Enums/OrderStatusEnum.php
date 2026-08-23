@@ -19,7 +19,6 @@ enum OrderStatusEnum: string
     case CancelledByClient = 'cancelled_by_client';
     case EndedByProvider = 'ended_by_provider';
     case EndedByClient = 'ended_by_client';
-    case Refunded = 'refunded';
 
     public function toArray(): array
     {
@@ -38,7 +37,6 @@ enum OrderStatusEnum: string
             self::PaymentCompleted => 'warning',
             self::CancelledByClient, self::CancelledByProvider => 'danger',
             self::EndedByClient, self::EndedByProvider => 'success',
-            self::Refunded => 'secondary',
         };
     }
 

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Orders\Contracts\Repositories\OrderRepositoryInterface;
 use Modules\Orders\Models\Order;
+use Modules\Orders\Support\OrderWalletHoldGuard;
 use Modules\Wallet\Models\Wallet;
 use Modules\Wallet\Services\WalletService;
 use Throwable;
@@ -54,14 +55,20 @@ class SettleOrderPaymentAction
                 $providerWallet = $order->provider->wallet()->lockForUpdate()->firstOrCreate();
             }
 
-            if ($userWallet !== null && (float) $userWallet->pending_debit < $gross) {
-                $this->logInsufficientHold($order, $userWallet, 'pending_debit', $gross, (float) $userWallet->pending_debit);
+            $shortfall = OrderWalletHoldGuard::settlementShortfall($order, $userWallet, $providerWallet);
 
-                return $order;
-            }
+            if ($shortfall !== null) {
+                $wallet = $shortfall['column'] === 'pending_debit' ? $userWallet : $providerWallet;
 
-            if ($providerWallet !== null && (float) $providerWallet->pending_credit < $gross) {
-                $this->logInsufficientHold($order, $providerWallet, 'pending_credit', $gross, (float) $providerWallet->pending_credit);
+                if ($wallet !== null) {
+                    $this->logInsufficientHold(
+                        $order,
+                        $wallet,
+                        $shortfall['column'],
+                        $shortfall['required'],
+                        $shortfall['available'],
+                    );
+                }
 
                 return $order;
             }
