@@ -1089,6 +1089,8 @@
     "withdraw_pending_review_body": "A withdrawal request is awaiting your review.",
     "offline_topup_pending_review_title": "New offline top-up request",
     "offline_topup_pending_review_body": "An offline top-up request is awaiting your review.",
+    "stuck_order_settlements_title": "Orders awaiting wallet settlement",
+    "stuck_order_settlements_body": ":count paid ended order(s) remain unsettled past the dispute window.",
     "provider_pending_approval_title": "New provider registration",
     "provider_pending_approval_body": "A provider registration is awaiting your approval."
 }

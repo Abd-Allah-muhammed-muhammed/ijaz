@@ -12,6 +12,7 @@ enum PaymentStatusEnum: string
 
     case Pending = 'pending';
     case Accepted = 'accepted';
+    case NeedsReview = 'needs_review';
 
     case Canceled = 'canceled';
     case Rejected = 'rejected';
@@ -30,7 +31,8 @@ enum PaymentStatusEnum: string
         return match ($this) {
             self::Pending => 'primary',
             self::Accepted => 'success',
-            self::Canceled, self::Rejected => 'danger'
+            self::NeedsReview => 'warning',
+            self::Canceled, self::Rejected => 'danger',
         };
     }
 }

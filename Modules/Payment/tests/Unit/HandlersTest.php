@@ -38,13 +38,14 @@ test('HandleOrderPaymentCompleted marks order as InProgress', function () {
     expect($order->fresh()->status)->toBe(OrderStatusEnum::InProgress);
 });
 
-test('HandleOrderPaymentCompleted sets order price from payment amount', function () {
+test('HandleOrderPaymentCompleted sets order price from validated fee snapshot, not a mismatched payment amount', function () {
     ['user' => $user, 'order' => $order, 'offer' => $offer] = createOrderPaymentContext(400);
     $payment = createPaymentFor($user, $offer, ['amount' => 425, 'driver' => 'testing', 'status' => PaymentStatusEnum::Accepted]);
 
     DB::transaction(fn () => app(HandleOrderPaymentCompleted::class)->handle(new PaymentCompleted($payment)));
 
-    expect((float) $order->fresh()->price)->toBe(425.0);
+    expect($payment->fresh()->status)->toBe(PaymentStatusEnum::NeedsReview)
+        ->and((float) $order->fresh()->price)->toBe(400.0);
 });
 
 test('HandleOrderPaymentCompleted calls walletService addPendingDebit for user', function () {
@@ -60,9 +61,9 @@ test('HandleOrderPaymentCompleted calls walletService addPendingDebit for user',
     );
     $walletService->shouldReceive('adjustPending')->once();
 
-    $listener = new HandleOrderPaymentCompleted($walletService);
+    app()->instance(WalletService::class, $walletService);
 
-    DB::transaction(fn () => $listener->handle(new PaymentCompleted($payment)));
+    DB::transaction(fn () => app(HandleOrderPaymentCompleted::class)->handle(new PaymentCompleted($payment)));
 });
 
 test('HandleOrderPaymentCompleted calls walletService adjustPending for provider', function () {
@@ -74,14 +75,14 @@ test('HandleOrderPaymentCompleted calls walletService adjustPending for provider
     $walletService->shouldReceive('adjustPending')->once()->with(
         Mockery::type(Provider::class),
         500.0,
-        50.0,
+        Mockery::type('float'),
         Mockery::type(OrderOffer::class),
         Mockery::type('string'),
     );
 
-    $listener = new HandleOrderPaymentCompleted($walletService);
+    app()->instance(WalletService::class, $walletService);
 
-    DB::transaction(fn () => $listener->handle(new PaymentCompleted($payment)));
+    DB::transaction(fn () => app(HandleOrderPaymentCompleted::class)->handle(new PaymentCompleted($payment)));
 });
 
 test('HandleOrderPaymentCompleted ignores non-order payments', function () {

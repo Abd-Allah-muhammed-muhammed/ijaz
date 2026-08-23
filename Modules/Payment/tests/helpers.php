@@ -4,6 +4,8 @@ use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Marketplace\Database\Factories\CategoryFactory;
+use Modules\Marketplace\Enums\CategoryFeesTypeEnum;
+use Modules\Orders\Actions\CalculateOrderFeesAction;
 use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Models\Order;
@@ -16,6 +18,7 @@ use Modules\Payment\DTOs\PaymentVerifyResult;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Gateways\PayTabsGateway;
 use Modules\Payment\Models\Payment;
+use Modules\Payment\Services\PaymentService;
 use Modules\Payment\Services\RajhiEncryptionService;
 
 function createPaymentFor(Model $owner, Model $product, array $attributes = []): Payment
@@ -32,7 +35,21 @@ function createOrderPaymentContext(float $price = 500.0): array
 {
     $user = createWalletUser();
     $provider = createWalletProvider();
-    $category = CategoryFactory::new()->create(['icon' => 'media/test-category.png']);
+    $category = CategoryFactory::new()->create([
+        'icon' => 'media/test-category.png',
+        'fees' => 10.0,
+        'fees_type' => CategoryFeesTypeEnum::FIXED,
+    ]);
+
+    $gatewayFeesKey = app(PaymentService::class)->getDefaultDriver().'_fees';
+    setWalletSetting($gatewayFeesKey, '20');
+
+    $orderForFees = Order::query()->make([
+        'category_id' => $category->id,
+    ]);
+    $orderForFees->setRelation('category', $category);
+
+    $fees = app(CalculateOrderFeesAction::class)->handle($orderForFees, $price);
 
     $order = Order::query()->create([
         'title' => 'Test Order',
@@ -42,10 +59,10 @@ function createOrderPaymentContext(float $price = 500.0): array
         'user_id' => $user->id,
         'provider_id' => $provider->id,
         'category_id' => $category->id,
-        'price' => $price,
+        'price' => $fees->price,
         'status' => OrderStatusEnum::OfferProvided,
-        'user_fees' => 25,
-        'provider_fees' => 50,
+        'user_fees' => $fees->userFees,
+        'provider_fees' => $fees->providerFees,
     ]);
 
     $offer = OrderOffer::query()->create([

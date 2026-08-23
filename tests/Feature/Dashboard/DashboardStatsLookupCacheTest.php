@@ -54,13 +54,14 @@ test('OrderRepository::dashboardStats is byte-identical cold vs warm and skips C
     });
 
     expect($cold)->toBeArray()
-        ->and(array_keys($cold))->toBe(['total', 'active', 'pending', 'completed', 'cancelled'])
+        ->and(array_keys($cold))->toBe(['total', 'active', 'pending', 'completed', 'cancelled', 'stuckUnsettled'])
         ->and($cold['total'])->toBe(4)
         ->and($cold['active'])->toBe(1)
         ->and($cold['pending'])->toBe(1)
         ->and($cold['completed'])->toBe(1)
         ->and($cold['cancelled'])->toBe(1)
-        ->and($coldMeasure['count'])->toBe(5);
+        ->and($cold['stuckUnsettled'])->toBe(0)
+        ->and($coldMeasure['count'])->toBe(7);
 
     $warmMeasure = measureStatsQueries(function () use ($repo, &$warm): void {
         $warm = $repo->dashboardStats();

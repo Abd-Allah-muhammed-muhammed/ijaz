@@ -239,6 +239,7 @@ class OrderRepository implements OrderRepositoryInterface
             'pending' => Order::whereIn('status', [OrderStatusEnum::New, OrderStatusEnum::Hold, OrderStatusEnum::OfferProvided])->count(),
             'completed' => Order::whereIn('status', [OrderStatusEnum::EndedByProvider, OrderStatusEnum::EndedByClient])->count(),
             'cancelled' => Order::whereIn('status', [OrderStatusEnum::CancelledByProvider, OrderStatusEnum::CancelledByClient, OrderStatusEnum::Refunded])->count(),
+            'stuckUnsettled' => $this->countDueForWalletSettlement(now()->subHours((int) app('settings')->get('order_dispute_window_hours', 48))),
         ]);
     }
 
@@ -333,6 +334,23 @@ class OrderRepository implements OrderRepositoryInterface
             })
             ->with(['user', 'provider', 'acceptedOffer'])
             ->lazyById();
+    }
+
+    public function countDueForWalletSettlement(CarbonInterface $endedBefore): int
+    {
+        $endedStatuses = [
+            OrderStatusEnum::EndedByProvider,
+            OrderStatusEnum::EndedByClient,
+        ];
+
+        return Order::query()
+            ->whereIn('status', $endedStatuses)
+            ->whereNull('wallet_settled_at')
+            ->whereHas('histories', function ($query) use ($endedBefore, $endedStatuses): void {
+                $query->whereIn('status', $endedStatuses)
+                    ->where('created_at', '<=', $endedBefore);
+            })
+            ->count();
     }
 
     public function loadForDashboardShow(Order $order): Order

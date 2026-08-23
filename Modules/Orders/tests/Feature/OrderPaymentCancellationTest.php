@@ -20,12 +20,12 @@ test('cancelling a paid order reverses the user pending_debit hold in full', fun
 test('cancelling a paid order reverses the provider pending_credit AND the negative pending_debit fee hold, both back to zero', function () {
     ['provider' => $provider, 'order' => $order] = paidInProgressOrder(500.0);
 
-    $fees = (float) $order->provider_fees;
+    $fees = (float) $order->fresh()->provider_fees;
     $providerWallet = $provider->wallet->fresh();
 
-    expect($fees)->toBe(50.0)
+    expect($fees)->toBeGreaterThan(0.0)
         ->and((float) $providerWallet->pending_credit)->toBe(500.0)
-        ->and((float) $providerWallet->pending_debit)->toBe(-50.0)
+        ->and((float) $providerWallet->pending_debit)->toBe(-$fees)
         ->and((float) $providerWallet->balance)->toBe(0.0);
 
     app(CancelOrderPaymentAction::class)->handle($order);

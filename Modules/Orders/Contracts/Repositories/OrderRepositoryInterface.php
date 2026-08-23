@@ -97,4 +97,6 @@ interface OrderRepositoryInterface
      * @return LazyCollection<int, Order>
      */
     public function listDueForWalletSettlement(CarbonInterface $endedBefore): LazyCollection;
+
+    public function countDueForWalletSettlement(CarbonInterface $endedBefore): int;
 }

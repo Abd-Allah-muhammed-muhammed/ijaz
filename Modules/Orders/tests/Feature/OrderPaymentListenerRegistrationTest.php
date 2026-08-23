@@ -25,11 +25,11 @@ it('handles PaymentCompleted end-to-end via Orders self-registered listeners', f
         ->and($order->fresh()->status)->toBe(OrderStatusEnum::InProgress)
         ->and((float) $order->fresh()->price)->toBe(500.0);
 
-    // adjustPending applies creditDelta as +pending_credit and debitDelta as -pending_debit
-    // (see AdjustPendingAction: pending_debit - debitDelta), so provider_fees=50 → pending_debit=-50.
+    $fees = (float) $order->fresh()->provider_fees;
+
     expect((float) $user->wallet->fresh()->pending_debit)->toBe(500.0)
         ->and((float) $provider->wallet->fresh()->pending_credit)->toBe(500.0)
-        ->and((float) $provider->wallet->fresh()->pending_debit)->toBe(-50.0);
+        ->and((float) $provider->wallet->fresh()->pending_debit)->toBe(-$fees);
 
     expect(
         WalletTransaction::query()
