@@ -27,7 +27,11 @@ class StoreTopUpRequest extends ApiRequest
         return [
             'amount' => ['required', 'numeric', 'gt:0'],
             'payment_method' => ['required', new Enum(PaymentMethodEnum::class)],
-            'transaction_image' => ['required_if:payment_method,'.PaymentMethodEnum::Offline->value],
+            'transaction_image' => [
+                'required_if:payment_method,'.PaymentMethodEnum::Offline->value,
+                'image',
+                'max:'.(2 * 1024),
+            ],
             'user_notes' => ['nullable', 'string', 'max:191'],
         ];
     }

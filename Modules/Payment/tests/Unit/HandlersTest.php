@@ -107,7 +107,7 @@ test('HandleOrderPaymentFailed does nothing', function () {
 
 test('HandleTopUpPaymentCompleted approves TopUpRequest', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 200]);
     $payment = createPaymentFor($user, $topUp, [
         'amount' => 200,
         'driver' => 'testing',
@@ -122,7 +122,7 @@ test('HandleTopUpPaymentCompleted approves TopUpRequest', function () {
 
 test('HandleTopUpPaymentCompleted credits wallet', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 200]);
     $payment = createPaymentFor($user, $topUp, [
         'amount' => 200,
         'driver' => 'testing',
@@ -137,7 +137,7 @@ test('HandleTopUpPaymentCompleted credits wallet', function () {
 
 test('HandleTopUpPaymentCompleted sets payment_driver and transaction_id on TopUpRequest', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 150]);
     $payment = createPaymentFor($user, $topUp, [
         'amount' => 150,
         'driver' => 'testing',
@@ -170,7 +170,8 @@ test('HandleTopUpPaymentFailed rejects TopUpRequest', function () {
 
     app(HandleTopUpPaymentFailed::class)->handle(new PaymentFailed($payment));
 
-    expect($topUp->fresh()->payment_status)->toBe(PaymentStatusEnum::Rejected);
+    expect($topUp->fresh()->status)->toBe(OperationStatusEnum::Rejected)
+        ->and($topUp->fresh()->payment_status)->toBe(PaymentStatusEnum::Rejected);
 });
 
 test('HandleGuarantorPaymentCompleted processes guarantor request payment', function () {

@@ -29,7 +29,7 @@ test('testing gateway initiate returns checkout page url, not immediate verify',
 
 test('testing checkout page renders for testing driver payment', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 75]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 75.5]);
 
     $this->get(route('payment.testing.checkout', $payment))
@@ -43,7 +43,7 @@ test('testing checkout page renders for testing driver payment', function () {
 
 test('testing checkout page returns 404 for non-testing driver payment', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'paytabs', 'amount' => 100]);
 
     $this->get(route('payment.testing.checkout', $payment))
@@ -52,7 +52,7 @@ test('testing checkout page returns 404 for non-testing driver payment', functio
 
 test('testing checkout page returns 404 in production environment', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     $this->app['env'] = 'production';
@@ -65,7 +65,7 @@ test('completing checkout with success status fires PaymentCompleted event', fun
     Event::fake([PaymentCompleted::class, PaymentFailed::class]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     $this->post(route('payment.testing.checkout.complete', $payment), [
@@ -85,7 +85,7 @@ test('completing checkout with failed status fires PaymentFailed event', functio
     Event::fake([PaymentCompleted::class, PaymentFailed::class]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     $this->post(route('payment.testing.checkout.complete', $payment), [
@@ -102,7 +102,7 @@ test('completing checkout with cancelled status sets payment to Canceled', funct
     Event::fake([PaymentCompleted::class, PaymentFailed::class]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     $this->post(route('payment.testing.checkout.complete', $payment), [
@@ -117,7 +117,7 @@ test('completing checkout with cancelled status sets payment to Canceled', funct
 
 test('completing checkout redirects through the UX-only redirect route', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     $this->post(route('payment.testing.checkout.complete', $payment), [
@@ -137,7 +137,7 @@ test('redirect route after testing checkout does not fire duplicate events', fun
     Event::fake([PaymentCompleted::class, PaymentFailed::class]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     $this->post(route('payment.testing.checkout.complete', $payment), [

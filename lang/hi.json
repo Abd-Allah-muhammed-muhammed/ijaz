@@ -441,6 +441,8 @@
     "payout.cannot_reject_status": "इस स्थिति में इस भुगतान को अस्वीकृत नहीं किया जा सकता",
     "wallet.cannot_update_withdraw_request_status": "आप इस निकासी अनुरोध की स्थिति अपडेट नहीं कर सकते",
     "wallet.cannot_update_top_up_request_status": "आप इस टॉप-अप अनुरोध की स्थिति अपडेट नहीं कर सकते",
+    "wallet.online_top_up_payment_owned": "ऑनलाइन टॉप-अप की पुष्टि भुगतान गेटवे द्वारा स्वचालित रूप से होती है",
+    "wallet.top_up_proof_required": "ऑफ़लाइन टॉप-अप स्वीकृत करने से पहले भुगतान प्रमाण छवि आवश्यक है",
     "wallet.entry_kind.withdraw_requested": "निकासी अनुरोध बनाया गया — संदर्भ #:ref",
     "wallet.entry_kind.withdraw_approved": "निकासी स्वीकृत — संदर्भ #:ref",
     "wallet.entry_kind.withdraw_rejected": "निकासी अस्वीकृत — संदर्भ #:ref",

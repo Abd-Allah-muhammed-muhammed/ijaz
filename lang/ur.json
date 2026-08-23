@@ -440,6 +440,8 @@
     "payout.cannot_reject_status": "موجودہ حالت میں اس ادائیگی کو مسترد نہیں کیا جا سکتا",
     "wallet.cannot_update_withdraw_request_status": "آپ اس رقم نکالنے کی درخواست کی حالت تبدیل نہیں کر سکتے",
     "wallet.cannot_update_top_up_request_status": "آپ اس ٹاپ اپ درخواست کی حالت تبدیل نہیں کر سکتے",
+    "wallet.online_top_up_payment_owned": "آن لائن ٹاپ اپ کی تصدیق ادائیگی گیٹ وے خود بخود کرتا ہے",
+    "wallet.top_up_proof_required": "آف لائن ٹاپ اپ کی منظوری سے پہلے ادائیگی کا ثبوت تصویر ضروری ہے",
     "wallet.entry_kind.withdraw_requested": "رقم نکالنے کی درخواست بنائی گئی — حوالہ #:ref",
     "wallet.entry_kind.withdraw_approved": "رقم نکالنے کی منظوری ہو گئی — حوالہ #:ref",
     "wallet.entry_kind.withdraw_rejected": "رقم نکالنے کی درخواست مسترد — حوالہ #:ref",

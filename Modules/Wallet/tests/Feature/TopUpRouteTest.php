@@ -210,13 +210,16 @@ test('admin can view top-up detail', function () {
 });
 
 test('admin can approve offline top-up → credits wallet', function () {
+    Storage::fake('public');
     withoutWalletLocaleMiddleware();
     $admin = createWalletAdmin();
     $user = createWalletUser();
+    $path = UploadedFile::fake()->image('receipt.jpg')->store('topup', 'public');
     $topUp = createTopUpFor($user, [
         'amount' => 75,
         'payment_method' => PaymentMethodEnum::Offline->value,
         'status' => OperationStatusEnum::Pending->value,
+        'transaction_image' => $path,
     ]);
 
     $this->actingAs($admin, 'admin')
@@ -231,14 +234,17 @@ test('admin can approve offline top-up → credits wallet', function () {
 });
 
 test('admin approving an offline top-up request updates both status and payment_status', function () {
+    Storage::fake('public');
     withoutWalletLocaleMiddleware();
     $admin = createWalletAdmin();
     $user = createWalletUser();
+    $path = UploadedFile::fake()->image('receipt.jpg')->store('topup', 'public');
     $topUp = createTopUpFor($user, [
         'amount' => 75,
         'payment_method' => PaymentMethodEnum::Offline->value,
         'status' => OperationStatusEnum::Pending->value,
         'payment_status' => PaymentStatusEnum::Pending->value,
+        'transaction_image' => $path,
     ]);
 
     $this->actingAs($admin, 'admin')
@@ -313,7 +319,7 @@ test('admin can reject top-up → no wallet change', function () {
         ->and($topUp->fresh()->status)->toBe(OperationStatusEnum::Rejected);
 });
 
-test('admin approving an online top-up request does not credit the wallet directly', function () {
+test('admin approving an online top-up request is rejected — online top-ups are payment-owned', function () {
     withoutWalletLocaleMiddleware();
     $admin = createWalletAdmin();
     $user = createWalletUser();
@@ -331,22 +337,25 @@ test('admin approving an online top-up request does not credit the wallet direct
         ->from(action([DashboardTopUpRequestController::class, 'index']))
         ->put(action([DashboardTopUpRequestController::class, 'updateStatus'], ['topUpRequest' => $topUp->id]), [
             'status' => OperationStatusEnum::Approved->value,
-        ])->assertRedirect(route('dashboard.top-up-requests.index'))
-        ->assertSessionHas('success');
+        ])->assertRedirect()
+        ->assertSessionHas('error', __('wallet.online_top_up_payment_owned'));
 
-    expect($topUp->fresh()->status)->toBe(OperationStatusEnum::Approved)
+    expect($topUp->fresh()->status)->toBe(OperationStatusEnum::Pending)
         ->and((float) $user->wallet->fresh()->balance)->toBe($balanceBefore)
         ->and((float) $user->wallet->fresh()->balance)->toBe(40.0);
 });
 
 test('approving a top-up request persists admin_id and admin_notes', function () {
+    Storage::fake('public');
     withoutWalletLocaleMiddleware();
     $admin = createWalletAdmin();
     $user = createWalletUser();
+    $path = UploadedFile::fake()->image('receipt.jpg')->store('topup', 'public');
     $topUp = createTopUpFor($user, [
         'amount' => 50,
         'payment_method' => PaymentMethodEnum::Offline->value,
         'status' => OperationStatusEnum::Pending->value,
+        'transaction_image' => $path,
     ]);
 
     $this->actingAs($admin, 'admin')

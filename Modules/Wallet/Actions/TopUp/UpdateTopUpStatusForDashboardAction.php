@@ -28,8 +28,19 @@ class UpdateTopUpStatusForDashboardAction
             // Re-check under row lock so concurrent admin approvals cannot double-credit.
             $topUpRequest = $this->repository->lockForUpdate($topUpRequest);
 
+            if ($topUpRequest->payment_method->isOnline()) {
+                throw new WalletException('wallet.online_top_up_payment_owned');
+            }
+
             if ($topUpRequest->status !== OperationStatusEnum::Pending) {
                 throw new WalletException('wallet.cannot_update_top_up_request_status');
+            }
+
+            if (
+                $status === OperationStatusEnum::Approved->value
+                && blank($topUpRequest->transaction_image)
+            ) {
+                throw new WalletException('wallet.top_up_proof_required');
             }
 
             $attributes = [
@@ -41,19 +52,13 @@ class UpdateTopUpStatusForDashboardAction
             // Mirror HandleTopUpPaymentCompleted / HandleTopUpPaymentFailed enum values.
             if ($status === OperationStatusEnum::Rejected->value) {
                 $attributes['payment_status'] = PaymentStatusEnum::Rejected;
-            } elseif (
-                $status === OperationStatusEnum::Approved->value
-                && $topUpRequest->payment_method->isOffline()
-            ) {
+            } elseif ($status === OperationStatusEnum::Approved->value) {
                 $attributes['payment_status'] = PaymentStatusEnum::Accepted;
             }
 
             $topUpRequest = $this->repository->update($topUpRequest, $attributes);
 
-            if (
-                $topUpRequest->status === OperationStatusEnum::Approved
-                && $topUpRequest->payment_method->isOffline()
-            ) {
+            if ($topUpRequest->status === OperationStatusEnum::Approved) {
                 $this->walletService->credit(
                     owner: $topUpRequest->user,
                     amount: $topUpRequest->amount,

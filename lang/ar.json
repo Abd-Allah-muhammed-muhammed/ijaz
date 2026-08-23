@@ -475,6 +475,8 @@
     "payout.transfer_status.delayed": "تأخير في التحويل",
     "wallet.cannot_update_withdraw_request_status": "لا يمكنك تحديث حالة طلب السحب هذا",
     "wallet.cannot_update_top_up_request_status": "لا يمكنك تحديث حالة طلب الإيداع هذا",
+    "wallet.online_top_up_payment_owned": "يتم تأكيد عمليات الإيداع عبر الإنترنت تلقائيًا بواسطة بوابة الدفع",
+    "wallet.top_up_proof_required": "يلزم إرفاق صورة إثبات الدفع قبل الموافقة على إيداع غير متصل",
     "wallet.entry_kind.withdraw_requested": "تم إنشاء طلب السحب — المرجع #:ref",
     "wallet.entry_kind.withdraw_approved": "تمت الموافقة على السحب — المرجع #:ref",
     "wallet.entry_kind.withdraw_rejected": "تم رفض السحب — المرجع #:ref",
