@@ -25,7 +25,7 @@ return [
         'paid' => 'Paid',
         'released' => 'Released',
         'overdue' => 'Overdue',
-        'refunded' => 'Refunded',
+        'voided' => 'Voided',
     ],
     'authorization_type' => [
         'power_of_attorney' => 'Power of Attorney',
@@ -59,6 +59,9 @@ return [
     'not_found' => 'Guarantor request not found',
     'installment_not_found' => 'Installment not found',
     'unauthorized' => 'You are not authorized to perform this action',
+    'pay_denied_active_dispute' => 'This guarantee has an active dispute and cannot accept payments',
+    'pay_denied_already_resolved' => 'This guarantee has already been resolved',
+    'pay_denied_installment_voided' => 'This installment is no longer payable',
     'already_paid' => 'This installment has already been paid',
     'previous_installment_not_paid' => 'Previous installment must be paid first',
     'chat_not_allowed' => 'Chat is only available after the request is accepted',

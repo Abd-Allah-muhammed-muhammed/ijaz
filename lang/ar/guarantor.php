@@ -25,7 +25,7 @@ return [
         'paid' => 'مدفوع',
         'released' => 'محرر',
         'overdue' => 'متأخر',
-        'refunded' => 'مسترد',
+        'voided' => 'ملغاة',
     ],
     'authorization_type' => [
         'power_of_attorney' => 'تفويض',
@@ -58,6 +58,9 @@ return [
     'not_found' => 'طلب الضامن غير موجود',
     'installment_not_found' => 'الدفعة غير موجودة',
     'unauthorized' => 'غير مصرح لك بتنفيذ هذا الإجراء',
+    'pay_denied_active_dispute' => 'هذا الضمان عليه نزاع قائم ولا يمكن قبول دفعات',
+    'pay_denied_already_resolved' => 'تم حل هذا الضمان مسبقاً',
+    'pay_denied_installment_voided' => 'هذه الدفعة لم تعد قابلة للدفع',
     'already_paid' => 'هذه الدفعة تم سدادها مسبقاً',
     'previous_installment_not_paid' => 'يجب سداد الدفعة السابقة أولاً',
     'chat_not_allowed' => 'الشات متاح فقط بعد قبول الطلب',

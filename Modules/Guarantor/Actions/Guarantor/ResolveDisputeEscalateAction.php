@@ -6,6 +6,7 @@ use App\Models\Admin;
 use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction as LogGuarantorStatusHistory;
 use Modules\Guarantor\Actions\Guarantor\ReverseGuarantorWalletHoldsAction as ReverseGuarantorWalletHolds;
+use Modules\Guarantor\Actions\Guarantor\VoidRemainingGuarantorInstallmentsAction as VoidRemainingGuarantorInstallments;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorDisputeResolutionEnum;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
@@ -20,6 +21,7 @@ class ResolveDisputeEscalateAction
         private readonly GuarantorRepositoryInterface $guarantorRepository,
         private readonly LogGuarantorStatusHistory $logStatusHistory,
         private readonly ReverseGuarantorWalletHolds $reverseGuarantorWalletHoldsAction,
+        private readonly VoidRemainingGuarantorInstallments $voidRemainingGuarantorInstallmentsAction,
     ) {}
 
     /**
@@ -46,6 +48,8 @@ class ResolveDisputeEscalateAction
                 $guarantorRequest->fresh(),
                 'dispute escalated',
             );
+
+            $this->voidRemainingGuarantorInstallmentsAction->handle($guarantorRequest->fresh());
 
             $this->logStatusHistory->handle(
                 $guarantorRequest,

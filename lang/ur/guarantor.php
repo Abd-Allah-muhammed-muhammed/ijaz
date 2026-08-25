@@ -25,7 +25,7 @@ return [
         'paid' => 'ادا شدہ',
         'released' => 'جاری کیا گیا',
         'overdue' => 'تاخیر شدہ',
-        'refunded' => 'واپس کیا گیا',
+        'voided' => 'منسوخ',
     ],
     'authorization_type' => [
         'power_of_attorney' => 'اختیار نامہ',
@@ -58,6 +58,9 @@ return [
     'not_found' => 'ضامن کی درخواست نہیں ملی',
     'installment_not_found' => 'قسط نہیں ملی',
     'unauthorized' => 'آپ کو یہ عمل کرنے کی اجازت نہیں ہے',
+    'pay_denied_active_dispute' => 'اس ضمانت پر فعال تنازعہ ہے اور ادائیگیاں قبول نہیں کی جا سکتیں',
+    'pay_denied_already_resolved' => 'یہ ضمانت پہلے ہی حل ہو چکی ہے',
+    'pay_denied_installment_voided' => 'یہ قسط اب قابلِ ادائیگی نہیں ہے',
     'already_paid' => 'یہ قسط پہلے ہی ادا کی جا چکی ہے',
     'previous_installment_not_paid' => 'پہلے پچھلی قسط ادا کرنی ہوگی',
     'chat_not_allowed' => 'چیٹ صرف درخواست قبول ہونے کے بعد دستیاب ہے',

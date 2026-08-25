@@ -6,6 +6,7 @@ use App\Models\Admin;
 use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Actions\Guarantor\ReverseGuarantorWalletHoldsAction as ReverseGuarantorWalletHolds;
 use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorStatusAction as UpdateGuarantorStatus;
+use Modules\Guarantor\Actions\Guarantor\VoidRemainingGuarantorInstallmentsAction as VoidRemainingGuarantorInstallments;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
@@ -17,6 +18,7 @@ class CancelGuarantorAction
     public function __construct(
         private readonly UpdateGuarantorStatus $updateStatusAction,
         private readonly ReverseGuarantorWalletHolds $reverseGuarantorWalletHoldsAction,
+        private readonly VoidRemainingGuarantorInstallments $voidRemainingGuarantorInstallmentsAction,
     ) {}
 
     /**
@@ -50,6 +52,7 @@ class CancelGuarantorAction
             );
 
             $this->reverseGuarantorWalletHoldsAction->handle($request->fresh());
+            $this->voidRemainingGuarantorInstallmentsAction->handle($request->fresh());
         });
     }
 }

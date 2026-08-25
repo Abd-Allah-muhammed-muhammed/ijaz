@@ -35,4 +35,9 @@ interface InstallmentRepositoryInterface
     public function refresh(GuarantorInstallment $installment): GuarantorInstallment;
 
     public function getOverdue(): LazyCollection;
+
+    /**
+     * Bulk-mark Pending/Overdue installments as Voided. Returns rows affected.
+     */
+    public function voidPendingOrOverdueForRequest(GuarantorRequest $request): int;
 }

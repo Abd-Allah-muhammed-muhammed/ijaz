@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction as LogGuarantorStatusHistory;
 use Modules\Guarantor\Actions\Guarantor\ReleaseGuarantorWalletHoldsAction as ReleaseGuarantorWalletHolds;
 use Modules\Guarantor\Actions\Guarantor\ReverseGuarantorWalletHoldsAction as ReverseGuarantorWalletHolds;
+use Modules\Guarantor\Actions\Guarantor\VoidRemainingGuarantorInstallmentsAction as VoidRemainingGuarantorInstallments;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorDisputeResolutionEnum;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
@@ -22,6 +23,7 @@ class ResolveDisputeFullToPartyAction
         private readonly LogGuarantorStatusHistory $logStatusHistory,
         private readonly ReleaseGuarantorWalletHolds $releaseGuarantorWalletHoldsAction,
         private readonly ReverseGuarantorWalletHolds $reverseGuarantorWalletHoldsAction,
+        private readonly VoidRemainingGuarantorInstallments $voidRemainingGuarantorInstallmentsAction,
     ) {}
 
     /**
@@ -66,6 +68,8 @@ class ResolveDisputeFullToPartyAction
                     'dispute resolved — counterparty',
                 );
             }
+
+            $this->voidRemainingGuarantorInstallmentsAction->handle($guarantorRequest->fresh());
 
             $this->logStatusHistory->handle(
                 $guarantorRequest,

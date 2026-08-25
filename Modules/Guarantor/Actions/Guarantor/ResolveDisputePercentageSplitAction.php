@@ -6,6 +6,7 @@ use App\Models\Admin;
 use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Actions\Guarantor\DetermineGuarantorHeldAmountAction as DetermineGuarantorHeldAmount;
 use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction as LogGuarantorStatusHistory;
+use Modules\Guarantor\Actions\Guarantor\VoidRemainingGuarantorInstallmentsAction as VoidRemainingGuarantorInstallments;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorDisputeResolutionEnum;
@@ -32,6 +33,7 @@ class ResolveDisputePercentageSplitAction
         private readonly InstallmentRepositoryInterface $installmentRepository,
         private readonly DetermineGuarantorHeldAmount $determineGuarantorHeldAmountAction,
         private readonly LogGuarantorStatusHistory $logStatusHistory,
+        private readonly VoidRemainingGuarantorInstallments $voidRemainingGuarantorInstallmentsAction,
         private readonly WalletService $walletService,
     ) {}
 
@@ -114,6 +116,8 @@ class ResolveDisputePercentageSplitAction
                     'released_at' => now(),
                 ]);
             }
+
+            $this->voidRemainingGuarantorInstallmentsAction->handle($request->fresh());
 
             $resolution = GuarantorDisputeResolutionEnum::PercentageSplit;
             $guarantorRequest = $this->guarantorRepository->update($request, [

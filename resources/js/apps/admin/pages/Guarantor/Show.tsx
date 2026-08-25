@@ -126,7 +126,7 @@ const installmentBadgeClass: Record<string, string> = {
   paid: 'badge-light-success',
   released: 'badge-light-primary',
   overdue: 'badge-light-danger',
-  refunded: 'badge-light-secondary',
+  voided: 'badge-light-secondary',
 };
 
 const PartyChip = ({

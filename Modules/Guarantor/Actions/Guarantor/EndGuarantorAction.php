@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction as LogGuarantorStatusHistory;
 use Modules\Guarantor\Actions\Guarantor\NotifyGuarantorPartiesAction as NotifyGuarantorParties;
 use Modules\Guarantor\Actions\Guarantor\ReleaseGuarantorWalletHoldsAction as ReleaseGuarantorWalletHolds;
+use Modules\Guarantor\Actions\Guarantor\VoidRemainingGuarantorInstallmentsAction as VoidRemainingGuarantorInstallments;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
@@ -19,6 +20,7 @@ class EndGuarantorAction
         private readonly GuarantorRepositoryInterface $guarantorRepository,
         private readonly LogGuarantorStatusHistory $logStatusHistory,
         private readonly ReleaseGuarantorWalletHolds $releaseGuarantorWalletHoldsAction,
+        private readonly VoidRemainingGuarantorInstallments $voidRemainingGuarantorInstallmentsAction,
         private readonly NotifyGuarantorParties $notifyGuarantorPartiesAction,
     ) {}
 
@@ -49,6 +51,7 @@ class EndGuarantorAction
             ]);
 
             $this->releaseGuarantorWalletHoldsAction->handle($guarantorRequest->fresh());
+            $this->voidRemainingGuarantorInstallmentsAction->handle($guarantorRequest->fresh());
 
             $this->logStatusHistory->handle(
                 $guarantorRequest,

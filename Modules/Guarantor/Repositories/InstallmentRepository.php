@@ -89,4 +89,16 @@ class InstallmentRepository implements InstallmentRepositoryInterface
             ->with(['guarantorRequest.requester', 'guarantorRequest.counterparty'])
             ->lazyById();
     }
+
+    public function voidPendingOrOverdueForRequest(GuarantorRequest $request): int
+    {
+        return $request->installments()
+            ->whereIn('status', [
+                InstallmentStatusEnum::Pending,
+                InstallmentStatusEnum::Overdue,
+            ])
+            ->update([
+                'status' => InstallmentStatusEnum::Voided,
+            ]);
+    }
 }

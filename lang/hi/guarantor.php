@@ -25,7 +25,7 @@ return [
         'paid' => 'भुगतान किया',
         'released' => 'जारी किया गया',
         'overdue' => 'अतिदेय',
-        'refunded' => 'वापस किया गया',
+        'voided' => 'रद्द',
     ],
     'authorization_type' => [
         'power_of_attorney' => 'पावर ऑफ अटॉर्नी',
@@ -58,6 +58,9 @@ return [
     'not_found' => 'गारंटर अनुरोध नहीं मिला',
     'installment_not_found' => 'किस्त नहीं मिली',
     'unauthorized' => 'आपको यह कार्रवाई करने की अनुमति नहीं है',
+    'pay_denied_active_dispute' => 'इस गारंटी पर सक्रिय विवाद है और भुगतान स्वीकार नहीं किए जा सकते',
+    'pay_denied_already_resolved' => 'यह गारंटी पहले ही सुलझा दी गई है',
+    'pay_denied_installment_voided' => 'यह किस्त अब भुगतान योग्य नहीं है',
     'already_paid' => 'यह किस्त पहले ही भुगतान की जा चुकी है',
     'previous_installment_not_paid' => 'पहले पिछली किस्त का भुगतान करना होगा',
     'chat_not_allowed' => 'चैट केवल अनुरोध स्वीकार होने के बाद उपलब्ध है',
