@@ -4,11 +4,15 @@ import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
 import { Content } from '@/vendor/metronic/layout/components/content';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import usePermissions from '@/shared/hooks/use-permissions';
+import { Conversation } from '@/shared/types/models';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import clsx from 'clsx';
 import { ReactElement, useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import ChatTap from './components/chat-tap';
+import DocumentsTab, { MediaItem } from './components/documents-tab';
+import DisputeTab from './components/dispute-tab';
 
 type StatusOption = {
   value: string;
@@ -44,13 +48,6 @@ type HistoryItem = {
   created_at: string;
 };
 
-type MediaItem = {
-  id?: string;
-  uuid?: string;
-  url: string;
-  mime_type: string;
-};
-
 type CompanyDetail = {
   company_name?: string;
   commercial_register?: string;
@@ -84,6 +81,7 @@ type GuarantorResource = {
   company_detail?: CompanyDetail | null;
   status_histories?: HistoryItem[];
   media?: MediaItem[];
+  conversation?: Conversation | null;
   overdue_at?: string | null;
   ended_at?: string | null;
   cancelled_at?: string | null;
@@ -158,6 +156,8 @@ const Show = ({ guarantorRequest }: Props) => {
   const isCompany = guarantorRequest.type?.value === 'company';
   const isRTL = i18n.dir() === 'rtl';
   const statusHistories = guarantorRequest.status_histories ?? [];
+  const hasDisputeHistory = statusHistories.some((history) => history.to_status?.value === 'disputed');
+  const canViewChat = hasPermission('show guarantors');
   const disputeReason =
     statusHistories.find((history) => history.to_status?.value === 'disputed')?.reason ?? null;
 
@@ -328,8 +328,11 @@ const Show = ({ guarantorRequest }: Props) => {
               {[
                 { key: 'overview', label: t('guarantor.overview'), icon: 'element-11' },
                 ...(isCompany ? [{ key: 'installments', label: t('guarantor.installments'), icon: 'wallet' }] : []),
-                { key: 'history', label: t('guarantor.status_history'), icon: 'time' },
+                { key: 'documents', label: t('guarantor.documents'), icon: 'file' },
+                ...(hasDisputeHistory ? [{ key: 'dispute', label: t('guarantor.dispute'), icon: 'information-5' }] : []),
+                { key: 'history', label: t('timeline'), icon: 'time' },
                 ...(isCompany ? [{ key: 'company_details', label: t('guarantor.company_details'), icon: 'office-bag' }] : []),
+                ...(canViewChat ? [{ key: 'chat', label: t('guarantor.chat'), icon: 'message-text-2' }] : []),
               ].map((tab) => (
                 <li className="nav-item" key={tab.key}>
                   <a
@@ -386,25 +389,19 @@ const Show = ({ guarantorRequest }: Props) => {
                     </div>
                   )}
                 </div>
-                {guarantorRequest.media && guarantorRequest.media.length > 0 && (
-                  <div>
-                    <h4 className="fw-bold mb-3">{t('media')}</h4>
-                    <div className="d-flex flex-wrap gap-3">
-                      {guarantorRequest.media.map((med) => (
-                        <a
-                          key={med.id ?? med.uuid}
-                          href={med.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="btn btn-light-primary btn-sm"
-                        >
-                          {t('download')}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
+            )}
+
+            {activeTab === 'documents' && (
+              <DocumentsTab
+                requestMedia={guarantorRequest.media ?? []}
+                companyMedia={guarantorRequest.company_detail?.media ?? []}
+                isCompany={isCompany}
+              />
+            )}
+
+            {activeTab === 'dispute' && hasDisputeHistory && (
+              <DisputeTab statusHistories={statusHistories} />
             )}
 
             {activeTab === 'installments' && isCompany && (
@@ -578,6 +575,13 @@ const Show = ({ guarantorRequest }: Props) => {
                   <span className="fw-bold">{guarantorRequest.company_detail.counterparty_iban ?? '—'}</span>
                 </div>
               </div>
+            )}
+
+            {activeTab === 'chat' && canViewChat && (
+              <ChatTap
+                guarantorRequestId={guarantorRequest.id}
+                conversation={guarantorRequest.conversation ?? null}
+              />
             )}
           </KTCardBody>
         </KTCard>

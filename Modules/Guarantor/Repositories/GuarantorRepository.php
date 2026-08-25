@@ -8,6 +8,7 @@ use App\Support\Phone;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Modules\Chat\Models\Conversation;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
@@ -152,5 +153,37 @@ class GuarantorRepository implements GuarantorRepositoryInterface
     public function deleteMedia(Media $media): void
     {
         $media->delete();
+    }
+
+    public function findConversation(GuarantorRequest $guarantorRequest): ?Conversation
+    {
+        $conversation = $guarantorRequest->conversation;
+
+        return $conversation instanceof Conversation ? $conversation : null;
+    }
+
+    public function paginateConversationMessages(
+        GuarantorRequest $guarantorRequest,
+        int $perPage = 15,
+        ?string $search = null,
+    ): ?LengthAwarePaginator {
+        $chat = $this->findConversation($guarantorRequest);
+
+        if (! $chat) {
+            return null;
+        }
+
+        $query = $chat->messages()
+            ->latest()
+            ->with(['sender', 'media']);
+
+        if ($search !== null && $search !== '') {
+            $escaped = addcslashes($search, '%_\\');
+            $query->where('content', 'like', '%'.$escaped.'%');
+        }
+
+        return $query
+            ->paginate($perPage)
+            ->withQueryString();
     }
 }

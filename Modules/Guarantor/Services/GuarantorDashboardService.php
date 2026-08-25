@@ -5,9 +5,14 @@ namespace Modules\Guarantor\Services;
 use App\Models\Admin;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Modules\Chat\DTOs\ChatMessageData;
+use Modules\Chat\Models\ConversationMessage;
 use Modules\Guarantor\Actions\Dashboard\AdminApproveGuarantorAction;
 use Modules\Guarantor\Actions\Dashboard\AdminRejectGuarantorAction;
+use Modules\Guarantor\Actions\Dashboard\BroadcastAdminGuarantorConversationTypingAction;
 use Modules\Guarantor\Actions\Dashboard\DeleteGuarantorForDashboardAction;
+use Modules\Guarantor\Actions\Dashboard\ListGuarantorConversationMessagesAction;
+use Modules\Guarantor\Actions\Dashboard\SendAdminGuarantorConversationMessageAction;
 use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\ResolveDisputeEscalateAction;
 use Modules\Guarantor\Actions\Guarantor\ResolveDisputeFullToPartyAction;
@@ -34,6 +39,9 @@ class GuarantorDashboardService
         private readonly ResolveDisputePercentageSplitAction $resolveDisputePercentageSplitAction,
         private readonly ReleaseInstallmentAction $releaseAction,
         private readonly DeleteGuarantorForDashboardAction $deleteForDashboardAction,
+        private readonly ListGuarantorConversationMessagesAction $listConversationMessages,
+        private readonly SendAdminGuarantorConversationMessageAction $sendAdminConversationMessage,
+        private readonly BroadcastAdminGuarantorConversationTypingAction $broadcastAdminConversationTyping,
     ) {}
 
     public function listAll(Request $request, int $perPage = 15): LengthAwarePaginator
@@ -130,5 +138,26 @@ class GuarantorDashboardService
     public function delete(GuarantorRequest $request): void
     {
         $this->deleteForDashboardAction->handle($request);
+    }
+
+    public function conversationMessages(
+        GuarantorRequest $request,
+        int $perPage = 15,
+        ?string $search = null,
+    ): ?LengthAwarePaginator {
+        return $this->listConversationMessages->handle($request, $perPage, $search);
+    }
+
+    public function sendConversationMessageAsAdmin(
+        GuarantorRequest $request,
+        Admin $admin,
+        ChatMessageData $data,
+    ): ConversationMessage {
+        return $this->sendAdminConversationMessage->handle($request, $admin, $data);
+    }
+
+    public function typingAsAdmin(GuarantorRequest $request, Admin $admin): void
+    {
+        $this->broadcastAdminConversationTyping->handle($request, $admin);
     }
 }
