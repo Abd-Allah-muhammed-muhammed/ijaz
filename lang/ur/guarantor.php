@@ -39,6 +39,11 @@ return [
     'cannot_delete_non_new' => 'آپ صرف نئی حالت والے درخواستوں کو حذف کر سکتے ہیں',
     'cannot_delete_media_non_new' => 'آپ صرف نئی حالت میں میڈیا حذف کر سکتے ہیں',
     'status_transition_not_allowed' => 'یہ حالت کی تبدیلی مجاز نہیں ہے',
+    'dispute_resolution' => [
+        'full_requester' => 'مکمل طور پر درخواست دہندہ کے حق میں',
+        'full_counterparty' => 'مکمل طور پر مخالف فریق کے حق میں',
+        'escalate' => 'عدالت میں بھیجیں',
+    ],
     'status_already_set' => 'درخواست پہلے سے اس حالت میں ہے',
     'not_found' => 'ضامن کی درخواست نہیں ملی',
     'installment_not_found' => 'قسط نہیں ملی',

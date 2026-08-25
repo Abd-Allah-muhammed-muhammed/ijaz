@@ -13,6 +13,7 @@ use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Http\Requests\Dashboard\ApproveGuarantorRequest;
 use Modules\Guarantor\Http\Requests\Dashboard\CancelGuarantorRequest;
 use Modules\Guarantor\Http\Requests\Dashboard\RejectGuarantorRequest;
+use Modules\Guarantor\Http\Requests\Dashboard\ResolveGuarantorDisputeRequest;
 use Modules\Guarantor\Http\Resources\Dashboard\GuarantorDashboardCollection;
 use Modules\Guarantor\Http\Resources\Dashboard\GuarantorDashboardResource;
 use Modules\Guarantor\Models\GuarantorInstallment;
@@ -33,6 +34,7 @@ class GuarantorController extends Controller implements HasMiddleware
                 'approveByAdmin',
                 'rejectByAdmin',
                 'cancel',
+                'resolveDispute',
                 'releaseInstallment',
                 'destroy',
             ]),
@@ -99,6 +101,15 @@ class GuarantorController extends Controller implements HasMiddleware
         GuarantorRequest $guarantorRequest,
     ): RedirectResponse {
         $this->service->cancel($guarantorRequest, $request, auth('admin')->user());
+
+        return back()->with('success', __('guarantor.status_updated_successfully'));
+    }
+
+    public function resolveDispute(
+        ResolveGuarantorDisputeRequest $request,
+        GuarantorRequest $guarantorRequest,
+    ): RedirectResponse {
+        $this->service->resolveDispute($guarantorRequest, $request, auth('admin')->user());
 
         return back()->with('success', __('guarantor.status_updated_successfully'));
     }

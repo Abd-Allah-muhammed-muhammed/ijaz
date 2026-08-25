@@ -4,24 +4,21 @@ namespace Modules\Guarantor\Actions\Guarantor;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction as LogGuarantorStatusHistory;
 use Modules\Guarantor\Actions\Guarantor\NotifyGuarantorPartiesAction as NotifyGuarantorParties;
-use Modules\Guarantor\Actions\Installment\ReleaseInstallmentAction;
+use Modules\Guarantor\Actions\Guarantor\ReleaseGuarantorWalletHoldsAction as ReleaseGuarantorWalletHolds;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
-use Modules\Guarantor\Enums\GuarantorTypeEnum;
-use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
-use Modules\Wallet\Services\WalletService;
 use Throwable;
 
 class EndGuarantorAction
 {
     public function __construct(
         private readonly GuarantorRepositoryInterface $guarantorRepository,
-        private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
-        private readonly ReleaseInstallmentAction $releaseInstallmentAction,
-        private readonly WalletService $walletService,
+        private readonly LogGuarantorStatusHistory $logStatusHistory,
+        private readonly ReleaseGuarantorWalletHolds $releaseGuarantorWalletHoldsAction,
         private readonly NotifyGuarantorParties $notifyGuarantorPartiesAction,
     ) {}
 
@@ -31,6 +28,14 @@ class EndGuarantorAction
     public function handle(GuarantorRequest $request, Model $actor, string $actorRole): GuarantorRequest
     {
         return DB::transaction(function () use ($request, $actor, $actorRole) {
+            if ($request->status->isIn([
+                GuarantorStatusEnum::Cancelled,
+                GuarantorStatusEnum::Ended,
+                GuarantorStatusEnum::Escalated,
+            ])) {
+                throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
+            }
+
             if (! GuarantorStatusEnum::isAllowed($request->status, GuarantorStatusEnum::Ended, $actorRole)) {
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }
@@ -42,11 +47,7 @@ class EndGuarantorAction
                 'ended_at' => now(),
             ]);
 
-            if ($guarantorRequest->type === GuarantorTypeEnum::Individual) {
-                $this->releaseIndividualWallets($guarantorRequest);
-            } else {
-                $this->releaseLastPaidInstallment($guarantorRequest);
-            }
+            $this->releaseGuarantorWalletHoldsAction->handle($guarantorRequest->fresh());
 
             $this->logStatusHistory->handle(
                 $guarantorRequest,
@@ -60,46 +61,5 @@ class EndGuarantorAction
 
             return $guarantorRequest->load(['requester', 'counterparty', 'installments', 'companyDetail', 'media']);
         });
-    }
-
-    private function releaseIndividualWallets(GuarantorRequest $request): void
-    {
-        $request->loadMissing(['requester', 'counterparty']);
-
-        $grossAmount = (float) $request->amount + (float) $request->fees;
-        $netAmount = (float) $request->amount;
-
-        $requesterWallet = $request->requester->wallet()->lockForUpdate()->firstOrCreate();
-        if ((float) $requesterWallet->pending_credit > 0) {
-            $this->walletService->releasePendingCreditToBalance(
-                $request->requester,
-                $grossAmount,
-                $netAmount,
-                $request,
-                "Guarantor#{$request->id} ended — funds released",
-            );
-        }
-
-        $counterpartyWallet = $request->counterparty->wallet()->lockForUpdate()->firstOrCreate();
-        if ((float) $counterpartyWallet->pending_debit > 0) {
-            $this->walletService->reversePendingDebit(
-                $request->counterparty,
-                $grossAmount,
-                $request,
-                "Guarantor#{$request->id} ended — pending released",
-            );
-        }
-    }
-
-    private function releaseLastPaidInstallment(GuarantorRequest $request): void
-    {
-        $installment = $request->installments()
-            ->where('status', InstallmentStatusEnum::Paid)
-            ->orderByDesc('order')
-            ->first();
-
-        if ($installment !== null) {
-            $this->releaseInstallmentAction->handle($installment, 'end');
-        }
     }
 }

@@ -39,6 +39,11 @@ return [
     'cannot_delete_non_new' => 'आप केवल नई स्थिति वाले अनुरोधों को हटा सकते हैं',
     'cannot_delete_media_non_new' => 'आप केवल नई स्थिति में मीडिया हटा सकते हैं',
     'status_transition_not_allowed' => 'यह स्थिति परिवर्तन अनुमत नहीं है',
+    'dispute_resolution' => [
+        'full_requester' => 'पूरी तरह अनुरोधकर्ता के पक्ष में',
+        'full_counterparty' => 'पूरी तरह प्रतिपक्ष के पक्ष में',
+        'escalate' => 'न्यायालय को भेजें',
+    ],
     'status_already_set' => 'अनुरोध पहले से ही इस स्थिति में है',
     'not_found' => 'गारंटर अनुरोध नहीं मिला',
     'installment_not_found' => 'किस्त नहीं मिली',

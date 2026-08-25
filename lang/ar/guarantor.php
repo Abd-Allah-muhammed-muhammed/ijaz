@@ -39,6 +39,11 @@ return [
     'cannot_delete_non_new' => 'لا يمكنك حذف الطلب إلا أثناء انتظار مراجعة الإدارة',
     'cannot_delete_media_non_new' => 'لا يمكنك حذف الملفات إلا أثناء انتظار مراجعة الإدارة',
     'status_transition_not_allowed' => 'هذا التحول في الحالة غير مسموح به',
+    'dispute_resolution' => [
+        'full_requester' => 'كامل لصالح مقدم الطلب',
+        'full_counterparty' => 'كامل لصالح الطرف المقابل',
+        'escalate' => 'تصعيد للقضاء',
+    ],
     'status_already_set' => 'الطلب بالفعل في هذه الحالة',
     'not_found' => 'طلب الضامن غير موجود',
     'installment_not_found' => 'الدفعة غير موجودة',

@@ -9,11 +9,15 @@ use Modules\Guarantor\Actions\Dashboard\AdminApproveGuarantorAction;
 use Modules\Guarantor\Actions\Dashboard\AdminRejectGuarantorAction;
 use Modules\Guarantor\Actions\Dashboard\DeleteGuarantorForDashboardAction;
 use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
+use Modules\Guarantor\Actions\Guarantor\ResolveDisputeEscalateAction;
+use Modules\Guarantor\Actions\Guarantor\ResolveDisputeFullToPartyAction;
 use Modules\Guarantor\Actions\Installment\ReleaseInstallmentAction;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
+use Modules\Guarantor\Enums\GuarantorDisputeResolutionEnum;
 use Modules\Guarantor\Http\Requests\Dashboard\ApproveGuarantorRequest;
 use Modules\Guarantor\Http\Requests\Dashboard\CancelGuarantorRequest;
 use Modules\Guarantor\Http\Requests\Dashboard\RejectGuarantorRequest;
+use Modules\Guarantor\Http\Requests\Dashboard\ResolveGuarantorDisputeRequest;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 
@@ -24,6 +28,8 @@ class GuarantorDashboardService
         private readonly AdminApproveGuarantorAction $approveAction,
         private readonly AdminRejectGuarantorAction $rejectAction,
         private readonly CancelGuarantorAction $cancelAction,
+        private readonly ResolveDisputeFullToPartyAction $resolveDisputeFullToPartyAction,
+        private readonly ResolveDisputeEscalateAction $resolveDisputeEscalateAction,
         private readonly ReleaseInstallmentAction $releaseAction,
         private readonly DeleteGuarantorForDashboardAction $deleteForDashboardAction,
     ) {}
@@ -77,6 +83,35 @@ class GuarantorDashboardService
             $formRequest->validated('notes'),
             $admin
         );
+    }
+
+    public function resolveDispute(
+        GuarantorRequest $request,
+        ResolveGuarantorDisputeRequest $formRequest,
+        Admin $admin,
+    ): GuarantorRequest {
+        $resolution = GuarantorDisputeResolutionEnum::from($formRequest->validated('resolution'));
+        $notes = $formRequest->validated('notes');
+
+        return match ($resolution) {
+            GuarantorDisputeResolutionEnum::FullRequester => $this->resolveDisputeFullToPartyAction->handle(
+                $request,
+                $admin,
+                'requester',
+                $notes,
+            ),
+            GuarantorDisputeResolutionEnum::FullCounterparty => $this->resolveDisputeFullToPartyAction->handle(
+                $request,
+                $admin,
+                'counterparty',
+                $notes,
+            ),
+            GuarantorDisputeResolutionEnum::Escalate => $this->resolveDisputeEscalateAction->handle(
+                $request,
+                $admin,
+                $notes,
+            ),
+        };
     }
 
     public function releaseInstallment(GuarantorInstallment $installment): void

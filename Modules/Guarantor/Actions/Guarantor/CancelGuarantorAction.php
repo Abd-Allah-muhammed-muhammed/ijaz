@@ -4,19 +4,19 @@ namespace Modules\Guarantor\Actions\Guarantor;
 
 use App\Models\Admin;
 use Illuminate\Support\Facades\DB;
+use Modules\Guarantor\Actions\Guarantor\ReverseGuarantorWalletHoldsAction as ReverseGuarantorWalletHolds;
 use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorStatusAction as UpdateGuarantorStatus;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
-use Modules\Wallet\Services\WalletService;
 use Throwable;
 
 class CancelGuarantorAction
 {
     public function __construct(
         private readonly UpdateGuarantorStatus $updateStatusAction,
-        private readonly WalletService $walletService,
+        private readonly ReverseGuarantorWalletHolds $reverseGuarantorWalletHoldsAction,
     ) {}
 
     /**
@@ -48,43 +48,7 @@ class CancelGuarantorAction
                 'admin'
             );
 
-            $this->reverseWalletHolds($request->fresh());
+            $this->reverseGuarantorWalletHoldsAction->handle($request->fresh());
         });
-    }
-
-    private function reverseWalletHolds(GuarantorRequest $request): void
-    {
-        $request->loadMissing(['requester', 'counterparty', 'installments']);
-
-        $operations = [
-            $request,
-            ...$request->installments->all(),
-        ];
-
-        $counterpartyHeld = $this->walletService->sumPendingDeltasForOperations(
-            $request->counterparty,
-            $operations,
-        );
-        if ($counterpartyHeld['pending_debit'] > 0) {
-            $this->walletService->reversePendingDebit(
-                $request->counterparty,
-                $counterpartyHeld['pending_debit'],
-                $request,
-                "Guarantor#{$request->id} cancelled",
-            );
-        }
-
-        $requesterHeld = $this->walletService->sumPendingDeltasForOperations(
-            $request->requester,
-            $operations,
-        );
-        if ($requesterHeld['pending_credit'] > 0) {
-            $this->walletService->reversePendingCredit(
-                $request->requester,
-                $requesterHeld['pending_credit'],
-                $request,
-                "Guarantor#{$request->id} cancelled",
-            );
-        }
     }
 }

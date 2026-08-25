@@ -40,6 +40,11 @@ return [
     'cannot_delete_media_non_new' => 'You can only delete media while pending admin review',
     'status_transition_not_allowed' => 'This status transition is not allowed',
     'dispute_reason_required' => 'A reason is required to open a dispute',
+    'dispute_resolution' => [
+        'full_requester' => 'Full to requester',
+        'full_counterparty' => 'Full to counterparty',
+        'escalate' => 'Escalate to court',
+    ],
     'status_already_set' => 'The request is already in this status',
     'not_found' => 'Guarantor request not found',
     'installment_not_found' => 'Installment not found',
