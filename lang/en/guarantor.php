@@ -161,4 +161,10 @@ return [
     'details' => 'Details',
     'created' => 'Created',
     'system' => 'System',
+    'authorization_type_label' => 'Authorization type',
+    'location' => 'Location',
+    'installments_paid_of_total' => ':paid of :total paid',
+    'documents_count' => 'Documents',
+    'subtitle_company' => 'Company guarantee · created :date',
+    'subtitle_individual' => 'Individual guarantee · created :date',
 ];

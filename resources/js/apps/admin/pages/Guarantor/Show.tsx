@@ -121,14 +121,55 @@ const statusBadgeClass: Record<string, string> = {
   settled: 'badge-light-info',
 };
 
-const timelineStyles = `
-  .timeline { display: flex; flex-direction: column; }
-  .timeline-item { display: flex; gap: 12px; }
-  .timeline-line { display: flex; flex-direction: column; align-items: center; min-width: 20px; }
-  .timeline-badge { border-radius: 50%; flex-shrink: 0; }
-  .timeline-connector { flex: 1; width: 2px; background: #e4e6ef; margin: 4px 0; min-height: 24px; }
-  .timeline-content { flex: 1; }
-`;
+const installmentBadgeClass: Record<string, string> = {
+  pending: 'badge-light-warning',
+  paid: 'badge-light-success',
+  released: 'badge-light-primary',
+  overdue: 'badge-light-danger',
+  refunded: 'badge-light-secondary',
+};
+
+const PartyChip = ({
+  label,
+  participant,
+}: {
+  label: string;
+  participant?: Participant;
+}) => (
+  <div className="card border-0 shadow-xs rounded-4 h-100 bg-light">
+    <div className="card-body p-5">
+      <div className="text-muted fs-8 text-uppercase fw-bold mb-3">{label}</div>
+      <div className="d-flex align-items-center gap-3">
+        <div className="symbol symbol-50px symbol-circle">
+          {participant?.image ? (
+            <img src={participant.image} alt="" />
+          ) : (
+            <span className="symbol-label bg-light-primary text-primary fw-bolder fs-4">
+              {participant?.name?.charAt(0)?.toUpperCase() ?? '?'}
+            </span>
+          )}
+        </div>
+        <div className="min-w-0">
+          <div className="fw-bolder text-gray-900 fs-5 text-truncate">
+            {participant?.name ?? '—'}
+          </div>
+          {participant?.phone ? (
+            <div className="text-muted fs-7" dir="ltr">{participant.phone}</div>
+          ) : (
+            <div className="text-muted fs-7">—</div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const Field = ({ label, value }: { label: string; value?: string | null }) => (
+  <div>
+    <div className="text-muted fs-8 text-uppercase fw-bold mb-1">{label}</div>
+    <div className="fw-semibold text-gray-900 fs-6">{value || '—'}</div>
+  </div>
+);
 
 const Show = ({ guarantorRequest }: Props) => {
   const { t, i18n } = useTranslation();
@@ -160,6 +201,19 @@ const Show = ({ guarantorRequest }: Props) => {
   const canViewChat = hasPermission('show guarantors');
   const disputeReason =
     statusHistories.find((history) => history.to_status?.value === 'disputed')?.reason ?? null;
+
+  const installments = guarantorRequest.installments ?? [];
+  const paidInstallments = installments.filter((item) =>
+    ['paid', 'released'].includes(item.status?.value ?? ''),
+  ).length;
+  const documentsCount =
+    (guarantorRequest.media?.length ?? 0) +
+    (guarantorRequest.company_detail?.media?.length ?? 0);
+
+  const createdDate = new Date(guarantorRequest.created_at).toLocaleDateString();
+  const subtitle = isCompany
+    ? t('guarantor.subtitle_company', { date: createdDate })
+    : t('guarantor.subtitle_individual', { date: createdDate });
 
   const isValidRequesterPercentage = (value: number): boolean =>
     Number.isInteger(value) && value >= 0 && value <= 100;
@@ -243,9 +297,18 @@ const Show = ({ guarantorRequest }: Props) => {
         (resolveForm.data.resolution === 'percentage_split' &&
           !isValidRequesterPercentage(Number(resolveForm.data.requester_percentage)))));
 
+  const tabs = [
+    { key: 'overview', label: t('guarantor.overview'), icon: 'element-11' },
+    ...(isCompany ? [{ key: 'installments', label: t('guarantor.installments'), icon: 'wallet' }] : []),
+    { key: 'documents', label: t('guarantor.documents'), icon: 'file' },
+    ...(hasDisputeHistory ? [{ key: 'dispute', label: t('guarantor.dispute'), icon: 'information-5' }] : []),
+    { key: 'history', label: t('guarantor.timeline'), icon: 'time' },
+    ...(isCompany ? [{ key: 'company_details', label: t('guarantor.company_details'), icon: 'office-bag' }] : []),
+    ...(canViewChat ? [{ key: 'chat', label: t('guarantor.chat'), icon: 'message-text-2' }] : []),
+  ];
+
   return (
     <Content>
-      <style>{timelineStyles}</style>
       <Head title={`${t('guarantor.module_title_show')} #${guarantorRequest.id}`} />
       <PageTitle
         breadcrumbs={[
@@ -255,140 +318,217 @@ const Show = ({ guarantorRequest }: Props) => {
         {t('guarantor.module_title_show')}
       </PageTitle>
 
-      <div className="d-flex flex-column gap-lg-10 gap-7">
-        <KTCard className="border-0 shadow-sm">
-          <KTCardBody className="p-9">
-            <div className="d-flex justify-content-between align-items-start flex-wrap mb-6 gap-4">
-              <div>
-                <div className="d-flex align-items-center gap-2 mb-3 flex-wrap">
-                  <h1 className="fs-2 fw-bolder text-gray-900 mb-0">{guarantorRequest.title}</h1>
-                  <span className={`badge ${badgeClass} fw-bold px-3 py-2`}>{guarantorRequest.status?.label}</span>
-                  <span className="badge badge-light-info fw-bold px-3 py-2">{guarantorRequest.type?.label}</span>
-                  {currentStatus === 'overdue' && (
-                    <span className="badge badge-danger fw-bold px-3 py-2">{t('guarantor.status.overdue')}</span>
-                  )}
+      <div className="d-flex flex-column gap-7 gap-lg-10">
+        {/* Header card */}
+        <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
+          <div className="card-body p-6 p-lg-8 bg-light-primary bg-opacity-10">
+            <div className="d-flex justify-content-between align-items-start flex-wrap gap-5 mb-6">
+              <div className="d-flex align-items-start gap-4 min-w-0">
+                <div className="symbol symbol-55px symbol-circle flex-shrink-0">
+                  <span className="symbol-label bg-white text-primary shadow-sm">
+                    <KTIcon iconName={isCompany ? 'office-bag' : 'profile-user'} className="fs-2x" />
+                  </span>
                 </div>
-                <div className="text-muted fw-semibold fs-6">
-                  {new Date(guarantorRequest.created_at).toLocaleString()}
+                <div className="min-w-0">
+                  <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
+                    <h1 className="fs-2 fw-bolder text-gray-900 mb-0 text-truncate">
+                      {guarantorRequest.title}
+                    </h1>
+                    <span className={`badge ${badgeClass} rounded-pill fw-bold px-3 py-2`}>
+                      {guarantorRequest.status?.label}
+                    </span>
+                    <span className="badge badge-light-info rounded-pill fw-bold px-3 py-2">
+                      {guarantorRequest.type?.label}
+                    </span>
+                  </div>
+                  <div className="text-muted fw-semibold fs-6">{subtitle}</div>
                 </div>
               </div>
-              <div className="d-flex gap-2 flex-wrap">
-                <Link href={GuarantorDashboardController.index().url} className="btn btn-sm btn-light">
-                  <KTIcon iconName="arrow-left" className="fs-6 px-1" />
+
+              <div className="d-flex gap-2 flex-wrap align-items-center">
+                <Link
+                  href={GuarantorDashboardController.index().url}
+                  className="btn btn-sm btn-light btn-active-light-primary rounded-pill"
+                >
+                  <KTIcon iconName="arrow-left" className="fs-6" />
                   {t('back')}
                 </Link>
                 {canApproveReject && (
                   <>
-                    <button type="button" className="btn btn-sm btn-light-success" onClick={() => setAdminAction('approve')}>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-light-success rounded-pill"
+                      onClick={() => setAdminAction('approve')}
+                    >
                       {t('guarantor.approve')}
                     </button>
-                    <button type="button" className="btn btn-sm btn-light-danger" onClick={() => setAdminAction('reject')}>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-light-danger rounded-pill"
+                      onClick={() => setAdminAction('reject')}
+                    >
                       {t('guarantor.reject')}
                     </button>
                   </>
                 )}
                 {canCancel && (
-                  <button type="button" className="btn btn-sm btn-light-warning" onClick={() => setAdminAction('cancel')}>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-light-warning rounded-pill"
+                    onClick={() => setAdminAction('cancel')}
+                  >
                     {t('guarantor.cancel')}
                   </button>
                 )}
-                {canResolveDispute && (
-                  <button type="button" className="btn btn-sm btn-light-primary" onClick={() => setAdminAction('resolve')}>
-                    {t('guarantor.resolve_dispute')}
-                  </button>
-                )}
                 {canManage && (
-                  <button type="button" className="btn btn-sm btn-light-danger" onClick={confirmDelete}>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-light-danger rounded-pill"
+                    onClick={confirmDelete}
+                  >
                     {t('delete')}
                   </button>
                 )}
-              </div>
-            </div>
-
-            <div className="d-flex flex-wrap gap-6">
-              <div className="min-w-125px rounded border border-dashed border-gray-300 px-4 py-3">
-                <div className="fs-2 fw-bolder text-primary">
-                  {Number(guarantorRequest.total).toLocaleString()} <span className="fs-6 text-gray-600">{t('SAR')}</span>
-                </div>
-                <div className="fw-bold fs-6 text-gray-500">{t('guarantor.total_amount')}</div>
-              </div>
-              {isCompany && (
-                <div className="min-w-100px rounded border border-dashed border-gray-300 px-4 py-3">
-                  <div className="fs-2 fw-bolder text-gray-900">{guarantorRequest.installments?.length ?? 0}</div>
-                  <div className="fw-bold fs-6 text-gray-500">{t('guarantor.installments')}</div>
-                </div>
-              )}
-            </div>
-          </KTCardBody>
-        </KTCard>
-
-        <KTCard className="border-0 shadow-sm">
-          <div className="card-header border-0 pt-6">
-            <ul className="nav nav-stretch nav-line-tabs nav-line-tabs-2x border-transparent fs-5 fw-bold">
-              {[
-                { key: 'overview', label: t('guarantor.overview'), icon: 'element-11' },
-                ...(isCompany ? [{ key: 'installments', label: t('guarantor.installments'), icon: 'wallet' }] : []),
-                { key: 'documents', label: t('guarantor.documents'), icon: 'file' },
-                ...(hasDisputeHistory ? [{ key: 'dispute', label: t('guarantor.dispute'), icon: 'information-5' }] : []),
-                { key: 'history', label: t('timeline'), icon: 'time' },
-                ...(isCompany ? [{ key: 'company_details', label: t('guarantor.company_details'), icon: 'office-bag' }] : []),
-                ...(canViewChat ? [{ key: 'chat', label: t('guarantor.chat'), icon: 'message-text-2' }] : []),
-              ].map((tab) => (
-                <li className="nav-item" key={tab.key}>
-                  <a
-                    href="#"
-                    className={clsx('nav-link text-active-primary me-6', activeTab === tab.key && 'active')}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setActiveTab(tab.key);
-                    }}
+                {canResolveDispute && (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-danger rounded-pill fw-bold"
+                    onClick={() => setAdminAction('resolve')}
                   >
-                    <KTIcon iconName={tab.icon} className="fs-3 me-2" />
-                    {tab.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <KTCardBody className="p-9">
-            {activeTab === 'overview' && (
-              <div className="d-flex flex-column gap-6">
-                <div>
-                  <h3 className="fw-bolder mb-3">{t('description')}</h3>
-                  <p className="fs-6 text-gray-700 mb-0">{guarantorRequest.description || '—'}</p>
-                </div>
-                <div className="row g-4">
-                  <div className="col-md-6">
-                    <h4 className="fw-bold mb-2">{t('guarantor.requester')}</h4>
-                    <p className="mb-0">{guarantorRequest.requester?.name ?? '—'}</p>
-                    {guarantorRequest.requester?.phone && (
-                      <p className="text-muted mb-0">{guarantorRequest.requester.phone}</p>
-                    )}
+                    <KTIcon iconName="shield-tick" className="fs-5" />
+                    {t('guarantor.resolve_dispute')}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="row g-4">
+              <div className="col-md-4">
+                <div className="bg-white rounded-3 p-4 border border-gray-100 h-100">
+                  <div className="text-muted fs-8 text-uppercase fw-bold mb-1">
+                    {t('guarantor.total_amount')}
                   </div>
-                  <div className="col-md-6">
-                    <h4 className="fw-bold mb-2">{t('guarantor.counterparty')}</h4>
-                    <p className="mb-0">{guarantorRequest.counterparty?.name ?? '—'}</p>
-                    {guarantorRequest.counterparty?.phone && (
-                      <p className="text-muted mb-0">{guarantorRequest.counterparty.phone}</p>
-                    )}
+                  <div className="fs-3 fw-bolder text-gray-900">
+                    {Number(guarantorRequest.total).toLocaleString()}{' '}
+                    <span className="fs-6 text-muted fw-semibold">{t('SAR')}</span>
                   </div>
                 </div>
-                <div className="row g-4">
-                  <div className="col-md-4">
-                    <span className="text-muted d-block">{t('guarantor.amount')}</span>
-                    <span className="fw-bold">{Number(guarantorRequest.amount).toLocaleString()} {t('SAR')}</span>
+              </div>
+              <div className="col-md-4">
+                <div className="bg-white rounded-3 p-4 border border-gray-100 h-100">
+                  <div className="text-muted fs-8 text-uppercase fw-bold mb-1">
+                    {t('guarantor.installments')}
                   </div>
-                  <div className="col-md-4">
-                    <span className="text-muted d-block">{t('guarantor.fees')}</span>
-                    <span className="fw-bold">{Number(guarantorRequest.fees).toLocaleString()} {t('SAR')}</span>
+                  <div className="fs-3 fw-bolder text-gray-900">
+                    {isCompany
+                      ? `${paidInstallments} / ${installments.length}`
+                      : '—'}
                   </div>
-                  {guarantorRequest.admin_notes && (
-                    <div className="col-md-12">
-                      <span className="text-muted d-block">{t('guarantor.admin_notes')}</span>
-                      <span className="fw-semibold">{guarantorRequest.admin_notes}</span>
+                  {isCompany && (
+                    <div className="text-muted fs-8 mt-1">
+                      {t('guarantor.installments_paid_of_total', {
+                        paid: paidInstallments,
+                        total: installments.length,
+                        defaultValue: `${paidInstallments} of ${installments.length} paid`,
+                      })}
                     </div>
                   )}
                 </div>
+              </div>
+              <div className="col-md-4">
+                <div className="bg-white rounded-3 p-4 border border-gray-100 h-100">
+                  <div className="text-muted fs-8 text-uppercase fw-bold mb-1">
+                    {t('guarantor.documents')}
+                  </div>
+                  <div className="fs-3 fw-bolder text-gray-900">{documentsCount}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Pill tab bar */}
+          <div className="card-body pt-0 pb-5 px-6 px-lg-8 bg-white border-top border-gray-100">
+            <div className="d-flex flex-wrap gap-2 pt-5">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={clsx(
+                    'btn btn-sm rounded-pill d-inline-flex align-items-center gap-2 px-4 py-2 fw-bold',
+                    activeTab === tab.key
+                      ? 'btn-primary'
+                      : 'btn-light text-gray-600 btn-active-light-primary',
+                  )}
+                  onClick={() => setActiveTab(tab.key)}
+                >
+                  <KTIcon iconName={tab.icon} className="fs-4" />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Tab content */}
+        <KTCard className="border-0 shadow-sm rounded-4">
+          <KTCardBody className="p-6 p-lg-9">
+            {activeTab === 'overview' && (
+              <div className="d-flex flex-column gap-6">
+                <div>
+                  <div className="text-muted fs-8 text-uppercase fw-bold mb-2">
+                    {t('description')}
+                  </div>
+                  <p className={clsx('fs-6 mb-0 lh-lg', guarantorRequest.description ? 'text-gray-800' : 'text-muted')}>
+                    {guarantorRequest.description || '—'}
+                  </p>
+                </div>
+
+                <div className="row g-4">
+                  <div className="col-md-6">
+                    <PartyChip label={t('guarantor.requester')} participant={guarantorRequest.requester} />
+                  </div>
+                  <div className="col-md-6">
+                    <PartyChip label={t('guarantor.counterparty')} participant={guarantorRequest.counterparty} />
+                  </div>
+                </div>
+
+                <div className="separator separator-dashed my-1" />
+
+                <div className="row g-4">
+                  <div className="col-md-4">
+                    <div className="bg-light rounded-3 p-4 h-100">
+                      <div className="text-muted fs-8 text-uppercase fw-bold mb-1">{t('guarantor.amount')}</div>
+                      <div className="fw-bolder fs-4 text-gray-900">
+                        {Number(guarantorRequest.amount).toLocaleString()} {t('SAR')}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-md-4">
+                    <div className="bg-light rounded-3 p-4 h-100">
+                      <div className="text-muted fs-8 text-uppercase fw-bold mb-1">{t('guarantor.fees')}</div>
+                      <div className="fw-bolder fs-4 text-gray-900">
+                        {Number(guarantorRequest.fees).toLocaleString()} {t('SAR')}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-md-4">
+                    <div className="bg-light-primary bg-opacity-50 rounded-3 p-4 h-100">
+                      <div className="text-muted fs-8 text-uppercase fw-bold mb-1">{t('guarantor.total')}</div>
+                      <div className="fw-bolder fs-4 text-primary">
+                        {Number(guarantorRequest.total).toLocaleString()} {t('SAR')}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {guarantorRequest.admin_notes && (
+                  <div className="bg-light rounded-3 p-4">
+                    <div className="text-muted fs-8 text-uppercase fw-bold mb-1">
+                      {t('guarantor.admin_notes')}
+                    </div>
+                    <div className="fw-semibold text-gray-800">{guarantorRequest.admin_notes}</div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -406,48 +546,73 @@ const Show = ({ guarantorRequest }: Props) => {
 
             {activeTab === 'installments' && isCompany && (
               <>
-                {!guarantorRequest.installments?.length ? (
+                {!installments.length ? (
                   <p className="text-muted fst-italic mb-0">{t('guarantor.no_installments')}</p>
                 ) : (
                   <div className="table-responsive">
-                    <table className="table table-row-bordered align-middle gs-0 gy-4">
+                    <table className="table align-middle table-row-dashed gs-0 gy-4">
                       <thead>
-                        <tr className="fw-bold text-muted bg-light">
-                          <th>#</th>
-                          <th>{t('guarantor.amount')}</th>
-                          <th>{t('guarantor.due_date')}</th>
-                          <th>{t('status')}</th>
-                          <th>{t('guarantor.paid_at')}</th>
-                          <th>{t('guarantor.released_at')}</th>
-                          {canManage && <th>{t('actions')}</th>}
+                        <tr className="text-muted fw-bold fs-7 text-uppercase">
+                          <th className="min-w-50px">#</th>
+                          <th className="min-w-125px text-end">{t('guarantor.amount')}</th>
+                          <th className="min-w-125px">{t('guarantor.due_date')}</th>
+                          <th className="min-w-100px">{t('status')}</th>
+                          <th className="min-w-125px">{t('guarantor.paid_at')}</th>
+                          <th className="min-w-125px">{t('guarantor.released_at')}</th>
+                          {canManage && <th className="min-w-100px text-end">{t('actions')}</th>}
                         </tr>
                       </thead>
                       <tbody>
-                        {guarantorRequest.installments.map((installment) => (
-                          <tr key={installment.id}>
-                            <td>{installment.order}</td>
-                            <td>{Number(installment.amount).toLocaleString()} {t('SAR')}</td>
-                            <td>{installment.due_date}</td>
-                            <td>
-                              <span className="badge badge-light fw-bold">{installment.status?.label}</span>
-                            </td>
-                            <td>{installment.paid_at ? new Date(installment.paid_at).toLocaleString() : '—'}</td>
-                            <td>{installment.released_at ? new Date(installment.released_at).toLocaleString() : '—'}</td>
-                            {canManage && (
-                              <td>
-                                {installment.status?.value === 'paid' && (
-                                  <button
-                                    type="button"
-                                    className="btn btn-sm btn-light-success"
-                                    onClick={() => releaseInstallment(installment.id)}
-                                  >
-                                    {t('guarantor.release_installment')}
-                                  </button>
-                                )}
+                        {installments.map((installment) => {
+                          const statusValue = installment.status?.value ?? '';
+                          return (
+                            <tr key={installment.id}>
+                              <td className="fw-bold text-gray-800">{installment.order}</td>
+                              <td className="text-end fw-bolder text-gray-900">
+                                {Number(installment.amount).toLocaleString()} {t('SAR')}
                               </td>
-                            )}
-                          </tr>
-                        ))}
+                              <td className="text-gray-700">
+                                {installment.due_date
+                                  ? new Date(installment.due_date).toLocaleDateString()
+                                  : '—'}
+                              </td>
+                              <td>
+                                <span
+                                  className={clsx(
+                                    'badge rounded-pill fw-bold px-3 py-2',
+                                    installmentBadgeClass[statusValue] ?? 'badge-light',
+                                  )}
+                                >
+                                  {installment.status?.label}
+                                </span>
+                              </td>
+                              <td className="text-muted fs-7">
+                                {installment.paid_at
+                                  ? new Date(installment.paid_at).toLocaleString()
+                                  : '—'}
+                              </td>
+                              <td className="text-muted fs-7">
+                                {installment.released_at
+                                  ? new Date(installment.released_at).toLocaleString()
+                                  : '—'}
+                              </td>
+                              {canManage && (
+                                <td className="text-end">
+                                  {statusValue === 'paid' && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-light-success rounded-pill"
+                                      onClick={() => releaseInstallment(installment.id)}
+                                    >
+                                      <KTIcon iconName="check" className="fs-5" />
+                                      {t('guarantor.release')}
+                                    </button>
+                                  )}
+                                </td>
+                              )}
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -460,86 +625,56 @@ const Show = ({ guarantorRequest }: Props) => {
                 {!statusHistories.length ? (
                   <p className="text-muted fst-italic mb-0">{t('guarantor.no_history')}</p>
                 ) : (
-                  <div className="timeline">
+                  <div className="d-flex flex-column">
                     {statusHistories.map((history, index) => (
-                      <div key={history.id} className="timeline-item mb-4">
-                        <div className="timeline-line">
+                      <div key={history.id} className="d-flex gap-4">
+                        <div className="d-flex flex-column align-items-center">
                           <div
-                            className="timeline-badge"
+                            className="rounded-circle border border-3 border-white shadow-sm"
                             style={{
-                              backgroundColor: history.to_status.color,
-                              width: '14px',
-                              height: '14px',
-                              marginTop: '8px',
-                              border: '2px solid white',
-                              boxShadow: `0 0 0 2px ${history.to_status.color}`,
+                              width: 14,
+                              height: 14,
+                              backgroundColor: history.to_status.color || '#7239ea',
+                              marginTop: 6,
                             }}
                           />
-                          {index < statusHistories.length - 1 && <div className="timeline-connector" />}
+                          {index < statusHistories.length - 1 && (
+                            <div className="flex-grow-1 w-2px bg-gray-200 my-1" style={{ minHeight: 40 }} />
+                          )}
                         </div>
-
-                        <div className="timeline-content card card-bordered mb-3">
-                          <div className="card-body py-3 px-4">
-                            <div className="d-flex align-items-center gap-2 flex-wrap mb-2">
-                              {history.from_status ? (
-                                <span
-                                  className="badge badge-outline"
-                                  style={{
-                                    color: history.from_status.color,
-                                    border: `1px solid ${history.from_status.color}`,
-                                    backgroundColor: `${history.from_status.color}20`,
-                                  }}
-                                >
-                                  {history.from_status.label}
-                                </span>
-                              ) : (
-                                <span className="badge badge-light-secondary">{t('guarantor.created')}</span>
-                              )}
-
-                              <i className={`bi ${isRTL ? 'bi-arrow-left' : 'bi-arrow-right'} text-muted fs-7`} />
-
-                              <span
-                                className="badge text-white"
-                                style={{ backgroundColor: history.to_status.color }}
-                              >
-                                {history.to_status.label}
-                              </span>
-                            </div>
-
-                            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                              <div className="d-flex align-items-center gap-2">
-                                <div className="symbol symbol-30px">
-                                  {history.actor?.image ? (
-                                    <img src={history.actor.image} className="rounded-circle" alt="" />
-                                  ) : (
-                                    <div className="symbol-label bg-light-primary text-primary fw-bold fs-7">
-                                      {history.actor?.name?.charAt(0)?.toUpperCase() ?? '?'}
-                                    </div>
-                                  )}
-                                </div>
-                                <span className="text-muted fs-7">
-                                  {history.actor?.name ?? t('guarantor.system')}
-                                </span>
-                              </div>
-                              <span className="text-muted fs-8">
-                                {new Date(history.created_at).toLocaleString()}
-                              </span>
-                            </div>
-
-                            {history.reason && (
-                              <div className="mt-2 text-muted fs-7">
-                                <span className="fw-bold">{t('guarantor.reason')}: </span>
-                                {history.reason}
-                              </div>
-                            )}
-
-                            {history.notes && (
-                              <div className="mt-1 text-muted fs-7">
-                                <span className="fw-bold">{t('guarantor.notes')}: </span>
-                                {history.notes}
-                              </div>
-                            )}
+                        <div className="pb-6 flex-grow-1">
+                          <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
+                            <span className="badge badge-light rounded-pill px-3 py-2 fw-bold">
+                              {history.from_status?.label ?? t('guarantor.created')}
+                            </span>
+                            <i className={`bi ${isRTL ? 'bi-arrow-left' : 'bi-arrow-right'} text-muted fs-8`} />
+                            <span
+                              className="badge rounded-pill px-3 py-2 fw-bold text-white"
+                              style={{ backgroundColor: history.to_status.color || '#7239ea' }}
+                            >
+                              {history.to_status.label}
+                            </span>
                           </div>
+                          <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                            <span className="fw-semibold text-gray-800 fs-7">
+                              {history.actor?.name ?? t('guarantor.system')}
+                            </span>
+                            <span className="text-muted fs-8">
+                              {new Date(history.created_at).toLocaleString()}
+                            </span>
+                          </div>
+                          {history.reason && (
+                            <div className="text-muted fs-7">
+                              <span className="fw-bold text-gray-600">{t('guarantor.reason')}: </span>
+                              {history.reason}
+                            </div>
+                          )}
+                          {history.notes && (
+                            <div className="text-muted fs-7">
+                              <span className="fw-bold text-gray-600">{t('guarantor.notes')}: </span>
+                              {history.notes}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -549,30 +684,95 @@ const Show = ({ guarantorRequest }: Props) => {
             )}
 
             {activeTab === 'company_details' && isCompany && guarantorRequest.company_detail && (
-              <div className="row g-4">
-                <div className="col-md-6">
-                  <span className="text-muted d-block">{t('guarantor.company_name')}</span>
-                  <span className="fw-bold">{guarantorRequest.company_detail.company_name}</span>
+              <div className="d-flex flex-column gap-6">
+                <div className="card border-0 bg-light rounded-4">
+                  <div className="card-body p-5">
+                    <h4 className="fw-bolder text-gray-900 mb-5">{t('guarantor.company_details')}</h4>
+                    <div className="row g-5">
+                      <div className="col-md-6">
+                        <Field
+                          label={t('guarantor.company_name')}
+                          value={guarantorRequest.company_detail.company_name}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <Field
+                          label={t('guarantor.commercial_register')}
+                          value={guarantorRequest.company_detail.commercial_register}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <Field
+                          label={t('guarantor.authorized_name')}
+                          value={guarantorRequest.company_detail.authorized_name}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <Field
+                          label={t('guarantor.authorized_id_number')}
+                          value={guarantorRequest.company_detail.authorized_id_number}
+                        />
+                      </div>
+                      {guarantorRequest.company_detail.authorization_type && (
+                        <div className="col-md-6">
+                          <Field
+                            label={t('guarantor.authorization_type_label', {
+                              defaultValue: 'Authorization type',
+                            })}
+                            value={guarantorRequest.company_detail.authorization_type.label}
+                          />
+                        </div>
+                      )}
+                      {(guarantorRequest.company_detail.region?.title || guarantorRequest.company_detail.city?.title) && (
+                        <div className="col-md-6">
+                          <Field
+                            label={t('guarantor.location', { defaultValue: 'Location' })}
+                            value={[
+                              guarantorRequest.company_detail.city?.title,
+                              guarantorRequest.company_detail.region?.title,
+                            ].filter(Boolean).join(', ')}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="col-md-6">
-                  <span className="text-muted d-block">{t('guarantor.commercial_register')}</span>
-                  <span className="fw-bold">{guarantorRequest.company_detail.commercial_register}</span>
-                </div>
-                <div className="col-md-6">
-                  <span className="text-muted d-block">{t('guarantor.authorized_name')}</span>
-                  <span className="fw-bold">{guarantorRequest.company_detail.authorized_name}</span>
-                </div>
-                <div className="col-md-6">
-                  <span className="text-muted d-block">{t('guarantor.authorized_id_number')}</span>
-                  <span className="fw-bold">{guarantorRequest.company_detail.authorized_id_number}</span>
-                </div>
-                <div className="col-md-6">
-                  <span className="text-muted d-block">{t('guarantor.requester_iban')}</span>
-                  <span className="fw-bold">{guarantorRequest.company_detail.requester_iban ?? '—'}</span>
-                </div>
-                <div className="col-md-6">
-                  <span className="text-muted d-block">{t('guarantor.counterparty_iban')}</span>
-                  <span className="fw-bold">{guarantorRequest.company_detail.counterparty_iban ?? '—'}</span>
+
+                <div className="card border border-dashed border-gray-300 rounded-4 bg-white">
+                  <div className="card-body p-5">
+                    <div className="d-flex align-items-center gap-2 mb-5">
+                      <KTIcon iconName="bank" className="fs-2 text-primary" />
+                      <h4 className="fw-bolder text-gray-900 mb-0">
+                        {t('guarantor.requester_account')} / {t('guarantor.counterparty_account')}
+                      </h4>
+                    </div>
+                    <div className="row g-5">
+                      <div className="col-md-6">
+                        <Field
+                          label={t('guarantor.requester_iban')}
+                          value={guarantorRequest.company_detail.requester_iban}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <Field
+                          label={t('guarantor.account_holder')}
+                          value={guarantorRequest.company_detail.requester_account_holder}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <Field
+                          label={t('guarantor.counterparty_iban')}
+                          value={guarantorRequest.company_detail.counterparty_iban}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <Field
+                          label={t('guarantor.account_holder')}
+                          value={guarantorRequest.company_detail.counterparty_account_holder}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -648,7 +848,7 @@ const Show = ({ guarantorRequest }: Props) => {
           )}
           {adminAction === 'resolve' && (
             <>
-              <div className="mb-4 rounded border border-dashed border-gray-300 bg-light p-4">
+              <div className="mb-4 rounded-3 border border-dashed border-gray-300 bg-light p-4">
                 <span className="text-muted d-block fs-7 mb-1">{t('guarantor.dispute_opened_reason')}</span>
                 <span className="fw-semibold text-gray-800">
                   {disputeReason || t('guarantor.no_dispute_reason')}

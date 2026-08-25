@@ -160,4 +160,10 @@ return [
     'details' => 'تفصیلات',
     'created' => 'بنایا گیا',
     'system' => 'سسٹم',
+    'authorization_type_label' => 'اختیار کی قسم',
+    'location' => 'مقام',
+    'installments_paid_of_total' => ':paid میں سے :total ادا شدہ',
+    'documents_count' => 'دستاویزات',
+    'subtitle_company' => 'کمپنی ضمانت · بنایا گیا :date',
+    'subtitle_individual' => 'انفرادی ضمانت · بنایا گیا :date',
 ];

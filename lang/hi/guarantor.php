@@ -160,4 +160,10 @@ return [
     'details' => 'विवरण',
     'created' => 'बनाया गया',
     'system' => 'सिस्टम',
+    'authorization_type_label' => 'अधिकार प्रकार',
+    'location' => 'स्थान',
+    'installments_paid_of_total' => ':paid में से :total भुगतान',
+    'documents_count' => 'दस्तावेज़',
+    'subtitle_company' => 'कंपनी गारंटी · बनाया गया :date',
+    'subtitle_individual' => 'व्यक्तिगत गारंटी · बनाया गया :date',
 ];

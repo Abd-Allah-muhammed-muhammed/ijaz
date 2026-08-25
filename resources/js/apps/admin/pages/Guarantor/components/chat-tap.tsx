@@ -51,8 +51,11 @@ const ChatTap = ({ guarantorRequestId, conversation }: Props) => {
 
   return (
     <Row>
-      <Col xl={12} className="transition-all duration-300">
-        <div style={{ minHeight: 520, height: 'min(70vh, 720px)' }} className="rounded-4 overflow-hidden shadow-lg">
+      <Col xl={12}>
+        <div
+          style={{ minHeight: 520, height: 'min(70vh, 720px)' }}
+          className="rounded-4 overflow-hidden border border-gray-100 shadow-sm"
+        >
           <ConversationContent
             conversation={activeConversation}
             endpoints={endpoints}
@@ -60,7 +63,7 @@ const ChatTap = ({ guarantorRequestId, conversation }: Props) => {
             showComposer={canReply}
             syncSidebar={false}
             emptyFallback={(
-              <Card className="shadow-lg border-0 rounded-4 h-100 bg-white">
+              <Card className="shadow-sm border-0 rounded-4 h-100 bg-white">
                 <Card.Body className="d-flex align-items-center justify-content-center py-15">
                   <div className="text-center">
                     <h3 className="fw-bold text-gray-900 mb-2">{t('conversation')}</h3>

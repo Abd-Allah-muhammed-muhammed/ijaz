@@ -160,4 +160,10 @@ return [
     'details' => 'التفاصيل',
     'created' => 'تم الإنشاء',
     'system' => 'النظام',
+    'authorization_type_label' => 'نوع التفويض',
+    'location' => 'الموقع',
+    'installments_paid_of_total' => ':paid من :total مدفوعة',
+    'documents_count' => 'المستندات',
+    'subtitle_company' => 'ضمان شركة · أُنشئ :date',
+    'subtitle_individual' => 'ضمان فردي · أُنشئ :date',
 ];
