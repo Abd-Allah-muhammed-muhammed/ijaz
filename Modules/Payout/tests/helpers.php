@@ -1,0 +1,50 @@
+<?php
+
+use App\Models\Admin;
+use Illuminate\Http\UploadedFile;
+use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
+use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
+use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
+use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
+use Spatie\Permission\Models\Permission;
+
+/**
+ * @param  list<string>  $permissions
+ */
+function createPayoutDashboardAdmin(array $permissions = ['confirm payouts']): Admin
+{
+    foreach ($permissions as $permission) {
+        Permission::firstOrCreate([
+            'name' => $permission,
+            'guard_name' => 'admin',
+        ]);
+    }
+
+    $admin = Admin::query()->create([
+        'name' => 'Payout Dashboard Admin',
+        'phone' => fake()->unique()->numerify('05########'),
+        'email' => fake()->unique()->safeEmail(),
+        'password' => 'password',
+        'language' => 'en',
+    ]);
+
+    $admin->givePermissionTo($permissions);
+
+    return $admin;
+}
+
+function withoutPayoutDashboardLocaleMiddleware(): void
+{
+    test()->withoutMiddleware([
+        LocaleSessionRedirect::class,
+        LaravelLocalizationRedirectFilter::class,
+        LaravelLocalizationRoutes::class,
+        LaravelLocalizationViewPath::class,
+    ]);
+    test()->withoutVite();
+}
+
+function payoutTransferProofImage(): UploadedFile
+{
+    return UploadedFile::fake()->image('transfer-proof.jpg', 200, 200);
+}

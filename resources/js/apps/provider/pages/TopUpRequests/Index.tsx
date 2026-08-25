@@ -11,6 +11,7 @@ import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
 import {OperationStatusEnum} from "@/Enums/Enums";
 import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/TopUpController";
+import {RechargeTrigger} from '@/apps/provider/components/wallet/WalletQuickActions';
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
 
 
@@ -48,7 +49,7 @@ const Index = (
   };
   return (
     <>
-      <Head title={t('top_up_requests')}/>
+      <Head title={t('recharge_requests')}/>
       <PageTitle breadcrumbs={[
         // {
         //   title: 'User Management',
@@ -63,7 +64,7 @@ const Index = (
           isActive: false,
         },
       ]}>
-        {t('top_up_requests')}
+        {t('recharge_requests')}
       </PageTitle>
       <ToolbarWrapper/>
       <Content>
@@ -144,14 +145,9 @@ const Index = (
                   : <></>,
               },
             ]}
-            // addButton={
-            //   <Link
-            //     href={TopUpController.create().url}
-            //     className="btn btn-primary"
-            //   >
-            //     <KTIcon iconName='plus' className='fs-2'/>
-            //   </Link>
-            // }
+            addButton={
+              <RechargeTrigger reloadOnly={['rows']} />
+            }
           />
         </KTCard>
       </Content>

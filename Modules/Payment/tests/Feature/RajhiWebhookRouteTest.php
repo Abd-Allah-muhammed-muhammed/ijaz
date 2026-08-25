@@ -13,7 +13,7 @@ beforeEach(function () {
 
 test('webhook returns status 1 on success', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $this->postJson(route('payment.rajhi.webhook'), rajhiWebhookPayload($payment->id))
@@ -41,7 +41,7 @@ test('webhook returns status 1 when payment already processed (idempotency)', fu
     Event::fake([PaymentCompleted::class, PaymentFailed::class]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100, [
         'status' => PaymentStatusEnum::Accepted,
         'transaction_id' => 'already-processed',
@@ -63,7 +63,7 @@ test('webhook fires PaymentCompleted event on CAPTURED result', function () {
     Event::fake([PaymentCompleted::class, PaymentFailed::class]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $this->postJson(route('payment.rajhi.webhook'), rajhiWebhookPayload($payment->id))->assertOk();
@@ -76,7 +76,7 @@ test('webhook fires PaymentFailed event on NOT CAPTURED result', function () {
     Event::fake([PaymentCompleted::class, PaymentFailed::class]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $this->postJson(route('payment.rajhi.webhook'), rajhiWebhookPayload($payment->id, 'NOT CAPTURED'))->assertOk();

@@ -1,0 +1,11 @@
+{
+    "name": "Payout",
+    "alias": "payout",
+    "description": "Payout requests — ledger of money that must physically leave the platform",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Payout\\Providers\\PayoutServiceProvider"
+    ],
+    "files": []
+}

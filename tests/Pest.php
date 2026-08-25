@@ -57,6 +57,10 @@ pest()->extend(TestCase::class)
     ->use(LazilyRefreshDatabase::class)
     ->in('../Modules/Reviews/tests');
 
+pest()->extend(TestCase::class)
+    ->use(LazilyRefreshDatabase::class)
+    ->in('../Modules/Payout/tests');
+
 require_once __DIR__.'/../Modules/Chat/tests/helpers.php';
 require_once __DIR__.'/../Modules/Wallet/tests/helpers.php';
 require_once __DIR__.'/../Modules/Payment/tests/helpers.php';
@@ -67,6 +71,7 @@ require_once __DIR__.'/../Modules/Reviews/tests/helpers.php';
 require_once __DIR__.'/../Modules/Classifieds/tests/helpers.php';
 require_once __DIR__.'/../Modules/Support/tests/helpers.php';
 require_once __DIR__.'/../Modules/Cms/tests/helpers.php';
+require_once __DIR__.'/../Modules/Payout/tests/helpers.php';
 require_once __DIR__.'/Helpers/orders.php';
 
 /*

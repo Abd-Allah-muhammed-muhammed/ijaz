@@ -51,6 +51,7 @@ class WithdrawRequestRepository implements WithdrawRequestRepositoryInterface
         $search = WalletSearch::normalize($request->input('search'));
 
         return $owner->withdrawRequests()
+            ->with('payoutRequest')
             ->when($search, function (Builder $query) use ($search): void {
                 $query->where(function (Builder $inner) use ($search): void {
                     $inner->where('id', 'like', "%{$search}%")
@@ -64,7 +65,7 @@ class WithdrawRequestRepository implements WithdrawRequestRepositoryInterface
     public function paginateAll(Request $request): LengthAwarePaginator
     {
         return WithdrawRequest::query()
-            ->with('user')
+            ->with(['user', 'payoutRequest'])
             ->when($request->input('search'), function (Builder $query, mixed $search) {
                 $search = (string) $search;
 

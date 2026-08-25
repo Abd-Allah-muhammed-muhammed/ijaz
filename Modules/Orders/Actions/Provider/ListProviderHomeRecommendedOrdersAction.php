@@ -16,8 +16,8 @@ class ListProviderHomeRecommendedOrdersAction
     /**
      * @return Collection<int, Order>
      */
-    public function handle(Provider $provider, int $limit = 10): Collection
+    public function handle(Provider $provider, int $limit = 10, ?array $categoryIds = null): Collection
     {
-        return $this->orders->listRecommendedForProviderHome($provider, $limit);
+        return $this->orders->listRecommendedForProviderHome($provider, $limit, $categoryIds);
     }
 }

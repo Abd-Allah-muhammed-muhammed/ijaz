@@ -22,8 +22,8 @@ use Modules\Marketplace\Models\Skill;
  * Intentional URL/output changes after this work:
  * - Category: icon is stored on the public disk the accessor reads, so icon_url points
  *   at an existing file (previously store() used the default disk while iconUrl used public).
- * - Banner: empty image returns asset('media/avatars/blank.png') instead of asset(null)
- *   from the undeclared $default_image property.
+ * - Banner: empty/missing image returns null (no avatar placeholder) so a missing
+ *   banner file cannot masquerade as a real banner on Home/API.
  */
 test('category icon url resolves correctly after upload', function (): void {
     // Force a non-public default so the old StoreCategoryAction::store('categories')
@@ -53,15 +53,14 @@ test('category icon url resolves correctly after upload', function (): void {
 });
 
 test('banner returns a valid default image when none is set', function (): void {
-    // image is NOT NULL in DB; exercise the accessor with a blank in-memory value
-    // (the bug was undeclared $default_image used when image is empty).
+    // image is NOT NULL in DB; exercise the accessor with a blank in-memory value.
+    // A banner has no meaningful placeholder — missing file/path must be null, not the avatar silhouette.
     $banner = new Banner(['link' => 'https://example.com', 'image' => null]);
 
     $url = $banner->image_url;
 
-    expect($url)->toBeString()
-        ->and($url)->not->toBeEmpty()
-        ->and($url)->toBe(asset('media/avatars/blank.png'));
+    expect($url)->toBeNull()
+        ->and($url)->not->toBe(asset('media/avatars/blank.png'));
 });
 
 test('failed provider logo update preserves the old logo', function (): void {

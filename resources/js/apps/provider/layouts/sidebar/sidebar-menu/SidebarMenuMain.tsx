@@ -63,7 +63,7 @@ const SidebarMenuMain = () => {
       <SidebarMenuItem
         isActive={matchUrl(TopUpController.index().url)}
         to={TopUpController.index().url}
-        title={t('top_up_requests')}
+        title={t('recharge_requests')}
         fontIcon='bi-chat-left'
         icon='two-credit-cart'
       />

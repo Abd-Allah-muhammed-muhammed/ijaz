@@ -124,7 +124,7 @@ export default function Table<T extends Model>(
               <tr>
                 <td colSpan={headers.length}>
                   <div className='d-flex text-center w-100 align-content-center justify-content-center'>
-                    No matching records found
+                    {t('no_matching_records_found')}
                   </div>
                 </td>
               </tr>

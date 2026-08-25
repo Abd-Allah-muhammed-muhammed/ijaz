@@ -34,12 +34,13 @@ credit/debit.
 
 ### Note on reachability
 
-No production Action currently writes `CancelledByProvider` /
-`CancelledByClient`. Offer cancel (`UpdateOfferStatusAction`) is blocked once
-the offer is `Paid` and resets the order to `New` (pre-payment only).
-`CancelOrderPaymentAction` is the wallet primitive to compose into a future
-cancel-after-payment status transition. It refuses orders with
-`wallet_settled_at` set so settlement cannot be undone.
+`OrderController::cancel` (user API and provider dashboard) is live for
+`InProgress` orders. It transitions to `CancelledByClient` /
+`CancelledByProvider`, reverses wallet holds via `CancelOrderPaymentAction`,
+and notifies the other party. Offer cancel (`UpdateOfferStatusAction`) remains
+blocked once the offer is `Paid` and resets the order to `New` (pre-payment only).
+`CancelOrderPaymentAction` refuses orders with `wallet_settled_at` set so
+settlement cannot be undone.
 
 ### When Adfa Pay lands
 

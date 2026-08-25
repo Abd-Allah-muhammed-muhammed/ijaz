@@ -2,19 +2,24 @@
 
 namespace Modules\Orders\Listeners;
 
-use Illuminate\Support\Facades\DB;
-use Modules\Orders\Enums\OfferStatusEnum;
-use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Actions\Offer\CompleteOrderPaymentAction;
+use Modules\Orders\Actions\Offer\RejectOrderPaymentAmountMismatchAction;
+use Modules\Orders\Actions\Offer\ValidateOrderPaymentAmountAction;
 use Modules\Orders\Models\OrderOffer;
 use Modules\Payment\Events\PaymentCompleted;
-use Modules\Wallet\Services\WalletService;
+use Throwable;
 
 class HandleOrderPaymentCompleted
 {
     public function __construct(
-        private readonly WalletService $walletService,
+        private readonly ValidateOrderPaymentAmountAction $validateOrderPaymentAmount,
+        private readonly CompleteOrderPaymentAction $completeOrderPayment,
+        private readonly RejectOrderPaymentAmountMismatchAction $rejectOrderPaymentAmountMismatch,
     ) {}
 
+    /**
+     * @throws Throwable
+     */
     public function handle(PaymentCompleted $event): void
     {
         $payment = $event->payment;
@@ -23,30 +28,17 @@ class HandleOrderPaymentCompleted
             return;
         }
 
-        DB::transaction(function () use ($payment) {
-            $offer = $payment->product;
-            $order = $offer->order;
+        $offer = $payment->product;
+        $order = $offer->order;
 
-            $offer->update(['status' => OfferStatusEnum::Paid]);
-            $order->update([
-                'status' => OrderStatusEnum::InProgress,
-                'price' => $payment->amount,
-            ]);
+        $validation = $this->validateOrderPaymentAmount->handle($order, $offer, $payment);
 
-            $this->walletService->addPendingDebit(
-                owner: $payment->user,
-                amount: $payment->amount,
-                operation: $offer,
-                description: "Order payment — OrderOffer#{$offer->id}",
-            );
+        if (! $validation->isValid || $validation->fees === null) {
+            $this->rejectOrderPaymentAmountMismatch->handle($payment, $order, $offer, $validation);
 
-            $this->walletService->adjustPending(
-                owner: $offer->provider,
-                creditDelta: $order->price,
-                debitDelta: $order->provider_fees,
-                operation: $offer,
-                description: "Order payment received — OrderOffer#{$offer->id}",
-            );
-        });
+            return;
+        }
+
+        $this->completeOrderPayment->handle($order, $offer, $payment, $validation->fees);
     }
 }

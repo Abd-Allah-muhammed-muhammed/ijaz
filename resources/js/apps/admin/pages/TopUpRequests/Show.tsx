@@ -135,7 +135,8 @@ const Show = ({row,paymentResponse}: Props) => {
               </dl>
             </KTCard>
             {
-              canEdit && row.status.value == OperationStatusEnum.Pending &&
+              // Online top-ups are payment-owned — confirmed by the gateway callback only.
+              canEdit && row.status.value == OperationStatusEnum.Pending && row.payment_method?.value !== 'online' &&
               <KTCard className="p-4">
                 <div className="d-flex gap-2">
                   <textarea

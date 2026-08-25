@@ -45,13 +45,13 @@ class CancelOrderAction
                 throw new OrdersException('you can not cancel this order', Response::HTTP_UNPROCESSABLE_ENTITY);
             }
 
+            $this->reverseOrderPaymentHolds->handle($order);
+
             $order = $this->orders->update($order, [
                 'status' => $nextStatus,
                 'cancellation_reason' => $data->reason,
                 'cancelled_at' => now(),
             ]);
-
-            $this->reverseOrderPaymentHolds->handle($order);
 
             $order->loadMissing(['user', 'provider']);
             $otherParty = $isUser ? $order->provider : $order->user;

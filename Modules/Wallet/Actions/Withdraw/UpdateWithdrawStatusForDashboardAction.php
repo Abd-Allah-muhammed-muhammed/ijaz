@@ -4,6 +4,7 @@ namespace Modules\Wallet\Actions\Withdraw;
 
 use App\Enums\OperationStatusEnum;
 use Illuminate\Support\Facades\DB;
+use Modules\Payout\Services\PayoutService;
 use Modules\Wallet\Contracts\Repositories\WithdrawRequestRepositoryInterface;
 use Modules\Wallet\Exceptions\WalletException;
 use Modules\Wallet\Models\WithdrawRequest;
@@ -15,6 +16,7 @@ class UpdateWithdrawStatusForDashboardAction
     public function __construct(
         private readonly WithdrawRequestRepositoryInterface $repository,
         private readonly WalletService $walletService,
+        private readonly PayoutService $payoutService,
     ) {}
 
     public function handle(
@@ -46,6 +48,15 @@ class UpdateWithdrawStatusForDashboardAction
                 request: $withdrawRequest,
                 approved: $approved,
             );
+
+            if ($approved && $withdrawRequest->user !== null) {
+                $this->payoutService->createForOperation(
+                    operation: $withdrawRequest,
+                    recipient: $withdrawRequest->user,
+                    amount: (float) $withdrawRequest->amount,
+                    makerAdminId: $adminId,
+                );
+            }
 
             if (
                 $previousStatus !== $status

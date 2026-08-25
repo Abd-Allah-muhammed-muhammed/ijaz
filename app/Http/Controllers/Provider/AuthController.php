@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Provider\Auth\LoginRequest;
 use App\Http\Requests\Provider\Auth\UpdateProfileRequest;
 use App\Http\Resources\Dashboard\ProviderResource;
+use App\Models\Provider;
 use App\Services\Auth\ProviderAuthService;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -20,8 +21,10 @@ use Modules\Geo\Services\CityService;
 use Modules\Geo\Services\RegionService;
 use Modules\Marketplace\Http\Resources\Dashboard\ProviderTypeResource;
 use Modules\Marketplace\Services\ProviderTypeService;
+use Modules\Payout\Actions\AttachAmountInTransferToWalletAction;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionCollection;
 use Modules\Wallet\Support\WalletSearch;
+use Modules\Wallet\Support\WalletTransactionQueryFilters;
 use Throwable;
 
 class AuthController extends Controller
@@ -32,6 +35,7 @@ class AuthController extends Controller
         private readonly ProviderTypeService $providerTypeService,
         private readonly RegionService $regionService,
         private readonly CityService $cityService,
+        private readonly AttachAmountInTransferToWalletAction $attachAmountInTransferToWalletAction,
     ) {}
 
     public function loginForm()
@@ -74,6 +78,7 @@ class AuthController extends Controller
             'providerType',
             'media',
         ]);
+        $this->attachAmountInTransfer($provider);
 
         return inertia('Provider/Auth/Profile/Index', [
             'provider' => fn () => ProviderResource::make($provider),
@@ -115,6 +120,7 @@ class AuthController extends Controller
         $provider->load([
             'wallet',
         ]);
+        $this->attachAmountInTransfer($provider);
 
         return inertia('Provider/Auth/Profile/wallet', [
             'provider' => function () use ($provider) {
@@ -129,6 +135,8 @@ class AuthController extends Controller
                 $provider
                     ->wallet
                     ->transactions()
+                    ->tap(fn ($query) => WalletTransactionQueryFilters::excludeInternalWithdrawRows($query))
+                    ->tap(fn ($query) => WalletTransactionQueryFilters::withOperationForStatus($query))
                     ->latest()
                     ->when(WalletSearch::normalize($request->input('search')), function ($query, string $search): void {
                         $query->where(function (Builder $q) use ($search): void {
@@ -157,6 +165,15 @@ class AuthController extends Controller
         ]);
 
         return redirect()->to($url);
+    }
+
+    /**
+     * Attach the summed in-progress payout amount onto the loaded wallet so
+     * WalletResource can expose `amount_in_transfer` without querying Eloquent.
+     */
+    private function attachAmountInTransfer(Provider $provider): void
+    {
+        $this->attachAmountInTransferToWalletAction->handle($provider);
     }
 
     /**

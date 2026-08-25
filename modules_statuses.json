@@ -14,5 +14,6 @@
     "Marketplace": true,
     "Orders": true,
     "Settings": true,
-    "Reviews": true
+    "Reviews": true,
+    "Payout": true
 }

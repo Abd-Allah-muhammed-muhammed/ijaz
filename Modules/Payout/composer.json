@@ -1,0 +1,27 @@
+{
+    "name": "nwidart/payout",
+    "description": "Payout module for real-world cash-out requests linked to source operations",
+    "authors": [
+        {
+            "name": "Ijaz",
+            "email": "dev@ijaz.test"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Payout\\": "./",
+            "Modules\\Payout\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Payout\\Tests\\": "tests/"
+        }
+    }
+}

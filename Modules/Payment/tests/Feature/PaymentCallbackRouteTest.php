@@ -6,7 +6,7 @@ use Modules\Wallet\Models\TopUpRequest;
 
 test('redirect processes accepted payment and redirects to success', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     $this->get(route('payment.redirect', [
@@ -21,7 +21,7 @@ test('redirect processes accepted payment and redirects to success', function ()
 
 test('redirect processes rejected payment and redirects to failed', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     $this->get(route('payment.redirect', [
@@ -36,7 +36,7 @@ test('redirect processes rejected payment and redirects to failed', function () 
 
 test('redirect is idempotent — second call does not reprocess', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     $payload = [
@@ -58,7 +58,7 @@ test('redirect is idempotent — second call does not reprocess', function () {
 
 test('redirect works for paytabs driver', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'paytabs', 'amount' => 100]);
 
     mockPayTabsGateway(new PaymentVerifyResult(
@@ -78,7 +78,7 @@ test('redirect works for paytabs driver', function () {
 
 test('redirect works for testing driver', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 50]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 50]);
 
     $this->post(route('payment.redirect', [
@@ -92,7 +92,7 @@ test('redirect works for testing driver', function () {
 
 test('callback returns 200 OK on success', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     $this->post(route('payment.callback', [
@@ -106,7 +106,7 @@ test('callback returns 200 OK on success', function () {
 
 test('callback returns 200 OK on failure', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     $this->post(route('payment.callback', [
@@ -120,7 +120,7 @@ test('callback returns 200 OK on failure', function () {
 
 test('callback is idempotent', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     $url = route('payment.callback', ['driver' => 'testing', 'payment' => $payment->id]);

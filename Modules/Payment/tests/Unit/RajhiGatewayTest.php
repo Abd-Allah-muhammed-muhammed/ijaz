@@ -48,7 +48,7 @@ test('initiate returns failed result when Neoleap returns non-200', function () 
     ]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $result = app(InitiateRajhiPaymentAction::class)->handle($payment);
@@ -64,7 +64,7 @@ test('initiate returns failed result when Neoleap status is not 1', function () 
     ]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $result = app(InitiateRajhiPaymentAction::class)->handle($payment);
@@ -82,7 +82,7 @@ test('initiate parses PaymentID and builds redirect URL correctly', function () 
     ]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $result = app(InitiateRajhiPaymentAction::class)->handle($payment);
@@ -100,7 +100,7 @@ test('initiate returns failed result on connection exception', function () {
     });
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $result = app(InitiateRajhiPaymentAction::class)->handle($payment);
@@ -112,7 +112,7 @@ test('initiate returns failed result on connection exception', function () {
 // HandleRajhiCallbackAction
 test('handles encrypted trandata and maps CAPTURED to Accepted', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $trandata = rajhiTrandata(['result' => 'CAPTURED', 'transId' => 'rajhi-txn-1']);
@@ -127,7 +127,7 @@ test('handles encrypted trandata and maps CAPTURED to Accepted', function () {
 
 test('handles encrypted trandata and maps NOT CAPTURED to Rejected', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $trandata = rajhiTrandata(['result' => 'NOT CAPTURED', 'transId' => 'rajhi-txn-2']);
@@ -139,7 +139,7 @@ test('handles encrypted trandata and maps NOT CAPTURED to Rejected', function ()
 
 test('handles encrypted trandata and maps VOIDED to Canceled', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $trandata = rajhiTrandata(['result' => 'VOIDED', 'transId' => 'rajhi-txn-3']);
@@ -151,7 +151,7 @@ test('handles encrypted trandata and maps VOIDED to Canceled', function () {
 
 test('handles encrypted trandata and maps HOST TIMEOUT to Pending', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $trandata = rajhiTrandata(['result' => 'HOST TIMEOUT', 'transId' => 'rajhi-txn-4']);
@@ -163,7 +163,7 @@ test('handles encrypted trandata and maps HOST TIMEOUT to Pending', function () 
 
 test('falls back to direct fields when trandata is missing', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $result = app(HandleRajhiCallbackAction::class)->handle($payment, [
@@ -177,7 +177,7 @@ test('falls back to direct fields when trandata is missing', function () {
 
 test('maps authRespCode to code and description in message', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $result = app(HandleRajhiCallbackAction::class)->handle($payment, [
@@ -192,7 +192,7 @@ test('maps authRespCode to code and description in message', function () {
 
 test('returns Rejected when decryption fails', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $result = app(HandleRajhiCallbackAction::class)->handle($payment, [
@@ -218,7 +218,7 @@ test('returns early when payment is already processed (idempotency)', function (
     Event::fake([PaymentCompleted::class, PaymentFailed::class]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100, [
         'status' => PaymentStatusEnum::Accepted,
         'transaction_id' => 'already-done',
@@ -238,7 +238,7 @@ test('processes payment and fires PaymentCompleted on CAPTURED', function () {
     Event::fake([PaymentCompleted::class, PaymentFailed::class]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     app(HandleRajhiWebhookAction::class)->handle(rajhiWebhookPayload(
@@ -260,7 +260,7 @@ test('processes payment and fires PaymentFailed on NOT CAPTURED', function () {
     Event::fake([PaymentCompleted::class, PaymentFailed::class]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     app(HandleRajhiWebhookAction::class)->handle(rajhiWebhookPayload(
@@ -279,7 +279,7 @@ test('processes payment and fires PaymentFailed on NOT CAPTURED', function () {
 
 test('webhook parses nested payLoad structure per ARB spec', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     app(HandleRajhiWebhookAction::class)->handle(rajhiWebhookPayload($payment->id));
@@ -290,7 +290,7 @@ test('webhook parses nested payLoad structure per ARB spec', function () {
 
 test('webhook reads top-level result status correctly', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $payload = rajhiWebhookPayload($payment->id, 'CAPTURED');
@@ -305,7 +305,7 @@ test('webhook handles PAYMENT FAILURE type with NOT CAPTURED result', function (
     Event::fake([PaymentCompleted::class, PaymentFailed::class]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createRajhiPaymentFor($user, $topUp, 100);
 
     $payload = rajhiWebhookPayload($payment->id, 'NOT CAPTURED');

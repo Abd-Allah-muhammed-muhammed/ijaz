@@ -10,7 +10,7 @@ use Modules\Wallet\Models\TopUpRequest;
 
 test('skips processing when payment status is not Pending — idempotency', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, [
         'driver' => 'testing',
         'status' => PaymentStatusEnum::Accepted,
@@ -24,7 +24,7 @@ test('skips processing when payment status is not Pending — idempotency', func
 
 test('updates payment status to Accepted on success', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     app(HandleCallbackAction::class)->handle($payment, [
@@ -40,7 +40,7 @@ test('updates payment status to Accepted on success', function () {
 
 test('updates payment status to Rejected on failure', function () {
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     app(HandleCallbackAction::class)->handle($payment, [
@@ -58,7 +58,7 @@ test('fires PaymentCompleted event after transaction when accepted', function ()
     Event::fake([PaymentCompleted::class, PaymentFailed::class]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     app(HandleCallbackAction::class)->handle($payment, [
@@ -74,7 +74,7 @@ test('fires PaymentFailed event after transaction when rejected', function () {
     Event::fake([PaymentCompleted::class, PaymentFailed::class]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, ['driver' => 'testing', 'amount' => 100]);
 
     app(HandleCallbackAction::class)->handle($payment, [
@@ -90,7 +90,7 @@ test('does not fire events when payment already processed — idempotency', func
     Event::fake([PaymentCompleted::class, PaymentFailed::class]);
 
     $user = createWalletUser();
-    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create();
+    $topUp = TopUpRequest::factory()->for($user, 'user')->online()->create(['amount' => 100]);
     $payment = createPaymentFor($user, $topUp, [
         'driver' => 'testing',
         'status' => PaymentStatusEnum::Accepted,

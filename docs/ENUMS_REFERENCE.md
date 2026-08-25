@@ -552,7 +552,6 @@ Model cast cross-references come from the regenerated `docs/MODELS_REFERENCE.md`
 | `CancelledByClient` | `cancelled_by_client` |
 | `EndedByProvider` | `ended_by_provider` |
 | `EndedByClient` | `ended_by_client` |
-| `Refunded` | `refunded` |
 
 ### Utility traits
 - `App\Enums\Utilities\Collectable`

@@ -14,12 +14,25 @@ it('defines critical Provider Dashboard translation keys in every locale JSON so
         'tickets',
         'opportunities',
         'top_up_requests',
+        'recharge_requests',
+        'recharge_request_details',
+        'recharge_request',
+        'no_matching_records_found',
 
         // Provider sidebar
         'wallet',
         'offers',
         'communications',
         'finance',
+        'welcome_back',
+        'view_statements',
+        'view_all_wallet_details',
+        'hide_wallet_details',
+        'wallet_on_hold',
+        'wallet_being_transferred',
+        'wallet_total_earned',
+        'reference',
+        'recent_wallet_activity',
 
         // Wallet UI
         'recharge',
@@ -86,6 +99,9 @@ it('generated frontend translations include Provider Dashboard keys and validati
         $data = json_decode((string) file_get_contents($path), true);
 
         expect($data['wallet'])->toBeString()->not->toBeEmpty()
+            ->and($data['welcome_back'])->toBeString()->not->toBeEmpty()
+            ->and($data['view_statements'])->toBeString()->not->toBeEmpty()
+            ->and($data['recent_wallet_activity'])->toBeString()->not->toBeEmpty()
             ->and($data['search_by_phone'])->toBeString()->not->toBeEmpty()
             ->and($data['payment_method'])->toBeString()->not->toBeEmpty()
             ->and($data['payment_status'])->toBeString()->not->toBeEmpty()

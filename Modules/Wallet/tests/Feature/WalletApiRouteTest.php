@@ -164,6 +164,7 @@ test('wallet transactions API response shape is unchanged', function () {
         'operation_type',
         'operation_id',
         'created_at',
+        'transfer_status',
     ]);
 });
 
@@ -634,13 +635,16 @@ test('an online top-up credit writes TopupCredited', function () {
 });
 
 test('an offline top-up approval writes TopupCredited', function () {
+    Storage::fake('public');
     withoutWalletLocaleMiddleware();
     $admin = createWalletAdmin();
     $user = createWalletUser();
+    $path = UploadedFile::fake()->image('receipt.jpg')->store('topup', 'public');
     $topUp = createTopUpFor($user, [
         'amount' => 80,
         'payment_method' => PaymentMethodEnum::Offline->value,
         'status' => OperationStatusEnum::Pending->value,
+        'transaction_image' => $path,
     ]);
 
     $this->actingAs($admin, 'admin')
@@ -692,6 +696,7 @@ test('GET /api/v1/wallet/transaction excludes HoldReleased rows but includes all
         'operation_type',
         'operation_id',
         'created_at',
+        'transfer_status',
     ]);
 
     $itemIds = collect($items)->pluck('id');

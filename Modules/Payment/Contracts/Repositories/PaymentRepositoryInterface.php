@@ -17,6 +17,8 @@ interface PaymentRepositoryInterface
 
     public function findById(string|int $id): ?Payment;
 
+    public function lockForUpdate(Payment $payment): Payment;
+
     public function updateFromVerifyResult(Payment $payment, PaymentVerifyResult $result): Payment;
 
     public function refresh(Payment $payment): Payment;

@@ -36,6 +36,7 @@ beforeEach(function (): void {
         'link' => 'https://example.com/promo',
         'image' => 'banners/cache-test.png',
     ]);
+    Storage::disk('public')->put('banners/cache-test.png', 'fake-banner');
 
     $this->page = Page::query()->create([
         'slug' => 'about-us',

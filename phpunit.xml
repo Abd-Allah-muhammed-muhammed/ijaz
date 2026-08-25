@@ -53,6 +53,9 @@
         <testsuite name="Reviews">
             <directory suffix="Test.php">./Modules/Reviews/tests</directory>
         </testsuite>
+        <testsuite name="Payout">
+            <directory suffix="Test.php">./Modules/Payout/tests</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
@@ -73,6 +76,7 @@
             <directory>Modules/Orders</directory>
             <directory>Modules/Settings</directory>
             <directory>Modules/Reviews</directory>
+            <directory>Modules/Payout</directory>
         </include>
     </source>
     <php>

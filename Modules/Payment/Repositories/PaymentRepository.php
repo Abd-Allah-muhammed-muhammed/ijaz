@@ -26,6 +26,17 @@ class PaymentRepository implements PaymentRepositoryInterface
         return Payment::query()->find($id);
     }
 
+    public function lockForUpdate(Payment $payment): Payment
+    {
+        /** @var Payment $locked */
+        $locked = Payment::query()
+            ->whereKey($payment->getKey())
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        return $locked;
+    }
+
     public function updateFromVerifyResult(Payment $payment, PaymentVerifyResult $result): Payment
     {
         $payment->update([

@@ -151,9 +151,9 @@ class OrderService
     /**
      * @return EloquentCollection<int, Order>
      */
-    public function listRecommendedForProviderHome(Provider $provider, int $limit = 10): EloquentCollection
+    public function listRecommendedForProviderHome(Provider $provider, int $limit = 10, ?array $categoryIds = null): EloquentCollection
     {
-        return $this->listProviderHomeRecommendedOrders->handle($provider, $limit);
+        return $this->listProviderHomeRecommendedOrders->handle($provider, $limit, $categoryIds);
     }
 
     /**

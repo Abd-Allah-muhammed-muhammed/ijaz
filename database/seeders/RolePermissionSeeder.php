@@ -56,6 +56,7 @@ class RolePermissionSeeder extends Seeder
         'topUpRequests' => ['guard' => 'admin', 'actions' => ['show', 'edit']],
         'messages' => ['guard' => 'admin', 'actions' => ['show', 'delete']],
         'withdrawRequests' => ['guard' => 'admin', 'actions' => ['show', 'edit']],
+        'payouts' => ['guard' => 'admin', 'actions' => ['request payouts', 'confirm payouts']],
         'supportTicket' => ['guard' => 'admin', 'actions' => ['show', 'edit']],
         'orders' => ['guard' => 'admin', 'actions' => ['show', 'edit']],
         'opportunities' => ['guard' => 'admin', 'actions' => ['show', 'delete']],
@@ -86,6 +87,14 @@ class RolePermissionSeeder extends Seeder
         'finance' => [
             'topUpRequests',
             'withdrawRequests',
+            'orders',
+            'payouts' => ['request payouts'],
+        ],
+        'finance-manager' => [
+            'topUpRequests',
+            'withdrawRequests',
+            'orders',
+            'payouts' => ['request payouts', 'confirm payouts'],
         ],
         'support' => [
             'supportTicket',

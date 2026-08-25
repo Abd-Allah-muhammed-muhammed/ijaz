@@ -23,6 +23,7 @@ import SupportController from '@/actions/Modules/Support/Http/Controllers/Dashbo
 import TopUpRequestController from '@/actions/Modules/Wallet/Http/Controllers/Dashboard/TopUpRequestController';
 import UserController from '@/actions/App/Http/Controllers/Dashboard/UserController';
 import WithdrawRequestController from '@/actions/Modules/Wallet/Http/Controllers/Dashboard/WithdrawRequestController';
+import PayoutRequestController from '@/actions/Modules/Payout/Http/Controllers/Dashboard/PayoutRequestController';
 import useActiveRoute from '@/shared/hooks/use-active-route';
 import usePermissions from '@/shared/hooks/use-permissions';
 import { useTranslation } from 'react-i18next';
@@ -352,7 +353,7 @@ const SidebarMenuMain = () => {
       />
 
       {/* 12. Finance */}
-      {hasAnyPermission(['show topUpRequests', 'show withdrawRequests']) && (
+      {hasAnyPermission(['show topUpRequests', 'show withdrawRequests', 'request payouts', 'confirm payouts']) && (
         <div className="menu-item">
           <div className="menu-content pt-8 pb-2">
             <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('finance')}</span>
@@ -374,6 +375,14 @@ const SidebarMenuMain = () => {
         fontIcon="bi-cash-stack"
         isActive={matchComponents('dashboard.withdraw-requests.*')}
         show={hasPermission('show withdrawRequests')}
+      />
+      <SidebarMenuItem
+        to={PayoutRequestController.index().url}
+        title={t('payout_requests')}
+        icon="dollar"
+        fontIcon="bi-cash-stack"
+        isActive={matchComponents('dashboard.payout-requests.*')}
+        show={hasAnyPermission(['request payouts', 'confirm payouts'])}
       />
 
       {/* 13. Content / CMS → Banners, Pages, Questions, Messages */}

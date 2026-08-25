@@ -19,25 +19,27 @@ class HandleCallbackAction
 
     public function handle(Payment $payment, array $payload): void
     {
-        if ($payment->status !== PaymentStatusEnum::Pending) {
-            return;
-        }
+        DB::transaction(function () use ($payment, $payload): void {
+            $payment = $this->paymentRepository->lockForUpdate($payment);
 
-        $gateway = $this->paymentService->resolveGateway($payment->driver);
-        $result = $gateway->verify($payment, $payload);
-
-        DB::transaction(function () use ($payment, $result) {
-            $this->paymentRepository->updateFromVerifyResult($payment, $result);
-        });
-
-        DB::afterCommit(function () use ($payment, $result) {
-            $this->paymentRepository->refresh($payment);
-
-            if ($result->isAccepted()) {
-                event(new PaymentCompleted($payment));
-            } else {
-                event(new PaymentFailed($payment));
+            if ($payment->status !== PaymentStatusEnum::Pending) {
+                return;
             }
+
+            $gateway = $this->paymentService->resolveGateway($payment->driver);
+            $result = $gateway->verify($payment, $payload);
+
+            $this->paymentRepository->updateFromVerifyResult($payment, $result);
+
+            DB::afterCommit(function () use ($payment, $result): void {
+                $this->paymentRepository->refresh($payment);
+
+                if ($result->isAccepted()) {
+                    event(new PaymentCompleted($payment));
+                } else {
+                    event(new PaymentFailed($payment));
+                }
+            });
         });
     }
 }

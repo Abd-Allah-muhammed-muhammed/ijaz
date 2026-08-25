@@ -100,9 +100,13 @@ class OrderRepository implements OrderRepositoryInterface
     /**
      * @return EloquentCollection<int, Order>
      */
-    public function listRecommendedForProviderHome(Provider $provider, int $limit = 10): EloquentCollection
+    public function listRecommendedForProviderHome(Provider $provider, int $limit = 10, ?array $categoryIds = null): EloquentCollection
     {
-        $categories = $provider->providerCategories()->pluck('category_id')->toArray();
+        $categories = $categoryIds ?? $provider->providerCategories()->pluck('category_id')->toArray();
+
+        if ($categories === []) {
+            return new EloquentCollection;
+        }
 
         return Order::query()
             ->where('status', OrderStatusEnum::New)
@@ -190,11 +194,16 @@ class OrderRepository implements OrderRepositoryInterface
      */
     public function providerHomeStats(Provider $provider): array
     {
+        $stats = $provider->orders()
+            ->selectRaw(
+                'COUNT(*) as total_orders, SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as total_finished_orders',
+                [OrderStatusEnum::EndedByClient->value],
+            )
+            ->first();
+
         return [
-            'totalOrders' => $provider->orders()->count(),
-            'totalFinishedOrders' => $provider->orders()
-                ->where('status', OrderStatusEnum::EndedByClient)
-                ->count(),
+            'totalOrders' => (int) ($stats->total_orders ?? 0),
+            'totalFinishedOrders' => (int) ($stats->total_finished_orders ?? 0),
         ];
     }
 
@@ -229,7 +238,8 @@ class OrderRepository implements OrderRepositoryInterface
             'active' => Order::whereIn('status', [OrderStatusEnum::PaymentCompleted, OrderStatusEnum::InProgress])->count(),
             'pending' => Order::whereIn('status', [OrderStatusEnum::New, OrderStatusEnum::Hold, OrderStatusEnum::OfferProvided])->count(),
             'completed' => Order::whereIn('status', [OrderStatusEnum::EndedByProvider, OrderStatusEnum::EndedByClient])->count(),
-            'cancelled' => Order::whereIn('status', [OrderStatusEnum::CancelledByProvider, OrderStatusEnum::CancelledByClient, OrderStatusEnum::Refunded])->count(),
+            'cancelled' => Order::whereIn('status', [OrderStatusEnum::CancelledByProvider, OrderStatusEnum::CancelledByClient])->count(),
+            'stuckUnsettled' => $this->countDueForWalletSettlement(now()->subHours((int) app('settings')->get('order_dispute_window_hours', 48))),
         ]);
     }
 
@@ -324,6 +334,23 @@ class OrderRepository implements OrderRepositoryInterface
             })
             ->with(['user', 'provider', 'acceptedOffer'])
             ->lazyById();
+    }
+
+    public function countDueForWalletSettlement(CarbonInterface $endedBefore): int
+    {
+        $endedStatuses = [
+            OrderStatusEnum::EndedByProvider,
+            OrderStatusEnum::EndedByClient,
+        ];
+
+        return Order::query()
+            ->whereIn('status', $endedStatuses)
+            ->whereNull('wallet_settled_at')
+            ->whereHas('histories', function ($query) use ($endedBefore, $endedStatuses): void {
+                $query->whereIn('status', $endedStatuses)
+                    ->where('created_at', '<=', $endedBefore);
+            })
+            ->count();
     }
 
     public function loadForDashboardShow(Order $order): Order

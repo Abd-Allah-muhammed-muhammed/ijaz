@@ -1,4 +1,4 @@
-import {ReactElement} from "react";
+import {ReactElement, useState} from "react";
 import AccountLayout from '@/apps/provider/layouts/AccountLayout'
 import {Content} from "@/vendor/metronic/layout/components/content";
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
@@ -22,7 +22,7 @@ type SearchPrams = {
   search: string;
 };
 
-const Wallet = ({transactions, provider, prams}: Props) => {
+const Wallet = ({transactions, prams}: Props) => {
   const { t } = useTranslation();
   const searchPrams: SearchPrams = prams || {
     per_page: 10,
@@ -40,8 +40,8 @@ const Wallet = ({transactions, provider, prams}: Props) => {
     <>
       <Head title={t('wallet')}/>
       <Content>
-        <Card>
-          <Card.Body>
+        <Card className="overflow-hidden">
+          <Card.Body className="table-responsive">
             <Table<WalletTransaction>
               name={"transactions"}
               rows={transactions}
@@ -57,38 +57,59 @@ const Wallet = ({transactions, provider, prams}: Props) => {
               ]}
               headers={[
                 {
-                  title: t('reference_number'),
-                  property: "id",
-                  render: (row) => `#${row.id}`,
-                },
-                {
                   title: t('operation'),
-                  property: "operation_type",
-                  render: (row) => `${row.operation_type}(#${row.operation_id})`,
+                  property: "description",
+                  render: (row) => (
+                    <span className="text-gray-800">{row.description || row.operation_type}</span>
+                  ),
                 },
                 {
-                  title: t('credit'),
-                  property: "credit"
+                  title: t('reference'),
+                  property: "reference_short",
+                  render: (row) => (
+                    <span
+                      className="font-monospace text-gray-700"
+                      title={String(row.operation_id)}
+                    >
+                      {row.reference_short ?? String(row.operation_id).slice(-8).toUpperCase()}
+                    </span>
+                  ),
                 },
                 {
-                  title: t('debit'),
-                  property: "debit"
-                },
-                {
-                  title: t('pending_credit'),
-                  property: "pending_credit"
-                },
-                {
-                  title: t('pending_debit'),
-                  property: "pending_debit"
-                },
-                {
-                  title: t('balance_before'),
-                  property: "balance_before"
+                  title: t('amount'),
+                  property: "amount",
+                  render: (row) => {
+                    const amount = Number(row.amount) || 0
+                    const isPending = Boolean(row.is_pending)
+
+                    if (isPending) {
+                      return (
+                        <span className="d-flex align-items-center gap-2 flex-wrap">
+                          <span className="fw-bold text-gray-500">{amount.toFixed(2)}</span>
+                          <span className="badge badge-light-warning fs-8">{t('pending')}</span>
+                        </span>
+                      )
+                    }
+
+                    const isCredit = Boolean(row.is_credit)
+
+                    return (
+                      <span className={`fw-bold ${isCredit ? 'text-success' : 'text-gray-800'}`}>
+                        {isCredit ? `+${amount.toFixed(2)}` : `-${amount.toFixed(2)}`}
+                      </span>
+                    )
+                  },
                 },
                 {
                   title: t('balance_after'),
-                  property: "balance_after"
+                  property: "balance_after",
+                },
+                {
+                  title: t('status'),
+                  property: 'transfer_status',
+                  render: (row) => (
+                    <span className={`badge badge-light-${row.transfer_status.color}`}>{row.transfer_status.label}</span>
+                  )
                 },
                 {
                   title: t('date'),
@@ -98,10 +119,8 @@ const Wallet = ({transactions, provider, prams}: Props) => {
               ]}/>
           </Card.Body>
         </Card>
-
       </Content>
     </>
-
   );
 }
 

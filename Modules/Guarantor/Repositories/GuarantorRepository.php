@@ -117,7 +117,7 @@ class GuarantorRepository implements GuarantorRepositoryInterface
     public function paginateForDashboard(Request $request, int $perPage): LengthAwarePaginator
     {
         return GuarantorRequest::query()
-            ->with(['requester', 'counterparty', 'media'])
+            ->with(['requester', 'counterparty', 'installments', 'companyDetail', 'statusHistories', 'media'])
             ->withCount(['installments'])
             ->when($request->search, fn ($q) => $q->where('title', 'like', "%{$request->search}%"))
             ->when($request->status, fn ($q) => $q->where('status', $request->status))

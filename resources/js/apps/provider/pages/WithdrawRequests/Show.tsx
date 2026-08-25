@@ -64,8 +64,16 @@ const Show = ({ row, paymentResponse }: Props) => {
                 <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
                   <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('status')}</dt>
                   <dd>
-                    <span className={`px-2 py-1 rounded text-xs font-semibold`} style={{ backgroundColor: row.status?.color || '#eee', color: '#222' }}>
-                      {t(row.status?.label || 'not_available')}
+                    <span className={`badge badge-light-${row.status?.color || 'secondary'}`}>
+                      {row.status?.label || t('not_available')}
+                    </span>
+                  </dd>
+                </div>
+                <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
+                  <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('transfer_status')}</dt>
+                  <dd>
+                    <span className={`badge badge-light-${row.transfer_status.color}`}>
+                      {row.transfer_status.label}
                     </span>
                   </dd>
                 </div>

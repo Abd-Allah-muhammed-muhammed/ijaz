@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Orders\Contracts\Repositories\OrderRepositoryInterface;
 use Modules\Orders\Exceptions\OrdersException;
 use Modules\Orders\Models\Order;
+use Modules\Orders\Support\OrderWalletHoldGuard;
 use Modules\Wallet\Services\WalletService;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -38,8 +39,24 @@ class CancelOrderPaymentAction
             $gross = (float) $order->price;
             $operation = $order->acceptedOffer ?? $order;
 
+            $userWallet = null;
+            $providerWallet = null;
+
             if ($order->user !== null) {
                 $userWallet = $order->user->wallet()->lockForUpdate()->firstOrCreate();
+            }
+
+            if ($order->provider !== null) {
+                $providerWallet = $order->provider->wallet()->lockForUpdate()->firstOrCreate();
+            }
+
+            $shortfall = OrderWalletHoldGuard::cancellationShortfall($order, $userWallet, $providerWallet);
+
+            if ($shortfall !== null) {
+                throw new OrdersException('order_wallet_hold_insufficient', Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
+            if ($order->user !== null && $userWallet !== null) {
                 if ((float) $userWallet->pending_debit >= $gross && $gross > 0) {
                     $this->walletService->reversePendingDebit(
                         $order->user,
@@ -50,8 +67,7 @@ class CancelOrderPaymentAction
                 }
             }
 
-            if ($order->provider !== null) {
-                $providerWallet = $order->provider->wallet()->lockForUpdate()->firstOrCreate();
+            if ($order->provider !== null && $providerWallet !== null) {
                 if ((float) $providerWallet->pending_credit >= $gross && $gross > 0) {
                     $this->walletService->reversePendingCredit(
                         $order->provider,

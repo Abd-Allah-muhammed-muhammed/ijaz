@@ -400,27 +400,37 @@ export interface Wallet extends Model {
   user_id: number;
   user_type: string;
   user?: User;
-  credit: number;
-  pending_credit: number;
-  debit: number;
-  pending_debit: number;
-  total_earning: number;
-  total_spent: number;
-  balance: number;
+  credit: number | string;
+  pending_credit: number | string;
+  debit: number | string;
+  pending_debit: number | string;
+  total_earning: number | string;
+  total_spent: number | string;
+  balance: number | string;
+  amount_in_transfer?: number | string;
   transactions?: WalletTransaction[];
 }
 
 export interface WalletTransaction extends Model {
+  id: number | string;
+  reference_short?: string;
   user_id: number;
   user_type: string;
-  credit: number;
-  debit: number;
+  amount: number;
+  is_pending?: boolean;
+  is_credit?: boolean;
+  credit: number | string;
+  debit: number | string;
+  pending_credit?: number | string;
+  pending_debit?: number | string;
+  balance_after?: number | string;
   description: string;
   operation_id: number;
   operation_type: string;
   operation?: Model;
   wallet?: Wallet;
   wallet_id: number;
+  transfer_status: EnumWithColors<TransferStatusValue>;
   created_at: Date;
 }
 
@@ -555,7 +565,7 @@ export interface OrderOffer extends Model {
 }
 
 export interface Banner extends Model {
-  image: string;
+  image: string | null;
   link: string | null;
 
 }
@@ -593,6 +603,8 @@ export interface TopUpRequest extends Model {
   created_at: Date;
 }
 
+export type TransferStatusValue = 'in_progress' | 'transferred' | 'delayed';
+
 export interface WithdrawRequest extends Model {
   id: string;
   user_id: number;
@@ -600,6 +612,7 @@ export interface WithdrawRequest extends Model {
   user?: User | Provider;
   amount: number;
   status: EnumWithColors<TopUpRequestStatus>;
+  transfer_status: EnumWithColors<TransferStatusValue>;
   created_at: Date;
 }
 

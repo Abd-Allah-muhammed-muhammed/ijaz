@@ -1,21 +1,11 @@
 import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
 import {Content} from "@/vendor/metronic/layout/components/content";
 import {KTIcon} from "@/vendor/metronic/helpers";
-import {ReactElement, useEffect, useState} from "react";
+import {ReactElement, useState} from "react";
 import {Provider} from "@/shared/types/models";
 import {useTranslation} from "react-i18next";
 import RatingStars from '@/shared/components/RatingStars';
-import {Button, Form, Modal} from 'react-bootstrap';
-import {router, useForm} from "@inertiajs/react";
-import ActionButton from "@/shared/components/action-button";
-import Portal from "@/shared/components/payment/portal";
-import {PaymentMethodEnum} from "@/Enums/Payment";
-import ImageInput from "@/shared/components/inputs/ImageInput";
-import { walletDepositFormSchema, walletWithdrawFormSchema } from '@/apps/provider/pages/Auth/Profile/wallet-forms-schems';
-import InputError from "@/shared/components/inputs/InputError";
-import {useAddBalance} from "@/shared/hooks/use-top-up-query";
-import {toast} from "sonner";
-import WithdrawController from '@/actions/Modules/Wallet/Http/Controllers/Provider/WithdrawController';
+import WalletQuickActions from '@/apps/provider/components/wallet/WalletQuickActions';
 
 
 type Props = {
@@ -23,46 +13,18 @@ type Props = {
   provider: Provider
 }
 
+const MetricTile = ({value, label}: { value?: string | number | null; label: string }) => (
+  <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
+    <div className='d-flex align-items-center'>
+      <div className='fs-2 fw-bolder'>{value ?? '0.00'}</div>
+    </div>
+    <div className='fw-bold fs-6 text-gray-500'>{label}</div>
+  </div>
+)
 
 const AccountLayout = ({children, provider}: Props) => {
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [showRechargeModal, setShowRechargeModal] = useState(false);
-  const RechargeForm = useForm<walletDepositFormSchema>();
-  const WithdrawForm = useForm<walletWithdrawFormSchema>();
-  const addBalanceMutator = useAddBalance();
-  const [paymentWindow, setPaymentWindow] = useState<Window | null>(null);
   const {t} = useTranslation();
-
-
-  useEffect(() => {
-    if (!paymentWindow) {
-      return;
-    }
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-
-      if (event.data === 'payment-success') {
-        paymentWindow?.close();
-        setShowRechargeModal(false)
-        setPaymentWindow(null);
-        RechargeForm.reset()
-        router.reload({only: ['provider', 'transactions']});
-        toast.success(t('Payment Successful'))
-        // إعادة توجيه أو تحديث UI
-      } else if (event.data === 'payment-failed') {
-        setPaymentWindow(null);
-        setShowRechargeModal(false)
-        RechargeForm.reset()
-        toast.error(t('Payment Failed, Please Try Again'))
-        paymentWindow?.close();
-        // عرض رسالة خطأ
-      }
-    }
-    window.addEventListener('message', handleMessage);
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
-  }, [paymentWindow]);
+  const [showWalletDetails, setShowWalletDetails] = useState(false);
 
   return (
     <>
@@ -119,238 +81,39 @@ const AccountLayout = ({children, provider}: Props) => {
                     </div>
                   </div>
 
-                  <div className='d-flex my-4'>
-                    <Button
-                      variant="light"
-                      size="sm"
-                      className="me-2"
-                      onClick={() => setShowWithdrawModal(true)}
-                    >
-                      <KTIcon iconName='check' className='fs-3 d-none'/>
-                      <span className='indicator-label'>{t('withdraw')}</span>
-                    </Button>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="me-3"
-                      onClick={() => setShowRechargeModal(true)}
-                    >
-                      {t('recharge')}
-                    </Button>
-                  </div>
+                  <WalletQuickActions />
                 </div>
 
                 <div className='d-flex flex-wrap flex-stack'>
                   <div className='d-flex flex-column flex-grow-1 pe-8'>
                     <div className='d-flex flex-wrap'>
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.balance}</div>
-                        </div>
-
-                        <div className='fw-bold fs-6 text-gray-500'>{t('balance')}</div>
-                      </div>
-
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.total_earning}</div>
-                        </div>
-
-                        <div className='fw-bold fs-6 text-gray-500'>{t('total_earning')}</div>
-                      </div>
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.total_spent}</div>
-                        </div>
-
-                        <div className='fw-bold fs-6 text-gray-500'>{t('total_spent')}</div>
-                      </div>
-
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.credit}</div>
-                        </div>
-
-                        <div className='fw-bold fs-6 text-gray-500'>{t('credit')}</div>
-                      </div>
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.pending_credit}</div>
-                        </div>
-
-                        <div className='fw-bold fs-6 text-gray-500'>{t('pending_credit')}</div>
-                      </div>
-
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.debit}</div>
-                        </div>
-                        <div className='fw-bold fs-6 text-gray-500'>{t('debit')}</div>
-                      </div>
-                      <div className='border border-gray-300 border-dashed rounded min-w-125px py-3 px-4 me-6 mb-3'>
-                        <div className='d-flex align-items-center'>
-                          <div className='fs-2 fw-bolder'>{provider.wallet?.pending_debit}</div>
-                        </div>
-                        <div className='fw-bold fs-6 text-gray-500'>{t('pending_debit')}</div>
-                      </div>
+                      <MetricTile value={provider.wallet?.balance} label={t('balance')} />
+                      <MetricTile value={provider.wallet?.pending_debit} label={t('wallet_on_hold')} />
+                      <MetricTile value={provider.wallet?.amount_in_transfer} label={t('wallet_being_transferred')} />
+                      <MetricTile value={provider.wallet?.total_earning} label={t('wallet_total_earned')} />
                     </div>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-light mb-3"
+                      onClick={() => setShowWalletDetails((open) => !open)}
+                      aria-expanded={showWalletDetails}
+                    >
+                      {showWalletDetails ? t('hide_wallet_details') : t('view_all_wallet_details')}
+                    </button>
+                    {showWalletDetails && (
+                      <div className="d-flex flex-wrap">
+                        <MetricTile value={provider.wallet?.total_spent} label={t('total_spent')} />
+                        <MetricTile value={provider.wallet?.credit} label={t('credit')} />
+                        <MetricTile value={provider.wallet?.pending_credit} label={t('pending_credit')} />
+                        <MetricTile value={provider.wallet?.debit} label={t('debit')} />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Withdraw Modal */}
-        <Modal show={showWithdrawModal} onHide={() => setShowWithdrawModal(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>{t('withdraw')}</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form.Group>
-              <Form.Control type='number' placeholder={t('amount')} step={0.01} min={1} onChange={(e) => {
-                WithdrawForm.setData('amount', parseFloat(e.target.value));
-              }}/>
-              <InputError message={WithdrawForm.errors.amount}/>
-            </Form.Group>
-            <Form.Group className="mt-2">
-              <Form.Control
-                as="textarea" rows={3}
-                onChange={e => WithdrawForm.setData('user_notes', e.currentTarget.value)}
-              />
-              <InputError message={WithdrawForm.errors.user_notes}/>
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="light" onClick={() => setShowWithdrawModal(false)}>
-              {t('close')}
-            </Button>
-            <ActionButton
-              type="submit"
-              isProcessing={WithdrawForm.processing}
-              onClick={(e) => {
-                e.preventDefault();
-                WithdrawForm.submit(WithdrawController.store(), {
-                  onSuccess: ()=> {
-                    setShowWithdrawModal(false);
-                    WithdrawForm.reset();
-                  }
-                });
-              }}
-              text={t('withdraw')}
-            />
-          </Modal.Footer>
-        </Modal>
-
-        {/* Recharge Modal */}
-        <Modal show={showRechargeModal} onHide={() => setShowRechargeModal(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>{t('recharge')}</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div>
-              <Form.Control type='number' placeholder={t('amount')} step={0.01} min={1} onChange={(e) => {
-                RechargeForm.setData('amount', parseFloat(e.target.value));
-              }}/>
-              <InputError message={RechargeForm.errors.amount}/>
-            </div>
-            <div className='mt-5'>
-              <Portal
-                paymentMethod={RechargeForm.data.payment_method || undefined}
-                paymentDriver={RechargeForm.data.payment_driver as string || undefined}
-                onPaymentMethodChange={(method: any) => RechargeForm.setData('payment_method', method)}
-                onPaymentDriverChange={(driver: any) => RechargeForm.setData('payment_driver', driver)}
-              />
-              <InputError message={RechargeForm.errors.payment_method}/>
-              <InputError message={RechargeForm.errors.payment_driver}/>
-            </div>
-            {RechargeForm.data.payment_method === PaymentMethodEnum.Offline && (
-              <div className='mt-5'>
-                <Form.Group>
-                  <Form.Control
-                    as="textarea" rows={3}
-                    onChange={e => RechargeForm.setData('user_notes', e.currentTarget.value)}
-                  />
-                  <InputError message={RechargeForm.errors.user_notes}/>
-                </Form.Group>
-                <Form.Group className="mt-2">
-                  <ImageInput
-                    className='img-fluid w-100'
-                    style={{
-                      maxHeight: '200px', objectFit: 'cover'
-                    }}
-                    callback={(e) => {
-                      RechargeForm.setData('transaction_image', e.currentTarget.files![0]);
-                    }}
-                  />
-                  <InputError message={RechargeForm.errors.transaction_image}/>
-                </Form.Group>
-              </div>
-            )}
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="light" onClick={() => setShowRechargeModal(false)}>
-              {t('close')}
-            </Button>
-            <ActionButton
-              type="submit"
-              isProcessing={addBalanceMutator.isPending}
-              text={t('recharge')}
-
-              onClick={() => {
-                RechargeForm.clearErrors()
-                const validation = walletDepositFormSchema.safeParse(RechargeForm.data)
-                if (!validation.success) {
-                  validation.error.issues.forEach(issue => {
-                    RechargeForm.setError(issue.path.join('.') as keyof walletDepositFormSchema, issue.message)
-                  })
-                  return;
-                }
-                addBalanceMutator.mutate(RechargeForm.data, {
-                  onSuccess: (res) => {
-                    if (res?.success && res?.data?.payable && res?.data?.url) {
-                      setPaymentWindow(window.open(res.data.url, 'payment', 'width=800,height=600'));
-                      return;
-                    }
-                    if (res?.success) {
-                      setShowRechargeModal(false);
-                      RechargeForm.reset();
-                      toast.success(
-                        res?.message || res?.data?.message || t('Payment Successful'),
-                      );
-                      return;
-                    }
-                    toast.error(res?.message || t('Payment Failed, Please Try Again'));
-                  },
-                  onError: (err) => {
-                    const payload = err.response?.data;
-                    if (payload && typeof payload === 'object') {
-                      if ('errors' in payload && payload.errors && typeof payload.errors === 'object') {
-                        const errors = payload.errors as Record<string, string[]>;
-                        Object.keys(errors).forEach((key) => {
-                          RechargeForm.setError(
-                            key as keyof walletDepositFormSchema,
-                            errors[key][0],
-                          );
-                        });
-                        return;
-                      }
-                      if (
-                        'message' in payload
-                        && typeof (payload as { message?: unknown }).message === 'string'
-                        && (payload as { message: string }).message !== ''
-                      ) {
-                        toast.error((payload as { message: string }).message);
-                        return;
-                      }
-                    }
-                    toast.error(t('Payment Failed, Please Try Again'));
-                  },
-                })
-              }}
-            />
-          </Modal.Footer>
-        </Modal>
       </Content>
       {children}
     </>
