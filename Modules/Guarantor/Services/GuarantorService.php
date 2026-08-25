@@ -9,6 +9,7 @@ use Modules\Guarantor\Actions\Guarantor\CreateIndividualGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\DeleteGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\DeleteGuarantorMediaAction;
 use Modules\Guarantor\Actions\Guarantor\EndGuarantorAction;
+use Modules\Guarantor\Actions\Guarantor\OpenGuarantorDisputeAction;
 use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorStatusAction;
 use Modules\Guarantor\Actions\Payment\PayIndividualGuarantorAction;
@@ -37,6 +38,7 @@ class GuarantorService
         private readonly DeleteGuarantorMediaAction $deleteMediaAction,
         private readonly PayIndividualGuarantorAction $payIndividualAction,
         private readonly EndGuarantorAction $endAction,
+        private readonly OpenGuarantorDisputeAction $openDisputeAction,
     ) {}
 
     /**
@@ -105,6 +107,14 @@ class GuarantorService
             return $this->endAction->handle($request, $actor, $actorRole);
         }
 
+        if ($data->status === GuarantorStatusEnum::Disputed) {
+            if ($data->reason === null || trim($data->reason) === '') {
+                throw new GuarantorException('guarantor.dispute_reason_required', 422);
+            }
+
+            return $this->openDisputeAction->handle($request, $actor, $actorRole, $data->reason);
+        }
+
         return $this->updateStatusAction->handle($request, $data, $actor, $actorRole);
     }
 
@@ -137,6 +147,18 @@ class GuarantorService
         string $actorRole,
     ): GuarantorRequest {
         return $this->endAction->handle($request, $actor, $actorRole);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function openDispute(
+        GuarantorRequest $request,
+        Model $actor,
+        string $actorRole,
+        string $reason,
+    ): GuarantorRequest {
+        return $this->openDisputeAction->handle($request, $actor, $actorRole, $reason);
     }
 
     public function findById(string $id): GuarantorRequest

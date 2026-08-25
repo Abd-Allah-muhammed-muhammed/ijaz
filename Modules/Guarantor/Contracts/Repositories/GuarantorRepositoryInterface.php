@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Modules\Chat\Models\Conversation;
 use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -44,4 +45,12 @@ interface GuarantorRepositoryInterface
     public function delete(GuarantorRequest $guarantorRequest): void;
 
     public function deleteMedia(Media $media): void;
+
+    public function findConversation(GuarantorRequest $guarantorRequest): ?Conversation;
+
+    public function paginateConversationMessages(
+        GuarantorRequest $guarantorRequest,
+        int $perPage = 15,
+        ?string $search = null,
+    ): ?LengthAwarePaginator;
 }

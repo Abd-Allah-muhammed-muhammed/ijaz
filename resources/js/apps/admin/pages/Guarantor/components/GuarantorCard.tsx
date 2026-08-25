@@ -27,9 +27,11 @@ const statusBadgeClass: Record<string, string> = {
   rejected: 'badge-light-warning',
   in_progress: 'badge-light-success',
   overdue: 'badge-light-danger',
+  disputed: 'badge-light-danger',
   ended: 'badge-light-success',
   cancelled: 'badge-light-danger',
-  refunded: 'badge-light-secondary',
+  escalated: 'badge-light-dark',
+  settled: 'badge-light-info',
 };
 
 const typeBadgeClass: Record<string, string> = {

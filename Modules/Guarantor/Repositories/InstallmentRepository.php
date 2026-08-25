@@ -82,7 +82,9 @@ class InstallmentRepository implements InstallmentRepositoryInterface
             ->whereHas('guarantorRequest', fn ($query) => $query->whereNotIn('status', [
                 GuarantorStatusEnum::Ended->value,
                 GuarantorStatusEnum::Cancelled->value,
-                GuarantorStatusEnum::Refunded->value,
+                GuarantorStatusEnum::Escalated->value,
+                GuarantorStatusEnum::Settled->value,
+                GuarantorStatusEnum::Disputed->value,
             ]))
             ->with(['guarantorRequest.requester', 'guarantorRequest.counterparty'])
             ->lazyById();

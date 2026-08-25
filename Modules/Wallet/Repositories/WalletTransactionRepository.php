@@ -177,6 +177,36 @@ class WalletTransactionRepository implements WalletTransactionRepositoryInterfac
             ->pluck('operation_id');
     }
 
+    public function sumPendingDeltasForOperations(Model $owner, array $operations): array
+    {
+        if ($operations === []) {
+            return ['pending_credit' => 0.0, 'pending_debit' => 0.0];
+        }
+
+        $grouped = [];
+        foreach ($operations as $operation) {
+            $type = $operation::class;
+            $grouped[$type][] = (string) $operation->getKey();
+        }
+
+        $row = $owner->walletTransactions()
+            ->where(function (Builder $query) use ($grouped): void {
+                foreach ($grouped as $type => $ids) {
+                    $query->orWhere(function (Builder $query) use ($type, $ids): void {
+                        $query->where('operation_type', $type)
+                            ->whereIn('operation_id', $ids);
+                    });
+                }
+            })
+            ->selectRaw('COALESCE(SUM(pending_credit), 0) as pending_credit_sum, COALESCE(SUM(pending_debit), 0) as pending_debit_sum')
+            ->first();
+
+        return [
+            'pending_credit' => max(0.0, (float) ($row?->pending_credit_sum ?? 0)),
+            'pending_debit' => max(0.0, (float) ($row?->pending_debit_sum ?? 0)),
+        ];
+    }
+
     private function constrainStaleDescription(Builder $query, WalletTransactionEntryKindEnum $kind): void
     {
         $key = $kind->translationKey();

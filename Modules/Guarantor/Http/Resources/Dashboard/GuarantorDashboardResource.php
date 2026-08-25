@@ -5,6 +5,7 @@ namespace Modules\Guarantor\Http\Resources\Dashboard;
 use App\Http\Resources\Api\V1\MediaResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Chat\Http\Resources\ConversationResource;
 use Modules\Guarantor\Http\Resources\Api\CompanyDetailResource;
 use Modules\Guarantor\Http\Resources\Api\GuarantorParticipantResource;
 use Modules\Guarantor\Http\Resources\Api\InstallmentResource;
@@ -39,6 +40,7 @@ class GuarantorDashboardResource extends JsonResource
                 : null,
             'status_histories' => StatusHistoryResource::collection($this->statusHistories),
             'media' => MediaResource::collection($this->whenLoaded('media', fn () => $this->media)),
+            'conversation' => ConversationResource::make($this->whenLoaded('conversation')),
             'installments_count' => $this->whenCounted('installments'),
             'overdue_at' => $this->overdue_at?->toIso8601String(),
             'ended_at' => $this->ended_at?->toIso8601String(),

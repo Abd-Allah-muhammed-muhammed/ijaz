@@ -32,6 +32,9 @@ Route::prefix('guarantor')->name('guarantor.')->group(function () {
         Route::post('/{guarantorRequest}/pay', [GuarantorController::class, 'pay'])
             ->name('pay');
 
+        Route::post('/{guarantorRequest}/dispute', [GuarantorController::class, 'dispute'])
+            ->name('dispute');
+
         Route::delete('/{guarantorRequest}/media/{media:uuid}', [GuarantorController::class, 'deleteMedia'])
             ->name('deleteMedia');
 

@@ -63,10 +63,6 @@ class UpdateGuarantorStatusAction
                 $updateData['cancellation_reason'] = $data->reason;
             }
 
-            if ($data->status === GuarantorStatusEnum::Refunded) {
-                $updateData['refunded_at'] = now();
-            }
-
             if ($data->status->isIn([GuarantorStatusEnum::RejectedByAdmin, GuarantorStatusEnum::Rejected])) {
                 $updateData['rejected_at'] = now();
             }

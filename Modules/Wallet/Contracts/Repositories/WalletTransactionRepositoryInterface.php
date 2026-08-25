@@ -83,4 +83,13 @@ interface WalletTransactionRepositoryInterface
      * @return Collection<int, string>
      */
     public function withdrawOperationIdsWithDebit(): Collection;
+
+    /**
+     * Net pending_credit / pending_debit deltas for this owner across the given operations
+     * (positive adds minus releases/reversals). Used to scope hold reversals to one domain entity.
+     *
+     * @param  list<Model>  $operations
+     * @return array{pending_credit: float, pending_debit: float}
+     */
+    public function sumPendingDeltasForOperations(Model $owner, array $operations): array;
 }

@@ -5,15 +5,25 @@ namespace Modules\Guarantor\Services;
 use App\Models\Admin;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Modules\Chat\DTOs\ChatMessageData;
+use Modules\Chat\Models\ConversationMessage;
 use Modules\Guarantor\Actions\Dashboard\AdminApproveGuarantorAction;
 use Modules\Guarantor\Actions\Dashboard\AdminRejectGuarantorAction;
+use Modules\Guarantor\Actions\Dashboard\BroadcastAdminGuarantorConversationTypingAction;
 use Modules\Guarantor\Actions\Dashboard\DeleteGuarantorForDashboardAction;
+use Modules\Guarantor\Actions\Dashboard\ListGuarantorConversationMessagesAction;
+use Modules\Guarantor\Actions\Dashboard\SendAdminGuarantorConversationMessageAction;
 use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
+use Modules\Guarantor\Actions\Guarantor\ResolveDisputeEscalateAction;
+use Modules\Guarantor\Actions\Guarantor\ResolveDisputeFullToPartyAction;
+use Modules\Guarantor\Actions\Guarantor\ResolveDisputePercentageSplitAction;
 use Modules\Guarantor\Actions\Installment\ReleaseInstallmentAction;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
+use Modules\Guarantor\Enums\GuarantorDisputeResolutionEnum;
 use Modules\Guarantor\Http\Requests\Dashboard\ApproveGuarantorRequest;
 use Modules\Guarantor\Http\Requests\Dashboard\CancelGuarantorRequest;
 use Modules\Guarantor\Http\Requests\Dashboard\RejectGuarantorRequest;
+use Modules\Guarantor\Http\Requests\Dashboard\ResolveGuarantorDisputeRequest;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 
@@ -24,8 +34,14 @@ class GuarantorDashboardService
         private readonly AdminApproveGuarantorAction $approveAction,
         private readonly AdminRejectGuarantorAction $rejectAction,
         private readonly CancelGuarantorAction $cancelAction,
+        private readonly ResolveDisputeFullToPartyAction $resolveDisputeFullToPartyAction,
+        private readonly ResolveDisputeEscalateAction $resolveDisputeEscalateAction,
+        private readonly ResolveDisputePercentageSplitAction $resolveDisputePercentageSplitAction,
         private readonly ReleaseInstallmentAction $releaseAction,
         private readonly DeleteGuarantorForDashboardAction $deleteForDashboardAction,
+        private readonly ListGuarantorConversationMessagesAction $listConversationMessages,
+        private readonly SendAdminGuarantorConversationMessageAction $sendAdminConversationMessage,
+        private readonly BroadcastAdminGuarantorConversationTypingAction $broadcastAdminConversationTyping,
     ) {}
 
     public function listAll(Request $request, int $perPage = 15): LengthAwarePaginator
@@ -79,6 +95,41 @@ class GuarantorDashboardService
         );
     }
 
+    public function resolveDispute(
+        GuarantorRequest $request,
+        ResolveGuarantorDisputeRequest $formRequest,
+        Admin $admin,
+    ): GuarantorRequest {
+        $resolution = GuarantorDisputeResolutionEnum::from($formRequest->validated('resolution'));
+        $notes = $formRequest->validated('notes');
+
+        return match ($resolution) {
+            GuarantorDisputeResolutionEnum::FullRequester => $this->resolveDisputeFullToPartyAction->handle(
+                $request,
+                $admin,
+                'requester',
+                $notes,
+            ),
+            GuarantorDisputeResolutionEnum::FullCounterparty => $this->resolveDisputeFullToPartyAction->handle(
+                $request,
+                $admin,
+                'counterparty',
+                $notes,
+            ),
+            GuarantorDisputeResolutionEnum::Escalate => $this->resolveDisputeEscalateAction->handle(
+                $request,
+                $admin,
+                $notes,
+            ),
+            GuarantorDisputeResolutionEnum::PercentageSplit => $this->resolveDisputePercentageSplitAction->handle(
+                $request,
+                $admin,
+                (int) $formRequest->validated('requester_percentage'),
+                $notes,
+            ),
+        };
+    }
+
     public function releaseInstallment(GuarantorInstallment $installment): void
     {
         $this->releaseAction->handle($installment, 'admin');
@@ -87,5 +138,26 @@ class GuarantorDashboardService
     public function delete(GuarantorRequest $request): void
     {
         $this->deleteForDashboardAction->handle($request);
+    }
+
+    public function conversationMessages(
+        GuarantorRequest $request,
+        int $perPage = 15,
+        ?string $search = null,
+    ): ?LengthAwarePaginator {
+        return $this->listConversationMessages->handle($request, $perPage, $search);
+    }
+
+    public function sendConversationMessageAsAdmin(
+        GuarantorRequest $request,
+        Admin $admin,
+        ChatMessageData $data,
+    ): ConversationMessage {
+        return $this->sendAdminConversationMessage->handle($request, $admin, $data);
+    }
+
+    public function typingAsAdmin(GuarantorRequest $request, Admin $admin): void
+    {
+        $this->broadcastAdminConversationTyping->handle($request, $admin);
     }
 }

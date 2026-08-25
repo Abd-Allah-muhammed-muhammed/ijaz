@@ -46,6 +46,15 @@ class GuarantorPolicy
             ]);
     }
 
+    public function dispute(Model $user, GuarantorRequest $request): bool
+    {
+        return $this->isParty($user, $request)
+            && $request->status->isIn([
+                GuarantorStatusEnum::InProgress,
+                GuarantorStatusEnum::Overdue,
+            ]);
+    }
+
     public function chat(Model $user, GuarantorRequest $request): bool
     {
         return $this->isParty($user, $request)
@@ -53,6 +62,7 @@ class GuarantorPolicy
                 GuarantorStatusEnum::Accepted,
                 GuarantorStatusEnum::InProgress,
                 GuarantorStatusEnum::Overdue,
+                GuarantorStatusEnum::Disputed,
             ]);
     }
 
