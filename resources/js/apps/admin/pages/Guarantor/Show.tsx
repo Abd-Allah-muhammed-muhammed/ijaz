@@ -94,7 +94,16 @@ type Props = {
   guarantorRequest: GuarantorResource;
 };
 
-type AdminAction = 'approve' | 'reject' | 'cancel' | null;
+type AdminAction = 'approve' | 'reject' | 'cancel' | 'resolve' | null;
+
+const RESOLUTION_OPTIONS = [
+  'full_requester',
+  'full_counterparty',
+  'percentage_split',
+  'escalate',
+] as const;
+
+type ResolutionOption = (typeof RESOLUTION_OPTIONS)[number];
 
 const TERMINAL_STATUSES = ['rejected_by_admin', 'rejected', 'ended', 'cancelled', 'escalated', 'settled'];
 
@@ -128,26 +137,40 @@ const Show = ({ guarantorRequest }: Props) => {
   const { hasPermission } = usePermissions();
   const [activeTab, setActiveTab] = useState('overview');
   const [adminAction, setAdminAction] = useState<AdminAction>(null);
+  const [resolveClientError, setResolveClientError] = useState<string | null>(null);
   const canManage = hasPermission('manage guarantors');
 
   const currentStatus = guarantorRequest.status?.value ?? '';
   const canApproveReject = canManage && currentStatus === 'pending_admin';
   const canCancel = canManage && !TERMINAL_STATUSES.includes(currentStatus);
+  const canResolveDispute = canManage && currentStatus === 'disputed';
 
   const approveForm = useForm({ notes: '' });
   const rejectForm = useForm({ reason: '', notes: '' });
   const cancelForm = useForm({ reason: '', notes: '' });
+  const resolveForm = useForm({
+    resolution: '' as ResolutionOption | '',
+    requester_percentage: 0,
+    notes: '',
+  });
 
   const badgeClass = statusBadgeClass[currentStatus] ?? 'badge-light-secondary';
   const isCompany = guarantorRequest.type?.value === 'company';
   const isRTL = i18n.dir() === 'rtl';
   const statusHistories = guarantorRequest.status_histories ?? [];
+  const disputeReason =
+    statusHistories.find((history) => history.to_status?.value === 'disputed')?.reason ?? null;
+
+  const isValidRequesterPercentage = (value: number): boolean =>
+    Number.isInteger(value) && value >= 0 && value <= 100;
 
   const closeAdminModal = () => {
     setAdminAction(null);
+    setResolveClientError(null);
     approveForm.reset();
     rejectForm.reset();
     cancelForm.reset();
+    resolveForm.reset();
   };
 
   const confirmDelete = () => {
@@ -174,6 +197,20 @@ const Show = ({ guarantorRequest }: Props) => {
 
     if (adminAction === 'cancel') {
       cancelForm.post(GuarantorDashboardController.cancel(guarantorRequest.id).url, options);
+      return;
+    }
+
+    if (adminAction === 'resolve') {
+      if (
+        resolveForm.data.resolution === 'percentage_split' &&
+        !isValidRequesterPercentage(Number(resolveForm.data.requester_percentage))
+      ) {
+        setResolveClientError(t('guarantor.invalid_requester_percentage'));
+        return;
+      }
+
+      setResolveClientError(null);
+      resolveForm.put(GuarantorDashboardController.resolveDispute(guarantorRequest.id).url, options);
     }
   };
 
@@ -191,7 +228,20 @@ const Show = ({ guarantorRequest }: Props) => {
   };
 
   const activeForm =
-    adminAction === 'approve' ? approveForm : adminAction === 'reject' ? rejectForm : cancelForm;
+    adminAction === 'approve'
+      ? approveForm
+      : adminAction === 'reject'
+        ? rejectForm
+        : adminAction === 'resolve'
+          ? resolveForm
+          : cancelForm;
+
+  const resolveSubmitDisabled =
+    activeForm.processing ||
+    (adminAction === 'resolve' &&
+      (resolveForm.data.resolution === '' ||
+        (resolveForm.data.resolution === 'percentage_split' &&
+          !isValidRequesterPercentage(Number(resolveForm.data.requester_percentage)))));
 
   return (
     <Content>
@@ -240,6 +290,11 @@ const Show = ({ guarantorRequest }: Props) => {
                 {canCancel && (
                   <button type="button" className="btn btn-sm btn-light-warning" onClick={() => setAdminAction('cancel')}>
                     {t('guarantor.cancel')}
+                  </button>
+                )}
+                {canResolveDispute && (
+                  <button type="button" className="btn btn-sm btn-light-primary" onClick={() => setAdminAction('resolve')}>
+                    {t('guarantor.resolve_dispute')}
                   </button>
                 )}
                 {canManage && (
@@ -534,6 +589,7 @@ const Show = ({ guarantorRequest }: Props) => {
             {adminAction === 'approve' && t('guarantor.approve')}
             {adminAction === 'reject' && t('guarantor.reject')}
             {adminAction === 'cancel' && t('guarantor.cancel')}
+            {adminAction === 'resolve' && t('guarantor.resolve_dispute')}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -586,13 +642,94 @@ const Show = ({ guarantorRequest }: Props) => {
               </div>
             </>
           )}
+          {adminAction === 'resolve' && (
+            <>
+              <div className="mb-4 rounded border border-dashed border-gray-300 bg-light p-4">
+                <span className="text-muted d-block fs-7 mb-1">{t('guarantor.dispute_opened_reason')}</span>
+                <span className="fw-semibold text-gray-800">
+                  {disputeReason || t('guarantor.no_dispute_reason')}
+                </span>
+              </div>
+
+              <div className="mb-4">
+                <label className="form-label required">{t('guarantor.select_resolution')}</label>
+                <div className="d-flex flex-column gap-3">
+                  {RESOLUTION_OPTIONS.map((option) => (
+                    <label key={option} className="form-check form-check-custom form-check-solid">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="resolution"
+                        value={option}
+                        checked={resolveForm.data.resolution === option}
+                        onChange={() => {
+                          setResolveClientError(null);
+                          resolveForm.setData('resolution', option);
+                        }}
+                      />
+                      <span className="form-check-label fw-semibold">
+                        {t(`guarantor.dispute_resolution.${option}`)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {resolveForm.errors.resolution && (
+                  <div className="text-danger fs-7 mt-1">{resolveForm.errors.resolution}</div>
+                )}
+              </div>
+
+              {resolveForm.data.resolution === 'percentage_split' && (
+                <div className="mb-4">
+                  <label className="form-label required">{t('guarantor.requester_percentage')}</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-solid"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={resolveForm.data.requester_percentage}
+                    onChange={(e) => {
+                      setResolveClientError(null);
+                      resolveForm.setData('requester_percentage', Number(e.target.value));
+                    }}
+                  />
+                  <div className="text-muted fs-7 mt-2">
+                    {t('guarantor.percentage_split_helper', {
+                      requester: Number(resolveForm.data.requester_percentage) || 0,
+                      counterparty: 100 - (Number(resolveForm.data.requester_percentage) || 0),
+                    })}
+                  </div>
+                  {(resolveClientError || resolveForm.errors.requester_percentage) && (
+                    <div className="text-danger fs-7 mt-1">
+                      {resolveClientError || resolveForm.errors.requester_percentage}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="mb-0">
+                <label className="form-label">{t('guarantor.notes')}</label>
+                <textarea
+                  className="form-control form-control-solid"
+                  rows={3}
+                  value={resolveForm.data.notes}
+                  onChange={(e) => resolveForm.setData('notes', e.target.value)}
+                  placeholder={t('guarantor.enter_notes')}
+                />
+              </div>
+            </>
+          )}
         </Modal.Body>
         <Modal.Footer>
           <Button variant="light" onClick={closeAdminModal}>
             {t('close')}
           </Button>
-          <Button variant="primary" onClick={submitAdminAction} disabled={activeForm.processing}>
-            {t('confirm')}
+          <Button
+            variant="primary"
+            onClick={submitAdminAction}
+            disabled={adminAction === 'resolve' ? resolveSubmitDisabled : activeForm.processing}
+          >
+            {adminAction === 'resolve' ? t('guarantor.resolve_dispute_confirm') : t('confirm')}
           </Button>
         </Modal.Footer>
       </Modal>
