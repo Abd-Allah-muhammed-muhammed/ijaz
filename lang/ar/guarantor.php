@@ -18,6 +18,7 @@ return [
         'cancelled' => 'ملغي',
         'disputed' => 'متنازع عليه',
         'escalated' => 'محال للقضاء',
+        'settled' => 'مسوّى',
     ],
     'installment_status' => [
         'pending' => 'قيد الانتظار',
@@ -43,7 +44,9 @@ return [
         'full_requester' => 'كامل لصالح مقدم الطلب',
         'full_counterparty' => 'كامل لصالح الطرف المقابل',
         'escalate' => 'تصعيد للقضاء',
+        'percentage_split' => 'تقسيم نسبي',
     ],
+    'invalid_requester_percentage' => 'يجب أن تكون نسبة مقدم الطلب عدداً صحيحاً بين 0 و 100',
     'status_already_set' => 'الطلب بالفعل في هذه الحالة',
     'not_found' => 'طلب الضامن غير موجود',
     'installment_not_found' => 'الدفعة غير موجودة',

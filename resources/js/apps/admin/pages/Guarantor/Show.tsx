@@ -96,7 +96,7 @@ type Props = {
 
 type AdminAction = 'approve' | 'reject' | 'cancel' | null;
 
-const TERMINAL_STATUSES = ['rejected_by_admin', 'rejected', 'ended', 'cancelled', 'escalated'];
+const TERMINAL_STATUSES = ['rejected_by_admin', 'rejected', 'ended', 'cancelled', 'escalated', 'settled'];
 
 const statusBadgeClass: Record<string, string> = {
   new: 'badge-light-secondary',
@@ -111,6 +111,7 @@ const statusBadgeClass: Record<string, string> = {
   ended: 'badge-light-success',
   cancelled: 'badge-light-secondary',
   escalated: 'badge-light-dark',
+  settled: 'badge-light-info',
 };
 
 const timelineStyles = `

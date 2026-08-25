@@ -18,6 +18,7 @@ return [
         'cancelled' => 'Cancelled',
         'disputed' => 'Disputed',
         'escalated' => 'Escalated',
+        'settled' => 'Settled',
     ],
     'installment_status' => [
         'pending' => 'Pending',
@@ -44,7 +45,9 @@ return [
         'full_requester' => 'Full to requester',
         'full_counterparty' => 'Full to counterparty',
         'escalate' => 'Escalate to court',
+        'percentage_split' => 'Percentage split',
     ],
+    'invalid_requester_percentage' => 'Requester percentage must be an integer between 0 and 100',
     'status_already_set' => 'The request is already in this status',
     'not_found' => 'Guarantor request not found',
     'installment_not_found' => 'Installment not found',

@@ -315,7 +315,7 @@ test('POST /guarantor/{id}/dispute requires a reason', function () {
         ->assertJsonValidationErrors(['reason']);
 });
 
-test('admin isAllowed can transition Disputed to Ended, Cancelled, or Escalated', function () {
+test('admin isAllowed can transition Disputed to Ended, Cancelled, Escalated, or Settled', function () {
     expect(GuarantorStatusEnum::isAllowed(
         GuarantorStatusEnum::Disputed,
         GuarantorStatusEnum::Ended,
@@ -329,6 +329,11 @@ test('admin isAllowed can transition Disputed to Ended, Cancelled, or Escalated'
         ->and(GuarantorStatusEnum::isAllowed(
             GuarantorStatusEnum::Disputed,
             GuarantorStatusEnum::Escalated,
+            'admin',
+        ))->toBeTrue()
+        ->and(GuarantorStatusEnum::isAllowed(
+            GuarantorStatusEnum::Disputed,
+            GuarantorStatusEnum::Settled,
             'admin',
         ))->toBeTrue();
 });

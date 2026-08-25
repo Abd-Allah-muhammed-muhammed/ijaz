@@ -924,6 +924,8 @@
     "guarantor_dispute_resolved_full_counterparty_body": "एडमिन ने गारंटर विवाद को पूरी तरह प्रतिपक्ष के पक्ष में सुलझाया। रोकी गई राशि वापस कर दी गई है।",
     "guarantor_dispute_resolved_escalated_title": "गारंटर विवाद बढ़ाया गया",
     "guarantor_dispute_resolved_escalated_body": "इजाज़ इस विवाद का मध्यस्थता नहीं कर रहा। रोकी गई राशि वापस कर दी गई है; कृपया स्वयं या कानूनी मार्ग से सुलझाएँ।",
+    "guarantor_dispute_resolved_percentage_split_title": "गारंटर विवाद प्रतिशत विभाजन से निपटाया गया",
+    "guarantor_dispute_resolved_percentage_split_body": "विवाद :requester_percentage/:counterparty_percentage में निपटाया गया। अनुरोधकर्ता को :requester_amount; प्रतिपक्ष को :counterparty_amount मिलता है।",
     "withdraw_pending_review_title": "नया निकासी अनुरोध",
     "withdraw_pending_review_body": "एक निकासी अनुरोध आपकी समीक्षा की प्रतीक्षा में है।",
     "offline_topup_pending_review_title": "नया ऑफ़लाइन टॉप-अप अनुरोध",

@@ -18,6 +18,7 @@ return [
         'cancelled' => 'منسوخ',
         'disputed' => 'تنازعہ',
         'escalated' => 'عدالت میں بھیجا گیا',
+        'settled' => 'تصفیہ شدہ',
     ],
     'installment_status' => [
         'pending' => 'زیر التواء',
@@ -43,7 +44,9 @@ return [
         'full_requester' => 'مکمل طور پر درخواست دہندہ کے حق میں',
         'full_counterparty' => 'مکمل طور پر مخالف فریق کے حق میں',
         'escalate' => 'عدالت میں بھیجیں',
+        'percentage_split' => 'فیصد تقسیم',
     ],
+    'invalid_requester_percentage' => 'درخواست دہندہ کا فیصد 0 سے 100 کے درمیان عدد صحیح ہونا چاہیے',
     'status_already_set' => 'درخواست پہلے سے اس حالت میں ہے',
     'not_found' => 'ضامن کی درخواست نہیں ملی',
     'installment_not_found' => 'قسط نہیں ملی',

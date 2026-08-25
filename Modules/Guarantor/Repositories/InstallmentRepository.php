@@ -83,6 +83,7 @@ class InstallmentRepository implements InstallmentRepositoryInterface
                 GuarantorStatusEnum::Ended->value,
                 GuarantorStatusEnum::Cancelled->value,
                 GuarantorStatusEnum::Escalated->value,
+                GuarantorStatusEnum::Settled->value,
                 GuarantorStatusEnum::Disputed->value,
             ]))
             ->with(['guarantorRequest.requester', 'guarantorRequest.counterparty'])

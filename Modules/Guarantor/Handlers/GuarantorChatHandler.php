@@ -55,6 +55,7 @@ class GuarantorChatHandler implements ChatTypeHandlerInterface
                     GuarantorStatusEnum::Ended->value,
                     GuarantorStatusEnum::Cancelled->value,
                     GuarantorStatusEnum::Escalated->value,
+                    GuarantorStatusEnum::Settled->value,
                 ]);
             })
             ->with(['user1', 'user2', 'lastMessage', 'operation'])

@@ -22,6 +22,7 @@ enum GuarantorStatusEnum: string
     case Ended = 'ended';
     case Cancelled = 'cancelled';
     case Escalated = 'escalated';
+    case Settled = 'settled';
 
     public function toString(): string
     {
@@ -43,6 +44,7 @@ enum GuarantorStatusEnum: string
             self::Ended => '#10b981',
             self::Cancelled => '#6b7280',
             self::Escalated => '#7c3aed',
+            self::Settled => '#0d9488',
         };
     }
 
@@ -66,6 +68,7 @@ enum GuarantorStatusEnum: string
             self::Ended,
             self::Cancelled,
             self::Escalated,
+            self::Settled,
         ], true);
     }
 

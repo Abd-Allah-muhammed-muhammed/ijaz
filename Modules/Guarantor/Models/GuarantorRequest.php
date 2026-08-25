@@ -110,6 +110,7 @@ class GuarantorRequest extends Model implements HasMedia
             GuarantorStatusEnum::Ended->value,
             GuarantorStatusEnum::Cancelled->value,
             GuarantorStatusEnum::Escalated->value,
+            GuarantorStatusEnum::Settled->value,
         ]);
     }
 

@@ -18,6 +18,7 @@ return [
         'cancelled' => 'रद्द',
         'disputed' => 'विवादित',
         'escalated' => 'न्यायालय को भेजा गया',
+        'settled' => 'निपटाया गया',
     ],
     'installment_status' => [
         'pending' => 'लंबित',
@@ -43,7 +44,9 @@ return [
         'full_requester' => 'पूरी तरह अनुरोधकर्ता के पक्ष में',
         'full_counterparty' => 'पूरी तरह प्रतिपक्ष के पक्ष में',
         'escalate' => 'न्यायालय को भेजें',
+        'percentage_split' => 'प्रतिशत विभाजन',
     ],
+    'invalid_requester_percentage' => 'अनुरोधकर्ता प्रतिशत 0 से 100 के बीच पूर्णांक होना चाहिए',
     'status_already_set' => 'अनुरोध पहले से ही इस स्थिति में है',
     'not_found' => 'गारंटर अनुरोध नहीं मिला',
     'installment_not_found' => 'किस्त नहीं मिली',

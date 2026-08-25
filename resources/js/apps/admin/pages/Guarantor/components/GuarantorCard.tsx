@@ -31,6 +31,7 @@ const statusBadgeClass: Record<string, string> = {
   ended: 'badge-light-success',
   cancelled: 'badge-light-danger',
   escalated: 'badge-light-dark',
+  settled: 'badge-light-info',
 };
 
 const typeBadgeClass: Record<string, string> = {

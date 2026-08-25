@@ -1095,6 +1095,8 @@
     "guarantor_dispute_resolved_full_counterparty_body": "Admin resolved the guarantor dispute fully in favor of the counterparty. Held funds have been reversed.",
     "guarantor_dispute_resolved_escalated_title": "Guarantor dispute escalated",
     "guarantor_dispute_resolved_escalated_body": "Ijaz is not arbitrating this dispute. Held funds have been reversed; please resolve the matter yourselves or through legal channels.",
+    "guarantor_dispute_resolved_percentage_split_title": "Guarantor dispute settled by percentage split",
+    "guarantor_dispute_resolved_percentage_split_body": "The dispute was settled :requester_percentage/:counterparty_percentage. Requester receives :requester_amount; counterparty receives :counterparty_amount.",
     "withdraw_pending_review_title": "New withdrawal request",
     "withdraw_pending_review_body": "A withdrawal request is awaiting your review.",
     "offline_topup_pending_review_title": "New offline top-up request",

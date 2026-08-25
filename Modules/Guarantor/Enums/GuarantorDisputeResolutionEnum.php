@@ -12,6 +12,7 @@ enum GuarantorDisputeResolutionEnum: string
     case FullRequester = 'full_requester';
     case FullCounterparty = 'full_counterparty';
     case Escalate = 'escalate';
+    case PercentageSplit = 'percentage_split';
 
     public function toString(): string
     {
@@ -24,6 +25,7 @@ enum GuarantorDisputeResolutionEnum: string
             self::FullRequester => 'dispute_resolved_full_requester',
             self::FullCounterparty => 'dispute_resolved_full_counterparty',
             self::Escalate => 'dispute_escalated_to_court',
+            self::PercentageSplit => 'dispute_resolved_percentage_split',
         };
     }
 }

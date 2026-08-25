@@ -923,6 +923,8 @@
     "guarantor_dispute_resolved_full_counterparty_body": "ایڈمن نے گارنٹر تنازعہ مکمل طور پر مخالف فریق کے حق میں حل کیا۔ روکی گئی رقم واپس کر دی گئی ہے۔",
     "guarantor_dispute_resolved_escalated_title": "گارنٹر تنازعہ بڑھایا گیا",
     "guarantor_dispute_resolved_escalated_body": "ایجاز اس تنازعہ کا فیصلہ نہیں کر رہا۔ روکی گئی رقم واپس کر دی گئی ہے؛ براہ کرم خود یا قانونی راستے سے حل کریں۔",
+    "guarantor_dispute_resolved_percentage_split_title": "گارنٹر تنازعہ فیصد تقسیم سے تصفیہ ہوا",
+    "guarantor_dispute_resolved_percentage_split_body": "تنازعہ :requester_percentage/:counterparty_percentage میں تصفیہ ہوا۔ درخواست دہندہ کو :requester_amount؛ مخالف فریق کو :counterparty_amount ملتا ہے۔",
     "withdraw_pending_review_title": "نئی واپسی کی درخواست",
     "withdraw_pending_review_body": "واپسی کی درخواست آپ کے جائزے کا انتظار کر رہی ہے۔",
     "offline_topup_pending_review_title": "نیا آف لائن ٹاپ اپ درخواست",

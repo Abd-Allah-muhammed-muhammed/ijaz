@@ -24,6 +24,15 @@ class ResolveGuarantorDisputeRequest extends FormRequest
                 'string',
                 Rule::enum(GuarantorDisputeResolutionEnum::class),
             ],
+            'requester_percentage' => [
+                Rule::requiredIf(
+                    fn () => $this->input('resolution') === GuarantorDisputeResolutionEnum::PercentageSplit->value
+                ),
+                'nullable',
+                'integer',
+                'min:0',
+                'max:100',
+            ],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }

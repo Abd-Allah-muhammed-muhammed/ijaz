@@ -11,6 +11,7 @@ use Modules\Guarantor\Actions\Dashboard\DeleteGuarantorForDashboardAction;
 use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\ResolveDisputeEscalateAction;
 use Modules\Guarantor\Actions\Guarantor\ResolveDisputeFullToPartyAction;
+use Modules\Guarantor\Actions\Guarantor\ResolveDisputePercentageSplitAction;
 use Modules\Guarantor\Actions\Installment\ReleaseInstallmentAction;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorDisputeResolutionEnum;
@@ -30,6 +31,7 @@ class GuarantorDashboardService
         private readonly CancelGuarantorAction $cancelAction,
         private readonly ResolveDisputeFullToPartyAction $resolveDisputeFullToPartyAction,
         private readonly ResolveDisputeEscalateAction $resolveDisputeEscalateAction,
+        private readonly ResolveDisputePercentageSplitAction $resolveDisputePercentageSplitAction,
         private readonly ReleaseInstallmentAction $releaseAction,
         private readonly DeleteGuarantorForDashboardAction $deleteForDashboardAction,
     ) {}
@@ -109,6 +111,12 @@ class GuarantorDashboardService
             GuarantorDisputeResolutionEnum::Escalate => $this->resolveDisputeEscalateAction->handle(
                 $request,
                 $admin,
+                $notes,
+            ),
+            GuarantorDisputeResolutionEnum::PercentageSplit => $this->resolveDisputePercentageSplitAction->handle(
+                $request,
+                $admin,
+                (int) $formRequest->validated('requester_percentage'),
                 $notes,
             ),
         };

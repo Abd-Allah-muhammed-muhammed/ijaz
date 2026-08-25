@@ -97,6 +97,7 @@ test('no transition from terminal status for non-admin', function () {
         GuarantorStatusEnum::Ended,
         GuarantorStatusEnum::Cancelled,
         GuarantorStatusEnum::Escalated,
+        GuarantorStatusEnum::Settled,
     ];
 
     foreach ($terminalStatuses as $status) {
