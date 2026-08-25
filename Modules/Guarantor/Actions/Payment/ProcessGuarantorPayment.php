@@ -76,11 +76,30 @@ class ProcessGuarantorPayment
         /** @var GuarantorRequest $request */
         $request = $installment->guarantorRequest;
 
-        if ($request->status->is(GuarantorStatusEnum::Overdue)) {
-            $this->guarantorRepository->update($request, [
+        if ($request->status->isIn([
+            GuarantorStatusEnum::Accepted,
+            GuarantorStatusEnum::Overdue,
+        ])) {
+            $fromStatus = $request->status->value;
+
+            $updateData = [
                 'status' => GuarantorStatusEnum::InProgress,
-                'overdue_at' => null,
-            ]);
+            ];
+
+            if ($request->status->is(GuarantorStatusEnum::Overdue)) {
+                $updateData['overdue_at'] = null;
+            }
+
+            $request = $this->guarantorRepository->update($request, $updateData);
+            $request->loadMissing('counterparty');
+
+            $this->logStatusHistory->handle(
+                request: $request,
+                actor: $request->counterparty,
+                fromStatus: $fromStatus,
+                toStatus: GuarantorStatusEnum::InProgress->value,
+                notes: 'Payment accepted by gateway',
+            );
         }
 
         if ($installment->order <= 1) {

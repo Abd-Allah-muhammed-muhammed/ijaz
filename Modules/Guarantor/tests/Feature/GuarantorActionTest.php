@@ -16,6 +16,7 @@ use Modules\Guarantor\Actions\Guarantor\CreateCompanyGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateIndividualGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\DeleteGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\EndGuarantorAction;
+use Modules\Guarantor\Actions\Guarantor\OpenGuarantorDisputeAction;
 use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorStatusAction;
 use Modules\Guarantor\Actions\Installment\PayInstallmentAction;
 use Modules\Guarantor\Actions\Installment\ReleaseInstallmentAction;
@@ -36,6 +37,7 @@ use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
 use Modules\Guarantor\Jobs\ReleaseInstallmentJob;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Models\GuarantorStatusHistory;
 use Modules\Guarantor\Notifications\GuarantorAcceptedNotification;
 use Modules\Guarantor\Notifications\GuarantorAdminApprovedNotification;
 use Modules\Guarantor\Notifications\GuarantorAdminRejectedNotification;
@@ -788,6 +790,150 @@ test('installment overdue recovery does not open chat', function () {
             ->where('operation_type', GuarantorRequest::class)
             ->where('operation_id', $guarantorRequest->id)
             ->exists())->toBeFalse();
+});
+
+test('a Company guarantor transitions from accepted to in_progress when its first installment payment completes', function () {
+    $guarantorRequest = GuarantorRequest::factory()->company()->accepted()->create([
+        'amount' => 1000,
+        'fees' => 10,
+    ]);
+    $installment = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create([
+        'order' => 1,
+        'amount' => 500,
+    ]);
+    $payment = acceptedInstallmentPayment($installment, $guarantorRequest->counterparty);
+
+    runPaymentPipelineStage(app(ProcessGuarantorPayment::class), $payment);
+
+    expect($guarantorRequest->fresh()->status)->toBe(GuarantorStatusEnum::InProgress)
+        ->and($installment->fresh()->status)->toBe(InstallmentStatusEnum::Paid);
+});
+
+test('the existing Overdue -> InProgress recovery on installment payment still works unchanged — regression', function () {
+    $guarantorRequest = GuarantorRequest::factory()->company()->create([
+        'status' => GuarantorStatusEnum::Overdue,
+        'overdue_at' => now(),
+        'amount' => 1000,
+        'fees' => 10,
+    ]);
+    $installment = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create([
+        'order' => 1,
+        'amount' => 500,
+    ]);
+    $payment = acceptedInstallmentPayment($installment, $guarantorRequest->counterparty);
+
+    runPaymentPipelineStage(app(ProcessGuarantorPayment::class), $payment);
+
+    $fresh = $guarantorRequest->fresh();
+
+    expect($fresh->status)->toBe(GuarantorStatusEnum::InProgress)
+        ->and($fresh->overdue_at)->toBeNull()
+        ->and($installment->fresh()->status)->toBe(InstallmentStatusEnum::Paid);
+});
+
+test('a Company guarantor already in_progress stays in_progress on subsequent installment payments (no duplicate/incorrect history entries)', function () {
+    Queue::fake();
+
+    $guarantorRequest = GuarantorRequest::factory()->company()->inProgress()->create([
+        'amount' => 1000,
+        'fees' => 10,
+    ]);
+    GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->paid()->create([
+        'order' => 1,
+        'amount' => 500,
+    ]);
+    $second = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create([
+        'order' => 2,
+        'amount' => 500,
+    ]);
+
+    $historyCountBefore = GuarantorStatusHistory::query()
+        ->where('guarantor_request_id', $guarantorRequest->id)
+        ->count();
+
+    $payment = acceptedInstallmentPayment($second, $guarantorRequest->counterparty);
+
+    runPaymentPipelineStage(app(ProcessGuarantorPayment::class), $payment);
+
+    expect($guarantorRequest->fresh()->status)->toBe(GuarantorStatusEnum::InProgress)
+        ->and(GuarantorStatusHistory::query()
+            ->where('guarantor_request_id', $guarantorRequest->id)
+            ->count())->toBe($historyCountBefore)
+        ->and(GuarantorStatusHistory::query()
+            ->where('guarantor_request_id', $guarantorRequest->id)
+            ->where('from_status', GuarantorStatusEnum::InProgress->value)
+            ->where('to_status', GuarantorStatusEnum::InProgress->value)
+            ->exists())->toBeFalse();
+});
+
+test('the status transition is logged via LogGuarantorStatusHistoryAction with the correct from/to values', function () {
+    $guarantorRequest = GuarantorRequest::factory()->company()->accepted()->create([
+        'amount' => 1000,
+        'fees' => 10,
+    ]);
+    $installment = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create([
+        'order' => 1,
+        'amount' => 500,
+    ]);
+    $payment = acceptedInstallmentPayment($installment, $guarantorRequest->counterparty);
+
+    runPaymentPipelineStage(app(ProcessGuarantorPayment::class), $payment);
+
+    $history = GuarantorStatusHistory::query()
+        ->where('guarantor_request_id', $guarantorRequest->id)
+        ->where('to_status', GuarantorStatusEnum::InProgress->value)
+        ->latest()
+        ->first();
+
+    expect($history)->not->toBeNull()
+        ->and($history->from_status)->toBe(GuarantorStatusEnum::Accepted->value)
+        ->and($history->to_status)->toBe(GuarantorStatusEnum::InProgress->value)
+        ->and($history->notes)->toBe('Payment accepted by gateway');
+});
+
+test('End is now reachable for a Company guarantor after its first installment payment, without requiring it to first go overdue', function () {
+    $guarantorRequest = GuarantorRequest::factory()->company()->accepted()->create([
+        'amount' => 1000,
+        'fees' => 10,
+    ]);
+    $installment = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create([
+        'order' => 1,
+        'amount' => 500,
+    ]);
+    $payment = acceptedInstallmentPayment($installment, $guarantorRequest->counterparty);
+
+    runPaymentPipelineStage(app(ProcessGuarantorPayment::class), $payment);
+
+    $ended = app(EndGuarantorAction::class)->handle(
+        $guarantorRequest->fresh(),
+        $guarantorRequest->requester,
+        'requester',
+    );
+
+    expect($ended->status)->toBe(GuarantorStatusEnum::Ended);
+});
+
+test('opening a dispute is now reachable for a Company guarantor after its first installment payment, without requiring it to first go overdue', function () {
+    $guarantorRequest = GuarantorRequest::factory()->company()->accepted()->create([
+        'amount' => 1000,
+        'fees' => 10,
+    ]);
+    $installment = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create([
+        'order' => 1,
+        'amount' => 500,
+    ]);
+    $payment = acceptedInstallmentPayment($installment, $guarantorRequest->counterparty);
+
+    runPaymentPipelineStage(app(ProcessGuarantorPayment::class), $payment);
+
+    $disputed = app(OpenGuarantorDisputeAction::class)->handle(
+        $guarantorRequest->fresh(),
+        $guarantorRequest->requester,
+        'requester',
+        'Goods not as agreed',
+    );
+
+    expect($disputed->status)->toBe(GuarantorStatusEnum::Disputed);
 });
 
 test('ProcessGuarantorPayment sets installment to paid on installment payment', function () {

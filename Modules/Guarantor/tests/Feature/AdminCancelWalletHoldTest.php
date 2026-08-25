@@ -65,7 +65,7 @@ function cancelGuarantorAsAdmin(GuarantorRequest $request, Admin $admin): void
     );
 }
 
-test('admin cancelling a Company guarantor at status "accepted" with only the first installment paid actually reverses BOTH parties wallet holds — counterparty pending_debit and requester pending_credit both return to zero for the held amount', function () {
+test('admin cancelling a Company guarantor that started accepted and paid only the first installment actually reverses BOTH parties wallet holds — counterparty pending_debit and requester pending_credit both return to zero for the held amount', function () {
     ['requester' => $requester, 'counterparty' => $counterparty, 'request' => $request, 'admin' => $admin] = adminCancelHoldContext([
         'type' => GuarantorTypeEnum::Company,
         'status' => GuarantorStatusEnum::Accepted,
@@ -81,7 +81,7 @@ test('admin cancelling a Company guarantor at status "accepted" with only the fi
 
     completeAdminCancelHoldPayment($counterparty, $first, 500);
 
-    expect($request->fresh()->status)->toBe(GuarantorStatusEnum::Accepted)
+    expect($request->fresh()->status)->toBe(GuarantorStatusEnum::InProgress)
         ->and((float) $counterparty->wallet->fresh()->pending_debit)->toBe(500.0)
         ->and((float) $requester->wallet->fresh()->pending_credit)->toBe(500.0);
 
