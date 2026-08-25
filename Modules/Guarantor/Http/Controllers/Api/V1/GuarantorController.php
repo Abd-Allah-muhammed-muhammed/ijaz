@@ -13,6 +13,7 @@ use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\DTOs\GuarantorUploadData;
 use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
+use Modules\Guarantor\Http\Requests\OpenGuarantorDisputeRequest;
 use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
 use Modules\Guarantor\Http\Requests\StoreIndividualGuarantorRequest;
 use Modules\Guarantor\Http\Requests\UpdateGuarantorRequest;
@@ -271,7 +272,7 @@ class GuarantorController extends Controller
      *
      * @urlParam guarantorRequest string required Guarantor request UUID.
      *
-     * @bodyParam status string required New status. Valid values: new, pending_admin, approved_by_admin, rejected_by_admin, accepted, rejected, in_progress, overdue, ended, cancelled, refunded. Example: accepted
+     * @bodyParam status string required New status. Valid values: new, pending_admin, approved_by_admin, rejected_by_admin, accepted, rejected, in_progress, overdue, disputed, ended, cancelled, escalated. Example: accepted
      * @bodyParam reason string Reason (required when rejected or cancelled).
      * @bodyParam notes string optional Additional notes.
      *
@@ -294,6 +295,43 @@ class GuarantorController extends Controller
             $data,
             auth()->user(),
             $actorRole
+        );
+
+        return $this->successResponse(
+            GuarantorResource::make($this->service->loadForShow($updated))
+        );
+    }
+
+    /**
+     * Open a dispute on a guarantor request.
+     *
+     * Either party may open a dispute from `in_progress` or `overdue` with a mandatory reason.
+     * Freezes End and further installment payments; chat and Admin Cancel remain available.
+     *
+     * @authenticated
+     *
+     * @urlParam guarantorRequest string required Guarantor request UUID.
+     *
+     * @bodyParam reason string required Why the dispute is being opened.
+     *
+     * @response 200 { "status": true, "data": {} }
+     * @response 401 { "success": false, "message": "Unauthenticated." }
+     * @response 403 { "success": false, "message": "You are not authorized to perform this action" }
+     * @response 422 { "success": false, "message": "This status transition is not allowed" }
+     */
+    public function dispute(
+        OpenGuarantorDisputeRequest $request,
+        GuarantorRequest $guarantorRequest,
+    ): JsonResponse {
+        $this->authorize('dispute', $guarantorRequest);
+
+        $actorRole = $this->service->resolveActorRole($guarantorRequest, auth()->user());
+
+        $updated = $this->service->openDispute(
+            $guarantorRequest,
+            auth()->user(),
+            $actorRole,
+            (string) $request->validated('reason'),
         );
 
         return $this->successResponse(

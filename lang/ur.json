@@ -915,6 +915,8 @@
     "account_status_suspended_body": "آپ کا اکاؤنٹ معطل کر دیا گیا ہے۔",
     "review_received_title": "نیا جائزہ موصول",
     "review_received_body": "کسی نے آپ کے لیے نیا جائزہ چھوڑا ہے۔",
+    "guarantor_disputed_title": "گارنٹر تنازعہ کھولا گیا",
+    "guarantor_disputed_body": "گارنٹر درخواست پر تنازعہ کھولا گیا ہے اور جائزے کی ضرورت ہے۔",
     "withdraw_pending_review_title": "نئی واپسی کی درخواست",
     "withdraw_pending_review_body": "واپسی کی درخواست آپ کے جائزے کا انتظار کر رہی ہے۔",
     "offline_topup_pending_review_title": "نیا آف لائن ٹاپ اپ درخواست",

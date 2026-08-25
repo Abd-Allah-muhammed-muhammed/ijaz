@@ -96,13 +96,31 @@ test('no transition from terminal status for non-admin', function () {
         GuarantorStatusEnum::Rejected,
         GuarantorStatusEnum::Ended,
         GuarantorStatusEnum::Cancelled,
-        GuarantorStatusEnum::Refunded,
+        GuarantorStatusEnum::Escalated,
     ];
 
     foreach ($terminalStatuses as $status) {
         expect(GuarantorStatusEnum::isAllowed($status, GuarantorStatusEnum::PendingAdmin, 'requester'))->toBeFalse();
         expect(GuarantorStatusEnum::isAllowed($status, GuarantorStatusEnum::Accepted, 'counterparty'))->toBeFalse();
     }
+});
+
+test('either party can open dispute from in_progress or overdue', function () {
+    expect(GuarantorStatusEnum::isAllowed(
+        GuarantorStatusEnum::InProgress,
+        GuarantorStatusEnum::Disputed,
+        'requester'
+    ))->toBeTrue()
+        ->and(GuarantorStatusEnum::isAllowed(
+            GuarantorStatusEnum::Overdue,
+            GuarantorStatusEnum::Disputed,
+            'counterparty'
+        ))->toBeTrue()
+        ->and(GuarantorStatusEnum::isAllowed(
+            GuarantorStatusEnum::Accepted,
+            GuarantorStatusEnum::Disputed,
+            'requester'
+        ))->toBeFalse();
 });
 
 test('cannot set same status twice for non-admin', function () {

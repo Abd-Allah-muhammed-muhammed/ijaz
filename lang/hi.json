@@ -916,6 +916,8 @@
     "account_status_suspended_body": "आपका खाता निलंबित कर दिया गया है।",
     "review_received_title": "नई समीक्षा प्राप्त",
     "review_received_body": "किसी ने आपके लिए एक नई समीक्षा दी है।",
+    "guarantor_disputed_title": "गारंटर विवाद खोला गया",
+    "guarantor_disputed_body": "गारंटर अनुरोध पर एक विवाद खोला गया है और समीक्षा की आवश्यकता है।",
     "withdraw_pending_review_title": "नया निकासी अनुरोध",
     "withdraw_pending_review_body": "एक निकासी अनुरोध आपकी समीक्षा की प्रतीक्षा में है।",
     "offline_topup_pending_review_title": "नया ऑफ़लाइन टॉप-अप अनुरोध",

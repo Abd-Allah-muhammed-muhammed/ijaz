@@ -28,6 +28,7 @@ class UpdateGuarantorStatusRequest extends ApiRequest
                         GuarantorStatusEnum::RejectedByAdmin->value,
                         GuarantorStatusEnum::Rejected->value,
                         GuarantorStatusEnum::Cancelled->value,
+                        GuarantorStatusEnum::Disputed->value,
                     ],
                     true
                 )),

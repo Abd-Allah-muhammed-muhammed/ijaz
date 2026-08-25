@@ -16,7 +16,8 @@ return [
         'overdue' => 'Overdue',
         'ended' => 'Ended',
         'cancelled' => 'Cancelled',
-        'refunded' => 'Refunded',
+        'disputed' => 'Disputed',
+        'escalated' => 'Escalated',
     ],
     'installment_status' => [
         'pending' => 'Pending',
@@ -38,6 +39,7 @@ return [
     'cannot_delete_non_new' => 'You can only delete requests pending admin review',
     'cannot_delete_media_non_new' => 'You can only delete media while pending admin review',
     'status_transition_not_allowed' => 'This status transition is not allowed',
+    'dispute_reason_required' => 'A reason is required to open a dispute',
     'status_already_set' => 'The request is already in this status',
     'not_found' => 'Guarantor request not found',
     'installment_not_found' => 'Installment not found',

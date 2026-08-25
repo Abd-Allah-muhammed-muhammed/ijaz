@@ -1010,6 +1010,8 @@
     "account_status_suspended_body": "تم تعليق حسابك.",
     "review_received_title": "وصل تقييم جديد",
     "review_received_body": "ترك شخص ما تقييماً جديداً لك.",
+    "guarantor_disputed_title": "تم فتح نزاع على الضمان",
+    "guarantor_disputed_body": "تم فتح نزاع على طلب ضمان ويحتاج إلى مراجعة.",
     "withdraw_pending_review_title": "طلب سحب جديد",
     "withdraw_pending_review_body": "طلب سحب بانتظار مراجعتك.",
     "offline_topup_pending_review_title": "طلب شحن رصيد دون اتصال جديد",

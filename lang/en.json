@@ -1087,6 +1087,8 @@
     "account_status_suspended_body": "Your account has been suspended.",
     "review_received_title": "New review received",
     "review_received_body": "Someone left a new review for you.",
+    "guarantor_disputed_title": "Guarantor dispute opened",
+    "guarantor_disputed_body": "A dispute has been opened on a guarantor request and needs review.",
     "withdraw_pending_review_title": "New withdrawal request",
     "withdraw_pending_review_body": "A withdrawal request is awaiting your review.",
     "offline_topup_pending_review_title": "New offline top-up request",

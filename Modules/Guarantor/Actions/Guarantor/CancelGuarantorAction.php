@@ -31,8 +31,8 @@ class CancelGuarantorAction
         DB::transaction(function () use ($request, $reason, $notes, $admin) {
             if ($request->status->isIn([
                 GuarantorStatusEnum::Cancelled,
-                GuarantorStatusEnum::Refunded,
                 GuarantorStatusEnum::Ended,
+                GuarantorStatusEnum::Escalated,
             ])) {
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }
@@ -54,25 +54,34 @@ class CancelGuarantorAction
 
     private function reverseWalletHolds(GuarantorRequest $request): void
     {
-        $request->loadMissing(['requester', 'counterparty']);
+        $request->loadMissing(['requester', 'counterparty', 'installments']);
 
-        $counterpartyWallet = $request->counterparty->wallet()->lockForUpdate()->first();
-        $pendingDebit = (float) ($counterpartyWallet?->pending_debit ?? 0);
-        if ($pendingDebit > 0) {
+        $operations = [
+            $request,
+            ...$request->installments->all(),
+        ];
+
+        $counterpartyHeld = $this->walletService->sumPendingDeltasForOperations(
+            $request->counterparty,
+            $operations,
+        );
+        if ($counterpartyHeld['pending_debit'] > 0) {
             $this->walletService->reversePendingDebit(
                 $request->counterparty,
-                $pendingDebit,
+                $counterpartyHeld['pending_debit'],
                 $request,
                 "Guarantor#{$request->id} cancelled",
             );
         }
 
-        $requesterWallet = $request->requester->wallet()->lockForUpdate()->first();
-        $pendingCredit = (float) ($requesterWallet?->pending_credit ?? 0);
-        if ($pendingCredit > 0) {
+        $requesterHeld = $this->walletService->sumPendingDeltasForOperations(
+            $request->requester,
+            $operations,
+        );
+        if ($requesterHeld['pending_credit'] > 0) {
             $this->walletService->reversePendingCredit(
                 $request->requester,
-                $pendingCredit,
+                $requesterHeld['pending_credit'],
                 $request,
                 "Guarantor#{$request->id} cancelled",
             );

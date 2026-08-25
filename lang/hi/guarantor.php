@@ -16,7 +16,8 @@ return [
         'overdue' => 'अतिदेय',
         'ended' => 'समाप्त',
         'cancelled' => 'रद्द',
-        'refunded' => 'वापस किया गया',
+        'disputed' => 'विवादित',
+        'escalated' => 'न्यायालय को भेजा गया',
     ],
     'installment_status' => [
         'pending' => 'लंबित',

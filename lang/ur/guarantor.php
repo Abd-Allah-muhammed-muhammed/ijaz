@@ -16,7 +16,8 @@ return [
         'overdue' => 'تاخیر شدہ',
         'ended' => 'ختم',
         'cancelled' => 'منسوخ',
-        'refunded' => 'واپس کیا گیا',
+        'disputed' => 'تنازعہ',
+        'escalated' => 'عدالت میں بھیجا گیا',
     ],
     'installment_status' => [
         'pending' => 'زیر التواء',

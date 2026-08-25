@@ -133,4 +133,13 @@ class WalletService
     {
         return $this->transactionRepo->latestForWallet($wallet, $limit);
     }
+
+    /**
+     * @param  list<Model>  $operations
+     * @return array{pending_credit: float, pending_debit: float}
+     */
+    public function sumPendingDeltasForOperations(Model $owner, array $operations): array
+    {
+        return $this->transactionRepo->sumPendingDeltasForOperations($owner, $operations);
+    }
 }

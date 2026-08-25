@@ -96,7 +96,7 @@ type Props = {
 
 type AdminAction = 'approve' | 'reject' | 'cancel' | null;
 
-const TERMINAL_STATUSES = ['rejected_by_admin', 'rejected', 'ended', 'cancelled', 'refunded'];
+const TERMINAL_STATUSES = ['rejected_by_admin', 'rejected', 'ended', 'cancelled', 'escalated'];
 
 const statusBadgeClass: Record<string, string> = {
   new: 'badge-light-secondary',
@@ -107,9 +107,10 @@ const statusBadgeClass: Record<string, string> = {
   rejected: 'badge-light-warning',
   in_progress: 'badge-light-success',
   overdue: 'badge-light-danger',
+  disputed: 'badge-light-danger',
   ended: 'badge-light-success',
   cancelled: 'badge-light-secondary',
-  refunded: 'badge-light-secondary',
+  escalated: 'badge-light-dark',
 };
 
 const timelineStyles = `

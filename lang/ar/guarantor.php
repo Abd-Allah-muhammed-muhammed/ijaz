@@ -16,7 +16,8 @@ return [
         'overdue' => 'متأخر',
         'ended' => 'منتهي',
         'cancelled' => 'ملغي',
-        'refunded' => 'مسترد',
+        'disputed' => 'متنازع عليه',
+        'escalated' => 'محال للقضاء',
     ],
     'installment_status' => [
         'pending' => 'قيد الانتظار',

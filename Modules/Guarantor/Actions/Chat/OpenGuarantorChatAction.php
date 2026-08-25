@@ -32,6 +32,7 @@ class OpenGuarantorChatAction
                 GuarantorStatusEnum::Accepted,
                 GuarantorStatusEnum::InProgress,
                 GuarantorStatusEnum::Overdue,
+                GuarantorStatusEnum::Disputed,
             ], true)) {
                 throw new GuarantorException('guarantor.chat_not_allowed', 422);
             }
