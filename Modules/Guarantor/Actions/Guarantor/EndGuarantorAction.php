@@ -32,7 +32,9 @@ class EndGuarantorAction
         return DB::transaction(function () use ($request, $actor, $actorRole) {
             if ($request->status->isIn([
                 GuarantorStatusEnum::Cancelled,
+                GuarantorStatusEnum::CancelledViaDispute,
                 GuarantorStatusEnum::Ended,
+                GuarantorStatusEnum::EndedViaDispute,
                 GuarantorStatusEnum::Escalated,
                 GuarantorStatusEnum::Settled,
             ])) {

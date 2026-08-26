@@ -33,7 +33,9 @@ class CancelGuarantorAction
         DB::transaction(function () use ($request, $reason, $notes, $admin) {
             if ($request->status->isIn([
                 GuarantorStatusEnum::Cancelled,
+                GuarantorStatusEnum::CancelledViaDispute,
                 GuarantorStatusEnum::Ended,
+                GuarantorStatusEnum::EndedViaDispute,
                 GuarantorStatusEnum::Escalated,
                 GuarantorStatusEnum::Settled,
             ])) {

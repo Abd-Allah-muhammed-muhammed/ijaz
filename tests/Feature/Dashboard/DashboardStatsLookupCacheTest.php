@@ -90,7 +90,8 @@ test('GuarantorRepository::getDashboardStats is byte-identical cold vs warm and 
         'in_progress' => 1,
         'overdue' => 1,
         'ended' => 1,
-    ])->and($coldMeasure['count'])->toBe(5);
+        'cancelled' => 0,
+    ])->and($coldMeasure['count'])->toBe(6);
 
     $warmMeasure = measureStatsQueries(function () use ($repo, &$warm): void {
         $warm = $repo->getDashboardStats();

@@ -110,26 +110,26 @@ test('remaining Pending installments are voided when a guarantor is Cancelled', 
         ->and($second->fresh()->status)->toBe(InstallmentStatusEnum::Voided);
 });
 
-test('remaining Pending installments are voided when a dispute resolves full-to-requester (Ended)', function () {
+test('remaining Pending installments are voided when a dispute resolves full-to-requester (EndedViaDispute)', function () {
     ['requester' => $requester, 'counterparty' => $counterparty, 'request' => $request, 'admin' => $admin] = voidRemainingInstallmentsContext();
     [$first, $second] = companyInstallmentsWithFirstPaid($request, $counterparty);
 
     app(OpenGuarantorDisputeAction::class)->handle($request->fresh(), $requester, 'requester', 'Dispute reason');
     app(ResolveDisputeFullToPartyAction::class)->handle($request->fresh(), $admin, 'requester');
 
-    expect($request->fresh()->status)->toBe(GuarantorStatusEnum::Ended)
+    expect($request->fresh()->status)->toBe(GuarantorStatusEnum::EndedViaDispute)
         ->and($first->fresh()->status)->toBe(InstallmentStatusEnum::Released)
         ->and($second->fresh()->status)->toBe(InstallmentStatusEnum::Voided);
 });
 
-test('remaining Pending installments are voided when a dispute resolves full-to-counterparty (Cancelled)', function () {
+test('remaining Pending installments are voided when a dispute resolves full-to-counterparty (CancelledViaDispute)', function () {
     ['requester' => $requester, 'counterparty' => $counterparty, 'request' => $request, 'admin' => $admin] = voidRemainingInstallmentsContext();
     [$first, $second] = companyInstallmentsWithFirstPaid($request, $counterparty);
 
     app(OpenGuarantorDisputeAction::class)->handle($request->fresh(), $requester, 'requester', 'Dispute reason');
     app(ResolveDisputeFullToPartyAction::class)->handle($request->fresh(), $admin, 'counterparty');
 
-    expect($request->fresh()->status)->toBe(GuarantorStatusEnum::Cancelled)
+    expect($request->fresh()->status)->toBe(GuarantorStatusEnum::CancelledViaDispute)
         ->and($first->fresh()->status)->toBe(InstallmentStatusEnum::Reversed)
         ->and($second->fresh()->status)->toBe(InstallmentStatusEnum::Voided);
 });

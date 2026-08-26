@@ -38,7 +38,7 @@ interface GuarantorRepositoryInterface
     public function paginateForDashboard(Request $request, int $perPage): LengthAwarePaginator;
 
     /**
-     * @return array{total: int, pending_admin: int, in_progress: int, overdue: int, ended: int}
+     * @return array{total: int, pending_admin: int, in_progress: int, overdue: int, ended: int, cancelled: int}
      */
     public function getDashboardStats(): array;
 

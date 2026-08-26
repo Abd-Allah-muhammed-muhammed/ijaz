@@ -29,7 +29,9 @@ const statusBadgeClass: Record<string, string> = {
   overdue: 'badge-light-danger',
   disputed: 'badge-light-danger',
   ended: 'badge-light-success',
+  ended_via_dispute: 'badge-light-success',
   cancelled: 'badge-light-danger',
+  cancelled_via_dispute: 'badge-light-danger',
   escalated: 'badge-light-dark',
   settled: 'badge-light-info',
 };

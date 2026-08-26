@@ -53,13 +53,13 @@ class ResolveDisputeFullToPartyAction
 
             if ($favorParty === 'requester') {
                 $guarantorRequest = $this->guarantorRepository->update($request, [
-                    'status' => GuarantorStatusEnum::Ended,
+                    'status' => GuarantorStatusEnum::EndedViaDispute,
                     'ended_at' => now(),
                 ]);
                 $this->releaseGuarantorWalletHoldsAction->handle($guarantorRequest->fresh());
             } else {
                 $guarantorRequest = $this->guarantorRepository->update($request, [
-                    'status' => GuarantorStatusEnum::Cancelled,
+                    'status' => GuarantorStatusEnum::CancelledViaDispute,
                     'cancelled_at' => now(),
                     'cancellation_reason' => $resolution->historyReason(),
                 ]);

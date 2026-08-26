@@ -54,11 +54,11 @@ class UpdateGuarantorStatusAction
                 'status' => $data->status,
             ];
 
-            if ($data->status === GuarantorStatusEnum::Ended) {
+            if ($data->status->isIn([GuarantorStatusEnum::Ended, GuarantorStatusEnum::EndedViaDispute])) {
                 $updateData['ended_at'] = now();
             }
 
-            if ($data->status === GuarantorStatusEnum::Cancelled) {
+            if ($data->status->isIn([GuarantorStatusEnum::Cancelled, GuarantorStatusEnum::CancelledViaDispute])) {
                 $updateData['cancelled_at'] = now();
                 $updateData['cancellation_reason'] = $data->reason;
             }
@@ -97,7 +97,9 @@ class UpdateGuarantorStatusAction
                     new GuarantorCounterpartyRejectedNotification($guarantorRequest)
                 ),
                 GuarantorStatusEnum::Ended,
-                GuarantorStatusEnum::Cancelled => $this->notifyGuarantorPartiesAction->handle($guarantorRequest),
+                GuarantorStatusEnum::EndedViaDispute,
+                GuarantorStatusEnum::Cancelled,
+                GuarantorStatusEnum::CancelledViaDispute => $this->notifyGuarantorPartiesAction->handle($guarantorRequest),
                 default => null,
             };
 

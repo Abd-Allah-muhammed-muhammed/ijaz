@@ -240,12 +240,12 @@ test('admin with manage guarantors can resolve a disputed guarantor via each of 
         [
             'resolution' => GuarantorDisputeResolutionEnum::FullRequester->value,
             'payload' => ['resolution' => GuarantorDisputeResolutionEnum::FullRequester->value, 'notes' => 'full requester'],
-            'expected' => GuarantorStatusEnum::Ended,
+            'expected' => GuarantorStatusEnum::EndedViaDispute,
         ],
         [
             'resolution' => GuarantorDisputeResolutionEnum::FullCounterparty->value,
             'payload' => ['resolution' => GuarantorDisputeResolutionEnum::FullCounterparty->value, 'notes' => 'full counterparty'],
-            'expected' => GuarantorStatusEnum::Cancelled,
+            'expected' => GuarantorStatusEnum::CancelledViaDispute,
         ],
         [
             'resolution' => GuarantorDisputeResolutionEnum::Escalate->value,

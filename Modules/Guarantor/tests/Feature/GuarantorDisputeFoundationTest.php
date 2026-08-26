@@ -173,7 +173,9 @@ test('opening a dispute is rejected from accepted status (no money moved yet)', 
 test('opening a dispute is rejected from any terminal status', function () {
     foreach ([
         GuarantorStatusEnum::Ended,
+        GuarantorStatusEnum::EndedViaDispute,
         GuarantorStatusEnum::Cancelled,
+        GuarantorStatusEnum::CancelledViaDispute,
         GuarantorStatusEnum::Escalated,
         GuarantorStatusEnum::Rejected,
         GuarantorStatusEnum::RejectedByAdmin,

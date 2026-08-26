@@ -131,17 +131,18 @@ class GuarantorRepository implements GuarantorRepositoryInterface
     }
 
     /**
-     * @return array{total: int, pending_admin: int, in_progress: int, overdue: int, ended: int}
+     * @return array{total: int, pending_admin: int, in_progress: int, overdue: int, ended: int, cancelled: int}
      */
     public function getDashboardStats(): array
     {
-        /** @var array{total: int, pending_admin: int, in_progress: int, overdue: int, ended: int} */
+        /** @var array{total: int, pending_admin: int, in_progress: int, overdue: int, ended: int, cancelled: int} */
         return LookupCache::rememberFor('stats:guarantor:dashboard', 30, fn (): array => [
             'total' => GuarantorRequest::count(),
             'pending_admin' => GuarantorRequest::where('status', GuarantorStatusEnum::PendingAdmin)->count(),
             'in_progress' => GuarantorRequest::where('status', GuarantorStatusEnum::InProgress)->count(),
             'overdue' => GuarantorRequest::where('status', GuarantorStatusEnum::Overdue)->count(),
-            'ended' => GuarantorRequest::where('status', GuarantorStatusEnum::Ended)->count(),
+            'ended' => GuarantorRequest::whereIn('status', GuarantorStatusEnum::endedAggregateValues())->count(),
+            'cancelled' => GuarantorRequest::whereIn('status', GuarantorStatusEnum::cancelledAggregateValues())->count(),
         ]);
     }
 

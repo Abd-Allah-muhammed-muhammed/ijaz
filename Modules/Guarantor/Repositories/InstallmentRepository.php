@@ -80,10 +80,7 @@ class InstallmentRepository implements InstallmentRepositoryInterface
         return GuarantorInstallment::query()
             ->overdue()
             ->whereHas('guarantorRequest', fn ($query) => $query->whereNotIn('status', [
-                GuarantorStatusEnum::Ended->value,
-                GuarantorStatusEnum::Cancelled->value,
-                GuarantorStatusEnum::Escalated->value,
-                GuarantorStatusEnum::Settled->value,
+                ...GuarantorStatusEnum::terminalValues(),
                 GuarantorStatusEnum::Disputed->value,
             ]))
             ->with(['guarantorRequest.requester', 'guarantorRequest.counterparty'])

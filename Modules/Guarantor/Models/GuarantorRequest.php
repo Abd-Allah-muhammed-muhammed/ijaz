@@ -104,14 +104,7 @@ class GuarantorRequest extends Model implements HasMedia
 
     public function scopeActive(Builder $query): Builder
     {
-        return $query->whereNotIn('status', [
-            GuarantorStatusEnum::RejectedByAdmin->value,
-            GuarantorStatusEnum::Rejected->value,
-            GuarantorStatusEnum::Ended->value,
-            GuarantorStatusEnum::Cancelled->value,
-            GuarantorStatusEnum::Escalated->value,
-            GuarantorStatusEnum::Settled->value,
-        ]);
+        return $query->whereNotIn('status', GuarantorStatusEnum::terminalValues());
     }
 
     public function isCompany(): bool
