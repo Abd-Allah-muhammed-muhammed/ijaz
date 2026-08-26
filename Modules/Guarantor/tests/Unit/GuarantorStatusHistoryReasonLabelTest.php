@@ -9,7 +9,7 @@ use Modules\Guarantor\Http\Resources\Dashboard\GuarantorDashboardResource;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Guarantor\Models\GuarantorStatusHistory;
 
-function reasonLabelHistory(array $attributes = []): GuarantorStatusHistory
+function statusHistoryWithReason(array $attributes = []): GuarantorStatusHistory
 {
     $guarantorRequest = GuarantorRequest::factory()->create();
     $user = User::factory()->create();
@@ -19,91 +19,80 @@ function reasonLabelHistory(array $attributes = []): GuarantorStatusHistory
         'actor_type' => User::class,
         'actor_id' => $user->getKey(),
         'from_status' => GuarantorStatusEnum::Disputed->value,
-        'to_status' => GuarantorStatusEnum::EndedViaDispute->value,
+        'to_status' => GuarantorStatusEnum::Escalated->value,
     ], $attributes));
 }
 
-test('reason_label returns the translated outcome for dispute_resolved_full_requester', function () {
+test('reason is exposed as an object with value and label for a known machine code, e.g. {"value": "dispute_escalated_to_court", "label": "Escalated to court"}', function () {
     app()->setLocale('en');
 
-    $history = reasonLabelHistory(['reason' => 'dispute_resolved_full_requester']);
+    $history = statusHistoryWithReason(['reason' => 'dispute_escalated_to_court']);
 
-    expect($history->reason_label)->toBe(__('guarantor.dispute_outcome_full_requester'));
+    expect($history->reason)->toBe([
+        'value' => 'dispute_escalated_to_court',
+        'label' => __('guarantor.dispute_outcome_escalated'),
+    ]);
 });
 
-test('reason_label returns the translated outcome for dispute_resolved_full_counterparty', function () {
+test('reason.value equals reason.label exactly for genuine free-text reasons', function () {
     app()->setLocale('en');
 
-    $history = reasonLabelHistory(['reason' => 'dispute_resolved_full_counterparty']);
+    $history = statusHistoryWithReason(['reason' => 'Goods not as agreed']);
 
-    expect($history->reason_label)->toBe(__('guarantor.dispute_outcome_full_counterparty'));
+    expect($history->reason)->toBe([
+        'value' => 'Goods not as agreed',
+        'label' => 'Goods not as agreed',
+    ]);
 });
 
-test('reason_label returns the translated outcome for dispute_escalated_to_court', function () {
+test('reason is null (not an object) when the history row has no reason, matching from_status\'s existing null pattern', function () {
+    $history = statusHistoryWithReason(['reason' => null]);
+
+    expect($history->reason)->toBeNull();
+});
+
+test('reason.label for percentage_split substitutes the correct percentages, reason.value retains the raw unparsed code with the ratio', function () {
     app()->setLocale('en');
 
-    $history = reasonLabelHistory(['reason' => 'dispute_escalated_to_court']);
+    $history = statusHistoryWithReason(['reason' => 'dispute_resolved_percentage_split:70/30']);
 
-    expect($history->reason_label)->toBe(__('guarantor.dispute_outcome_escalated'));
+    expect($history->reason)->toBe([
+        'value' => 'dispute_resolved_percentage_split:70/30',
+        'label' => __('guarantor.dispute_outcome_percentage_split_detail', [
+            'requester' => '70',
+            'counterparty' => '30',
+        ]),
+    ]);
 });
 
-test('reason_label returns the translated outcome for dispute_closed_by_admin_cancel', function () {
+test('reason.label respects Accept-Language / current locale; reason.value never changes with locale', function () {
     app()->setLocale('en');
-
-    $history = reasonLabelHistory(['reason' => 'dispute_closed_by_admin_cancel']);
-
-    expect($history->reason_label)->toBe(__('guarantor.dispute_outcome_admin_cancel'));
-});
-
-test('reason_label for dispute_resolved_percentage_split:70/30 substitutes the actual percentages into the translated label', function () {
-    app()->setLocale('en');
-
-    $history = reasonLabelHistory(['reason' => 'dispute_resolved_percentage_split:70/30']);
-
-    expect($history->reason_label)->toBe(__('guarantor.dispute_outcome_percentage_split_detail', [
-        'requester' => '70',
-        'counterparty' => '30',
-    ]));
-});
-
-test('reason_label for a genuine free-text reason returns it unchanged, verbatim', function () {
-    app()->setLocale('en');
-
-    $history = reasonLabelHistory(['reason' => 'Goods not as agreed']);
-
-    expect($history->reason_label)->toBe('Goods not as agreed');
-});
-
-test('reason_label is null when reason is null', function () {
-    $history = reasonLabelHistory(['reason' => null]);
-
-    expect($history->reason_label)->toBeNull();
-});
-
-test('reason_label respects the current app locale — same row, different locale, different label text', function () {
-    app()->setLocale('en');
-    $english = reasonLabelHistory(['reason' => 'dispute_resolved_full_requester'])->reason_label;
-    $expectedEnglish = __('guarantor.dispute_outcome_full_requester');
+    $english = statusHistoryWithReason(['reason' => 'dispute_resolved_full_requester'])->reason;
+    $expectedEnglishLabel = __('guarantor.dispute_outcome_full_requester');
 
     app()->setLocale('ar');
-    $arabic = reasonLabelHistory(['reason' => 'dispute_resolved_full_requester'])->reason_label;
-    $expectedArabic = __('guarantor.dispute_outcome_full_requester');
+    $arabic = statusHistoryWithReason(['reason' => 'dispute_resolved_full_requester'])->reason;
+    $expectedArabicLabel = __('guarantor.dispute_outcome_full_requester');
 
-    expect($english)->toBe($expectedEnglish)
-        ->and($arabic)->toBe($expectedArabic)
-        ->and($english)->not->toBe($arabic);
+    expect($english['value'])->toBe('dispute_resolved_full_requester')
+        ->and($arabic['value'])->toBe('dispute_resolved_full_requester')
+        ->and($english['label'])->toBe($expectedEnglishLabel)
+        ->and($arabic['label'])->toBe($expectedArabicLabel)
+        ->and($english['label'])->not->toBe($arabic['label']);
 });
 
-test('StatusHistoryResource exposes reason_label additively — reason itself is completely unchanged', function () {
+test('flat reason_label field no longer exists on the resource — fully replaced by the reason object', function () {
     app()->setLocale('en');
 
-    $history = reasonLabelHistory(['reason' => 'dispute_resolved_full_requester']);
+    $history = statusHistoryWithReason(['reason' => 'dispute_resolved_full_requester']);
 
     $data = StatusHistoryResource::make($history)->toArray(Request::create('/'));
 
-    expect($data)->toHaveKey('reason_label')
-        ->and($data['reason'])->toBe('dispute_resolved_full_requester')
-        ->and($data['reason_label'])->toBe(__('guarantor.dispute_outcome_full_requester'));
+    expect($data)->not->toHaveKey('reason_label')
+        ->and($data['reason'])->toBe([
+            'value' => 'dispute_resolved_full_requester',
+            'label' => __('guarantor.dispute_outcome_full_requester'),
+        ]);
 });
 
 test('this is correct on both the mobile GuarantorResource and Dashboard GuarantorDashboardResource paths, since both use the same StatusHistoryResource', function () {
@@ -112,7 +101,7 @@ test('this is correct on both the mobile GuarantorResource and Dashboard Guarant
     $guarantorRequest = GuarantorRequest::factory()->create();
     $user = User::factory()->create();
 
-    GuarantorStatusHistory::query()->create([
+    $history = GuarantorStatusHistory::query()->create([
         'guarantor_request_id' => $guarantorRequest->id,
         'actor_type' => User::class,
         'actor_id' => $user->getKey(),
@@ -123,14 +112,21 @@ test('this is correct on both the mobile GuarantorResource and Dashboard Guarant
 
     $guarantorRequest->load(['requester', 'counterparty', 'statusHistories.actor']);
 
+    $expectedReason = [
+        'value' => 'dispute_escalated_to_court',
+        'label' => __('guarantor.dispute_outcome_escalated'),
+    ];
+
+    $serialized = StatusHistoryResource::make($history)->toArray(Request::create('/'));
+
     $mobileHistory = GuarantorResource::make($guarantorRequest)
         ->toArray(Request::create('/'))['status_histories'][0];
 
     $dashboardHistory = GuarantorDashboardResource::make($guarantorRequest)
         ->toArray(Request::create('/'))['status_histories'][0];
 
-    expect($mobileHistory['reason'])->toBe('dispute_escalated_to_court')
-        ->and($mobileHistory['reason_label'])->toBe(__('guarantor.dispute_outcome_escalated'))
-        ->and($dashboardHistory['reason'])->toBe('dispute_escalated_to_court')
-        ->and($dashboardHistory['reason_label'])->toBe(__('guarantor.dispute_outcome_escalated'));
+    expect($serialized['reason'])->toBe($expectedReason)
+        ->and($serialized)->not->toHaveKey('reason_label')
+        ->and($mobileHistory['reason'])->toBe($expectedReason)
+        ->and($dashboardHistory['reason'])->toBe($expectedReason);
 });

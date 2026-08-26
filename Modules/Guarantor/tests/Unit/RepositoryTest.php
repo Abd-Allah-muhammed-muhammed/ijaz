@@ -256,6 +256,6 @@ test('status history can be logged via repository', function () {
         ->and($history->actor_type)->toBe(User::class)
         ->and($history->from_status)->toBe(GuarantorStatusEnum::PendingAdmin->value)
         ->and($history->to_status)->toBe(GuarantorStatusEnum::Accepted->value)
-        ->and($history->reason)->toBe('Accepted by counterparty')
+        ->and($history->getRawOriginal('reason'))->toBe('Accepted by counterparty')
         ->and($history->notes)->toBe('All good');
 });

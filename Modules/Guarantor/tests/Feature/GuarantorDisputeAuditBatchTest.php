@@ -257,7 +257,7 @@ test('the Dispute tab shows a closed/cancelled state (not awaiting admin resolut
             ->where(
                 'guarantorRequest.status_histories',
                 fn ($histories) => collect($histories)->contains(
-                    fn ($history) => ($history['reason'] ?? null) === GuarantorDisputeHistoryReason::ClosedByAdminCancel
+                    fn ($history) => ($history['reason']['value'] ?? null) === GuarantorDisputeHistoryReason::ClosedByAdminCancel
                 )
             )
             ->where(

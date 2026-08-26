@@ -36,36 +36,61 @@ class GuarantorStatusHistory extends Model
         return $this->morphTo();
     }
 
-    protected function reasonLabel(): Attribute
+    protected function reason(): Attribute
     {
         return Attribute::make(
-            get: fn (): ?string => $this->resolveReasonLabel(),
+            get: fn (): ?array => $this->resolveReasonObject(),
+            set: fn (?string $value): array => ['reason' => $value],
         );
     }
 
-    private function resolveReasonLabel(): ?string
+    /**
+     * @return array{value: string, label: string}|null
+     */
+    private function resolveReasonObject(): ?array
     {
-        if ($this->reason === null) {
+        $value = $this->rawReason();
+
+        if ($value === null) {
             return null;
         }
 
+        return [
+            'value' => $value,
+            'label' => $this->resolveReasonLabel($value),
+        ];
+    }
+
+    private function rawReason(): ?string
+    {
+        $value = $this->attributes['reason'] ?? null;
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return $value;
+    }
+
+    private function resolveReasonLabel(string $value): string
+    {
         return match (true) {
-            $this->reason === 'dispute_resolved_full_requester' => __('guarantor.dispute_outcome_full_requester'),
-            $this->reason === 'dispute_resolved_full_counterparty' => __('guarantor.dispute_outcome_full_counterparty'),
-            $this->reason === 'dispute_escalated_to_court' => __('guarantor.dispute_outcome_escalated'),
-            $this->reason === 'dispute_closed_by_admin_cancel' => __('guarantor.dispute_outcome_admin_cancel'),
-            str_starts_with($this->reason, 'dispute_resolved_percentage_split') => $this->percentageSplitReasonLabel(),
-            default => $this->reason,
+            $value === 'dispute_resolved_full_requester' => __('guarantor.dispute_outcome_full_requester'),
+            $value === 'dispute_resolved_full_counterparty' => __('guarantor.dispute_outcome_full_counterparty'),
+            $value === 'dispute_escalated_to_court' => __('guarantor.dispute_outcome_escalated'),
+            $value === 'dispute_closed_by_admin_cancel' => __('guarantor.dispute_outcome_admin_cancel'),
+            str_starts_with($value, 'dispute_resolved_percentage_split') => $this->percentageSplitReasonLabel($value),
+            default => $value,
         };
     }
 
-    private function percentageSplitReasonLabel(): string
+    private function percentageSplitReasonLabel(string $value): string
     {
-        if (! str_contains($this->reason, ':')) {
+        if (! str_contains($value, ':')) {
             return __('guarantor.dispute_outcome_percentage_split');
         }
 
-        [, $ratio] = explode(':', $this->reason, 2);
+        [, $ratio] = explode(':', $value, 2);
         [$requester, $counterparty] = array_pad(explode('/', $ratio, 2), 2, null);
 
         if ($requester === null || $counterparty === null || $requester === '' || $counterparty === '') {

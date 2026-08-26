@@ -38,12 +38,16 @@ type InstallmentItem = {
   released_at?: string | null;
 };
 
+type HistoryReason = {
+  value: string;
+  label: string;
+};
+
 type HistoryItem = {
   id: string;
   from_status?: StatusOption | null;
   to_status: StatusOption;
-  reason?: string | null;
-  reason_label?: string | null;
+  reason?: HistoryReason | null;
   notes?: string | null;
   actor?: Participant;
   created_at: string;
@@ -204,7 +208,7 @@ const Show = ({ guarantorRequest }: Props) => {
   const hasDisputeHistory = statusHistories.some((history) => history.to_status?.value === 'disputed');
   const canViewChat = hasPermission('show guarantors');
   const disputeReason =
-    statusHistories.find((history) => history.to_status?.value === 'disputed')?.reason ?? null;
+    statusHistories.find((history) => history.to_status?.value === 'disputed')?.reason?.label ?? null;
 
   const installments = guarantorRequest.installments ?? [];
   const paidInstallments = installments.filter((item) =>
@@ -669,10 +673,10 @@ const Show = ({ guarantorRequest }: Props) => {
                               {new Date(history.created_at).toLocaleString()}
                             </span>
                           </div>
-                          {(history.reason_label ?? history.reason) && (
+                          {history.reason?.label && (
                             <div className="text-muted fs-7">
                               <span className="fw-bold text-gray-600">{t('guarantor.reason')}: </span>
-                              {history.reason_label ?? history.reason}
+                              {history.reason.label}
                             </div>
                           )}
                           {history.notes && (

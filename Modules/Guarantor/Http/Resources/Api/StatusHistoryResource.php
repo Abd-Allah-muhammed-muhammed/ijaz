@@ -22,7 +22,6 @@ class StatusHistoryResource extends JsonResource
                 : null,
             'to_status' => GuarantorStatusEnum::from($this->to_status)->toArray(),
             'reason' => $this->reason,
-            'reason_label' => $this->reason_label,
             'notes' => $this->notes,
             'actor' => $this->whenLoaded('actor', fn () => GuarantorParticipantResource::make($this->actor)),
             'created_at' => $this->created_at->toIso8601String(),

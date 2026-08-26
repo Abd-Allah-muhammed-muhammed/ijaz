@@ -282,6 +282,6 @@ test('the Dispute tab and dispute-resolution notification continue to work corre
     $histories = $resolved->statusHistories()->get();
     expect($histories->contains(
         fn ($history) => $history->to_status === GuarantorStatusEnum::Disputed->value
-            && $history->reason === 'Dispute opened for terminal status tests'
+            && $history->getRawOriginal('reason') === 'Dispute opened for terminal status tests'
     ))->toBeTrue();
 });

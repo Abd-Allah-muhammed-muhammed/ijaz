@@ -212,7 +212,8 @@ test('disputed guarantor show exposes disputed status and dispute reason history
             ->component('Dashboard/Guarantor/Show')
             ->where('guarantorRequest.status.value', GuarantorStatusEnum::Disputed->value)
             ->where('guarantorRequest.status_histories.0.to_status.value', GuarantorStatusEnum::Disputed->value)
-            ->where('guarantorRequest.status_histories.0.reason', 'Goods not as agreed')
+            ->where('guarantorRequest.status_histories.0.reason.value', 'Goods not as agreed')
+            ->where('guarantorRequest.status_histories.0.reason.label', 'Goods not as agreed')
         );
 });
 
@@ -458,13 +459,13 @@ test('the Dispute tab data is derivable entirely from existing status_histories 
                 'guarantorRequest.status_histories',
                 fn ($histories) => collect($histories)->contains(
                     fn ($history) => ($history['to_status']['value'] ?? null) === GuarantorStatusEnum::Disputed->value
-                        && ($history['reason'] ?? null) === 'Goods not as agreed'
+                        && ($history['reason']['value'] ?? null) === 'Goods not as agreed'
                 )
             )
             ->where(
                 'guarantorRequest.status_histories',
                 fn ($histories) => collect($histories)->contains(
-                    fn ($history) => ($history['reason'] ?? null) === 'dispute_escalated_to_court'
+                    fn ($history) => ($history['reason']['value'] ?? null) === 'dispute_escalated_to_court'
                 )
             )
         );

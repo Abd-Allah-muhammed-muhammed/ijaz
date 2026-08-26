@@ -277,7 +277,7 @@ test('opening a dispute logs a status history entry with the mandatory reason', 
 
     expect($history)->not->toBeNull()
         ->and($history->from_status)->toBe(GuarantorStatusEnum::InProgress->value)
-        ->and($history->reason)->toBe('Mandatory dispute reason');
+        ->and($history->getRawOriginal('reason'))->toBe('Mandatory dispute reason');
 });
 
 test('opening a dispute notifies the other party and Admin', function () {

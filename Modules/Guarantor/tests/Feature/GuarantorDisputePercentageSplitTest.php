@@ -265,7 +265,7 @@ test('percentage split logs a distinct status history entry including both perce
 
     expect($history)->not->toBeNull()
         ->and($history->from_status)->toBe(GuarantorStatusEnum::Disputed->value)
-        ->and($history->reason)->toBe('dispute_resolved_percentage_split:60/40')
+        ->and($history->getRawOriginal('reason'))->toBe('dispute_resolved_percentage_split:60/40')
         ->and($history->notes)->toBe('split notes');
 });
 
