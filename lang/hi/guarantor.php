@@ -35,6 +35,9 @@ return [
         'agency' => 'एजेंसी',
     ],
     'installments_sum_mismatch' => 'किस्तों की राशि का योग कुल अनुबंध राशि के बराबर होना चाहिए',
+    'installment_order_duplicate' => 'प्रत्येक किस्त का क्रम संख्या अद्वितीय होनी चाहिए',
+    'installment_order_not_sequential' => 'किस्त क्रम मान 1 से शुरू होकर बिना अंतराल के क्रमिक होने चाहिए',
+    'invalid_saudi_iban' => 'आईबीएएन एक वैध सऊदी आईबीएएन होना चाहिए (SA के बाद 22 अंक)',
     'installment_due_date_required' => 'प्रत्येक किस्त की देय तिथि आवश्यक है।',
     'installment_due_date_invalid' => 'प्रत्येक किस्त की देय तिथि एक मान्य तिथि होनी चाहिए।',
     'installment_due_date_after_today' => 'प्रत्येक किस्त की देय तिथि आज के बाद की होनी चाहिए।',
@@ -43,6 +46,7 @@ return [
     'cannot_delete_non_new' => 'आप केवल नई स्थिति वाले अनुरोधों को हटा सकते हैं',
     'cannot_delete_media_non_new' => 'आप केवल नई स्थिति में मीडिया हटा सकते हैं',
     'status_transition_not_allowed' => 'यह स्थिति परिवर्तन अनुमत नहीं है',
+    'dispute_reason_required' => 'विवाद खोलने के लिए कारण आवश्यक है',
     'dispute_resolution' => [
         'full_requester' => 'पूरी तरह अनुरोधकर्ता के पक्ष में',
         'full_counterparty' => 'पूरी तरह प्रतिपक्ष के पक्ष में',

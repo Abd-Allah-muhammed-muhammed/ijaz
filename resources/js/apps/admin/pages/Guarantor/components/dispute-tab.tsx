@@ -1,3 +1,7 @@
+import {
+  formatGuarantorMachineHistoryReason,
+  isGuarantorMachineHistoryReason,
+} from '@/apps/admin/pages/Guarantor/utils/parseGuarantorHistoryReason';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import { useTranslation } from 'react-i18next';
 
@@ -29,73 +33,13 @@ type Props = {
   statusHistories: HistoryItem[];
 };
 
-const RESOLUTION_REASON_PREFIXES = [
-  'dispute_resolved_full_requester',
-  'dispute_resolved_full_counterparty',
-  'dispute_escalated_to_court',
-  'dispute_resolved_percentage_split',
-] as const;
-
-const CLOSED_BY_ADMIN_CANCEL_REASON = 'dispute_closed_by_admin_cancel';
-
-const isResolutionReason = (reason?: string | null): boolean => {
-  if (!reason) {
-    return false;
-  }
-
-  if (reason === CLOSED_BY_ADMIN_CANCEL_REASON) {
-    return true;
-  }
-
-  return RESOLUTION_REASON_PREFIXES.some(
-    (prefix) => reason === prefix || reason.startsWith(`${prefix}:`),
-  );
-};
-
-const formatResolutionOutcome = (
-  reason: string,
-  t: (key: string, options?: Record<string, unknown>) => string,
-): string => {
-  if (reason === 'dispute_resolved_full_requester') {
-    return t('guarantor.dispute_outcome_full_requester');
-  }
-
-  if (reason === 'dispute_resolved_full_counterparty') {
-    return t('guarantor.dispute_outcome_full_counterparty');
-  }
-
-  if (reason === 'dispute_escalated_to_court') {
-    return t('guarantor.dispute_outcome_escalated');
-  }
-
-  if (reason.startsWith('dispute_resolved_percentage_split')) {
-    const ratio = reason.includes(':') ? reason.split(':')[1] : null;
-    if (ratio) {
-      const [requester, counterparty] = ratio.split('/');
-      return t('guarantor.dispute_outcome_percentage_split_detail', {
-        requester,
-        counterparty,
-        defaultValue: `Percentage split — requester ${requester}%, counterparty ${counterparty}%`,
-      });
-    }
-
-    return t('guarantor.dispute_outcome_percentage_split');
-  }
-
-  if (reason === CLOSED_BY_ADMIN_CANCEL_REASON) {
-    return t('guarantor.dispute_outcome_admin_cancel');
-  }
-
-  return reason;
-};
-
 const DisputeTab = ({ statusHistories }: Props) => {
   const { t } = useTranslation();
 
   const opening = statusHistories.find((history) => history.to_status?.value === 'disputed');
-  const resolution = statusHistories.find((history) => isResolutionReason(history.reason));
+  const resolution = statusHistories.find((history) => isGuarantorMachineHistoryReason(history.reason));
   const isEscalated = Boolean(resolution?.reason?.startsWith('dispute_escalated'));
-  const isAdminCancelClosed = resolution?.reason === CLOSED_BY_ADMIN_CANCEL_REASON;
+  const isAdminCancelClosed = resolution?.reason === 'dispute_closed_by_admin_cancel';
 
   if (!opening) {
     return <p className="text-muted fst-italic mb-0">{t('guarantor.no_dispute')}</p>;
@@ -234,7 +178,7 @@ const DisputeTab = ({ statusHistories }: Props) => {
                   {t('guarantor.dispute_outcome')}
                 </div>
                 <p className="fs-6 text-gray-800 mb-0 fw-semibold">
-                  {formatResolutionOutcome(resolution.reason ?? '', t)}
+                  {formatGuarantorMachineHistoryReason(resolution.reason ?? '', t)}
                 </p>
                 {resolution.notes && (
                   <p className="fs-7 text-muted mt-2 mb-0">

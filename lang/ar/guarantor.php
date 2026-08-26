@@ -35,6 +35,9 @@ return [
         'agency' => 'وكالة',
     ],
     'installments_sum_mismatch' => 'مجموع الدفعات يجب أن يساوي إجمالي قيمة العقد',
+    'installment_order_duplicate' => 'يجب أن يكون لكل دفعة رقم ترتيب فريد',
+    'installment_order_not_sequential' => 'يجب أن تكون قيم ترتيب الدفعات متسلسلة بدءاً من 1 دون فجوات',
+    'invalid_saudi_iban' => 'يجب أن يكون رقم الآيبان آيباناً سعودياً صالحاً (SA متبوعاً بـ 22 رقماً)',
     'installment_due_date_required' => 'يجب تحديد تاريخ استحقاق لكل دفعة.',
     'installment_due_date_invalid' => 'يجب أن يكون تاريخ استحقاق كل دفعة تاريخاً صالحاً.',
     'installment_due_date_after_today' => 'يجب أن يكون تاريخ استحقاق كل دفعة بعد اليوم.',
@@ -43,6 +46,7 @@ return [
     'cannot_delete_non_new' => 'لا يمكنك حذف الطلب إلا أثناء انتظار مراجعة الإدارة',
     'cannot_delete_media_non_new' => 'لا يمكنك حذف الملفات إلا أثناء انتظار مراجعة الإدارة',
     'status_transition_not_allowed' => 'هذا التحول في الحالة غير مسموح به',
+    'dispute_reason_required' => 'يجب تقديم سبب لفتح النزاع',
     'dispute_resolution' => [
         'full_requester' => 'كامل لصالح مقدم الطلب',
         'full_counterparty' => 'كامل لصالح الطرف المقابل',

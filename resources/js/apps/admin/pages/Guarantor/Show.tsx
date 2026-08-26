@@ -10,6 +10,7 @@ import clsx from 'clsx';
 import { ReactElement, useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import { parseGuarantorHistoryReason } from '@/apps/admin/pages/Guarantor/utils/parseGuarantorHistoryReason';
 import ChatTap from './components/chat-tap';
 import DocumentsTab, { MediaItem } from './components/documents-tab';
 import DisputeTab from './components/dispute-tab';
@@ -671,7 +672,7 @@ const Show = ({ guarantorRequest }: Props) => {
                           {history.reason && (
                             <div className="text-muted fs-7">
                               <span className="fw-bold text-gray-600">{t('guarantor.reason')}: </span>
-                              {history.reason}
+                              {parseGuarantorHistoryReason(history.reason, t)}
                             </div>
                           )}
                           {history.notes && (

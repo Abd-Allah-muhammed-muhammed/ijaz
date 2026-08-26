@@ -35,6 +35,9 @@ return [
         'agency' => 'ایجنسی',
     ],
     'installments_sum_mismatch' => 'قسطوں کی رقم کا مجموعہ کل معاہدے کی رقم کے برابر ہونا چاہیے',
+    'installment_order_duplicate' => 'ہر قسط کا ترتیب نمبر منفرد ہونا چاہیے',
+    'installment_order_not_sequential' => 'قسطوں کی ترتیب 1 سے شروع ہوکر بغیر وقفے کے مسلسل ہونی چاہیے',
+    'invalid_saudi_iban' => 'آئی بین ایک درست سعودی آئی بین ہونا چاہیے (SA کے بعد 22 ہندسے)',
     'installment_due_date_required' => 'ہر قسط کی واجب الادا تاریخ درکار ہے۔',
     'installment_due_date_invalid' => 'ہر قسط کی واجب الادا تاریخ درست ہونی چاہیے۔',
     'installment_due_date_after_today' => 'ہر قسط کی واجب الادا تاریخ آج کے بعد کی ہونی چاہیے۔',
@@ -43,6 +46,7 @@ return [
     'cannot_delete_non_new' => 'آپ صرف نئی حالت والے درخواستوں کو حذف کر سکتے ہیں',
     'cannot_delete_media_non_new' => 'آپ صرف نئی حالت میں میڈیا حذف کر سکتے ہیں',
     'status_transition_not_allowed' => 'یہ حالت کی تبدیلی مجاز نہیں ہے',
+    'dispute_reason_required' => 'تنازعہ کھولنے کے لیے وجہ درکار ہے',
     'dispute_resolution' => [
         'full_requester' => 'مکمل طور پر درخواست دہندہ کے حق میں',
         'full_counterparty' => 'مکمل طور پر مخالف فریق کے حق میں',
