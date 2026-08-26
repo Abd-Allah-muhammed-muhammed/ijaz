@@ -53,7 +53,9 @@ class GuarantorChatHandler implements ChatTypeHandlerInterface
                     GuarantorStatusEnum::RejectedByAdmin->value,
                     GuarantorStatusEnum::Rejected->value,
                     GuarantorStatusEnum::Ended->value,
+                    GuarantorStatusEnum::EndedViaDispute->value,
                     GuarantorStatusEnum::Cancelled->value,
+                    GuarantorStatusEnum::CancelledViaDispute->value,
                     GuarantorStatusEnum::Escalated->value,
                     GuarantorStatusEnum::Settled->value,
                 ]);

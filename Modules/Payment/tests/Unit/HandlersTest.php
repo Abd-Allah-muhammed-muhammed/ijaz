@@ -176,9 +176,9 @@ test('HandleTopUpPaymentFailed rejects TopUpRequest', function () {
 
 test('HandleGuarantorPaymentCompleted processes guarantor request payment', function () {
     $user = createWalletUser();
-    $request = GuarantorRequest::factory()->accepted()->create();
+    $request = GuarantorRequest::factory()->accepted()->create(['amount' => 1000, 'fees' => 10]);
     $payment = createPaymentFor($user, $request, [
-        'amount' => 1000,
+        'amount' => 1010,
         'driver' => 'testing',
         'status' => PaymentStatusEnum::Accepted,
     ]);
@@ -201,7 +201,9 @@ test('HandleGuarantorPaymentCompleted ignores non-guarantor payments', function 
 test('HandleGuarantorPaymentCompleted handles GuarantorInstallment product type', function () {
     $user = createWalletUser();
     $request = GuarantorRequest::factory()->accepted()->create();
-    $installment = GuarantorInstallment::factory()->for($request, 'guarantorRequest')->create();
+    $installment = GuarantorInstallment::factory()->for($request, 'guarantorRequest')->create([
+        'amount' => 500,
+    ]);
     $payment = createPaymentFor($user, $installment, [
         'amount' => 500,
         'driver' => 'testing',

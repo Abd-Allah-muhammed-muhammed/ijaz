@@ -29,7 +29,10 @@ class NotifyGuarantorPartiesAction
 
     private function notificationFor(GuarantorRequest $guarantorRequest): Notification
     {
-        if ($guarantorRequest->status->is(GuarantorStatusEnum::Cancelled)) {
+        if ($guarantorRequest->status->isIn([
+            GuarantorStatusEnum::Cancelled,
+            GuarantorStatusEnum::CancelledViaDispute,
+        ])) {
             return new GuarantorCancelledNotification($guarantorRequest);
         }
 

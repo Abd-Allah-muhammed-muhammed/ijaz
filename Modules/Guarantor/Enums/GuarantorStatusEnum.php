@@ -20,7 +20,9 @@ enum GuarantorStatusEnum: string
     case Overdue = 'overdue';
     case Disputed = 'disputed';
     case Ended = 'ended';
+    case EndedViaDispute = 'ended_via_dispute';
     case Cancelled = 'cancelled';
+    case CancelledViaDispute = 'cancelled_via_dispute';
     case Escalated = 'escalated';
     case Settled = 'settled';
 
@@ -42,7 +44,9 @@ enum GuarantorStatusEnum: string
             self::Overdue => '#ef4444',
             self::Disputed => '#dc2626',
             self::Ended => '#10b981',
+            self::EndedViaDispute => '#10b981',
             self::Cancelled => '#6b7280',
+            self::CancelledViaDispute => '#6b7280',
             self::Escalated => '#7c3aed',
             self::Settled => '#0d9488',
         };
@@ -62,14 +66,57 @@ enum GuarantorStatusEnum: string
 
     public function isTerminal(): bool
     {
-        return in_array($this, [
+        return in_array($this, self::terminalCases(), true);
+    }
+
+    /**
+     * @return list<self>
+     */
+    public static function terminalCases(): array
+    {
+        return [
             self::RejectedByAdmin,
             self::Rejected,
             self::Ended,
+            self::EndedViaDispute,
             self::Cancelled,
+            self::CancelledViaDispute,
             self::Escalated,
             self::Settled,
-        ], true);
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function terminalValues(): array
+    {
+        return array_map(
+            static fn (self $status): string => $status->value,
+            self::terminalCases(),
+        );
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function endedAggregateValues(): array
+    {
+        return [
+            self::Ended->value,
+            self::EndedViaDispute->value,
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function cancelledAggregateValues(): array
+    {
+        return [
+            self::Cancelled->value,
+            self::CancelledViaDispute->value,
+        ];
     }
 
     public static function isAllowed(self $old, self $new, string $actor): bool

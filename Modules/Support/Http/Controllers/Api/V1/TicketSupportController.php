@@ -2,6 +2,7 @@
 
 namespace Modules\Support\Http\Controllers\Api\V1;
 
+use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -13,13 +14,11 @@ use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Http\Resources\Dashboard\ConversationMessageCollection;
 use Modules\Support\Contracts\Services\TicketSupportServiceInterface;
 use Modules\Support\DTOs\StoreTicketSupportDTO;
-use Modules\Support\Exceptions\TicketSupportNotDeletableException;
 use Modules\Support\Http\Requests\TicketSupportRequest;
 use Modules\Support\Http\Resources\Api\TicketSupportCollection;
 use Modules\Support\Http\Resources\Api\TicketSupportResource;
 use Modules\Support\Models\TicketSupport;
 use Modules\Support\Services\TicketSupportChatService;
-use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 #[Group('Tickets')]
@@ -59,6 +58,10 @@ class TicketSupportController extends Controller
 
             return $this->successResponse(TicketSupportResource::make($ticket));
         } catch (Throwable $e) {
+            if ($e instanceof ApiException) {
+                throw $e;
+            }
+
             report($e);
 
             return $this->failedMessageResponse(__('something went wrong'));
@@ -94,12 +97,11 @@ class TicketSupportController extends Controller
             $this->service->destroy($ticketSupport);
 
             return $this->successMessageResponse(__('data deleted successfully'));
-        } catch (TicketSupportNotDeletableException $e) {
-            return $this->failedMessageResponse(
-                $e->getMessage(),
-                Response::HTTP_UNPROCESSABLE_ENTITY,
-            );
         } catch (Throwable $e) {
+            if ($e instanceof ApiException) {
+                throw $e;
+            }
+
             report($e);
 
             return $this->failedMessageResponse(__('something went wrong'));

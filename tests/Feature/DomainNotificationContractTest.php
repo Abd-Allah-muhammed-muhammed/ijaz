@@ -9,20 +9,26 @@ use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Modules\Chat\Infrastructure\Notifications\NewMessageSentNotification;
+use Modules\Guarantor\Enums\GuarantorDisputeResolutionEnum;
+use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Notifications\GuarantorPaymentReceivedNotification;
 use Modules\Guarantor\Notifications\GuarantorAcceptedNotification;
 use Modules\Guarantor\Notifications\GuarantorAdminApprovedNotification;
 use Modules\Guarantor\Notifications\GuarantorAdminRejectedNotification;
 use Modules\Guarantor\Notifications\GuarantorCancelledNotification;
 use Modules\Guarantor\Notifications\GuarantorCounterpartyRejectedNotification;
 use Modules\Guarantor\Notifications\GuarantorCreatedNotification;
+use Modules\Guarantor\Notifications\GuarantorDisputeResolvedNotification;
+use Modules\Guarantor\Notifications\GuarantorDisputedNotification;
 use Modules\Guarantor\Notifications\GuarantorEndedNotification;
 use Modules\Guarantor\Notifications\GuarantorPendingReviewNotification;
 use Modules\Guarantor\Notifications\InstallmentDueNotification;
 use Modules\Guarantor\Notifications\InstallmentOverdueNotification;
 use Modules\Guarantor\Notifications\InstallmentReleasedNotification;
 use Modules\Opportunity\Models\Opportunity;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Opportunity\Models\OpportunityOffer;
 use Modules\Opportunity\Notifications\OpportunityExpiredNotification;
 use Modules\Opportunity\Notifications\OpportunityOfferAcceptedNotification;
@@ -317,7 +323,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new GuarantorCreatedNotification($request);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
             ->and($notification->broadcastType())->toBe('guarantor created')
             ->and($notification->toArray($user))->toBe([
@@ -342,13 +348,54 @@ describe('Guarantor domain notification contracts', function (): void {
         );
     });
 
+    it('locks GuarantorPaymentReceivedNotification channel outputs', function (): void {
+        /** @var TestCase $this */
+        [$request, $user, $provider] = guarantorFixture();
+        $payment = createPaymentFor($user, $request, [
+            'amount' => 1010,
+            'driver' => 'testing',
+            'status' => PaymentStatusEnum::Accepted,
+        ]);
+        $notification = new GuarantorPaymentReceivedNotification($request, $payment);
+
+        expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->broadcastType())->toBe('guarantor payment received')
+            ->and($notification->toArray($user))->toBe([
+                'title_translated_key' => 'guarantor_payment_received',
+                'body_translated_key' => 'guarantor_payment_received_body',
+                'translated_attributes' => [],
+                'guarantor_request_id' => $request->id,
+                'type' => $request->type->value,
+                'payment_id' => $payment->id,
+                'amount' => $payment->amount,
+            ]);
+
+        assertBroadcastPayload($notification->toBroadcast($user), [
+            'title' => trans('guarantor_payment_received', locale: 'en'),
+            'body' => trans('guarantor_payment_received_body', locale: 'en'),
+            'guarantor_request_id' => $request->id,
+            'payment_id' => (string) $payment->id,
+        ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans('guarantor_payment_received', locale: 'en'),
+            trans('guarantor_payment_received_body', locale: 'en'),
+            [
+                'guarantor_request_id' => $request->id,
+                'payment_id' => (string) $payment->id,
+            ],
+        );
+    });
+
     it('locks GuarantorAcceptedNotification channel outputs', function (): void {
         /** @var TestCase $this */
         [$request, $user, $provider] = guarantorFixture();
         $notification = new GuarantorAcceptedNotification($request);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('guarantor accepted')
             ->and($notification->toArray($user))->toBe([
                 'title_translated_key' => 'guarantor_accepted',
@@ -378,7 +425,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new GuarantorAdminApprovedNotification($request);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('guarantor admin approved')
             ->and($notification->toArray($user)['title_translated_key'])->toBe('guarantor_admin_approved')
             ->and($notification->toArray($user)['body_translated_key'])->toBe('guarantor_has_been_admin_approved')
@@ -405,7 +452,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new GuarantorAdminRejectedNotification($request);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('guarantor admin rejected')
             ->and($notification->toArray($user)['title_translated_key'])->toBe('guarantor_admin_rejected')
             ->and($notification->toArray($user)['body_translated_key'])->toBe('guarantor_has_been_admin_rejected');
@@ -430,7 +477,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new GuarantorCounterpartyRejectedNotification($request);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('guarantor counterparty rejected')
             ->and($notification->toArray($user)['title_translated_key'])->toBe('guarantor_counterparty_rejected')
             ->and($notification->toArray($user)['body_translated_key'])->toBe('guarantor_has_been_counterparty_rejected');
@@ -455,7 +502,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new GuarantorEndedNotification($request);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('guarantor ended')
             ->and($notification->toArray($user))->toBe([
                 'title_translated_key' => 'guarantor_ended',
@@ -491,7 +538,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new GuarantorCancelledNotification($request);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
             ->and($notification->broadcastType())->toBe('guarantor cancelled')
             ->and($notification->toArray($user))->toBe([
@@ -520,6 +567,186 @@ describe('Guarantor domain notification contracts', function (): void {
             ],
         );
     });
+
+    it('locks GuarantorDisputedNotification channel outputs', function (): void {
+        /** @var TestCase $this */
+        [$request, $user, $provider] = guarantorFixture();
+        $request->status = GuarantorStatusEnum::Disputed;
+        $reason = 'Work not delivered as agreed';
+        $notification = new GuarantorDisputedNotification($request, $reason);
+        $admin = Admin::query()->create([
+            'name' => 'Dispute Admin',
+            'phone' => fake()->unique()->phoneNumber(),
+            'email' => fake()->unique()->safeEmail(),
+            'password' => 'password',
+            'language' => 'en',
+        ]);
+
+        expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($admin))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
+            ->and($notification->broadcastType())->toBe('guarantor disputed')
+            ->and($notification->toArray($user))->toBe([
+                'title_translated_key' => 'guarantor_disputed_title',
+                'body_translated_key' => 'guarantor_disputed_body',
+                'translated_attributes' => [],
+                'guarantor_request_id' => $request->id,
+                'type' => $request->type->value,
+                'reason' => $reason,
+                'final_status' => GuarantorStatusEnum::Disputed->value,
+            ]);
+
+        assertBroadcastPayload($notification->toBroadcast($user), [
+            'title' => trans('guarantor_disputed_title', locale: 'en'),
+            'body' => trans('guarantor_disputed_body', locale: 'en'),
+            'guarantor_request_id' => $request->id,
+            'final_status' => GuarantorStatusEnum::Disputed->value,
+            'screen' => 'guarantor',
+        ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans('guarantor_disputed_title', locale: 'en'),
+            trans('guarantor_disputed_body', locale: 'en'),
+            [
+                'guarantor_request_id' => $request->id,
+                'final_status' => GuarantorStatusEnum::Disputed->value,
+                'screen' => 'guarantor',
+            ],
+        );
+    });
+
+    it('locks GuarantorDisputeResolvedNotification channel outputs for all resolution outcomes', function (
+        GuarantorDisputeResolutionEnum $resolution,
+        GuarantorStatusEnum $finalStatus,
+        array $extraPayload,
+        array $extraBroadcast,
+        array $extraFirebase,
+        array $translationReplacements,
+    ): void {
+        /** @var TestCase $this */
+        [$request, $user, $provider] = guarantorFixture();
+        $request->status = $finalStatus;
+        $admin = Admin::query()->create([
+            'name' => 'Resolve Admin',
+            'phone' => fake()->unique()->phoneNumber(),
+            'email' => fake()->unique()->safeEmail(),
+            'password' => 'password',
+            'language' => 'en',
+        ]);
+
+        $notification = new GuarantorDisputeResolvedNotification(
+            $request,
+            $resolution,
+            requesterPercentage: $extraPayload['requester_percentage'] ?? null,
+            counterpartyPercentage: $extraPayload['counterparty_percentage'] ?? null,
+            requesterAmount: $extraPayload['requester_amount'] ?? null,
+            counterpartyAmount: $extraPayload['counterparty_amount'] ?? null,
+        );
+
+        expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($admin))->toBe(['database', 'broadcast'])
+            ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
+            ->and($notification->broadcastType())->toBe('guarantor dispute resolved')
+            ->and($notification->toArray($user))->toBe([
+                'title_translated_key' => match ($resolution) {
+                    GuarantorDisputeResolutionEnum::FullRequester => 'guarantor_dispute_resolved_full_requester_title',
+                    GuarantorDisputeResolutionEnum::FullCounterparty => 'guarantor_dispute_resolved_full_counterparty_title',
+                    GuarantorDisputeResolutionEnum::Escalate => 'guarantor_dispute_resolved_escalated_title',
+                    GuarantorDisputeResolutionEnum::PercentageSplit => 'guarantor_dispute_resolved_percentage_split_title',
+                },
+                'body_translated_key' => match ($resolution) {
+                    GuarantorDisputeResolutionEnum::FullRequester => 'guarantor_dispute_resolved_full_requester_body',
+                    GuarantorDisputeResolutionEnum::FullCounterparty => 'guarantor_dispute_resolved_full_counterparty_body',
+                    GuarantorDisputeResolutionEnum::Escalate => 'guarantor_dispute_resolved_escalated_body',
+                    GuarantorDisputeResolutionEnum::PercentageSplit => 'guarantor_dispute_resolved_percentage_split_body',
+                },
+                'translated_attributes' => $translationReplacements,
+                'guarantor_request_id' => $request->id,
+                'type' => $request->type->value,
+                'resolution' => $resolution->value,
+                'final_status' => $finalStatus->value,
+                ...$extraPayload,
+            ]);
+
+        assertBroadcastPayload($notification->toBroadcast($user), [
+            'title' => trans($notification->toArray($user)['title_translated_key'], $translationReplacements, locale: 'en'),
+            'body' => trans($notification->toArray($user)['body_translated_key'], $translationReplacements, locale: 'en'),
+            'guarantor_request_id' => $request->id,
+            'resolution' => $resolution->value,
+            'final_status' => $finalStatus->value,
+            'screen' => 'guarantor',
+            ...$extraBroadcast,
+        ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans($notification->toArray($user)['title_translated_key'], $translationReplacements, locale: 'en'),
+            trans($notification->toArray($user)['body_translated_key'], $translationReplacements, locale: 'en'),
+            [
+                'guarantor_request_id' => $request->id,
+                'resolution' => $resolution->value,
+                'final_status' => $finalStatus->value,
+                'screen' => 'guarantor',
+                ...$extraFirebase,
+            ],
+        );
+    })->with([
+        'full_requester' => [
+            GuarantorDisputeResolutionEnum::FullRequester,
+            GuarantorStatusEnum::EndedViaDispute,
+            [],
+            [],
+            [],
+            [],
+        ],
+        'full_counterparty' => [
+            GuarantorDisputeResolutionEnum::FullCounterparty,
+            GuarantorStatusEnum::CancelledViaDispute,
+            [],
+            [],
+            [],
+            [],
+        ],
+        'escalate' => [
+            GuarantorDisputeResolutionEnum::Escalate,
+            GuarantorStatusEnum::Escalated,
+            [],
+            [],
+            [],
+            [],
+        ],
+        'percentage_split' => [
+            GuarantorDisputeResolutionEnum::PercentageSplit,
+            GuarantorStatusEnum::Settled,
+            [
+                'requester_percentage' => 60,
+                'counterparty_percentage' => 40,
+                'requester_amount' => 600.0,
+                'counterparty_amount' => 404.0,
+            ],
+            [
+                'requester_percentage' => '60',
+                'counterparty_percentage' => '40',
+                'requester_amount' => '600.00',
+                'counterparty_amount' => '404.00',
+            ],
+            [
+                'requester_percentage' => '60',
+                'counterparty_percentage' => '40',
+                'requester_amount' => '600.00',
+                'counterparty_amount' => '404.00',
+            ],
+            [
+                'requester_percentage' => 60,
+                'counterparty_percentage' => 40,
+                'requester_amount' => '600.00',
+                'counterparty_amount' => '404.00',
+            ],
+        ],
+    ]);
 
     it('locks GuarantorPendingReviewNotification channel outputs', function (): void {
         /** @var TestCase $this */
@@ -571,7 +798,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new InstallmentDueNotification($installment);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('installment due')
             ->and($notification->toArray($user))->toBe([
                 'title_translated_key' => 'installment_due',

@@ -2,10 +2,10 @@
 
 namespace Modules\Wallet\Exceptions;
 
-use Exception;
+use App\Exceptions\ApiException;
 use Throwable;
 
-class WalletException extends Exception
+class WalletException extends ApiException
 {
     public function __construct(
         string $message = 'Wallet operation failed',

@@ -50,7 +50,7 @@ class GuarantorDashboardService
     }
 
     /**
-     * @return array{total: int, pending_admin: int, in_progress: int, overdue: int, ended: int}
+     * @return array{total: int, pending_admin: int, in_progress: int, overdue: int, ended: int, cancelled: int}
      */
     public function getStats(): array
     {

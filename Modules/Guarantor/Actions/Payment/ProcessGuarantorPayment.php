@@ -21,15 +21,22 @@ class ProcessGuarantorPayment
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
         private readonly GuarantorRepositoryInterface $guarantorRepository,
         private readonly InstallmentRepositoryInterface $installmentRepository,
+        private readonly RejectGuarantorStalePaymentCompletionAction $rejectStalePaymentCompletionAction,
+        private readonly NotifyGuarantorPayment $notifyGuarantorPayment,
     ) {}
 
-    public function handle(Payment $payment): void
+    /**
+     * Apply domain updates for an accepted guarantor payment.
+     *
+     * @return bool True when the payment was applied; false when rejected (stale contract state).
+     */
+    public function handle(Payment $payment): bool
     {
         if ($payment->status->isNot(PaymentStatusEnum::Accepted)) {
-            return;
+            return false;
         }
 
-        match ($payment->product_type) {
+        return match ($payment->product_type) {
             GuarantorRequest::class => $this->processIndividualPayment($payment),
             GuarantorInstallment::class => $this->processInstallmentPayment($payment),
             default => throw new RuntimeException('Unsupported guarantor product type: '.$payment->product_type),
@@ -43,11 +50,17 @@ class ProcessGuarantorPayment
         return $next($payment);
     }
 
-    private function processIndividualPayment(Payment $payment): void
+    private function processIndividualPayment(Payment $payment): bool
     {
         /** @var GuarantorRequest $request */
-        $request = $payment->product;
+        $request = $this->guarantorRepository->findForUpdate($payment->product);
         $request->loadMissing('counterparty');
+
+        if (! $this->isIndividualPayable($request)) {
+            $this->rejectStalePaymentCompletionAction->handle($payment, $request, 'individual');
+
+            return false;
+        }
 
         $this->guarantorRepository->update($request, [
             'status' => GuarantorStatusEnum::InProgress,
@@ -60,21 +73,33 @@ class ProcessGuarantorPayment
             toStatus: GuarantorStatusEnum::InProgress->value,
             notes: 'Payment accepted by gateway',
         );
+
+        $this->notifyGuarantorPayment->handle($request, $payment);
+
+        return true;
     }
 
-    private function processInstallmentPayment(Payment $payment): void
+    private function processInstallmentPayment(Payment $payment): bool
     {
         /** @var GuarantorInstallment $installment */
         $installment = $payment->product;
         $installment->loadMissing('guarantorRequest');
 
+        /** @var GuarantorRequest $request */
+        $request = $this->guarantorRepository->findForUpdate($installment->guarantorRequest);
+        $installment = $installment->fresh();
+        $installment->setRelation('guarantorRequest', $request);
+
+        if (! $this->isCompanyPaymentPayable($request, $installment)) {
+            $this->rejectStalePaymentCompletionAction->handle($payment, $request, 'company_installment');
+
+            return false;
+        }
+
         $this->installmentRepository->update($installment, [
             'status' => InstallmentStatusEnum::Paid,
             'paid_at' => now(),
         ]);
-
-        /** @var GuarantorRequest $request */
-        $request = $installment->guarantorRequest;
 
         if ($request->status->isIn([
             GuarantorStatusEnum::Accepted,
@@ -102,17 +127,53 @@ class ProcessGuarantorPayment
             );
         }
 
-        if ($installment->order <= 1) {
-            return;
+        if ($installment->order > 1) {
+            $previousInstallment = $this->installmentRepository->findPreviousPaidInstallment(
+                $request,
+                (int) $installment->order,
+            );
+
+            if ($previousInstallment !== null) {
+                ReleaseInstallmentJob::dispatch($previousInstallment, 'payment');
+            }
         }
 
-        $previousInstallment = $this->installmentRepository->findPreviousPaidInstallment(
-            $request,
-            (int) $installment->order,
-        );
+        $this->notifyGuarantorPayment->handle($request, $payment, $installment);
 
-        if ($previousInstallment !== null) {
-            ReleaseInstallmentJob::dispatch($previousInstallment, 'payment');
+        return true;
+    }
+
+    private function isIndividualPayable(GuarantorRequest $request): bool
+    {
+        if ($request->status->is(GuarantorStatusEnum::Disputed)) {
+            return false;
         }
+
+        if ($request->status->isTerminal()) {
+            return false;
+        }
+
+        return $request->status->is(GuarantorStatusEnum::Accepted);
+    }
+
+    private function isCompanyPaymentPayable(GuarantorRequest $request, GuarantorInstallment $installment): bool
+    {
+        if ($request->status->is(GuarantorStatusEnum::Disputed)) {
+            return false;
+        }
+
+        if ($request->status->isTerminal()) {
+            return false;
+        }
+
+        if ($request->status->isNotIn([
+            GuarantorStatusEnum::Accepted,
+            GuarantorStatusEnum::InProgress,
+            GuarantorStatusEnum::Overdue,
+        ])) {
+            return false;
+        }
+
+        return $installment->status->is(InstallmentStatusEnum::Pending);
     }
 }

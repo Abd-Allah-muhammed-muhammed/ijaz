@@ -26,6 +26,7 @@ class GuarantorResource extends JsonResource
             'total' => $this->total,
             'project_type' => $this->project_type,
             'cancellation_reason' => $this->cancellation_reason,
+            'dispute_resolution' => $this->disputeResolutionForApi(),
             'requester' => $this->whenLoaded('requester', fn () => GuarantorParticipantResource::make($this->requester)),
             'counterparty' => $this->whenLoaded('counterparty', fn () => GuarantorParticipantResource::make($this->counterparty)),
             'installments' => $this->whenLoaded('installments', fn () => InstallmentResource::collection($this->installments)),

@@ -6,6 +6,7 @@ use App\Models\Admin;
 use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Actions\Guarantor\DetermineGuarantorHeldAmountAction as DetermineGuarantorHeldAmount;
 use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction as LogGuarantorStatusHistory;
+use Modules\Guarantor\Actions\Guarantor\VoidRemainingGuarantorInstallmentsAction as VoidRemainingGuarantorInstallments;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorDisputeResolutionEnum;
@@ -32,6 +33,7 @@ class ResolveDisputePercentageSplitAction
         private readonly InstallmentRepositoryInterface $installmentRepository,
         private readonly DetermineGuarantorHeldAmount $determineGuarantorHeldAmountAction,
         private readonly LogGuarantorStatusHistory $logStatusHistory,
+        private readonly VoidRemainingGuarantorInstallments $voidRemainingGuarantorInstallmentsAction,
         private readonly WalletService $walletService,
     ) {}
 
@@ -49,8 +51,10 @@ class ResolveDisputePercentageSplitAction
         }
 
         return DB::transaction(function () use ($request, $admin, $requesterPercentage, $notes) {
+            $request = $this->guarantorRepository->findForUpdate($request);
+
             if ($request->status->isNot(GuarantorStatusEnum::Disputed)) {
-                throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
+                throw new GuarantorException('guarantor.dispute_already_resolved', 422);
             }
 
             $fromStatus = $request->status->value;
@@ -115,9 +119,14 @@ class ResolveDisputePercentageSplitAction
                 ]);
             }
 
+            $this->voidRemainingGuarantorInstallmentsAction->handle($request->fresh());
+
             $resolution = GuarantorDisputeResolutionEnum::PercentageSplit;
             $guarantorRequest = $this->guarantorRepository->update($request, [
                 'status' => GuarantorStatusEnum::Settled,
+                'dispute_requester_percentage' => $requesterPercentage,
+                'dispute_requester_amount' => $requesterNetShare,
+                'dispute_counterparty_amount' => $counterpartyGrossShare,
             ]);
 
             $historyReason = sprintf(
@@ -140,10 +149,10 @@ class ResolveDisputePercentageSplitAction
             $notification = new GuarantorDisputeResolvedNotification(
                 $guarantorRequest,
                 $resolution,
-                requesterPercentage: $requesterPercentage,
-                counterpartyPercentage: $counterpartyPercentage,
-                requesterAmount: $requesterNetShare,
-                counterpartyAmount: $counterpartyGrossShare,
+                requesterPercentage: $guarantorRequest->dispute_requester_percentage,
+                counterpartyPercentage: 100 - $guarantorRequest->dispute_requester_percentage,
+                requesterAmount: (float) $guarantorRequest->dispute_requester_amount,
+                counterpartyAmount: (float) $guarantorRequest->dispute_counterparty_amount,
             );
             $guarantorRequest->requester?->notify($notification);
             $guarantorRequest->counterparty?->notify($notification);

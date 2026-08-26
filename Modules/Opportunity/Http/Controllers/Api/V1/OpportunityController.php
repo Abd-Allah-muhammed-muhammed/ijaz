@@ -2,6 +2,7 @@
 
 namespace Modules\Opportunity\Http\Controllers\Api\V1;
 
+use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -9,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Opportunity\DTOs\OpportunityData;
-use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Http\Controllers\Concerns\AuthorizesOpportunityRequests;
 use Modules\Opportunity\Http\Requests\ListActorOpportunitiesRequest;
 use Modules\Opportunity\Http\Requests\ListPublicOpportunitiesRequest;
@@ -161,9 +161,11 @@ class OpportunityController extends Controller
             $opportunity = $this->service->create($data, auth()->user(), $request);
 
             return $this->successResponse(OpportunityResource::make($opportunity));
-        } catch (OpportunityException $e) {
-            throw $e;
         } catch (Throwable $throwable) {
+            if ($throwable instanceof ApiException) {
+                throw $throwable;
+            }
+
             report($throwable);
 
             return $this->failedMessageResponse(__('something went wrong'));
@@ -242,9 +244,11 @@ class OpportunityController extends Controller
             $opportunity = $this->service->update($opportunity, $data, $request);
 
             return $this->successResponse(OpportunityResource::make($opportunity));
-        } catch (OpportunityException $e) {
-            throw $e;
         } catch (Throwable $throwable) {
+            if ($throwable instanceof ApiException) {
+                throw $throwable;
+            }
+
             report($throwable);
 
             if ($throwable instanceof HttpExceptionInterface) {
@@ -284,9 +288,11 @@ class OpportunityController extends Controller
             $this->service->delete($opportunity);
 
             return $this->successMessageResponse(__('opportunity.deleted_successfully'));
-        } catch (OpportunityException $e) {
-            throw $e;
         } catch (Throwable $throwable) {
+            if ($throwable instanceof ApiException) {
+                throw $throwable;
+            }
+
             report($throwable);
 
             if ($throwable instanceof HttpExceptionInterface) {
@@ -355,9 +361,11 @@ class OpportunityController extends Controller
             $this->service->deleteMedia($opportunity, $media);
 
             return $this->successMessageResponse(__('opportunity.media_deleted_successfully'));
-        } catch (OpportunityException $e) {
-            throw $e;
         } catch (Throwable $throwable) {
+            if ($throwable instanceof ApiException) {
+                throw $throwable;
+            }
+
             report($throwable);
 
             if ($throwable instanceof HttpExceptionInterface) {

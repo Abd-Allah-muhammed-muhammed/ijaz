@@ -34,7 +34,12 @@ class PayInstallmentAction
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }
 
-            if ($installment->status->isNot(InstallmentStatusEnum::Pending)) {
+            if ($installment->status->is(InstallmentStatusEnum::Voided)) {
+                throw new GuarantorException('guarantor.pay_denied_installment_voided', 422);
+            }
+
+            if ($installment->status->isNot(InstallmentStatusEnum::Pending)
+                && $installment->status->isNot(InstallmentStatusEnum::Overdue)) {
                 throw new GuarantorException('guarantor.already_paid', 422);
             }
 

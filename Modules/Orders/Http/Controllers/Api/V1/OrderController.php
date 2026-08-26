@@ -2,6 +2,7 @@
 
 namespace Modules\Orders\Http\Controllers\Api\V1;
 
+use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -13,7 +14,6 @@ use Modules\Orders\DTOs\EndAndReviewDTO;
 use Modules\Orders\DTOs\StoreOrderDTO;
 use Modules\Orders\DTOs\UpdateOfferStatusDTO;
 use Modules\Orders\DTOs\UpdateOrderDTO;
-use Modules\Orders\Exceptions\OrdersException;
 use Modules\Orders\Http\Requests\Api\CancelOrderRequest;
 use Modules\Orders\Http\Requests\Api\EndAndReviewRequest;
 use Modules\Orders\Http\Requests\Api\OrderRequest;
@@ -66,6 +66,10 @@ class OrderController extends Controller
 
             return $this->successResponse(OrderResource::make($order));
         } catch (Throwable $e) {
+            if ($e instanceof ApiException) {
+                throw $e;
+            }
+
             report($e);
 
             return $this->failedMessageResponse(__('something went wrong'));
@@ -88,9 +92,11 @@ class OrderController extends Controller
             );
 
             return $this->successResponse(OrderResource::make($order));
-        } catch (OrdersException $e) {
-            return $this->failedMessageResponse(__($e->getTranslationKey()), $e->getHttpStatusCode());
         } catch (Throwable $e) {
+            if ($e instanceof ApiException) {
+                throw $e;
+            }
+
             report($e);
 
             return $this->failedMessageResponse(__('something went wrong'));
@@ -106,9 +112,11 @@ class OrderController extends Controller
             $this->orderService->deleteMedia($order, $media, auth()->user());
 
             return $this->successMessageResponse(__('data deleted successfully'));
-        } catch (OrdersException $e) {
-            return $this->failedMessageResponse(__($e->getTranslationKey()), $e->getHttpStatusCode());
         } catch (Throwable $e) {
+            if ($e instanceof ApiException) {
+                throw $e;
+            }
+
             report($e);
 
             return $this->failedMessageResponse(__('something went wrong'));
@@ -134,11 +142,13 @@ class OrderController extends Controller
             $this->orderService->delete($order, auth()->user());
 
             return $this->successMessageResponse(__('data deleted successfully'));
-        } catch (OrdersException $e) {
-            return $this->failedMessageResponse(__($e->getTranslationKey()), $e->getHttpStatusCode());
         } catch (HttpResponseException|HttpExceptionInterface $e) {
             throw $e;
         } catch (Throwable $e) {
+            if ($e instanceof ApiException) {
+                throw $e;
+            }
+
             report($e);
 
             return $this->failedMessageResponse(__('something went wrong'));
@@ -159,11 +169,13 @@ class OrderController extends Controller
             );
 
             return $this->successMessageResponse(__('data saved successfully'));
-        } catch (OrdersException $e) {
-            return $this->failedMessageResponse(__($e->getTranslationKey()), $e->getHttpStatusCode());
         } catch (HttpResponseException|HttpExceptionInterface $e) {
             throw $e;
         } catch (Throwable $e) {
+            if ($e instanceof ApiException) {
+                throw $e;
+            }
+
             report($e);
 
             return $this->failedMessageResponse(__('something went wrong'));
@@ -183,9 +195,11 @@ class OrderController extends Controller
             }
 
             return $this->successResponse($result->toArray());
-        } catch (OrdersException $e) {
-            return $this->failedMessageResponse(__($e->getTranslationKey()), $e->getHttpStatusCode());
         } catch (Throwable $e) {
+            if ($e instanceof ApiException) {
+                throw $e;
+            }
+
             report($e);
 
             return $this->failedMessageResponse(__('something went wrong'));
@@ -202,11 +216,13 @@ class OrderController extends Controller
             );
 
             return $this->successMessageResponse(__('data saved successfully'));
-        } catch (OrdersException $e) {
-            return $this->failedMessageResponse(__($e->getTranslationKey()), $e->getHttpStatusCode());
         } catch (HttpResponseException|HttpExceptionInterface $e) {
             throw $e;
         } catch (Throwable $e) {
+            if ($e instanceof ApiException) {
+                throw $e;
+            }
+
             report($e);
 
             return $this->failedMessageResponse(__('something went wrong'));
@@ -223,11 +239,13 @@ class OrderController extends Controller
             );
 
             return $this->successMessageResponse(__('data saved successfully'));
-        } catch (OrdersException $e) {
-            return $this->failedMessageResponse(__($e->getTranslationKey()), $e->getHttpStatusCode());
         } catch (HttpResponseException|HttpExceptionInterface $e) {
             throw $e;
         } catch (Throwable $e) {
+            if ($e instanceof ApiException) {
+                throw $e;
+            }
+
             report($e);
 
             return $this->failedMessageResponse(__('something went wrong'));

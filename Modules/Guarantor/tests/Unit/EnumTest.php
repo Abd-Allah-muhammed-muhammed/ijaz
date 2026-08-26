@@ -95,7 +95,9 @@ test('no transition from terminal status for non-admin', function () {
         GuarantorStatusEnum::RejectedByAdmin,
         GuarantorStatusEnum::Rejected,
         GuarantorStatusEnum::Ended,
+        GuarantorStatusEnum::EndedViaDispute,
         GuarantorStatusEnum::Cancelled,
+        GuarantorStatusEnum::CancelledViaDispute,
         GuarantorStatusEnum::Escalated,
         GuarantorStatusEnum::Settled,
     ];

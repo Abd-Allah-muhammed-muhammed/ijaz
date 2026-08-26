@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction;
+use Modules\Guarantor\Actions\Installment\EscalateUnpaidOverdueInstallmentAction;
 use Modules\Guarantor\Actions\Installment\ReleaseInstallmentAction;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
@@ -73,7 +74,10 @@ test('NotifyOverdueInstallmentJob notifies counterparty on day 1', function () {
     $counterparty = $request->counterparty;
 
     (new NotifyOverdueInstallmentJob($installment))
-        ->handle(app(LogGuarantorStatusHistoryAction::class));
+        ->handle(
+            app(LogGuarantorStatusHistoryAction::class),
+            app(EscalateUnpaidOverdueInstallmentAction::class),
+        );
 
     Notification::assertSentTo($counterparty, InstallmentDueNotification::class);
     Notification::assertNotSentTo($request->requester, InstallmentOverdueNotification::class);
@@ -93,7 +97,10 @@ test('NotifyOverdueInstallmentJob notifies both parties on day 3', function () {
     $counterparty = $request->counterparty;
 
     (new NotifyOverdueInstallmentJob($installment))
-        ->handle(app(LogGuarantorStatusHistoryAction::class));
+        ->handle(
+            app(LogGuarantorStatusHistoryAction::class),
+            app(EscalateUnpaidOverdueInstallmentAction::class),
+        );
 
     Notification::assertSentTo($requester, InstallmentOverdueNotification::class);
     Notification::assertSentTo($counterparty, InstallmentOverdueNotification::class);
@@ -110,7 +117,10 @@ test('NotifyOverdueInstallmentJob sets status to overdue on day 3', function () 
     ]);
 
     (new NotifyOverdueInstallmentJob($installment))
-        ->handle(app(LogGuarantorStatusHistoryAction::class));
+        ->handle(
+            app(LogGuarantorStatusHistoryAction::class),
+            app(EscalateUnpaidOverdueInstallmentAction::class),
+        );
 
     $request->refresh();
 
@@ -118,18 +128,22 @@ test('NotifyOverdueInstallmentJob sets status to overdue on day 3', function () 
         ->and($request->overdue_at)->not->toBeNull();
 });
 
-test('NotifyOverdueInstallmentJob dispatches AutoReleaseInstallmentJob on day 14', function () {
+test('NotifyOverdueInstallmentJob dispatches AutoReleaseInstallmentJob on day 14 when installment is paid', function () {
     Queue::fake();
 
     $request = GuarantorRequest::factory()->inProgress()->create();
     $installment = GuarantorInstallment::factory()->for($request, 'guarantorRequest')->create([
         'order' => 1,
         'due_date' => now()->subDays(14),
-        'status' => InstallmentStatusEnum::Pending,
+        'status' => InstallmentStatusEnum::Paid,
+        'paid_at' => now()->subDays(10),
     ]);
 
     (new NotifyOverdueInstallmentJob($installment))
-        ->handle(app(LogGuarantorStatusHistoryAction::class));
+        ->handle(
+            app(LogGuarantorStatusHistoryAction::class),
+            app(EscalateUnpaidOverdueInstallmentAction::class),
+        );
 
     Queue::assertPushed(AutoReleaseInstallmentJob::class, 1);
     Queue::assertPushedOn('guarantor', AutoReleaseInstallmentJob::class);

@@ -31,6 +31,8 @@ class OpenGuarantorDisputeAction
         string $reason,
     ): GuarantorRequest {
         return DB::transaction(function () use ($request, $actor, $actorRole, $reason) {
+            $request = $this->guarantorRepository->findForUpdate($request);
+
             if (! GuarantorStatusEnum::isAllowed($request->status, GuarantorStatusEnum::Disputed, $actorRole)) {
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\Sanctum;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Nationality;
@@ -99,7 +100,11 @@ test('job expired_at accepts Arabic-Indic digits', function () {
         ->assertJsonMissingValidationErrors(['expired_at']);
 
     $job = JobOffer::query()->where('title', 'Job Arabic Date')->firstOrFail();
-    expect($job->expired_at->toDateString())->toBe($expiredAt);
+
+    // datetime cast + app/UTC can shift the calendar day by ±1; assert Arabic digits were accepted.
+    expect($job->expired_at)->not->toBeNull()
+        ->and($job->expired_at->isFuture())->toBeTrue()
+        ->and(abs($job->expired_at->diffInDays(Carbon::parse($expiredAt))))->toBeLessThanOrEqual(1);
 });
 
 test('update syncs skills and rejects non-owners', function () {

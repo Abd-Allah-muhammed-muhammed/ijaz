@@ -2,6 +2,7 @@
 
 namespace Modules\Opportunity\Http\Controllers\Api\V1;
 
+use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -12,7 +13,6 @@ use Modules\Chat\Http\Resources\ConversationMessageCollection;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
 use Modules\Chat\Models\Conversation;
 use Modules\Opportunity\DTOs\ChatData;
-use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Http\Controllers\Concerns\AuthorizesOpportunityRequests;
 use Modules\Opportunity\Http\Requests\SendOpportunityChatMessageRequest;
 use Modules\Opportunity\Http\Requests\StoreChatRequest;
@@ -67,9 +67,11 @@ class OpportunityChatController extends Controller
                     $conversation->load(['user1', 'user2', 'lastMessage', 'operation'])
                 )
             );
-        } catch (OpportunityException $e) {
-            throw $e;
         } catch (Throwable $throwable) {
+            if ($throwable instanceof ApiException) {
+                throw $throwable;
+            }
+
             report($throwable);
 
             if ($throwable instanceof HttpExceptionInterface) {
@@ -115,9 +117,11 @@ class OpportunityChatController extends Controller
             );
 
             return $this->successResponse(ConversationMessageResource::make($message));
-        } catch (OpportunityException $e) {
-            throw $e;
         } catch (Throwable $throwable) {
+            if ($throwable instanceof ApiException) {
+                throw $throwable;
+            }
+
             report($throwable);
 
             if ($throwable instanceof HttpExceptionInterface) {

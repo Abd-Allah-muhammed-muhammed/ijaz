@@ -27,8 +27,9 @@ Standalone contract for a Flutter (or other mobile) client. Every path, field na
 7. [Company installments](#5-company-installments-in-detail)
 8. [Chat](#6-chat)
 9. [Notifications](#7-notifications-the-mobile-app-should-expect)
-10. [`authorization_type`](#8-field-reference-authorization_type)
-11. [Known current limitations](#9-known-current-limitations)
+10. [Dispute feature (complete reference)](#217-dispute-feature--complete-reference)
+11. [`authorization_type`](#8-field-reference-authorization_type)
+12. [Known current limitations](#9-known-current-limitations)
 
 ---
 
@@ -49,7 +50,7 @@ There is **no third “guarantor company” actor** on the mobile API. “Compan
 | Type value | Meaning | How money moves |
 |---|---|---|
 | `individual` | Person-to-person guarantee | One payment of **amount + fees** after accept. Request moves to `in_progress` when the gateway confirms that payment. |
-| `company` | Company / project contract with a schedule | Counterparty pays **each installment amount only** (fees are not added to the charge). Paying the first installment does **not** change request status off `accepted`. Request becomes `in_progress` only when recovering from `overdue`. |
+| `company` | Company / project contract with a schedule | Counterparty pays **each installment amount only** (fees are not added to the charge). Paying the first installment moves the request to `in_progress` (same as Individual after payment). If the request was `overdue`, payment also clears `overdue_at`. |
 
 Fees are **always `10.00` on create**. The client cannot send `fees`. `total` is `amount + fees`.
 
@@ -77,23 +78,47 @@ Create / show / list / pay **do not** set a human `message` in the controller. E
 
 ### HTTP 401 — missing / invalid token
 
-Laravel default (not the success envelope):
+Same unified envelope as other API errors (`ApiErrorResponse`):
 
 ```json
 {
-  "message": "Unauthenticated."
+  "success": false,
+  "data": [],
+  "errors": {},
+  "message": "Unauthenticated.",
+  "token": ""
 }
 ```
 
 ### HTTP 403 — policy / authorization
 
-When the caller is authenticated but not allowed (wrong party, wrong status for that action), Laravel returns:
+Authenticated but not allowed. Same unified envelope. The `message` depends on how the policy denied:
+
+**Boolean policy failure** (`GuarantorPolicy::dispute` returns `false`, `GuarantorPolicy::view` returns `false`, etc. — no custom deny text):
 
 ```json
 {
-  "message": "This action is unauthorized."
+  "success": false,
+  "data": [],
+  "errors": {},
+  "message": "This action is unauthorized.",
+  "token": ""
 }
 ```
+
+**Explicit `Response::deny()` message** (e.g. installment pay while disputed — `InstallmentPolicy::pay`):
+
+```json
+{
+  "success": false,
+  "data": [],
+  "errors": {},
+  "message": "This guarantee has an active dispute and cannot accept payments",
+  "token": ""
+}
+```
+
+Translation key: `guarantor.pay_denied_active_dispute`.
 
 When a **User** account is inactive / banned, middleware returns `403` with:
 
@@ -142,6 +167,8 @@ For other missing models: `"message": "Resource not found"`.
 
 ### HTTP 422 — domain / business rule
 
+Module domain exceptions (`GuarantorException`, `OrdersException`, `WalletException`, …) and the unified `ApiException` all render the same envelope:
+
 ```json
 {
   "success": false,
@@ -151,7 +178,7 @@ For other missing models: `"message": "Resource not found"`.
 }
 ```
 
-Note: `errors` here is a **JSON array** `[]`, not `{}`.
+`message` is a translated string. `errors` is an empty object `{}` for domain failures (not a field map). When decoded with associative arrays, `{}` may appear as `[]` in some clients — treat both as “no field errors”.
 
 ### HTTP 413 / validation — body larger than PHP `post_max_size`
 
@@ -234,6 +261,7 @@ The delete-media URL only targets media on the **request**. Company-detail files
   "paid_at": null,
   "released_at": null,
   "overdue_notified_at": null,
+  "escalated_at": null,
   "is_past_due": false,
   "created_at": "2026-08-15T10:00:00+00:00"
 }
@@ -245,6 +273,7 @@ The delete-media URL only targets media on the **request**. Company-detail files
 | `due_date` | `YYYY-MM-DD` | Date only |
 | `is_past_due` | boolean | `true` when `due_date` is in the past **and** installment status is still `pending`. Use this for UI — do **not** wait for installment `status` to become `overdue` (that value is almost never stored). |
 | `overdue_notified_at` | ISO-8601 \| null | Set when a due/overdue reminder job has notified |
+| `escalated_at` | ISO-8601 \| null | Set when an unpaid installment past 14 days overdue was escalated to admins (visibility only) |
 
 ### Company detail
 
@@ -306,6 +335,7 @@ Keys that are **always** present:
 | `total` | decimal string | `amount + fees` |
 | `project_type` | string \| null | Company: same as title. Individual: usually `null`. |
 | `cancellation_reason` | string \| null | Set when admin cancels |
+| `dispute_resolution` | object \| null | Percentage-split snapshot when settled via split; `null` otherwise (see [§2.17](#217-dispute-feature--complete-reference)) |
 | `overdue_at` | ISO-8601 \| null | |
 | `ended_at` | ISO-8601 \| null | |
 | `cancelled_at` | ISO-8601 \| null | |
@@ -582,14 +612,14 @@ Second check: `422` `"You can only delete requests pending admin review"`.
 
 **Who (policy):** **either party**, any status → policy passes. **Actual transitions** are then restricted (see [matrix](#mobile-party-transitions)). Disallowed transition → `422` `"This status transition is not allowed"`. Same status again → `422` `"The request is already in this status"`.
 
-Admin-only transitions (`approved_by_admin`, `rejected_by_admin`, `cancelled`, `refunded`, `pending_admin`, `new`, `in_progress`, `overdue`) **will validate as enum values** but **fail the transition check** for mobile parties.
+Admin-only transitions (`approved_by_admin`, `rejected_by_admin`, `cancelled`, `pending_admin`, `new`, `escalated`, `settled`, `ended_via_dispute`, `cancelled_via_dispute`) **will validate as enum values** but **fail the transition check** for mobile parties. **`disputed` is allowed** for requester/counterparty from `in_progress` or `overdue` (same as `POST .../dispute`; see [§2.8](#28-open-dispute)).
 
 **Body:**
 
 | Field | Type | Required | Rules |
 |---|---|---|---|
-| `status` | string | yes | One of: `new`, `pending_admin`, `approved_by_admin`, `rejected_by_admin`, `accepted`, `rejected`, `in_progress`, `overdue`, `ended`, `cancelled`, `refunded` |
-| `reason` | string | **required when** `status` is `rejected_by_admin`, `rejected`, or `cancelled` | nullable otherwise; max 1000 |
+| `status` | string | yes | One of: `new`, `pending_admin`, `approved_by_admin`, `rejected_by_admin`, `accepted`, `rejected`, `in_progress`, `overdue`, `disputed`, `ended`, `ended_via_dispute`, `cancelled`, `cancelled_via_dispute`, `escalated`, `settled` |
+| `reason` | string | **required when** `status` is `rejected_by_admin`, `rejected`, `cancelled`, or **`disputed`** | nullable otherwise; max 1000 |
 | `notes` | string | no | max 2000 |
 
 **What mobile should actually send:**
@@ -599,6 +629,7 @@ Admin-only transitions (`approved_by_admin`, `rejected_by_admin`, `cancelled`, `
 | Counterparty | `approved_by_admin` | `accepted` | no |
 | Counterparty | `approved_by_admin` | `rejected` | **yes** |
 | Requester or counterparty | `in_progress` or `overdue` | `ended` | no |
+| Requester or counterparty | `in_progress` or `overdue` | `disputed` | **yes** (non-empty; max 1000) — **or** use dedicated `POST .../dispute` |
 | Anyone | anything else | — | do not call; it 422s |
 
 **Do not send `cancelled` from mobile.** Validation may pass (with `reason`) but the transition is not allowed for requester/counterparty. Cancel is admin/Dashboard only.
@@ -611,11 +642,140 @@ Admin-only transitions (`approved_by_admin`, `rejected_by_admin`, `cancelled`, `
 - `rejected` → requester notified. Terminal.
 - `ended` → both parties notified with `GuarantorEndedNotification` (title/body of “ended”). Individual: escrow wallets settle. Company: the **latest `paid` installment** (if any) is released to the requester. Cancel is a **separate** notification (`GuarantorCancelledNotification`); it does **not** reuse Ended.
 
-**Errors:** `401`, `403` (not a party), `404`, `422` validation (`status` required / invalid enum; `reason` required for reject), `422` transition / already-set.
+**Errors:** `401`, `403` (not a party), `404`, `422` validation (`status` required / invalid enum; `reason` required for reject / **disputed**), `422` `guarantor.dispute_reason_required` when `status` is `disputed` but `reason` is empty/whitespace (`"A reason is required to open a dispute"`), `422` transition / already-set.
 
 ---
 
-### 2.8 Pay Individual (full amount)
+### 2.8 Open dispute
+
+`POST /api/v1/guarantor/{guarantorRequest}/dispute`
+
+**Auth:** `auth:sanctum` + `user.active` middleware (same as all guarantor routes).
+
+**Who (policy `dispute`):** **either party** (requester or counterparty) when request status is **`in_progress`** or **`overdue`**. Not a party, or status is anything else → **`403`** with `"This action is unauthorized."` (boolean policy denial — no custom message).
+
+**Alternative path:** `POST /api/v1/guarantor/{guarantorRequest}/status` with `{ "status": "disputed", "reason": "..." }` runs the same `OpenGuarantorDisputeAction` (after `GuarantorService` whitespace check on `reason`). Prefer the dedicated `/dispute` route for clarity; both are valid.
+
+**Body (`OpenGuarantorDisputeRequest`):**
+
+| Field | Type | Required | Rules |
+|---|---|---|---|
+| `reason` | string | yes | `required`, `string`, **max 1000** |
+
+**Success `200`:** unified success envelope; `data` is the **show-shaped** `GuarantorResource` (see [Guarantor request](#guarantor-request-full-resource)). `message` is empty. Key fields after open:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "01234567-89ab-cdef-0123-456789abcdef",
+    "type": { "value": "individual", "label": "Individual", "color": "#3b82f6" },
+    "status": { "value": "disputed", "label": "Disputed", "color": "#dc2626" },
+    "title": "Project guarantee",
+    "description": "…",
+    "amount": "5000.00",
+    "fees": "10.00",
+    "total": "5010.00",
+    "project_type": null,
+    "cancellation_reason": null,
+    "requester": { "id": 1, "name": "…", "type": "user", "image": null, "phone": "0501112233" },
+    "counterparty": { "id": 2, "name": "…", "type": "user", "image": null, "phone": "0502223344" },
+    "installments": [],
+    "company_detail": null,
+    "status_histories": [
+      {
+        "id": "9f3c2a1b-0000-4000-8000-000000000040",
+        "from_status": { "value": "in_progress", "label": "In Progress", "color": "#06b6d4" },
+        "to_status": { "value": "disputed", "label": "Disputed", "color": "#dc2626" },
+        "reason": "Work not delivered as agreed",
+        "notes": null,
+        "actor": { "id": 1, "name": "…", "type": "user", "image": null, "phone": "0501112233" },
+        "created_at": "2026-08-20T14:00:00+00:00"
+      }
+    ],
+    "media": [],
+    "overdue_at": null,
+    "ended_at": null,
+    "cancelled_at": null,
+    "rejected_at": null,
+    "refunded_at": null,
+    "created_at": "2026-08-01T10:00:00+00:00"
+  },
+  "errors": {},
+  "message": "",
+  "token": ""
+}
+```
+
+The new history row’s `reason` is the **verbatim user string** from the request body (not a translation key).
+
+**Side effects:**
+
+- Request status → `disputed` (non-terminal).
+- **End** (`POST .../status` with `ended`) and **installment pay** are blocked while disputed (see [§2.17](#217-dispute-feature--complete-reference)).
+- **Chat** remains allowed (`GuarantorPolicy::chat` includes `disputed`).
+- The **other party** (not the opener) receives `GuarantorDisputedNotification`.
+- **Admins** with permission `manage guarantors` receive the same notification.
+- The **opener does not** receive `GuarantorDisputedNotification`.
+
+**Errors (complete):**
+
+| HTTP | Condition | Translation key | English `message` |
+|---|---|---|---|
+| 401 | Missing / invalid token | — | `Unauthenticated.` |
+| 403 | Not requester/counterparty, or status ∉ `{ in_progress, overdue }`, or already `disputed` | — | `This action is unauthorized.` |
+| 404 | Unknown guarantor UUID | `guarantor.not_found` | `Guarantor request not found` |
+| 422 | `reason` missing / not a string / over 1000 chars | Laravel validation | `Validation Failed` + `errors.reason` array |
+| 422 | Race: status changed between policy check and action (transition no longer allowed) | `guarantor.status_transition_not_allowed` | `This status transition is not allowed` |
+
+**Via `POST .../status` with `disputed` only** (not `/dispute`):
+
+| HTTP | Condition | Translation key | English `message` |
+|---|---|---|---|
+| 422 | `reason` omitted when `status` is `disputed` | Laravel validation | `Validation Failed` |
+| 422 | `reason` present but empty or whitespace-only | `guarantor.dispute_reason_required` | `A reason is required to open a dispute` |
+
+Example validation error (`POST .../dispute` without `reason`):
+
+```json
+{
+  "success": false,
+  "data": [],
+  "errors": {
+    "reason": ["The reason field is required."]
+  },
+  "message": "Validation Failed",
+  "token": ""
+}
+```
+
+Example domain error (wrong status slipped past policy — unlikely):
+
+```json
+{
+  "success": false,
+  "data": [],
+  "errors": {},
+  "message": "This status transition is not allowed",
+  "token": ""
+}
+```
+
+Example policy denial (non-party):
+
+```json
+{
+  "success": false,
+  "data": [],
+  "errors": {},
+  "message": "This action is unauthorized.",
+  "token": ""
+}
+```
+
+---
+
+### 2.9 Pay Individual (full amount)
 
 `POST /api/v1/guarantor/{guarantorRequest}/pay`
 
@@ -653,7 +813,7 @@ Extra check: status must still be `accepted` → else `422` `"This status transi
 | `message` | string \| null | Failure detail |
 | `data` | object | Gateway extra; testing driver includes `amount` and `payment_id` |
 
-After the user completes checkout, the **request does not update until the gateway callback**. There is **no** “payment received” push today (server only logs). Poll `GET` show or wait until status becomes `in_progress`.
+After the user completes checkout, the **request does not update until the gateway callback**. Both parties receive **`GuarantorPaymentReceivedNotification`** when payment is successfully applied. Poll `GET` show or wait for the push; Individual should move to `in_progress`.
 
 **Errors:** `401`, `403` (not counterparty, or status ≠ `accepted`), `404`, `422` wrong status.
 
@@ -661,7 +821,7 @@ Do **not** call this for Company requests. Use installment pay.
 
 ---
 
-### 2.9 Delete media (request files)
+### 2.10 Delete media (request files)
 
 `DELETE /api/v1/guarantor/{guarantorRequest}/media/{media}`
 
@@ -681,7 +841,7 @@ Company KYC files live on `company_detail`, not on the request — this URL will
 
 ---
 
-### 2.10 List installments
+### 2.11 List installments
 
 `GET /api/v1/guarantor/{guarantorRequest}/installments`
 
@@ -695,7 +855,7 @@ Company KYC files live on `company_detail`, not on the request — this URL will
 
 ---
 
-### 2.11 Pay installment (Company)
+### 2.12 Pay installment (Company)
 
 `POST /api/v1/guarantor/{guarantorRequest}/installments/{installment}/pay`
 
@@ -716,8 +876,8 @@ Company KYC files live on `company_detail`, not on the request — this URL will
 **Success `200`:** same payment-initiation object as Individual pay (`url`, `driver`, `payable`, …). Open `url`. After gateway success:
 
 - Installment becomes `paid`, `paid_at` set.
-- If this was **order 1** and request was `accepted`, request **stays `accepted`**.
-- If request was `overdue`, it becomes `in_progress` and `overdue_at` is cleared.
+- If request was `accepted` or `overdue`, request becomes `in_progress` (and `overdue_at` cleared when recovering from overdue).
+- Both parties receive **`GuarantorPaymentReceivedNotification`**.
 - Paying installment N (N > 1) triggers **release** of the previous paid installment to the requester (they get an “installment released” notification).
 
 **Ambiguous binding:** the installment UUID is not explicitly scoped to `{guarantorRequest}` in the route. Always pass matching IDs from show/list.
@@ -726,7 +886,7 @@ Company KYC files live on `company_detail`, not on the request — this URL will
 
 ---
 
-### 2.12 Chat — list conversations
+### 2.13 Chat — list conversations
 
 `GET /api/v1/chats/guarantor`
 
@@ -770,13 +930,13 @@ Company KYC files live on `company_detail`, not on the request — this URL will
 
 ---
 
-### 2.13 Chat — open or get conversation
+### 2.14 Chat — open or get conversation
 
 `POST /api/v1/chats/guarantor`
 
 **Auth:** Sanctum bearer.
 
-**Who (policy `chat`):** **either party** and request status is **`accepted`**, **`in_progress`**, or **`overdue`**. Otherwise `403` `"This action is unauthorized."`
+**Who (policy `chat`):** **either party** and request status is **`accepted`**, **`in_progress`**, **`overdue`**, or **`disputed`**. Otherwise `403` `"This action is unauthorized."`
 
 A second guard can return `422` `"Chat is only available after the request is accepted"` if status is not those three (policy should already block).
 
@@ -794,7 +954,7 @@ Idempotent: calling again returns the existing conversation. Accept already crea
 
 ---
 
-### 2.14 Chat — list messages
+### 2.15 Chat — list messages
 
 `GET /api/v1/chats/guarantor/{conversation}`
 
@@ -839,7 +999,7 @@ Idempotent: calling again returns the existing conversation. Accept already crea
 
 ---
 
-### 2.15 Chat — send message
+### 2.16 Chat — send message
 
 `POST /api/v1/chats/guarantor/{conversation}/send`
 
@@ -864,25 +1024,128 @@ Must send **at least one** of `content` or `files`.
 
 ---
 
+## 2.17 Dispute feature — complete reference
+
+Resolution is **Dashboard / Admin only**. Mobile opens disputes and **observes** the resulting status, history, wallet balance, and notifications.
+
+### While status is `disputed`
+
+| Action | Allowed? | How blocked |
+|---|---|---|
+| **Show / list** | yes | — |
+| **Chat** (open, list, send) | yes | `GuarantorPolicy::chat` includes `disputed` |
+| **Open another dispute** | no | Policy: status must be `in_progress` or `overdue` → **403** |
+| **End** (`POST .../status` `ended`) | no | `GuarantorStatusEnum::isAllowed` → **422** `guarantor.status_transition_not_allowed` — `"This status transition is not allowed"` |
+| **Pay Individual** | no | Policy: status must be `accepted` → **403** |
+| **Pay installment** | no | `InstallmentPolicy::pay` → **403** `guarantor.pay_denied_active_dispute` — `"This guarantee has an active dispute and cannot accept payments"` |
+| **Admin cancel** | yes (Dashboard) | Mobile cannot call; result is status `cancelled` (see below) |
+
+Company requests can enter `disputed` from **`in_progress`** (e.g. after first installment payment), not only from `overdue`.
+
+### Admin resolution outcomes (what mobile sees)
+
+Mobile has **no resolve endpoint**. After Admin resolves, poll `GET .../show` or handle `GuarantorDisputeResolvedNotification`.
+
+For **percentage splits**, `GuarantorResource` exposes a durable `dispute_resolution` object (always on show/list/update responses). Use it as the **primary source** when displaying past outcomes. The notification payload carries the **same numbers** at resolution time for push-driven UI.
+
+```json
+"dispute_resolution": {
+  "requester_percentage": 60,
+  "counterparty_percentage": 40,
+  "requester_amount": "600.00",
+  "counterparty_amount": "404.00"
+}
+```
+
+`dispute_resolution` is **`null`** for every other status/outcome (including `ended_via_dispute`, `cancelled_via_dispute`, and `escalated`). Counterparty percentage is derived as `100 - requester_percentage` (not stored on the row).
+
+For non-split outcomes, rely on `status`, `status_histories`, and notifications only.
+
+| Admin outcome | Resulting `status.value` | Terminal? | `status_histories` `reason` (exact string from code) | Other fields on show |
+|---|---|---|---|---|
+| Full to requester | `ended_via_dispute` | yes | `dispute_resolved_full_requester` | `ended_at` set; `dispute_resolution`: `null` |
+| Full to counterparty | `cancelled_via_dispute` | yes | `dispute_resolved_full_counterparty` | `cancelled_at` set; `cancellation_reason` = **`dispute_resolved_full_counterparty`** (machine string, not admin prose); `dispute_resolution`: `null` |
+| Escalate to court | `escalated` | yes | `dispute_escalated_to_court` | `dispute_resolution`: `null` |
+| Percentage split | `settled` | yes | `dispute_resolved_percentage_split:{requesterPct}/{counterpartyPct}` e.g. `dispute_resolved_percentage_split:60/40` | **`dispute_resolution`** object (percentages + amounts) |
+
+All four resolution paths notify **both parties** with `GuarantorDisputeResolvedNotification`.
+
+### Admin cancel during an open dispute (not a resolution enum)
+
+Dashboard **Cancel** while status is `disputed`:
+
+- Final status → **`cancelled`** (not `cancelled_via_dispute`).
+- `cancellation_reason` → admin’s cancel reason string from the Dashboard form.
+- An **extra** history row is appended: `from_status`/`to_status` both `cancelled`, `reason` = **`dispute_closed_by_admin_cancel`** (constant in `GuarantorDisputeHistoryReason`).
+- Both parties receive **`GuarantorCancelledNotification`** (not `GuarantorDisputeResolvedNotification`).
+
+### Dispute-related notifications
+
+| Notification | Trigger | Recipients | Database / broadcast `payload()` | Firebase push? |
+|---|---|---|---|---|
+| `GuarantorDisputedNotification` | Dispute opened | **Other party** + **Admins** (`manage guarantors`). **Opener excluded.** | `guarantor_request_id`, `type`, `reason` (user string), `final_status` (`disputed`) | **User, Provider, Admin** (`guarantorPartyOrAdminReceivesFirebase`) |
+| `GuarantorDisputeResolvedNotification` | Admin resolves (any of 4 outcomes) | **Both parties** | Always: `guarantor_request_id`, `type`, `resolution` (`full_requester` \| `full_counterparty` \| `escalate` \| `percentage_split`), `final_status`. For `percentage_split` only: `requester_percentage`, `counterparty_percentage`, `requester_amount`, `counterparty_amount` | **User, Provider only** — not Admin (`guarantorPartyReceivesFirebase`) |
+| `GuarantorCancelledNotification` | Admin cancel (including during dispute) | **Both parties** | `guarantor_request_id`, `type`, `cancellation_reason` | **User, Provider only** |
+
+**English title/body keys** (`lang/en.json`, resolved via `Accept-Language`):
+
+| Notification | Title key → English | Body key → English |
+|---|---|---|
+| Disputed | `guarantor_disputed_title` → “Guarantor dispute opened” | `guarantor_disputed_body` → “A dispute has been opened on a guarantor request and needs review.” |
+| Resolved full requester | `guarantor_dispute_resolved_full_requester_title` → “Dispute resolved in favor of requester” | `…_body` → “Admin resolved the guarantor dispute fully in favor of the requester. Held funds have been released accordingly.” |
+| Resolved full counterparty | `guarantor_dispute_resolved_full_counterparty_title` → “Dispute resolved in favor of counterparty” | `…_body` → “Admin resolved the guarantor dispute fully in favor of the counterparty. Held funds have been reversed.” |
+| Escalated | `guarantor_dispute_resolved_escalated_title` → “Guarantor dispute escalated” | `…_body` → “Ijaz is not arbitrating this dispute. Held funds have been reversed; please resolve the matter yourselves or through legal channels.” |
+| Percentage split | `guarantor_dispute_resolved_percentage_split_title` → “Guarantor dispute settled by percentage split” | `…_body` → “The dispute was settled :requester_percentage/:counterparty_percentage. Requester receives :requester_amount; counterparty receives :counterparty_amount.” |
+| Cancelled | `guarantor_cancelled` → “Guarantor Request Cancelled” | `guarantor_has_been_cancelled` → “Your guarantor request has been cancelled” |
+
+**Firebase `data` subset** (in addition to title/body):
+
+| Notification | FCM data fields |
+|---|---|
+| Disputed | `guarantor_request_id`, `final_status`, `screen: guarantor` |
+| Dispute resolved | `guarantor_request_id`, `resolution`, `final_status`, `screen: guarantor`; for split also stringified percentages and formatted amounts |
+| Cancelled | `guarantor_request_id`, `cancellation_reason` |
+
+Broadcast types: `guarantor disputed`, `guarantor dispute resolved`, `guarantor cancelled`.
+
+### Dispute error envelope quick reference
+
+All use the unified shape `{ success, data, errors, message, token }` (see [Common envelopes](#common-envelopes)).
+
+| Scenario | HTTP | Example `message` |
+|---|---|---|
+| Policy bool deny (wrong party / wrong status for dispute) | 403 | `This action is unauthorized.` |
+| Pay installment during dispute | 403 | `This guarantee has an active dispute and cannot accept payments` |
+| End while disputed | 422 | `This status transition is not allowed` |
+| Open from terminal / `accepted` (policy blocks before action) | 403 | `This action is unauthorized.` |
+| Missing dispute reason on `/status` path | 422 | `A reason is required to open a dispute` |
+| Missing `reason` on `/dispute` | 422 | `Validation Failed` + field errors |
+
+---
+
 ## 3. Status reference
 
 ### Request statuses (`status.value`)
 
 English labels below are the `en` translations. Colors are server hex values.
 
-| Value | Label | Color | Meaning | Terminal? |
-|---|---|---|---|---|
-| `new` | New | `#6b7280` | Exists on the enum **only**. **Create never uses it.** Treat as unused. | no |
-| `pending_admin` | Pending Admin Review | `#f59e0b` | Just created. Waiting for Dashboard review. Requester may edit/delete/media. Counterparty should not treat this as “your turn”. | no |
-| `approved_by_admin` | Approved by Admin | `#3b82f6` | Admin approved. **Counterparty’s turn** to accept or reject. No pay, no chat yet. | no |
-| `rejected_by_admin` | Rejected by Admin | `#ef4444` | Admin rejected. Dead. | **yes** |
-| `accepted` | Accepted | `#8b5cf6` | Counterparty accepted. Chat opens. Individual: waiting for **full pay**. Company: waiting for **installment 1** (and later ones); request often **stays** `accepted` after early pays. | no |
-| `rejected` | Rejected | `#f97316` | Counterparty rejected. Dead. | **yes** |
-| `in_progress` | In Progress | `#06b6d4` | Individual: payment captured. Company: usually after recovering from overdue (not after first installment). Work / escrow active. Either party may **end**. | no |
-| `overdue` | Overdue | `#ef4444` | Company: a pending installment is ≥ 3 days past due (daily job). Individual does not use this path. Either party may **end**. Counterparty may still **pay** the overdue installment. | no |
-| `ended` | Ended | `#10b981` | Closed successfully; funds released per type. | **yes** |
-| `cancelled` | Cancelled | `#6b7280` | Admin cancelled (Dashboard). Mobile cannot set this. | **yes** |
-| `refunded` | Refunded | `#6b7280` | Enum / admin path. Mobile cannot set this. No card refund is implemented (see limitations). | **yes** |
+| Value | Label | Color | Meaning | Reachable via mobile action? | Terminal? |
+|---|---|---|---|---|---|
+| `new` | New | `#6b7280` | Exists on the enum **only**. **Create never uses it.** Treat as unused. | no | no |
+| `pending_admin` | Pending Admin Review | `#f59e0b` | Just created. Waiting for Dashboard review. Requester may edit/delete/media. Counterparty should not treat this as “your turn”. | no (set by create) | no |
+| `approved_by_admin` | Approved by Admin | `#3b82f6` | Admin approved. **Counterparty’s turn** to accept or reject. No pay, no chat yet. | no (admin) | no |
+| `rejected_by_admin` | Rejected by Admin | `#ef4444` | Admin rejected. Dead. | no (admin) | **yes** |
+| `accepted` | Accepted | `#8b5cf6` | Counterparty accepted. Chat opens. Individual: waiting for **full pay**. Company: waiting for **installment 1** (and later ones); first successful installment pay moves request to `in_progress`. | yes — counterparty **accept** | no |
+| `rejected` | Rejected | `#f97316` | Counterparty rejected. Dead. | yes — counterparty **reject** | **yes** |
+| `in_progress` | In Progress | `#06b6d4` | Individual: payment captured. Company: active after first installment payment (or overdue recovery). Work / escrow active. Either party may **end** or **open dispute**. | no (payment callback / overdue recovery) | no |
+| `overdue` | Overdue | `#ef4444` | Company: a pending installment is ≥ 3 days past due (daily job). Individual does not use this path. Either party may **end** or **open dispute**. Counterparty may still **pay** the overdue installment. | no (scheduled job) | no |
+| `disputed` | Disputed | `#dc2626` | A party opened a dispute. End and further payments frozen; chat remains. Admin resolves from Dashboard. | yes — either party **open dispute** from `in_progress` / `overdue` | no |
+| `ended` | Ended | `#10b981` | Closed successfully; funds released per type. | yes — either party **end** from `in_progress` / `overdue` | **yes** |
+| `ended_via_dispute` | Ended (dispute) | `#10b981` | Admin resolved dispute — full release to requester. Distinct provenance from plain `ended`. | no (admin resolution) | **yes** |
+| `cancelled` | Cancelled | `#6b7280` | Admin cancelled (Dashboard), including cancel-during-dispute. Mobile cannot set this. | no (admin) | **yes** |
+| `cancelled_via_dispute` | Cancelled (dispute) | `#6b7280` | Admin resolved dispute — full release to counterparty. | no (admin resolution) | **yes** |
+| `escalated` | Escalated | `#7c3aed` | Admin resolved dispute — escalated to platform (terminal). | no (admin resolution) | **yes** |
+| `settled` | Settled | `#0d9488` | Admin resolved dispute — percentage split (terminal). | no (admin resolution) | **yes** |
 
 Terminal statuses cannot be left by mobile parties.
 
@@ -898,6 +1161,7 @@ Only these succeed. Anyone / anything else → `422` `"This status transition is
 | Counterparty | `overdue` | `ended` | same |
 | Requester | `in_progress` | `ended` | same |
 | Requester | `overdue` | `ended` | same |
+| Either party | `in_progress` or `overdue` | `disputed` | `POST .../dispute` `{ "reason": "..." }` **or** `POST .../status` `{ "status": "disputed", "reason": "..." }` |
 
 **Not allowed for mobile (admin / system / gateway):**
 
@@ -906,10 +1170,11 @@ Only these succeed. Anyone / anything else → `422` `"This status transition is
 | `pending_admin` | Create |
 | `approved_by_admin` | Admin Dashboard |
 | `rejected_by_admin` | Admin Dashboard |
-| `in_progress` | Individual: payment gateway success. Company: overdue recovery after a late installment is paid. |
+| `in_progress` | Individual: payment gateway success. Company: first installment payment from `accepted`, or overdue recovery after a late installment is paid. |
 | `overdue` | Daily overdue job (company installments) |
-| `cancelled` | Admin Dashboard |
-| `refunded` | Admin path (not a mobile flow) |
+| `disputed` | `POST .../dispute` or `POST .../status` with `disputed` + `reason` from either party while `in_progress` or `overdue` |
+| `cancelled` | Admin cancel (Dashboard), including during dispute — **not** `cancelled_via_dispute` |
+| `ended_via_dispute` / `cancelled_via_dispute` / `escalated` / `settled` | Admin dispute resolution (Dashboard) |
 | `ended` from `accepted` | **Blocked** even if some company installments are already paid |
 
 Admin (Dashboard) is allowed any transition; that is not this API.
@@ -922,7 +1187,6 @@ Admin (Dashboard) is allowed any transition; that is not this API.
 | `paid` | Paid | `#3b82f6` | Gateway confirmed this installment. Money is held. | Payment callback (counterparty paid) |
 | `released` | Released | `#10b981` | Funds moved to requester (previous installment when the next is paid; last paid installment when request is ended; or auto-release 14 days after due **if already `paid`**). | System / end — **no mobile release endpoint** |
 | `overdue` | Overdue | `#ef4444` | **Defined but not written** by current jobs. Do not build UI that waits for this value. | — |
-| `refunded` | Refunded | `#6b7280` | **Defined but not written** by current mobile/payment flows. | — |
 
 ---
 
@@ -939,8 +1203,9 @@ Shared for both types unless noted. “User app” = counterparty. “Create app
 | `rejected_by_admin` | Closed. | Closed — “rejected by admin”. | None (terminal). |
 | `accepted` | **Pay full `total`.** Chat **on**. | Waiting for payment. Chat on. | Counterparty: `POST .../pay`. Both: chat. **End is disabled.** |
 | `rejected` | Closed. | Closed — they rejected. | None. |
-| `in_progress` | Work in progress. Chat on. Can **End**. Pay button off (already paid). | Same. Can **End**. | Both: status `ended`, chat. |
-| `ended` / `cancelled` / `refunded` | Closed / summary. Chat policy **off** (only `accepted` \| `in_progress` \| `overdue`). Existing conversation GET/send still allowed **if they are participants** — gate **opening** the guarantor chat UI on request status, not on leftover messages. | Same. | Show only. |
+| `in_progress` | Work in progress. Chat on. Can **End** or **Dispute**. Pay button off (already paid for Individual). | Same. Can **End** or **Dispute**. | Both: status `ended` or dispute endpoint, chat. |
+| `disputed` | Dispute open — End and pay frozen. Chat on. Await admin resolution. | Same. | Show only; no End/pay. |
+| `ended` / `ended_via_dispute` / `cancelled` / `cancelled_via_dispute` / `escalated` / `settled` | Closed / summary. Chat policy **off** (only `accepted` \| `in_progress` \| `overdue`). Existing conversation GET/send still allowed **if they are participants** — gate **opening** the guarantor chat UI on request status, not on leftover messages. | Same. | Show only. |
 
 There is no Individual installment list to pay. `overdue` is not part of the Individual happy path.
 
@@ -950,8 +1215,8 @@ Same as Individual through `accepted`, then:
 
 | Status | User (counterparty) screen | Requester screen | Enabled actions |
 |---|---|---|---|
-| `accepted` | **Installment schedule.** Enable Pay only on the first `pending` installment whose previous is `paid` or `released` (or order 1). Chat **on**. **End is disabled** (cannot end from `accepted`). After paying #1, stay on this status — do **not** switch the whole request to “in progress”. | Chat on. Watch installments move `pending` → `paid` → `released`. No pay. | Counterparty: installment pay. Both: chat. |
-| `in_progress` | Same installment UI. End **enabled**. Reached mainly after paying from `overdue`. | End enabled. | Pay remaining pending (in order), end, chat. |
+| `accepted` | **Installment schedule.** Enable Pay only on the first `pending` installment whose previous is `paid` or `released` (or order 1). Chat **on**. **End is disabled** (cannot end from `accepted`). After paying #1, request moves to **`in_progress`**. | Chat on. Watch installments move `pending` → `paid` → `released`. No pay. | Counterparty: installment pay. Both: chat. |
+| `in_progress` | Same installment UI. End **enabled**. Dispute **enabled**. | End enabled. Dispute enabled. | Pay remaining pending (in order), end, dispute, chat. |
 | `overdue` | Banner: overdue. `is_past_due` true on the unpaid due installment. Pay that installment (still in sequence). End enabled. Chat on. | Banner + End. | Same as in_progress. |
 | Past due but request still `accepted` | Days 1–2 after due: reminder may have been sent; request status **unchanged**. Show `is_past_due` on the installment. | Same. | Pay still allowed. |
 | `ended` | Closed. Last `paid` installment is released if one existed. | Funds for that installment released (minus fee share). | Show only. |
@@ -971,16 +1236,15 @@ Admin may leave the request in `pending_admin` for a long time if they do not ac
 
 Disable Pay on future rows in the UI even before the API 422s.
 
-### What `in_progress` does **not** mean (Company)
+### What `in_progress` means (Company)
 
-- Paying installment 1 does **not** set the request to `in_progress`.
-- The request **stays `accepted`** while early installments are paid, unless it had already become `overdue`.
-- `in_progress` for Company is set when a payment completes **and** the request was `overdue` (overdue flag cleared).
-- Therefore: **do not** treat `accepted` as “unpaid” for Company. Check installment statuses.
+- Paying installment 1 from `accepted` **does** set the request to `in_progress` (same gateway callback as Individual).
+- If the request was already `overdue`, a successful installment payment also clears `overdue_at`.
+- Check installment statuses for pay/release UI; request status alone is not enough.
 
 ### Overdue timeline (Company, daily job at 00:00)
 
-Jobs run on **pending** installments whose `due_date` is already before “now”, on requests that are not `ended` / `cancelled` / `refunded`.
+Jobs run on **pending** installments whose `due_date` is already before “now”, on requests that are not terminal and not `disputed`.
 
 Calendar math uses whole days between the due date (start of day) and today (start of day):
 
@@ -989,11 +1253,11 @@ Calendar math uses whole days between the due date (start of day) and today (sta
 | **0 (due date)** | Job may run but takes **no** notify/overdue action (`days < 1`). | Neutral / due today. Status still `pending`. `is_past_due` becomes true once the due date is in the past. |
 | **1–2** | **Reminder** to the **counterparty only** (`installment_due`). Request status unchanged. | “Payment due / reminder”. Keep Pay enabled. |
 | **≥ 3 and &lt; 14** | Request → `overdue` (if not already), `overdue_at` set. **Both** parties get `installment_overdue`. Installment row **stays `pending`**. | Request badge Overdue. Installment still Pending + `is_past_due: true`. Pay still allowed. End allowed. |
-| **≥ 14** | If installment is **`paid`**: auto-release to requester (status → `released`), requester notified `installment_released`. If still **`pending` (unpaid)**: job **returns without releasing** and without a special extra notification. | Paid-and-held money can auto-release; **unpaid** overdue installments are **not** auto-cancelled. Request can remain `overdue`. |
+| **≥ 14** | If installment is **`paid`**: auto-release to requester (status → `released`), requester notified `installment_released`. If still **`pending` (unpaid)**: **one-time admin escalation** (`UnpaidOverdueInstallmentEscalationNotification` to admins with `show guarantors`); sets `escalated_at`. **No** status or wallet mutation. | Paid-and-held money can auto-release; unpaid rows show `escalated_at` on the installment for Dashboard visibility. |
 
 The due/overdue job can run **every day** on the same pending row (it does not skip already-notified rows). Expect possible repeat reminders.
 
-`overdue_notified_at` on the installment is updated when a due or overdue notification is sent.
+`overdue_notified_at` on the installment is updated when a due or overdue notification is sent. `escalated_at` is set once when an unpaid installment is escalated past day 14.
 
 ---
 
@@ -1006,6 +1270,7 @@ Chat for a request is allowed only when status is:
 - `accepted`
 - `in_progress`
 - `overdue`
+- **`disputed`**
 
 **Not** during `pending_admin` or `approved_by_admin`. Accepting is what opens it (the server creates the conversation on accept). Opening via `POST /api/v1/chats/guarantor` before that is `403`.
 
@@ -1027,7 +1292,7 @@ There is **no dedicated “guarantor chat” broadcast channel name**. Use the g
 
 Domain notifications (accept, overdue, etc.) broadcast on the user’s personal channel **`user-{numericUserId}`** (see `docs/mobile/AUTH_FLOW.md` / existing notification wiring). Firebase is separate (below).
 
-After `ended` / `cancelled` / `rejected*`, **do not** offer “Open guarantor chat” from the request (policy `chat` fails). A leftover conversation may still list/send for participants; product UI should still hide chat when request status is not the three allowed values.
+After `ended` / `cancelled` / `rejected*` / **`escalated` / `settled` / `ended_via_dispute` / `cancelled_via_dispute`**, **do not** offer “Open guarantor chat” from the request (policy `chat` fails). A leftover conversation may still list/send for participants; product UI should still hide chat when request status is not one of the four allowed values.
 
 ---
 
@@ -1037,7 +1302,7 @@ Channels for Guarantor notifications:
 
 - **In-app / database** — always (User and Provider notifiables for party events; Admin for pending-review).
 - **Broadcast (websocket)** — always.
-- **Firebase push** — **User** for party events; **Admin** for pending-review (`GuarantorPendingReviewNotification`). Providers never get FCM from these notifications, even if they have device tokens.
+- **Firebase push** — **User and Provider** for party events (`GuarantorFirebaseNotifiable`); **Admin** for pending-review and unpaid-overdue escalation notifications.
 
 Firebase `data` is a **subset** of the database payload (usually ids only). Database records use `title_translated_key` / `body_translated_key` (keys below) plus extra fields.
 
@@ -1052,10 +1317,14 @@ English title/body (keys resolve via `Accept-Language`):
 | Counterparty accepted | Guarantor Request Accepted | The counterparty has accepted your guarantor request | **Requester only** | yes if User | Type: `guarantor accepted` |
 | Counterparty rejected | Guarantor Request Rejected | The counterparty has rejected your guarantor request | **Requester only** | yes if User | Type: `guarantor counterparty rejected` |
 | Ended | Guarantor Request Ended | Your guarantor request has been ended | **Both parties** (`GuarantorEndedNotification`) | yes if User | `guarantor_request_id`, `type`, `final_status` (`ended`). FCM: `guarantor_request_id`, `final_status`. Type: `guarantor ended` |
-| Cancelled (admin) | Guarantor Request Cancelled | Your guarantor request has been cancelled | **Both parties** (`GuarantorCancelledNotification`) | yes if User | `guarantor_request_id`, `type`, `cancellation_reason`. FCM: `guarantor_request_id`, `cancellation_reason`. Type: `guarantor cancelled` |
+| Cancelled (admin) | Guarantor Request Cancelled | Your guarantor request has been cancelled | **Both parties** (`GuarantorCancelledNotification`) — includes **admin cancel during dispute** | yes — User / Provider | `guarantor_request_id`, `type`, `cancellation_reason`. FCM: `guarantor_request_id`, `cancellation_reason`. Type: `guarantor cancelled` |
 | Installment due (day 1–2) | Installment Payment Due | An installment payment is due for your guarantor request | **Counterparty only** | yes if User | `guarantor_request_id`, `installment_id`, `installment_order`, `amount`, `due_date`. FCM: request + installment ids. Type: `installment due` |
-| Installment overdue (day ≥ 3) | Installment Payment Overdue | An installment payment is overdue for your guarantor request | **Both parties** | yes if User | same as due. Type: `installment overdue` |
-| Installment released | Installment Payment Released | An installment payment has been released to your account | **Requester only** | yes if User | includes `released_at`. Type: `installment released` |
+| Installment overdue (day ≥ 3) | Installment Payment Overdue | An installment payment is overdue for your guarantor request | **Both parties** | yes if User/Provider | same as due. Type: `installment overdue` |
+| Payment captured / gateway success | Guarantor Payment Received | A payment has been received for your guarantor request | **Both parties** (`GuarantorPaymentReceivedNotification`) | yes if User/Provider | `guarantor_request_id`, `type`, `payment_id`, `amount`; installment ids when applicable. Type: `guarantor payment received` |
+| Dispute opened | Guarantor dispute opened | A dispute has been opened on a guarantor request and needs review. | **Other party** (not opener) + **Admins** with `manage guarantors` | yes — User / Provider / **Admin** | `guarantor_request_id`, `type`, `reason`, `final_status: disputed`. FCM: `guarantor_request_id`, `final_status`, `screen: guarantor`. Type: `guarantor disputed` |
+| Dispute resolved (any of 4 admin outcomes) | (outcome-specific — see [§2.17](#217-dispute-feature--complete-reference)) | (outcome-specific) | **Both parties** (`GuarantorDisputeResolvedNotification`) | yes — **User / Provider only** (not Admin) | `guarantor_request_id`, `type`, `resolution`, `final_status`; split adds percentages + amounts. Type: `guarantor dispute resolved` |
+| Installment released | Installment Payment Released | An installment payment has been released to your account | **Requester only** | yes if User/Provider | includes `released_at`. Type: `installment released` |
+| Unpaid installment ≥ 14 days (Dashboard) | Unpaid overdue installment | Installment #N (amount X) is still unpaid 14+ days past due… | **Admins** with `show guarantors` | yes if Admin | `guarantor_request_id`, `installment_id`, `installment_order`, `amount`, `due_date`. Type: `unpaid overdue installment escalation` |
 
 ### Events that do **not** send a notification today
 
@@ -1065,11 +1334,9 @@ Do **not** build UI that waits for a push for these:
 |---|---|
 | **Counterparty: “a request was created naming you”** | Counterparty is **not** notified at create. They first hear at **admin approved** (if they are a User, via push). |
 | **Counterparty: “you accepted”** | No self-notification on accept. |
-| **Payment captured / gateway success** | **No user notification.** Server logs only. Refresh show after checkout; Individual should move to `in_progress`. |
 | **Individual pay button / installment pay initiated** | Initiation is not a notification; only the payment `url` response. |
 | **Requester edited / deleted a pending request** | No notification. |
 | **Chat message** | Uses the **chat** realtime channel, not this Guarantor notification list. |
-| **Unpaid installment still pending after day 14** | No extra notification; auto-release is skipped. |
 | **Refund completed to card** | Not implemented (see limitations). |
 
 Unused translation keys exist (`guarantor_approved` / `guarantor_has_been_approved`, `guarantor_rejected` / `guarantor_has_been_rejected`) that current Guarantor notifications **do not** send. Do not listen for those keys for this feature.
@@ -1105,13 +1372,13 @@ Be explicit with QA and with UI copy:
 
 2. **Create is not User-app product.** Create endpoints have no requester-role check, and Sanctum tokens are User tokens today — a User app *could* call create. **Do not ship a create flow on the User app.** The User is the counterparty / payer.
 
-3. **No payment-received push.** After opening the checkout `url`, poll or return-to-app refresh. Individual: expect `in_progress` after success. Company: expect that installment `paid`; request may stay `accepted`.
+3. **Payment-received push exists.** After checkout, expect `GuarantorPaymentReceivedNotification` to both parties when the gateway callback succeeds. Individual: also expect `in_progress`. Company: installment `paid`; request typically `in_progress` after first pay.
 
 4. **Parties cannot cancel** via `POST .../status` with `cancelled` (422). Only admin can cancel. Cancel notifies both parties with `GuarantorCancelledNotification` (not the Ended notification).
 
 5. **Company cannot be ended from `accepted`**, even if installments are already paid. End is only from `in_progress` or `overdue`.
 
-6. **Installment `overdue` / `refunded` status values are unused.** Drive overdue UI from request `overdue` + installment `is_past_due`.
+6. **Installment `overdue` status value is unused.** Drive overdue UI from request `overdue` + installment `is_past_due` / `escalated_at`.
 
 7. **Status `new` is unused.** Create starts at `pending_admin`. Ignore examples that show `"status": "new"` after create.
 
@@ -1125,11 +1392,12 @@ Be explicit with QA and with UI copy:
 
 ## Quick UI checklist (User / counterparty app)
 
-| Request status | Show chat | Accept/Reject | Pay Individual | Pay installment | End |
-|---|---|---|---|---|---|
-| `pending_admin` | no | no | no | no | no |
-| `approved_by_admin` | no | **yes** | no | no | no |
-| `accepted` | **yes** | no | **yes** (Individual) | **yes** (Company, in order) | no |
-| `in_progress` | **yes** | no | no | **yes** if pending remain | **yes** |
-| `overdue` | **yes** | no | no | **yes** | **yes** |
-| terminal (`rejected*`, `ended`, `cancelled`, `refunded`) | no (entry) | no | no | no | no |
+| Request status | Show chat | Accept/Reject | Pay Individual | Pay installment | End | Dispute |
+|---|---|---|---|---|---|---|
+| `pending_admin` | no | no | no | no | no | no |
+| `approved_by_admin` | no | **yes** | no | no | no | no |
+| `accepted` | **yes** | no | **yes** (Individual) | **yes** (Company, in order) | no | no |
+| `in_progress` | **yes** | no | no | **yes** if pending remain | **yes** | **yes** |
+| `overdue` | **yes** | no | no | **yes** | **yes** | **yes** |
+| `disputed` | **yes** | no | no | no | no | no |
+| terminal (`rejected*`, `ended*`, `cancelled*`, `escalated`, `settled`) | no (entry) | no | no | no | no | no |

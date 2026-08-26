@@ -25,6 +25,8 @@ interface GuarantorRepositoryInterface
 
     public function findById(string $id): GuarantorRequest;
 
+    public function findForUpdate(GuarantorRequest $guarantorRequest): GuarantorRequest;
+
     public function findCounterpartyByPhone(string $phone): ?User;
 
     public function listByRequester(Model $requester, int $perPage = 10): LengthAwarePaginator;
@@ -38,7 +40,7 @@ interface GuarantorRepositoryInterface
     public function paginateForDashboard(Request $request, int $perPage): LengthAwarePaginator;
 
     /**
-     * @return array{total: int, pending_admin: int, in_progress: int, overdue: int, ended: int}
+     * @return array{total: int, pending_admin: int, in_progress: int, overdue: int, ended: int, cancelled: int}
      */
     public function getDashboardStats(): array;
 

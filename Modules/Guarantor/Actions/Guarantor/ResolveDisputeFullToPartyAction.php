@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction as LogGuarantorStatusHistory;
 use Modules\Guarantor\Actions\Guarantor\ReleaseGuarantorWalletHoldsAction as ReleaseGuarantorWalletHolds;
 use Modules\Guarantor\Actions\Guarantor\ReverseGuarantorWalletHoldsAction as ReverseGuarantorWalletHolds;
+use Modules\Guarantor\Actions\Guarantor\VoidRemainingGuarantorInstallmentsAction as VoidRemainingGuarantorInstallments;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorDisputeResolutionEnum;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
@@ -22,6 +23,7 @@ class ResolveDisputeFullToPartyAction
         private readonly LogGuarantorStatusHistory $logStatusHistory,
         private readonly ReleaseGuarantorWalletHolds $releaseGuarantorWalletHoldsAction,
         private readonly ReverseGuarantorWalletHolds $reverseGuarantorWalletHoldsAction,
+        private readonly VoidRemainingGuarantorInstallments $voidRemainingGuarantorInstallmentsAction,
     ) {}
 
     /**
@@ -40,8 +42,10 @@ class ResolveDisputeFullToPartyAction
         }
 
         return DB::transaction(function () use ($request, $admin, $favorParty, $notes) {
+            $request = $this->guarantorRepository->findForUpdate($request);
+
             if ($request->status->isNot(GuarantorStatusEnum::Disputed)) {
-                throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
+                throw new GuarantorException('guarantor.dispute_already_resolved', 422);
             }
 
             $fromStatus = $request->status->value;
@@ -51,13 +55,13 @@ class ResolveDisputeFullToPartyAction
 
             if ($favorParty === 'requester') {
                 $guarantorRequest = $this->guarantorRepository->update($request, [
-                    'status' => GuarantorStatusEnum::Ended,
+                    'status' => GuarantorStatusEnum::EndedViaDispute,
                     'ended_at' => now(),
                 ]);
                 $this->releaseGuarantorWalletHoldsAction->handle($guarantorRequest->fresh());
             } else {
                 $guarantorRequest = $this->guarantorRepository->update($request, [
-                    'status' => GuarantorStatusEnum::Cancelled,
+                    'status' => GuarantorStatusEnum::CancelledViaDispute,
                     'cancelled_at' => now(),
                     'cancellation_reason' => $resolution->historyReason(),
                 ]);
@@ -66,6 +70,8 @@ class ResolveDisputeFullToPartyAction
                     'dispute resolved — counterparty',
                 );
             }
+
+            $this->voidRemainingGuarantorInstallmentsAction->handle($guarantorRequest->fresh());
 
             $this->logStatusHistory->handle(
                 $guarantorRequest,

@@ -23,6 +23,7 @@ class InstallmentResource extends JsonResource
             'paid_at' => $this->paid_at?->toIso8601String(),
             'released_at' => $this->released_at?->toIso8601String(),
             'overdue_notified_at' => $this->overdue_notified_at?->toIso8601String(),
+            'escalated_at' => $this->escalated_at?->toIso8601String(),
             'is_past_due' => $this->isPastDue(),
             'created_at' => $this->created_at->toIso8601String(),
         ];

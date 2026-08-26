@@ -10,6 +10,7 @@ import clsx from 'clsx';
 import { ReactElement, useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import { parseGuarantorHistoryReason } from '@/apps/admin/pages/Guarantor/utils/parseGuarantorHistoryReason';
 import ChatTap from './components/chat-tap';
 import DocumentsTab, { MediaItem } from './components/documents-tab';
 import DisputeTab from './components/dispute-tab';
@@ -103,7 +104,7 @@ const RESOLUTION_OPTIONS = [
 
 type ResolutionOption = (typeof RESOLUTION_OPTIONS)[number];
 
-const TERMINAL_STATUSES = ['rejected_by_admin', 'rejected', 'ended', 'cancelled', 'escalated', 'settled'];
+const TERMINAL_STATUSES = ['rejected_by_admin', 'rejected', 'ended', 'ended_via_dispute', 'cancelled', 'cancelled_via_dispute', 'escalated', 'settled'];
 
 const statusBadgeClass: Record<string, string> = {
   new: 'badge-light-secondary',
@@ -116,7 +117,9 @@ const statusBadgeClass: Record<string, string> = {
   overdue: 'badge-light-danger',
   disputed: 'badge-light-danger',
   ended: 'badge-light-success',
+  ended_via_dispute: 'badge-light-success',
   cancelled: 'badge-light-secondary',
+  cancelled_via_dispute: 'badge-light-secondary',
   escalated: 'badge-light-dark',
   settled: 'badge-light-info',
 };
@@ -126,7 +129,8 @@ const installmentBadgeClass: Record<string, string> = {
   paid: 'badge-light-success',
   released: 'badge-light-primary',
   overdue: 'badge-light-danger',
-  refunded: 'badge-light-secondary',
+  voided: 'badge-light-secondary',
+  reversed: 'badge-light-dark',
 };
 
 const PartyChip = ({
@@ -598,7 +602,9 @@ const Show = ({ guarantorRequest }: Props) => {
                               </td>
                               {canManage && (
                                 <td className="text-end">
-                                  {statusValue === 'paid' && (
+                                  {!TERMINAL_STATUSES.includes(currentStatus) &&
+                                    currentStatus !== 'disputed' &&
+                                    statusValue === 'paid' && (
                                     <button
                                       type="button"
                                       className="btn btn-sm btn-light-success rounded-pill"
@@ -666,7 +672,7 @@ const Show = ({ guarantorRequest }: Props) => {
                           {history.reason && (
                             <div className="text-muted fs-7">
                               <span className="fw-bold text-gray-600">{t('guarantor.reason')}: </span>
-                              {history.reason}
+                              {parseGuarantorHistoryReason(history.reason, t)}
                             </div>
                           )}
                           {history.notes && (

@@ -13,6 +13,7 @@ test('GuarantorException render returns translated json response', function () {
             'message' => __('guarantor.not_found'),
             'data' => [],
             'errors' => [],
+            'token' => '',
         ]);
 });
 

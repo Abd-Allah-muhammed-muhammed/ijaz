@@ -2,13 +2,13 @@
 
 namespace Modules\Opportunity\Http\Controllers\Api\V1;
 
+use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Opportunity\DTOs\OfferData;
-use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Http\Controllers\Concerns\AuthorizesOpportunityRequests;
 use Modules\Opportunity\Http\Requests\StoreOfferRequest;
 use Modules\Opportunity\Http\Resources\OfferCollection;
@@ -114,9 +114,11 @@ class OfferController extends Controller
             $offer = $this->service->submit($opportunity, $data, auth()->user());
 
             return $this->successResponse(OfferResource::make($offer));
-        } catch (OpportunityException $e) {
-            throw $e;
         } catch (Throwable $throwable) {
+            if ($throwable instanceof ApiException) {
+                throw $throwable;
+            }
+
             report($throwable);
 
             if ($throwable instanceof HttpExceptionInterface) {
@@ -169,9 +171,11 @@ class OfferController extends Controller
             $opportunity = $this->service->accept($opportunity, $offer, auth()->user());
 
             return $this->successResponse(OpportunityResource::make($opportunity));
-        } catch (OpportunityException $e) {
-            throw $e;
         } catch (Throwable $throwable) {
+            if ($throwable instanceof ApiException) {
+                throw $throwable;
+            }
+
             report($throwable);
 
             if ($throwable instanceof HttpExceptionInterface) {
@@ -212,9 +216,11 @@ class OfferController extends Controller
             $this->service->reject($opportunity, $offer, auth()->user());
 
             return $this->successMessageResponse(__('opportunity.offer_rejected_successfully'));
-        } catch (OpportunityException $e) {
-            throw $e;
         } catch (Throwable $throwable) {
+            if ($throwable instanceof ApiException) {
+                throw $throwable;
+            }
+
             report($throwable);
 
             if ($throwable instanceof HttpExceptionInterface) {

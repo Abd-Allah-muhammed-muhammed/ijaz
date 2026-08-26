@@ -4,7 +4,9 @@ namespace Modules\Guarantor\Actions\Installment;
 
 use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction;
+use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
+use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorInstallment;
@@ -16,6 +18,7 @@ use Throwable;
 class ReleaseInstallmentAction
 {
     public function __construct(
+        private readonly GuarantorRepositoryInterface $guarantorRepository,
         private readonly InstallmentRepositoryInterface $installmentRepository,
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
         private readonly WalletService $walletService,
@@ -27,6 +30,24 @@ class ReleaseInstallmentAction
     public function handle(GuarantorInstallment $installment, string $trigger = 'payment'): void
     {
         DB::transaction(function () use ($installment, $trigger) {
+            $installment->loadMissing('guarantorRequest.requester');
+
+            /** @var GuarantorRequest $guarantorRequest */
+            $guarantorRequest = $this->guarantorRepository->findForUpdate($installment->guarantorRequest);
+            $installment->setRelation('guarantorRequest', $guarantorRequest);
+
+            if ($guarantorRequest->status->is(GuarantorStatusEnum::Disputed)) {
+                throw new GuarantorException('guarantor.release_denied_active_dispute', 422);
+            }
+
+            if ($trigger === 'admin' && $guarantorRequest->status->isTerminal()) {
+                throw new GuarantorException('guarantor.release_denied_guarantor_terminal', 422);
+            }
+
+            if ($installment->status->is(InstallmentStatusEnum::Reversed)) {
+                throw new GuarantorException('guarantor.release_denied_installment_reversed', 422);
+            }
+
             if ($installment->status->is(InstallmentStatusEnum::Released)) {
                 throw new GuarantorException('guarantor.already_paid', 422);
             }
@@ -34,11 +55,6 @@ class ReleaseInstallmentAction
             if ($installment->status->isNot(InstallmentStatusEnum::Paid)) {
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }
-
-            $installment->loadMissing('guarantorRequest.requester');
-
-            /** @var GuarantorRequest $guarantorRequest */
-            $guarantorRequest = $installment->guarantorRequest;
             $requester = $guarantorRequest->requester;
 
             $feesPortion = (float) $guarantorRequest->amount > 0

@@ -123,7 +123,7 @@ test('Admin can resolve a disputed guarantor fully in favor of the requester —
 
     app(ResolveDisputeFullToPartyAction::class)->handle($request->fresh(), $admin, 'requester');
 
-    expect($request->fresh()->status)->toBe(GuarantorStatusEnum::Ended)
+    expect($request->fresh()->status)->toBe(GuarantorStatusEnum::EndedViaDispute)
         ->and(walletSnapshot($requester))->toBe($endRequesterSnapshot)
         ->and(walletSnapshot($counterparty))->toBe($endCounterpartySnapshot);
 });
@@ -141,7 +141,7 @@ test('Admin can resolve a disputed guarantor fully in favor of the counterparty 
 
     app(ResolveDisputeFullToPartyAction::class)->handle($request->fresh(), $admin, 'counterparty');
 
-    expect($request->fresh()->status)->toBe(GuarantorStatusEnum::Cancelled)
+    expect($request->fresh()->status)->toBe(GuarantorStatusEnum::CancelledViaDispute)
         ->and(walletSnapshot($requester))->toBe($cancelRequesterSnapshot)
         ->and(walletSnapshot($counterparty))->toBe($cancelCounterpartySnapshot);
 });
@@ -241,8 +241,8 @@ test('resolving a dispute requires the guarantor to currently be in Disputed sta
 
 test('each resolution path logs a distinct status history entry (to_status + reason) distinguishing full-requester vs full-counterparty vs escalated', function () {
     foreach ([
-        ['party' => 'requester', 'to' => GuarantorStatusEnum::Ended, 'reason' => 'dispute_resolved_full_requester'],
-        ['party' => 'counterparty', 'to' => GuarantorStatusEnum::Cancelled, 'reason' => 'dispute_resolved_full_counterparty'],
+        ['party' => 'requester', 'to' => GuarantorStatusEnum::EndedViaDispute, 'reason' => 'dispute_resolved_full_requester'],
+        ['party' => 'counterparty', 'to' => GuarantorStatusEnum::CancelledViaDispute, 'reason' => 'dispute_resolved_full_counterparty'],
         ['party' => 'escalate', 'to' => GuarantorStatusEnum::Escalated, 'reason' => 'dispute_escalated_to_court'],
     ] as $case) {
         ['requester' => $requester, 'counterparty' => $counterparty, 'request' => $request, 'admin' => $admin] = disputeResolutionBatch2Context();

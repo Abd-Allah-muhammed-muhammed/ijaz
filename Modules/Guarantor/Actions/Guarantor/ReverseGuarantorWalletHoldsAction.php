@@ -2,6 +2,7 @@
 
 namespace Modules\Guarantor\Actions\Guarantor;
 
+use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Wallet\Services\WalletService;
 
@@ -13,6 +14,7 @@ class ReverseGuarantorWalletHoldsAction
 {
     public function __construct(
         private readonly WalletService $walletService,
+        private readonly InstallmentRepositoryInterface $installmentRepository,
     ) {}
 
     public function handle(GuarantorRequest $request, string $descriptionLabel = 'cancelled'): void
@@ -49,5 +51,7 @@ class ReverseGuarantorWalletHoldsAction
                 "Guarantor#{$request->id} {$descriptionLabel}",
             );
         }
+
+        $this->installmentRepository->markPaidAsReversedForRequest($request);
     }
 }

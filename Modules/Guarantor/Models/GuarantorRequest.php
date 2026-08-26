@@ -44,6 +44,9 @@ class GuarantorRequest extends Model implements HasMedia
         'project_type',
         'requester_signature',
         'cancellation_reason',
+        'dispute_requester_percentage',
+        'dispute_requester_amount',
+        'dispute_counterparty_amount',
         'admin_notes',
         'overdue_at',
         'ended_at',
@@ -104,14 +107,7 @@ class GuarantorRequest extends Model implements HasMedia
 
     public function scopeActive(Builder $query): Builder
     {
-        return $query->whereNotIn('status', [
-            GuarantorStatusEnum::RejectedByAdmin->value,
-            GuarantorStatusEnum::Rejected->value,
-            GuarantorStatusEnum::Ended->value,
-            GuarantorStatusEnum::Cancelled->value,
-            GuarantorStatusEnum::Escalated->value,
-            GuarantorStatusEnum::Settled->value,
-        ]);
+        return $query->whereNotIn('status', GuarantorStatusEnum::terminalValues());
     }
 
     public function isCompany(): bool
@@ -122,6 +118,32 @@ class GuarantorRequest extends Model implements HasMedia
     public function isIndividual(): bool
     {
         return $this->type->is(GuarantorTypeEnum::Individual);
+    }
+
+    /**
+     * Percentage-split dispute resolution snapshot for API consumers.
+     *
+     * @return array{
+     *     requester_percentage: int,
+     *     counterparty_percentage: int,
+     *     requester_amount: string,
+     *     counterparty_amount: string
+     * }|null
+     */
+    public function disputeResolutionForApi(): ?array
+    {
+        if ($this->dispute_requester_percentage === null) {
+            return null;
+        }
+
+        $requesterPercentage = (int) $this->dispute_requester_percentage;
+
+        return [
+            'requester_percentage' => $requesterPercentage,
+            'counterparty_percentage' => 100 - $requesterPercentage,
+            'requester_amount' => number_format((float) $this->dispute_requester_amount, 2, '.', ''),
+            'counterparty_amount' => number_format((float) $this->dispute_counterparty_amount, 2, '.', ''),
+        ];
     }
 
     public function registerMediaCollections(): void
@@ -196,6 +218,8 @@ class GuarantorRequest extends Model implements HasMedia
             'type' => GuarantorTypeEnum::class,
             'amount' => 'decimal:2',
             'fees' => 'decimal:2',
+            'dispute_requester_amount' => 'decimal:2',
+            'dispute_counterparty_amount' => 'decimal:2',
             'overdue_at' => 'datetime',
             'ended_at' => 'datetime',
             'cancelled_at' => 'datetime',

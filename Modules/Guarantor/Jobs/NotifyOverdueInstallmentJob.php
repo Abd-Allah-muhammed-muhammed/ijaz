@@ -9,7 +9,9 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction;
+use Modules\Guarantor\Actions\Installment\EscalateUnpaidOverdueInstallmentAction;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
+use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Notifications\InstallmentDueNotification;
 use Modules\Guarantor\Notifications\InstallmentOverdueNotification;
@@ -25,8 +27,10 @@ class NotifyOverdueInstallmentJob implements ShouldQueue
 
     public function __construct(public GuarantorInstallment $installment) {}
 
-    public function handle(LogGuarantorStatusHistoryAction $logStatusHistory): void
-    {
+    public function handle(
+        LogGuarantorStatusHistoryAction $logStatusHistory,
+        EscalateUnpaidOverdueInstallmentAction $escalateUnpaidOverdueInstallment,
+    ): void {
         $installment = $this->installment->fresh()->load([
             'guarantorRequest.requester',
             'guarantorRequest.counterparty',
@@ -39,8 +43,12 @@ class NotifyOverdueInstallmentJob implements ShouldQueue
         $daysOverdue = (int) $installment->due_date->startOfDay()->diffInDays(now()->startOfDay());
 
         if ($daysOverdue >= 14) {
-            AutoReleaseInstallmentJob::dispatch($installment)
-                ->onQueue('guarantor');
+            if ($installment->status->is(InstallmentStatusEnum::Paid)) {
+                AutoReleaseInstallmentJob::dispatch($installment)
+                    ->onQueue('guarantor');
+            } elseif ($installment->status->is(InstallmentStatusEnum::Pending)) {
+                $escalateUnpaidOverdueInstallment->handle($installment);
+            }
 
             return;
         }

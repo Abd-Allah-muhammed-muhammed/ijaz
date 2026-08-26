@@ -42,7 +42,7 @@ class GuarantorController extends Controller
      * @authenticated
      *
      * @queryParam per_page int Results per page. Example: 10
-     * @queryParam status string Filter by status. Example: new
+     * @queryParam status string Filter by status. Example: pending_admin
      *
      * @response 200 {
      *   "status": true,
@@ -51,7 +51,7 @@ class GuarantorController extends Controller
      *       {
      *         "id": "01234567-89ab-cdef-0123-456789abcdef",
      *         "type": { "value": "individual", "label": "Individual", "color": "#3b82f6" },
-     *         "status": { "value": "new", "label": "New", "color": "#22c55e" },
+     *         "status": { "value": "pending_admin", "label": "Pending Admin Review", "color": "#f59e0b" },
      *         "title": "Software development guarantee",
      *         "description": "Guarantee for a 3-month project",
      *         "amount": 5000.00,
@@ -103,7 +103,7 @@ class GuarantorController extends Controller
      *   "data": {
      *     "id": "01234567-89ab-cdef-0123-456789abcdef",
      *     "type": { "value": "individual", "label": "Individual", "color": "#3b82f6" },
-     *     "status": { "value": "new", "label": "New", "color": "#22c55e" },
+     *     "status": { "value": "pending_admin", "label": "Pending Admin Review", "color": "#f59e0b" },
      *     "title": "Project guarantee",
      *     "amount": 5000.00,
      *     "fees": 10.00,
@@ -147,7 +147,7 @@ class GuarantorController extends Controller
      *   "data": {
      *     "id": "01234567-89ab-cdef-0123-456789abcdef",
      *     "type": { "value": "company", "label": "Company", "color": "#8b5cf6" },
-     *     "status": { "value": "new", "label": "New", "color": "#22c55e" },
+     *     "status": { "value": "pending_admin", "label": "Pending Admin Review", "color": "#f59e0b" },
      *     "installments": [
      *       { "order": 1, "amount": 10000.00, "due_date": "2026-07-01", "status": { "value": "pending", "label": "Pending", "color": "#f59e0b" } }
      *     ],
@@ -266,20 +266,20 @@ class GuarantorController extends Controller
     /**
      * Update guarantor request status.
      *
-     * Approve, reject, cancel, or end a guarantor request. Reason is required for reject/cancel.
+     * Approve, reject, cancel, end, or open dispute on a guarantor request. Reason is required for reject, cancel, and disputed.
      *
      * @authenticated
      *
      * @urlParam guarantorRequest string required Guarantor request UUID.
      *
-     * @bodyParam status string required New status. Valid values: new, pending_admin, approved_by_admin, rejected_by_admin, accepted, rejected, in_progress, overdue, disputed, ended, cancelled, escalated. Example: accepted
-     * @bodyParam reason string Reason (required when rejected or cancelled).
-     * @bodyParam notes string optional Additional notes.
+     * @bodyParam status string required New status. Valid values: new, pending_admin, approved_by_admin, rejected_by_admin, accepted, rejected, in_progress, overdue, disputed, ended, ended_via_dispute, cancelled, cancelled_via_dispute, escalated, settled. Example: accepted
+     * @bodyParam reason string Reason (required when status is rejected, cancelled, or disputed; max 1000).
+     * @bodyParam notes string optional Additional notes (max 2000).
      *
-     * @response 200 { "status": true, "message": "Status updated successfully", "data": {} }
-     * @response 401 { "success": false, "message": "Unauthenticated." }
-     * @response 403 { "success": false, "message": "You are not authorized to perform this action" }
-     * @response 422 { "success": false, "message": "This status transition is not allowed" }
+     * @response 200 { "success": true, "data": {}, "errors": {}, "message": "", "token": "" }
+     * @response 401 { "success": false, "data": [], "errors": {}, "message": "Unauthenticated.", "token": "" }
+     * @response 403 { "success": false, "data": [], "errors": {}, "message": "This action is unauthorized.", "token": "" }
+     * @response 422 { "success": false, "data": [], "errors": {}, "message": "This status transition is not allowed", "token": "" }
      */
     public function updateStatus(
         UpdateGuarantorStatusRequest $request,
@@ -305,19 +305,21 @@ class GuarantorController extends Controller
     /**
      * Open a dispute on a guarantor request.
      *
-     * Either party may open a dispute from `in_progress` or `overdue` with a mandatory reason.
+     * Either party may open a dispute from `in_progress` or `overdue` with a mandatory reason (max 1000).
      * Freezes End and further installment payments; chat and Admin Cancel remain available.
+     * Alternative: POST .../status with status=disputed and the same reason field.
      *
      * @authenticated
      *
      * @urlParam guarantorRequest string required Guarantor request UUID.
      *
-     * @bodyParam reason string required Why the dispute is being opened.
+     * @bodyParam reason string required Why the dispute is being opened (max 1000).
      *
-     * @response 200 { "status": true, "data": {} }
-     * @response 401 { "success": false, "message": "Unauthenticated." }
-     * @response 403 { "success": false, "message": "You are not authorized to perform this action" }
-     * @response 422 { "success": false, "message": "This status transition is not allowed" }
+     * @response 200 { "success": true, "data": { "status": { "value": "disputed" } }, "errors": {}, "message": "", "token": "" }
+     * @response 401 { "success": false, "data": [], "errors": {}, "message": "Unauthenticated.", "token": "" }
+     * @response 403 { "success": false, "data": [], "errors": {}, "message": "This action is unauthorized.", "token": "" }
+     * @response 422 { "success": false, "data": [], "errors": { "reason": ["The reason field is required."] }, "message": "Validation Failed", "token": "" }
+     * @response 422 { "success": false, "data": [], "errors": {}, "message": "This status transition is not allowed", "token": "" }
      */
     public function dispute(
         OpenGuarantorDisputeRequest $request,

@@ -14,7 +14,8 @@ enum InstallmentStatusEnum: string
     case Paid = 'paid';
     case Released = 'released';
     case Overdue = 'overdue';
-    case Refunded = 'refunded';
+    case Voided = 'voided';
+    case Reversed = 'reversed';
 
     public function toString(): string
     {
@@ -28,7 +29,8 @@ enum InstallmentStatusEnum: string
             self::Paid => '#3b82f6',
             self::Released => '#10b981',
             self::Overdue => '#ef4444',
-            self::Refunded => '#6b7280',
+            self::Voided => '#6b7280',
+            self::Reversed => '#9333ea',
         };
     }
 
@@ -42,5 +44,22 @@ enum InstallmentStatusEnum: string
             'label' => $this->toString(),
             'color' => $this->color(),
         ];
+    }
+
+    public function isTerminal(): bool
+    {
+        return in_array($this, [
+            self::Released,
+            self::Voided,
+            self::Reversed,
+        ], true);
+    }
+
+    public function isPayable(): bool
+    {
+        return $this->isIn([
+            self::Pending,
+            self::Overdue,
+        ]);
     }
 }

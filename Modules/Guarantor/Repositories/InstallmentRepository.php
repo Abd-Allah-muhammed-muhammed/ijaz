@@ -80,13 +80,31 @@ class InstallmentRepository implements InstallmentRepositoryInterface
         return GuarantorInstallment::query()
             ->overdue()
             ->whereHas('guarantorRequest', fn ($query) => $query->whereNotIn('status', [
-                GuarantorStatusEnum::Ended->value,
-                GuarantorStatusEnum::Cancelled->value,
-                GuarantorStatusEnum::Escalated->value,
-                GuarantorStatusEnum::Settled->value,
+                ...GuarantorStatusEnum::terminalValues(),
                 GuarantorStatusEnum::Disputed->value,
             ]))
             ->with(['guarantorRequest.requester', 'guarantorRequest.counterparty'])
             ->lazyById();
+    }
+
+    public function voidPendingOrOverdueForRequest(GuarantorRequest $request): int
+    {
+        return $request->installments()
+            ->whereIn('status', [
+                InstallmentStatusEnum::Pending,
+                InstallmentStatusEnum::Overdue,
+            ])
+            ->update([
+                'status' => InstallmentStatusEnum::Voided,
+            ]);
+    }
+
+    public function markPaidAsReversedForRequest(GuarantorRequest $request): int
+    {
+        return $request->installments()
+            ->where('status', InstallmentStatusEnum::Paid)
+            ->update([
+                'status' => InstallmentStatusEnum::Reversed,
+            ]);
     }
 }

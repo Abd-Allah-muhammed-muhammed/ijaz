@@ -2,6 +2,7 @@
 
 namespace Modules\Jobs\Http\Controllers\Api\V1;
 
+use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -10,7 +11,6 @@ use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Jobs\Concerns\HasJobs;
 use Modules\Jobs\DTOs\StoreJobDTO;
 use Modules\Jobs\DTOs\UpdateJobDTO;
-use Modules\Jobs\Exceptions\JobsException;
 use Modules\Jobs\Http\Requests\JobRequest;
 use Modules\Jobs\Http\Resources\JobCollection;
 use Modules\Jobs\Http\Resources\JobResource;
@@ -67,6 +67,10 @@ class JobController extends Controller
 
             return $this->successResponse(JobResource::make($job));
         } catch (Throwable $throwable) {
+            if ($throwable instanceof ApiException) {
+                throw $throwable;
+            }
+
             report($throwable);
 
             return $this->failedMessageResponse(__('something went wrong'));
@@ -90,9 +94,11 @@ class JobController extends Controller
             );
 
             return $this->successResponse(JobResource::make($job));
-        } catch (JobsException $exception) {
-            return $this->failedMessageResponse(__($exception->getTranslationKey()), $exception->getHttpStatusCode());
         } catch (Throwable $throwable) {
+            if ($throwable instanceof ApiException) {
+                throw $throwable;
+            }
+
             report($throwable);
 
             return $this->failedMessageResponse(__('something went wrong'));
@@ -108,9 +114,11 @@ class JobController extends Controller
             $this->service->delete($job, $user);
 
             return $this->successMessageResponse(__('job offer deleted successfully'));
-        } catch (JobsException $exception) {
-            return $this->failedMessageResponse(__($exception->getTranslationKey()), $exception->getHttpStatusCode());
         } catch (Throwable $throwable) {
+            if ($throwable instanceof ApiException) {
+                throw $throwable;
+            }
+
             report($throwable);
 
             return $this->failedMessageResponse(__('something went wrong'));
@@ -133,9 +141,11 @@ class JobController extends Controller
             $this->service->deleteMedia($job, $media, $user);
 
             return $this->successMessageResponse(__('media deleted successfully'));
-        } catch (JobsException $exception) {
-            return $this->failedMessageResponse(__($exception->getTranslationKey()), $exception->getHttpStatusCode());
         } catch (Throwable $throwable) {
+            if ($throwable instanceof ApiException) {
+                throw $throwable;
+            }
+
             report($throwable);
 
             return $this->failedMessageResponse(__('something went wrong'));

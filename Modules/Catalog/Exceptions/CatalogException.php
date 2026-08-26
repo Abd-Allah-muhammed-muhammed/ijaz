@@ -2,6 +2,16 @@
 
 namespace Modules\Catalog\Exceptions;
 
-use Exception;
+use App\Exceptions\ApiException;
+use Throwable;
 
-class CatalogException extends Exception {}
+class CatalogException extends ApiException
+{
+    public function __construct(
+        string $message = '',
+        int $code = 422,
+        ?Throwable $previous = null,
+    ) {
+        parent::__construct($message, $code, $previous, translateMessage: false);
+    }
+}

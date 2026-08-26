@@ -15,7 +15,6 @@ use Modules\Guarantor\Contracts\Repositories\StatusHistoryRepositoryInterface;
 use Modules\Guarantor\Handlers\GuarantorChatHandler;
 use Modules\Guarantor\Listeners\HandleGuarantorPaymentCompleted;
 use Modules\Guarantor\Listeners\HandleGuarantorPaymentFailed;
-use Modules\Guarantor\Listeners\NotifyGuarantorPaymentCompleted;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Guarantor\Policies\GuarantorPolicy;
@@ -77,7 +76,6 @@ class GuarantorServiceProvider extends ModuleServiceProvider
         Gate::policy(GuarantorInstallment::class, InstallmentPolicy::class);
 
         Event::listen(PaymentCompleted::class, HandleGuarantorPaymentCompleted::class);
-        Event::listen(PaymentCompleted::class, NotifyGuarantorPaymentCompleted::class);
         Event::listen(PaymentFailed::class, HandleGuarantorPaymentFailed::class);
 
         $this->app->make(ChatTypeRegistry::class)
