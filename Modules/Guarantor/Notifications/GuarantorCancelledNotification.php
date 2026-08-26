@@ -2,14 +2,16 @@
 
 namespace Modules\Guarantor\Notifications;
 
-use App\Models\User;
 use App\Notifications\DomainNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Support\GuarantorFirebaseNotifiable;
 
 class GuarantorCancelledNotification extends DomainNotification implements ShouldBroadcastNow, ShouldDispatchAfterCommit
 {
+    use GuarantorFirebaseNotifiable;
+
     public function __construct(public GuarantorRequest $guarantorRequest) {}
 
     protected function titleKey(): string
@@ -46,7 +48,7 @@ class GuarantorCancelledNotification extends DomainNotification implements Shoul
 
     protected function sendsFirebase(object $notifiable): bool
     {
-        return $notifiable instanceof User;
+        return $this->guarantorPartyReceivesFirebase($notifiable);
     }
 
     public function broadcastType(): string

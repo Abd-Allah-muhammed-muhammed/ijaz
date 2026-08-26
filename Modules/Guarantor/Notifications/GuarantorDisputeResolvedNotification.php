@@ -2,7 +2,6 @@
 
 namespace Modules\Guarantor\Notifications;
 
-use App\Models\User;
 use App\Notifications\DomainNotification;
 use App\Services\Firebase\DTO\FirebaseNotificationContent;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -10,12 +9,15 @@ use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Modules\Guarantor\Enums\GuarantorDisputeResolutionEnum;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Support\GuarantorFirebaseNotifiable;
 
 /**
  * Admin resolved a dispute — DomainNotification with outcome-specific copy.
  */
 class GuarantorDisputeResolvedNotification extends DomainNotification implements ShouldBroadcastNow, ShouldDispatchAfterCommit
 {
+    use GuarantorFirebaseNotifiable;
+
     public function __construct(
         public GuarantorRequest $guarantorRequest,
         public GuarantorDisputeResolutionEnum $resolution,
@@ -138,7 +140,7 @@ class GuarantorDisputeResolvedNotification extends DomainNotification implements
 
     protected function sendsFirebase(object $notifiable): bool
     {
-        return $notifiable instanceof User;
+        return $this->guarantorPartyReceivesFirebase($notifiable);
     }
 
     public function broadcastType(): string

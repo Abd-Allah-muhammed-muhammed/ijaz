@@ -317,7 +317,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new GuarantorCreatedNotification($request);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
             ->and($notification->broadcastType())->toBe('guarantor created')
             ->and($notification->toArray($user))->toBe([
@@ -348,7 +348,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new GuarantorAcceptedNotification($request);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('guarantor accepted')
             ->and($notification->toArray($user))->toBe([
                 'title_translated_key' => 'guarantor_accepted',
@@ -378,7 +378,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new GuarantorAdminApprovedNotification($request);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('guarantor admin approved')
             ->and($notification->toArray($user)['title_translated_key'])->toBe('guarantor_admin_approved')
             ->and($notification->toArray($user)['body_translated_key'])->toBe('guarantor_has_been_admin_approved')
@@ -405,7 +405,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new GuarantorAdminRejectedNotification($request);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('guarantor admin rejected')
             ->and($notification->toArray($user)['title_translated_key'])->toBe('guarantor_admin_rejected')
             ->and($notification->toArray($user)['body_translated_key'])->toBe('guarantor_has_been_admin_rejected');
@@ -430,7 +430,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new GuarantorCounterpartyRejectedNotification($request);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('guarantor counterparty rejected')
             ->and($notification->toArray($user)['title_translated_key'])->toBe('guarantor_counterparty_rejected')
             ->and($notification->toArray($user)['body_translated_key'])->toBe('guarantor_has_been_counterparty_rejected');
@@ -455,7 +455,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new GuarantorEndedNotification($request);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('guarantor ended')
             ->and($notification->toArray($user))->toBe([
                 'title_translated_key' => 'guarantor_ended',
@@ -491,7 +491,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new GuarantorCancelledNotification($request);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
             ->and($notification->broadcastType())->toBe('guarantor cancelled')
             ->and($notification->toArray($user))->toBe([
@@ -571,7 +571,7 @@ describe('Guarantor domain notification contracts', function (): void {
         $notification = new InstallmentDueNotification($installment);
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('installment due')
             ->and($notification->toArray($user))->toBe([
                 'title_translated_key' => 'installment_due',

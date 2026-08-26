@@ -50,6 +50,14 @@ class GuarantorRepository implements GuarantorRepositoryInterface
             ->findOrFail($id);
     }
 
+    public function findForUpdate(GuarantorRequest $guarantorRequest): GuarantorRequest
+    {
+        return GuarantorRequest::query()
+            ->whereKey($guarantorRequest->getKey())
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
+
     public function findCounterpartyByPhone(string $phone): ?User
     {
         return User::query()

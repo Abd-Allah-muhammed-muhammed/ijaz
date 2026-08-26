@@ -36,9 +36,15 @@ const RESOLUTION_REASON_PREFIXES = [
   'dispute_resolved_percentage_split',
 ] as const;
 
+const CLOSED_BY_ADMIN_CANCEL_REASON = 'dispute_closed_by_admin_cancel';
+
 const isResolutionReason = (reason?: string | null): boolean => {
   if (!reason) {
     return false;
+  }
+
+  if (reason === CLOSED_BY_ADMIN_CANCEL_REASON) {
+    return true;
   }
 
   return RESOLUTION_REASON_PREFIXES.some(
@@ -76,6 +82,10 @@ const formatResolutionOutcome = (
     return t('guarantor.dispute_outcome_percentage_split');
   }
 
+  if (reason === CLOSED_BY_ADMIN_CANCEL_REASON) {
+    return t('guarantor.dispute_outcome_admin_cancel');
+  }
+
   return reason;
 };
 
@@ -85,6 +95,7 @@ const DisputeTab = ({ statusHistories }: Props) => {
   const opening = statusHistories.find((history) => history.to_status?.value === 'disputed');
   const resolution = statusHistories.find((history) => isResolutionReason(history.reason));
   const isEscalated = Boolean(resolution?.reason?.startsWith('dispute_escalated'));
+  const isAdminCancelClosed = resolution?.reason === CLOSED_BY_ADMIN_CANCEL_REASON;
 
   if (!opening) {
     return <p className="text-muted fst-italic mb-0">{t('guarantor.no_dispute')}</p>;
@@ -156,12 +167,16 @@ const DisputeTab = ({ statusHistories }: Props) => {
                 resolution
                   ? isEscalated
                     ? 'bg-light-dark text-gray-700'
-                    : 'bg-light-success text-success'
+                    : isAdminCancelClosed
+                      ? 'bg-light-secondary text-gray-700'
+                      : 'bg-light-success text-success'
                   : 'bg-light-warning text-warning'
               }`}
             >
               <KTIcon
-                iconName={resolution ? (isEscalated ? 'abstract-26' : 'check-circle') : 'timer'}
+                iconName={
+                  resolution ? (isEscalated ? 'abstract-26' : isAdminCancelClosed ? 'cross-circle' : 'check-circle') : 'timer'
+                }
                 className="fs-2"
               />
             </span>
@@ -171,15 +186,25 @@ const DisputeTab = ({ statusHistories }: Props) => {
         {resolution ? (
           <div
             className={`card border-0 shadow-sm rounded-4 flex-grow-1 ${
-              isEscalated ? 'bg-light bg-opacity-75' : 'bg-light-success bg-opacity-10'
+              isEscalated
+                ? 'bg-light bg-opacity-75'
+                : isAdminCancelClosed
+                  ? 'bg-light-secondary bg-opacity-10'
+                  : 'bg-light-success bg-opacity-10'
             }`}
           >
             <div className="card-body p-5">
               <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-                <h4 className="fw-bolder text-gray-900 mb-0">{t('guarantor.dispute_resolved')}</h4>
+                <h4 className="fw-bolder text-gray-900 mb-0">
+                  {isAdminCancelClosed ? t('guarantor.dispute_closed') : t('guarantor.dispute_resolved')}
+                </h4>
                 <span
                   className={`badge rounded-pill px-3 py-2 fw-bold ${
-                    isEscalated ? 'badge-light-dark' : 'badge-light-success'
+                    isEscalated
+                      ? 'badge-light-dark'
+                      : isAdminCancelClosed
+                        ? 'badge-light-secondary'
+                        : 'badge-light-success'
                   }`}
                 >
                   {resolution.to_status?.label ?? t('guarantor.dispute_resolved')}

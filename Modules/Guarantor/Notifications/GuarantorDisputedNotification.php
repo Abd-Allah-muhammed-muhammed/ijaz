@@ -2,18 +2,19 @@
 
 namespace Modules\Guarantor\Notifications;
 
-use App\Models\Admin;
-use App\Models\User;
 use App\Notifications\DomainNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Support\GuarantorFirebaseNotifiable;
 
 /**
  * A party opened a dispute — DomainNotification (not StatusChangedNotification).
  */
 class GuarantorDisputedNotification extends DomainNotification implements ShouldBroadcastNow, ShouldDispatchAfterCommit
 {
+    use GuarantorFirebaseNotifiable;
+
     public function __construct(
         public GuarantorRequest $guarantorRequest,
         public string $reason,
@@ -55,7 +56,7 @@ class GuarantorDisputedNotification extends DomainNotification implements Should
 
     protected function sendsFirebase(object $notifiable): bool
     {
-        return $notifiable instanceof User || $notifiable instanceof Admin;
+        return $this->guarantorPartyOrAdminReceivesFirebase($notifiable);
     }
 
     public function broadcastType(): string

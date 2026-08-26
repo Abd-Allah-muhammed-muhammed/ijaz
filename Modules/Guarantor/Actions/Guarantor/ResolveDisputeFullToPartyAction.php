@@ -42,8 +42,10 @@ class ResolveDisputeFullToPartyAction
         }
 
         return DB::transaction(function () use ($request, $admin, $favorParty, $notes) {
+            $request = $this->guarantorRepository->findForUpdate($request);
+
             if ($request->status->isNot(GuarantorStatusEnum::Disputed)) {
-                throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
+                throw new GuarantorException('guarantor.dispute_already_resolved', 422);
             }
 
             $fromStatus = $request->status->value;

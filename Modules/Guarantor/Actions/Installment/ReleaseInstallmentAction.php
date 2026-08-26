@@ -4,6 +4,7 @@ namespace Modules\Guarantor\Actions\Installment;
 
 use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction;
+use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
@@ -17,6 +18,7 @@ use Throwable;
 class ReleaseInstallmentAction
 {
     public function __construct(
+        private readonly GuarantorRepositoryInterface $guarantorRepository,
         private readonly InstallmentRepositoryInterface $installmentRepository,
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
         private readonly WalletService $walletService,
@@ -31,7 +33,8 @@ class ReleaseInstallmentAction
             $installment->loadMissing('guarantorRequest.requester');
 
             /** @var GuarantorRequest $guarantorRequest */
-            $guarantorRequest = $installment->guarantorRequest;
+            $guarantorRequest = $this->guarantorRepository->findForUpdate($installment->guarantorRequest);
+            $installment->setRelation('guarantorRequest', $guarantorRequest);
 
             if ($guarantorRequest->status->is(GuarantorStatusEnum::Disputed)) {
                 throw new GuarantorException('guarantor.release_denied_active_dispute', 422);
