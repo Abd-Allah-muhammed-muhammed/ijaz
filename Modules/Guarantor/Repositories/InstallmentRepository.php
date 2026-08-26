@@ -101,4 +101,13 @@ class InstallmentRepository implements InstallmentRepositoryInterface
                 'status' => InstallmentStatusEnum::Voided,
             ]);
     }
+
+    public function markPaidAsReversedForRequest(GuarantorRequest $request): int
+    {
+        return $request->installments()
+            ->where('status', InstallmentStatusEnum::Paid)
+            ->update([
+                'status' => InstallmentStatusEnum::Reversed,
+            ]);
+    }
 }

@@ -27,6 +27,19 @@ class ReleaseInstallmentAction
     public function handle(GuarantorInstallment $installment, string $trigger = 'payment'): void
     {
         DB::transaction(function () use ($installment, $trigger) {
+            $installment->loadMissing('guarantorRequest.requester');
+
+            /** @var GuarantorRequest $guarantorRequest */
+            $guarantorRequest = $installment->guarantorRequest;
+
+            if ($trigger === 'admin' && $guarantorRequest->status->isTerminal()) {
+                throw new GuarantorException('guarantor.release_denied_guarantor_terminal', 422);
+            }
+
+            if ($installment->status->is(InstallmentStatusEnum::Reversed)) {
+                throw new GuarantorException('guarantor.release_denied_installment_reversed', 422);
+            }
+
             if ($installment->status->is(InstallmentStatusEnum::Released)) {
                 throw new GuarantorException('guarantor.already_paid', 422);
             }
@@ -34,11 +47,6 @@ class ReleaseInstallmentAction
             if ($installment->status->isNot(InstallmentStatusEnum::Paid)) {
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }
-
-            $installment->loadMissing('guarantorRequest.requester');
-
-            /** @var GuarantorRequest $guarantorRequest */
-            $guarantorRequest = $installment->guarantorRequest;
             $requester = $guarantorRequest->requester;
 
             $feesPortion = (float) $guarantorRequest->amount > 0

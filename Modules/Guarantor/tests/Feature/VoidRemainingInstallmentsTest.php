@@ -106,7 +106,7 @@ test('remaining Pending installments are voided when a guarantor is Cancelled', 
     app(CancelGuarantorAction::class)->handle($request->fresh(), 'Admin cancelled', null, $admin);
 
     expect($request->fresh()->status)->toBe(GuarantorStatusEnum::Cancelled)
-        ->and($first->fresh()->status)->toBe(InstallmentStatusEnum::Paid)
+        ->and($first->fresh()->status)->toBe(InstallmentStatusEnum::Reversed)
         ->and($second->fresh()->status)->toBe(InstallmentStatusEnum::Voided);
 });
 
@@ -130,7 +130,7 @@ test('remaining Pending installments are voided when a dispute resolves full-to-
     app(ResolveDisputeFullToPartyAction::class)->handle($request->fresh(), $admin, 'counterparty');
 
     expect($request->fresh()->status)->toBe(GuarantorStatusEnum::Cancelled)
-        ->and($first->fresh()->status)->toBe(InstallmentStatusEnum::Paid)
+        ->and($first->fresh()->status)->toBe(InstallmentStatusEnum::Reversed)
         ->and($second->fresh()->status)->toBe(InstallmentStatusEnum::Voided);
 });
 
@@ -142,7 +142,7 @@ test('remaining Pending installments are voided when a dispute is escalated (Esc
     app(ResolveDisputeEscalateAction::class)->handle($request->fresh(), $admin);
 
     expect($request->fresh()->status)->toBe(GuarantorStatusEnum::Escalated)
-        ->and($first->fresh()->status)->toBe(InstallmentStatusEnum::Paid)
+        ->and($first->fresh()->status)->toBe(InstallmentStatusEnum::Reversed)
         ->and($second->fresh()->status)->toBe(InstallmentStatusEnum::Voided);
 });
 

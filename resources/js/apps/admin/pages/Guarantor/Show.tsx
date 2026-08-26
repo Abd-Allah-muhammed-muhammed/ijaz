@@ -127,6 +127,7 @@ const installmentBadgeClass: Record<string, string> = {
   released: 'badge-light-primary',
   overdue: 'badge-light-danger',
   voided: 'badge-light-secondary',
+  reversed: 'badge-light-dark',
 };
 
 const PartyChip = ({
@@ -598,7 +599,7 @@ const Show = ({ guarantorRequest }: Props) => {
                               </td>
                               {canManage && (
                                 <td className="text-end">
-                                  {statusValue === 'paid' && (
+                                  {!TERMINAL_STATUSES.includes(currentStatus) && statusValue === 'paid' && (
                                     <button
                                       type="button"
                                       className="btn btn-sm btn-light-success rounded-pill"

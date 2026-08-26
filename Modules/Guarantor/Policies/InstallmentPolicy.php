@@ -26,6 +26,10 @@ class InstallmentPolicy
             return Response::deny(__('guarantor.pay_denied_installment_voided'));
         }
 
+        if ($installment->status->is(InstallmentStatusEnum::Reversed)) {
+            return Response::deny(__('guarantor.release_denied_installment_reversed'));
+        }
+
         if ($request->status->is(GuarantorStatusEnum::Disputed)) {
             return Response::deny(__('guarantor.pay_denied_active_dispute'));
         }

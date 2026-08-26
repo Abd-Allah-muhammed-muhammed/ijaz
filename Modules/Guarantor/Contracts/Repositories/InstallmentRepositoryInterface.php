@@ -40,4 +40,9 @@ interface InstallmentRepositoryInterface
      * Bulk-mark Pending/Overdue installments as Voided. Returns rows affected.
      */
     public function voidPendingOrOverdueForRequest(GuarantorRequest $request): int;
+
+    /**
+     * Mark all currently Paid (unreleased) installments as Reversed after wallet hold reversal.
+     */
+    public function markPaidAsReversedForRequest(GuarantorRequest $request): int;
 }

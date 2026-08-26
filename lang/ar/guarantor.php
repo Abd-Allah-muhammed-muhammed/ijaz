@@ -26,6 +26,7 @@ return [
         'released' => 'محرر',
         'overdue' => 'متأخر',
         'voided' => 'ملغاة',
+        'reversed' => 'معكوسة',
     ],
     'authorization_type' => [
         'power_of_attorney' => 'تفويض',
@@ -62,6 +63,8 @@ return [
     'pay_denied_already_resolved' => 'تم حل هذا الضمان مسبقاً',
     'pay_denied_installment_voided' => 'هذه الدفعة لم تعد قابلة للدفع',
     'already_paid' => 'هذه الدفعة تم سدادها مسبقاً',
+    'release_denied_installment_reversed' => 'تم عكس حجز هذه الدفعة ولا يمكن الإفراج عنها',
+    'release_denied_guarantor_terminal' => 'طلب الضمان مغلق بالفعل ولا يمكن الإفراج عن الدفعات',
     'previous_installment_not_paid' => 'يجب سداد الدفعة السابقة أولاً',
     'chat_not_allowed' => 'الشات متاح فقط بعد قبول الطلب',
     'rejected_by_admin_msg' => 'تم رفض طلبك من قبل الإدارة',

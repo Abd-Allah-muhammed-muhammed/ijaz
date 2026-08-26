@@ -15,6 +15,7 @@ enum InstallmentStatusEnum: string
     case Released = 'released';
     case Overdue = 'overdue';
     case Voided = 'voided';
+    case Reversed = 'reversed';
 
     public function toString(): string
     {
@@ -29,6 +30,7 @@ enum InstallmentStatusEnum: string
             self::Released => '#10b981',
             self::Overdue => '#ef4444',
             self::Voided => '#6b7280',
+            self::Reversed => '#9333ea',
         };
     }
 
@@ -49,6 +51,7 @@ enum InstallmentStatusEnum: string
         return in_array($this, [
             self::Released,
             self::Voided,
+            self::Reversed,
         ], true);
     }
 
