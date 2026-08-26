@@ -712,7 +712,7 @@ Admin-only transitions (`approved_by_admin`, `rejected_by_admin`, `cancelled`, `
 }
 ```
 
-The new history row’s `reason` is the **verbatim user string** from the request body (not a translation key).
+The new history row’s `reason.value` is the verbatim user string from the request body (not a translation key); for free-text dispute reasons, `reason.label` equals `reason.value`.
 
 **Side effects:**
 
