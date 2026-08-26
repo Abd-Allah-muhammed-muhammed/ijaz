@@ -335,6 +335,7 @@ Keys that are **always** present:
 | `total` | decimal string | `amount + fees` |
 | `project_type` | string \| null | Company: same as title. Individual: usually `null`. |
 | `cancellation_reason` | string \| null | Set when admin cancels |
+| `dispute_resolution` | object \| null | Percentage-split snapshot when settled via split; `null` otherwise (see [§2.17](#217-dispute-feature--complete-reference)) |
 | `overdue_at` | ISO-8601 \| null | |
 | `ended_at` | ISO-8601 \| null | |
 | `cancelled_at` | ISO-8601 \| null | |
@@ -1045,18 +1046,27 @@ Company requests can enter `disputed` from **`in_progress`** (e.g. after first i
 
 Mobile has **no resolve endpoint**. After Admin resolves, poll `GET .../show` or handle `GuarantorDisputeResolvedNotification`.
 
-`GuarantorResource` does **not** expose split percentages or resolution amounts. For percentage splits, read:
+For **percentage splits**, `GuarantorResource` exposes a durable `dispute_resolution` object (always on show/list/update responses). Use it as the **primary source** when displaying past outcomes. The notification payload carries the **same numbers** at resolution time for push-driven UI.
 
-1. `GuarantorDisputeResolvedNotification` payload (`requester_percentage`, `counterparty_percentage`, `requester_amount`, `counterparty_amount`), and/or
-2. `status_histories[].reason` (machine string below), and/or
-3. Wallet balance changes.
+```json
+"dispute_resolution": {
+  "requester_percentage": 60,
+  "counterparty_percentage": 40,
+  "requester_amount": "600.00",
+  "counterparty_amount": "404.00"
+}
+```
+
+`dispute_resolution` is **`null`** for every other status/outcome (including `ended_via_dispute`, `cancelled_via_dispute`, and `escalated`). Counterparty percentage is derived as `100 - requester_percentage` (not stored on the row).
+
+For non-split outcomes, rely on `status`, `status_histories`, and notifications only.
 
 | Admin outcome | Resulting `status.value` | Terminal? | `status_histories` `reason` (exact string from code) | Other fields on show |
 |---|---|---|---|---|
-| Full to requester | `ended_via_dispute` | yes | `dispute_resolved_full_requester` | `ended_at` set |
-| Full to counterparty | `cancelled_via_dispute` | yes | `dispute_resolved_full_counterparty` | `cancelled_at` set; `cancellation_reason` = **`dispute_resolved_full_counterparty`** (machine string, not admin prose) |
-| Escalate to court | `escalated` | yes | `dispute_escalated_to_court` | — |
-| Percentage split | `settled` | yes | `dispute_resolved_percentage_split:{requesterPct}/{counterpartyPct}` e.g. `dispute_resolved_percentage_split:60/40` | No split fields on resource |
+| Full to requester | `ended_via_dispute` | yes | `dispute_resolved_full_requester` | `ended_at` set; `dispute_resolution`: `null` |
+| Full to counterparty | `cancelled_via_dispute` | yes | `dispute_resolved_full_counterparty` | `cancelled_at` set; `cancellation_reason` = **`dispute_resolved_full_counterparty`** (machine string, not admin prose); `dispute_resolution`: `null` |
+| Escalate to court | `escalated` | yes | `dispute_escalated_to_court` | `dispute_resolution`: `null` |
+| Percentage split | `settled` | yes | `dispute_resolved_percentage_split:{requesterPct}/{counterpartyPct}` e.g. `dispute_resolved_percentage_split:60/40` | **`dispute_resolution`** object (percentages + amounts) |
 
 All four resolution paths notify **both parties** with `GuarantorDisputeResolvedNotification`.
 
@@ -1164,7 +1174,6 @@ Only these succeed. Anyone / anything else → `422` `"This status transition is
 | `overdue` | Daily overdue job (company installments) |
 | `disputed` | `POST .../dispute` or `POST .../status` with `disputed` + `reason` from either party while `in_progress` or `overdue` |
 | `cancelled` | Admin cancel (Dashboard), including during dispute — **not** `cancelled_via_dispute` |
-| `cancelled` | Admin Dashboard |
 | `ended_via_dispute` / `cancelled_via_dispute` / `escalated` / `settled` | Admin dispute resolution (Dashboard) |
 | `ended` from `accepted` | **Blocked** even if some company installments are already paid |
 

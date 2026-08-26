@@ -124,6 +124,9 @@ class ResolveDisputePercentageSplitAction
             $resolution = GuarantorDisputeResolutionEnum::PercentageSplit;
             $guarantorRequest = $this->guarantorRepository->update($request, [
                 'status' => GuarantorStatusEnum::Settled,
+                'dispute_requester_percentage' => $requesterPercentage,
+                'dispute_requester_amount' => $requesterNetShare,
+                'dispute_counterparty_amount' => $counterpartyGrossShare,
             ]);
 
             $historyReason = sprintf(
@@ -146,10 +149,10 @@ class ResolveDisputePercentageSplitAction
             $notification = new GuarantorDisputeResolvedNotification(
                 $guarantorRequest,
                 $resolution,
-                requesterPercentage: $requesterPercentage,
-                counterpartyPercentage: $counterpartyPercentage,
-                requesterAmount: $requesterNetShare,
-                counterpartyAmount: $counterpartyGrossShare,
+                requesterPercentage: $guarantorRequest->dispute_requester_percentage,
+                counterpartyPercentage: 100 - $guarantorRequest->dispute_requester_percentage,
+                requesterAmount: (float) $guarantorRequest->dispute_requester_amount,
+                counterpartyAmount: (float) $guarantorRequest->dispute_counterparty_amount,
             );
             $guarantorRequest->requester?->notify($notification);
             $guarantorRequest->counterparty?->notify($notification);
