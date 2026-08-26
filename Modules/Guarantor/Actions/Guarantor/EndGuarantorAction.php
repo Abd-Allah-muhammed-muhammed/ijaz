@@ -30,6 +30,8 @@ class EndGuarantorAction
     public function handle(GuarantorRequest $request, Model $actor, string $actorRole): GuarantorRequest
     {
         return DB::transaction(function () use ($request, $actor, $actorRole) {
+            $request = $this->guarantorRepository->findForUpdate($request);
+
             if ($request->status->isIn([
                 GuarantorStatusEnum::Cancelled,
                 GuarantorStatusEnum::CancelledViaDispute,

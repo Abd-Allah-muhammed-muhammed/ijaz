@@ -5,6 +5,7 @@ namespace Modules\Guarantor\Actions\Dashboard;
 use App\Models\Admin;
 use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorStatusAction;
+use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
@@ -14,6 +15,7 @@ use Throwable;
 class AdminRejectGuarantorAction
 {
     public function __construct(
+        private readonly GuarantorRepositoryInterface $guarantorRepository,
         private readonly UpdateGuarantorStatusAction $updateStatusAction,
     ) {}
 
@@ -27,6 +29,8 @@ class AdminRejectGuarantorAction
         Admin $admin,
     ): void {
         DB::transaction(function () use ($request, $reason, $notes, $admin) {
+            $request = $this->guarantorRepository->findForUpdate($request);
+
             if ($request->status->isNot(GuarantorStatusEnum::PendingAdmin)) {
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }
