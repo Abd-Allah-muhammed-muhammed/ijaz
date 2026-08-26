@@ -22,6 +22,7 @@ class ProcessGuarantorPayment
         private readonly GuarantorRepositoryInterface $guarantorRepository,
         private readonly InstallmentRepositoryInterface $installmentRepository,
         private readonly RejectGuarantorStalePaymentCompletionAction $rejectStalePaymentCompletionAction,
+        private readonly NotifyGuarantorPayment $notifyGuarantorPayment,
     ) {}
 
     /**
@@ -72,6 +73,8 @@ class ProcessGuarantorPayment
             toStatus: GuarantorStatusEnum::InProgress->value,
             notes: 'Payment accepted by gateway',
         );
+
+        $this->notifyGuarantorPayment->handle($request, $payment);
 
         return true;
     }
@@ -124,18 +127,18 @@ class ProcessGuarantorPayment
             );
         }
 
-        if ($installment->order <= 1) {
-            return true;
+        if ($installment->order > 1) {
+            $previousInstallment = $this->installmentRepository->findPreviousPaidInstallment(
+                $request,
+                (int) $installment->order,
+            );
+
+            if ($previousInstallment !== null) {
+                ReleaseInstallmentJob::dispatch($previousInstallment, 'payment');
+            }
         }
 
-        $previousInstallment = $this->installmentRepository->findPreviousPaidInstallment(
-            $request,
-            (int) $installment->order,
-        );
-
-        if ($previousInstallment !== null) {
-            ReleaseInstallmentJob::dispatch($previousInstallment, 'payment');
-        }
+        $this->notifyGuarantorPayment->handle($request, $payment, $installment);
 
         return true;
     }

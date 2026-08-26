@@ -27,6 +27,7 @@ class GuarantorInstallment extends Model
         'paid_at',
         'released_at',
         'overdue_notified_at',
+        'escalated_at',
     ];
 
     protected $attributes = [
@@ -69,6 +70,7 @@ class GuarantorInstallment extends Model
             'paid_at' => 'datetime',
             'released_at' => 'datetime',
             'overdue_notified_at' => 'datetime',
+            'escalated_at' => 'datetime',
         ];
     }
 }

@@ -42,7 +42,7 @@ class GuarantorController extends Controller
      * @authenticated
      *
      * @queryParam per_page int Results per page. Example: 10
-     * @queryParam status string Filter by status. Example: new
+     * @queryParam status string Filter by status. Example: pending_admin
      *
      * @response 200 {
      *   "status": true,
@@ -51,7 +51,7 @@ class GuarantorController extends Controller
      *       {
      *         "id": "01234567-89ab-cdef-0123-456789abcdef",
      *         "type": { "value": "individual", "label": "Individual", "color": "#3b82f6" },
-     *         "status": { "value": "new", "label": "New", "color": "#22c55e" },
+     *         "status": { "value": "pending_admin", "label": "Pending Admin Review", "color": "#f59e0b" },
      *         "title": "Software development guarantee",
      *         "description": "Guarantee for a 3-month project",
      *         "amount": 5000.00,
@@ -103,7 +103,7 @@ class GuarantorController extends Controller
      *   "data": {
      *     "id": "01234567-89ab-cdef-0123-456789abcdef",
      *     "type": { "value": "individual", "label": "Individual", "color": "#3b82f6" },
-     *     "status": { "value": "new", "label": "New", "color": "#22c55e" },
+     *     "status": { "value": "pending_admin", "label": "Pending Admin Review", "color": "#f59e0b" },
      *     "title": "Project guarantee",
      *     "amount": 5000.00,
      *     "fees": 10.00,
@@ -147,7 +147,7 @@ class GuarantorController extends Controller
      *   "data": {
      *     "id": "01234567-89ab-cdef-0123-456789abcdef",
      *     "type": { "value": "company", "label": "Company", "color": "#8b5cf6" },
-     *     "status": { "value": "new", "label": "New", "color": "#22c55e" },
+     *     "status": { "value": "pending_admin", "label": "Pending Admin Review", "color": "#f59e0b" },
      *     "installments": [
      *       { "order": 1, "amount": 10000.00, "due_date": "2026-07-01", "status": { "value": "pending", "label": "Pending", "color": "#f59e0b" } }
      *     ],

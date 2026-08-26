@@ -11,6 +11,7 @@ use Illuminate\Notifications\Messages\BroadcastMessage;
 use Modules\Chat\Infrastructure\Notifications\NewMessageSentNotification;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Notifications\GuarantorPaymentReceivedNotification;
 use Modules\Guarantor\Notifications\GuarantorAcceptedNotification;
 use Modules\Guarantor\Notifications\GuarantorAdminApprovedNotification;
 use Modules\Guarantor\Notifications\GuarantorAdminRejectedNotification;
@@ -23,6 +24,7 @@ use Modules\Guarantor\Notifications\InstallmentDueNotification;
 use Modules\Guarantor\Notifications\InstallmentOverdueNotification;
 use Modules\Guarantor\Notifications\InstallmentReleasedNotification;
 use Modules\Opportunity\Models\Opportunity;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Opportunity\Models\OpportunityOffer;
 use Modules\Opportunity\Notifications\OpportunityExpiredNotification;
 use Modules\Opportunity\Notifications\OpportunityOfferAcceptedNotification;
@@ -339,6 +341,47 @@ describe('Guarantor domain notification contracts', function (): void {
             trans('guarantor_created', locale: 'en'),
             trans('guarantor_has_been_created', locale: 'en'),
             ['guarantor_request_id' => $request->id],
+        );
+    });
+
+    it('locks GuarantorPaymentReceivedNotification channel outputs', function (): void {
+        /** @var TestCase $this */
+        [$request, $user, $provider] = guarantorFixture();
+        $payment = createPaymentFor($user, $request, [
+            'amount' => 1010,
+            'driver' => 'testing',
+            'status' => PaymentStatusEnum::Accepted,
+        ]);
+        $notification = new GuarantorPaymentReceivedNotification($request, $payment);
+
+        expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->broadcastType())->toBe('guarantor payment received')
+            ->and($notification->toArray($user))->toBe([
+                'title_translated_key' => 'guarantor_payment_received',
+                'body_translated_key' => 'guarantor_payment_received_body',
+                'translated_attributes' => [],
+                'guarantor_request_id' => $request->id,
+                'type' => $request->type->value,
+                'payment_id' => $payment->id,
+                'amount' => $payment->amount,
+            ]);
+
+        assertBroadcastPayload($notification->toBroadcast($user), [
+            'title' => trans('guarantor_payment_received', locale: 'en'),
+            'body' => trans('guarantor_payment_received_body', locale: 'en'),
+            'guarantor_request_id' => $request->id,
+            'payment_id' => (string) $payment->id,
+        ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans('guarantor_payment_received', locale: 'en'),
+            trans('guarantor_payment_received_body', locale: 'en'),
+            [
+                'guarantor_request_id' => $request->id,
+                'payment_id' => (string) $payment->id,
+            ],
         );
     });
 

@@ -2,29 +2,25 @@
 
 namespace Modules\Guarantor\Actions\Payment;
 
-use Closure;
-use Illuminate\Support\Facades\Log;
+use Modules\Guarantor\Models\GuarantorInstallment;
+use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Guarantor\Notifications\GuarantorPaymentReceivedNotification;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Models\Payment;
 
 class NotifyGuarantorPayment
 {
-    public function handle(Payment $payment): void
+    public function handle(GuarantorRequest $request, Payment $payment, ?GuarantorInstallment $installment = null): void
     {
-        if ($payment->status->is(PaymentStatusEnum::Accepted)) {
-            // TODO: add dedicated GuarantorPaymentReceivedNotification translation keys
-            Log::info('Guarantor payment accepted', [
-                'payment_id' => $payment->id,
-                'product_type' => $payment->product_type,
-                'product_id' => $payment->product_id,
-            ]);
+        if ($payment->status->isNot(PaymentStatusEnum::Accepted)) {
+            return;
         }
-    }
 
-    public function __invoke(Payment $payment, Closure $next): mixed
-    {
-        $this->handle($payment);
+        $request->loadMissing(['requester', 'counterparty']);
 
-        return $next($payment);
+        $notification = new GuarantorPaymentReceivedNotification($request, $payment, $installment);
+
+        $request->requester?->notify($notification);
+        $request->counterparty?->notify($notification);
     }
 }
