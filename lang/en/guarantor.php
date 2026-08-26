@@ -68,6 +68,7 @@ return [
     'already_paid' => 'This installment has already been paid',
     'release_denied_installment_reversed' => 'This installment hold was reversed and cannot be released',
     'release_denied_guarantor_terminal' => 'This guarantor request is already closed and installments cannot be released',
+    'release_denied_active_dispute' => 'This guarantee has an active dispute and installments cannot be released',
     'previous_installment_not_paid' => 'Previous installment must be paid first',
     'chat_not_allowed' => 'Chat is only available after the request is accepted',
     'rejected_by_admin_msg' => 'Your request has been rejected by admin',

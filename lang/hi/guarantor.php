@@ -67,6 +67,7 @@ return [
     'already_paid' => 'यह किस्त पहले ही भुगतान की जा चुकी है',
     'release_denied_installment_reversed' => 'इस किस्त की होल्ड रिवर्स कर दी गई है और इसे रिलीज़ नहीं किया जा सकता',
     'release_denied_guarantor_terminal' => 'यह गारंटर अनुरोध पहले से बंद है और किस्तें रिलीज़ नहीं की जा सकतीं',
+    'release_denied_active_dispute' => 'इस गारंटी पर सक्रिय विवाद है और किस्तें रिलीज़ नहीं की जा सकतीं',
     'previous_installment_not_paid' => 'पहले पिछली किस्त का भुगतान करना होगा',
     'chat_not_allowed' => 'चैट केवल अनुरोध स्वीकार होने के बाद उपलब्ध है',
     'rejected_by_admin_msg' => 'आपका अनुरोध एडमिन द्वारा अस्वीकार कर दिया गया है',

@@ -601,7 +601,9 @@ const Show = ({ guarantorRequest }: Props) => {
                               </td>
                               {canManage && (
                                 <td className="text-end">
-                                  {!TERMINAL_STATUSES.includes(currentStatus) && statusValue === 'paid' && (
+                                  {!TERMINAL_STATUSES.includes(currentStatus) &&
+                                    currentStatus !== 'disputed' &&
+                                    statusValue === 'paid' && (
                                     <button
                                       type="button"
                                       className="btn btn-sm btn-light-success rounded-pill"

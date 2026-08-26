@@ -67,6 +67,7 @@ return [
     'already_paid' => 'یہ قسط پہلے ہی ادا کی جا چکی ہے',
     'release_denied_installment_reversed' => 'اس قسط کی ہولڈ واپس لے لی گئی ہے اور اسے جاری نہیں کیا جا سکتا',
     'release_denied_guarantor_terminal' => 'یہ گارنٹر درخواست پہلے ہی بند ہے اور قسطیں جاری نہیں کی جا سکتیں',
+    'release_denied_active_dispute' => 'اس ضمانت پر فعال تنازعہ ہے اور قسطیں جاری نہیں کی جا سکتیں',
     'previous_installment_not_paid' => 'پہلے پچھلی قسط ادا کرنی ہوگی',
     'chat_not_allowed' => 'چیٹ صرف درخواست قبول ہونے کے بعد دستیاب ہے',
     'rejected_by_admin_msg' => 'آپ کی درخواست ایڈمن نے مسترد کر دی ہے',

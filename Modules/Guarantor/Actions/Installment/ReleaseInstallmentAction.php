@@ -5,6 +5,7 @@ namespace Modules\Guarantor\Actions\Installment;
 use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction;
 use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
+use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorInstallment;
@@ -31,6 +32,10 @@ class ReleaseInstallmentAction
 
             /** @var GuarantorRequest $guarantorRequest */
             $guarantorRequest = $installment->guarantorRequest;
+
+            if ($guarantorRequest->status->is(GuarantorStatusEnum::Disputed)) {
+                throw new GuarantorException('guarantor.release_denied_active_dispute', 422);
+            }
 
             if ($trigger === 'admin' && $guarantorRequest->status->isTerminal()) {
                 throw new GuarantorException('guarantor.release_denied_guarantor_terminal', 422);

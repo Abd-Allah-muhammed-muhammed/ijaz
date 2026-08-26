@@ -67,6 +67,7 @@ return [
     'already_paid' => 'هذه الدفعة تم سدادها مسبقاً',
     'release_denied_installment_reversed' => 'تم عكس حجز هذه الدفعة ولا يمكن الإفراج عنها',
     'release_denied_guarantor_terminal' => 'طلب الضمان مغلق بالفعل ولا يمكن الإفراج عن الدفعات',
+    'release_denied_active_dispute' => 'هذا الضمان عليه نزاع قائم ولا يمكن الإفراج عن الدفعات',
     'previous_installment_not_paid' => 'يجب سداد الدفعة السابقة أولاً',
     'chat_not_allowed' => 'الشات متاح فقط بعد قبول الطلب',
     'rejected_by_admin_msg' => 'تم رفض طلبك من قبل الإدارة',
