@@ -2,10 +2,10 @@
 
 namespace Modules\Payout\Exceptions;
 
-use Exception;
+use App\Exceptions\ApiException;
 use Throwable;
 
-class PayoutException extends Exception
+class PayoutException extends ApiException
 {
     public function __construct(
         string $message = 'payout.operation_failed',

@@ -2,35 +2,23 @@
 
 namespace Modules\Orders\Exceptions;
 
-use Exception;
-use Illuminate\Http\JsonResponse;
+use App\Exceptions\ApiException;
 
-class OrdersException extends Exception
+class OrdersException extends ApiException
 {
+    /**
+     * @param  array<string, mixed>|list<mixed>  $errors
+     */
     public function __construct(
-        private readonly string $translationKey,
-        private readonly int $httpStatusCode = 422,
+        string $translationKey,
+        int $httpStatusCode = 422,
+        array $errors = [],
     ) {
-        parent::__construct($translationKey);
+        parent::__construct($translationKey, $httpStatusCode, errors: $errors);
     }
 
     public function getTranslationKey(): string
     {
-        return $this->translationKey;
-    }
-
-    public function getHttpStatusCode(): int
-    {
-        return $this->httpStatusCode;
-    }
-
-    public function render(): JsonResponse
-    {
-        return response()->json([
-            'success' => false,
-            'message' => __($this->translationKey),
-            'data' => [],
-            'errors' => [],
-        ], $this->httpStatusCode);
+        return $this->getMessage();
     }
 }

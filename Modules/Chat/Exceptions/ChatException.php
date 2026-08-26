@@ -2,26 +2,26 @@
 
 namespace Modules\Chat\Exceptions;
 
-use Exception;
+use App\Exceptions\ApiException;
 
-class ChatException extends Exception
+class ChatException extends ApiException
 {
-    public static function nullable(): ChatException
+    public static function nullable(): self
     {
         return new self("chat can't be null");
     }
 
-    public static function notSupportChat(): ChatException
+    public static function notSupportChat(): self
     {
         return new self('chat not support chat');
     }
 
-    public static function chatDoesnotBelongToUser(?string $id = null): ChatException
+    public static function chatDoesnotBelongToUser(?string $id = null): self
     {
         return new self("chat doesn't belong to user {$id}");
     }
 
-    public static function notAllowed(): ChatException
+    public static function notAllowed(): self
     {
         return new self('chat not allowed');
     }

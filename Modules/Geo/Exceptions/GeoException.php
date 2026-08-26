@@ -2,6 +2,16 @@
 
 namespace Modules\Geo\Exceptions;
 
-use Exception;
+use App\Exceptions\ApiException;
+use Throwable;
 
-class GeoException extends Exception {}
+class GeoException extends ApiException
+{
+    public function __construct(
+        string $message = '',
+        int $code = 422,
+        ?Throwable $previous = null,
+    ) {
+        parent::__construct($message, $code, $previous, translateMessage: false);
+    }
+}

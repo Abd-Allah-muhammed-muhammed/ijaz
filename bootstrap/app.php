@@ -1,12 +1,16 @@
 <?php
 
+use App\Exceptions\ApiException;
 use App\Http\Middleware\AuthenticateBroadcasting;
+use App\Support\Api\ApiErrorResponse;
 use App\Http\Middleware\EnsureAcceptJsonMiddleware;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LocalizationMiddleware;
 use App\Support\Api\ApiVersionRegistry;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -29,7 +33,6 @@ use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
 use Mcamara\LaravelLocalization\Middleware\LocaleCookieRedirect;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
 use MMAE\ApiResponse\Configurations\Response as ApiResponseConfig;
-use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Opportunity\Models\Opportunity;
@@ -39,6 +42,8 @@ use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException as SymfonyHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -126,12 +131,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
                 $key = $modelMap[$e->getModel()] ?? 'errors.not_found';
 
-                return response()->json([
-                    'success' => false,
-                    'message' => __($key),
-                    'data' => [],
-                    'errors' => [],
-                ], 404);
+                return ApiErrorResponse::failure(
+                    message: __($key),
+                    statusCode: 404,
+                );
             }
         };
 
@@ -145,9 +148,55 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
-        $exceptions->renderable(function (GuarantorException $e, $request) {
+        $exceptions->renderable(function (ApiException $e, Request $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
                 return $e->render();
+            }
+        });
+
+        $renderAccessDeniedJson = function (Request $request, string $message, int $statusCode = 403) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return ApiErrorResponse::failure(
+                    message: $message !== '' ? $message : __('This action is unauthorized.'),
+                    statusCode: $statusCode,
+                );
+            }
+        };
+
+        /*
+         * Policy denials ($this->authorize / Response::deny) become AuthorizationException,
+         * then Handler::prepareException() maps them to AccessDeniedHttpException (403) or
+         * HttpException (custom status) *before* render callbacks run — register those types.
+         */
+        $exceptions->renderable(function (AccessDeniedHttpException $e, Request $request) use ($renderAccessDeniedJson) {
+            return $renderAccessDeniedJson($request, $e->getMessage());
+        });
+
+        $exceptions->renderable(function (SymfonyHttpException $e, Request $request) use ($renderAccessDeniedJson) {
+            if ($e->getStatusCode() !== 403) {
+                return null;
+            }
+
+            $message = $e->getMessage();
+            $previous = $e->getPrevious();
+
+            if ($previous instanceof AuthorizationException && $previous->getMessage() !== '') {
+                $message = $previous->getMessage();
+            }
+
+            return $renderAccessDeniedJson($request, $message);
+        });
+
+        $exceptions->renderable(function (AuthorizationException $e, Request $request) use ($renderAccessDeniedJson) {
+            return $renderAccessDeniedJson($request, $e->getMessage(), $e->status() ?? 403);
+        });
+
+        $exceptions->renderable(function (AuthenticationException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return ApiErrorResponse::failure(
+                    message: $e->getMessage() ?: __('Unauthenticated.'),
+                    statusCode: 401,
+                );
             }
         });
 

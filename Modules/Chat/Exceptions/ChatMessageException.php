@@ -2,11 +2,11 @@
 
 namespace Modules\Chat\Exceptions;
 
-use Exception;
+use App\Exceptions\ApiException;
 
-class ChatMessageException extends Exception
+class ChatMessageException extends ApiException
 {
-    public static function nullableMessage(): ChatMessageException
+    public static function nullableMessage(): self
     {
         return new self("message can't be null");
     }
