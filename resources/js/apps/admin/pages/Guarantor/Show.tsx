@@ -10,7 +10,6 @@ import clsx from 'clsx';
 import { ReactElement, useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-import { parseGuarantorHistoryReason } from '@/apps/admin/pages/Guarantor/utils/parseGuarantorHistoryReason';
 import ChatTap from './components/chat-tap';
 import DocumentsTab, { MediaItem } from './components/documents-tab';
 import DisputeTab from './components/dispute-tab';
@@ -44,6 +43,7 @@ type HistoryItem = {
   from_status?: StatusOption | null;
   to_status: StatusOption;
   reason?: string | null;
+  reason_label?: string | null;
   notes?: string | null;
   actor?: Participant;
   created_at: string;
@@ -669,10 +669,10 @@ const Show = ({ guarantorRequest }: Props) => {
                               {new Date(history.created_at).toLocaleString()}
                             </span>
                           </div>
-                          {history.reason && (
+                          {(history.reason_label ?? history.reason) && (
                             <div className="text-muted fs-7">
                               <span className="fw-bold text-gray-600">{t('guarantor.reason')}: </span>
-                              {parseGuarantorHistoryReason(history.reason, t)}
+                              {history.reason_label ?? history.reason}
                             </div>
                           )}
                           {history.notes && (

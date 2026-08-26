@@ -311,6 +311,7 @@ Loaded on **show** and **update**, not on create.
   "from_status": null,
   "to_status": { "value": "pending_admin", "label": "Pending Admin Review", "color": "#f59e0b" },
   "reason": null,
+  "reason_label": null,
   "notes": null,
   "actor": { "id": 10, "name": "Provider Co", "type": "provider", "image": null, "phone": "0501112233" },
   "created_at": "2026-08-15T10:00:00+00:00"
@@ -318,6 +319,8 @@ Loaded on **show** and **update**, not on create.
 ```
 
 `from_status` is `null` on the first history row (creation).
+
+`reason_label` is a server-computed, locale-aware display string. Render it directly in the UI — it respects `Accept-Language`. For genuine free-text `reason` values, `reason_label` is identical to `reason`. For machine-generated dispute-outcome codes (e.g. `dispute_resolved_full_requester`), `reason_label` carries the translated `guarantor.dispute_outcome_*` label while `reason` keeps the raw code unchanged.
 
 ### Guarantor request (full resource)
 
@@ -688,6 +691,7 @@ Admin-only transitions (`approved_by_admin`, `rejected_by_admin`, `cancelled`, `
         "from_status": { "value": "in_progress", "label": "In Progress", "color": "#06b6d4" },
         "to_status": { "value": "disputed", "label": "Disputed", "color": "#dc2626" },
         "reason": "Work not delivered as agreed",
+        "reason_label": "Work not delivered as agreed",
         "notes": null,
         "actor": { "id": 1, "name": "…", "type": "user", "image": null, "phone": "0501112233" },
         "created_at": "2026-08-20T14:00:00+00:00"

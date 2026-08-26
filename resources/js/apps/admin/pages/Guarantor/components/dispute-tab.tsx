@@ -1,9 +1,28 @@
-import {
-  formatGuarantorMachineHistoryReason,
-  isGuarantorMachineHistoryReason,
-} from '@/apps/admin/pages/Guarantor/utils/parseGuarantorHistoryReason';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import { useTranslation } from 'react-i18next';
+
+const MACHINE_RESOLUTION_REASON_PREFIXES = [
+  'dispute_resolved_full_requester',
+  'dispute_resolved_full_counterparty',
+  'dispute_escalated_to_court',
+  'dispute_resolved_percentage_split',
+] as const;
+
+const CLOSED_BY_ADMIN_CANCEL_REASON = 'dispute_closed_by_admin_cancel';
+
+const isMachineResolutionReason = (reason?: string | null): boolean => {
+  if (!reason) {
+    return false;
+  }
+
+  if (reason === CLOSED_BY_ADMIN_CANCEL_REASON) {
+    return true;
+  }
+
+  return MACHINE_RESOLUTION_REASON_PREFIXES.some(
+    (prefix) => reason === prefix || reason.startsWith(`${prefix}:`),
+  );
+};
 
 type StatusOption = {
   value: string;
@@ -24,6 +43,7 @@ export type HistoryItem = {
   from_status?: StatusOption | null;
   to_status: StatusOption;
   reason?: string | null;
+  reason_label?: string | null;
   notes?: string | null;
   actor?: Participant;
   created_at: string;
@@ -37,9 +57,9 @@ const DisputeTab = ({ statusHistories }: Props) => {
   const { t } = useTranslation();
 
   const opening = statusHistories.find((history) => history.to_status?.value === 'disputed');
-  const resolution = statusHistories.find((history) => isGuarantorMachineHistoryReason(history.reason));
+  const resolution = statusHistories.find((history) => isMachineResolutionReason(history.reason));
   const isEscalated = Boolean(resolution?.reason?.startsWith('dispute_escalated'));
-  const isAdminCancelClosed = resolution?.reason === 'dispute_closed_by_admin_cancel';
+  const isAdminCancelClosed = resolution?.reason === CLOSED_BY_ADMIN_CANCEL_REASON;
 
   if (!opening) {
     return <p className="text-muted fst-italic mb-0">{t('guarantor.no_dispute')}</p>;
@@ -178,7 +198,7 @@ const DisputeTab = ({ statusHistories }: Props) => {
                   {t('guarantor.dispute_outcome')}
                 </div>
                 <p className="fs-6 text-gray-800 mb-0 fw-semibold">
-                  {formatGuarantorMachineHistoryReason(resolution.reason ?? '', t)}
+                  {resolution.reason_label ?? resolution.reason ?? ''}
                 </p>
                 {resolution.notes && (
                   <p className="fs-7 text-muted mt-2 mb-0">
