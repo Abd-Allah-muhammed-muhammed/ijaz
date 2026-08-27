@@ -26,9 +26,16 @@ class GuarantorPolicy
             && $request->status->is(GuarantorStatusEnum::PendingAdmin);
     }
 
-    public function updateStatus(Model $user, GuarantorRequest $request): bool
+    public function accept(Model $user, GuarantorRequest $request): bool
     {
-        return $this->isParty($user, $request);
+        return $this->isCounterparty($user, $request)
+            && $request->status->is(GuarantorStatusEnum::ApprovedByAdmin);
+    }
+
+    public function reject(Model $user, GuarantorRequest $request): bool
+    {
+        return $this->isCounterparty($user, $request)
+            && $request->status->is(GuarantorStatusEnum::ApprovedByAdmin);
     }
 
     public function pay(Model $user, GuarantorRequest $request): bool
@@ -53,6 +60,19 @@ class GuarantorPolicy
                 GuarantorStatusEnum::InProgress,
                 GuarantorStatusEnum::Overdue,
             ]);
+    }
+
+    public function withdraw(Model $user, GuarantorRequest $request): bool
+    {
+        if (! $this->isParty($user, $request)) {
+            return false;
+        }
+
+        if ($request->status->is(GuarantorStatusEnum::ApprovedByAdmin)) {
+            return $this->isRequester($user, $request);
+        }
+
+        return $request->status->is(GuarantorStatusEnum::Accepted);
     }
 
     public function chat(Model $user, GuarantorRequest $request): bool

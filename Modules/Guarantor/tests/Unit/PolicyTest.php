@@ -63,18 +63,46 @@ test('requester cannot delete when status is not pending_admin', function () {
     expect(Gate::forUser($requester)->allows('delete', $guarantorRequest))->toBeFalse();
 });
 
-test('counterparty can updateStatus', function () {
-    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::PendingAdmin]);
+test('counterparty can reject when status is approved_by_admin', function () {
+    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::ApprovedByAdmin]);
     $counterparty = $guarantorRequest->counterparty;
 
-    expect(Gate::forUser($counterparty)->allows('updateStatus', $guarantorRequest))->toBeTrue();
+    expect(Gate::forUser($counterparty)->allows('reject', $guarantorRequest))->toBeTrue();
 });
 
-test('stranger cannot updateStatus', function () {
-    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::PendingAdmin]);
+test('counterparty can accept when status is approved_by_admin', function () {
+    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::ApprovedByAdmin]);
+    $counterparty = $guarantorRequest->counterparty;
+
+    expect(Gate::forUser($counterparty)->allows('accept', $guarantorRequest))->toBeTrue();
+});
+
+test('requester cannot accept', function () {
+    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::ApprovedByAdmin]);
+    $requester = $guarantorRequest->requester;
+
+    expect(Gate::forUser($requester)->allows('accept', $guarantorRequest))->toBeFalse();
+});
+
+test('requester cannot reject', function () {
+    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::ApprovedByAdmin]);
+    $requester = $guarantorRequest->requester;
+
+    expect(Gate::forUser($requester)->allows('reject', $guarantorRequest))->toBeFalse();
+});
+
+test('counterparty cannot accept when status is not approved_by_admin', function () {
+    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::Accepted]);
+    $counterparty = $guarantorRequest->counterparty;
+
+    expect(Gate::forUser($counterparty)->allows('accept', $guarantorRequest))->toBeFalse();
+});
+
+test('stranger cannot reject', function () {
+    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::ApprovedByAdmin]);
     $stranger = User::factory()->create();
 
-    expect(Gate::forUser($stranger)->allows('updateStatus', $guarantorRequest))->toBeFalse();
+    expect(Gate::forUser($stranger)->allows('reject', $guarantorRequest))->toBeFalse();
 });
 
 test('counterparty can pay when status is accepted', function () {

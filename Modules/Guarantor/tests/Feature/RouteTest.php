@@ -289,7 +289,7 @@ test('guarantor index returns all when no filters', function () {
         ->and($ids)->toHaveCount(2);
 });
 
-test('mobile ending a guarantor via status update actually releases wallet/installment holds', function () {
+test('mobile ending a guarantor via dedicated end route actually releases wallet/installment holds', function () {
     $requester = User::factory()->create();
     $counterparty = User::factory()->create();
 
@@ -306,9 +306,7 @@ test('mobile ending a guarantor via status update actually releases wallet/insta
     $counterparty->wallet->update(['pending_debit' => 1010, 'balance' => 0]);
 
     $this->actingAs($requester, 'sanctum')
-        ->postJson(route('api.v1.guarantor.guarantor.updateStatus', $individual), [
-            'status' => GuarantorStatusEnum::Ended->value,
-        ])
+        ->postJson(route('api.v1.guarantor.guarantor.end', $individual))
         ->assertSuccessful();
 
     expect($individual->fresh()->status)->toBe(GuarantorStatusEnum::Ended)
@@ -337,9 +335,7 @@ test('mobile ending a guarantor via status update actually releases wallet/insta
     $companyRequester->wallet->update(['pending_credit' => 500, 'balance' => 0]);
 
     $this->actingAs($companyRequester, 'sanctum')
-        ->postJson(route('api.v1.guarantor.guarantor.updateStatus', $company), [
-            'status' => GuarantorStatusEnum::Ended->value,
-        ])
+        ->postJson(route('api.v1.guarantor.guarantor.end', $company))
         ->assertSuccessful();
 
     expect($paidInstallment->fresh()->status)->toBe(InstallmentStatusEnum::Released)
@@ -347,7 +343,7 @@ test('mobile ending a guarantor via status update actually releases wallet/insta
         ->and((float) $companyRequester->wallet->fresh()->balance)->toBeGreaterThan(0);
 });
 
-test('guarantor status update with an invalid status value returns a clean validation error, not raw JSON', function () {
+test('guarantor status route no longer exists', function () {
     $requester = User::factory()->create();
     $counterparty = User::factory()->create();
 
@@ -359,10 +355,8 @@ test('guarantor status update with an invalid status value returns a clean valid
     ]);
 
     $this->actingAs($requester, 'sanctum')
-        ->postJson(route('api.v1.guarantor.guarantor.updateStatus', $guarantorRequest), [
+        ->postJson('/api/v1/guarantor/'.$guarantorRequest->id.'/status', [
             'status' => 'approved',
         ])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors(['status'])
-        ->assertJsonMissing(['exception' => true]);
+        ->assertNotFound();
 });

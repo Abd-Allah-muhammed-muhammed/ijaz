@@ -25,6 +25,7 @@ enum GuarantorStatusEnum: string
     case CancelledViaDispute = 'cancelled_via_dispute';
     case Escalated = 'escalated';
     case Settled = 'settled';
+    case Withdrawn = 'withdrawn';
 
     public function toString(): string
     {
@@ -49,6 +50,7 @@ enum GuarantorStatusEnum: string
             self::CancelledViaDispute => '#6b7280',
             self::Escalated => '#7c3aed',
             self::Settled => '#0d9488',
+            self::Withdrawn => '#6366f1',
         };
     }
 
@@ -83,6 +85,7 @@ enum GuarantorStatusEnum: string
             self::CancelledViaDispute,
             self::Escalated,
             self::Settled,
+            self::Withdrawn,
         ];
     }
 
@@ -135,8 +138,9 @@ enum GuarantorStatusEnum: string
 
         return match ($actor) {
             'counterparty' => match ($old) {
-                self::ApprovedByAdmin => $new === self::Accepted
-                    || $new === self::Rejected,
+                // Accept requires POST .../accept with counterparty_signature —
+                // not a generic status update. Reject uses POST .../reject.
+                self::ApprovedByAdmin => $new === self::Rejected,
                 self::InProgress,
                 self::Overdue => $new === self::Ended
                     || $new === self::Disputed,

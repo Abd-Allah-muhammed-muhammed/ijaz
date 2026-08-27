@@ -39,6 +39,7 @@ class EndGuarantorAction
                 GuarantorStatusEnum::EndedViaDispute,
                 GuarantorStatusEnum::Escalated,
                 GuarantorStatusEnum::Settled,
+                GuarantorStatusEnum::Withdrawn,
             ])) {
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }

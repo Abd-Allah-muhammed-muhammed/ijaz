@@ -23,7 +23,8 @@ type Props = {
 };
 
 const REQUEST_COLLECTIONS: CollectionDef[] = [
-  { key: 'signature', labelKey: 'guarantor.documents_signature' },
+  { key: 'requester_signature', labelKey: 'guarantor.documents_requester_signature' },
+  { key: 'counterparty_signature', labelKey: 'guarantor.documents_counterparty_signature' },
   { key: 'files', labelKey: 'guarantor.documents_files' },
 ];
 

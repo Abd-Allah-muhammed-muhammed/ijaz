@@ -6,11 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\Sanctum;
-use Modules\Guarantor\Enums\GuarantorStatusEnum;
+use Modules\Guarantor\Http\Requests\RejectGuarantorRequest;
 use Modules\Guarantor\Http\Requests\SendMessageRequest;
 use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
 use Modules\Guarantor\Http\Requests\StoreIndividualGuarantorRequest;
-use Modules\Guarantor\Http\Requests\UpdateGuarantorStatusRequest;
 
 /**
  * @return array{requester: User, counterparty: User}
@@ -159,59 +158,18 @@ test('StoreCompanyGuarantorRequest requires at least one contract file', functio
         ->and($validator->errors()->has('contracts'))->toBeTrue();
 });
 
-test('UpdateGuarantorStatusRequest requires reason when status is rejected_by_admin', function () {
-    $request = UpdateGuarantorStatusRequest::createFrom(
-        Request::create('/', 'POST', ['status' => GuarantorStatusEnum::RejectedByAdmin->value])
-    );
-    $request->setContainer(app());
-
-    $validator = Validator::make(
-        ['status' => GuarantorStatusEnum::RejectedByAdmin->value],
-        $request->rules()
-    );
+test('RejectGuarantorRequest requires reason', function () {
+    $request = new RejectGuarantorRequest;
+    $validator = Validator::make([], $request->rules());
 
     expect($validator->fails())->toBeTrue()
         ->and($validator->errors()->has('reason'))->toBeTrue();
 });
 
-test('UpdateGuarantorStatusRequest requires reason when status is rejected', function () {
-    $request = UpdateGuarantorStatusRequest::createFrom(
-        Request::create('/', 'POST', ['status' => GuarantorStatusEnum::Rejected->value])
-    );
-    $request->setContainer(app());
-
+test('RejectGuarantorRequest accepts a valid reason', function () {
+    $request = new RejectGuarantorRequest;
     $validator = Validator::make(
-        ['status' => GuarantorStatusEnum::Rejected->value],
-        $request->rules()
-    );
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('reason'))->toBeTrue();
-});
-
-test('UpdateGuarantorStatusRequest requires reason when status is cancelled', function () {
-    $request = UpdateGuarantorStatusRequest::createFrom(
-        Request::create('/', 'POST', ['status' => GuarantorStatusEnum::Cancelled->value])
-    );
-    $request->setContainer(app());
-
-    $validator = Validator::make(
-        ['status' => GuarantorStatusEnum::Cancelled->value],
-        $request->rules()
-    );
-
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('reason'))->toBeTrue();
-});
-
-test('UpdateGuarantorStatusRequest does not require reason when status is accepted', function () {
-    $request = UpdateGuarantorStatusRequest::createFrom(
-        Request::create('/', 'POST', ['status' => GuarantorStatusEnum::Accepted->value])
-    );
-    $request->setContainer(app());
-
-    $validator = Validator::make(
-        ['status' => GuarantorStatusEnum::Accepted->value],
+        ['reason' => 'Not acceptable'],
         $request->rules()
     );
 

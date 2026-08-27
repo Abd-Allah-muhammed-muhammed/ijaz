@@ -53,7 +53,7 @@ class CreateIndividualGuarantorAction
 
             if ($uploads->signature !== null) {
                 $guarantorRequest->addMedia($uploads->signature)
-                    ->toMediaCollection('signature');
+                    ->toMediaCollection('requester_signature');
             }
 
             $this->logStatusHistory->handle(

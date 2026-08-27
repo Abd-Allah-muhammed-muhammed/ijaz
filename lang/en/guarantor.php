@@ -21,6 +21,7 @@ return [
         'disputed' => 'Disputed',
         'escalated' => 'Escalated',
         'settled' => 'Settled',
+        'withdrawn' => 'Withdrawn',
     ],
     'installment_status' => [
         'pending' => 'Pending',
@@ -46,6 +47,9 @@ return [
     'cannot_delete_non_new' => 'You can only delete requests pending admin review',
     'cannot_delete_media_non_new' => 'You can only delete media while pending admin review',
     'status_transition_not_allowed' => 'This status transition is not allowed',
+    'accept_via_dedicated_endpoint' => 'To accept this request, use POST /guarantor/{id}/accept with a signature file',
+    'accept_not_allowed' => 'This guarantor request cannot be accepted at its current stage',
+    'withdraw_not_allowed' => 'This guarantor request cannot be withdrawn at its current stage',
     'dispute_reason_required' => 'A reason is required to open a dispute',
     'dispute_resolution' => [
         'full_requester' => 'Full to requester',
@@ -95,7 +99,9 @@ return [
     'dispute' => 'Dispute',
     'request_documents' => 'Request documents',
     'company_documents_group' => 'Company documents',
-    'documents_signature' => 'Signature',
+    'documents_signature' => 'Requester signature',
+    'documents_requester_signature' => 'Requester signature',
+    'documents_counterparty_signature' => 'Counterparty signature',
     'documents_files' => 'Additional files',
     'documents_authorized_id' => 'Authorized ID',
     'documents_contracts' => 'Contracts',

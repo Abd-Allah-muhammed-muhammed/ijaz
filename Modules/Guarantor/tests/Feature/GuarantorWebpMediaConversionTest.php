@@ -52,12 +52,14 @@ test('guarantor files PDF attachments never queue webp conversion', function () 
     Bus::assertNotDispatched(PerformConversionsJob::class);
 });
 
-test('guarantor signature images are never sent through webp conversion', function () {
+test('guarantor requester_signature and counterparty_signature images are never sent through webp conversion', function () {
     Bus::fake();
 
     $guarantor = GuarantorRequest::factory()->create();
-    $guarantor->addMedia(UploadedFile::fake()->image('signature.png', 20, 20))
-        ->toMediaCollection('signature', 'public');
+    $guarantor->addMedia(UploadedFile::fake()->image('requester-signature.png', 20, 20))
+        ->toMediaCollection('requester_signature', 'public');
+    $guarantor->addMedia(UploadedFile::fake()->image('counterparty-signature.png', 20, 20))
+        ->toMediaCollection('counterparty_signature', 'public');
 
     Bus::assertNotDispatched(PerformConversionsJob::class);
 });

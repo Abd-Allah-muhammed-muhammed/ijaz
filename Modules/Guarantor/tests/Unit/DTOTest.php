@@ -8,7 +8,6 @@ use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
-use Modules\Guarantor\Http\Requests\UpdateGuarantorStatusRequest;
 
 test('GuarantorFiltersData parses single status string', function () {
     $data = GuarantorFiltersData::fromRequest(new Request(['status' => 'accepted']));
@@ -111,13 +110,12 @@ test('InstallmentData collectionFromRequest returns array of InstallmentData', f
         ->and($result[1]->order)->toBe(2);
 });
 
-test('UpdateGuarantorStatusData casts status to enum', function () {
-    $request = Mockery::mock(UpdateGuarantorStatusRequest::class);
-    $request->shouldReceive('validated')->with('status')->andReturn('accepted');
-    $request->shouldReceive('validated')->with('reason')->andReturn('Accepted by counterparty');
-    $request->shouldReceive('validated')->with('notes')->andReturn(null);
-
-    $data = UpdateGuarantorStatusData::fromRequest($request);
+test('UpdateGuarantorStatusData holds status enum and optional reason/notes', function () {
+    $data = new UpdateGuarantorStatusData(
+        status: GuarantorStatusEnum::Accepted,
+        reason: 'Accepted by counterparty',
+        notes: null,
+    );
 
     expect($data->status)->toBe(GuarantorStatusEnum::Accepted)
         ->and($data->reason)->toBe('Accepted by counterparty')
