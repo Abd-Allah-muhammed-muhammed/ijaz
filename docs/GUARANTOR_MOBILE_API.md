@@ -226,7 +226,7 @@ On **chat** conversation participants, `phone` is **not** included; chat adds no
 {
   "id": "9f3c2a1b-0000-4000-8000-000000000010",
   "name": "signature",
-  "collection_name": "signature",
+  "collection_name": "requester_signature",
   "file_name": "signature.pdf",
   "mime_type": "application/pdf",
   "type": "application",
@@ -243,7 +243,7 @@ On **chat** conversation participants, `phone` is **not** included; chat adds no
 | `size` | string | Human-readable (not bytes) |
 | `type` | string | Present on the resource; typically a MIME class such as `image` / `application`. If a client sees `null`, treat as unspecified — there is no dedicated accessor in this app. |
 
-**Collections on the guarantor request itself:** `signature` (create), `files` (update uploads).
+**Collections on the guarantor request itself:** `requester_signature` (create — requester’s digital signature), `counterparty_signature` (accept — counterparty’s digital signature via `POST .../accept`), `files` (update uploads).
 
 **Collections on company details** (nested under `company_detail.media`, **not** request `media`): `authorized_id`, `contracts`, `iban_certificates`, `company_documents`.
 
@@ -435,7 +435,7 @@ Who may succeed is from the **policy** (403 if it fails) plus extra business che
 | `description` | string | yes | max 2000 | `Guarantee for a 3-month finishing contract` |
 | `signature` | file | yes | mimes: `jpg,jpeg,png,pdf`; max **5120** KB (5 MB) | (binary) |
 
-**Success `200`:** `data` is a guarantor resource with `type.value = "individual"`, `status.value = "pending_admin"`, `fees` typically `"10.00"`, `total` = amount + fees, `requester`, `counterparty`, `media` (signature). No `installments` / `company_detail` / `status_histories` keys (relations not loaded).
+**Success `200`:** `data` is a guarantor resource with `type.value = "individual"`, `status.value = "pending_admin"`, `fees` typically `"10.00"`, `total` = amount + fees, `requester`, `counterparty`, `media` (requester_signature). No `installments` / `company_detail` / `status_histories` keys (relations not loaded).
 
 Example `data` (truncated):
 
@@ -530,7 +530,7 @@ The counterparty is **not** notified on create. Only the requester gets “submi
   - invalid date: `"Each installment due date must be a valid date."`
   - not after today: `"Each installment due date must be a date after today."`
 
-**Success `200`:** resource with `type.value = "company"`, `status.value = "pending_admin"`, `title` equal to `project_type`, `description` `""`, `installments` array, `company_detail` (media loaded; region/city usually **absent** on this response), request `media` (signature).
+**Success `200`:** resource with `type.value = "company"`, `status.value = "pending_admin"`, `title` equal to `project_type`, `description` `""`, `installments` array, `company_detail` (media loaded; region/city usually **absent** on this response), request `media` (requester_signature).
 
 **Errors:** same phone / 401 / 403 cases as Individual, plus 422 on any company field and the sum mismatch.
 
@@ -571,7 +571,7 @@ A second check also requires `pending_admin` and returns `422` with `"You can on
 | `description` | string | max 2000 |
 | `amount` | number | numeric, min `1` |
 | `project_type` | string \| null | max 255 |
-| `files` | file[] | nullable array; each jpg/jpeg/png/pdf, max 5120 KB. Stored in collection `files` (does not replace `signature`). |
+| `files` | file[] | nullable array; each jpg/jpeg/png/pdf, max 5120 KB. Stored in collection `files` (does not replace `requester_signature`). |
 
 **Cannot update via this endpoint:** company KYC fields, IBANs, `authorization_type`, installments, counterparty, fees, status.
 
@@ -606,7 +606,7 @@ Second check: `422` `"You can only delete requests pending admin review"`.
 
 ---
 
-### 2.7 Update status (accept / reject / end)
+### 2.7 Update status (reject / end / disputed)
 
 `POST /api/v1/guarantor/{guarantorRequest}/status`
 
@@ -616,11 +616,13 @@ Second check: `422` `"You can only delete requests pending admin review"`.
 
 Admin-only transitions (`approved_by_admin`, `rejected_by_admin`, `cancelled`, `pending_admin`, `new`, `escalated`, `settled`, `ended_via_dispute`, `cancelled_via_dispute`) **will validate as enum values** but **fail the transition check** for mobile parties. **`disputed` is allowed** for requester/counterparty from `in_progress` or `overdue` (same as `POST .../dispute`; see [§2.8](#28-open-dispute)).
 
+**Accept is not available on this endpoint for mobile parties.** Sending `{ "status": "accepted" }` returns `422` with `"To accept this request, use POST /guarantor/{id}/accept with a signature file"` (`guarantor.accept_via_dedicated_endpoint`). Use [§2.7.1 Accept](#271-accept-counterparty).
+
 **Body:**
 
 | Field | Type | Required | Rules |
 |---|---|---|---|
-| `status` | string | yes | One of: `new`, `pending_admin`, `approved_by_admin`, `rejected_by_admin`, `accepted`, `rejected`, `in_progress`, `overdue`, `disputed`, `ended`, `ended_via_dispute`, `cancelled`, `cancelled_via_dispute`, `escalated`, `settled`, `withdrawn` |
+| `status` | string | yes | One of: `new`, `pending_admin`, `approved_by_admin`, `rejected_by_admin`, `accepted`, `rejected`, `in_progress`, `overdue`, `disputed`, `ended`, `ended_via_dispute`, `cancelled`, `cancelled_via_dispute`, `escalated`, `settled`, `withdrawn` — **mobile must not send `accepted`** (use `/accept`) |
 | `reason` | string | **required when** `status` is `rejected_by_admin`, `rejected`, `cancelled`, or **`disputed`** | nullable otherwise; max 1000 |
 | `notes` | string | no | max 2000 |
 
@@ -628,10 +630,10 @@ Admin-only transitions (`approved_by_admin`, `rejected_by_admin`, `cancelled`, `
 
 | Caller | Current status | Send `status` | `reason` |
 |---|---|---|---|
-| Counterparty | `approved_by_admin` | `accepted` | no |
 | Counterparty | `approved_by_admin` | `rejected` | **yes** |
 | Requester or counterparty | `in_progress` or `overdue` | `ended` | no |
 | Requester or counterparty | `in_progress` or `overdue` | `disputed` | **yes** (non-empty; max 1000) — **or** use dedicated `POST .../dispute` |
+| Anyone | `accepted` via this route | — | **do not** — use `POST .../accept` |
 | Anyone | anything else | — | do not call; it 422s |
 
 **Do not send `cancelled` from mobile.** Validation may pass (with `reason`) but the transition is not allowed for requester/counterparty. Cancel is admin/Dashboard only.
@@ -640,11 +642,84 @@ Admin-only transitions (`approved_by_admin`, `rejected_by_admin`, `cancelled`, `
 
 **Side effects:**
 
-- `accepted` → a chat conversation is created (if not already). Requester is notified. Counterparty is not sent an “you accepted” notification.
 - `rejected` → requester notified. Terminal.
 - `ended` → both parties notified with `GuarantorEndedNotification` (title/body of “ended”). Individual: escrow wallets settle. Company: the **latest `paid` installment** (if any) is released to the requester. Cancel is a **separate** notification (`GuarantorCancelledNotification`); it does **not** reuse Ended.
 
-**Errors:** `401`, `403` (not a party), `404`, `422` validation (`status` required / invalid enum; `reason` required for reject / **disputed**), `422` `guarantor.dispute_reason_required` when `status` is `disputed` but `reason` is empty/whitespace (`"A reason is required to open a dispute"`), `422` transition / already-set.
+**Errors:** `401`, `403` (not a party), `404`, `422` validation (`status` required / invalid enum; `reason` required for reject / **disputed**), `422` `guarantor.accept_via_dedicated_endpoint` when `status` is `accepted` for a non-admin party, `422` `guarantor.dispute_reason_required` when `status` is `disputed` but `reason` is empty/whitespace (`"A reason is required to open a dispute"`), `422` transition / already-set.
+
+---
+
+### 2.7.1 Accept (counterparty)
+
+`POST /api/v1/guarantor/{guarantorRequest}/accept`
+
+**Auth:** `auth:sanctum` + `user.active` middleware (same as all guarantor routes).
+
+**Content-Type:** `multipart/form-data` (signature file required).
+
+**Who (policy `accept`):** **counterparty only** when request status is **`approved_by_admin`**. Requester, wrong status, or stranger → **`403`** with `"This action is unauthorized."` (boolean policy denial — no custom message).
+
+**Body (`AcceptGuarantorRequest`):**
+
+| Field | Type | Required | Rules |
+|---|---|---|---|
+| `signature` | file | yes | `required`, `file`, mimes: `jpg,jpeg,png,pdf`, max **5120** KB (5 MB) — same rules as create |
+
+Stored in MediaLibrary collection **`counterparty_signature`** (`singleFile`). Requester’s create-time signature remains in **`requester_signature`**.
+
+**Success `200`:** unified success envelope; `data` is the **show-shaped** `GuarantorResource`. Key fields after accept:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "01234567-89ab-cdef-0123-456789abcdef",
+    "status": { "value": "accepted", "label": "Accepted", "color": "#8b5cf6" },
+    "media": [
+      {
+        "id": "…",
+        "collection_name": "requester_signature",
+        "file_name": "signature.pdf",
+        "url": "…"
+      },
+      {
+        "id": "…",
+        "collection_name": "counterparty_signature",
+        "file_name": "cp-signature.pdf",
+        "url": "…"
+      }
+    ],
+    "status_histories": [
+      {
+        "from_status": { "value": "approved_by_admin", "label": "Approved by Admin", "color": "#3b82f6" },
+        "to_status": { "value": "accepted", "label": "Accepted", "color": "#8b5cf6" },
+        "actor": { "id": "…", "name": "…", "type": "user" }
+      }
+    ]
+  },
+  "errors": {},
+  "message": "",
+  "token": ""
+}
+```
+
+**Effects:**
+
+- Request status → **`accepted`**.
+- Counterparty signature attached to `counterparty_signature`.
+- Chat conversation is created (if not already).
+- Requester is notified (`GuarantorAcceptedNotification`). Counterparty is **not** sent a self “you accepted” notification.
+- Status history row logged with the counterparty as `actor`.
+
+**Errors:**
+
+| HTTP | Condition | Translation key | English `message` |
+|---|---|---|---|
+| 401 | Missing / invalid token | — | `Unauthenticated.` |
+| 403 | Not counterparty, or status ≠ `approved_by_admin` | — | `This action is unauthorized.` |
+| 404 | Unknown guarantor UUID | `guarantor.not_found` | `Guarantor request not found` |
+| 422 | Missing / invalid `signature` | Laravel validation | `Validation Failed` + `errors.signature` array |
+| 422 | Status not `approved_by_admin` (defense-in-depth after policy) | `guarantor.accept_not_allowed` | `This guarantor request cannot be accepted at its current stage` |
 
 ---
 
@@ -1216,7 +1291,7 @@ English labels below are the `en` translations. Colors are server hex values.
 | `pending_admin` | Pending Admin Review | `#f59e0b` | Just created. Waiting for Dashboard review. Requester may edit/delete/media. Counterparty should not treat this as “your turn”. | no (set by create) | no |
 | `approved_by_admin` | Approved by Admin | `#3b82f6` | Admin approved. **Counterparty’s turn** to accept or reject. No pay, no chat yet. | no (admin) | no |
 | `rejected_by_admin` | Rejected by Admin | `#ef4444` | Admin rejected. Dead. | no (admin) | **yes** |
-| `accepted` | Accepted | `#8b5cf6` | Counterparty accepted. Chat opens. Individual: waiting for **full pay**. Company: waiting for **installment 1** (and later ones); first successful installment pay moves request to `in_progress`. | yes — counterparty **accept** | no |
+| `accepted` | Accepted | `#8b5cf6` | Counterparty accepted via `POST .../accept` (signature required). Chat opens. Individual: waiting for **full pay**. Company: waiting for **installment 1** (and later ones); first successful installment pay moves request to `in_progress`. | yes — counterparty **`POST .../accept`** | no |
 | `rejected` | Rejected | `#f97316` | Counterparty rejected. Dead. | yes — counterparty **reject** | **yes** |
 | `in_progress` | In Progress | `#06b6d4` | Individual: payment captured. Company: active after first installment payment (or overdue recovery). Work / escrow active. Either party may **end** or **open dispute**. | no (payment callback / overdue recovery) | no |
 | `overdue` | Overdue | `#ef4444` | Company: a pending installment is ≥ 3 days past due (daily job). Individual does not use this path. Either party may **end** or **open dispute**. Counterparty may still **pay** the overdue installment. | no (scheduled job) | no |
@@ -1239,7 +1314,7 @@ Only these succeed. Anyone / anything else → `422` `"This status transition is
 |---|---|---|---|
 | Requester | `approved_by_admin` | `withdrawn` | `POST .../withdraw` `{ "reason": "..." }` (reason optional) |
 | Either party | `accepted` | `withdrawn` | `POST .../withdraw` `{ "reason": "..." }` (reason optional) |
-| Counterparty | `approved_by_admin` | `accepted` | `POST .../status` `{ "status": "accepted" }` |
+| Counterparty | `approved_by_admin` | `accepted` | `POST .../accept` multipart `{ signature: <file> }` |
 | Counterparty | `approved_by_admin` | `rejected` | `POST .../status` `{ "status": "rejected", "reason": "..." }` |
 | Counterparty | `in_progress` | `ended` | `POST .../status` `{ "status": "ended" }` |
 | Counterparty | `overdue` | `ended` | same |
@@ -1283,7 +1358,7 @@ Shared for both types unless noted. “User app” = counterparty. “Create app
 | Status | User (counterparty) screen | Requester screen | Enabled actions |
 |---|---|---|---|
 | `pending_admin` | Optional: “waiting for review” if they opened a deep link. **No accept, no pay, no chat.** | “Submitted — waiting for admin.” Edit / delete / replace files OK. | Update, delete, delete media (requester). Show/list for both once they can see it. |
-| `approved_by_admin` | **Decision screen:** Accept or Reject (reject requires reason). | “Waiting for the other party.” No pay, no chat. Requester may **Withdraw** (optional reason). | Counterparty: status `accepted` / `rejected`. Requester: `POST .../withdraw`. |
+| `approved_by_admin` | **Decision screen:** Accept (signature capture → `POST .../accept`) or Reject (reject requires reason via `/status`). | “Waiting for the other party.” No pay, no chat. Requester may **Withdraw** (optional reason). | Counterparty: `POST .../accept` or status `rejected`. Requester: `POST .../withdraw`. |
 | `rejected_by_admin` | Closed. | Closed — “rejected by admin”. | None (terminal). |
 | `accepted` | **Pay full `total`.** Chat **on**. Either party may **Withdraw** (optional reason). | Waiting for payment. Chat on. Either party may **Withdraw**. | Counterparty: `POST .../pay`. Both: chat or `POST .../withdraw`. **End is disabled.** |
 | `rejected` | Closed. | Closed — they rejected. | None. |

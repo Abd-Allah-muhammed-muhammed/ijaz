@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\Sanctum;
 use Modules\Chat\Models\Conversation;
 use Modules\Guarantor\Actions\Chat\OpenGuarantorChatAction;
+use Modules\Guarantor\Actions\Guarantor\AcceptGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CancelGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateCompanyGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateIndividualGuarantorAction;
@@ -110,7 +111,7 @@ test('CreateIndividualGuarantorAction creates request and uploads signature', fu
     expect($guarantorRequest->type)->toBe(GuarantorTypeEnum::Individual)
         ->and($guarantorRequest->status)->toBe(GuarantorStatusEnum::PendingAdmin)
         ->and($guarantorRequest->counterparty_id)->toBe($counterparty->getKey())
-        ->and($guarantorRequest->getMedia('signature'))->toHaveCount(1);
+        ->and($guarantorRequest->getMedia('requester_signature'))->toHaveCount(1);
 });
 
 test('CreateIndividualGuarantorAction fails if counterparty not found', function () {
@@ -181,7 +182,7 @@ test('CreateCompanyGuarantorAction creates request with installments and company
         ->and($guarantorRequest->installments)->toHaveCount(2)
         ->and($guarantorRequest->companyDetail)->not->toBeNull()
         ->and($guarantorRequest->companyDetail->company_name)->toBe('Acme Corp')
-        ->and($guarantorRequest->getMedia('signature'))->toHaveCount(1);
+        ->and($guarantorRequest->getMedia('requester_signature'))->toHaveCount(1);
 });
 
 test('CreateCompanyGuarantorAction fails if installments sum != total', function () {
@@ -338,14 +339,14 @@ test('counterparty can accept after admin approval', function () {
     $counterparty = $guarantorRequest->counterparty;
     $requester = $guarantorRequest->requester;
 
-    $updated = app(UpdateGuarantorStatusAction::class)->handle(
+    $updated = app(AcceptGuarantorAction::class)->handle(
         $guarantorRequest,
-        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Accepted),
         $counterparty,
-        'counterparty',
+        UploadedFile::fake()->create('cp-signature.pdf', 100, 'application/pdf'),
     );
 
-    expect($updated->status)->toBe(GuarantorStatusEnum::Accepted);
+    expect($updated->status)->toBe(GuarantorStatusEnum::Accepted)
+        ->and($updated->getMedia('counterparty_signature'))->toHaveCount(1);
 
     Notification::assertSentTo($requester, GuarantorAcceptedNotification::class);
 });
@@ -396,11 +397,10 @@ test('chat opens when counterparty accepts', function () {
         ->where('operation_id', $guarantorRequest->id)
         ->exists())->toBeFalse();
 
-    app(UpdateGuarantorStatusAction::class)->handle(
+    app(AcceptGuarantorAction::class)->handle(
         $guarantorRequest,
-        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Accepted),
         $counterparty,
-        'counterparty',
+        UploadedFile::fake()->create('cp-signature.pdf', 100, 'application/pdf'),
     );
 
     expect(Conversation::query()

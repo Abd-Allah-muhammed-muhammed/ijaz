@@ -78,7 +78,7 @@ test('individual create resource includes uploaded media', function () {
 
     $guarantorRequest->load('media');
 
-    expect($guarantorRequest->getMedia('signature'))->toHaveCount(1);
+    expect($guarantorRequest->getMedia('requester_signature'))->toHaveCount(1);
 
     $request = Request::create('/');
     $resource = GuarantorResource::make($guarantorRequest)->toArray($request);
@@ -87,7 +87,7 @@ test('individual create resource includes uploaded media', function () {
     expect($resource)->toHaveKey('media')
         ->and($mediaData)->toHaveCount(1)
         ->and($mediaData[0])->toHaveKeys(['id', 'url', 'mime_type', 'collection_name'])
-        ->and($mediaData[0]['collection_name'])->toBe('signature');
+        ->and($mediaData[0]['collection_name'])->toBe('requester_signature');
 });
 
 test('updateStatus from terminal status throws exception', function () {

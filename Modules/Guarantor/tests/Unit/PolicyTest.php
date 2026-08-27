@@ -70,6 +70,27 @@ test('counterparty can updateStatus', function () {
     expect(Gate::forUser($counterparty)->allows('updateStatus', $guarantorRequest))->toBeTrue();
 });
 
+test('counterparty can accept when status is approved_by_admin', function () {
+    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::ApprovedByAdmin]);
+    $counterparty = $guarantorRequest->counterparty;
+
+    expect(Gate::forUser($counterparty)->allows('accept', $guarantorRequest))->toBeTrue();
+});
+
+test('requester cannot accept', function () {
+    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::ApprovedByAdmin]);
+    $requester = $guarantorRequest->requester;
+
+    expect(Gate::forUser($requester)->allows('accept', $guarantorRequest))->toBeFalse();
+});
+
+test('counterparty cannot accept when status is not approved_by_admin', function () {
+    $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::Accepted]);
+    $counterparty = $guarantorRequest->counterparty;
+
+    expect(Gate::forUser($counterparty)->allows('accept', $guarantorRequest))->toBeFalse();
+});
+
 test('stranger cannot updateStatus', function () {
     $guarantorRequest = policyGuarantorRequest(['status' => GuarantorStatusEnum::PendingAdmin]);
     $stranger = User::factory()->create();

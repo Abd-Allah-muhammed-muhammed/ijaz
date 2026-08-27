@@ -19,7 +19,7 @@ trait HasWebpImageConversion
      *
      * PDFs and other non-images are skipped. Override
      * {@see webpConversionCollections()} to limit which collections qualify
-     * (e.g. Guarantor `files` but never `signature`).
+     * (e.g. Guarantor `files` but never `requester_signature` / `counterparty_signature`).
      */
     protected function registerWebpImageConversion(?Media $media = null): void
     {

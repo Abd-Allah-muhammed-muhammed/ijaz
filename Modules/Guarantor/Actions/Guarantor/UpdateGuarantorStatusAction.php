@@ -36,6 +36,10 @@ class UpdateGuarantorStatusAction
         string $actorRole,
     ): GuarantorRequest {
         return DB::transaction(function () use ($request, $data, $actor, $actorRole) {
+            if ($data->status->is(GuarantorStatusEnum::Accepted) && $actorRole !== 'admin') {
+                throw new GuarantorException('guarantor.accept_via_dedicated_endpoint', 422);
+            }
+
             if ($request->status->is($data->status)) {
                 throw new GuarantorException('guarantor.status_already_set', 422);
             }

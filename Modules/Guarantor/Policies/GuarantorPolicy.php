@@ -31,6 +31,12 @@ class GuarantorPolicy
         return $this->isParty($user, $request);
     }
 
+    public function accept(Model $user, GuarantorRequest $request): bool
+    {
+        return $this->isCounterparty($user, $request)
+            && $request->status->is(GuarantorStatusEnum::ApprovedByAdmin);
+    }
+
     public function pay(Model $user, GuarantorRequest $request): bool
     {
         return $this->isCounterparty($user, $request)

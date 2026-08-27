@@ -13,6 +13,7 @@ use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\DTOs\GuarantorUploadData;
 use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
+use Modules\Guarantor\Http\Requests\AcceptGuarantorRequest;
 use Modules\Guarantor\Http\Requests\OpenGuarantorDisputeRequest;
 use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
 use Modules\Guarantor\Http\Requests\StoreIndividualGuarantorRequest;
@@ -372,6 +373,40 @@ class GuarantorController extends Controller
             auth()->user(),
             $actorRole,
             $request->validated('reason'),
+        );
+
+        return $this->successResponse(
+            GuarantorResource::make($this->service->loadForShow($updated))
+        );
+    }
+
+    /**
+     * Accept a guarantor request (counterparty only).
+     *
+     * Counterparty must upload a digital signature. Status must be `approved_by_admin`.
+     * Replaces `POST .../status` with `status=accepted` for mobile parties.
+     *
+     * @authenticated
+     *
+     * @urlParam guarantorRequest string required Guarantor request UUID.
+     *
+     * @bodyParam signature file required Counterparty signature (jpg, jpeg, png, pdf; max 5MB).
+     *
+     * @response 200 { "success": true, "data": { "status": { "value": "accepted" } }, "errors": {}, "message": "", "token": "" }
+     * @response 401 { "success": false, "data": [], "errors": {}, "message": "Unauthenticated.", "token": "" }
+     * @response 403 { "success": false, "data": [], "errors": {}, "message": "This action is unauthorized.", "token": "" }
+     * @response 422 { "success": false, "data": [], "errors": { "signature": ["The signature field is required."] }, "message": "Validation Failed", "token": "" }
+     */
+    public function accept(
+        AcceptGuarantorRequest $request,
+        GuarantorRequest $guarantorRequest,
+    ): JsonResponse {
+        $this->authorize('accept', $guarantorRequest);
+
+        $updated = $this->service->accept(
+            $guarantorRequest,
+            auth()->user(),
+            $request->file('signature'),
         );
 
         return $this->successResponse(

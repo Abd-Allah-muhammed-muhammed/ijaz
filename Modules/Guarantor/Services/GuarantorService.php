@@ -4,6 +4,8 @@ namespace Modules\Guarantor\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\UploadedFile;
+use Modules\Guarantor\Actions\Guarantor\AcceptGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateCompanyGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateIndividualGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\DeleteGuarantorAction;
@@ -41,6 +43,7 @@ class GuarantorService
         private readonly EndGuarantorAction $endAction,
         private readonly OpenGuarantorDisputeAction $openDisputeAction,
         private readonly WithdrawGuarantorAction $withdrawAction,
+        private readonly AcceptGuarantorAction $acceptAction,
     ) {}
 
     /**
@@ -173,6 +176,17 @@ class GuarantorService
         ?string $reason = null,
     ): GuarantorRequest {
         return $this->withdrawAction->handle($request, $actor, $actorRole, $reason);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function accept(
+        GuarantorRequest $request,
+        Model $actor,
+        UploadedFile $signature,
+    ): GuarantorRequest {
+        return $this->acceptAction->handle($request, $actor, $signature);
     }
 
     public function findById(string $id): GuarantorRequest

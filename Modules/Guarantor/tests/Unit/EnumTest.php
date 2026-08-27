@@ -42,12 +42,12 @@ test('requester cannot end from pending_admin', function () {
     ))->toBeFalse();
 });
 
-test('counterparty can accept from approved_by_admin', function () {
+test('counterparty cannot accept via generic status transition — use /accept', function () {
     expect(GuarantorStatusEnum::isAllowed(
         GuarantorStatusEnum::ApprovedByAdmin,
         GuarantorStatusEnum::Accepted,
         'counterparty'
-    ))->toBeTrue();
+    ))->toBeFalse();
 });
 
 test('counterparty can reject from approved_by_admin', function () {

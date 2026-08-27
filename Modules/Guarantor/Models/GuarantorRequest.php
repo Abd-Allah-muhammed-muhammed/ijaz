@@ -148,7 +148,11 @@ class GuarantorRequest extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('signature')
+        $this->addMediaCollection('requester_signature')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('counterparty_signature')
             ->useDisk('public')
             ->singleFile();
 
@@ -162,7 +166,8 @@ class GuarantorRequest extends Model implements HasMedia
     }
 
     /**
-     * Images in `files` only — never convert signatures (legal document integrity).
+     * Images in `files` only — never convert requester_signature or
+     * counterparty_signature (legal document integrity).
      *
      * @return list<string>
      */

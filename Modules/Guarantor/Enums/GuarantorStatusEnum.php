@@ -138,8 +138,9 @@ enum GuarantorStatusEnum: string
 
         return match ($actor) {
             'counterparty' => match ($old) {
-                self::ApprovedByAdmin => $new === self::Accepted
-                    || $new === self::Rejected,
+                // Accept requires POST .../accept with counterparty_signature —
+                // not the generic /status endpoint.
+                self::ApprovedByAdmin => $new === self::Rejected,
                 self::InProgress,
                 self::Overdue => $new === self::Ended
                     || $new === self::Disputed,

@@ -322,13 +322,15 @@ test('admin can still cancel a disputed guarantor from the dashboard (escape hat
     expect($guarantorRequest->fresh()->status)->toBe(GuarantorStatusEnum::Cancelled);
 });
 
-test('Guarantor dashboard resource exposes all 6 media collections (signature, files, authorized_id, contracts, iban_certificates, company_documents) with collection_name intact', function () {
+test('Guarantor dashboard resource exposes all request and company media collections (requester_signature, counterparty_signature, files, authorized_id, contracts, iban_certificates, company_documents) with collection_name intact', function () {
     withoutGuarantorDashboardLocaleMiddleware();
     $admin = createGuarantorDashboardAdmin(['show guarantors']);
 
     $guarantorRequest = GuarantorRequest::factory()->company()->pendingAdmin()->create();
     $guarantorRequest->addMedia(UploadedFile::fake()->create('signature.pdf', 100, 'application/pdf'))
-        ->toMediaCollection('signature');
+        ->toMediaCollection('requester_signature');
+    $guarantorRequest->addMedia(UploadedFile::fake()->create('cp-signature.pdf', 100, 'application/pdf'))
+        ->toMediaCollection('counterparty_signature');
     $guarantorRequest->addMedia(UploadedFile::fake()->create('extra.pdf', 100, 'application/pdf'))
         ->toMediaCollection('files');
 
@@ -357,10 +359,13 @@ test('Guarantor dashboard resource exposes all 6 media collections (signature, f
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
             ->component('Dashboard/Guarantor/Show')
-            ->has('guarantorRequest.media', 2)
+            ->has('guarantorRequest.media', 3)
             ->has('guarantorRequest.company_detail.media', 4)
-            ->where('guarantorRequest.media.0.collection_name', fn ($value) => in_array($value, ['signature', 'files'], true))
-            ->where('guarantorRequest.media.1.collection_name', fn ($value) => in_array($value, ['signature', 'files'], true))
+            ->where(
+                'guarantorRequest.media',
+                fn ($media) => collect($media)->pluck('collection_name')->sort()->values()->all()
+                    === ['counterparty_signature', 'files', 'requester_signature']
+            )
             ->where(
                 'guarantorRequest.company_detail.media',
                 fn ($media) => collect($media)->pluck('collection_name')->sort()->values()->all()

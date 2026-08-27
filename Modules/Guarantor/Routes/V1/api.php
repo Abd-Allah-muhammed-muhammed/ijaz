@@ -38,6 +38,9 @@ Route::prefix('guarantor')->name('guarantor.')->group(function () {
         Route::post('/{guarantorRequest}/withdraw', [GuarantorController::class, 'withdraw'])
             ->name('withdraw');
 
+        Route::post('/{guarantorRequest}/accept', [GuarantorController::class, 'accept'])
+            ->name('accept');
+
         Route::delete('/{guarantorRequest}/media/{media:uuid}', [GuarantorController::class, 'deleteMedia'])
             ->name('deleteMedia');
 
