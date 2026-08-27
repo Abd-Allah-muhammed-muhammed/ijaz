@@ -108,7 +108,7 @@ const RESOLUTION_OPTIONS = [
 
 type ResolutionOption = (typeof RESOLUTION_OPTIONS)[number];
 
-const TERMINAL_STATUSES = ['rejected_by_admin', 'rejected', 'ended', 'ended_via_dispute', 'cancelled', 'cancelled_via_dispute', 'escalated', 'settled'];
+const TERMINAL_STATUSES = ['rejected_by_admin', 'rejected', 'ended', 'ended_via_dispute', 'cancelled', 'cancelled_via_dispute', 'escalated', 'settled', 'withdrawn'];
 
 const statusBadgeClass: Record<string, string> = {
   new: 'badge-light-secondary',
@@ -126,6 +126,7 @@ const statusBadgeClass: Record<string, string> = {
   cancelled_via_dispute: 'badge-light-secondary',
   escalated: 'badge-light-dark',
   settled: 'badge-light-info',
+  withdrawn: 'badge-light-primary',
 };
 
 const installmentBadgeClass: Record<string, string> = {

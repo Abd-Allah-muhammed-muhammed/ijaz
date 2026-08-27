@@ -21,6 +21,7 @@ return [
         'disputed' => 'विवादित',
         'escalated' => 'न्यायालय को भेजा गया',
         'settled' => 'निपटाया गया',
+        'withdrawn' => 'वापस लिया गया',
     ],
     'installment_status' => [
         'pending' => 'लंबित',
@@ -46,6 +47,7 @@ return [
     'cannot_delete_non_new' => 'आप केवल नई स्थिति वाले अनुरोधों को हटा सकते हैं',
     'cannot_delete_media_non_new' => 'आप केवल नई स्थिति में मीडिया हटा सकते हैं',
     'status_transition_not_allowed' => 'यह स्थिति परिवर्तन अनुमत नहीं है',
+    'withdraw_not_allowed' => 'इस गारंटर अनुरोध को इस चरण में वापस नहीं लिया जा सकता',
     'dispute_reason_required' => 'विवाद खोलने के लिए कारण आवश्यक है',
     'dispute_resolution' => [
         'full_requester' => 'पूरी तरह अनुरोधकर्ता के पक्ष में',

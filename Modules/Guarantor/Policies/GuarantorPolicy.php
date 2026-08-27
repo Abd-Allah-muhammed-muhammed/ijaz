@@ -55,6 +55,19 @@ class GuarantorPolicy
             ]);
     }
 
+    public function withdraw(Model $user, GuarantorRequest $request): bool
+    {
+        if (! $this->isParty($user, $request)) {
+            return false;
+        }
+
+        if ($request->status->is(GuarantorStatusEnum::ApprovedByAdmin)) {
+            return $this->isRequester($user, $request);
+        }
+
+        return $request->status->is(GuarantorStatusEnum::Accepted);
+    }
+
     public function chat(Model $user, GuarantorRequest $request): bool
     {
         return $this->isParty($user, $request)

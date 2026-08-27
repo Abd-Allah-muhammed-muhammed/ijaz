@@ -21,6 +21,7 @@ return [
         'disputed' => 'تنازعہ',
         'escalated' => 'عدالت میں بھیجا گیا',
         'settled' => 'تصفیہ شدہ',
+        'withdrawn' => 'واپس لے لیا گیا',
     ],
     'installment_status' => [
         'pending' => 'زیر التواء',
@@ -46,6 +47,7 @@ return [
     'cannot_delete_non_new' => 'آپ صرف نئی حالت والے درخواستوں کو حذف کر سکتے ہیں',
     'cannot_delete_media_non_new' => 'آپ صرف نئی حالت میں میڈیا حذف کر سکتے ہیں',
     'status_transition_not_allowed' => 'یہ حالت کی تبدیلی مجاز نہیں ہے',
+    'withdraw_not_allowed' => 'اس گارنٹر درخواست کو اس مرحلے میں واپس نہیں لیا جا سکتا',
     'dispute_reason_required' => 'تنازعہ کھولنے کے لیے وجہ درکار ہے',
     'dispute_resolution' => [
         'full_requester' => 'مکمل طور پر درخواست دہندہ کے حق میں',

@@ -21,6 +21,7 @@ return [
         'disputed' => 'متنازع عليه',
         'escalated' => 'محال للقضاء',
         'settled' => 'مسوّى',
+        'withdrawn' => 'منسحب',
     ],
     'installment_status' => [
         'pending' => 'قيد الانتظار',
@@ -46,6 +47,7 @@ return [
     'cannot_delete_non_new' => 'لا يمكنك حذف الطلب إلا أثناء انتظار مراجعة الإدارة',
     'cannot_delete_media_non_new' => 'لا يمكنك حذف الملفات إلا أثناء انتظار مراجعة الإدارة',
     'status_transition_not_allowed' => 'هذا التحول في الحالة غير مسموح به',
+    'withdraw_not_allowed' => 'لا يمكن سحب طلب الضمان في مرحلته الحالية',
     'dispute_reason_required' => 'يجب تقديم سبب لفتح النزاع',
     'dispute_resolution' => [
         'full_requester' => 'كامل لصالح مقدم الطلب',

@@ -12,6 +12,7 @@ use Modules\Guarantor\Actions\Guarantor\EndGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\OpenGuarantorDisputeAction;
 use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorStatusAction;
+use Modules\Guarantor\Actions\Guarantor\WithdrawGuarantorAction;
 use Modules\Guarantor\Actions\Payment\PayIndividualGuarantorAction;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\DTOs\CompanyDetailData;
@@ -39,6 +40,7 @@ class GuarantorService
         private readonly PayIndividualGuarantorAction $payIndividualAction,
         private readonly EndGuarantorAction $endAction,
         private readonly OpenGuarantorDisputeAction $openDisputeAction,
+        private readonly WithdrawGuarantorAction $withdrawAction,
     ) {}
 
     /**
@@ -159,6 +161,18 @@ class GuarantorService
         string $reason,
     ): GuarantorRequest {
         return $this->openDisputeAction->handle($request, $actor, $actorRole, $reason);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function withdraw(
+        GuarantorRequest $request,
+        Model $actor,
+        string $actorRole,
+        ?string $reason = null,
+    ): GuarantorRequest {
+        return $this->withdrawAction->handle($request, $actor, $actorRole, $reason);
     }
 
     public function findById(string $id): GuarantorRequest

@@ -18,6 +18,7 @@ use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
 use Modules\Guarantor\Http\Requests\StoreIndividualGuarantorRequest;
 use Modules\Guarantor\Http\Requests\UpdateGuarantorRequest;
 use Modules\Guarantor\Http\Requests\UpdateGuarantorStatusRequest;
+use Modules\Guarantor\Http\Requests\WithdrawGuarantorRequest;
 use Modules\Guarantor\Http\Resources\Api\GuarantorCollection;
 use Modules\Guarantor\Http\Resources\Api\GuarantorResource;
 use Modules\Guarantor\Models\GuarantorRequest;
@@ -334,6 +335,43 @@ class GuarantorController extends Controller
             auth()->user(),
             $actorRole,
             (string) $request->validated('reason'),
+        );
+
+        return $this->successResponse(
+            GuarantorResource::make($this->service->loadForShow($updated))
+        );
+    }
+
+    /**
+     * Withdraw from a guarantor request before payment.
+     *
+     * Requester may withdraw from `approved_by_admin`. Either party may withdraw from `accepted`.
+     * Optional reason (max 1000). No wallet impact — no payment has occurred at these stages.
+     *
+     * @authenticated
+     *
+     * @urlParam guarantorRequest string required Guarantor request UUID.
+     *
+     * @bodyParam reason string optional Why the party is withdrawing (max 1000).
+     *
+     * @response 200 { "success": true, "data": { "status": { "value": "withdrawn" } }, "errors": {}, "message": "", "token": "" }
+     * @response 401 { "success": false, "data": [], "errors": {}, "message": "Unauthenticated.", "token": "" }
+     * @response 403 { "success": false, "data": [], "errors": {}, "message": "This action is unauthorized.", "token": "" }
+     * @response 422 { "success": false, "data": [], "errors": {}, "message": "This guarantor request cannot be withdrawn at its current stage", "token": "" }
+     */
+    public function withdraw(
+        WithdrawGuarantorRequest $request,
+        GuarantorRequest $guarantorRequest,
+    ): JsonResponse {
+        $this->authorize('withdraw', $guarantorRequest);
+
+        $actorRole = $this->service->resolveActorRole($guarantorRequest, auth()->user());
+
+        $updated = $this->service->withdraw(
+            $guarantorRequest,
+            auth()->user(),
+            $actorRole,
+            $request->validated('reason'),
         );
 
         return $this->successResponse(

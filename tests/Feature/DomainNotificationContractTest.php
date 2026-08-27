@@ -23,6 +23,8 @@ use Modules\Guarantor\Notifications\GuarantorCreatedNotification;
 use Modules\Guarantor\Notifications\GuarantorDisputeResolvedNotification;
 use Modules\Guarantor\Notifications\GuarantorDisputedNotification;
 use Modules\Guarantor\Notifications\GuarantorEndedNotification;
+use Modules\Guarantor\Enums\GuarantorWithdrawnNotificationAudience;
+use Modules\Guarantor\Notifications\GuarantorWithdrawnNotification;
 use Modules\Guarantor\Notifications\GuarantorPendingReviewNotification;
 use Modules\Guarantor\Notifications\InstallmentDueNotification;
 use Modules\Guarantor\Notifications\InstallmentOverdueNotification;
@@ -616,6 +618,76 @@ describe('Guarantor domain notification contracts', function (): void {
             ],
         );
     });
+
+    it('locks GuarantorWithdrawnNotification channel outputs per audience', function (
+        GuarantorWithdrawnNotificationAudience $audience,
+        string $titleKey,
+        string $bodyKey,
+    ): void {
+        /** @var TestCase $this */
+        [$request, $user, $provider] = guarantorFixture();
+        $request->status = GuarantorStatusEnum::Withdrawn;
+        $reason = 'Changed plans';
+        $notification = new GuarantorWithdrawnNotification($request, $audience, $reason);
+        $admin = Admin::query()->create([
+            'name' => 'Withdraw Admin',
+            'phone' => fake()->unique()->phoneNumber(),
+            'email' => fake()->unique()->safeEmail(),
+            'password' => 'password',
+            'language' => 'en',
+        ]);
+
+        expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($admin))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
+            ->and($notification->broadcastType())->toBe('guarantor withdrawn')
+            ->and($notification->toArray($user))->toBe([
+                'title_translated_key' => $titleKey,
+                'body_translated_key' => $bodyKey,
+                'translated_attributes' => [],
+                'guarantor_request_id' => $request->id,
+                'type' => $request->type->value,
+                'reason' => $reason,
+                'final_status' => GuarantorStatusEnum::Withdrawn->value,
+                'audience' => $audience->value,
+            ]);
+
+        assertBroadcastPayload($notification->toBroadcast($user), [
+            'title' => trans($titleKey, locale: 'en'),
+            'body' => trans($bodyKey, locale: 'en'),
+            'guarantor_request_id' => $request->id,
+            'final_status' => GuarantorStatusEnum::Withdrawn->value,
+            'screen' => 'guarantor',
+        ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans($titleKey, locale: 'en'),
+            trans($bodyKey, locale: 'en'),
+            [
+                'guarantor_request_id' => $request->id,
+                'final_status' => GuarantorStatusEnum::Withdrawn->value,
+                'screen' => 'guarantor',
+            ],
+        );
+    })->with([
+        'withdrawer' => [
+            GuarantorWithdrawnNotificationAudience::Withdrawer,
+            'guarantor_withdrawn_withdrawer_title',
+            'guarantor_withdrawn_withdrawer_body',
+        ],
+        'other party' => [
+            GuarantorWithdrawnNotificationAudience::OtherParty,
+            'guarantor_withdrawn_other_party_title',
+            'guarantor_withdrawn_other_party_body',
+        ],
+        'admin' => [
+            GuarantorWithdrawnNotificationAudience::Admin,
+            'guarantor_withdrawn_admin_title',
+            'guarantor_withdrawn_admin_body',
+        ],
+    ]);
 
     it('locks GuarantorDisputeResolvedNotification channel outputs for all resolution outcomes', function (
         GuarantorDisputeResolutionEnum $resolution,

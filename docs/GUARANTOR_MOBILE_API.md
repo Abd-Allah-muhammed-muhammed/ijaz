@@ -620,7 +620,7 @@ Admin-only transitions (`approved_by_admin`, `rejected_by_admin`, `cancelled`, `
 
 | Field | Type | Required | Rules |
 |---|---|---|---|
-| `status` | string | yes | One of: `new`, `pending_admin`, `approved_by_admin`, `rejected_by_admin`, `accepted`, `rejected`, `in_progress`, `overdue`, `disputed`, `ended`, `ended_via_dispute`, `cancelled`, `cancelled_via_dispute`, `escalated`, `settled` |
+| `status` | string | yes | One of: `new`, `pending_admin`, `approved_by_admin`, `rejected_by_admin`, `accepted`, `rejected`, `in_progress`, `overdue`, `disputed`, `ended`, `ended_via_dispute`, `cancelled`, `cancelled_via_dispute`, `escalated`, `settled`, `withdrawn` |
 | `reason` | string | **required when** `status` is `rejected_by_admin`, `rejected`, `cancelled`, or **`disputed`** | nullable otherwise; max 1000 |
 | `notes` | string | no | max 2000 |
 
@@ -777,6 +777,82 @@ Example policy denial (non-party):
   "token": ""
 }
 ```
+
+---
+
+### 2.8.1 Withdraw from request (pre-payment)
+
+`POST /api/v1/guarantor/{guarantorRequest}/withdraw`
+
+**Auth:** `auth:sanctum` + `user.active` middleware (same as all guarantor routes).
+
+**Who (policy `withdraw`):**
+
+| Current status | Who may withdraw |
+|---|---|
+| `approved_by_admin` | **Requester only** (counterparty already has **Reject** at this stage) |
+| `accepted` | **Either party** (requester or counterparty) |
+
+Not a party, wrong status, or counterparty at `approved_by_admin` → **`403`** with `"This action is unauthorized."` (boolean policy denial — no custom message).
+
+**Body (`WithdrawGuarantorRequest`):**
+
+| Field | Type | Required | Rules |
+|---|---|---|---|
+| `reason` | string | no | `nullable`, `string`, **max 1000** |
+
+Unlike dispute, **`reason` is optional**. When omitted or `null`, withdrawal still succeeds and the history row stores `reason: null`.
+
+**Success `200`:** unified success envelope; `data` is the **show-shaped** `GuarantorResource`. Key fields after withdraw:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "01234567-89ab-cdef-0123-456789abcdef",
+    "status": { "value": "withdrawn", "label": "Withdrawn", "color": "#6366f1" },
+    "status_histories": [
+      {
+        "from_status": { "value": "accepted", "label": "Accepted", "color": "#8b5cf6" },
+        "to_status": { "value": "withdrawn", "label": "Withdrawn", "color": "#6366f1" },
+        "reason": { "value": "Changed plans", "label": "Changed plans" },
+        "actor": { "id": "…", "name": "…", "type": "user" }
+      }
+    ]
+  },
+  "errors": {},
+  "message": "",
+  "token": ""
+}
+```
+
+**Who withdrew:** inspect the new history row’s **`actor`** (same pattern as **End**). Mobile and Dashboard use `status_histories[].actor` to show whether the requester or counterparty withdrew — there is no separate per-party terminal status.
+
+The history row’s `reason` is genuine free text or **`null`** — not a machine-code translation path (unlike dispute resolution outcomes).
+
+**Effects:**
+
+- Request status → **`withdrawn`** (terminal).
+- **No wallet impact** — these stages have no payment in escrow; no wallet hold/release Actions run.
+- **End**, **Dispute**, **Pay**, and further **Withdraw** are blocked (terminal).
+- **Chat** policy fails (same as other terminal statuses).
+- **Three distinct notifications** (see [§7](#7-notifications-the-mobile-app-should-expect)): withdrawer (confirmation), other party (informational), Admins with `manage guarantors` (visibility).
+
+**Errors:**
+
+| HTTP | Condition | Translation key | English `message` |
+|---|---|---|---|
+| 401 | Missing / invalid token | — | `Unauthenticated.` |
+| 403 | Not allowed party/status (e.g. counterparty at `approved_by_admin`, or `pending_admin`) | — | `This action is unauthorized.` |
+| 404 | Unknown guarantor UUID | `guarantor.not_found` | `Guarantor request not found` |
+| 422 | `reason` over 1000 chars | Laravel validation | `Validation Failed` + `errors.reason` array |
+| 422 | Status not `approved_by_admin` (requester) or `accepted` (either party) | `guarantor.withdraw_not_allowed` | `This guarantor request cannot be withdrawn at its current stage` |
+
+**Not allowed at:**
+
+- `pending_admin` — requester must **DELETE** (only pre-admin exit).
+- `in_progress` / `overdue` — use **End** or **Dispute** (post-payment paths).
+- Any terminal status — no further actions.
 
 ---
 
@@ -1151,6 +1227,7 @@ English labels below are the `en` translations. Colors are server hex values.
 | `cancelled_via_dispute` | Cancelled (dispute) | `#6b7280` | Admin resolved dispute — full release to counterparty. | no (admin resolution) | **yes** |
 | `escalated` | Escalated | `#7c3aed` | Admin resolved dispute — escalated to platform (terminal). | no (admin resolution) | **yes** |
 | `settled` | Settled | `#0d9488` | Admin resolved dispute — percentage split (terminal). | no (admin resolution) | **yes** |
+| `withdrawn` | Withdrawn | `#6366f1` | A party withdrew before payment (`approved_by_admin` requester-only, or `accepted` either party). Distinct from `cancelled` / `rejected`. Who withdrew is on `status_histories[].actor`. | yes — dedicated `POST .../withdraw` | **yes** |
 
 Terminal statuses cannot be left by mobile parties.
 
@@ -1160,6 +1237,8 @@ Only these succeed. Anyone / anything else → `422` `"This status transition is
 
 | Actor | From | To | How |
 |---|---|---|---|
+| Requester | `approved_by_admin` | `withdrawn` | `POST .../withdraw` `{ "reason": "..." }` (reason optional) |
+| Either party | `accepted` | `withdrawn` | `POST .../withdraw` `{ "reason": "..." }` (reason optional) |
 | Counterparty | `approved_by_admin` | `accepted` | `POST .../status` `{ "status": "accepted" }` |
 | Counterparty | `approved_by_admin` | `rejected` | `POST .../status` `{ "status": "rejected", "reason": "..." }` |
 | Counterparty | `in_progress` | `ended` | `POST .../status` `{ "status": "ended" }` |
@@ -1204,13 +1283,13 @@ Shared for both types unless noted. “User app” = counterparty. “Create app
 | Status | User (counterparty) screen | Requester screen | Enabled actions |
 |---|---|---|---|
 | `pending_admin` | Optional: “waiting for review” if they opened a deep link. **No accept, no pay, no chat.** | “Submitted — waiting for admin.” Edit / delete / replace files OK. | Update, delete, delete media (requester). Show/list for both once they can see it. |
-| `approved_by_admin` | **Decision screen:** Accept or Reject (reject requires reason). | “Waiting for the other party.” No pay, no chat. | Counterparty: status `accepted` / `rejected`. |
+| `approved_by_admin` | **Decision screen:** Accept or Reject (reject requires reason). | “Waiting for the other party.” No pay, no chat. Requester may **Withdraw** (optional reason). | Counterparty: status `accepted` / `rejected`. Requester: `POST .../withdraw`. |
 | `rejected_by_admin` | Closed. | Closed — “rejected by admin”. | None (terminal). |
-| `accepted` | **Pay full `total`.** Chat **on**. | Waiting for payment. Chat on. | Counterparty: `POST .../pay`. Both: chat. **End is disabled.** |
+| `accepted` | **Pay full `total`.** Chat **on**. Either party may **Withdraw** (optional reason). | Waiting for payment. Chat on. Either party may **Withdraw**. | Counterparty: `POST .../pay`. Both: chat or `POST .../withdraw`. **End is disabled.** |
 | `rejected` | Closed. | Closed — they rejected. | None. |
 | `in_progress` | Work in progress. Chat on. Can **End** or **Dispute**. Pay button off (already paid for Individual). | Same. Can **End** or **Dispute**. | Both: status `ended` or dispute endpoint, chat. |
 | `disputed` | Dispute open — End and pay frozen. Chat on. Await admin resolution. | Same. | Show only; no End/pay. |
-| `ended` / `ended_via_dispute` / `cancelled` / `cancelled_via_dispute` / `escalated` / `settled` | Closed / summary. Chat policy **off** (only `accepted` \| `in_progress` \| `overdue`). Existing conversation GET/send still allowed **if they are participants** — gate **opening** the guarantor chat UI on request status, not on leftover messages. | Same. | Show only. |
+| `ended` / `ended_via_dispute` / `cancelled` / `cancelled_via_dispute` / `escalated` / `settled` / `withdrawn` | Closed / summary. Chat policy **off** (only `accepted` \| `in_progress` \| `overdue` \| `disputed`). Existing conversation GET/send still allowed **if they are participants** — gate **opening** the guarantor chat UI on request status, not on leftover messages. | Same. | Show only. |
 
 There is no Individual installment list to pay. `overdue` is not part of the Individual happy path.
 
@@ -1327,6 +1406,7 @@ English title/body (keys resolve via `Accept-Language`):
 | Installment overdue (day ≥ 3) | Installment Payment Overdue | An installment payment is overdue for your guarantor request | **Both parties** | yes if User/Provider | same as due. Type: `installment overdue` |
 | Payment captured / gateway success | Guarantor Payment Received | A payment has been received for your guarantor request | **Both parties** (`GuarantorPaymentReceivedNotification`) | yes if User/Provider | `guarantor_request_id`, `type`, `payment_id`, `amount`; installment ids when applicable. Type: `guarantor payment received` |
 | Dispute opened | Guarantor dispute opened | A dispute has been opened on a guarantor request and needs review. | **Other party** (not opener) + **Admins** with `manage guarantors` | yes — User / Provider / **Admin** | `guarantor_request_id`, `type`, `reason`, `final_status: disputed`. FCM: `guarantor_request_id`, `final_status`, `screen: guarantor`. Type: `guarantor disputed` |
+| Withdrawn (pre-payment) | (audience-specific — see keys below) | (audience-specific) | **Withdrawer** (confirmation) + **Other party** (informational) + **Admins** with `manage guarantors` | yes — User / Provider / **Admin** | `guarantor_request_id`, `type`, `reason` (nullable), `final_status: withdrawn`, `audience`. FCM: `guarantor_request_id`, `final_status`, `screen: guarantor`. Type: `guarantor withdrawn` |
 | Dispute resolved (any of 4 admin outcomes) | (outcome-specific — see [§2.17](#217-dispute-feature--complete-reference)) | (outcome-specific) | **Both parties** (`GuarantorDisputeResolvedNotification`) | yes — **User / Provider only** (not Admin) | `guarantor_request_id`, `type`, `resolution`, `final_status`; split adds percentages + amounts. Type: `guarantor dispute resolved` |
 | Installment released | Installment Payment Released | An installment payment has been released to your account | **Requester only** | yes if User/Provider | includes `released_at`. Type: `installment released` |
 | Unpaid installment ≥ 14 days (Dashboard) | Unpaid overdue installment | Installment #N (amount X) is still unpaid 14+ days past due… | **Admins** with `show guarantors` | yes if Admin | `guarantor_request_id`, `installment_id`, `installment_order`, `amount`, `due_date`. Type: `unpaid overdue installment escalation` |
@@ -1379,7 +1459,7 @@ Be explicit with QA and with UI copy:
 
 3. **Payment-received push exists.** After checkout, expect `GuarantorPaymentReceivedNotification` to both parties when the gateway callback succeeds. Individual: also expect `in_progress`. Company: installment `paid`; request typically `in_progress` after first pay.
 
-4. **Parties cannot cancel** via `POST .../status` with `cancelled` (422). Only admin can cancel. Cancel notifies both parties with `GuarantorCancelledNotification` (not the Ended notification).
+4. **Parties cannot cancel** via `POST .../status` with `cancelled` (422). Only admin can cancel. Cancel notifies both parties with `GuarantorCancelledNotification` (not the Ended notification). **Parties can withdraw** before payment via `POST .../withdraw` from `approved_by_admin` (requester only) or `accepted` (either party) — distinct terminal status `withdrawn`, optional reason, no wallet impact.
 
 5. **Company cannot be ended from `accepted`**, even if installments are already paid. End is only from `in_progress` or `overdue`.
 
@@ -1397,12 +1477,12 @@ Be explicit with QA and with UI copy:
 
 ## Quick UI checklist (User / counterparty app)
 
-| Request status | Show chat | Accept/Reject | Pay Individual | Pay installment | End | Dispute |
-|---|---|---|---|---|---|---|
-| `pending_admin` | no | no | no | no | no | no |
-| `approved_by_admin` | no | **yes** | no | no | no | no |
-| `accepted` | **yes** | no | **yes** (Individual) | **yes** (Company, in order) | no | no |
-| `in_progress` | **yes** | no | no | **yes** if pending remain | **yes** | **yes** |
-| `overdue` | **yes** | no | no | **yes** | **yes** | **yes** |
-| `disputed` | **yes** | no | no | no | no | no |
-| terminal (`rejected*`, `ended*`, `cancelled*`, `escalated`, `settled`) | no (entry) | no | no | no | no | no |
+| Request status | Show chat | Accept/Reject | Pay Individual | Pay installment | End | Dispute | Withdraw |
+|---|---|---|---|---|---|---|---|
+| `pending_admin` | no | no | no | no | no | no | no |
+| `approved_by_admin` | no | **yes** (counterparty) | no | no | no | no | **yes** (requester only) |
+| `accepted` | **yes** | no | **yes** (Individual) | **yes** (Company, in order) | no | no | **yes** (either party) |
+| `in_progress` | **yes** | no | no | **yes** if pending remain | **yes** | **yes** | no |
+| `overdue` | **yes** | no | no | **yes** | **yes** | **yes** | no |
+| `disputed` | **yes** | no | no | no | no | no | no |
+| terminal (`rejected*`, `ended*`, `cancelled*`, `escalated`, `settled`, `withdrawn`) | no (entry) | no | no | no | no | no | no |

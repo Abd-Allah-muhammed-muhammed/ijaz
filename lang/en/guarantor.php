@@ -21,6 +21,7 @@ return [
         'disputed' => 'Disputed',
         'escalated' => 'Escalated',
         'settled' => 'Settled',
+        'withdrawn' => 'Withdrawn',
     ],
     'installment_status' => [
         'pending' => 'Pending',
@@ -46,6 +47,7 @@ return [
     'cannot_delete_non_new' => 'You can only delete requests pending admin review',
     'cannot_delete_media_non_new' => 'You can only delete media while pending admin review',
     'status_transition_not_allowed' => 'This status transition is not allowed',
+    'withdraw_not_allowed' => 'This guarantor request cannot be withdrawn at its current stage',
     'dispute_reason_required' => 'A reason is required to open a dispute',
     'dispute_resolution' => [
         'full_requester' => 'Full to requester',
