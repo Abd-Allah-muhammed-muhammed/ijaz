@@ -186,16 +186,14 @@ test('POST /guarantor/{id}/accept is rejected from any status other than approve
     ])->assertForbidden();
 });
 
-test('POST /guarantor/{id}/status with {"status": "accepted"} is now rejected for the counterparty with a clear message — accept must go through /accept', function () {
+test('POST /guarantor/{id}/status no longer exists — accept must go through /accept', function () {
     ['counterparty' => $counterparty, 'request' => $request] = acceptContext();
 
     Sanctum::actingAs($counterparty);
 
-    $this->postJson(route('api.v1.guarantor.guarantor.updateStatus', $request), [
+    $this->postJson('/api/v1/guarantor/'.$request->id.'/status', [
         'status' => GuarantorStatusEnum::Accepted->value,
-    ])
-        ->assertUnprocessable()
-        ->assertJsonPath('message', __('guarantor.accept_via_dedicated_endpoint'));
+    ])->assertNotFound();
 });
 
 test('a re-accept attempt (already accepted) via /accept is rejected cleanly, not a raw exception', function () {

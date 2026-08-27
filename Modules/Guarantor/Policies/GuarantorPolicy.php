@@ -26,12 +26,13 @@ class GuarantorPolicy
             && $request->status->is(GuarantorStatusEnum::PendingAdmin);
     }
 
-    public function updateStatus(Model $user, GuarantorRequest $request): bool
+    public function accept(Model $user, GuarantorRequest $request): bool
     {
-        return $this->isParty($user, $request);
+        return $this->isCounterparty($user, $request)
+            && $request->status->is(GuarantorStatusEnum::ApprovedByAdmin);
     }
 
-    public function accept(Model $user, GuarantorRequest $request): bool
+    public function reject(Model $user, GuarantorRequest $request): bool
     {
         return $this->isCounterparty($user, $request)
             && $request->status->is(GuarantorStatusEnum::ApprovedByAdmin);

@@ -26,20 +26,23 @@ Route::prefix('guarantor')->name('guarantor.')->group(function () {
         Route::delete('/{guarantorRequest}', [GuarantorController::class, 'destroy'])
             ->name('destroy');
 
-        Route::post('/{guarantorRequest}/status', [GuarantorController::class, 'updateStatus'])
-            ->name('updateStatus');
-
         Route::post('/{guarantorRequest}/pay', [GuarantorController::class, 'pay'])
             ->name('pay');
+
+        Route::post('/{guarantorRequest}/accept', [GuarantorController::class, 'accept'])
+            ->name('accept');
+
+        Route::post('/{guarantorRequest}/reject', [GuarantorController::class, 'reject'])
+            ->name('reject');
+
+        Route::post('/{guarantorRequest}/end', [GuarantorController::class, 'end'])
+            ->name('end');
 
         Route::post('/{guarantorRequest}/dispute', [GuarantorController::class, 'dispute'])
             ->name('dispute');
 
         Route::post('/{guarantorRequest}/withdraw', [GuarantorController::class, 'withdraw'])
             ->name('withdraw');
-
-        Route::post('/{guarantorRequest}/accept', [GuarantorController::class, 'accept'])
-            ->name('accept');
 
         Route::delete('/{guarantorRequest}/media/{media:uuid}', [GuarantorController::class, 'deleteMedia'])
             ->name('deleteMedia');

@@ -18,6 +18,7 @@ use Modules\Guarantor\Actions\Guarantor\CreateIndividualGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\DeleteGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\EndGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\OpenGuarantorDisputeAction;
+use Modules\Guarantor\Actions\Guarantor\RejectGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorStatusAction;
 use Modules\Guarantor\Actions\Installment\PayInstallmentAction;
 use Modules\Guarantor\Actions\Installment\ReleaseInstallmentAction;
@@ -48,7 +49,6 @@ use Modules\Guarantor\Notifications\GuarantorCreatedNotification;
 use Modules\Guarantor\Notifications\GuarantorEndedNotification;
 use Modules\Guarantor\Notifications\GuarantorPendingReviewNotification;
 use Modules\Guarantor\Notifications\InstallmentReleasedNotification;
-use Modules\Guarantor\Services\GuarantorService;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Models\Payment;
 use Spatie\Permission\Models\Permission;
@@ -358,14 +358,11 @@ test('counterparty can reject after admin approval', function () {
     $counterparty = $guarantorRequest->counterparty;
     $requester = $guarantorRequest->requester;
 
-    $updated = app(UpdateGuarantorStatusAction::class)->handle(
+    $updated = app(RejectGuarantorAction::class)->handle(
         $guarantorRequest,
-        new UpdateGuarantorStatusData(
-            status: GuarantorStatusEnum::Rejected,
-            reason: 'Not acceptable',
-        ),
         $counterparty,
         'counterparty',
+        'Not acceptable',
     );
 
     expect($updated->status)->toBe(GuarantorStatusEnum::Rejected)
@@ -377,16 +374,20 @@ test('counterparty can reject after admin approval', function () {
 test('requester cannot accept or reject', function () {
     $guarantorRequest = GuarantorRequest::factory()->approvedByAdmin()->create();
     $requester = $guarantorRequest->requester;
-    $service = app(GuarantorService::class);
-    $actorRole = $service->resolveActorRole($guarantorRequest, $requester);
 
-    $service->updateStatus(
+    expect(fn () => app(AcceptGuarantorAction::class)->handle(
         $guarantorRequest,
-        new UpdateGuarantorStatusData(status: GuarantorStatusEnum::Accepted),
         $requester,
-        $actorRole,
-    );
-})->throws(GuarantorException::class);
+        UploadedFile::fake()->create('sig.pdf', 100, 'application/pdf'),
+    ))->toThrow(GuarantorException::class);
+
+    expect(fn () => app(RejectGuarantorAction::class)->handle(
+        $guarantorRequest->fresh(),
+        $requester,
+        'requester',
+        'Nope',
+    ))->toThrow(GuarantorException::class);
+});
 
 test('chat opens when counterparty accepts', function () {
     $guarantorRequest = GuarantorRequest::factory()->approvedByAdmin()->create();

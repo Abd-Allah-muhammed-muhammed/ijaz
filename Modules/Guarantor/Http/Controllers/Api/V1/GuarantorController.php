@@ -12,13 +12,12 @@ use Modules\Guarantor\DTOs\GuarantorData;
 use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\DTOs\GuarantorUploadData;
 use Modules\Guarantor\DTOs\InstallmentData;
-use Modules\Guarantor\DTOs\UpdateGuarantorStatusData;
 use Modules\Guarantor\Http\Requests\AcceptGuarantorRequest;
 use Modules\Guarantor\Http\Requests\OpenGuarantorDisputeRequest;
+use Modules\Guarantor\Http\Requests\RejectGuarantorRequest;
 use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
 use Modules\Guarantor\Http\Requests\StoreIndividualGuarantorRequest;
 use Modules\Guarantor\Http\Requests\UpdateGuarantorRequest;
-use Modules\Guarantor\Http\Requests\UpdateGuarantorStatusRequest;
 use Modules\Guarantor\Http\Requests\WithdrawGuarantorRequest;
 use Modules\Guarantor\Http\Resources\Api\GuarantorCollection;
 use Modules\Guarantor\Http\Resources\Api\GuarantorResource;
@@ -266,37 +265,67 @@ class GuarantorController extends Controller
     }
 
     /**
-     * Update guarantor request status.
+     * Reject a guarantor request (counterparty only).
      *
-     * Approve, reject, cancel, end, or open dispute on a guarantor request. Reason is required for reject, cancel, and disputed.
+     * Counterparty may reject from `approved_by_admin` with a mandatory reason (max 1000).
+     * Terminal — no payment, chat, or further party transitions.
      *
      * @authenticated
      *
      * @urlParam guarantorRequest string required Guarantor request UUID.
      *
-     * @bodyParam status string required New status. Valid values: new, pending_admin, approved_by_admin, rejected_by_admin, accepted, rejected, in_progress, overdue, disputed, ended, ended_via_dispute, cancelled, cancelled_via_dispute, escalated, settled. Example: accepted
-     * @bodyParam reason string Reason (required when status is rejected, cancelled, or disputed; max 1000).
-     * @bodyParam notes string optional Additional notes (max 2000).
+     * @bodyParam reason string required Why the request is being rejected (max 1000).
      *
-     * @response 200 { "success": true, "data": {}, "errors": {}, "message": "", "token": "" }
+     * @response 200 { "success": true, "data": { "status": { "value": "rejected" } }, "errors": {}, "message": "", "token": "" }
+     * @response 401 { "success": false, "data": [], "errors": {}, "message": "Unauthenticated.", "token": "" }
+     * @response 403 { "success": false, "data": [], "errors": {}, "message": "This action is unauthorized.", "token": "" }
+     * @response 422 { "success": false, "data": [], "errors": { "reason": ["The reason field is required."] }, "message": "Validation Failed", "token": "" }
+     */
+    public function reject(
+        RejectGuarantorRequest $request,
+        GuarantorRequest $guarantorRequest,
+    ): JsonResponse {
+        $this->authorize('reject', $guarantorRequest);
+
+        $actorRole = $this->service->resolveActorRole($guarantorRequest, auth()->user());
+
+        $updated = $this->service->reject(
+            $guarantorRequest,
+            auth()->user(),
+            $actorRole,
+            (string) $request->validated('reason'),
+        );
+
+        return $this->successResponse(
+            GuarantorResource::make($this->service->loadForShow($updated))
+        );
+    }
+
+    /**
+     * End a guarantor request.
+     *
+     * Either party may end from `in_progress` or `overdue`. Releases escrow / paid installment holds.
+     * Not available while disputed or from `accepted` (pre-payment).
+     *
+     * @authenticated
+     *
+     * @urlParam guarantorRequest string required Guarantor request UUID.
+     *
+     * @response 200 { "success": true, "data": { "status": { "value": "ended" } }, "errors": {}, "message": "", "token": "" }
      * @response 401 { "success": false, "data": [], "errors": {}, "message": "Unauthenticated.", "token": "" }
      * @response 403 { "success": false, "data": [], "errors": {}, "message": "This action is unauthorized.", "token": "" }
      * @response 422 { "success": false, "data": [], "errors": {}, "message": "This status transition is not allowed", "token": "" }
      */
-    public function updateStatus(
-        UpdateGuarantorStatusRequest $request,
-        GuarantorRequest $guarantorRequest,
-    ): JsonResponse {
-        $this->authorize('updateStatus', $guarantorRequest);
+    public function end(GuarantorRequest $guarantorRequest): JsonResponse
+    {
+        $this->authorize('end', $guarantorRequest);
 
-        $data = UpdateGuarantorStatusData::fromRequest($request);
         $actorRole = $this->service->resolveActorRole($guarantorRequest, auth()->user());
 
-        $updated = $this->service->updateStatus(
+        $updated = $this->service->end(
             $guarantorRequest,
-            $data,
             auth()->user(),
-            $actorRole
+            $actorRole,
         );
 
         return $this->successResponse(
@@ -309,7 +338,6 @@ class GuarantorController extends Controller
      *
      * Either party may open a dispute from `in_progress` or `overdue` with a mandatory reason (max 1000).
      * Freezes End and further installment payments; chat and Admin Cancel remain available.
-     * Alternative: POST .../status with status=disputed and the same reason field.
      *
      * @authenticated
      *
@@ -384,7 +412,7 @@ class GuarantorController extends Controller
      * Accept a guarantor request (counterparty only).
      *
      * Counterparty must upload a digital signature. Status must be `approved_by_admin`.
-     * Replaces `POST .../status` with `status=accepted` for mobile parties.
+     * Use this dedicated endpoint — there is no generic status-update route for parties.
      *
      * @authenticated
      *
