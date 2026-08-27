@@ -319,6 +319,8 @@ Loaded on **show** and **update**, not on create.
 
 `from_status` is `null` on the first history row (creation).
 
+`reason` is `{ "value": string, "label": string } | null` — mirrors the `status`/`type` object shape (without `color`, since free text has no semantic color). Render `reason.label` directly; it respects `Accept-Language`. For genuine free-text reasons, `value === label`. For machine-generated dispute-outcome codes (e.g. `dispute_resolved_full_requester`), `value` keeps the raw code for client branching and `label` carries the translated `guarantor.dispute_outcome_*` text. When there is no reason, `reason` is **`null`** (not an object with null fields inside), matching the `from_status: null` precedent.
+
 ### Guarantor request (full resource)
 
 Keys that are **always** present:
@@ -687,7 +689,10 @@ Admin-only transitions (`approved_by_admin`, `rejected_by_admin`, `cancelled`, `
         "id": "9f3c2a1b-0000-4000-8000-000000000040",
         "from_status": { "value": "in_progress", "label": "In Progress", "color": "#06b6d4" },
         "to_status": { "value": "disputed", "label": "Disputed", "color": "#dc2626" },
-        "reason": "Work not delivered as agreed",
+        "reason": {
+          "value": "Work not delivered as agreed",
+          "label": "Work not delivered as agreed"
+        },
         "notes": null,
         "actor": { "id": 1, "name": "…", "type": "user", "image": null, "phone": "0501112233" },
         "created_at": "2026-08-20T14:00:00+00:00"
@@ -707,7 +712,7 @@ Admin-only transitions (`approved_by_admin`, `rejected_by_admin`, `cancelled`, `
 }
 ```
 
-The new history row’s `reason` is the **verbatim user string** from the request body (not a translation key).
+The new history row’s `reason.value` is the verbatim user string from the request body (not a translation key); for free-text dispute reasons, `reason.label` equals `reason.value`.
 
 **Side effects:**
 
@@ -1061,7 +1066,7 @@ For **percentage splits**, `GuarantorResource` exposes a durable `dispute_resolu
 
 For non-split outcomes, rely on `status`, `status_histories`, and notifications only.
 
-| Admin outcome | Resulting `status.value` | Terminal? | `status_histories` `reason` (exact string from code) | Other fields on show |
+| Admin outcome | Resulting `status.value` | Terminal? | `status_histories` `reason.value` (exact string from code) | Other fields on show |
 |---|---|---|---|---|
 | Full to requester | `ended_via_dispute` | yes | `dispute_resolved_full_requester` | `ended_at` set; `dispute_resolution`: `null` |
 | Full to counterparty | `cancelled_via_dispute` | yes | `dispute_resolved_full_counterparty` | `cancelled_at` set; `cancellation_reason` = **`dispute_resolved_full_counterparty`** (machine string, not admin prose); `dispute_resolution`: `null` |
@@ -1076,7 +1081,7 @@ Dashboard **Cancel** while status is `disputed`:
 
 - Final status → **`cancelled`** (not `cancelled_via_dispute`).
 - `cancellation_reason` → admin’s cancel reason string from the Dashboard form.
-- An **extra** history row is appended: `from_status`/`to_status` both `cancelled`, `reason` = **`dispute_closed_by_admin_cancel`** (constant in `GuarantorDisputeHistoryReason`).
+- An **extra** history row is appended: `from_status`/`to_status` both `cancelled`, `reason.value` = **`dispute_closed_by_admin_cancel`** (constant in `GuarantorDisputeHistoryReason`).
 - Both parties receive **`GuarantorCancelledNotification`** (not `GuarantorDisputeResolvedNotification`).
 
 ### Dispute-related notifications
