@@ -43,7 +43,7 @@ const Edit = ({ row }: Props) => {
         <KTCard className="p-4">
           <Form
             row={row}
-            logoUrl={row.logo_url || '/media/avatars/blank.png'}
+            logoUrl={row.logo || '/media/avatars/blank.png'}
             callback={(form) => {
               form.submit(BankController.update(row.id as number));
             }}

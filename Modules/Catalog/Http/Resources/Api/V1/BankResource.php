@@ -14,7 +14,7 @@ class BankResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'logo_url' => $this->logo_url,
+            'logo' => $this->logo_url,
             'is_active' => $this->is_active,
         ];
     }

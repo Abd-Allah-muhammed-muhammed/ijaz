@@ -184,7 +184,7 @@ export interface ElectronicBrandTranslation extends Model {
 
 export interface Bank extends Model {
   name: string;
-  logo_url: string | null;
+  logo: string | null;
   is_active: boolean;
   translations?: Record<string, BankTranslation>;
   translation?: BankTranslation;

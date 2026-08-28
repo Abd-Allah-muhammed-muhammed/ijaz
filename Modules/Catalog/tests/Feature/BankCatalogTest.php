@@ -70,14 +70,37 @@ test('GET /api/v1/catalog/banks no longer includes a translations field', functi
     expect($response->json('data.items.0'))->not->toHaveKey('translations');
 });
 
-test('GET /api/v1/catalog/banks still includes id, name (current locale), logo_url, is_active — everything mobile actually needs, unchanged', function () {
+test('GET /api/v1/catalog/banks returns logo, not logo_url', function () {
     Bank::factory()->create(['translations' => geoNameTranslations('MobileShape')]);
 
     $response = $this->getJson('/api/v1/catalog/banks?search=MobileShape');
     $response->assertSuccessful();
 
-    expect(array_keys($response->json('data.items.0')))->toBe(['id', 'name', 'logo_url', 'is_active'])
+    expect(array_keys($response->json('data.items.0')))->toBe(['id', 'name', 'logo', 'is_active'])
+        ->and($response->json('data.items.0'))->not->toHaveKey('logo_url')
         ->and($response->json('data.items.0.name'))->toBe('MobileShape EN');
+});
+
+test('Dashboard bank resource returns logo, not logo_url', function () {
+    withoutGeoDashboardLocaleMiddleware();
+    $admin = createGeoDashboardAdmin(['show banks']);
+    $bank = Bank::factory()->create(['translations' => geoNameTranslations('DashboardLogo')]);
+    $bank->addMedia(UploadedFile::fake()->image('bank-logo.png', 32, 32))->toMediaCollection('logo');
+
+    $this->actingAs($admin, 'admin')
+        ->get(action([BankController::class, 'index']))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Banks/Index')
+            ->where(
+                'rows.data',
+                fn ($rows) => collect($rows)->contains(
+                    fn ($row) => (int) $row['id'] === $bank->id
+                        && array_key_exists('logo', $row)
+                        && ! array_key_exists('logo_url', $row)
+                )
+            )
+        );
 });
 
 test('the Dashboard banks admin resource (used by the edit form) still exposes all 4 locale translations — unaffected, this removal is public-API-only', function () {
@@ -179,7 +202,7 @@ test('existing regions/cities dashboard index tests still pass — regression, c
         ->assertInertia(fn ($page) => $page->component('Dashboard/Cities/Index'));
 });
 
-test('GET /api/v1/catalog/banks returns items with id, name (current locale), and logo_url, matching the mobile catalog contract shape', function () {
+test('GET /api/v1/catalog/banks returns items with id, name (current locale), and logo, matching the mobile catalog contract shape', function () {
     Bank::factory()->create(['translations' => geoNameTranslations('Riyad')]);
 
     $response = $this->getJson('/api/v1/catalog/banks');
@@ -192,7 +215,28 @@ test('GET /api/v1/catalog/banks returns items with id, name (current locale), an
         ])
         ->and($json['data']['items'])->toBeArray()->not->toBeEmpty();
 
-    expect(array_keys($json['data']['items'][0]))->toBe(['id', 'name', 'logo_url', 'is_active']);
+    expect(array_keys($json['data']['items'][0]))->toBe(['id', 'name', 'logo', 'is_active']);
+});
+
+test('the logo value itself is unchanged (same URL/null semantics) — only the key name changes', function () {
+    $bank = Bank::factory()->create(['translations' => geoNameTranslations('LogoValue')]);
+    $bank->addMedia(UploadedFile::fake()->image('logo-value.png', 32, 32))->toMediaCollection('logo');
+
+    $apiItem = $this->getJson('/api/v1/catalog/banks?search=LogoValue')
+        ->assertSuccessful()
+        ->json('data.items.0');
+
+    expect($apiItem['logo'])->toBe($bank->fresh()->getLogoUrl())
+        ->and($apiItem)->not->toHaveKey('logo_url');
+
+    $bankWithoutLogo = Bank::factory()->create(['translations' => geoNameTranslations('NoLogoBank')]);
+
+    $nullLogoItem = $this->getJson('/api/v1/catalog/banks?search=NoLogoBank')
+        ->assertSuccessful()
+        ->json('data.items.0');
+
+    expect($nullLogoItem['logo'])->toBeNull()
+        ->and($nullLogoItem)->not->toHaveKey('logo_url');
 });
 
 test('Bank admin CRUD respects the same permission pattern as Region (show/create/edit/delete banks)', function () {

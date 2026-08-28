@@ -50,7 +50,7 @@ class CompanyDetailResource extends JsonResource
     }
 
     /**
-     * @return array{value: string, label: string, logo_url: string|null}|null
+     * @return array{value: string, label: string, logo: string|null}|null
      */
     private function formatBank(?Bank $bank): ?array
     {
@@ -61,7 +61,7 @@ class CompanyDetailResource extends JsonResource
         return [
             'value' => $bank->getValue(),
             'label' => $bank->getLabel(),
-            'logo_url' => $bank->getLogoUrl(),
+            'logo' => $bank->getLogoUrl(),
         ];
     }
 

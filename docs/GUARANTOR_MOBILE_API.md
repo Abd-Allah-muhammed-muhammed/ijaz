@@ -304,7 +304,7 @@ Returned on company requests when loaded (create company, show, update).
   "authorization_type": { "value": "owner", "label": "Owner" },
   "requester_account_holder": "Acme Contracting",
   "requester_iban": "SA0380000000608010167519",
-  "requester_bank": { "value": "1", "label": "Saudi National Bank", "logo_url": "https://example.test/storage/1/logo.png" },
+  "requester_bank": { "value": "1", "label": "Saudi National Bank", "logo": "https://example.test/storage/1/logo.png" },
   "counterparty_account_holder": "Ahmed Mohamed",
   "counterparty_iban": null,
   "counterparty_bank": null,
@@ -331,7 +331,7 @@ Returned on company requests when loaded (create company, show, update).
 
 `counterparty_iban` may be `null` (field is optional on create).
 
-`requester_bank` and `counterparty_bank` are `{ "value": string, "label": string, "logo_url": string | null } | null` objects when the relation is loaded (same shape as `type` / `status` objects, plus `logo_url`). `requester_bank` is always present on create responses when a bank was selected. `counterparty_bank` may be `null`.
+`requester_bank` and `counterparty_bank` are `{ "value": string, "label": string, "logo": string | null } | null` objects when the relation is loaded (same shape as `type` / `status` objects, plus `logo`). `requester_bank` is always present on create responses when a bank was selected. `counterparty_bank` may be `null`.
 
 `terms_notes` is an optional plain string (max 2000 characters on create).
 
@@ -353,7 +353,7 @@ Returned on company requests when loaded (create company, show, update).
       {
         "id": 1,
         "name": "Saudi National Bank",
-        "logo_url": "https://example.test/storage/1/logo.png",
+        "logo": "https://example.test/storage/1/logo.png",
         "is_active": true
       }
     ],

@@ -15,7 +15,7 @@ class BankResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'is_active' => $this->is_active,
-            'logo_url' => $this->logo_url,
+            'logo' => $this->logo_url,
             'translations' => $this->whenLoaded('translations', function () {
                 return $this->translations->keyBy('locale');
             }),

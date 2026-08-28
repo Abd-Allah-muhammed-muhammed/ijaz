@@ -147,7 +147,7 @@ test('terms_notes is nullable, optional, max length enforced, and persists corre
         ->and($tooLong->errors()->has('terms_notes'))->toBeTrue();
 });
 
-test('CompanyDetailResource exposes bank as a {value, label, logo_url} style object for both requester and counterparty, plus terms_notes as a plain string', function () {
+test('CompanyDetailResource requester_bank/counterparty_bank objects return logo, not logo_url', function () {
     $requesterBank = activeBank(geoNameTranslations('Requester Bank'));
     $requesterBank->addMedia(UploadedFile::fake()->image('rb.png', 32, 32))->toMediaCollection('logo');
 
@@ -177,10 +177,13 @@ test('CompanyDetailResource exposes bank as a {value, label, logo_url} style obj
             'value' => (string) $requesterBank->id,
             'label' => 'Requester Bank EN',
         ])
-        ->and($data['requester_bank']['logo_url'])->not->toBeEmpty()
+        ->and($data['requester_bank']['logo'])->toBe($requesterBank->getLogoUrl())
+        ->and($data['requester_bank'])->not->toHaveKey('logo_url')
         ->and($data['counterparty_bank'])->toMatchArray([
             'value' => (string) $counterpartyBank->id,
             'label' => 'Counterparty Bank EN',
+            'logo' => null,
         ])
+        ->and($data['counterparty_bank'])->not->toHaveKey('logo_url')
         ->and($data['terms_notes'])->toBe('Custom terms apply.');
 });

@@ -70,7 +70,7 @@ const Index = ({ rows, prams }: Props) => {
                 render: (row) => (
                   <div className="d-flex align-items-center gap-2">
                     <img
-                      src={row.logo_url || '/media/avatars/blank.png'}
+                      src={row.logo || '/media/avatars/blank.png'}
                       alt=""
                       className="rounded"
                       style={{ width: 28, height: 28, objectFit: 'contain' }}

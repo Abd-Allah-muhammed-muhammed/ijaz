@@ -61,10 +61,10 @@ type CompanyDetail = {
   authorization_type?: StatusOption;
   requester_account_holder?: string;
   requester_iban?: string;
-  requester_bank?: { value: string; label: string; logo_url?: string | null };
+  requester_bank?: { value: string; label: string; logo?: string | null };
   counterparty_account_holder?: string;
   counterparty_iban?: string;
-  counterparty_bank?: { value: string; label: string; logo_url?: string | null };
+  counterparty_bank?: { value: string; label: string; logo?: string | null };
   terms_notes?: string | null;
   region?: { title?: string };
   city?: { title?: string };
@@ -777,9 +777,9 @@ const Show = ({ guarantorRequest }: Props) => {
                           value={
                             guarantorRequest.company_detail.requester_bank ? (
                               <div className="d-flex align-items-center gap-2">
-                                {guarantorRequest.company_detail.requester_bank.logo_url && (
+                                {guarantorRequest.company_detail.requester_bank.logo && (
                                   <img
-                                    src={guarantorRequest.company_detail.requester_bank.logo_url}
+                                    src={guarantorRequest.company_detail.requester_bank.logo}
                                     alt=""
                                     className="rounded"
                                     style={{ width: 28, height: 28, objectFit: 'contain' }}
@@ -807,9 +807,9 @@ const Show = ({ guarantorRequest }: Props) => {
                           value={
                             guarantorRequest.company_detail.counterparty_bank ? (
                               <div className="d-flex align-items-center gap-2">
-                                {guarantorRequest.company_detail.counterparty_bank.logo_url && (
+                                {guarantorRequest.company_detail.counterparty_bank.logo && (
                                   <img
-                                    src={guarantorRequest.company_detail.counterparty_bank.logo_url}
+                                    src={guarantorRequest.company_detail.counterparty_bank.logo}
                                     alt=""
                                     className="rounded"
                                     style={{ width: 28, height: 28, objectFit: 'contain' }}
