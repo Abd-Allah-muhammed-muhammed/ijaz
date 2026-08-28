@@ -377,7 +377,8 @@ Model cast cross-references come from the regenerated `docs/MODELS_REFERENCE.md`
 
 | Case | Value |
 |---|---|
-| `PowerOfAttorney` | `power_of_attorney` |
+| `Owner` | `owner` |
+| `Manager` | `manager` |
 | `Agency` | `agency` |
 
 ### Utility traits

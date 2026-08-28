@@ -59,6 +59,10 @@ function coverageCompanyUploads(): GuarantorUploadData
         'contracts' => [
             UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf'),
         ],
+        'iban_certificate' => UploadedFile::fake()->create('iban.pdf', 100, 'application/pdf'),
+        'cr_file' => UploadedFile::fake()->create('cr.pdf', 100, 'application/pdf'),
+        'articles_of_association' => UploadedFile::fake()->create('aoa.pdf', 100, 'application/pdf'),
+        'national_address_file' => UploadedFile::fake()->create('national-address.pdf', 100, 'application/pdf'),
     ]));
 }
 
@@ -137,9 +141,10 @@ test('company create persists installments with correct order and amounts', func
             city_id: null,
             authorized_name: 'John Doe',
             authorized_id_number: '1234567890',
-            authorization_type: 'power_of_attorney',
+            authorization_type: 'owner',
             requester_account_holder: 'Requester Name',
             requester_iban: 'SA1234567890123456789012',
+            requester_bank_id: defaultGuarantorTestBankId(),
             counterparty_account_holder: 'Counterparty Name',
         ),
         [

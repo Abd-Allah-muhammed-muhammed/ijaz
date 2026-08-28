@@ -28,11 +28,21 @@ const REQUEST_COLLECTIONS: CollectionDef[] = [
   { key: 'files', labelKey: 'guarantor.documents_files' },
 ];
 
-const COMPANY_COLLECTIONS: CollectionDef[] = [
+const REQUESTER_COLLECTIONS: CollectionDef[] = [
   { key: 'authorized_id', labelKey: 'guarantor.documents_authorized_id' },
   { key: 'contracts', labelKey: 'guarantor.documents_contracts' },
-  { key: 'iban_certificates', labelKey: 'guarantor.documents_iban_certificates' },
   { key: 'company_documents', labelKey: 'guarantor.documents_company_documents' },
+  { key: 'requester_iban_certificate', labelKey: 'guarantor.documents_requester_iban_certificate' },
+  { key: 'requester_cr_file', labelKey: 'guarantor.documents_requester_cr_file' },
+  { key: 'requester_articles_of_association', labelKey: 'guarantor.documents_requester_articles_of_association' },
+  { key: 'requester_national_address_file', labelKey: 'guarantor.documents_requester_national_address_file' },
+];
+
+const COUNTERPARTY_COLLECTIONS: CollectionDef[] = [
+  { key: 'counterparty_iban_certificate', labelKey: 'guarantor.documents_counterparty_iban_certificate' },
+  { key: 'counterparty_cr_file', labelKey: 'guarantor.documents_counterparty_cr_file' },
+  { key: 'counterparty_articles_of_association', labelKey: 'guarantor.documents_counterparty_articles_of_association' },
+  { key: 'counterparty_national_address_file', labelKey: 'guarantor.documents_counterparty_national_address_file' },
 ];
 
 const isImage = (mime?: string) => Boolean(mime?.startsWith('image/'));
@@ -129,17 +139,31 @@ const DocumentsTab = ({ requestMedia = [], companyMedia = [], isCompany }: Props
       </div>
 
       {isCompany && (
-        <div>
-          <h3 className="fw-bolder text-gray-900 mb-5">{t('guarantor.company_documents_group')}</h3>
-          {COMPANY_COLLECTIONS.map((collection) => (
-            <CollectionGroup
-              key={collection.key}
-              title={t(collection.labelKey)}
-              items={filterBy(companyMedia, collection.key)}
-              emptyLabel={emptyLabel}
-            />
-          ))}
-        </div>
+        <>
+          <div>
+            <h3 className="fw-bolder text-gray-900 mb-5">{t('guarantor.requester_documents_group')}</h3>
+            {REQUESTER_COLLECTIONS.map((collection) => (
+              <CollectionGroup
+                key={collection.key}
+                title={t(collection.labelKey)}
+                items={filterBy(companyMedia, collection.key)}
+                emptyLabel={emptyLabel}
+              />
+            ))}
+          </div>
+
+          <div>
+            <h3 className="fw-bolder text-gray-900 mb-5">{t('guarantor.counterparty_documents_group')}</h3>
+            {COUNTERPARTY_COLLECTIONS.map((collection) => (
+              <CollectionGroup
+                key={collection.key}
+                title={t(collection.labelKey)}
+                items={filterBy(companyMedia, collection.key)}
+                emptyLabel={emptyLabel}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

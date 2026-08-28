@@ -245,7 +245,22 @@ On **chat** conversation participants, `phone` is **not** included; chat adds no
 
 **Collections on the guarantor request itself:** `requester_signature` (create — requester’s digital signature), `counterparty_signature` (accept — counterparty’s digital signature via `POST .../accept`), `files` (update uploads).
 
-**Collections on company details** (nested under `company_detail.media`, **not** request `media`): `authorized_id`, `contracts`, `iban_certificates`, `company_documents`.
+**Collections on company details** (nested under `company_detail.media`, **not** request `media`): `authorized_id`, `contracts`, `company_documents`, plus the eight KYC collections below.
+
+**KYC collections on company details** (also exposed grouped under `company_detail.requester_documents` and `company_detail.counterparty_documents`; each non-null value is a full `MediaResource`, identical to `company_detail.media[]`):
+
+| Party | MediaLibrary collection | Create / Accept field |
+|---|---|---|
+| Requester | `requester_iban_certificate` | `iban_certificate` (create, **required**) |
+| Requester | `requester_cr_file` | `cr_file` (create, **required**) |
+| Requester | `requester_articles_of_association` | `articles_of_association` (create, **required**) |
+| Requester | `requester_national_address_file` | `national_address_file` (create, **required**) |
+| Counterparty | `counterparty_iban_certificate` | `iban_certificate` (accept, **required** for Company only) |
+| Counterparty | `counterparty_cr_file` | `cr_file` (accept, **required** for Company only) |
+| Counterparty | `counterparty_articles_of_association` | `articles_of_association` (accept, **required** for Company only) |
+| Counterparty | `counterparty_national_address_file` | `national_address_file` (accept, **required** for Company only) |
+
+> **Breaking change:** the old optional multi-file collection `iban_certificates` is renamed to `requester_iban_certificate` (`singleFile`, **required** at create). Run manual SQL on existing `media` rows if upgrading data (see deployment notes).
 
 The delete-media URL only targets media on the **request**. Company-detail files are not deleted by that endpoint.
 
@@ -286,20 +301,85 @@ Returned on company requests when loaded (create company, show, update).
   "commercial_register": "1010123456",
   "authorized_name": "Khalid Al Saud",
   "authorized_id_number": "1098765432",
-  "authorization_type": { "value": "power_of_attorney", "label": "Power of Attorney" },
+  "authorization_type": { "value": "owner", "label": "Owner" },
   "requester_account_holder": "Acme Contracting",
   "requester_iban": "SA0380000000608010167519",
+  "requester_bank": { "id": 1, "name": "Saudi National Bank", "logo": "https://example.test/storage/1/logo.png", "is_active": true },
   "counterparty_account_holder": "Ahmed Mohamed",
   "counterparty_iban": null,
+  "counterparty_bank": null,
+  "terms_notes": "Late payment subject to contract clause 12.",
   "region": { "id": 1, "title": "Riyadh" },
   "city": { "id": 3, "title": "Riyadh", "region_id": 1 },
-  "media": []
+  "media": [],
+  "requester_documents": {
+    "iban_certificate": {
+      "id": "9f3c2a1b-0000-4000-8000-000000000010",
+      "name": "iban",
+      "collection_name": "requester_iban_certificate",
+      "file_name": "iban.pdf",
+      "mime_type": "application/pdf",
+      "type": "application",
+      "url": "https://example.com/storage/...",
+      "extension": "pdf",
+      "size": "100 KB"
+    },
+    "cr_file": null,
+    "articles_of_association": null,
+    "national_address_file": null
+  },
+  "counterparty_documents": {
+    "iban_certificate": null,
+    "cr_file": null,
+    "articles_of_association": null,
+    "national_address_file": null
+  }
 }
 ```
 
 **Ambiguous:** `region` and `city` are **not** wrapped in a dedicated resource. They are the geo models as JSON. At minimum expect `id`. Translated `title` may appear when translations are loaded. **Do not** assume a frozen geo shape. They are omitted when those relations are not loaded (create-company loads company media but **not** region/city; **show** does load them).
 
 `counterparty_iban` may be `null` (field is optional on create).
+
+`requester_bank` and `counterparty_bank` use the same **`BankResource`** shape as `GET /api/v1/catalog/banks` (`id`, `name`, `logo`, `is_active`) when the relation is loaded, or `null` when no bank is set. `requester_bank` is always present on create responses when a bank was selected. `counterparty_bank` may be `null`.
+
+`requester_documents` and `counterparty_documents` group KYC files by party. Each slot is a full **`MediaResource`** object (same shape as `company_detail.media[]` and request-level `media[]`) or `null` when not yet uploaded.
+
+`terms_notes` is an optional plain string (max 2000 characters on create).
+
+### Catalog banks lookup
+
+`GET /api/v1/catalog/banks`
+
+**Auth:** none (public catalog).
+
+**Query:** `search` (optional), `per_page` (optional, default `10`).
+
+**Success `200`:** paginated envelope matching regions/cities:
+
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "name": "Saudi National Bank",
+        "logo": "https://example.test/storage/1/logo.png",
+        "is_active": true
+      }
+    ],
+    "total": 14,
+    "count": 10,
+    "per_page": 10,
+    "current_page": 1,
+    "last_page": 2,
+    "has_more_pages": true
+  }
+}
+```
+
+Only **active** banks are returned. Use `id` as `requester_bank_id` / `counterparty_bank_id` on company create.
 
 ### Status history row
 
@@ -504,22 +584,28 @@ The counterparty is **not** notified on create. Only the requester gets “submi
 | `installments` | array | yes | min 1, max **12** items | see below |
 | `installments.*.order` | int | yes | integer, min `1` | `1` |
 | `installments.*.amount` | number | yes | numeric, min `1` | `10000` |
-| `installments.*.due_date` | date | yes | must be a **date after today** (not today). Eastern digits are normalized to Western digits before validation. | `2026-09-15` |
+| `installments.*.due_date` | date | yes | must be a **date after today** (not today). **First installment (`order = 1`)** must also fall within a server-configurable maximum number of days from today (setting key `guarantor_first_installment_max_days`; **default 5** — changeable without an app deploy). **Subsequent installments** (`order > 1`) must have a due date **on or after** the previous installment's due date (matched by `order`, not JSON array position). Eastern digits are normalized to Western digits before validation. | `2026-09-15` |
 | `company_name` | string | yes | max 255 | `Acme Contracting` |
 | `commercial_register` | string | yes | max 255 | `1010123456` |
 | `region_id` | int | no | must exist in `regions` | `1` |
 | `city_id` | int | no | must exist in `cities` | `3` |
 | `authorized_name` | string | yes | max 255 | `Khalid Al Saud` |
 | `authorized_id_number` | string | yes | max 50 | `1098765432` |
-| `authorization_type` | string | yes | `power_of_attorney` or `agency` | `power_of_attorney` |
+| `authorization_type` | string | yes | `owner`, `manager`, or `agency` | `owner` |
 | `requester_account_holder` | string | yes | max 255 | `Acme Contracting` |
 | `requester_iban` | string | yes | max 50 | `SA0380000000608010167519` |
+| `requester_bank_id` | int | yes | must exist in `banks` and `is_active = true` | `1` |
 | `counterparty_account_holder` | string | yes | max 255 | `Ahmed Mohamed` |
 | `counterparty_iban` | string | **no** | max 50 | `SA0380000000608010167520` |
+| `counterparty_bank_id` | int | **no** | must exist in `banks` and `is_active = true` when sent | `2` |
+| `terms_notes` | string | **no** | max 2000 | `Payment terms per annex A` |
 | `signature` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | |
 | `authorized_id` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | |
 | `contracts` | file[] | yes | array min 1; each jpg/jpeg/png/pdf, max **10240** KB (10 MB) | |
-| `iban_certificate` | file | no | jpg/jpeg/png/pdf, max 5120 KB | |
+| `iban_certificate` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | IBAN certificate (stored in `requester_iban_certificate`; **required** — was optional before) |
+| `cr_file` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | Commercial Register file |
+| `articles_of_association` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | Articles of Association |
+| `national_address_file` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | National Address file |
 | `company_documents` | file[] | no | each jpg/jpeg/png/pdf, max 10240 KB | |
 
 **Custom validation:**
@@ -529,6 +615,8 @@ The counterparty is **not** notified on create. Only the requester gets “submi
   - required: `"Each installment must have a due date."`
   - invalid date: `"Each installment due date must be a valid date."`
   - not after today: `"Each installment due date must be a date after today."`
+  - first installment beyond max window: `"The first installment due date must be within :days days of today."` (`:days` reflects the live `guarantor_first_installment_max_days` setting; default **5**)
+  - non-chronological schedule: `"Installment :order due date must be on or after the previous installment's due date."` (`:order` is the failing installment's `order` value)
 
 **Success `200`:** resource with `type.value = "company"`, `status.value = "pending_admin"`, `title` equal to `project_type`, `description` `""`, `installments` array, `company_detail` (media loaded; region/city usually **absent** on this response), request `media` (requester_signature).
 
@@ -638,7 +726,16 @@ Admin cancel / approve / reject / dispute-resolution remain **Dashboard-only**. 
 |---|---|---|---|
 | `signature` | file | yes | `required`, `file`, mimes: `jpg,jpeg,png,pdf`, max **5120** KB (5 MB) — same rules as create |
 
-Stored in MediaLibrary collection **`counterparty_signature`** (`singleFile`). Requester’s create-time signature remains in **`requester_signature`**.
+**Company guarantors only** — when `type.value = "company"`, these four additional fields are **required** (Individual accept remains signature-only):
+
+| Field | Type | Required | Rules |
+|---|---|---|---|
+| `iban_certificate` | file | yes (Company only) | jpg/jpeg/png/pdf, max 5120 KB → `counterparty_iban_certificate` |
+| `cr_file` | file | yes (Company only) | jpg/jpeg/png/pdf, max 5120 KB → `counterparty_cr_file` |
+| `articles_of_association` | file | yes (Company only) | jpg/jpeg/png/pdf, max 5120 KB → `counterparty_articles_of_association` |
+| `national_address_file` | file | yes (Company only) | jpg/jpeg/png/pdf, max 5120 KB → `counterparty_national_address_file` |
+
+Stored in MediaLibrary collection **`counterparty_signature`** on the request (`singleFile`). Counterparty KYC files are stored on **`company_detail`** in the `counterparty_*` collections above. Requester’s create-time signature remains in **`requester_signature`**; requester KYC files are in `requester_*` collections on `company_detail`.
 
 **Success `200`:** unified success envelope; `data` is the **show-shaped** `GuarantorResource`. Key fields after accept:
 
@@ -680,6 +777,7 @@ Stored in MediaLibrary collection **`counterparty_signature`** (`singleFile`). R
 
 - Request status → **`accepted`**.
 - Counterparty signature attached to `counterparty_signature`.
+- **Company only:** counterparty KYC files attached to `counterparty_*` collections on `company_detail`.
 - Chat conversation is created (if not already).
 - Requester is notified (`GuarantorAcceptedNotification`). Counterparty is **not** sent a self “you accepted” notification.
 - Status history row logged with the counterparty as `actor`.
@@ -1608,11 +1706,12 @@ Unused translation keys exist (`guarantor_approved` / `guarantor_has_been_approv
 
 ## 8. Field reference: `authorization_type`
 
-**Arabic context:** توكيل / وكالة.
+**Arabic context:** مالك / مدير / وكالة.
 
 | Allowed values | English label |
 |---|---|
-| `power_of_attorney` | Power of Attorney |
+| `owner` | Owner |
+| `manager` | Manager |
 | `agency` | Agency |
 
 This is **company signatory KYC metadata**, collected **once** on `POST /company`. It is stored on `company_detail.authorization_type` and returned as `{ value, label }` (no color).
@@ -1621,7 +1720,7 @@ This is **company signatory KYC metadata**, collected **once** on `POST /company
 
 - Payment is **always** the **counterparty** (the User whose phone was entered).
 - Individual pay and installment pay policies ignore `authorization_type`.
-- Choosing `agency` vs `power_of_attorney` does **not** grant the requester (or anyone else) permission to pay.
+- Choosing `owner`, `manager`, or `agency` does **not** grant the requester (or anyone else) permission to pay.
 
 Update endpoint cannot change this field after create.
 

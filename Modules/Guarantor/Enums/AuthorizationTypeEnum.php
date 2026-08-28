@@ -10,7 +10,8 @@ enum AuthorizationTypeEnum: string
 {
     use Collectable, HasOperations, Stringable;
 
-    case PowerOfAttorney = 'power_of_attorney';
+    case Owner = 'owner';
+    case Manager = 'manager';
     case Agency = 'agency';
 
     public function toString(): string

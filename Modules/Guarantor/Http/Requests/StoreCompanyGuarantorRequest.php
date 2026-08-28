@@ -10,6 +10,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 use Modules\Guarantor\Enums\AuthorizationTypeEnum;
 use Modules\Guarantor\Rules\CheckAuthenticatableId;
+use Modules\Guarantor\Support\CompanyInstallmentScheduleValidator;
 
 class StoreCompanyGuarantorRequest extends ApiRequest
 {
@@ -47,13 +48,25 @@ class StoreCompanyGuarantorRequest extends ApiRequest
             ],
             'requester_account_holder' => ['required', 'string', 'max:255'],
             'requester_iban' => ['required', 'string', 'max:50', new SaudiIban],
+            'requester_bank_id' => [
+                'required',
+                Rule::exists('banks', 'id')->where('is_active', true),
+            ],
             'counterparty_account_holder' => ['required', 'string', 'max:255'],
             'counterparty_iban' => ['nullable', 'string', 'max:50', new SaudiIban],
+            'counterparty_bank_id' => [
+                'nullable',
+                Rule::exists('banks', 'id')->where('is_active', true),
+            ],
+            'terms_notes' => ['nullable', 'string', 'max:2000'],
             'signature' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'authorized_id' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'contracts' => ['required', 'array', 'min:1'],
             'contracts.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
-            'iban_certificate' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'iban_certificate' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'cr_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'articles_of_association' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'national_address_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'company_documents' => ['nullable', 'array'],
             'company_documents.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
         ];
@@ -111,37 +124,17 @@ class StoreCompanyGuarantorRequest extends ApiRequest
         $validator->after(function (Validator $v) {
             $installments = $this->input('installments', []);
 
-            if (is_array($installments) && $installments !== []) {
-                $orders = collect($installments)
-                    ->pluck('order')
-                    ->filter(static fn ($order) => $order !== null && $order !== '')
-                    ->map(static fn ($order) => (int) $order)
-                    ->values();
-
-                if ($orders->count() !== $orders->unique()->count()) {
-                    $v->errors()->add('installments', __('guarantor.installment_order_duplicate'));
-
-                    return;
-                }
-
-                $sorted = $orders->sort()->values()->all();
-                $expected = range(1, count($sorted));
-
-                if ($sorted !== $expected) {
-                    $v->errors()->add('installments', __('guarantor.installment_order_not_sequential'));
-
-                    return;
-                }
+            if (! is_array($installments) || $installments === []) {
+                return;
             }
 
-            $total = collect($installments)->sum('amount');
-            $expected = (float) $this->input('total_amount', 0);
+            $scheduleErrors = (new CompanyInstallmentScheduleValidator)->validate(
+                $installments,
+                (float) $this->input('total_amount', 0),
+            );
 
-            if (round($total, 2) !== round($expected, 2)) {
-                $v->errors()->add(
-                    'installments',
-                    __('guarantor.installments_sum_mismatch')
-                );
+            foreach ($scheduleErrors as $error) {
+                $v->errors()->add($error['field'], $error['message']);
             }
         });
     }

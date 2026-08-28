@@ -182,6 +182,21 @@ export interface ElectronicBrandTranslation extends Model {
   normalized_name?: string;
 }
 
+export interface Bank extends Model {
+  name: string;
+  logo: string | null;
+  is_active: boolean;
+  translations?: Record<string, BankTranslation>;
+  translation?: BankTranslation;
+}
+
+export interface BankTranslation extends Model {
+  bank_id: number;
+  locale: string;
+  name: string;
+  normalized_name?: string;
+}
+
 export interface Specialization extends Model {
   title: string;
   icon: string | null;

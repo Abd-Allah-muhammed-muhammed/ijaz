@@ -84,9 +84,10 @@ test('requester signature is still written to the renamed requester_signature co
             city_id: null,
             authorized_name: 'Auth',
             authorized_id_number: '1',
-            authorization_type: 'power_of_attorney',
+            authorization_type: 'owner',
             requester_account_holder: 'Holder',
             requester_iban: 'SA1234567890123456789012',
+            requester_bank_id: defaultGuarantorTestBankId(),
             counterparty_account_holder: 'CP',
         ),
         [
@@ -98,6 +99,10 @@ test('requester signature is still written to the renamed requester_signature co
             signature: acceptSignatureFile(),
             authorizedId: UploadedFile::fake()->create('id.pdf', 100, 'application/pdf'),
             contracts: [UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf')],
+            ibanCertificate: UploadedFile::fake()->create('iban.pdf', 100, 'application/pdf'),
+            crFile: UploadedFile::fake()->create('cr.pdf', 100, 'application/pdf'),
+            articlesOfAssociation: UploadedFile::fake()->create('aoa.pdf', 100, 'application/pdf'),
+            nationalAddressFile: UploadedFile::fake()->create('national-address.pdf', 100, 'application/pdf'),
         ),
     );
 

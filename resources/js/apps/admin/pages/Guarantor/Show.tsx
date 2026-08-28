@@ -4,10 +4,10 @@ import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
 import { Content } from '@/vendor/metronic/layout/components/content';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import usePermissions from '@/shared/hooks/use-permissions';
-import { Conversation } from '@/shared/types/models';
+import { Conversation, Bank } from '@/shared/types/models';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import clsx from 'clsx';
-import { ReactElement, useState } from 'react';
+import { ReactElement, ReactNode, useState } from 'react';
 import { Button, Modal } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import ChatTap from './components/chat-tap';
@@ -61,8 +61,11 @@ type CompanyDetail = {
   authorization_type?: StatusOption;
   requester_account_holder?: string;
   requester_iban?: string;
+  requester_bank?: Bank | null;
   counterparty_account_holder?: string;
   counterparty_iban?: string;
+  counterparty_bank?: Bank | null;
+  terms_notes?: string | null;
   region?: { title?: string };
   city?: { title?: string };
   media?: MediaItem[];
@@ -173,7 +176,7 @@ const PartyChip = ({
   </div>
 );
 
-const Field = ({ label, value }: { label: string; value?: string | null }) => (
+const Field = ({ label, value }: { label: string; value?: ReactNode }) => (
   <div>
     <div className="text-muted fs-8 text-uppercase fw-bold mb-1">{label}</div>
     <div className="fw-semibold text-gray-900 fs-6">{value || '—'}</div>
@@ -490,6 +493,16 @@ const Show = ({ guarantorRequest }: Props) => {
                   <p className={clsx('fs-6 mb-0 lh-lg', guarantorRequest.description ? 'text-gray-800' : 'text-muted')}>
                     {guarantorRequest.description || '—'}
                   </p>
+                  {isCompany && guarantorRequest.company_detail?.terms_notes && (
+                    <div className="mt-6">
+                      <h5 className="fw-bold text-gray-900 mb-3">
+                        {t('guarantor.terms_notes', { defaultValue: 'Terms notes' })}
+                      </h5>
+                      <p className="fs-6 mb-0 lh-lg text-gray-800">
+                        {guarantorRequest.company_detail.terms_notes}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="row g-4">
@@ -761,7 +774,25 @@ const Show = ({ guarantorRequest }: Props) => {
                       <div className="col-md-6">
                         <Field
                           label={t('guarantor.requester_iban')}
-                          value={guarantorRequest.company_detail.requester_iban}
+                          value={
+                            guarantorRequest.company_detail.requester_bank ? (
+                              <div className="d-flex align-items-center gap-2">
+                                {guarantorRequest.company_detail.requester_bank.logo && (
+                                  <img
+                                    src={guarantorRequest.company_detail.requester_bank.logo}
+                                    alt=""
+                                    className="rounded"
+                                    style={{ width: 28, height: 28, objectFit: 'contain' }}
+                                  />
+                                )}
+                                <span>{guarantorRequest.company_detail.requester_bank.name}</span>
+                                <span className="text-muted">·</span>
+                                <span>{guarantorRequest.company_detail.requester_iban}</span>
+                              </div>
+                            ) : (
+                              guarantorRequest.company_detail.requester_iban
+                            )
+                          }
                         />
                       </div>
                       <div className="col-md-6">
@@ -773,7 +804,29 @@ const Show = ({ guarantorRequest }: Props) => {
                       <div className="col-md-6">
                         <Field
                           label={t('guarantor.counterparty_iban')}
-                          value={guarantorRequest.company_detail.counterparty_iban}
+                          value={
+                            guarantorRequest.company_detail.counterparty_bank ? (
+                              <div className="d-flex align-items-center gap-2">
+                                {guarantorRequest.company_detail.counterparty_bank.logo && (
+                                  <img
+                                    src={guarantorRequest.company_detail.counterparty_bank.logo}
+                                    alt=""
+                                    className="rounded"
+                                    style={{ width: 28, height: 28, objectFit: 'contain' }}
+                                  />
+                                )}
+                                <span>{guarantorRequest.company_detail.counterparty_bank.name}</span>
+                                {guarantorRequest.company_detail.counterparty_iban && (
+                                  <>
+                                    <span className="text-muted">·</span>
+                                    <span>{guarantorRequest.company_detail.counterparty_iban}</span>
+                                  </>
+                                )}
+                              </div>
+                            ) : (
+                              guarantorRequest.company_detail.counterparty_iban
+                            )
+                          }
                         />
                       </div>
                       <div className="col-md-6">

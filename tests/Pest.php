@@ -71,6 +71,7 @@ require_once __DIR__.'/../Modules/Reviews/tests/helpers.php';
 require_once __DIR__.'/../Modules/Classifieds/tests/helpers.php';
 require_once __DIR__.'/../Modules/Support/tests/helpers.php';
 require_once __DIR__.'/../Modules/Cms/tests/helpers.php';
+require_once __DIR__.'/../Modules/Guarantor/tests/helpers.php';
 require_once __DIR__.'/../Modules/Payout/tests/helpers.php';
 require_once __DIR__.'/Helpers/orders.php';
 

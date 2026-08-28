@@ -107,9 +107,10 @@ test('CompanyDetailResource returns decrypted IBAN fields', function () {
         'commercial_register' => 'CR-1',
         'authorized_name' => 'Auth',
         'authorized_id_number' => '123',
-        'authorization_type' => AuthorizationTypeEnum::PowerOfAttorney,
+        'authorization_type' => AuthorizationTypeEnum::Owner,
         'requester_account_holder' => 'Holder',
         'requester_iban' => 'SA0380000000608010167519',
+        'requester_bank_id' => defaultGuarantorTestBankId(),
         'counterparty_account_holder' => 'CP Holder',
     ]);
 

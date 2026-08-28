@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Catalog\Http\Controllers\Dashboard\BankController;
 use Modules\Catalog\Http\Controllers\Dashboard\CarBrandController;
 use Modules\Catalog\Http\Controllers\Dashboard\CarCategoryController;
 use Modules\Catalog\Http\Controllers\Dashboard\CarTypeController;
@@ -40,4 +41,7 @@ Route::middleware(['localeSessionRedirect', 'localizationRedirect', 'localeViewP
 
         // Specializations
         Route::resource('specializations', SpecializationController::class)->except(['show']);
+
+        // Banks
+        Route::resource('banks', BankController::class)->except(['show']);
     });

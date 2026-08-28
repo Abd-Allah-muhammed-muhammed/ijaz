@@ -3,12 +3,14 @@
 namespace Modules\Guarantor\Actions\Guarantor;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Actions\Chat\OpenGuarantorChatAction;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
+use Modules\Guarantor\DTOs\GuarantorAcceptUploadData;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
+use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
+use Modules\Guarantor\Models\GuarantorCompanyDetail;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Guarantor\Notifications\GuarantorAcceptedNotification;
 use Throwable;
@@ -27,9 +29,9 @@ class AcceptGuarantorAction
     public function handle(
         GuarantorRequest $request,
         Model $actor,
-        UploadedFile $signature,
+        GuarantorAcceptUploadData $uploads,
     ): GuarantorRequest {
-        return DB::transaction(function () use ($request, $actor, $signature) {
+        return DB::transaction(function () use ($request, $actor, $uploads) {
             $request = $this->guarantorRepository->findForUpdate($request);
 
             $this->assertActorIsCounterparty($request, $actor);
@@ -44,8 +46,12 @@ class AcceptGuarantorAction
                 'status' => GuarantorStatusEnum::Accepted,
             ]);
 
-            $guarantorRequest->addMedia($signature)
+            $guarantorRequest->addMedia($uploads->signature)
                 ->toMediaCollection('counterparty_signature');
+
+            if ($guarantorRequest->type === GuarantorTypeEnum::Company) {
+                $this->attachCounterpartyDocuments($guarantorRequest, $uploads);
+            }
 
             $this->logStatusHistory->handle(
                 $guarantorRequest,
@@ -65,11 +71,44 @@ class AcceptGuarantorAction
                 'requester',
                 'counterparty',
                 'installments',
-                'companyDetail',
+                'companyDetail.media',
                 'media',
                 'statusHistories',
             ]);
         });
+    }
+
+    private function attachCounterpartyDocuments(
+        GuarantorRequest $guarantorRequest,
+        GuarantorAcceptUploadData $uploads,
+    ): void {
+        $guarantorRequest->loadMissing('companyDetail');
+
+        $companyDetail = $guarantorRequest->companyDetail;
+
+        if (! $companyDetail instanceof GuarantorCompanyDetail) {
+            return;
+        }
+
+        if ($uploads->ibanCertificate !== null) {
+            $companyDetail->addMedia($uploads->ibanCertificate)
+                ->toMediaCollection('counterparty_iban_certificate');
+        }
+
+        if ($uploads->crFile !== null) {
+            $companyDetail->addMedia($uploads->crFile)
+                ->toMediaCollection('counterparty_cr_file');
+        }
+
+        if ($uploads->articlesOfAssociation !== null) {
+            $companyDetail->addMedia($uploads->articlesOfAssociation)
+                ->toMediaCollection('counterparty_articles_of_association');
+        }
+
+        if ($uploads->nationalAddressFile !== null) {
+            $companyDetail->addMedia($uploads->nationalAddressFile)
+                ->toMediaCollection('counterparty_national_address_file');
+        }
     }
 
     private function assertActorIsCounterparty(GuarantorRequest $request, Model $actor): void

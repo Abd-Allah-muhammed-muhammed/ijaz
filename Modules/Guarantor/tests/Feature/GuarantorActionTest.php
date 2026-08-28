@@ -27,6 +27,7 @@ use Modules\Guarantor\Actions\Payment\AddRequesterWalletTransaction;
 use Modules\Guarantor\Actions\Payment\PayIndividualGuarantorAction;
 use Modules\Guarantor\Actions\Payment\ProcessGuarantorPayment;
 use Modules\Guarantor\DTOs\CompanyDetailData;
+use Modules\Guarantor\DTOs\GuarantorAcceptUploadData;
 use Modules\Guarantor\DTOs\GuarantorData;
 use Modules\Guarantor\DTOs\GuarantorUploadData;
 use Modules\Guarantor\DTOs\InstallmentData;
@@ -90,6 +91,10 @@ function companyGuarantorUploads(): GuarantorUploadData
         'contracts' => [
             UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf'),
         ],
+        'iban_certificate' => UploadedFile::fake()->create('iban.pdf', 100, 'application/pdf'),
+        'cr_file' => UploadedFile::fake()->create('cr.pdf', 100, 'application/pdf'),
+        'articles_of_association' => UploadedFile::fake()->create('aoa.pdf', 100, 'application/pdf'),
+        'national_address_file' => UploadedFile::fake()->create('national-address.pdf', 100, 'application/pdf'),
     ]));
 }
 
@@ -165,9 +170,10 @@ test('CreateCompanyGuarantorAction creates request with installments and company
             city_id: null,
             authorized_name: 'John Doe',
             authorized_id_number: '1234567890',
-            authorization_type: 'power_of_attorney',
+            authorization_type: 'owner',
             requester_account_holder: 'Requester Name',
             requester_iban: 'SA1234567890123456789012',
+            requester_bank_id: defaultGuarantorTestBankId(),
             counterparty_account_holder: 'Counterparty Name',
         ),
         [
@@ -194,16 +200,17 @@ test('CreateCompanyGuarantorAction fails if installments sum != total', function
         'project_type' => 'Construction',
         'total_amount' => 1000,
         'installments' => [
-            ['order' => 1, 'amount' => 400, 'due_date' => now()->addDays(30)->toDateString()],
-            ['order' => 2, 'amount' => 400, 'due_date' => now()->addDays(60)->toDateString()],
+            ['order' => 1, 'amount' => 400, 'due_date' => now()->addDays(3)->toDateString()],
+            ['order' => 2, 'amount' => 400, 'due_date' => now()->addDays(30)->toDateString()],
         ],
         'company_name' => 'Acme Corp',
         'commercial_register' => 'CR-123456',
         'authorized_name' => 'John Doe',
         'authorized_id_number' => '1234567890',
-        'authorization_type' => 'power_of_attorney',
+        'authorization_type' => 'owner',
         'requester_account_holder' => 'Requester Name',
         'requester_iban' => 'SA1234567890123456789012',
+        'requester_bank_id' => defaultGuarantorTestBankId(),
         'counterparty_account_holder' => 'Counterparty Name',
     ];
 
@@ -276,9 +283,10 @@ function companyGuarantorCreateArgs(User $requester): array
             city_id: null,
             authorized_name: 'John Doe',
             authorized_id_number: '1234567890',
-            authorization_type: 'power_of_attorney',
+            authorization_type: 'owner',
             requester_account_holder: 'Requester Name',
             requester_iban: 'SA1234567890123456789012',
+            requester_bank_id: defaultGuarantorTestBankId(),
             counterparty_account_holder: 'Counterparty Name',
         ),
         [
@@ -342,7 +350,9 @@ test('counterparty can accept after admin approval', function () {
     $updated = app(AcceptGuarantorAction::class)->handle(
         $guarantorRequest,
         $counterparty,
-        UploadedFile::fake()->create('cp-signature.pdf', 100, 'application/pdf'),
+        new GuarantorAcceptUploadData(
+            signature: UploadedFile::fake()->create('cp-signature.pdf', 100, 'application/pdf'),
+        ),
     );
 
     expect($updated->status)->toBe(GuarantorStatusEnum::Accepted)
@@ -378,7 +388,9 @@ test('requester cannot accept or reject', function () {
     expect(fn () => app(AcceptGuarantorAction::class)->handle(
         $guarantorRequest,
         $requester,
-        UploadedFile::fake()->create('sig.pdf', 100, 'application/pdf'),
+        new GuarantorAcceptUploadData(
+            signature: UploadedFile::fake()->create('sig.pdf', 100, 'application/pdf'),
+        ),
     ))->toThrow(GuarantorException::class);
 
     expect(fn () => app(RejectGuarantorAction::class)->handle(
@@ -401,7 +413,9 @@ test('chat opens when counterparty accepts', function () {
     app(AcceptGuarantorAction::class)->handle(
         $guarantorRequest,
         $counterparty,
-        UploadedFile::fake()->create('cp-signature.pdf', 100, 'application/pdf'),
+        new GuarantorAcceptUploadData(
+            signature: UploadedFile::fake()->create('cp-signature.pdf', 100, 'application/pdf'),
+        ),
     );
 
     expect(Conversation::query()

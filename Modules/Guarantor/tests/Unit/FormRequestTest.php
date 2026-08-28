@@ -2,90 +2,12 @@
 
 use App\Models\User;
 use App\Support\Phone;
-use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\Sanctum;
 use Modules\Guarantor\Http\Requests\RejectGuarantorRequest;
 use Modules\Guarantor\Http\Requests\SendMessageRequest;
 use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
 use Modules\Guarantor\Http\Requests\StoreIndividualGuarantorRequest;
-
-/**
- * @return array{requester: User, counterparty: User}
- */
-function setupGuarantorActors(): array
-{
-    $requester = User::factory()->create();
-    $counterparty = User::factory()->create();
-    Sanctum::actingAs($requester);
-
-    return compact('requester', 'counterparty');
-}
-
-/**
- * @param  array<string, mixed>  $data
- * @param  array<string, mixed>  $files
- */
-function validateCompanyGuarantorRequest(array $data, array $files = []): Illuminate\Validation\Validator
-{
-    $formRequest = StoreCompanyGuarantorRequest::createFrom(
-        Request::create('/', 'POST', $data, [], $files)
-    );
-    $formRequest->setContainer(app());
-    $formRequest->setRedirector(app('redirect'));
-
-    $prepare = new ReflectionMethod($formRequest, 'prepareForValidation');
-    $prepare->invoke($formRequest);
-
-    $validator = Validator::make(
-        array_merge($formRequest->all(), $files),
-        $formRequest->rules(),
-        $formRequest->messages(),
-        $formRequest->attributes()
-    );
-    $formRequest->withValidator($validator);
-
-    return $validator;
-}
-
-/**
- * @return array<string, mixed>
- */
-function companyGuarantorPayload(array $overrides = []): array
-{
-    return array_merge([
-        'counterparty_phone' => '0501234567',
-        'project_type' => 'Construction',
-        'total_amount' => 1000,
-        'installments' => [
-            ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
-            ['order' => 2, 'amount' => 500, 'due_date' => now()->addDays(60)->toDateString()],
-        ],
-        'company_name' => 'Acme Corp',
-        'commercial_register' => 'CR-123456',
-        'authorized_name' => 'John Doe',
-        'authorized_id_number' => '1234567890',
-        'authorization_type' => 'power_of_attorney',
-        'requester_account_holder' => 'Requester Name',
-        'requester_iban' => 'SA1234567890123456789012',
-        'counterparty_account_holder' => 'Counterparty Name',
-    ], $overrides);
-}
-
-/**
- * @return array<string, UploadedFile>
- */
-function companyGuarantorFiles(): array
-{
-    return [
-        'signature' => UploadedFile::fake()->create('signature.pdf', 100, 'application/pdf'),
-        'authorized_id' => UploadedFile::fake()->create('authorized_id.pdf', 100, 'application/pdf'),
-        'contracts' => [
-            UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf'),
-        ],
-    ];
-}
 
 test('StoreIndividualGuarantorRequest requires title, description, amount, phone, signature', function () {
     $request = new StoreIndividualGuarantorRequest;
@@ -131,8 +53,8 @@ test('StoreCompanyGuarantorRequest fails when installments sum != total_amount',
         'counterparty_phone' => (string) $counterparty->phone,
         'total_amount' => 1000,
         'installments' => [
-            ['order' => 1, 'amount' => 400, 'due_date' => now()->addDays(30)->toDateString()],
-            ['order' => 2, 'amount' => 400, 'due_date' => now()->addDays(60)->toDateString()],
+            ['order' => 1, 'amount' => 400, 'due_date' => now()->addDays(3)->toDateString()],
+            ['order' => 2, 'amount' => 400, 'due_date' => now()->addDays(30)->toDateString()],
         ],
     ]);
 
@@ -208,7 +130,7 @@ test('StoreCompanyGuarantorRequest fails when an installment due_date is missing
     $data = companyGuarantorPayload([
         'counterparty_phone' => (string) $counterparty->phone,
         'installments' => [
-            ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
+            ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(3)->toDateString()],
             ['order' => 2, 'amount' => 500],
         ],
     ]);
@@ -229,8 +151,8 @@ test('guarantor installment due_date accepts Arabic-Indic digits', function () {
     ]);
     Sanctum::actingAs($requester);
 
-    $dueDate1 = now()->addDays(30)->toDateString();
-    $dueDate2 = now()->addDays(60)->toDateString();
+    $dueDate1 = now()->addDays(3)->toDateString();
+    $dueDate2 = now()->addDays(30)->toDateString();
     $map = [
         '0' => '٠', '1' => '١', '2' => '٢', '3' => '٣', '4' => '٤',
         '5' => '٥', '6' => '٦', '7' => '٧', '8' => '٨', '9' => '٩',

@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             ProviderPermissionsSeeder::class,
             SettingsSeeder::class,
             RegionsAndCitiesSeeder::class,
+            \Modules\Catalog\Database\Seeders\BanksSeeder::class,
             PropertyTypesSeeder::class,
             PropertyCategoriesSeeder::class,
             DeviceCategorySeeder::class,

@@ -3,7 +3,6 @@
 use App\Models\User;
 use App\Support\Phone;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\Sanctum;
@@ -45,26 +44,21 @@ function validatedCompanyGuarantorFormRequest(float $totalAmount = 50000.0): arr
         'project_type' => 'Construction',
         'total_amount' => $totalAmount,
         'installments' => [
-            ['order' => 1, 'amount' => $half, 'due_date' => now()->addDays(30)->toDateString()],
-            ['order' => 2, 'amount' => $half, 'due_date' => now()->addDays(60)->toDateString()],
+            ['order' => 1, 'amount' => $half, 'due_date' => now()->addDays(3)->toDateString()],
+            ['order' => 2, 'amount' => $half, 'due_date' => now()->addDays(30)->toDateString()],
         ],
         'company_name' => 'Acme Corp',
         'commercial_register' => 'CR-123456',
         'authorized_name' => 'John Doe',
         'authorized_id_number' => '1234567890',
-        'authorization_type' => 'power_of_attorney',
+        'authorization_type' => 'owner',
         'requester_account_holder' => 'Requester Name',
         'requester_iban' => 'SA1234567890123456789012',
+        'requester_bank_id' => defaultGuarantorTestBankId(),
         'counterparty_account_holder' => 'Counterparty Name',
     ];
 
-    $files = [
-        'signature' => UploadedFile::fake()->create('signature.pdf', 100, 'application/pdf'),
-        'authorized_id' => UploadedFile::fake()->create('authorized_id.pdf', 100, 'application/pdf'),
-        'contracts' => [
-            UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf'),
-        ],
-    ];
+    $files = companyGuarantorFiles();
 
     $formRequest = StoreCompanyGuarantorRequest::createFrom(
         Request::create('/', 'POST', $payload, [], $files)

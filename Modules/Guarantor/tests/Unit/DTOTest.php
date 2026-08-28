@@ -57,9 +57,10 @@ test('CompanyDetailData can be constructed', function () {
         city_id: 10,
         authorized_name: 'John Doe',
         authorized_id_number: '1234567890',
-        authorization_type: 'power_of_attorney',
+        authorization_type: 'owner',
         requester_account_holder: 'Requester Name',
         requester_iban: 'SA1234567890123456789012',
+        requester_bank_id: defaultGuarantorTestBankId(),
         counterparty_account_holder: 'Counterparty Name',
         counterparty_iban: 'SA9876543210987654321098',
     );
@@ -68,7 +69,7 @@ test('CompanyDetailData can be constructed', function () {
         ->and($data->commercial_register)->toBe('CR-123456')
         ->and($data->region_id)->toBe(1)
         ->and($data->city_id)->toBe(10)
-        ->and($data->authorization_type)->toBe('power_of_attorney')
+        ->and($data->authorization_type)->toBe('owner')
         ->and($data->counterparty_iban)->toBe('SA9876543210987654321098');
 });
 

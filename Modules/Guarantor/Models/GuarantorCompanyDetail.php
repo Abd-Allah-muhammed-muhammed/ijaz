@@ -5,6 +5,7 @@ namespace Modules\Guarantor\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Catalog\Models\Bank;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
 use Modules\Guarantor\Enums\AuthorizationTypeEnum;
@@ -30,8 +31,11 @@ class GuarantorCompanyDetail extends Model implements HasMedia
         'authorization_type',
         'requester_account_holder',
         'requester_iban',
+        'requester_bank_id',
         'counterparty_account_holder',
         'counterparty_iban',
+        'counterparty_bank_id',
+        'terms_notes',
     ];
 
     public function guarantorRequest(): BelongsTo
@@ -49,6 +53,16 @@ class GuarantorCompanyDetail extends Model implements HasMedia
         return $this->belongsTo(City::class);
     }
 
+    public function requesterBank(): BelongsTo
+    {
+        return $this->belongsTo(Bank::class, 'requester_bank_id');
+    }
+
+    public function counterpartyBank(): BelongsTo
+    {
+        return $this->belongsTo(Bank::class, 'counterparty_bank_id');
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('authorized_id')
@@ -58,8 +72,37 @@ class GuarantorCompanyDetail extends Model implements HasMedia
         $this->addMediaCollection('contracts')
             ->useDisk('public');
 
-        $this->addMediaCollection('iban_certificates')
-            ->useDisk('public');
+        $this->addMediaCollection('requester_iban_certificate')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('requester_cr_file')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('requester_articles_of_association')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('requester_national_address_file')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('counterparty_iban_certificate')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('counterparty_cr_file')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('counterparty_articles_of_association')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('counterparty_national_address_file')
+            ->useDisk('public')
+            ->singleFile();
 
         $this->addMediaCollection('company_documents')
             ->useDisk('public');

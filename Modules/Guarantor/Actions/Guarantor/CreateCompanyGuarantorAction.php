@@ -73,8 +73,11 @@ class CreateCompanyGuarantorAction
                 'authorization_type' => AuthorizationTypeEnum::from($companyData->authorization_type),
                 'requester_account_holder' => $companyData->requester_account_holder,
                 'requester_iban' => $companyData->requester_iban,
+                'requester_bank_id' => $companyData->requester_bank_id,
                 'counterparty_account_holder' => $companyData->counterparty_account_holder,
                 'counterparty_iban' => $companyData->counterparty_iban,
+                'counterparty_bank_id' => $companyData->counterparty_bank_id,
+                'terms_notes' => $companyData->terms_notes,
             ]);
 
             foreach ($installments as $installmentData) {
@@ -102,7 +105,22 @@ class CreateCompanyGuarantorAction
 
             if ($uploads->ibanCertificate !== null) {
                 $companyDetail->addMedia($uploads->ibanCertificate)
-                    ->toMediaCollection('iban_certificates');
+                    ->toMediaCollection('requester_iban_certificate');
+            }
+
+            if ($uploads->crFile !== null) {
+                $companyDetail->addMedia($uploads->crFile)
+                    ->toMediaCollection('requester_cr_file');
+            }
+
+            if ($uploads->articlesOfAssociation !== null) {
+                $companyDetail->addMedia($uploads->articlesOfAssociation)
+                    ->toMediaCollection('requester_articles_of_association');
+            }
+
+            if ($uploads->nationalAddressFile !== null) {
+                $companyDetail->addMedia($uploads->nationalAddressFile)
+                    ->toMediaCollection('requester_national_address_file');
             }
 
             foreach ($uploads->companyDocuments as $document) {
@@ -120,6 +138,8 @@ class CreateCompanyGuarantorAction
                 'requester',
                 'counterparty',
                 'installments',
+                'companyDetail.requesterBank',
+                'companyDetail.counterpartyBank',
                 'companyDetail.media',
                 'media',
             ]);

@@ -4,7 +4,6 @@ namespace Modules\Guarantor\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\UploadedFile;
 use Modules\Guarantor\Actions\Guarantor\AcceptGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateCompanyGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateIndividualGuarantorAction;
@@ -18,6 +17,7 @@ use Modules\Guarantor\Actions\Guarantor\WithdrawGuarantorAction;
 use Modules\Guarantor\Actions\Payment\PayIndividualGuarantorAction;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\DTOs\CompanyDetailData;
+use Modules\Guarantor\DTOs\GuarantorAcceptUploadData;
 use Modules\Guarantor\DTOs\GuarantorData;
 use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\DTOs\GuarantorUploadData;
@@ -170,9 +170,9 @@ class GuarantorService
     public function accept(
         GuarantorRequest $request,
         Model $actor,
-        UploadedFile $signature,
+        GuarantorAcceptUploadData $uploads,
     ): GuarantorRequest {
-        return $this->acceptAction->handle($request, $actor, $signature);
+        return $this->acceptAction->handle($request, $actor, $uploads);
     }
 
     public function findById(string $id): GuarantorRequest
@@ -188,6 +188,8 @@ class GuarantorService
             'installments',
             'companyDetail.region',
             'companyDetail.city',
+            'companyDetail.requesterBank',
+            'companyDetail.counterpartyBank',
             'companyDetail.media',
             'statusHistories.actor',
             'conversation',

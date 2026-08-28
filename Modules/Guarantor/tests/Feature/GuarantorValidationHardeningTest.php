@@ -46,15 +46,20 @@ function validationHardeningCompanyPayload(array $installments, array $overrides
         'commercial_register' => 'CR-123456',
         'authorized_name' => 'John Doe',
         'authorized_id_number' => '1234567890',
-        'authorization_type' => 'power_of_attorney',
+        'authorization_type' => 'owner',
         'requester_account_holder' => 'Requester Name',
         'requester_iban' => VALID_SAUDI_IBAN,
+        'requester_bank_id' => defaultGuarantorTestBankId(),
         'counterparty_account_holder' => 'Counterparty Name',
         'signature' => UploadedFile::fake()->create('signature.pdf', 100, 'application/pdf'),
         'authorized_id' => UploadedFile::fake()->create('authorized_id.pdf', 100, 'application/pdf'),
         'contracts' => [
             UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf'),
         ],
+        'iban_certificate' => UploadedFile::fake()->create('iban.pdf', 100, 'application/pdf'),
+        'cr_file' => UploadedFile::fake()->create('cr.pdf', 100, 'application/pdf'),
+        'articles_of_association' => UploadedFile::fake()->create('aoa.pdf', 100, 'application/pdf'),
+        'national_address_file' => UploadedFile::fake()->create('national-address.pdf', 100, 'application/pdf'),
     ], $overrides);
 }
 
@@ -63,8 +68,8 @@ test('a Saudi IBAN in an invalid format is rejected with a clear validation mess
     Sanctum::actingAs($requester);
 
     $installments = [
-        ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
-        ['order' => 2, 'amount' => 500, 'due_date' => now()->addDays(60)->toDateString()],
+        ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(3)->toDateString()],
+        ['order' => 2, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
     ];
 
     $response = $this->postJson(
@@ -85,8 +90,8 @@ test('a validly-formatted Saudi IBAN passes validation', function () {
     Sanctum::actingAs($requester);
 
     $installments = [
-        ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
-        ['order' => 2, 'amount' => 500, 'due_date' => now()->addDays(60)->toDateString()],
+        ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(3)->toDateString()],
+        ['order' => 2, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
     ];
 
     $response = $this->postJson(
