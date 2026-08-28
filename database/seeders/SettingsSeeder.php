@@ -35,7 +35,7 @@ class SettingsSeeder extends Seeder
             ['key' => 'provider_registration_bonus_amount', 'content' => '50', 'group' => SettingGroupEnum::Wallet, 'is_public' => true],
             ['key' => 'min_withdraw_amount', 'content' => '200', 'group' => SettingGroupEnum::Wallet, 'is_public' => true],
             ['key' => 'order_dispute_window_hours', 'content' => '48', 'group' => SettingGroupEnum::Wallet, 'is_public' => true],
-            ['key' => 'guarantor_first_installment_max_days', 'content' => '5', 'group' => SettingGroupEnum::Guarantor, 'is_public' => true],
+            ['key' => 'guarantor_first_installment_max_days', 'content' => '5', 'group' => SettingGroupEnum::Guarantor, 'is_public' => false],
         ]);
 
         $settings->each(function (array $setting): void {
