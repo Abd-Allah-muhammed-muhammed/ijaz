@@ -3,6 +3,7 @@
 namespace Modules\Classifieds\Http\Resources\Api;
 
 use App\Http\Resources\Api\V1\MediaResource;
+use App\Http\Resources\Api\V1\PublisherResource;
 use App\Http\Resources\Api\V1\User\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -72,6 +73,7 @@ class InstituteAdvisementResource extends JsonResource
             'region' => new RegionResource($this->whenLoaded('region')),
 
             'user' => $this->whenLoaded('user', fn () => UserResource::make($this->user)),
+            'publisher' => $this->whenLoaded('user', fn () => PublisherResource::make($this->user)),
 
             'media' => MediaResource::collection($this->whenLoaded('media')),
         ];

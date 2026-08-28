@@ -70,6 +70,11 @@ final class InstituteAdvisementService
         return $this->repository->getPublishedAdvisements($filters);
     }
 
+    public function listPublishedAdvisementsForUser(User $user, InstituteAdvisementFilters $filters): LengthAwarePaginator
+    {
+        return $this->repository->getPublishedAdvisementsForUser($user, $filters);
+    }
+
     public function create(User $user, InstituteAdvisementDTO $dto): InstituteAdvisement
     {
         return $this->createInstituteAdvisementAction->handle($user, $dto);

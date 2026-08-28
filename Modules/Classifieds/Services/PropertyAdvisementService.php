@@ -70,6 +70,11 @@ final class PropertyAdvisementService
         return $this->repository->getPublishedAdvisements($filters);
     }
 
+    public function listPublishedAdvisementsForUser(User $user, PropertyAdvisementFilters $filters): LengthAwarePaginator
+    {
+        return $this->repository->getPublishedAdvisementsForUser($user, $filters);
+    }
+
     public function create(User $user, PropertyAdvisementDTO $dto): PropertyAdvisement
     {
         return $this->createPropertyAdvisementAction->handle($user, $dto);

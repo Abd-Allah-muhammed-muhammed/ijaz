@@ -14,6 +14,8 @@ interface PropertyAdvisementRepositoryInterface
 
     public function getPublishedAdvisements(PropertyAdvisementFilters $filters): LengthAwarePaginator;
 
+    public function getPublishedAdvisementsForUser(User $user, PropertyAdvisementFilters $filters): LengthAwarePaginator;
+
     /**
      * @param  array<string, mixed>  $data
      */

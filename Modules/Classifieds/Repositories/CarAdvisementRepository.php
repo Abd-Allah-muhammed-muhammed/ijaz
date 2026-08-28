@@ -49,6 +49,25 @@ final class CarAdvisementRepository implements CarAdvisementRepositoryInterface
             ->paginate($filters->perPage());
     }
 
+    public function getPublishedAdvisementsForUser(User $user, CarAdvisementFilters $filters): LengthAwarePaginator
+    {
+        $query = $user->carAdvisements()->getQuery()->published();
+        $query = $filters->apply($query);
+
+        return $query
+            ->with([
+                'carBrand.translations',
+                'carType.translations',
+                'carCategory.translations',
+                'city.translations',
+                'region.translations',
+                'user',
+                'media',
+            ])
+            ->latest()
+            ->paginate($filters->perPage());
+    }
+
     public function create(array $data): CarAdvisement
     {
         return CarAdvisement::query()->create($data);

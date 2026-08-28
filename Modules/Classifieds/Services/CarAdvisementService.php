@@ -70,6 +70,11 @@ final class CarAdvisementService
         return $this->repository->getPublishedAdvisements($filters);
     }
 
+    public function listPublishedAdvisementsForUser(User $user, CarAdvisementFilters $filters): LengthAwarePaginator
+    {
+        return $this->repository->getPublishedAdvisementsForUser($user, $filters);
+    }
+
     public function create(User $user, CarAdvisementDTO $dto): CarAdvisement
     {
         return $this->createCarAdvisementAction->handle($user, $dto);

@@ -14,6 +14,11 @@ Route::group(['prefix' => 'classifieds'], function () {
     Route::get('electronics/all', [ElectronicAdvisementController::class, 'all'])->name('electronics.all');
     Route::get('institutes/all', [InstituteAdvisementController::class, 'all'])->name('institutes.all');
 
+    Route::get('properties/by-user/{user}', [PropertyAdvisementController::class, 'byUser'])->name('properties.byUser');
+    Route::get('cars/by-user/{user}', [CarAdvisementController::class, 'byUser'])->name('cars.byUser');
+    Route::get('electronics/by-user/{user}', [ElectronicAdvisementController::class, 'byUser'])->name('electronics.byUser');
+    Route::get('institutes/by-user/{user}', [InstituteAdvisementController::class, 'byUser'])->name('institutes.byUser');
+
     // Protected Routes
     Route::middleware(['auth:sanctum', 'user.active'])->group(function () {
 

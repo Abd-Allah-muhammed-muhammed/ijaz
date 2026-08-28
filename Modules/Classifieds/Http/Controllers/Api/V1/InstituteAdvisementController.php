@@ -84,6 +84,32 @@ class InstituteAdvisementController extends Controller
     }
 
     /**
+     * List published advisements for a specific user (public endpoint)
+     *
+     * @unauthenticated
+     *
+     * @queryParam type string optional Filter by institute type (institute|university).
+     * @queryParam study_type string optional Filter by study type (onsite|online|hybrid).
+     * @queryParam specialization_id integer optional Filter by specialization.
+     * @queryParam city_id integer optional Filter by city.
+     * @queryParam region_id integer optional Filter by region.
+     * @queryParam min_fees numeric optional Minimum fees.
+     * @queryParam max_fees numeric optional Maximum fees.
+     * @queryParam search string optional Search title or description.
+     * @queryParam per_page integer optional Pagination size. Default: 15.
+     */
+    public function byUser(Request $request, User $user): JsonResponse
+    {
+        $filters = new InstituteAdvisementFilters($request, includeStatus: false);
+
+        return $this->successResponse(
+            InstituteAdvisementCollection::make(
+                $this->service->listPublishedAdvisementsForUser($user, $filters)
+            )
+        );
+    }
+
+    /**
      * Create a new institute advisement
      *
      * @authenticated

@@ -82,6 +82,31 @@ class ElectronicAdvisementController extends Controller
     }
 
     /**
+     * List published advisements for a specific user (public endpoint)
+     *
+     * @unauthenticated
+     *
+     * @queryParam condition string optional Filter by condition (new|used|less_than_year).
+     * @queryParam device_category_id integer optional Filter by device category.
+     * @queryParam city_id integer optional Filter by city.
+     * @queryParam region_id integer optional Filter by region.
+     * @queryParam min_price numeric optional Minimum price.
+     * @queryParam max_price numeric optional Maximum price.
+     * @queryParam search string optional Search title or description.
+     * @queryParam per_page integer optional Pagination size. Default: 15.
+     */
+    public function byUser(Request $request, User $user): JsonResponse
+    {
+        $filters = new ElectronicAdvisementFilters($request, includeStatus: false);
+
+        return $this->successResponse(
+            ElectronicAdvisementCollection::make(
+                $this->service->listPublishedAdvisementsForUser($user, $filters)
+            )
+        );
+    }
+
+    /**
      * Create a new electronic advisement
      *
      * @authenticated

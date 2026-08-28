@@ -45,6 +45,23 @@ final class InstituteAdvisementRepository implements InstituteAdvisementReposito
             ->paginate($filters->perPage());
     }
 
+    public function getPublishedAdvisementsForUser(User $user, InstituteAdvisementFilters $filters): LengthAwarePaginator
+    {
+        $query = $user->instituteAdvisements()->getQuery()->published();
+        $query = $filters->apply($query);
+
+        return $query
+            ->with([
+                'specialization.translations',
+                'city.translations',
+                'region.translations',
+                'user',
+                'media',
+            ])
+            ->latest()
+            ->paginate($filters->perPage());
+    }
+
     public function create(array $data): InstituteAdvisement
     {
         return InstituteAdvisement::query()->create($data);

@@ -14,6 +14,8 @@ interface ElectronicAdvisementRepositoryInterface
 
     public function getPublishedAdvisements(ElectronicAdvisementFilters $filters): LengthAwarePaginator;
 
+    public function getPublishedAdvisementsForUser(User $user, ElectronicAdvisementFilters $filters): LengthAwarePaginator;
+
     /**
      * @param  array<string, mixed>  $data
      */

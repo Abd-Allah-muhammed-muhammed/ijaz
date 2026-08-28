@@ -14,6 +14,8 @@ interface CarAdvisementRepositoryInterface
 
     public function getPublishedAdvisements(CarAdvisementFilters $filters): LengthAwarePaginator;
 
+    public function getPublishedAdvisementsForUser(User $user, CarAdvisementFilters $filters): LengthAwarePaginator;
+
     /**
      * @param  array<string, mixed>  $data
      */

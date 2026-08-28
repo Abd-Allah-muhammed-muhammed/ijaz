@@ -92,6 +92,36 @@ class CarAdvisementController extends Controller
     }
 
     /**
+     * List published advisements for a specific user (public endpoint)
+     *
+     * @unauthenticated
+     *
+     * @queryParam operation string optional Filter by operation.
+     * @queryParam usage_status string optional Filter by usage status.
+     * @queryParam car_brand_id integer optional Filter by car brand.
+     * @queryParam car_type_id integer optional Filter by car type.
+     * @queryParam car_category_id integer optional Filter by car category.
+     * @queryParam city_id integer optional Filter by city.
+     * @queryParam region_id integer optional Filter by region.
+     * @queryParam min_year integer optional Minimum year.
+     * @queryParam max_year integer optional Maximum year.
+     * @queryParam min_price numeric optional Minimum price.
+     * @queryParam max_price numeric optional Maximum price.
+     * @queryParam search string optional Search title or description.
+     * @queryParam per_page integer optional Pagination size. Default: 15.
+     */
+    public function byUser(Request $request, User $user): JsonResponse
+    {
+        $filters = new CarAdvisementFilters($request);
+
+        return $this->successResponse(
+            CarAdvisementCollection::make(
+                $this->carAdvisementService->listPublishedAdvisementsForUser($user, $filters)
+            )
+        );
+    }
+
+    /**
      * Create a new car advisement
      *
      * @authenticated

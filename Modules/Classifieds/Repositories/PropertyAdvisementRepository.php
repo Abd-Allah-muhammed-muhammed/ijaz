@@ -49,6 +49,24 @@ final class PropertyAdvisementRepository implements PropertyAdvisementRepository
             ->paginate($filters->perPage());
     }
 
+    public function getPublishedAdvisementsForUser(User $user, PropertyAdvisementFilters $filters): LengthAwarePaginator
+    {
+        $query = $user->propertyAdvisements()->getQuery()->published();
+        $query = $filters->apply($query);
+
+        return $query
+            ->with([
+                'propertyType.translation',
+                'city.translation',
+                'region.translation',
+                'category.translation',
+                'user',
+                'media',
+            ])
+            ->latest()
+            ->paginate($filters->perPage());
+    }
+
     /**
      * @param  array<string, mixed>  $data
      */

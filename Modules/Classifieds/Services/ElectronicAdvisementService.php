@@ -70,6 +70,11 @@ final class ElectronicAdvisementService
         return $this->repository->getPublishedAdvisements($filters);
     }
 
+    public function listPublishedAdvisementsForUser(User $user, ElectronicAdvisementFilters $filters): LengthAwarePaginator
+    {
+        return $this->repository->getPublishedAdvisementsForUser($user, $filters);
+    }
+
     public function create(User $user, ElectronicAdvisementDTO $dto): ElectronicAdvisement
     {
         return $this->createElectronicAdvisementAction->handle($user, $dto);

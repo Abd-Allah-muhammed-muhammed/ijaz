@@ -63,6 +63,22 @@ class PropertyAdvisementController extends Controller
     }
 
     /**
+     * List published advisements for a specific user (public endpoint)
+     *
+     * @unauthenticated
+     */
+    public function byUser(Request $request, User $user): JsonResponse
+    {
+        $filters = new PropertyAdvisementFilters($request);
+
+        return $this->successResponse(
+            PropertyAdvisementCollection::make(
+                $this->propertyAdvisementService->listPublishedAdvisementsForUser($user, $filters)
+            )
+        );
+    }
+
+    /**
      * Create a new property advisement
      *
      * @authenticated

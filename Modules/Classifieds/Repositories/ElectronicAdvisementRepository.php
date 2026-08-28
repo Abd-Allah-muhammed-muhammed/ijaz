@@ -47,6 +47,24 @@ final class ElectronicAdvisementRepository implements ElectronicAdvisementReposi
             ->paginate($filters->perPage());
     }
 
+    public function getPublishedAdvisementsForUser(User $user, ElectronicAdvisementFilters $filters): LengthAwarePaginator
+    {
+        $query = $user->electronicAdvisements()->getQuery()->published();
+        $query = $filters->apply($query);
+
+        return $query
+            ->with([
+                'deviceCategory.translations',
+                'electronicBrand.translations',
+                'city.translations',
+                'region.translations',
+                'user',
+                'media',
+            ])
+            ->latest()
+            ->paginate($filters->perPage());
+    }
+
     public function create(array $data): ElectronicAdvisement
     {
         return ElectronicAdvisement::query()->create($data);

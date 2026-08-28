@@ -14,6 +14,8 @@ interface InstituteAdvisementRepositoryInterface
 
     public function getPublishedAdvisements(InstituteAdvisementFilters $filters): LengthAwarePaginator;
 
+    public function getPublishedAdvisementsForUser(User $user, InstituteAdvisementFilters $filters): LengthAwarePaginator;
+
     /**
      * @param  array<string, mixed>  $data
      */
