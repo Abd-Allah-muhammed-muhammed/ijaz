@@ -155,7 +155,7 @@ test('store company GuarantorResource key set is frozen', function () {
         'commercial_register' => 'CR-1',
         'authorized_name' => 'Auth Name',
         'authorized_id_number' => '123',
-        'authorization_type' => AuthorizationTypeEnum::PowerOfAttorney,
+        'authorization_type' => AuthorizationTypeEnum::Owner,
         'requester_account_holder' => 'Holder',
         'requester_iban' => 'SA123',
         'counterparty_account_holder' => 'CP Holder',

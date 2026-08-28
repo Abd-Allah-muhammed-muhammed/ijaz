@@ -32,7 +32,8 @@ return [
         'reversed' => 'रिवर्स किया गया',
     ],
     'authorization_type' => [
-        'power_of_attorney' => 'पावर ऑफ अटॉर्नी',
+        'owner' => 'मालिक',
+        'manager' => 'प्रबंधक',
         'agency' => 'एजेंसी',
     ],
     'installments_sum_mismatch' => 'किस्तों की राशि का योग कुल अनुबंध राशि के बराबर होना चाहिए',

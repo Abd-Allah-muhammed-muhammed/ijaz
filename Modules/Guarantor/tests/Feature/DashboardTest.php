@@ -340,7 +340,7 @@ test('Guarantor dashboard resource exposes all request and company media collect
         'commercial_register' => '123',
         'authorized_name' => 'Auth',
         'authorized_id_number' => '1',
-        'authorization_type' => AuthorizationTypeEnum::PowerOfAttorney,
+        'authorization_type' => AuthorizationTypeEnum::Owner,
         'requester_account_holder' => 'Holder',
         'requester_iban' => 'SA0380000000608010167519',
         'requester_bank_id' => defaultGuarantorTestBankId(),

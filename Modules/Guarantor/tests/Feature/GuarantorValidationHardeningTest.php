@@ -46,7 +46,7 @@ function validationHardeningCompanyPayload(array $installments, array $overrides
         'commercial_register' => 'CR-123456',
         'authorized_name' => 'John Doe',
         'authorized_id_number' => '1234567890',
-        'authorization_type' => 'power_of_attorney',
+        'authorization_type' => 'owner',
         'requester_account_holder' => 'Requester Name',
         'requester_iban' => VALID_SAUDI_IBAN,
         'requester_bank_id' => defaultGuarantorTestBankId(),

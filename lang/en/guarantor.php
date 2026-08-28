@@ -32,7 +32,8 @@ return [
         'reversed' => 'Reversed',
     ],
     'authorization_type' => [
-        'power_of_attorney' => 'Power of Attorney',
+        'owner' => 'Owner',
+        'manager' => 'Manager',
         'agency' => 'Agency',
     ],
     'installments_sum_mismatch' => 'The sum of installment amounts must equal the total contract amount',

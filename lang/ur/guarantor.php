@@ -32,7 +32,8 @@ return [
         'reversed' => 'واپس لیا گیا',
     ],
     'authorization_type' => [
-        'power_of_attorney' => 'اختیار نامہ',
+        'owner' => 'مالک',
+        'manager' => 'منیجر',
         'agency' => 'ایجنسی',
     ],
     'installments_sum_mismatch' => 'قسطوں کی رقم کا مجموعہ کل معاہدے کی رقم کے برابر ہونا چاہیے',

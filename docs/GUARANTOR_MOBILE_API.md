@@ -286,7 +286,7 @@ Returned on company requests when loaded (create company, show, update).
   "commercial_register": "1010123456",
   "authorized_name": "Khalid Al Saud",
   "authorized_id_number": "1098765432",
-  "authorization_type": { "value": "power_of_attorney", "label": "Power of Attorney" },
+  "authorization_type": { "value": "owner", "label": "Owner" },
   "requester_account_holder": "Acme Contracting",
   "requester_iban": "SA0380000000608010167519",
   "requester_bank": { "value": "1", "label": "Saudi National Bank", "logo_url": "https://example.test/storage/1/logo.png" },
@@ -552,7 +552,7 @@ The counterparty is **not** notified on create. Only the requester gets “submi
 | `city_id` | int | no | must exist in `cities` | `3` |
 | `authorized_name` | string | yes | max 255 | `Khalid Al Saud` |
 | `authorized_id_number` | string | yes | max 50 | `1098765432` |
-| `authorization_type` | string | yes | `power_of_attorney` or `agency` | `power_of_attorney` |
+| `authorization_type` | string | yes | `owner`, `manager`, or `agency` | `owner` |
 | `requester_account_holder` | string | yes | max 255 | `Acme Contracting` |
 | `requester_iban` | string | yes | max 50 | `SA0380000000608010167519` |
 | `requester_bank_id` | int | yes | must exist in `banks` and `is_active = true` | `1` |
@@ -1654,11 +1654,12 @@ Unused translation keys exist (`guarantor_approved` / `guarantor_has_been_approv
 
 ## 8. Field reference: `authorization_type`
 
-**Arabic context:** توكيل / وكالة.
+**Arabic context:** مالك / مدير / وكالة.
 
 | Allowed values | English label |
 |---|---|
-| `power_of_attorney` | Power of Attorney |
+| `owner` | Owner |
+| `manager` | Manager |
 | `agency` | Agency |
 
 This is **company signatory KYC metadata**, collected **once** on `POST /company`. It is stored on `company_detail.authorization_type` and returned as `{ value, label }` (no color).
@@ -1667,7 +1668,7 @@ This is **company signatory KYC metadata**, collected **once** on `POST /company
 
 - Payment is **always** the **counterparty** (the User whose phone was entered).
 - Individual pay and installment pay policies ignore `authorization_type`.
-- Choosing `agency` vs `power_of_attorney` does **not** grant the requester (or anyone else) permission to pay.
+- Choosing `owner`, `manager`, or `agency` does **not** grant the requester (or anyone else) permission to pay.
 
 Update endpoint cannot change this field after create.
 

@@ -32,7 +32,8 @@ return [
         'reversed' => 'معكوسة',
     ],
     'authorization_type' => [
-        'power_of_attorney' => 'تفويض',
+        'owner' => 'مالك',
+        'manager' => 'مدير',
         'agency' => 'وكالة',
     ],
     'installments_sum_mismatch' => 'مجموع الدفعات يجب أن يساوي إجمالي قيمة العقد',

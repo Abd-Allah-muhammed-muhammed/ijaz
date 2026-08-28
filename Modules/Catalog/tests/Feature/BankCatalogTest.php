@@ -259,7 +259,7 @@ test('terms_notes persists correctly on GuarantorCompanyDetail', function () {
         'commercial_register' => 'CR-1',
         'authorized_name' => 'Auth Name',
         'authorized_id_number' => '123',
-        'authorization_type' => 'power_of_attorney',
+        'authorization_type' => 'owner',
         'requester_account_holder' => 'Holder',
         'requester_iban' => 'SA1234567890123456789012',
         'requester_bank_id' => $bank->id,

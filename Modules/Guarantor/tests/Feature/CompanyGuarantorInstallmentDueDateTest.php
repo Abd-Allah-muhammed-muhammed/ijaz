@@ -62,7 +62,7 @@ function companyDueDatePayload(array $installments, float $totalAmount): array
         'commercial_register' => 'CR-123456',
         'authorized_name' => 'John Doe',
         'authorized_id_number' => '1234567890',
-        'authorization_type' => 'power_of_attorney',
+        'authorization_type' => 'owner',
         'requester_account_holder' => 'Requester Name',
         'requester_iban' => 'SA1234567890123456789012',
         'requester_bank_id' => defaultGuarantorTestBankId(),
