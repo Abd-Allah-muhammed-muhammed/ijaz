@@ -5,6 +5,7 @@ use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Modules\Catalog\Contracts\Repositories\BankRepositoryInterface;
 use Modules\Catalog\Database\Seeders\BanksSeeder;
 use Modules\Catalog\Http\Controllers\Dashboard\BankController;
 use Modules\Catalog\Models\Bank;
@@ -60,18 +61,51 @@ test('an inactive Bank is excluded from the mobile catalog API but still visible
         );
 });
 
-test('GET /api/v1/catalog/banks returns all 4 locale translations per bank, not just the current request locale', function () {
-    Bank::factory()->create(['translations' => geoNameTranslations('MultiLocale')]);
+test('GET /api/v1/catalog/banks no longer includes a translations field', function () {
+    Bank::factory()->create(['translations' => geoNameTranslations('NoTranslations')]);
 
-    $response = $this->getJson('/api/v1/catalog/banks?search=MultiLocale');
+    $response = $this->getJson('/api/v1/catalog/banks?search=NoTranslations');
     $response->assertSuccessful();
 
-    $translations = $response->json('data.items.0.translations');
+    expect($response->json('data.items.0'))->not->toHaveKey('translations');
+});
 
-    expect($translations)->toBeArray()
-        ->and(array_keys($translations))->toEqualCanonicalizing(['en', 'ar', 'hi', 'ur'])
-        ->and($translations['en']['name'])->toBe('MultiLocale EN')
-        ->and($translations['ar']['name'])->toBe('MultiLocale AR');
+test('GET /api/v1/catalog/banks still includes id, name (current locale), logo_url, is_active — everything mobile actually needs, unchanged', function () {
+    Bank::factory()->create(['translations' => geoNameTranslations('MobileShape')]);
+
+    $response = $this->getJson('/api/v1/catalog/banks?search=MobileShape');
+    $response->assertSuccessful();
+
+    expect(array_keys($response->json('data.items.0')))->toBe(['id', 'name', 'logo_url', 'is_active'])
+        ->and($response->json('data.items.0.name'))->toBe('MobileShape EN');
+});
+
+test('the Dashboard banks admin resource (used by the edit form) still exposes all 4 locale translations — unaffected, this removal is public-API-only', function () {
+    withoutGeoDashboardLocaleMiddleware();
+    $admin = createGeoDashboardAdmin(['edit banks']);
+    $bank = Bank::factory()->create(['translations' => geoNameTranslations('EditForm')]);
+
+    $this->actingAs($admin, 'admin')
+        ->get(action([BankController::class, 'edit'], $bank))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Banks/Edit')
+            ->has('row.translations.en')
+            ->has('row.translations.ar')
+            ->has('row.translations.hi')
+            ->has('row.translations.ur')
+        );
+});
+
+test('paginateForApi does not eager-load translations since the public API resource no longer uses them', function () {
+    Bank::factory()->create(['translations' => geoNameTranslations('EagerProbe')]);
+
+    $bank = app(BankRepositoryInterface::class)
+        ->paginateForApi('EagerProbe', 10)
+        ->first();
+
+    expect($bank)->not->toBeNull()
+        ->and($bank->relationLoaded('translations'))->toBeFalse();
 });
 
 test('Dashboard banks index returns the standard flat paginated shape (matching Region/ElectronicBrand), not the API-style {items, total} wrapper', function () {
@@ -145,7 +179,7 @@ test('existing regions/cities dashboard index tests still pass — regression, c
         ->assertInertia(fn ($page) => $page->component('Dashboard/Cities/Index'));
 });
 
-test('GET /api/v1/catalog/banks returns items with id, name (current locale), translations, and logo_url, matching the existing catalog contract shape used by regions/cities', function () {
+test('GET /api/v1/catalog/banks returns items with id, name (current locale), and logo_url, matching the mobile catalog contract shape', function () {
     Bank::factory()->create(['translations' => geoNameTranslations('Riyad')]);
 
     $response = $this->getJson('/api/v1/catalog/banks');
@@ -158,7 +192,7 @@ test('GET /api/v1/catalog/banks returns items with id, name (current locale), tr
         ])
         ->and($json['data']['items'])->toBeArray()->not->toBeEmpty();
 
-    expect(array_keys($json['data']['items'][0]))->toBe(['id', 'name', 'translations', 'logo_url', 'is_active']);
+    expect(array_keys($json['data']['items'][0]))->toBe(['id', 'name', 'logo_url', 'is_active']);
 });
 
 test('Bank admin CRUD respects the same permission pattern as Region (show/create/edit/delete banks)', function () {

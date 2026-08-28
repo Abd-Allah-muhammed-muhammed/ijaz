@@ -13,12 +13,7 @@ class BankResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            $this->mergeWhen($this->whenLoaded('translation'), [
-                'name' => $this->name,
-            ]),
-            'translations' => $this->whenLoaded('translations', function () {
-                return $this->translations->keyBy('locale');
-            }),
+            'name' => $this->name,
             'logo_url' => $this->logo_url,
             'is_active' => $this->is_active,
         ];

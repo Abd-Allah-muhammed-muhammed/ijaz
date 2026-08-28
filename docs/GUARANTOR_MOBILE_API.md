@@ -326,10 +326,6 @@ Returned on company requests when loaded (create company, show, update).
       {
         "id": 1,
         "name": "Saudi National Bank",
-        "translations": {
-          "en": { "locale": "en", "name": "Saudi National Bank", "bank_id": 1 },
-          "ar": { "locale": "ar", "name": "البنك الأهلي السعودي", "bank_id": 1 }
-        },
         "logo_url": "https://example.test/storage/1/logo.png",
         "is_active": true
       }
