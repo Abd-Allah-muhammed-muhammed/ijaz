@@ -1,5 +1,6 @@
 import AdminController from '@/actions/App/Http/Controllers/Dashboard/AdminController';
 import BannerController from '@/actions/Modules/Cms/Http/Controllers/Dashboard/BannerController';
+import BankController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/BankController';
 import CarBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarBrandController';
 import CarCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarCategoryController';
 import CarTypeController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/CarTypeController';
@@ -262,6 +263,14 @@ const SidebarMenuMain = () => {
         fontIcon="bi-star"
         isActive={matchComponents('dashboard.electronic-brands.*')}
         show={hasPermission('show electronicBrands')}
+      />
+      <SidebarMenuItem
+        to={BankController.index().url}
+        title={t('banks')}
+        icon="bank"
+        fontIcon="bi-bank"
+        isActive={matchComponents('dashboard.banks.*')}
+        show={hasPermission('show banks')}
       />
 
       {/* 9. Catalog — Institutes → Specializations */}

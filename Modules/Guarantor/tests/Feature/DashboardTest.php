@@ -343,6 +343,7 @@ test('Guarantor dashboard resource exposes all request and company media collect
         'authorization_type' => AuthorizationTypeEnum::PowerOfAttorney,
         'requester_account_holder' => 'Holder',
         'requester_iban' => 'SA0380000000608010167519',
+        'requester_bank_id' => defaultGuarantorTestBankId(),
         'counterparty_account_holder' => 'CP Holder',
     ]);
     $detail->addMedia(UploadedFile::fake()->create('id.pdf', 100, 'application/pdf'))

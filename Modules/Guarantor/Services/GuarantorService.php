@@ -188,6 +188,8 @@ class GuarantorService
             'installments',
             'companyDetail.region',
             'companyDetail.city',
+            'companyDetail.requesterBank',
+            'companyDetail.counterpartyBank',
             'companyDetail.media',
             'statusHistories.actor',
             'conversation',

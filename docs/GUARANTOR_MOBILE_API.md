@@ -289,8 +289,11 @@ Returned on company requests when loaded (create company, show, update).
   "authorization_type": { "value": "power_of_attorney", "label": "Power of Attorney" },
   "requester_account_holder": "Acme Contracting",
   "requester_iban": "SA0380000000608010167519",
+  "requester_bank": { "value": "1", "label": "Saudi National Bank", "logo_url": "https://example.test/storage/1/logo.png" },
   "counterparty_account_holder": "Ahmed Mohamed",
   "counterparty_iban": null,
+  "counterparty_bank": null,
+  "terms_notes": "Late payment subject to contract clause 12.",
   "region": { "id": 1, "title": "Riyadh" },
   "city": { "id": 3, "title": "Riyadh", "region_id": 1 },
   "media": []
@@ -300,6 +303,48 @@ Returned on company requests when loaded (create company, show, update).
 **Ambiguous:** `region` and `city` are **not** wrapped in a dedicated resource. They are the geo models as JSON. At minimum expect `id`. Translated `title` may appear when translations are loaded. **Do not** assume a frozen geo shape. They are omitted when those relations are not loaded (create-company loads company media but **not** region/city; **show** does load them).
 
 `counterparty_iban` may be `null` (field is optional on create).
+
+`requester_bank` and `counterparty_bank` are `{ "value": string, "label": string, "logo_url": string | null } | null` objects when the relation is loaded (same shape as `type` / `status` objects, plus `logo_url`). `requester_bank` is always present on create responses when a bank was selected. `counterparty_bank` may be `null`.
+
+`terms_notes` is an optional plain string (max 2000 characters on create).
+
+### Catalog banks lookup
+
+`GET /api/v1/catalog/banks`
+
+**Auth:** none (public catalog).
+
+**Query:** `search` (optional), `per_page` (optional, default `10`).
+
+**Success `200`:** paginated envelope matching regions/cities:
+
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "name": "Saudi National Bank",
+        "translations": {
+          "en": { "locale": "en", "name": "Saudi National Bank", "bank_id": 1 },
+          "ar": { "locale": "ar", "name": "البنك الأهلي السعودي", "bank_id": 1 }
+        },
+        "logo_url": "https://example.test/storage/1/logo.png",
+        "is_active": true
+      }
+    ],
+    "total": 14,
+    "count": 10,
+    "per_page": 10,
+    "current_page": 1,
+    "last_page": 2,
+    "has_more_pages": true
+  }
+}
+```
+
+Only **active** banks are returned. Use `id` as `requester_bank_id` / `counterparty_bank_id` on company create.
 
 ### Status history row
 
@@ -514,8 +559,11 @@ The counterparty is **not** notified on create. Only the requester gets “submi
 | `authorization_type` | string | yes | `power_of_attorney` or `agency` | `power_of_attorney` |
 | `requester_account_holder` | string | yes | max 255 | `Acme Contracting` |
 | `requester_iban` | string | yes | max 50 | `SA0380000000608010167519` |
+| `requester_bank_id` | int | yes | must exist in `banks` and `is_active = true` | `1` |
 | `counterparty_account_holder` | string | yes | max 255 | `Ahmed Mohamed` |
 | `counterparty_iban` | string | **no** | max 50 | `SA0380000000608010167520` |
+| `counterparty_bank_id` | int | **no** | must exist in `banks` and `is_active = true` when sent | `2` |
+| `terms_notes` | string | **no** | max 2000 | `Payment terms per annex A` |
 | `signature` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | |
 | `authorized_id` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | |
 | `contracts` | file[] | yes | array min 1; each jpg/jpeg/png/pdf, max **10240** KB (10 MB) | |

@@ -2,6 +2,7 @@
 
 namespace Modules\Catalog\Providers;
 
+use Modules\Catalog\Contracts\Repositories\BankRepositoryInterface;
 use Modules\Catalog\Contracts\Repositories\CarBrandRepositoryInterface;
 use Modules\Catalog\Contracts\Repositories\CarCategoryRepositoryInterface;
 use Modules\Catalog\Contracts\Repositories\CarTypeRepositoryInterface;
@@ -10,6 +11,7 @@ use Modules\Catalog\Contracts\Repositories\ElectronicBrandRepositoryInterface;
 use Modules\Catalog\Contracts\Repositories\PropertyCategoryRepositoryInterface;
 use Modules\Catalog\Contracts\Repositories\PropertyTypeRepositoryInterface;
 use Modules\Catalog\Contracts\Repositories\SpecializationRepositoryInterface;
+use Modules\Catalog\Contracts\Services\BankServiceInterface;
 use Modules\Catalog\Contracts\Services\CarBrandServiceInterface;
 use Modules\Catalog\Contracts\Services\CarCategoryServiceInterface;
 use Modules\Catalog\Contracts\Services\CarTypeServiceInterface;
@@ -18,6 +20,7 @@ use Modules\Catalog\Contracts\Services\ElectronicBrandServiceInterface;
 use Modules\Catalog\Contracts\Services\PropertyCategoryServiceInterface;
 use Modules\Catalog\Contracts\Services\PropertyTypeServiceInterface;
 use Modules\Catalog\Contracts\Services\SpecializationServiceInterface;
+use Modules\Catalog\Repositories\BankRepository;
 use Modules\Catalog\Repositories\CarBrandRepository;
 use Modules\Catalog\Repositories\CarCategoryRepository;
 use Modules\Catalog\Repositories\CarTypeRepository;
@@ -26,6 +29,7 @@ use Modules\Catalog\Repositories\ElectronicBrandRepository;
 use Modules\Catalog\Repositories\PropertyCategoryRepository;
 use Modules\Catalog\Repositories\PropertyTypeRepository;
 use Modules\Catalog\Repositories\SpecializationRepository;
+use Modules\Catalog\Services\BankService;
 use Modules\Catalog\Services\CarBrandService;
 use Modules\Catalog\Services\CarCategoryService;
 use Modules\Catalog\Services\CarTypeService;
@@ -50,6 +54,7 @@ class CatalogServiceProvider extends ModuleServiceProvider
     {
         parent::register();
 
+        $this->app->bind(BankRepositoryInterface::class, BankRepository::class);
         $this->app->bind(PropertyTypeRepositoryInterface::class, PropertyTypeRepository::class);
         $this->app->bind(PropertyCategoryRepositoryInterface::class, PropertyCategoryRepository::class);
         $this->app->bind(CarBrandRepositoryInterface::class, CarBrandRepository::class);
@@ -59,6 +64,7 @@ class CatalogServiceProvider extends ModuleServiceProvider
         $this->app->bind(ElectronicBrandRepositoryInterface::class, ElectronicBrandRepository::class);
         $this->app->bind(SpecializationRepositoryInterface::class, SpecializationRepository::class);
 
+        $this->app->bind(BankServiceInterface::class, BankService::class);
         $this->app->bind(PropertyTypeServiceInterface::class, PropertyTypeService::class);
         $this->app->bind(PropertyCategoryServiceInterface::class, PropertyCategoryService::class);
         $this->app->bind(CarBrandServiceInterface::class, CarBrandService::class);

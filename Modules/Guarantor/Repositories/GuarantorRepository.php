@@ -44,6 +44,8 @@ class GuarantorRepository implements GuarantorRepositoryInterface
                 'installments',
                 'companyDetail.region',
                 'companyDetail.city',
+                'companyDetail.requesterBank',
+                'companyDetail.counterpartyBank',
                 'statusHistories.actor',
                 'media',
             ])

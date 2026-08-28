@@ -168,6 +168,7 @@ test('CreateCompanyGuarantorAction creates request with installments and company
             authorization_type: 'power_of_attorney',
             requester_account_holder: 'Requester Name',
             requester_iban: 'SA1234567890123456789012',
+            requester_bank_id: defaultGuarantorTestBankId(),
             counterparty_account_holder: 'Counterparty Name',
         ),
         [
@@ -204,6 +205,7 @@ test('CreateCompanyGuarantorAction fails if installments sum != total', function
         'authorization_type' => 'power_of_attorney',
         'requester_account_holder' => 'Requester Name',
         'requester_iban' => 'SA1234567890123456789012',
+        'requester_bank_id' => defaultGuarantorTestBankId(),
         'counterparty_account_holder' => 'Counterparty Name',
     ];
 
@@ -279,6 +281,7 @@ function companyGuarantorCreateArgs(User $requester): array
             authorization_type: 'power_of_attorney',
             requester_account_holder: 'Requester Name',
             requester_iban: 'SA1234567890123456789012',
+            requester_bank_id: defaultGuarantorTestBankId(),
             counterparty_account_holder: 'Counterparty Name',
         ),
         [

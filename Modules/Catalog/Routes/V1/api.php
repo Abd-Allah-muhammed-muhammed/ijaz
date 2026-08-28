@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Catalog\Http\Controllers\Api\V1\BankController;
 use Modules\Catalog\Http\Controllers\Api\V1\CarBrandController;
 use Modules\Catalog\Http\Controllers\Api\V1\CarCategoryController;
 use Modules\Catalog\Http\Controllers\Api\V1\CarTypeController;
@@ -11,6 +12,7 @@ use Modules\Catalog\Http\Controllers\Api\V1\PropertyTypeController;
 use Modules\Catalog\Http\Controllers\Api\V1\SpecializationController;
 
 Route::prefix('catalog')->group(static function () {
+    Route::get('banks', [BankController::class, 'index']);
     Route::get('property-types', [PropertyTypeController::class, 'index']);
     Route::get('property-categories', [PropertyCategoryController::class, 'index']);
     Route::get('car-brands', [CarBrandController::class, 'index']);

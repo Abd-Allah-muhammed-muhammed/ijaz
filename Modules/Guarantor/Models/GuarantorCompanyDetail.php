@@ -5,6 +5,7 @@ namespace Modules\Guarantor\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Catalog\Models\Bank;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
 use Modules\Guarantor\Enums\AuthorizationTypeEnum;
@@ -30,8 +31,11 @@ class GuarantorCompanyDetail extends Model implements HasMedia
         'authorization_type',
         'requester_account_holder',
         'requester_iban',
+        'requester_bank_id',
         'counterparty_account_holder',
         'counterparty_iban',
+        'counterparty_bank_id',
+        'terms_notes',
     ];
 
     public function guarantorRequest(): BelongsTo
@@ -47,6 +51,16 @@ class GuarantorCompanyDetail extends Model implements HasMedia
     public function city(): BelongsTo
     {
         return $this->belongsTo(City::class);
+    }
+
+    public function requesterBank(): BelongsTo
+    {
+        return $this->belongsTo(Bank::class, 'requester_bank_id');
+    }
+
+    public function counterpartyBank(): BelongsTo
+    {
+        return $this->belongsTo(Bank::class, 'counterparty_bank_id');
     }
 
     public function registerMediaCollections(): void

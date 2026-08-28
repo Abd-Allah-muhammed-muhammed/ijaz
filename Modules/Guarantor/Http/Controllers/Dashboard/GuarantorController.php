@@ -83,6 +83,8 @@ class GuarantorController extends Controller implements HasMiddleware
             'installments',
             'companyDetail.region',
             'companyDetail.city',
+            'companyDetail.requesterBank',
+            'companyDetail.counterpartyBank',
             'companyDetail.media',
             'statusHistories.actor',
             'media',

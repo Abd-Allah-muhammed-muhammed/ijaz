@@ -65,6 +65,7 @@ function companyDueDatePayload(array $installments, float $totalAmount): array
         'authorization_type' => 'power_of_attorney',
         'requester_account_holder' => 'Requester Name',
         'requester_iban' => 'SA1234567890123456789012',
+        'requester_bank_id' => defaultGuarantorTestBankId(),
         'counterparty_account_holder' => 'Counterparty Name',
         'signature' => UploadedFile::fake()->create('signature.pdf', 100, 'application/pdf'),
         'authorized_id' => UploadedFile::fake()->create('authorized_id.pdf', 100, 'application/pdf'),

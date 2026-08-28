@@ -189,8 +189,11 @@ test('store company GuarantorResource key set is frozen', function () {
             'authorization_type',
             'requester_account_holder',
             'requester_iban',
+            'requester_bank',
             'counterparty_account_holder',
             'counterparty_iban',
+            'counterparty_bank',
+            'terms_notes',
             'media',
         ]);
 });

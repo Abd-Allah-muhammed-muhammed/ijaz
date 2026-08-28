@@ -49,6 +49,7 @@ function validationHardeningCompanyPayload(array $installments, array $overrides
         'authorization_type' => 'power_of_attorney',
         'requester_account_holder' => 'Requester Name',
         'requester_iban' => VALID_SAUDI_IBAN,
+        'requester_bank_id' => defaultGuarantorTestBankId(),
         'counterparty_account_holder' => 'Counterparty Name',
         'signature' => UploadedFile::fake()->create('signature.pdf', 100, 'application/pdf'),
         'authorized_id' => UploadedFile::fake()->create('authorized_id.pdf', 100, 'application/pdf'),

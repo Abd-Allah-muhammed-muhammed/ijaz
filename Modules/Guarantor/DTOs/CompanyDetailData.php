@@ -16,8 +16,11 @@ final readonly class CompanyDetailData
         public string $authorization_type,
         public string $requester_account_holder,
         public string $requester_iban,
+        public int $requester_bank_id,
         public string $counterparty_account_holder,
         public ?string $counterparty_iban = null,
+        public ?int $counterparty_bank_id = null,
+        public ?string $terms_notes = null,
     ) {}
 
     public static function fromRequest(StoreCompanyGuarantorRequest $request): self
@@ -36,8 +39,13 @@ final readonly class CompanyDetailData
             authorization_type: (string) $request->validated('authorization_type'),
             requester_account_holder: (string) $request->validated('requester_account_holder'),
             requester_iban: (string) $request->validated('requester_iban'),
+            requester_bank_id: (int) $request->validated('requester_bank_id'),
             counterparty_account_holder: (string) $request->validated('counterparty_account_holder'),
             counterparty_iban: $request->validated('counterparty_iban'),
+            counterparty_bank_id: $request->validated('counterparty_bank_id') !== null
+                ? (int) $request->validated('counterparty_bank_id')
+                : null,
+            terms_notes: $request->validated('terms_notes'),
         );
     }
 }

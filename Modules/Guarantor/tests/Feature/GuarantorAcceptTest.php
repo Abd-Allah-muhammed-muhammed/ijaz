@@ -87,6 +87,7 @@ test('requester signature is still written to the renamed requester_signature co
             authorization_type: 'power_of_attorney',
             requester_account_holder: 'Holder',
             requester_iban: 'SA1234567890123456789012',
+            requester_bank_id: defaultGuarantorTestBankId(),
             counterparty_account_holder: 'CP',
         ),
         [

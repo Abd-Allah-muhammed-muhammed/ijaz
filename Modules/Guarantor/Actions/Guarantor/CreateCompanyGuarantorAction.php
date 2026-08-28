@@ -73,8 +73,11 @@ class CreateCompanyGuarantorAction
                 'authorization_type' => AuthorizationTypeEnum::from($companyData->authorization_type),
                 'requester_account_holder' => $companyData->requester_account_holder,
                 'requester_iban' => $companyData->requester_iban,
+                'requester_bank_id' => $companyData->requester_bank_id,
                 'counterparty_account_holder' => $companyData->counterparty_account_holder,
                 'counterparty_iban' => $companyData->counterparty_iban,
+                'counterparty_bank_id' => $companyData->counterparty_bank_id,
+                'terms_notes' => $companyData->terms_notes,
             ]);
 
             foreach ($installments as $installmentData) {
@@ -120,6 +123,8 @@ class CreateCompanyGuarantorAction
                 'requester',
                 'counterparty',
                 'installments',
+                'companyDetail.requesterBank',
+                'companyDetail.counterpartyBank',
                 'companyDetail.media',
                 'media',
             ]);
