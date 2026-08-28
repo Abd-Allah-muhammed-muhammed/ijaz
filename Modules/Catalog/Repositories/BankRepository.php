@@ -77,7 +77,7 @@ class BankRepository implements BankRepositoryInterface
         if (filled($search)) {
             return Bank::query()
                 ->withTranslation()
-                ->with('media'
+                ->with('media')
                 ->where('is_active', true)
                 ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v, 'normalized_name'))
                 ->get();
