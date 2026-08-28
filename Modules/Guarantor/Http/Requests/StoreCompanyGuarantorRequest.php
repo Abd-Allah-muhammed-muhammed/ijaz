@@ -5,12 +5,12 @@ namespace Modules\Guarantor\Http\Requests;
 use App\Http\Requests\ApiRequest;
 use App\Rules\SaudiIban;
 use App\Support\Normalize;
-use Carbon\Carbon;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 use Modules\Guarantor\Enums\AuthorizationTypeEnum;
 use Modules\Guarantor\Rules\CheckAuthenticatableId;
+use Modules\Guarantor\Support\CompanyInstallmentScheduleValidator;
 
 class StoreCompanyGuarantorRequest extends ApiRequest
 {
@@ -116,147 +116,14 @@ class StoreCompanyGuarantorRequest extends ApiRequest
                 return;
             }
 
-            $orderValid = $this->validateUniqueSequentialOrder($v, $installments);
+            $scheduleErrors = (new CompanyInstallmentScheduleValidator)->validate(
+                $installments,
+                (float) $this->input('total_amount', 0),
+            );
 
-            $this->validateInstallmentSum($v, $installments);
-
-            if (! $orderValid) {
-                return;
+            foreach ($scheduleErrors as $error) {
+                $v->errors()->add($error['field'], $error['message']);
             }
-
-            $this->validateFirstInstallmentMaxDays($v, $installments);
-            $this->validateInstallmentChronologicalOrder($v, $installments);
         });
-    }
-
-    /**
-     * @param  list<array<string, mixed>>  $installments
-     */
-    private function validateUniqueSequentialOrder(Validator $v, array $installments): bool
-    {
-        $orders = collect($installments)
-            ->pluck('order')
-            ->filter(static fn ($order) => $order !== null && $order !== '')
-            ->map(static fn ($order) => (int) $order)
-            ->values();
-
-        if ($orders->count() !== $orders->unique()->count()) {
-            $v->errors()->add('installments', __('guarantor.installment_order_duplicate'));
-
-            return false;
-        }
-
-        $sorted = $orders->sort()->values()->all();
-        $expected = range(1, count($sorted));
-
-        if ($sorted !== $expected) {
-            $v->errors()->add('installments', __('guarantor.installment_order_not_sequential'));
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param  list<array<string, mixed>>  $installments
-     */
-    private function validateInstallmentSum(Validator $v, array $installments): void
-    {
-        $total = collect($installments)->sum('amount');
-        $expected = (float) $this->input('total_amount', 0);
-
-        if (round($total, 2) !== round($expected, 2)) {
-            $v->errors()->add(
-                'installments',
-                __('guarantor.installments_sum_mismatch')
-            );
-        }
-    }
-
-    /**
-     * @param  list<array<string, mixed>>  $installments
-     */
-    private function validateFirstInstallmentMaxDays(Validator $v, array $installments): void
-    {
-        $map = $this->buildInstallmentOrderMap($installments);
-
-        if (! isset($map[1])) {
-            return;
-        }
-
-        $maxDays = (int) app('settings')->get('guarantor_first_installment_max_days', 5);
-        $latestAllowed = now()->startOfDay()->addDays($maxDays);
-
-        try {
-            $firstDue = Carbon::parse($map[1]['due_date'])->startOfDay();
-        } catch (\Exception) {
-            return;
-        }
-
-        if ($firstDue->gt($latestAllowed)) {
-            $v->errors()->add(
-                "installments.{$map[1]['index']}.due_date",
-                __('guarantor.installment_due_date_first_within_days', ['days' => $maxDays])
-            );
-        }
-    }
-
-    /**
-     * @param  list<array<string, mixed>>  $installments
-     */
-    private function validateInstallmentChronologicalOrder(Validator $v, array $installments): void
-    {
-        $map = $this->buildInstallmentOrderMap($installments);
-        $maxOrder = count($map);
-
-        for ($order = 2; $order <= $maxOrder; $order++) {
-            if (! isset($map[$order], $map[$order - 1])) {
-                continue;
-            }
-
-            try {
-                $current = Carbon::parse($map[$order]['due_date'])->startOfDay();
-                $previous = Carbon::parse($map[$order - 1]['due_date'])->startOfDay();
-            } catch (\Exception) {
-                continue;
-            }
-
-            if ($current->lt($previous)) {
-                $v->errors()->add(
-                    "installments.{$map[$order]['index']}.due_date",
-                    __('guarantor.installment_due_date_before_previous', ['order' => $order])
-                );
-            }
-        }
-    }
-
-    /**
-     * @param  list<array<string, mixed>>  $installments
-     * @return array<int, array{due_date: string, index: int}>
-     */
-    private function buildInstallmentOrderMap(array $installments): array
-    {
-        $map = [];
-
-        foreach ($installments as $index => $installment) {
-            if (! is_array($installment)) {
-                continue;
-            }
-
-            $order = $installment['order'] ?? null;
-            $dueDate = $installment['due_date'] ?? null;
-
-            if ($order === null || $order === '' || $dueDate === null || $dueDate === '') {
-                continue;
-            }
-
-            $map[(int) $order] = [
-                'due_date' => (string) $dueDate,
-                'index' => $index,
-            ];
-        }
-
-        return $map;
     }
 }
