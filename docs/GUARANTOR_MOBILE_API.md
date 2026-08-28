@@ -504,7 +504,7 @@ The counterparty is **not** notified on create. Only the requester gets “submi
 | `installments` | array | yes | min 1, max **12** items | see below |
 | `installments.*.order` | int | yes | integer, min `1` | `1` |
 | `installments.*.amount` | number | yes | numeric, min `1` | `10000` |
-| `installments.*.due_date` | date | yes | must be a **date after today** (not today). Eastern digits are normalized to Western digits before validation. | `2026-09-15` |
+| `installments.*.due_date` | date | yes | must be a **date after today** (not today). **First installment (`order = 1`)** must also fall within a server-configurable maximum number of days from today (setting key `guarantor_first_installment_max_days`; **default 5** — changeable without an app deploy). **Subsequent installments** (`order > 1`) must have a due date **on or after** the previous installment's due date (matched by `order`, not JSON array position). Eastern digits are normalized to Western digits before validation. | `2026-09-15` |
 | `company_name` | string | yes | max 255 | `Acme Contracting` |
 | `commercial_register` | string | yes | max 255 | `1010123456` |
 | `region_id` | int | no | must exist in `regions` | `1` |
@@ -529,6 +529,8 @@ The counterparty is **not** notified on create. Only the requester gets “submi
   - required: `"Each installment must have a due date."`
   - invalid date: `"Each installment due date must be a valid date."`
   - not after today: `"Each installment due date must be a date after today."`
+  - first installment beyond max window: `"The first installment due date must be within :days days of today."` (`:days` reflects the live `guarantor_first_installment_max_days` setting; default **5**)
+  - non-chronological schedule: `"Installment :order due date must be on or after the previous installment's due date."` (`:order` is the failing installment's `order` value)
 
 **Success `200`:** resource with `type.value = "company"`, `status.value = "pending_admin"`, `title` equal to `project_type`, `description` `""`, `installments` array, `company_detail` (media loaded; region/city usually **absent** on this response), request `media` (requester_signature).
 

@@ -63,8 +63,8 @@ test('a Saudi IBAN in an invalid format is rejected with a clear validation mess
     Sanctum::actingAs($requester);
 
     $installments = [
-        ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
-        ['order' => 2, 'amount' => 500, 'due_date' => now()->addDays(60)->toDateString()],
+        ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(3)->toDateString()],
+        ['order' => 2, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
     ];
 
     $response = $this->postJson(
@@ -85,8 +85,8 @@ test('a validly-formatted Saudi IBAN passes validation', function () {
     Sanctum::actingAs($requester);
 
     $installments = [
-        ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
-        ['order' => 2, 'amount' => 500, 'due_date' => now()->addDays(60)->toDateString()],
+        ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(3)->toDateString()],
+        ['order' => 2, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
     ];
 
     $response = $this->postJson(

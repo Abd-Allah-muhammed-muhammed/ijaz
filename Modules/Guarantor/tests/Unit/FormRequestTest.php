@@ -59,8 +59,8 @@ function companyGuarantorPayload(array $overrides = []): array
         'project_type' => 'Construction',
         'total_amount' => 1000,
         'installments' => [
-            ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
-            ['order' => 2, 'amount' => 500, 'due_date' => now()->addDays(60)->toDateString()],
+            ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(3)->toDateString()],
+            ['order' => 2, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
         ],
         'company_name' => 'Acme Corp',
         'commercial_register' => 'CR-123456',
@@ -131,8 +131,8 @@ test('StoreCompanyGuarantorRequest fails when installments sum != total_amount',
         'counterparty_phone' => (string) $counterparty->phone,
         'total_amount' => 1000,
         'installments' => [
-            ['order' => 1, 'amount' => 400, 'due_date' => now()->addDays(30)->toDateString()],
-            ['order' => 2, 'amount' => 400, 'due_date' => now()->addDays(60)->toDateString()],
+            ['order' => 1, 'amount' => 400, 'due_date' => now()->addDays(3)->toDateString()],
+            ['order' => 2, 'amount' => 400, 'due_date' => now()->addDays(30)->toDateString()],
         ],
     ]);
 
@@ -208,7 +208,7 @@ test('StoreCompanyGuarantorRequest fails when an installment due_date is missing
     $data = companyGuarantorPayload([
         'counterparty_phone' => (string) $counterparty->phone,
         'installments' => [
-            ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(30)->toDateString()],
+            ['order' => 1, 'amount' => 500, 'due_date' => now()->addDays(3)->toDateString()],
             ['order' => 2, 'amount' => 500],
         ],
     ]);
@@ -229,8 +229,8 @@ test('guarantor installment due_date accepts Arabic-Indic digits', function () {
     ]);
     Sanctum::actingAs($requester);
 
-    $dueDate1 = now()->addDays(30)->toDateString();
-    $dueDate2 = now()->addDays(60)->toDateString();
+    $dueDate1 = now()->addDays(3)->toDateString();
+    $dueDate2 = now()->addDays(30)->toDateString();
     $map = [
         '0' => '٠', '1' => '١', '2' => '٢', '3' => '٣', '4' => '٤',
         '5' => '٥', '6' => '٦', '7' => '٧', '8' => '٨', '9' => '٩',

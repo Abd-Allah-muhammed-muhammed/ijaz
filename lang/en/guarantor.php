@@ -42,6 +42,8 @@ return [
     'installment_due_date_required' => 'Each installment must have a due date.',
     'installment_due_date_invalid' => 'Each installment due date must be a valid date.',
     'installment_due_date_after_today' => 'Each installment due date must be a date after today.',
+    'installment_due_date_first_within_days' => 'The first installment due date must be within :days days of today.',
+    'installment_due_date_before_previous' => 'Installment :order due date must be on or after the previous installment\'s due date.',
     'counterparty_not_found' => 'The counterparty phone number is not registered in the system',
     'cannot_update_non_new' => 'You can only update requests pending admin review',
     'cannot_delete_non_new' => 'You can only delete requests pending admin review',

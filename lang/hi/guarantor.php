@@ -42,6 +42,8 @@ return [
     'installment_due_date_required' => 'प्रत्येक किस्त की देय तिथि आवश्यक है।',
     'installment_due_date_invalid' => 'प्रत्येक किस्त की देय तिथि एक मान्य तिथि होनी चाहिए।',
     'installment_due_date_after_today' => 'प्रत्येक किस्त की देय तिथि आज के बाद की होनी चाहिए।',
+    'installment_due_date_first_within_days' => 'पहली किस्त की देय तिथि आज से :days दिनों के भीतर होनी चाहिए।',
+    'installment_due_date_before_previous' => 'किस्त :order की देय तिथि पिछली किस्त की देय तिथि के बराबर या उसके बाद की होनी चाहिए।',
     'counterparty_not_found' => 'प्रतिपक्ष का फ़ोन नंबर सिस्टम में पंजीकृत नहीं है',
     'cannot_update_non_new' => 'आप केवल नई स्थिति वाले अनुरोधों को अपडेट कर सकते हैं',
     'cannot_delete_non_new' => 'आप केवल नई स्थिति वाले अनुरोधों को हटा सकते हैं',

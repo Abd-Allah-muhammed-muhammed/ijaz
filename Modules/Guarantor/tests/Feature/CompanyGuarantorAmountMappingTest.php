@@ -45,8 +45,8 @@ function validatedCompanyGuarantorFormRequest(float $totalAmount = 50000.0): arr
         'project_type' => 'Construction',
         'total_amount' => $totalAmount,
         'installments' => [
-            ['order' => 1, 'amount' => $half, 'due_date' => now()->addDays(30)->toDateString()],
-            ['order' => 2, 'amount' => $half, 'due_date' => now()->addDays(60)->toDateString()],
+            ['order' => 1, 'amount' => $half, 'due_date' => now()->addDays(3)->toDateString()],
+            ['order' => 2, 'amount' => $half, 'due_date' => now()->addDays(30)->toDateString()],
         ],
         'company_name' => 'Acme Corp',
         'commercial_register' => 'CR-123456',

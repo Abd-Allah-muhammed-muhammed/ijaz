@@ -194,8 +194,8 @@ test('CreateCompanyGuarantorAction fails if installments sum != total', function
         'project_type' => 'Construction',
         'total_amount' => 1000,
         'installments' => [
-            ['order' => 1, 'amount' => 400, 'due_date' => now()->addDays(30)->toDateString()],
-            ['order' => 2, 'amount' => 400, 'due_date' => now()->addDays(60)->toDateString()],
+            ['order' => 1, 'amount' => 400, 'due_date' => now()->addDays(3)->toDateString()],
+            ['order' => 2, 'amount' => 400, 'due_date' => now()->addDays(30)->toDateString()],
         ],
         'company_name' => 'Acme Corp',
         'commercial_register' => 'CR-123456',

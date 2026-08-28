@@ -42,6 +42,8 @@ return [
     'installment_due_date_required' => 'ہر قسط کی واجب الادا تاریخ درکار ہے۔',
     'installment_due_date_invalid' => 'ہر قسط کی واجب الادا تاریخ درست ہونی چاہیے۔',
     'installment_due_date_after_today' => 'ہر قسط کی واجب الادا تاریخ آج کے بعد کی ہونی چاہیے۔',
+    'installment_due_date_first_within_days' => 'پہلی قسط کی واجب الادا تاریخ آج سے :days دنوں کے اندر ہونی چاہیے۔',
+    'installment_due_date_before_previous' => 'قسط :order کی واجب الادا تاریخ پچھلی قسط کی واجب الادا تاریخ کے برابر یا بعد کی ہونی چاہیے۔',
     'counterparty_not_found' => 'دوسرے فریق کا فون نمبر سسٹم میں رجسٹرڈ نہیں ہے',
     'cannot_update_non_new' => 'آپ صرف نئی حالت والے درخواستوں کو اپ ڈیٹ کر سکتے ہیں',
     'cannot_delete_non_new' => 'آپ صرف نئی حالت والے درخواستوں کو حذف کر سکتے ہیں',

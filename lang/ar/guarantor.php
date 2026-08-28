@@ -42,6 +42,8 @@ return [
     'installment_due_date_required' => 'يجب تحديد تاريخ استحقاق لكل دفعة.',
     'installment_due_date_invalid' => 'يجب أن يكون تاريخ استحقاق كل دفعة تاريخاً صالحاً.',
     'installment_due_date_after_today' => 'يجب أن يكون تاريخ استحقاق كل دفعة بعد اليوم.',
+    'installment_due_date_first_within_days' => 'يجب أن يكون تاريخ استحقاق الدفعة الأولى خلال :days أيام من اليوم.',
+    'installment_due_date_before_previous' => 'يجب أن يكون تاريخ استحقاق الدفعة :order في أو بعد تاريخ استحقاق الدفعة السابقة.',
     'counterparty_not_found' => 'رقم الطرف الآخر غير مسجل في النظام',
     'cannot_update_non_new' => 'لا يمكنك تعديل الطلب إلا أثناء انتظار مراجعة الإدارة',
     'cannot_delete_non_new' => 'لا يمكنك حذف الطلب إلا أثناء انتظار مراجعة الإدارة',
