@@ -287,7 +287,7 @@ test('CompanyDetailResource exposes all 8 documents grouped clearly by party', f
     }
 
     $detail->load('media');
-    $data = CompanyDetailResource::make($detail)->resolve(request());
+    $data = CompanyDetailResource::make($detail)->response(request())->getData(true);
 
     expect($data)->toHaveKeys(['requester_documents', 'counterparty_documents'])
         ->and($data['requester_documents'])->toHaveKeys([

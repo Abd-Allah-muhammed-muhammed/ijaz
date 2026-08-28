@@ -170,7 +170,7 @@ test('CompanyDetailResource requester_bank/counterparty_bank objects use BankRes
 
     $detail->load(['requesterBank', 'counterpartyBank']);
 
-    $data = CompanyDetailResource::make($detail)->resolve(request());
+    $data = CompanyDetailResource::make($detail)->response(request())->getData(true);
 
     expect($data)->toHaveKeys(['requester_bank', 'counterparty_bank', 'terms_notes'])
         ->and($data['requester_bank'])->toMatchArray([
