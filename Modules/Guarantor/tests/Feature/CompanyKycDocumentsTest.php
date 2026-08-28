@@ -287,7 +287,7 @@ test('CompanyDetailResource exposes all 8 documents grouped clearly by party', f
     }
 
     $detail->load('media');
-    $data = CompanyDetailResource::make($detail)->toArray(request());
+    $data = CompanyDetailResource::make($detail)->resolve(request());
 
     expect($data)->toHaveKeys(['requester_documents', 'counterparty_documents'])
         ->and($data['requester_documents'])->toHaveKeys([
@@ -303,5 +303,8 @@ test('CompanyDetailResource exposes all 8 documents grouped clearly by party', f
             'national_address_file',
         ])
         ->and($data['requester_documents']['iban_certificate']['file_name'])->toBe('req-iban.pdf')
+        ->and($data['requester_documents']['iban_certificate'])->toHaveKeys([
+            'id', 'name', 'collection_name', 'file_name', 'mime_type', 'type', 'url', 'extension', 'size',
+        ])
         ->and($data['counterparty_documents']['national_address_file']['file_name'])->toBe('cp-na.pdf');
 });

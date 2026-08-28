@@ -4,7 +4,7 @@ import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
 import { Content } from '@/vendor/metronic/layout/components/content';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import usePermissions from '@/shared/hooks/use-permissions';
-import { Conversation } from '@/shared/types/models';
+import { Conversation, Bank } from '@/shared/types/models';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import clsx from 'clsx';
 import { ReactElement, ReactNode, useState } from 'react';
@@ -61,10 +61,10 @@ type CompanyDetail = {
   authorization_type?: StatusOption;
   requester_account_holder?: string;
   requester_iban?: string;
-  requester_bank?: { value: string; label: string; logo?: string | null };
+  requester_bank?: Bank | null;
   counterparty_account_holder?: string;
   counterparty_iban?: string;
-  counterparty_bank?: { value: string; label: string; logo?: string | null };
+  counterparty_bank?: Bank | null;
   terms_notes?: string | null;
   region?: { title?: string };
   city?: { title?: string };
@@ -785,7 +785,7 @@ const Show = ({ guarantorRequest }: Props) => {
                                     style={{ width: 28, height: 28, objectFit: 'contain' }}
                                   />
                                 )}
-                                <span>{guarantorRequest.company_detail.requester_bank.label}</span>
+                                <span>{guarantorRequest.company_detail.requester_bank.name}</span>
                                 <span className="text-muted">·</span>
                                 <span>{guarantorRequest.company_detail.requester_iban}</span>
                               </div>
@@ -815,7 +815,7 @@ const Show = ({ guarantorRequest }: Props) => {
                                     style={{ width: 28, height: 28, objectFit: 'contain' }}
                                   />
                                 )}
-                                <span>{guarantorRequest.company_detail.counterparty_bank.label}</span>
+                                <span>{guarantorRequest.company_detail.counterparty_bank.name}</span>
                                 {guarantorRequest.company_detail.counterparty_iban && (
                                   <>
                                     <span className="text-muted">·</span>

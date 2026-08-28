@@ -247,7 +247,7 @@ On **chat** conversation participants, `phone` is **not** included; chat adds no
 
 **Collections on company details** (nested under `company_detail.media`, **not** request `media`): `authorized_id`, `contracts`, `company_documents`, plus the eight KYC collections below.
 
-**KYC collections on company details** (also exposed grouped under `company_detail.requester_documents` and `company_detail.counterparty_documents`):
+**KYC collections on company details** (also exposed grouped under `company_detail.requester_documents` and `company_detail.counterparty_documents`; each non-null value is a full `MediaResource`, identical to `company_detail.media[]`):
 
 | Party | MediaLibrary collection | Create / Accept field |
 |---|---|---|
@@ -304,7 +304,7 @@ Returned on company requests when loaded (create company, show, update).
   "authorization_type": { "value": "owner", "label": "Owner" },
   "requester_account_holder": "Acme Contracting",
   "requester_iban": "SA0380000000608010167519",
-  "requester_bank": { "value": "1", "label": "Saudi National Bank", "logo": "https://example.test/storage/1/logo.png" },
+  "requester_bank": { "id": 1, "name": "Saudi National Bank", "logo": "https://example.test/storage/1/logo.png", "is_active": true },
   "counterparty_account_holder": "Ahmed Mohamed",
   "counterparty_iban": null,
   "counterparty_bank": null,
@@ -313,7 +313,17 @@ Returned on company requests when loaded (create company, show, update).
   "city": { "id": 3, "title": "Riyadh", "region_id": 1 },
   "media": [],
   "requester_documents": {
-    "iban_certificate": { "id": "…", "url": "…", "mime_type": "application/pdf", "file_name": "iban.pdf" },
+    "iban_certificate": {
+      "id": "9f3c2a1b-0000-4000-8000-000000000010",
+      "name": "iban",
+      "collection_name": "requester_iban_certificate",
+      "file_name": "iban.pdf",
+      "mime_type": "application/pdf",
+      "type": "application",
+      "url": "https://example.com/storage/...",
+      "extension": "pdf",
+      "size": "100 KB"
+    },
     "cr_file": null,
     "articles_of_association": null,
     "national_address_file": null
@@ -331,7 +341,9 @@ Returned on company requests when loaded (create company, show, update).
 
 `counterparty_iban` may be `null` (field is optional on create).
 
-`requester_bank` and `counterparty_bank` are `{ "value": string, "label": string, "logo": string | null } | null` objects when the relation is loaded (same shape as `type` / `status` objects, plus `logo`). `requester_bank` is always present on create responses when a bank was selected. `counterparty_bank` may be `null`.
+`requester_bank` and `counterparty_bank` use the same **`BankResource`** shape as `GET /api/v1/catalog/banks` (`id`, `name`, `logo`, `is_active`) when the relation is loaded, or `null` when no bank is set. `requester_bank` is always present on create responses when a bank was selected. `counterparty_bank` may be `null`.
+
+`requester_documents` and `counterparty_documents` group KYC files by party. Each slot is a full **`MediaResource`** object (same shape as `company_detail.media[]` and request-level `media[]`) or `null` when not yet uploaded.
 
 `terms_notes` is an optional plain string (max 2000 characters on create).
 
