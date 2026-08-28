@@ -255,7 +255,7 @@ On **chat** conversation participants, `phone` is **not** included; chat adds no
 | Requester | `requester_cr_file` | `cr_file` (create, **required**) |
 | Requester | `requester_articles_of_association` | `articles_of_association` (create, **required**) |
 | Requester | `requester_national_address_file` | `national_address_file` (create, **required**) |
-| Requester | `power_of_attorney_document` | `power_of_attorney_document` (create, **required only when `authorization_type=agency`**) |
+| Requester | `agency_authorization_document` | `agency_authorization_document` (create, **required only when `authorization_type=agency`**) |
 | Counterparty | `counterparty_iban_certificate` | `iban_certificate` (accept, **required** for Company only) |
 | Counterparty | `counterparty_cr_file` | `cr_file` (accept, **required** for Company only) |
 | Counterparty | `counterparty_articles_of_association` | `articles_of_association` (accept, **required** for Company only) |
@@ -328,7 +328,7 @@ Returned on company requests when loaded (create company, show, update).
     "cr_file": null,
     "articles_of_association": null,
     "national_address_file": null,
-    "power_of_attorney_document": null
+    "agency_authorization_document": null
   },
   "counterparty_documents": {
     "iban_certificate": null,
@@ -345,7 +345,7 @@ Returned on company requests when loaded (create company, show, update).
 
 `requester_bank` and `counterparty_bank` use the same **`BankResource`** shape as `GET /api/v1/catalog/banks` (`id`, `name`, `logo`, `is_active`) when the relation is loaded, or `null` when no bank is set. `requester_bank` is always present on create responses when a bank was selected. `counterparty_bank` may be `null`.
 
-`requester_documents` and `counterparty_documents` group KYC files by party. Each slot is a full **`MediaResource`** object (same shape as `company_detail.media[]` and request-level `media[]`) or `null` when not yet uploaded. `requester_documents.power_of_attorney_document` is present only when uploaded at create (required when `authorization_type` is `agency`; otherwise usually `null`).
+`requester_documents` and `counterparty_documents` group KYC files by party. Each slot is a full **`MediaResource`** object (same shape as `company_detail.media[]` and request-level `media[]`) or `null` when not yet uploaded. `requester_documents.agency_authorization_document` is present only when uploaded at create (required when `authorization_type` is `agency`; otherwise usually `null`).
 
 `terms_notes` is an optional plain string (max 2000 characters on create).
 
@@ -608,7 +608,7 @@ The counterparty is **not** notified on create. Only the requester gets “submi
 | `cr_file` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | Commercial Register file |
 | `articles_of_association` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | Articles of Association |
 | `national_address_file` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | National Address file |
-| `power_of_attorney_document` | file | **only when `authorization_type=agency`** | jpg/jpeg/png/pdf, max 5120 KB. **Required** when authorization type is `agency`; not required (and usually omitted) for `owner` / `manager`. Creation-only — no accept/counterparty equivalent. | Power of Attorney |
+| `agency_authorization_document` | file | **only when `authorization_type=agency`** | jpg/jpeg/png/pdf, max 5120 KB. **Required** when authorization type is `agency`; not required (and usually omitted) for `owner` / `manager`. Creation-only — no accept/counterparty equivalent. | Agency authorization document |
 | `company_documents` | file[] | no | each jpg/jpeg/png/pdf, max 10240 KB | |
 
 **Custom validation:**
@@ -1719,7 +1719,7 @@ Unused translation keys exist (`guarantor_approved` / `guarantor_has_been_approv
 
 This is **company signatory KYC metadata**, collected **once** on `POST /company`. It is stored on `company_detail.authorization_type` and returned as `{ value, label }` (no color).
 
-When `authorization_type` is **`agency`**, create also requires a **`power_of_attorney_document`** file upload (stored on `company_detail` in collection `power_of_attorney_document`, exposed under `company_detail.requester_documents.power_of_attorney_document`). For `owner` and `manager`, that document is not required.
+When `authorization_type` is **`agency`**, create also requires a **`agency_authorization_document`** file upload (stored on `company_detail` in collection `agency_authorization_document`, exposed under `company_detail.requester_documents.agency_authorization_document`). For `owner` and `manager`, that document is not required.
 
 **It has no effect on who may pay.**
 

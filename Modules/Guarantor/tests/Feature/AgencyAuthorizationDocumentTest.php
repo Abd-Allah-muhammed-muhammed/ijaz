@@ -18,69 +18,39 @@ beforeEach(function () {
     Notification::fake();
 });
 
-test('creating a Company guarantor with authorization_type=agency requires a power_of_attorney_document file — missing file is rejected with a clear validation error', function () {
+test('creating a Company guarantor with authorization_type=agency requires agency_authorization_document (renamed field) — old power_of_attorney_document key no longer works', function () {
     setupGuarantorActors();
 
-    $validator = validateCompanyGuarantorRequest(
+    $validatorMissing = validateCompanyGuarantorRequest(
         companyGuarantorPayload(['authorization_type' => 'agency']),
         companyGuarantorFiles(),
     );
 
-    expect($validator->fails())->toBeTrue()
-        ->and($validator->errors()->has('power_of_attorney_document'))->toBeTrue();
-});
+    expect($validatorMissing->fails())->toBeTrue()
+        ->and($validatorMissing->errors()->has('agency_authorization_document'))->toBeTrue()
+        ->and($validatorMissing->errors()->has('power_of_attorney_document'))->toBeFalse();
 
-test('creating a Company guarantor with authorization_type=owner does not require the document — creation succeeds without it', function () {
-    ['requester' => $requester] = setupGuarantorActors();
+    $filesWithOldKey = companyGuarantorFiles();
+    $filesWithOldKey['power_of_attorney_document'] = UploadedFile::fake()->create('poa.pdf', 100, 'application/pdf');
 
-    $payload = array_merge(
-        companyGuarantorPayload(['authorization_type' => 'owner']),
-        companyGuarantorFiles(),
+    $validatorOldKey = validateCompanyGuarantorRequest(
+        companyGuarantorPayload(['authorization_type' => 'agency']),
+        $filesWithOldKey,
     );
 
-    $this->post(
-        route('api.v1.guarantor.guarantor.store.company'),
-        $payload,
-        ['Accept' => 'application/json'],
-    )->assertSuccessful();
-
-    $detail = GuarantorCompanyDetail::query()->latest('id')->first();
-
-    expect($detail)->not->toBeNull()
-        ->and($detail->authorization_type)->toBe(AuthorizationTypeEnum::Owner)
-        ->and($detail->getMedia('power_of_attorney_document'))->toHaveCount(0);
+    expect($validatorOldKey->fails())->toBeTrue()
+        ->and($validatorOldKey->errors()->has('agency_authorization_document'))->toBeTrue();
 });
 
-test('creating a Company guarantor with authorization_type=manager does not require the document — creation succeeds without it', function () {
-    ['requester' => $requester] = setupGuarantorActors();
-
-    $payload = array_merge(
-        companyGuarantorPayload(['authorization_type' => 'manager']),
-        companyGuarantorFiles(),
-    );
-
-    $this->post(
-        route('api.v1.guarantor.guarantor.store.company'),
-        $payload,
-        ['Accept' => 'application/json'],
-    )->assertSuccessful();
-
-    $detail = GuarantorCompanyDetail::query()->latest('id')->first();
-
-    expect($detail)->not->toBeNull()
-        ->and($detail->authorization_type)->toBe(AuthorizationTypeEnum::Manager)
-        ->and($detail->getMedia('power_of_attorney_document'))->toHaveCount(0);
-});
-
-test('when provided, the power_of_attorney_document file is correctly stored and retrievable', function () {
+test('the media collection is named agency_authorization_document, not power_of_attorney_document', function () {
     ['requester' => $requester] = setupGuarantorActors();
 
     $files = companyGuarantorFiles();
-    $files['power_of_attorney_document'] = UploadedFile::fake()->create('poa.pdf', 100, 'application/pdf');
+    $files['agency_authorization_document'] = UploadedFile::fake()->create('agency-auth.pdf', 100, 'application/pdf');
 
     $guarantorRequest = app(CreateCompanyGuarantorAction::class)->handle(
         new GuarantorData(
-            title: 'PoA store test',
+            title: 'Agency auth store test',
             description: '',
             amount: 1000,
             counterparty_phone: '0501234567',
@@ -111,11 +81,12 @@ test('when provided, the power_of_attorney_document file is correctly stored and
 
     $detail = $guarantorRequest->companyDetail;
 
-    expect($detail->getMedia('power_of_attorney_document'))->toHaveCount(1)
-        ->and($detail->getFirstMedia('power_of_attorney_document')?->file_name)->toBe('poa.pdf');
+    expect($detail->getMedia('agency_authorization_document'))->toHaveCount(1)
+        ->and($detail->getFirstMedia('agency_authorization_document')?->file_name)->toBe('agency-auth.pdf')
+        ->and($detail->getMedia('power_of_attorney_document'))->toHaveCount(0);
 });
 
-test('CompanyDetailResource exposes power_of_attorney_document as a MediaResource-shaped object when present, null otherwise', function () {
+test('CompanyDetailResource exposes agency_authorization_document, not power_of_attorney_document', function () {
     $guarantorRequest = GuarantorRequest::factory()->company()->create();
     $detail = GuarantorCompanyDetail::query()->create([
         'guarantor_request_id' => $guarantorRequest->id,
@@ -133,19 +104,72 @@ test('CompanyDetailResource exposes power_of_attorney_document as a MediaResourc
     $detail->load('media');
     $empty = CompanyDetailResource::make($detail)->response(request())->getData(true);
 
-    expect($empty['requester_documents']['power_of_attorney_document'])->toBeNull();
+    expect($empty['requester_documents'])->toHaveKey('agency_authorization_document')
+        ->and($empty['requester_documents'])->not->toHaveKey('power_of_attorney_document')
+        ->and($empty['requester_documents']['agency_authorization_document'])->toBeNull();
 
-    $detail->addMedia(UploadedFile::fake()->create('poa.pdf', 100, 'application/pdf'))
-        ->toMediaCollection('power_of_attorney_document');
+    $detail->addMedia(UploadedFile::fake()->create('agency-auth.pdf', 100, 'application/pdf'))
+        ->toMediaCollection('agency_authorization_document');
     $detail->load('media');
 
     $present = CompanyDetailResource::make($detail)->response(request())->getData(true);
 
-    expect($present['requester_documents']['power_of_attorney_document'])->toHaveKeys([
+    expect($present['requester_documents']['agency_authorization_document'])->toHaveKeys([
         'id', 'name', 'collection_name', 'file_name', 'mime_type', 'type', 'url', 'extension', 'size',
     ])
-        ->and($present['requester_documents']['power_of_attorney_document']['file_name'])->toBe('poa.pdf')
-        ->and($present['requester_documents']['power_of_attorney_document']['collection_name'])->toBe('power_of_attorney_document');
+        ->and($present['requester_documents']['agency_authorization_document']['file_name'])->toBe('agency-auth.pdf')
+        ->and($present['requester_documents']['agency_authorization_document']['collection_name'])->toBe('agency_authorization_document')
+        ->and($present['requester_documents'])->not->toHaveKey('power_of_attorney_document');
+});
+
+test('owner/manager creation is unaffected — regression', function () {
+    setupGuarantorActors('0501112233');
+
+    $this->post(
+        route('api.v1.guarantor.guarantor.store.company'),
+        array_merge(
+            companyGuarantorPayload([
+                'counterparty_phone' => '0501112233',
+                'authorization_type' => 'owner',
+            ]),
+            companyGuarantorFiles(),
+        ),
+        ['Accept' => 'application/json'],
+    )->assertSuccessful();
+
+    setupGuarantorActors('0501112244');
+
+    $this->post(
+        route('api.v1.guarantor.guarantor.store.company'),
+        array_merge(
+            companyGuarantorPayload([
+                'counterparty_phone' => '0501112244',
+                'authorization_type' => 'manager',
+            ]),
+            companyGuarantorFiles(),
+        ),
+        ['Accept' => 'application/json'],
+    )->assertSuccessful();
+
+    $ownerDetail = GuarantorCompanyDetail::query()->where('authorization_type', 'owner')->latest('id')->first();
+    $managerDetail = GuarantorCompanyDetail::query()->where('authorization_type', 'manager')->latest('id')->first();
+
+    expect($ownerDetail)->not->toBeNull()
+        ->and($ownerDetail->getMedia('agency_authorization_document'))->toHaveCount(0)
+        ->and($managerDetail)->not->toBeNull()
+        ->and($managerDetail->getMedia('agency_authorization_document'))->toHaveCount(0);
+});
+
+test('creating a Company guarantor with authorization_type=agency requires agency_authorization_document — missing file is rejected with a clear validation error', function () {
+    setupGuarantorActors();
+
+    $validator = validateCompanyGuarantorRequest(
+        companyGuarantorPayload(['authorization_type' => 'agency']),
+        companyGuarantorFiles(),
+    );
+
+    expect($validator->fails())->toBeTrue()
+        ->and($validator->errors()->has('agency_authorization_document'))->toBeTrue();
 });
 
 test('existing authorization_type validation/persistence is otherwise unchanged — regression against AuthorizationTypeEnumTest', function () {
@@ -174,7 +198,7 @@ test('existing authorization_type validation/persistence is otherwise unchanged 
     }
 
     $agencyFiles = companyGuarantorFiles();
-    $agencyFiles['power_of_attorney_document'] = UploadedFile::fake()->create('poa.pdf', 100, 'application/pdf');
+    $agencyFiles['agency_authorization_document'] = UploadedFile::fake()->create('agency-auth.pdf', 100, 'application/pdf');
 
     $this->post(
         route('api.v1.guarantor.guarantor.store.company'),

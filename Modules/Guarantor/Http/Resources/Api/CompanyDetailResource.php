@@ -44,7 +44,7 @@ class CompanyDetailResource extends JsonResource
                 'cr_file' => $this->formatDocumentMedia('requester_cr_file'),
                 'articles_of_association' => $this->formatDocumentMedia('requester_articles_of_association'),
                 'national_address_file' => $this->formatDocumentMedia('requester_national_address_file'),
-                'power_of_attorney_document' => $this->formatDocumentMedia('power_of_attorney_document'),
+                'agency_authorization_document' => $this->formatDocumentMedia('agency_authorization_document'),
             ],
             'counterparty_documents' => [
                 'iban_certificate' => $this->formatDocumentMedia('counterparty_iban_certificate'),

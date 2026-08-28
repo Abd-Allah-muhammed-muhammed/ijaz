@@ -20,7 +20,7 @@ final readonly class GuarantorUploadData
         public ?UploadedFile $crFile = null,
         public ?UploadedFile $articlesOfAssociation = null,
         public ?UploadedFile $nationalAddressFile = null,
-        public ?UploadedFile $powerOfAttorneyDocument = null,
+        public ?UploadedFile $agencyAuthorizationDocument = null,
         public array $companyDocuments = [],
         public array $files = [],
     ) {}
@@ -47,7 +47,7 @@ final readonly class GuarantorUploadData
             crFile: $request->file('cr_file'),
             articlesOfAssociation: $request->file('articles_of_association'),
             nationalAddressFile: $request->file('national_address_file'),
-            powerOfAttorneyDocument: $request->file('power_of_attorney_document'),
+            agencyAuthorizationDocument: $request->file('agency_authorization_document'),
             companyDocuments: $companyDocuments,
         );
     }

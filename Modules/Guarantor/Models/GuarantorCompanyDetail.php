@@ -88,7 +88,7 @@ class GuarantorCompanyDetail extends Model implements HasMedia
             ->useDisk('public')
             ->singleFile();
 
-        $this->addMediaCollection('power_of_attorney_document')
+        $this->addMediaCollection('agency_authorization_document')
             ->useDisk('public')
             ->singleFile();
 

@@ -67,7 +67,7 @@ class StoreCompanyGuarantorRequest extends ApiRequest
             'cr_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'articles_of_association' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'national_address_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-            'power_of_attorney_document' => [
+            'agency_authorization_document' => [
                 Rule::requiredIf(fn () => $this->input('authorization_type') === AuthorizationTypeEnum::Agency->value),
                 'file',
                 'mimes:jpg,jpeg,png,pdf',

@@ -34,7 +34,7 @@ test('Company guarantor creation accepts owner, manager, or agency as authorizat
 
     $files = companyGuarantorFiles();
     if ($authorizationType === 'agency') {
-        $files['power_of_attorney_document'] = UploadedFile::fake()->create('poa.pdf', 100, 'application/pdf');
+        $files['agency_authorization_document'] = UploadedFile::fake()->create('agency-auth.pdf', 100, 'application/pdf');
     }
 
     $payload = array_merge(companyGuarantorPayload([

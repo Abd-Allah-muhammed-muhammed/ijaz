@@ -114,7 +114,7 @@ return [
     'documents_requester_cr_file' => 'वाणिज्यिक रजिस्टर फ़ाइल',
     'documents_requester_articles_of_association' => 'संस्थापक लेख',
     'documents_requester_national_address_file' => 'राष्ट्रीय पता फ़ाइल',
-    'documents_power_of_attorney_document' => 'मुख्तारनामा',
+    'documents_agency_authorization_document' => 'एजेंसी प्राधिकरण',
     'documents_counterparty_iban_certificate' => 'IBAN प्रमाणपत्र',
     'documents_counterparty_cr_file' => 'वाणिज्यिक रजिस्टर फ़ाइल',
     'documents_counterparty_articles_of_association' => 'संस्थापक लेख',

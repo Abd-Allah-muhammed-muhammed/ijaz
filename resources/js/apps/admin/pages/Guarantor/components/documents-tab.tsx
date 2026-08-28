@@ -36,7 +36,7 @@ const REQUESTER_COLLECTIONS: CollectionDef[] = [
   { key: 'requester_cr_file', labelKey: 'guarantor.documents_requester_cr_file' },
   { key: 'requester_articles_of_association', labelKey: 'guarantor.documents_requester_articles_of_association' },
   { key: 'requester_national_address_file', labelKey: 'guarantor.documents_requester_national_address_file' },
-  { key: 'power_of_attorney_document', labelKey: 'guarantor.documents_power_of_attorney_document' },
+  { key: 'agency_authorization_document', labelKey: 'guarantor.documents_agency_authorization_document' },
 ];
 
 const COUNTERPARTY_COLLECTIONS: CollectionDef[] = [
