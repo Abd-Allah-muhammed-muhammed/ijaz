@@ -123,6 +123,11 @@ class CreateCompanyGuarantorAction
                     ->toMediaCollection('requester_national_address_file');
             }
 
+            if ($uploads->agencyAuthorizationDocument !== null) {
+                $companyDetail->addMedia($uploads->agencyAuthorizationDocument)
+                    ->toMediaCollection('agency_authorization_document');
+            }
+
             foreach ($uploads->companyDocuments as $document) {
                 $companyDetail->addMedia($document)->toMediaCollection('company_documents');
             }

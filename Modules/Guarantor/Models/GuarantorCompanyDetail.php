@@ -88,6 +88,10 @@ class GuarantorCompanyDetail extends Model implements HasMedia
             ->useDisk('public')
             ->singleFile();
 
+        $this->addMediaCollection('agency_authorization_document')
+            ->useDisk('public')
+            ->singleFile();
+
         $this->addMediaCollection('counterparty_iban_certificate')
             ->useDisk('public')
             ->singleFile();

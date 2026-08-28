@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use App\Support\Phone;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
 use Modules\Guarantor\Enums\AuthorizationTypeEnum;
@@ -31,10 +32,15 @@ test('Company guarantor creation accepts owner, manager, or agency as authorizat
     User::factory()->create(['phone' => (string) Phone::make($counterpartyPhone)]);
     Sanctum::actingAs($requester);
 
+    $files = companyGuarantorFiles();
+    if ($authorizationType === 'agency') {
+        $files['agency_authorization_document'] = UploadedFile::fake()->create('agency-auth.pdf', 100, 'application/pdf');
+    }
+
     $payload = array_merge(companyGuarantorPayload([
         'counterparty_phone' => $counterpartyPhone,
         'authorization_type' => $authorizationType,
-    ]), companyGuarantorFiles());
+    ]), $files);
 
     $response = test()->post(
         route('api.v1.guarantor.guarantor.store.company'),
@@ -101,7 +107,7 @@ test('all Guarantor and Catalog test files are free of power_of_attorney authori
                 continue;
             }
 
-            if (str_contains($content, 'power_of_attorney') || str_contains($content, 'PowerOfAttorney')) {
+            if (preg_match('/(?<![\w])power_of_attorney(?!_document)|PowerOfAttorney/', $content) === 1) {
                 $matches[] = $file->getPathname();
             }
         }

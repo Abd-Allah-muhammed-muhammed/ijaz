@@ -114,6 +114,7 @@ return [
     'documents_requester_cr_file' => 'کمرشل رجسٹر فائل',
     'documents_requester_articles_of_association' => 'مضامینِ ایسوسی ایشن',
     'documents_requester_national_address_file' => 'قومی پتہ فائل',
+    'documents_agency_authorization_document' => 'ایجنسی اجازت نامہ',
     'documents_counterparty_iban_certificate' => 'IBAN سرٹیفکیٹ',
     'documents_counterparty_cr_file' => 'کمرشل رجسٹر فائل',
     'documents_counterparty_articles_of_association' => 'مضامینِ ایسوسی ایشن',
