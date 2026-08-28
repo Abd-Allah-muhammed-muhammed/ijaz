@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Guarantor\DTOs\CompanyDetailData;
+use Modules\Guarantor\DTOs\GuarantorAcceptUploadData;
 use Modules\Guarantor\DTOs\GuarantorData;
 use Modules\Guarantor\DTOs\GuarantorFiltersData;
 use Modules\Guarantor\DTOs\GuarantorUploadData;
@@ -434,7 +435,7 @@ class GuarantorController extends Controller
         $updated = $this->service->accept(
             $guarantorRequest,
             auth()->user(),
-            $request->file('signature'),
+            GuarantorAcceptUploadData::fromRequest($request),
         );
 
         return $this->successResponse(

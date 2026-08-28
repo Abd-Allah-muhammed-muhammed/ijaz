@@ -105,7 +105,22 @@ class CreateCompanyGuarantorAction
 
             if ($uploads->ibanCertificate !== null) {
                 $companyDetail->addMedia($uploads->ibanCertificate)
-                    ->toMediaCollection('iban_certificates');
+                    ->toMediaCollection('requester_iban_certificate');
+            }
+
+            if ($uploads->crFile !== null) {
+                $companyDetail->addMedia($uploads->crFile)
+                    ->toMediaCollection('requester_cr_file');
+            }
+
+            if ($uploads->articlesOfAssociation !== null) {
+                $companyDetail->addMedia($uploads->articlesOfAssociation)
+                    ->toMediaCollection('requester_articles_of_association');
+            }
+
+            if ($uploads->nationalAddressFile !== null) {
+                $companyDetail->addMedia($uploads->nationalAddressFile)
+                    ->toMediaCollection('requester_national_address_file');
             }
 
             foreach ($uploads->companyDocuments as $document) {

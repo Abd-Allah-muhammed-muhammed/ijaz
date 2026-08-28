@@ -195,6 +195,8 @@ test('store company GuarantorResource key set is frozen', function () {
             'counterparty_bank',
             'terms_notes',
             'media',
+            'requester_documents',
+            'counterparty_documents',
         ]);
 });
 

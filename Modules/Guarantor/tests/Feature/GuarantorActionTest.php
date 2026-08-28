@@ -27,6 +27,7 @@ use Modules\Guarantor\Actions\Payment\AddRequesterWalletTransaction;
 use Modules\Guarantor\Actions\Payment\PayIndividualGuarantorAction;
 use Modules\Guarantor\Actions\Payment\ProcessGuarantorPayment;
 use Modules\Guarantor\DTOs\CompanyDetailData;
+use Modules\Guarantor\DTOs\GuarantorAcceptUploadData;
 use Modules\Guarantor\DTOs\GuarantorData;
 use Modules\Guarantor\DTOs\GuarantorUploadData;
 use Modules\Guarantor\DTOs\InstallmentData;
@@ -90,6 +91,10 @@ function companyGuarantorUploads(): GuarantorUploadData
         'contracts' => [
             UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf'),
         ],
+        'iban_certificate' => UploadedFile::fake()->create('iban.pdf', 100, 'application/pdf'),
+        'cr_file' => UploadedFile::fake()->create('cr.pdf', 100, 'application/pdf'),
+        'articles_of_association' => UploadedFile::fake()->create('aoa.pdf', 100, 'application/pdf'),
+        'national_address_file' => UploadedFile::fake()->create('national-address.pdf', 100, 'application/pdf'),
     ]));
 }
 
@@ -345,7 +350,9 @@ test('counterparty can accept after admin approval', function () {
     $updated = app(AcceptGuarantorAction::class)->handle(
         $guarantorRequest,
         $counterparty,
-        UploadedFile::fake()->create('cp-signature.pdf', 100, 'application/pdf'),
+        new GuarantorAcceptUploadData(
+            signature: UploadedFile::fake()->create('cp-signature.pdf', 100, 'application/pdf'),
+        ),
     );
 
     expect($updated->status)->toBe(GuarantorStatusEnum::Accepted)
@@ -381,7 +388,9 @@ test('requester cannot accept or reject', function () {
     expect(fn () => app(AcceptGuarantorAction::class)->handle(
         $guarantorRequest,
         $requester,
-        UploadedFile::fake()->create('sig.pdf', 100, 'application/pdf'),
+        new GuarantorAcceptUploadData(
+            signature: UploadedFile::fake()->create('sig.pdf', 100, 'application/pdf'),
+        ),
     ))->toThrow(GuarantorException::class);
 
     expect(fn () => app(RejectGuarantorAction::class)->handle(
@@ -404,7 +413,9 @@ test('chat opens when counterparty accepts', function () {
     app(AcceptGuarantorAction::class)->handle(
         $guarantorRequest,
         $counterparty,
-        UploadedFile::fake()->create('cp-signature.pdf', 100, 'application/pdf'),
+        new GuarantorAcceptUploadData(
+            signature: UploadedFile::fake()->create('cp-signature.pdf', 100, 'application/pdf'),
+        ),
     );
 
     expect(Conversation::query()

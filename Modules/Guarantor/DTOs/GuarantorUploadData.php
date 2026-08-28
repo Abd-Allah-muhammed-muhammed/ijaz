@@ -17,6 +17,9 @@ final readonly class GuarantorUploadData
         public ?UploadedFile $authorizedId = null,
         public array $contracts = [],
         public ?UploadedFile $ibanCertificate = null,
+        public ?UploadedFile $crFile = null,
+        public ?UploadedFile $articlesOfAssociation = null,
+        public ?UploadedFile $nationalAddressFile = null,
         public array $companyDocuments = [],
         public array $files = [],
     ) {}
@@ -40,6 +43,9 @@ final readonly class GuarantorUploadData
             authorizedId: $request->file('authorized_id'),
             contracts: $contracts,
             ibanCertificate: $request->file('iban_certificate'),
+            crFile: $request->file('cr_file'),
+            articlesOfAssociation: $request->file('articles_of_association'),
+            nationalAddressFile: $request->file('national_address_file'),
             companyDocuments: $companyDocuments,
         );
     }

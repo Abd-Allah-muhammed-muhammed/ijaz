@@ -3,7 +3,6 @@
 use App\Models\User;
 use App\Support\Phone;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\Sanctum;
@@ -59,13 +58,7 @@ function validatedCompanyGuarantorFormRequest(float $totalAmount = 50000.0): arr
         'counterparty_account_holder' => 'Counterparty Name',
     ];
 
-    $files = [
-        'signature' => UploadedFile::fake()->create('signature.pdf', 100, 'application/pdf'),
-        'authorized_id' => UploadedFile::fake()->create('authorized_id.pdf', 100, 'application/pdf'),
-        'contracts' => [
-            UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf'),
-        ],
-    ];
+    $files = companyGuarantorFiles();
 
     $formRequest = StoreCompanyGuarantorRequest::createFrom(
         Request::create('/', 'POST', $payload, [], $files)

@@ -99,6 +99,10 @@ test('requester signature is still written to the renamed requester_signature co
             signature: acceptSignatureFile(),
             authorizedId: UploadedFile::fake()->create('id.pdf', 100, 'application/pdf'),
             contracts: [UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf')],
+            ibanCertificate: UploadedFile::fake()->create('iban.pdf', 100, 'application/pdf'),
+            crFile: UploadedFile::fake()->create('cr.pdf', 100, 'application/pdf'),
+            articlesOfAssociation: UploadedFile::fake()->create('aoa.pdf', 100, 'application/pdf'),
+            nationalAddressFile: UploadedFile::fake()->create('national-address.pdf', 100, 'application/pdf'),
         ),
     );
 

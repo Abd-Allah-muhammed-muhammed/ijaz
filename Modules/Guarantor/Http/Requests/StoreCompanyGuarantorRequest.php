@@ -63,7 +63,10 @@ class StoreCompanyGuarantorRequest extends ApiRequest
             'authorized_id' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'contracts' => ['required', 'array', 'min:1'],
             'contracts.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
-            'iban_certificate' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'iban_certificate' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'cr_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'articles_of_association' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'national_address_file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'company_documents' => ['nullable', 'array'],
             'company_documents.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
         ];

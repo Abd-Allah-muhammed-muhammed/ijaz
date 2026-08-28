@@ -322,7 +322,7 @@ test('admin can still cancel a disputed guarantor from the dashboard (escape hat
     expect($guarantorRequest->fresh()->status)->toBe(GuarantorStatusEnum::Cancelled);
 });
 
-test('Guarantor dashboard resource exposes all request and company media collections (requester_signature, counterparty_signature, files, authorized_id, contracts, iban_certificates, company_documents) with collection_name intact', function () {
+test('Guarantor dashboard resource exposes all request and company media collections (requester_signature, counterparty_signature, files, authorized_id, contracts, requester_iban_certificate, company_documents) with collection_name intact', function () {
     withoutGuarantorDashboardLocaleMiddleware();
     $admin = createGuarantorDashboardAdmin(['show guarantors']);
 
@@ -351,7 +351,7 @@ test('Guarantor dashboard resource exposes all request and company media collect
     $detail->addMedia(UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf'))
         ->toMediaCollection('contracts');
     $detail->addMedia(UploadedFile::fake()->create('iban.pdf', 100, 'application/pdf'))
-        ->toMediaCollection('iban_certificates');
+        ->toMediaCollection('requester_iban_certificate');
     $detail->addMedia(UploadedFile::fake()->create('company-doc.pdf', 100, 'application/pdf'))
         ->toMediaCollection('company_documents');
 
@@ -370,7 +370,51 @@ test('Guarantor dashboard resource exposes all request and company media collect
             ->where(
                 'guarantorRequest.company_detail.media',
                 fn ($media) => collect($media)->pluck('collection_name')->sort()->values()->all()
-                    === ['authorized_id', 'company_documents', 'contracts', 'iban_certificates']
+                    === ['authorized_id', 'company_documents', 'contracts', 'requester_iban_certificate']
+            )
+        );
+});
+
+test('the admin Documents tab correctly displays all 8 KYC documents split into Requester/Counterparty sections via company_detail media', function () {
+    withoutGuarantorDashboardLocaleMiddleware();
+    $admin = createGuarantorDashboardAdmin(['show guarantors']);
+
+    $guarantorRequest = GuarantorRequest::factory()->company()->pendingAdmin()->create();
+    $detail = attachGuarantorCompanyDetail($guarantorRequest);
+
+    foreach ([
+        'requester_iban_certificate',
+        'requester_cr_file',
+        'requester_articles_of_association',
+        'requester_national_address_file',
+        'counterparty_iban_certificate',
+        'counterparty_cr_file',
+        'counterparty_articles_of_association',
+        'counterparty_national_address_file',
+    ] as $collection) {
+        $detail->addMedia(UploadedFile::fake()->create("{$collection}.pdf", 100, 'application/pdf'))
+            ->toMediaCollection($collection);
+    }
+
+    $this->actingAs($admin, 'admin')
+        ->get(action([DashboardGuarantorController::class, 'show'], $guarantorRequest))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Guarantor/Show')
+            ->has('guarantorRequest.company_detail.media', 8)
+            ->where(
+                'guarantorRequest.company_detail.media',
+                fn ($media) => collect($media)->pluck('collection_name')->sort()->values()->all()
+                    === [
+                        'counterparty_articles_of_association',
+                        'counterparty_cr_file',
+                        'counterparty_iban_certificate',
+                        'counterparty_national_address_file',
+                        'requester_articles_of_association',
+                        'requester_cr_file',
+                        'requester_iban_certificate',
+                        'requester_national_address_file',
+                    ]
             )
         );
 });

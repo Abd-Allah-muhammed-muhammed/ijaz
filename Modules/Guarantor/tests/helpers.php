@@ -1,12 +1,16 @@
 <?php
 
 use App\Models\User;
+use App\Support\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Sanctum\Sanctum;
 use Modules\Catalog\Models\Bank;
+use Modules\Guarantor\Enums\AuthorizationTypeEnum;
 use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
+use Modules\Guarantor\Models\GuarantorCompanyDetail;
+use Modules\Guarantor\Models\GuarantorRequest;
 
 function activeGuarantorTestBank(?array $translations = null): Bank
 {
@@ -23,10 +27,12 @@ function defaultGuarantorTestBankId(): int
 /**
  * @return array{requester: User, counterparty: User}
  */
-function setupGuarantorActors(): array
+function setupGuarantorActors(string $counterpartyPhone = '0501234567'): array
 {
     $requester = User::factory()->create();
-    $counterparty = User::factory()->create();
+    $counterparty = User::factory()->create([
+        'phone' => (string) Phone::make($counterpartyPhone),
+    ]);
     Sanctum::actingAs($requester);
 
     return compact('requester', 'counterparty');
@@ -77,7 +83,7 @@ function companyGuarantorPayload(array $overrides = []): array
         'authorized_id_number' => '1234567890',
         'authorization_type' => 'owner',
         'requester_account_holder' => 'Requester Name',
-        'requester_iban' => 'SA1234567890123456789012',
+        'requester_iban' => 'SA0380000000608010167519',
         'requester_bank_id' => defaultGuarantorTestBankId(),
         'counterparty_account_holder' => 'Counterparty Name',
     ], $overrides);
@@ -94,5 +100,42 @@ function companyGuarantorFiles(): array
         'contracts' => [
             UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf'),
         ],
+        'iban_certificate' => UploadedFile::fake()->create('iban.pdf', 100, 'application/pdf'),
+        'cr_file' => UploadedFile::fake()->create('cr.pdf', 100, 'application/pdf'),
+        'articles_of_association' => UploadedFile::fake()->create('aoa.pdf', 100, 'application/pdf'),
+        'national_address_file' => UploadedFile::fake()->create('national-address.pdf', 100, 'application/pdf'),
     ];
+}
+
+/**
+ * @return array<string, UploadedFile>
+ */
+function companyGuarantorAcceptFiles(): array
+{
+    return [
+        'signature' => UploadedFile::fake()->create('cp-signature.pdf', 100, 'application/pdf'),
+        'iban_certificate' => UploadedFile::fake()->create('cp-iban.pdf', 100, 'application/pdf'),
+        'cr_file' => UploadedFile::fake()->create('cp-cr.pdf', 100, 'application/pdf'),
+        'articles_of_association' => UploadedFile::fake()->create('cp-aoa.pdf', 100, 'application/pdf'),
+        'national_address_file' => UploadedFile::fake()->create('cp-national-address.pdf', 100, 'application/pdf'),
+    ];
+}
+
+/**
+ * @param  array<string, mixed>  $overrides
+ */
+function attachGuarantorCompanyDetail(GuarantorRequest $guarantorRequest, array $overrides = []): GuarantorCompanyDetail
+{
+    return GuarantorCompanyDetail::query()->create(array_merge([
+        'guarantor_request_id' => $guarantorRequest->id,
+        'company_name' => 'Acme Corp',
+        'commercial_register' => 'CR-123456',
+        'authorized_name' => 'John Doe',
+        'authorized_id_number' => '1234567890',
+        'authorization_type' => AuthorizationTypeEnum::Owner,
+        'requester_account_holder' => 'Requester Name',
+        'requester_iban' => 'SA0380000000608010167519',
+        'requester_bank_id' => defaultGuarantorTestBankId(),
+        'counterparty_account_holder' => 'Counterparty Name',
+    ], $overrides));
 }

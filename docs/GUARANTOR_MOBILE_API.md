@@ -245,7 +245,22 @@ On **chat** conversation participants, `phone` is **not** included; chat adds no
 
 **Collections on the guarantor request itself:** `requester_signature` (create — requester’s digital signature), `counterparty_signature` (accept — counterparty’s digital signature via `POST .../accept`), `files` (update uploads).
 
-**Collections on company details** (nested under `company_detail.media`, **not** request `media`): `authorized_id`, `contracts`, `iban_certificates`, `company_documents`.
+**Collections on company details** (nested under `company_detail.media`, **not** request `media`): `authorized_id`, `contracts`, `company_documents`, plus the eight KYC collections below.
+
+**KYC collections on company details** (also exposed grouped under `company_detail.requester_documents` and `company_detail.counterparty_documents`):
+
+| Party | MediaLibrary collection | Create / Accept field |
+|---|---|---|
+| Requester | `requester_iban_certificate` | `iban_certificate` (create, **required**) |
+| Requester | `requester_cr_file` | `cr_file` (create, **required**) |
+| Requester | `requester_articles_of_association` | `articles_of_association` (create, **required**) |
+| Requester | `requester_national_address_file` | `national_address_file` (create, **required**) |
+| Counterparty | `counterparty_iban_certificate` | `iban_certificate` (accept, **required** for Company only) |
+| Counterparty | `counterparty_cr_file` | `cr_file` (accept, **required** for Company only) |
+| Counterparty | `counterparty_articles_of_association` | `articles_of_association` (accept, **required** for Company only) |
+| Counterparty | `counterparty_national_address_file` | `national_address_file` (accept, **required** for Company only) |
+
+> **Breaking change:** the old optional multi-file collection `iban_certificates` is renamed to `requester_iban_certificate` (`singleFile`, **required** at create). Run manual SQL on existing `media` rows if upgrading data (see deployment notes).
 
 The delete-media URL only targets media on the **request**. Company-detail files are not deleted by that endpoint.
 
@@ -296,7 +311,19 @@ Returned on company requests when loaded (create company, show, update).
   "terms_notes": "Late payment subject to contract clause 12.",
   "region": { "id": 1, "title": "Riyadh" },
   "city": { "id": 3, "title": "Riyadh", "region_id": 1 },
-  "media": []
+  "media": [],
+  "requester_documents": {
+    "iban_certificate": { "id": "…", "url": "…", "mime_type": "application/pdf", "file_name": "iban.pdf" },
+    "cr_file": null,
+    "articles_of_association": null,
+    "national_address_file": null
+  },
+  "counterparty_documents": {
+    "iban_certificate": null,
+    "cr_file": null,
+    "articles_of_association": null,
+    "national_address_file": null
+  }
 }
 ```
 
@@ -563,7 +590,10 @@ The counterparty is **not** notified on create. Only the requester gets “submi
 | `signature` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | |
 | `authorized_id` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | |
 | `contracts` | file[] | yes | array min 1; each jpg/jpeg/png/pdf, max **10240** KB (10 MB) | |
-| `iban_certificate` | file | no | jpg/jpeg/png/pdf, max 5120 KB | |
+| `iban_certificate` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | IBAN certificate (stored in `requester_iban_certificate`; **required** — was optional before) |
+| `cr_file` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | Commercial Register file |
+| `articles_of_association` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | Articles of Association |
+| `national_address_file` | file | yes | jpg/jpeg/png/pdf, max 5120 KB | National Address file |
 | `company_documents` | file[] | no | each jpg/jpeg/png/pdf, max 10240 KB | |
 
 **Custom validation:**
@@ -684,7 +714,16 @@ Admin cancel / approve / reject / dispute-resolution remain **Dashboard-only**. 
 |---|---|---|---|
 | `signature` | file | yes | `required`, `file`, mimes: `jpg,jpeg,png,pdf`, max **5120** KB (5 MB) — same rules as create |
 
-Stored in MediaLibrary collection **`counterparty_signature`** (`singleFile`). Requester’s create-time signature remains in **`requester_signature`**.
+**Company guarantors only** — when `type.value = "company"`, these four additional fields are **required** (Individual accept remains signature-only):
+
+| Field | Type | Required | Rules |
+|---|---|---|---|
+| `iban_certificate` | file | yes (Company only) | jpg/jpeg/png/pdf, max 5120 KB → `counterparty_iban_certificate` |
+| `cr_file` | file | yes (Company only) | jpg/jpeg/png/pdf, max 5120 KB → `counterparty_cr_file` |
+| `articles_of_association` | file | yes (Company only) | jpg/jpeg/png/pdf, max 5120 KB → `counterparty_articles_of_association` |
+| `national_address_file` | file | yes (Company only) | jpg/jpeg/png/pdf, max 5120 KB → `counterparty_national_address_file` |
+
+Stored in MediaLibrary collection **`counterparty_signature`** on the request (`singleFile`). Counterparty KYC files are stored on **`company_detail`** in the `counterparty_*` collections above. Requester’s create-time signature remains in **`requester_signature`**; requester KYC files are in `requester_*` collections on `company_detail`.
 
 **Success `200`:** unified success envelope; `data` is the **show-shaped** `GuarantorResource`. Key fields after accept:
 
@@ -726,6 +765,7 @@ Stored in MediaLibrary collection **`counterparty_signature`** (`singleFile`). R
 
 - Request status → **`accepted`**.
 - Counterparty signature attached to `counterparty_signature`.
+- **Company only:** counterparty KYC files attached to `counterparty_*` collections on `company_detail`.
 - Chat conversation is created (if not already).
 - Requester is notified (`GuarantorAcceptedNotification`). Counterparty is **not** sent a self “you accepted” notification.
 - Status history row logged with the counterparty as `actor`.

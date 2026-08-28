@@ -72,8 +72,37 @@ class GuarantorCompanyDetail extends Model implements HasMedia
         $this->addMediaCollection('contracts')
             ->useDisk('public');
 
-        $this->addMediaCollection('iban_certificates')
-            ->useDisk('public');
+        $this->addMediaCollection('requester_iban_certificate')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('requester_cr_file')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('requester_articles_of_association')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('requester_national_address_file')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('counterparty_iban_certificate')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('counterparty_cr_file')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('counterparty_articles_of_association')
+            ->useDisk('public')
+            ->singleFile();
+
+        $this->addMediaCollection('counterparty_national_address_file')
+            ->useDisk('public')
+            ->singleFile();
 
         $this->addMediaCollection('company_documents')
             ->useDisk('public');

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Catalog\Models\Bank;
 use Modules\Guarantor\Models\GuarantorCompanyDetail;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /** @mixin GuarantorCompanyDetail */
 class CompanyDetailResource extends JsonResource
@@ -33,6 +34,18 @@ class CompanyDetailResource extends JsonResource
             'region' => $this->whenLoaded('region'),
             'city' => $this->whenLoaded('city'),
             'media' => $this->whenLoaded('media', fn () => MediaResource::collection($this->media)),
+            'requester_documents' => [
+                'iban_certificate' => $this->formatDocumentMedia('requester_iban_certificate'),
+                'cr_file' => $this->formatDocumentMedia('requester_cr_file'),
+                'articles_of_association' => $this->formatDocumentMedia('requester_articles_of_association'),
+                'national_address_file' => $this->formatDocumentMedia('requester_national_address_file'),
+            ],
+            'counterparty_documents' => [
+                'iban_certificate' => $this->formatDocumentMedia('counterparty_iban_certificate'),
+                'cr_file' => $this->formatDocumentMedia('counterparty_cr_file'),
+                'articles_of_association' => $this->formatDocumentMedia('counterparty_articles_of_association'),
+                'national_address_file' => $this->formatDocumentMedia('counterparty_national_address_file'),
+            ],
         ];
     }
 
@@ -49,6 +62,29 @@ class CompanyDetailResource extends JsonResource
             'value' => $bank->getValue(),
             'label' => $bank->getLabel(),
             'logo_url' => $bank->getLogoUrl(),
+        ];
+    }
+
+    /**
+     * @return array{id: string, url: string, mime_type: string, file_name: string}|null
+     */
+    private function formatDocumentMedia(string $collectionName): ?array
+    {
+        if (! $this->relationLoaded('media')) {
+            return null;
+        }
+
+        $media = $this->getFirstMedia($collectionName);
+
+        if (! $media instanceof Media) {
+            return null;
+        }
+
+        return [
+            'id' => $media->uuid,
+            'url' => $media->getUrl(),
+            'mime_type' => $media->mime_type,
+            'file_name' => $media->file_name,
         ];
     }
 }
