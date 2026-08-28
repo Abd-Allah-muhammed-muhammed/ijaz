@@ -1,12 +1,18 @@
 <?php
 
+use App\Models\Admin;
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Modules\Catalog\Database\Seeders\BanksSeeder;
 use Modules\Catalog\Http\Controllers\Dashboard\BankController;
 use Modules\Catalog\Models\Bank;
+use Modules\Geo\Http\Controllers\Dashboard\CityController;
+use Modules\Geo\Http\Controllers\Dashboard\RegionController;
+use Modules\Geo\Models\Region;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Spatie\Permission\Models\Role;
 
 test('a Bank can be created with per-locale translations (name) and a logo, via the Dashboard', function () {
     withoutGeoDashboardLocaleMiddleware();
@@ -52,6 +58,91 @@ test('an inactive Bank is excluded from the mobile catalog API but still visible
             ->where('row.id', $inactive->id)
             ->where('row.is_active', false)
         );
+});
+
+test('GET /api/v1/catalog/banks returns all 4 locale translations per bank, not just the current request locale', function () {
+    Bank::factory()->create(['translations' => geoNameTranslations('MultiLocale')]);
+
+    $response = $this->getJson('/api/v1/catalog/banks?search=MultiLocale');
+    $response->assertSuccessful();
+
+    $translations = $response->json('data.items.0.translations');
+
+    expect($translations)->toBeArray()
+        ->and(array_keys($translations))->toEqualCanonicalizing(['en', 'ar', 'hi', 'ur'])
+        ->and($translations['en']['name'])->toBe('MultiLocale EN')
+        ->and($translations['ar']['name'])->toBe('MultiLocale AR');
+});
+
+test('Dashboard banks index returns the standard flat paginated shape (matching Region/ElectronicBrand), not the API-style {items, total} wrapper', function () {
+    withoutGeoDashboardLocaleMiddleware();
+    $admin = createGeoDashboardAdmin(['show banks']);
+    Bank::factory()->count(2)->create();
+
+    $this->actingAs($admin, 'admin')
+        ->get(action([BankController::class, 'index']))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Banks/Index')
+            ->has('rows.data', 2)
+            ->missing('rows.data.items')
+        );
+});
+
+test('a non-root admin with the content-manager role can access /dashboard/banks after permissions are seeded', function () {
+    $this->seed(RolePermissionSeeder::class);
+    withoutGeoDashboardLocaleMiddleware();
+
+    $admin = Admin::query()->create([
+        'name' => 'Content Manager Banks',
+        'phone' => fake()->unique()->numerify('05########'),
+        'email' => fake()->unique()->safeEmail(),
+        'password' => 'password',
+        'language' => 'en',
+        'root' => false,
+    ]);
+    $admin->assignRole(Role::findByName('content-manager', 'admin'));
+
+    $this->actingAs($admin->fresh(), 'admin')
+        ->get(action([BankController::class, 'index']))
+        ->assertSuccessful();
+});
+
+test('a non-root admin without any bank permission is correctly denied (403) — confirms permissions are actually enforced, not just present', function () {
+    $this->seed(RolePermissionSeeder::class);
+    withoutGeoDashboardLocaleMiddleware();
+
+    $admin = Admin::query()->create([
+        'name' => 'No Bank Permission Admin',
+        'phone' => fake()->unique()->numerify('05########'),
+        'email' => fake()->unique()->safeEmail(),
+        'password' => 'password',
+        'language' => 'en',
+        'root' => false,
+    ]);
+
+    $this->actingAs($admin, 'admin')
+        ->get(action([BankController::class, 'index']))
+        ->assertForbidden();
+});
+
+test('existing regions/cities dashboard index tests still pass — regression, confirming Part A\'s scope decision does not break anything', function () {
+    withoutGeoDashboardLocaleMiddleware();
+    $admin = createGeoDashboardAdmin(['show regions', 'show cities']);
+    Region::factory()->count(2)->create();
+
+    $this->actingAs($admin, 'admin')
+        ->get(action([RegionController::class, 'index']))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Regions/Index')
+            ->has('rows.data', 2)
+        );
+
+    $this->actingAs($admin, 'admin')
+        ->get(action([CityController::class, 'index']))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page->component('Dashboard/Cities/Index'));
 });
 
 test('GET /api/v1/catalog/banks returns items with id, name (current locale), translations, and logo_url, matching the existing catalog contract shape used by regions/cities', function () {

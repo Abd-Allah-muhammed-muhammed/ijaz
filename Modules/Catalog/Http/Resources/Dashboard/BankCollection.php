@@ -2,11 +2,15 @@
 
 namespace Modules\Catalog\Http\Resources\Dashboard;
 
-use App\Http\Resources\Api\BaseCollection;
-// Distinct alias required — see app/Support/HasNormalizedAttributes.php (Pint conflict).
-use Modules\Catalog\Http\Resources\Dashboard\BankResource as DashboardBankResource;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class BankCollection extends BaseCollection
+class BankCollection extends ResourceCollection
 {
-    public $collects = DashboardBankResource::class;
+    public $collects = BankResource::class;
+
+    public function toArray(Request $request): array
+    {
+        return $this->collection->toArray();
+    }
 }

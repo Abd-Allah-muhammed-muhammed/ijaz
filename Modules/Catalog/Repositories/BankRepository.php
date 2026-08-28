@@ -98,8 +98,7 @@ class BankRepository implements BankRepositoryInterface
     public function paginateForApi(?string $search = null, int $perPage = 10): LengthAwarePaginator
     {
         return Bank::query()
-            ->withTranslation()
-            ->with('media')
+            ->with(['translations', 'media'])
             ->where('is_active', true)
             ->when($search, fn ($query, $v) => TranslationSearch::apply($query, (string) $v, 'normalized_name'))
             ->paginate($perPage);
