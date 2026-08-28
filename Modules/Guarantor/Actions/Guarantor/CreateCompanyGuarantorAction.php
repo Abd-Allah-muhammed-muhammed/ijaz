@@ -123,6 +123,11 @@ class CreateCompanyGuarantorAction
                     ->toMediaCollection('requester_national_address_file');
             }
 
+            if ($uploads->powerOfAttorneyDocument !== null) {
+                $companyDetail->addMedia($uploads->powerOfAttorneyDocument)
+                    ->toMediaCollection('power_of_attorney_document');
+            }
+
             foreach ($uploads->companyDocuments as $document) {
                 $companyDetail->addMedia($document)->toMediaCollection('company_documents');
             }

@@ -114,6 +114,7 @@ return [
     'documents_requester_cr_file' => 'Commercial Register file',
     'documents_requester_articles_of_association' => 'Articles of Association',
     'documents_requester_national_address_file' => 'National Address file',
+    'documents_power_of_attorney_document' => 'Power of Attorney',
     'documents_counterparty_iban_certificate' => 'IBAN certificate',
     'documents_counterparty_cr_file' => 'Commercial Register file',
     'documents_counterparty_articles_of_association' => 'Articles of Association',

@@ -114,6 +114,7 @@ return [
     'documents_requester_cr_file' => 'السجل التجاري',
     'documents_requester_articles_of_association' => 'عقد التأسيس',
     'documents_requester_national_address_file' => 'العنوان الوطني',
+    'documents_power_of_attorney_document' => 'التوكيل',
     'documents_counterparty_iban_certificate' => 'شهادة الآيبان',
     'documents_counterparty_cr_file' => 'السجل التجاري',
     'documents_counterparty_articles_of_association' => 'عقد التأسيس',
