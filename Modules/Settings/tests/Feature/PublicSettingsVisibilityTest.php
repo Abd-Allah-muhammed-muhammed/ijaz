@@ -41,7 +41,7 @@ test('newly created setting defaults to private', function () {
         ->assertJsonMissing(['brand_new_private_key' => 'hidden']);
 });
 
-test('toggling is_public from dashboard changes API exposure', function () {
+test('dashboard update ignores is_public toggles — API exposure stays seeder/DB controlled', function () {
     withoutSettingsDashboardLocaleMiddleware();
     $admin = createSettingsDashboardAdmin(['edit settings']);
 
@@ -66,9 +66,9 @@ test('toggling is_public from dashboard changes API exposure', function () {
         ])
         ->assertRedirect();
 
-    expect(Setting::query()->where('key', 'phone')->value('is_public'))->toBeFalse();
+    expect((bool) Setting::query()->where('key', 'phone')->value('is_public'))->toBeTrue();
 
     $this->getJson(action([ApiSettingController::class, 'settings']))
         ->assertSuccessful()
-        ->assertJsonMissing(['phone' => '966500000000']);
+        ->assertJsonPath('data.phone', '966500000000');
 });

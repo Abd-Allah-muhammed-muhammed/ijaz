@@ -4,9 +4,11 @@ namespace Modules\Settings\Http\Requests\Dashboard;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Validator as ValidatorFacade;
 use Illuminate\Validation\Rule;
 use Modules\Settings\Contracts\Repositories\SettingRepositoryInterface;
 use Modules\Settings\Enums\SettingGroupEnum;
+use Modules\Settings\Support\SettingValueRules;
 
 class UpdateSettingsRequest extends FormRequest
 {
@@ -23,8 +25,6 @@ class UpdateSettingsRequest extends FormRequest
         return [
             'values' => ['required', 'array', 'min:1'],
             'values.*' => ['nullable', 'string'],
-            'is_public' => ['nullable', 'array'],
-            'is_public.*' => ['nullable', 'boolean'],
             'group' => ['nullable', Rule::enum(SettingGroupEnum::class)],
         ];
     }
@@ -50,6 +50,27 @@ class UpdateSettingsRequest extends FormRequest
                         "values.{$key}",
                         __('validation.exists', ['attribute' => $key]),
                     );
+                }
+            }
+
+            foreach ($values as $key => $value) {
+                $suffixRules = SettingValueRules::forKey((string) $key);
+
+                if ($suffixRules === null) {
+                    continue;
+                }
+
+                $fieldValidator = ValidatorFacade::make(
+                    ['value' => $value],
+                    ['value' => $suffixRules],
+                    [],
+                    ['value' => (string) $key],
+                );
+
+                if ($fieldValidator->fails()) {
+                    foreach ($fieldValidator->errors()->all() as $message) {
+                        $validator->errors()->add("values.{$key}", $message);
+                    }
                 }
             }
         });

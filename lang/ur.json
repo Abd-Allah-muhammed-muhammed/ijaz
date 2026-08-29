@@ -977,5 +977,8 @@
     "offline_topup_pending_review_title": "نیا آف لائن ٹاپ اپ درخواست",
     "offline_topup_pending_review_body": "آف لائن ٹاپ اپ درخواست آپ کے جائزے کا انتظار کر رہی ہے۔",
     "provider_pending_approval_title": "نیا سروس فراہم کنندہ رجسٹریشن",
-    "provider_pending_approval_body": "سروس فراہم کنندہ کی رجسٹریشن آپ کی منظوری کا انتظار کر رہی ہے۔"
+    "provider_pending_approval_body": "سروس فراہم کنندہ کی رجسٹریشن آپ کی منظوری کا انتظار کر رہی ہے۔",
+    "public": "عوامی",
+    "no_history": "ابھی کوئی تاریخ نہیں",
+    "system": "سسٹم"
 }

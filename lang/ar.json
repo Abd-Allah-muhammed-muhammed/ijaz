@@ -1072,5 +1072,8 @@
     "offline_topup_pending_review_title": "طلب شحن رصيد دون اتصال جديد",
     "offline_topup_pending_review_body": "طلب شحن رصيد دون اتصال بانتظار مراجعتك.",
     "provider_pending_approval_title": "تسجيل مزود خدمة جديد",
-    "provider_pending_approval_body": "تسجيل مزود خدمة بانتظار موافقتك."
+    "provider_pending_approval_body": "تسجيل مزود خدمة بانتظار موافقتك.",
+    "public": "عام",
+    "no_history": "لا يوجد سجل بعد",
+    "system": "النظام"
 }

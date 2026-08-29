@@ -67,9 +67,6 @@ test('admin with edit settings can update settings and invalidate cache', functi
             'values' => [
                 'phone' => '966511111111',
             ],
-            'is_public' => [
-                'phone' => true,
-            ],
         ])
         ->assertRedirect();
 

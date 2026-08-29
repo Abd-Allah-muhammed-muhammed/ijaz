@@ -1151,5 +1151,8 @@
     "stuck_order_settlements_body": ":count paid ended order(s) remain unsettled past the dispute window.",
     "order_wallet_hold_insufficient": "This order cannot be cancelled because wallet holds are insufficient to fully reverse the payment.",
     "provider_pending_approval_title": "New provider registration",
-    "provider_pending_approval_body": "A provider registration is awaiting your approval."
+    "provider_pending_approval_body": "A provider registration is awaiting your approval.",
+    "public": "Public",
+    "no_history": "No history yet",
+    "system": "System"
 }

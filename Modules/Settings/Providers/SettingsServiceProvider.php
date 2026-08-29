@@ -2,7 +2,9 @@
 
 namespace Modules\Settings\Providers;
 
+use Modules\Settings\Contracts\Repositories\SettingHistoryRepositoryInterface;
 use Modules\Settings\Contracts\Repositories\SettingRepositoryInterface;
+use Modules\Settings\Repositories\SettingHistoryRepository;
 use Modules\Settings\Repositories\SettingRepository;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
@@ -21,6 +23,7 @@ class SettingsServiceProvider extends ModuleServiceProvider
         parent::register();
 
         $this->app->bind(SettingRepositoryInterface::class, SettingRepository::class);
+        $this->app->bind(SettingHistoryRepositoryInterface::class, SettingHistoryRepository::class);
     }
 
     public function boot(): void

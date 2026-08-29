@@ -84,7 +84,6 @@ test('UpdateSettingsAction invalidates the public settings lookup cache', functi
 
     $update->handle(new UpdateSettingsDTO(
         values: ['phone' => '966511111111'],
-        isPublic: ['phone' => true],
     ));
 
     expect($list->handle()['phone'])->toBe('966511111111');

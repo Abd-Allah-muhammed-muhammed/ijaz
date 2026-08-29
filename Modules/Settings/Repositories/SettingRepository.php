@@ -45,20 +45,36 @@ class SettingRepository implements SettingRepositoryInterface
     }
 
     /**
-     * @param  array<string, array{content: string, is_public: bool}>  $updates
+     * @param  array<string, string>  $contents
      */
-    public function updateMany(array $updates): void
+    public function updateManyContents(array $contents): void
     {
-        DB::transaction(function () use ($updates): void {
-            foreach ($updates as $key => $payload) {
+        DB::transaction(function () use ($contents): void {
+            foreach ($contents as $key => $content) {
                 Setting::query()
                     ->where('key', $key)
                     ->update([
-                        'content' => (string) $payload['content'],
-                        'is_public' => (bool) $payload['is_public'],
+                        'content' => (string) $content,
                     ]);
             }
         });
+    }
+
+    /**
+     * @param  list<string>  $keys
+     * @return array<string, string>
+     */
+    public function pluckContentByKeys(array $keys): array
+    {
+        if ($keys === []) {
+            return [];
+        }
+
+        return Setting::query()
+            ->whereIn('key', $keys)
+            ->pluck('content', 'key')
+            ->map(fn ($content): string => (string) ($content ?? ''))
+            ->all();
     }
 
     /**

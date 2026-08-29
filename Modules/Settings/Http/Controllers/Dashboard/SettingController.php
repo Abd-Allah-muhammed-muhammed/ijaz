@@ -3,6 +3,8 @@
 namespace Modules\Settings\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -11,6 +13,7 @@ use Inertia\Response;
 use Modules\Settings\DTOs\UpdateSettingsDTO;
 use Modules\Settings\Enums\SettingGroupEnum;
 use Modules\Settings\Http\Requests\Dashboard\UpdateSettingsRequest;
+use Modules\Settings\Http\Resources\Dashboard\SettingHistoryResource;
 use Modules\Settings\Http\Resources\Dashboard\SettingResource;
 use Modules\Settings\Services\SettingService;
 use Throwable;
@@ -24,7 +27,7 @@ class SettingController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:show settings', only: ['index']),
+            new Middleware('permission:show settings', only: ['index', 'history']),
             new Middleware('permission:edit settings', only: ['update']),
         ];
     }
@@ -46,7 +49,13 @@ class SettingController extends Controller implements HasMiddleware
     public function update(UpdateSettingsRequest $request): RedirectResponse
     {
         try {
-            $this->service->update(UpdateSettingsDTO::fromValidated($request->validated()));
+            /** @var Admin|null $admin */
+            $admin = $request->user('admin');
+
+            $this->service->update(
+                UpdateSettingsDTO::fromValidated($request->validated()),
+                $admin,
+            );
 
             return redirect()
                 ->route('dashboard.settings.index', array_filter([
@@ -58,5 +67,14 @@ class SettingController extends Controller implements HasMiddleware
 
             return redirect()->back()->with('error', __('something went wrong'));
         }
+    }
+
+    public function history(string $key): JsonResponse
+    {
+        $rows = $this->service->historyForKey($key);
+
+        return response()->json([
+            'data' => SettingHistoryResource::collection($rows)->resolve(),
+        ]);
     }
 }

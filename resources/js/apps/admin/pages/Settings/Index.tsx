@@ -6,21 +6,28 @@ import { Content } from '@/vendor/metronic/layout/components/content';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { KTCard, KTCardBody, KTIcon } from '@/vendor/metronic/helpers';
 import clsx from 'clsx';
-import { ReactElement, useMemo, useState } from 'react';
+import { ReactElement, useEffect, useMemo, useState } from 'react';
 import {
+  Button,
   Col,
   Form as BTForm,
-  FormCheck,
   FormControl,
   FormGroup,
   FormLabel,
+  Modal,
   Row,
+  Spinner,
 } from 'react-bootstrap';
 import SettingController from '@/actions/Modules/Settings/Http/Controllers/Dashboard/SettingController';
 import usePermissions from '@/shared/hooks/use-permissions';
 import InputError from '@/shared/components/inputs/InputError';
 import ActionButton from '@/shared/components/action-button';
+import { apiGet } from '@/shared/lib/api-client';
 import { groupSettingsBySection } from './settings-section-utils';
+import {
+  settingsVisibilityBadgeClass,
+  settingsVisibilityBadgeLabel,
+} from './settings-visibility-utils';
 
 type SettingType = 'text' | 'textarea';
 
@@ -32,6 +39,15 @@ type SettingRow = {
   group: string;
   section: string | null;
   is_public: boolean;
+};
+
+type HistoryItem = {
+  id: number;
+  key: string;
+  old_content: string | null;
+  new_content: string | null;
+  created_at: string | null;
+  actor: { id: number; name: string } | null;
 };
 
 type Props = {
@@ -60,6 +76,8 @@ const Index = ({ groups, groupOrder }: Props) => {
   const defaultTab = tabs.includes(queryTab ?? '') ? (queryTab as string) : (tabs[0] ?? 'general');
   const [activeTab, setActiveTab] = useState(defaultTab);
   const canEdit = hasPermission('edit settings');
+  const canShow = hasPermission('show settings');
+  const [historyKey, setHistoryKey] = useState<string | null>(null);
 
   return (
     <>
@@ -101,6 +119,13 @@ const Index = ({ groups, groupOrder }: Props) => {
           group={activeTab}
           rows={groups[activeTab] ?? []}
           canEdit={canEdit}
+          canShow={canShow}
+          onViewHistory={setHistoryKey}
+        />
+
+        <SettingHistoryModal
+          settingKey={historyKey}
+          onClose={() => setHistoryKey(null)}
         />
       </Content>
     </>
@@ -111,13 +136,15 @@ type FormProps = {
   group: string;
   rows: SettingRow[];
   canEdit: boolean;
+  canShow: boolean;
+  onViewHistory: (key: string) => void;
 };
 
 function isTextareaRow(row: SettingRow): boolean {
   return row.type === 'textarea';
 }
 
-function SettingsGroupForm({ group, rows, canEdit }: FormProps) {
+function SettingsGroupForm({ group, rows, canEdit, canShow, onViewHistory }: FormProps) {
   const { t } = useTranslation();
   const initialValues = useMemo(
     () =>
@@ -128,24 +155,13 @@ function SettingsGroupForm({ group, rows, canEdit }: FormProps) {
     [rows],
   );
 
-  const initialPublic = useMemo(
-    () =>
-      rows.reduce<Record<string, boolean>>((carry, row) => {
-        carry[row.key] = Boolean(row.is_public);
-        return carry;
-      }, {}),
-    [rows],
-  );
-
   const sectionBuckets = useMemo(() => groupSettingsBySection(rows), [rows]);
 
   const form = useForm<{
     values: Record<string, string>;
-    is_public: Record<string, boolean>;
     group: string;
   }>({
     values: initialValues,
-    is_public: initialPublic,
     group,
   });
 
@@ -166,11 +182,6 @@ function SettingsGroupForm({ group, rows, canEdit }: FormProps) {
         if (!canEdit) {
           return;
         }
-        form.transform((data) => ({
-          values: data.values,
-          is_public: data.is_public,
-          group: data.group,
-        }));
         form.put(SettingController.update().url, {
           preserveScroll: true,
           onSuccess: () => {
@@ -206,7 +217,14 @@ function SettingsGroupForm({ group, rows, canEdit }: FormProps) {
                   <Row className="g-4">
                     {bucket.textRows.map((row) => (
                       <Col sm={12} md={6} key={row.key}>
-                        <SettingField row={row} form={form} canEdit={canEdit} t={t} />
+                        <SettingField
+                          row={row}
+                          form={form}
+                          canEdit={canEdit}
+                          canShow={canShow}
+                          onViewHistory={onViewHistory}
+                          t={t}
+                        />
                       </Col>
                     ))}
                   </Row>
@@ -220,7 +238,15 @@ function SettingsGroupForm({ group, rows, canEdit }: FormProps) {
                     )}
                   >
                     {bucket.textareaRows.map((row) => (
-                      <SettingField key={row.key} row={row} form={form} canEdit={canEdit} t={t} />
+                      <SettingField
+                        key={row.key}
+                        row={row}
+                        form={form}
+                        canEdit={canEdit}
+                        canShow={canShow}
+                        onViewHistory={onViewHistory}
+                        t={t}
+                      />
                     ))}
                   </div>
                 )}
@@ -248,22 +274,33 @@ type SettingFieldProps = {
   form: ReturnType<
     typeof useForm<{
       values: Record<string, string>;
-      is_public: Record<string, boolean>;
       group: string;
     }>
   >;
   canEdit: boolean;
+  canShow: boolean;
+  onViewHistory: (key: string) => void;
   t: (key: string, options?: { defaultValue?: string }) => string;
 };
 
-function SettingField({ row, form, canEdit, t }: SettingFieldProps) {
+function SettingField({ row, form, canEdit, canShow, onViewHistory, t }: SettingFieldProps) {
   const isTextarea = isTextareaRow(row);
 
   return (
     <FormGroup>
-      <FormLabel className="fw-semibold text-gray-800">
-        {t(`settings.${row.key}`, { defaultValue: row.key })}
-      </FormLabel>
+      <div className="d-flex align-items-center justify-content-between gap-2 mb-2 flex-wrap">
+        <FormLabel className="fw-semibold text-gray-800 mb-0">
+          {t(`settings.${row.key}`, { defaultValue: row.key })}
+        </FormLabel>
+        <span
+          className={clsx(
+            'badge rounded-pill px-3 py-2 fw-bold',
+            settingsVisibilityBadgeClass(row.is_public),
+          )}
+        >
+          {settingsVisibilityBadgeLabel(row.is_public, t)}
+        </span>
+      </div>
       <FormControl
         as={isTextarea ? 'textarea' : 'input'}
         rows={isTextarea ? 4 : undefined}
@@ -279,22 +316,124 @@ function SettingField({ row, form, canEdit, t }: SettingFieldProps) {
         }}
       />
       <InputError message={form.errors[`values.${row.key}`]} />
-      <FormCheck
-        className="mt-2"
-        type="switch"
-        id={`is-public-${row.key}`}
-        label={t('visible_in_public_api')}
-        disabled={!canEdit || form.processing}
-        checked={Boolean(form.data.is_public[row.key])}
-        onChange={(e) => {
-          form.setData('is_public', {
-            ...form.data.is_public,
-            [row.key]: e.currentTarget.checked,
-          });
-        }}
-      />
-      <InputError message={form.errors[`is_public.${row.key}`]} />
+      {canShow && (
+        <button
+          type="button"
+          className="btn btn-sm btn-light-primary mt-2"
+          onClick={() => onViewHistory(row.key)}
+        >
+          {t('view_history')}
+        </button>
+      )}
     </FormGroup>
+  );
+}
+
+type SettingHistoryModalProps = {
+  settingKey: string | null;
+  onClose: () => void;
+};
+
+function SettingHistoryModal({ settingKey, onClose }: SettingHistoryModalProps) {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
+  const [items, setItems] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!settingKey) {
+      setItems([]);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+
+    void apiGet<{ data: HistoryItem[] }>(SettingController.history(settingKey).url)
+      .then((payload) => {
+        if (!cancelled) {
+          setItems(payload.data ?? []);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setItems([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [settingKey]);
+
+  return (
+    <Modal show={settingKey !== null} onHide={onClose} centered size="lg">
+      <Modal.Header closeButton>
+        <Modal.Title>
+          {t('view_history')}
+          {settingKey ? ` — ${t(`settings.${settingKey}`, { defaultValue: settingKey })}` : ''}
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        {loading ? (
+          <div className="text-center py-8">
+            <Spinner animation="border" size="sm" />
+          </div>
+        ) : items.length === 0 ? (
+          <p className="text-muted fst-italic mb-0">{t('no_history')}</p>
+        ) : (
+          <div className="d-flex flex-column">
+            {items.map((history, index) => (
+              <div key={history.id} className="d-flex gap-4">
+                <div className="d-flex flex-column align-items-center">
+                  <div
+                    className="rounded-circle border border-3 border-white shadow-sm"
+                    style={{
+                      width: 14,
+                      height: 14,
+                      backgroundColor: '#7239ea',
+                      marginTop: 6,
+                    }}
+                  />
+                  {index < items.length - 1 && (
+                    <div className="flex-grow-1 w-2px bg-gray-200 my-1" style={{ minHeight: 40 }} />
+                  )}
+                </div>
+                <div className="pb-6 flex-grow-1">
+                  <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
+                    <span className="badge badge-light rounded-pill px-3 py-2 fw-bold text-break">
+                      {history.old_content ?? '—'}
+                    </span>
+                    <i className={`bi ${isRTL ? 'bi-arrow-left' : 'bi-arrow-right'} text-muted fs-8`} />
+                    <span className="badge badge-light-primary rounded-pill px-3 py-2 fw-bold text-break">
+                      {history.new_content ?? '—'}
+                    </span>
+                  </div>
+                  <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <span className="fw-semibold text-gray-800 fs-7">
+                      {history.actor?.name ?? t('system')}
+                    </span>
+                    <span className="text-muted fs-8">
+                      {history.created_at ? new Date(history.created_at).toLocaleString() : ''}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="light" onClick={onClose}>
+          {t('close')}
+        </Button>
+      </Modal.Footer>
+    </Modal>
   );
 }
 

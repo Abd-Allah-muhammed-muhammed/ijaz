@@ -978,5 +978,8 @@
     "offline_topup_pending_review_title": "नया ऑफ़लाइन टॉप-अप अनुरोध",
     "offline_topup_pending_review_body": "एक ऑफ़लाइन टॉप-अप अनुरोध आपकी समीक्षा की प्रतीक्षा में है।",
     "provider_pending_approval_title": "नया प्रदाता पंजीकरण",
-    "provider_pending_approval_body": "एक प्रदाता पंजीकरण आपकी स्वीकृति की प्रतीक्षा में है।"
+    "provider_pending_approval_body": "एक प्रदाता पंजीकरण आपकी स्वीकृति की प्रतीक्षा में है।",
+    "public": "सार्वजनिक",
+    "no_history": "अभी कोई इतिहास नहीं",
+    "system": "सिस्टम"
 }
