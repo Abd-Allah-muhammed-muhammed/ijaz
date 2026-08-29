@@ -36,6 +36,12 @@ type Props = {
 
 type StatusFilter = '' | 'pending' | 'submitted' | 'processing' | 'failed' | 'completed';
 
+type SearchPrams = {
+  per_page?: number;
+  search?: string;
+  status?: StatusFilter;
+};
+
 const Index = ({ rows, prams }: Props) => {
   const { t } = useTranslation();
   const { hasPermission } = usePermissions();
@@ -44,6 +50,11 @@ const Index = ({ rows, prams }: Props) => {
   const currentAdminId = usePage<{ auth: { user?: { id?: number } } }>().props.auth.user?.id;
 
   const activeStatus = (prams?.status as StatusFilter | undefined) ?? '';
+  const searchPrams: SearchPrams = {
+    per_page: (prams?.per_page as number | undefined) ?? 10,
+    search: (prams?.search as string | undefined) ?? '',
+    status: activeStatus,
+  };
 
   const [submitTarget, setSubmitTarget] = useState<PayoutRequestRow | null>(null);
   const [approveTarget, setApproveTarget] = useState<PayoutRequestRow | null>(null);
@@ -59,9 +70,14 @@ const Index = ({ rows, prams }: Props) => {
   const rejectForm = useForm({ failure_reason: '' });
   const failForm = useForm({ failure_reason: '' });
 
+  const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
+    const next = applyFilterParam({ ...searchPrams } as Record<string, unknown>, name, value);
+    visitWithFilters(PayoutRequestController.index().url, next, { only: ['rows', 'prams'] });
+  };
+
   const changeStatusFilter = (status: StatusFilter) => {
     const next = applyFilterParam(
-      { ...(prams ?? {}) } as Record<string, unknown>,
+      { ...searchPrams } as Record<string, unknown>,
       'status',
       status === '' ? null : status,
     );
@@ -205,6 +221,12 @@ const Index = ({ rows, prams }: Props) => {
           <Table<PayoutRequestRow>
             name="payout-requests"
             rows={rows}
+            search={{
+              value: (prams?.search as string | undefined) || '',
+              callback: (value) => {
+                searchPramsChanged('search', value);
+              },
+            }}
             headers={[
               {
                 title: t('recipient'),

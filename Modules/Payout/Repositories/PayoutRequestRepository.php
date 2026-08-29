@@ -2,7 +2,10 @@
 
 namespace Modules\Payout\Repositories;
 
+use App\Models\Provider;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Modules\Payout\Contracts\Repositories\PayoutRequestRepositoryInterface;
@@ -79,6 +82,30 @@ class PayoutRequestRepository implements PayoutRequestRepositoryInterface
                 PayoutStatusEnum::Processing->value,
             ]);
         }
+
+        $query->when($request->input('search'), function (Builder $query, mixed $search): void {
+            $search = (string) $search;
+
+            $query->where(function (Builder $inner) use ($search): void {
+                $inner->where('gateway_reference', 'like', "%{$search}%")
+                    ->orWhereHasMorph(
+                        'recipient',
+                        [User::class, Provider::class],
+                        function (Builder $q, string $type) use ($search): void {
+                            if ($type === User::class) {
+                                $q->where(function (Builder $userQuery) use ($search): void {
+                                    $userQuery->where('f_name', 'like', "%{$search}%")
+                                        ->orWhere('l_name', 'like', "%{$search}%");
+                                });
+
+                                return;
+                            }
+
+                            $q->where('name', 'like', "%{$search}%");
+                        },
+                    );
+            });
+        });
 
         return $query
             ->latest()

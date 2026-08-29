@@ -174,10 +174,10 @@ test('every existing status-history-logging call site populates actor_name corre
     );
     expectLatestHistoryActorName($toDispute, GuarantorStatusEnum::Disputed->value, $disputer->name);
 
-    // Party end
+    // Party end (counterparty completes immediately; requester end is pending approval)
     $toEnd = GuarantorRequest::factory()->inProgress()->create();
-    $ender = $toEnd->requester;
-    app(EndGuarantorAction::class)->handle($toEnd, $ender, 'requester');
+    $ender = $toEnd->counterparty;
+    app(EndGuarantorAction::class)->handle($toEnd, $ender, 'counterparty');
     expectLatestHistoryActorName($toEnd, GuarantorStatusEnum::Ended->value, $ender->name);
 
     // Admin cancel
