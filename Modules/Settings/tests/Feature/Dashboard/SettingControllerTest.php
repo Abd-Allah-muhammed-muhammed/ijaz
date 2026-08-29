@@ -20,6 +20,9 @@ test('admin with show settings can view settings dashboard index', function () {
             ->component('Dashboard/Settings/Index')
             ->has('groups')
             ->has('groupOrder')
+            ->where('groups.general', fn ($rows) => collect($rows)->contains(
+                fn ($row) => ($row['key'] ?? null) === 'phone' && ($row['type'] ?? null) === 'text'
+            ))
         );
 });
 

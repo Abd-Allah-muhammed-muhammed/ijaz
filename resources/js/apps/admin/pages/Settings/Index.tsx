@@ -4,29 +4,30 @@ import { PageTitle } from '@/vendor/metronic/layout/core';
 import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
 import { Content } from '@/vendor/metronic/layout/components/content';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { KTCard } from '@/vendor/metronic/helpers';
+import { KTCard, KTCardBody } from '@/vendor/metronic/helpers';
+import clsx from 'clsx';
 import { ReactElement, useMemo, useState } from 'react';
 import {
-  Card,
   Col,
   Form as BTForm,
   FormCheck,
   FormControl,
   FormGroup,
   FormLabel,
-  Nav,
   Row,
-  Tab,
 } from 'react-bootstrap';
 import SettingController from '@/actions/Modules/Settings/Http/Controllers/Dashboard/SettingController';
 import usePermissions from '@/shared/hooks/use-permissions';
 import InputError from '@/shared/components/inputs/InputError';
 import ActionButton from '@/shared/components/action-button';
 
+type SettingType = 'text' | 'textarea';
+
 type SettingRow = {
   id: number;
   key: string;
   content: string;
+  type: SettingType;
   group: string;
   is_public: boolean;
 };
@@ -70,37 +71,30 @@ const Index = ({ groups, groupOrder }: Props) => {
       </PageTitle>
       <ToolbarWrapper />
       <Content>
-        <KTCard className="p-4">
-          <Tab.Container
-            activeKey={activeTab}
-            onSelect={(key) => {
-              if (key) {
-                setActiveTab(key);
-              }
-            }}
-          >
-            <ul className="nav nav-stretch nav-line-tabs nav-line-tabs-2x border-transparent fs-5 fw-bold mb-6">
-              {tabs.map((group) => (
-                <li className="nav-item" key={group}>
-                  <Nav.Link className="nav-link text-active-primary py-5 me-6" eventKey={group}>
-                    {t(`settings_tab_${group}`)}
-                  </Nav.Link>
-                </li>
-              ))}
-            </ul>
-            <Tab.Content>
-              {tabs.map((group) => (
-                <Tab.Pane eventKey={group} key={group}>
-                  <SettingsGroupForm
-                    group={group}
-                    rows={groups[group] ?? []}
-                    canEdit={canEdit}
-                  />
-                </Tab.Pane>
-              ))}
-            </Tab.Content>
-          </Tab.Container>
-        </KTCard>
+        <div className="d-flex flex-wrap gap-2 mb-6">
+          {tabs.map((group) => (
+            <button
+              key={group}
+              type="button"
+              className={clsx(
+                'btn btn-sm rounded-pill d-inline-flex align-items-center gap-2 px-4 py-2 fw-bold',
+                activeTab === group
+                  ? 'btn-primary'
+                  : 'btn-light text-gray-600 btn-active-light-primary',
+              )}
+              onClick={() => setActiveTab(group)}
+            >
+              {t(`settings_tab_${group}`)}
+            </button>
+          ))}
+        </div>
+
+        <SettingsGroupForm
+          key={activeTab}
+          group={activeTab}
+          rows={groups[activeTab] ?? []}
+          canEdit={canEdit}
+        />
       </Content>
     </>
   );
@@ -111,6 +105,10 @@ type FormProps = {
   rows: SettingRow[];
   canEdit: boolean;
 };
+
+function isTextareaRow(row: SettingRow): boolean {
+  return row.type === 'textarea';
+}
 
 function SettingsGroupForm({ group, rows, canEdit }: FormProps) {
   const { t } = useTranslation();
@@ -132,6 +130,21 @@ function SettingsGroupForm({ group, rows, canEdit }: FormProps) {
     [rows],
   );
 
+  const { textRows, textareaRows } = useMemo(() => {
+    const text: SettingRow[] = [];
+    const textarea: SettingRow[] = [];
+
+    for (const row of rows) {
+      if (isTextareaRow(row)) {
+        textarea.push(row);
+      } else {
+        text.push(row);
+      }
+    }
+
+    return { textRows: text, textareaRows: textarea };
+  }, [rows]);
+
   const form = useForm<{
     values: Record<string, string>;
     is_public: Record<string, boolean>;
@@ -144,87 +157,136 @@ function SettingsGroupForm({ group, rows, canEdit }: FormProps) {
 
   if (rows.length === 0) {
     return (
-      <Card className="border-0 shadow-none">
-        <Card.Body className="text-muted py-10 text-center">
+      <KTCard className="border-0 shadow-sm rounded-4">
+        <KTCardBody className="p-6 p-lg-9 text-muted text-center py-10">
           {t('no_data')}
-        </Card.Body>
-      </Card>
+        </KTCardBody>
+      </KTCard>
     );
   }
 
   return (
-    <BTForm
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (!canEdit) {
-          return;
-        }
-        form.transform((data) => ({
-          values: data.values,
-          is_public: data.is_public,
-          group: data.group,
-        }));
-        form.put(SettingController.update().url, {
-          preserveScroll: true,
-          onSuccess: () => {
-            router.reload({ only: ['groups'] });
-          },
-        });
-      }}
-    >
-      <Row>
-        {rows.map((row) => (
-          <Col sm={12} md={6} className="mb-4" key={row.key}>
-            <FormGroup>
-              <FormLabel className="fw-semibold">
-                {t(`settings.${row.key}`, { defaultValue: row.key })}
-              </FormLabel>
-              <FormControl
-                as={row.content && row.content.length > 80 ? 'textarea' : 'input'}
-                rows={row.content && row.content.length > 80 ? 4 : undefined}
-                type="text"
-                disabled={!canEdit || form.processing}
-                value={form.data.values[row.key] ?? ''}
-                onChange={(e) => {
-                  const value = e.currentTarget.value;
-                  form.setData('values', {
-                    ...form.data.values,
-                    [row.key]: value,
-                  });
-                }}
+    <KTCard className="border-0 shadow-sm rounded-4">
+      <KTCardBody className="p-6 p-lg-9">
+        <BTForm
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!canEdit) {
+              return;
+            }
+            form.transform((data) => ({
+              values: data.values,
+              is_public: data.is_public,
+              group: data.group,
+            }));
+            form.put(SettingController.update().url, {
+              preserveScroll: true,
+              onSuccess: () => {
+                router.reload({ only: ['groups'] });
+              },
+            });
+          }}
+        >
+          {textRows.length > 0 && (
+            <Row className="g-4">
+              {textRows.map((row) => (
+                <Col sm={12} md={6} key={row.key}>
+                  <SettingField
+                    row={row}
+                    form={form}
+                    canEdit={canEdit}
+                    t={t}
+                  />
+                </Col>
+              ))}
+            </Row>
+          )}
+
+          {textareaRows.length > 0 && (
+            <div className={clsx('d-flex flex-column gap-4', textRows.length > 0 && 'mt-6')}>
+              {textareaRows.map((row) => (
+                <SettingField
+                  key={row.key}
+                  row={row}
+                  form={form}
+                  canEdit={canEdit}
+                  t={t}
+                />
+              ))}
+            </div>
+          )}
+
+          {canEdit && (
+            <div className="d-flex justify-content-end mt-8">
+              <ActionButton
+                isProcessing={form.processing}
+                text={t('save')}
+                className="btn btn-primary"
               />
-              <InputError message={form.errors[`values.${row.key}`]} />
-              <FormCheck
-                className="mt-2"
-                type="switch"
-                id={`is-public-${row.key}`}
-                label={t('visible_in_public_api')}
-                disabled={!canEdit || form.processing}
-                checked={Boolean(form.data.is_public[row.key])}
-                onChange={(e) => {
-                  form.setData('is_public', {
-                    ...form.data.is_public,
-                    [row.key]: e.currentTarget.checked,
-                  });
-                }}
-              />
-              <InputError message={form.errors[`is_public.${row.key}`]} />
-            </FormGroup>
-          </Col>
-        ))}
-      </Row>
-      {canEdit && (
-        <Row>
-          <Col sm={12} className="d-flex justify-content-end">
-            <ActionButton
-              isProcessing={form.processing}
-              text={t('save')}
-              className="btn btn-primary"
-            />
-          </Col>
-        </Row>
-      )}
-    </BTForm>
+            </div>
+          )}
+        </BTForm>
+      </KTCardBody>
+    </KTCard>
+  );
+}
+
+type SettingFieldProps = {
+  row: SettingRow;
+  form: ReturnType<
+    typeof useForm<{
+      values: Record<string, string>;
+      is_public: Record<string, boolean>;
+      group: string;
+    }>
+  >;
+  canEdit: boolean;
+  t: (key: string, options?: { defaultValue?: string }) => string;
+};
+
+function SettingField({ row, form, canEdit, t }: SettingFieldProps) {
+  const isTextarea = isTextareaRow(row);
+
+  return (
+    <FormGroup>
+      <FormLabel className="fw-semibold text-gray-800">
+        {t(`settings.${row.key}`, { defaultValue: row.key })}
+      </FormLabel>
+      <FormControl
+        as={isTextarea ? 'textarea' : 'input'}
+        rows={isTextarea ? 4 : undefined}
+        type="text"
+        disabled={!canEdit || form.processing}
+        value={form.data.values[row.key] ?? ''}
+        onChange={(e) => {
+          const value = e.currentTarget.value;
+          form.setData('values', {
+            ...form.data.values,
+            [row.key]: value,
+          });
+        }}
+      />
+      <InputError message={form.errors[`values.${row.key}`]} />
+      <div className="d-flex align-items-center gap-2 mt-2">
+        <FormCheck
+          type="checkbox"
+          id={`is-public-${row.key}`}
+          className="mb-0"
+          disabled={!canEdit || form.processing}
+          checked={Boolean(form.data.is_public[row.key])}
+          onChange={(e) => {
+            form.setData('is_public', {
+              ...form.data.is_public,
+              [row.key]: e.currentTarget.checked,
+            });
+          }}
+        />
+        <label htmlFor={`is-public-${row.key}`} className="text-muted fs-7 mb-0 cursor-pointer">
+          {t('visible_in_public_api')}
+        </label>
+      </div>
+      <InputError message={form.errors[`is_public.${row.key}`]} />
+    </FormGroup>
   );
 }
 
