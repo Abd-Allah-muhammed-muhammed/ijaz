@@ -24,6 +24,7 @@
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.4",
         "mcamara/laravel-localization": "^2.3",
+        "mews/purifier": "^3.4",
         "mmae/apiresponse": "^1.0",
         "nwidart/laravel-modules": "^13.0",
         "opcodesio/log-viewer": "^3.24",

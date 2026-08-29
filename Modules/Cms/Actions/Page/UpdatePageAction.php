@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use Modules\Cms\Contracts\Repositories\PageRepositoryInterface;
 use Modules\Cms\DTOs\UpdatePageDTO;
 use Modules\Cms\Models\Page;
+use Modules\Cms\Support\PageHtmlSanitizer;
 use Throwable;
 
 class UpdatePageAction
@@ -26,7 +27,7 @@ class UpdatePageAction
 
         $page = DB::transaction(fn (): Page => $this->repository->update($page, [
             'slug' => $newSlug,
-            'translations' => $dto->translations,
+            'translations' => PageHtmlSanitizer::cleanTranslations($dto->translations),
         ]));
 
         LookupCache::forgetAllLocales('pages:all');

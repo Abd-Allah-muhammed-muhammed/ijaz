@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use Modules\Cms\Contracts\Repositories\PageRepositoryInterface;
 use Modules\Cms\DTOs\StorePageDTO;
 use Modules\Cms\Models\Page;
+use Modules\Cms\Support\PageHtmlSanitizer;
 use Throwable;
 
 class StorePageAction
@@ -23,7 +24,7 @@ class StorePageAction
     {
         $page = DB::transaction(fn (): Page => $this->repository->create([
             'slug' => Str::slug($dto->slug),
-            'translations' => $dto->translations,
+            'translations' => PageHtmlSanitizer::cleanTranslations($dto->translations),
         ]));
 
         LookupCache::forgetAllLocales('pages:all');

@@ -8,6 +8,7 @@ import {getSupportedLocales} from "@/shared/hooks/use-locales";
 import InputError from "@/shared/components/inputs/InputError";
 import {Inputs} from "@/apps/admin/pages/Pages/validation";
 import PageController from "@/actions/Modules/Cms/Http/Controllers/Dashboard/PageController";
+import PageContentEditor from "./PageContentEditor";
 
 type Props = {
   /**
@@ -93,25 +94,22 @@ export default function Form({callback, row}: Props) {
                   <FormLabel aria-required={true} className="required">
                     {t('content in', {locale})}
                   </FormLabel>
-                  <FormControl
-                    as={'textarea'}
-                    rows={10}
+                  <PageContentEditor
+                    locale={locale}
+                    value={(form.data.translations?.[locale]?.content as string) || ''}
                     placeholder={t('content in', {locale})}
-                    type='text'
-                    onChange={(e) => {
-                      const value = e.currentTarget.value;
+                    onChange={(html) => {
                       form.setData((previousData) => ({
                         ...previousData,
                         translations: {
                           ...previousData.translations,
                           [locale]: {
                             ...previousData.translations[locale],
-                            content: value,
+                            content: html,
                           },
                         },
                       }));
                     }}
-                    defaultValue={form.data.translations?.[locale]?.content as string}
                   />
                   <InputError message={form.errors[`translations.${locale}.content`]}/>
                 </FormGroup>
