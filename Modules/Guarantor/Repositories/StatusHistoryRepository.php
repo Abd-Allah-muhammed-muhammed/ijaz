@@ -20,6 +20,7 @@ class StatusHistoryRepository implements StatusHistoryRepositoryInterface
         return $request->statusHistories()->create([
             'actor_id' => $actor->getKey(),
             'actor_type' => $actor::class,
+            'actor_name' => $actor->name,
             'from_status' => $fromStatus,
             'to_status' => $toStatus,
             'reason' => $reason,

@@ -254,6 +254,7 @@ test('status history can be logged via repository', function () {
     expect($history->guarantor_request_id)->toBe($guarantorRequest->id)
         ->and($history->actor_id)->toBe($actor->getKey())
         ->and($history->actor_type)->toBe(User::class)
+        ->and($history->actor_name)->toBe($actor->name)
         ->and($history->from_status)->toBe(GuarantorStatusEnum::PendingAdmin->value)
         ->and($history->to_status)->toBe(GuarantorStatusEnum::Accepted->value)
         ->and($history->getRawOriginal('reason'))->toBe('Accepted by counterparty')

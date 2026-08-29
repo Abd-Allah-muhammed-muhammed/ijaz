@@ -15,7 +15,7 @@ class GuarantorParticipantResource extends JsonResource
     {
         return [
             'id' => $this->getKey(),
-            'name' => $this->name ?? trim(($this->f_name ?? '').' '.($this->l_name ?? '')),
+            'name' => $this->name,
             'type' => $this->when(
                 true,
                 fn () => $this->resource instanceof User ? 'user' : 'provider'

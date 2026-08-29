@@ -20,6 +20,7 @@ class GuarantorStatusHistory extends Model
         'guarantor_request_id',
         'actor_id',
         'actor_type',
+        'actor_name',
         'from_status',
         'to_status',
         'reason',
