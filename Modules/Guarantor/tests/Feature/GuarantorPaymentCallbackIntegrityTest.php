@@ -239,11 +239,11 @@ test('AdminApproveGuarantorAction and AdminRejectGuarantorAction lock the reques
 });
 
 test('EndGuarantorAction locks the request row before checking status — concurrent End and payment-callback cannot both apply', function () {
-    ['requester' => $requester, 'request' => $request] = paymentCallbackIntegrityContext([
+    ['counterparty' => $counterparty, 'request' => $request] = paymentCallbackIntegrityContext([
         'status' => GuarantorStatusEnum::InProgress,
     ]);
 
-    assertPaymentCallbackGuarantorRequestLockedDuring(function () use ($request, $requester): void {
-        app(EndGuarantorAction::class)->handle($request->fresh(), $requester, 'requester');
+    assertPaymentCallbackGuarantorRequestLockedDuring(function () use ($request, $counterparty): void {
+        app(EndGuarantorAction::class)->handle($request->fresh(), $counterparty, 'counterparty');
     });
 });

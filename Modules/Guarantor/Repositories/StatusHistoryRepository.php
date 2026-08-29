@@ -26,4 +26,14 @@ class StatusHistoryRepository implements StatusHistoryRepositoryInterface
             'notes' => $notes,
         ]);
     }
+
+    public function findLatestTransitionTo(
+        GuarantorRequest $request,
+        string $toStatus,
+    ): ?GuarantorStatusHistory {
+        return $request->statusHistories()
+            ->where('to_status', $toStatus)
+            ->latest('id')
+            ->first();
+    }
 }

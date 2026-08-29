@@ -16,4 +16,9 @@ interface StatusHistoryRepositoryInterface
         ?string $reason = null,
         ?string $notes = null,
     ): GuarantorStatusHistory;
+
+    public function findLatestTransitionTo(
+        GuarantorRequest $request,
+        string $toStatus,
+    ): ?GuarantorStatusHistory;
 }

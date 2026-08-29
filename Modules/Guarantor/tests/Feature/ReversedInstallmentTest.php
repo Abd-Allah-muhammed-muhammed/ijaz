@@ -121,7 +121,7 @@ test('dispute full-to-requester and ordinary End still correctly transition to R
     ['requester' => $requester, 'counterparty' => $counterparty, 'request' => $request, 'admin' => $admin] = reversedInstallmentContext();
     [$firstEnd] = companyInstallmentsWithFirstPaidForReversedTest($request, $counterparty);
 
-    app(EndGuarantorAction::class)->handle($request->fresh(), $requester, 'requester');
+    app(EndGuarantorAction::class)->handle($request->fresh(), $counterparty, 'counterparty');
 
     expect($firstEnd->fresh()->status)->toBe(InstallmentStatusEnum::Released)
         ->and($firstEnd->fresh()->status)->not->toBe(InstallmentStatusEnum::Reversed);

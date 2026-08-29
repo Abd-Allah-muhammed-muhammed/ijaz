@@ -92,7 +92,7 @@ test('remaining Pending installments are voided when a guarantor is Ended', func
     ['requester' => $requester, 'counterparty' => $counterparty, 'request' => $request] = voidRemainingInstallmentsContext();
     [$first, $second] = companyInstallmentsWithFirstPaid($request, $counterparty);
 
-    app(EndGuarantorAction::class)->handle($request->fresh(), $requester, 'requester');
+    app(EndGuarantorAction::class)->handle($request->fresh(), $counterparty, 'counterparty');
 
     expect($request->fresh()->status)->toBe(GuarantorStatusEnum::Ended)
         ->and($first->fresh()->status)->toBe(InstallmentStatusEnum::Released)
@@ -190,7 +190,7 @@ test('already-Paid or already-Released installments are never touched by voiding
     $requester->wallet->update(['pending_credit' => 300, 'balance' => 0]);
     $counterparty->wallet->update(['pending_debit' => 300, 'balance' => 1000]);
 
-    app(EndGuarantorAction::class)->handle($request->fresh(), $requester, 'requester');
+    app(EndGuarantorAction::class)->handle($request->fresh(), $counterparty, 'counterparty');
 
     expect($released->fresh()->status)->toBe(InstallmentStatusEnum::Released)
         ->and($paid->fresh()->status)->toBe(InstallmentStatusEnum::Released)

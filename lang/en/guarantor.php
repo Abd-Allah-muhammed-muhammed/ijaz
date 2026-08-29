@@ -14,6 +14,7 @@ return [
         'rejected' => 'Rejected',
         'in_progress' => 'In Progress',
         'overdue' => 'Overdue',
+        'pending_counterparty_end_approval' => 'Pending End Approval',
         'ended' => 'Ended',
         'ended_via_dispute' => 'Ended (dispute)',
         'cancelled' => 'Cancelled',

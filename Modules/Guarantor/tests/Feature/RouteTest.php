@@ -305,7 +305,8 @@ test('mobile ending a guarantor via dedicated end route actually releases wallet
     $requester->wallet->update(['pending_credit' => 1010, 'balance' => 0]);
     $counterparty->wallet->update(['pending_debit' => 1010, 'balance' => 0]);
 
-    $this->actingAs($requester, 'sanctum')
+    // Counterparty End completes immediately with wallet release.
+    $this->actingAs($counterparty, 'sanctum')
         ->postJson(route('api.v1.guarantor.guarantor.end', $individual))
         ->assertSuccessful();
 
@@ -334,7 +335,7 @@ test('mobile ending a guarantor via dedicated end route actually releases wallet
 
     $companyRequester->wallet->update(['pending_credit' => 500, 'balance' => 0]);
 
-    $this->actingAs($companyRequester, 'sanctum')
+    $this->actingAs($companyCounterparty, 'sanctum')
         ->postJson(route('api.v1.guarantor.guarantor.end', $company))
         ->assertSuccessful();
 

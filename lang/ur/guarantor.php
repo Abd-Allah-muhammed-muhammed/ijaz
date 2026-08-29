@@ -14,6 +14,7 @@ return [
         'rejected' => 'مسترد',
         'in_progress' => 'جاری',
         'overdue' => 'تاخیر شدہ',
+        'pending_counterparty_end_approval' => 'ختم کی منظوری زیر التواء',
         'ended' => 'ختم',
         'ended_via_dispute' => 'ختم (تنازع)',
         'cancelled' => 'منسوخ',

@@ -15,6 +15,7 @@ use Modules\Guarantor\DTOs\GuarantorUploadData;
 use Modules\Guarantor\DTOs\InstallmentData;
 use Modules\Guarantor\Http\Requests\AcceptGuarantorRequest;
 use Modules\Guarantor\Http\Requests\OpenGuarantorDisputeRequest;
+use Modules\Guarantor\Http\Requests\RejectEndRequestRequest;
 use Modules\Guarantor\Http\Requests\RejectGuarantorRequest;
 use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
 use Modules\Guarantor\Http\Requests\StoreIndividualGuarantorRequest;
@@ -303,16 +304,21 @@ class GuarantorController extends Controller
     }
 
     /**
-     * End a guarantor request.
+     * End a guarantor request (asymmetric by actor role).
      *
-     * Either party may end from `in_progress` or `overdue`. Releases escrow / paid installment holds.
-     * Not available while disputed or from `accepted` (pre-payment).
+     * **Counterparty (client):** ends immediately → `ended`, wallet release unchanged.
+     * **Requester (service provider):** transitions to `pending_counterparty_end_approval`
+     * (no wallet change). Counterparty must then approve or reject via dedicated endpoints.
+     *
+     * Either party may call End from `in_progress` or `overdue`. Not available while
+     * disputed, from `accepted`, or while an end request is already pending.
      *
      * @authenticated
      *
      * @urlParam guarantorRequest string required Guarantor request UUID.
      *
      * @response 200 { "success": true, "data": { "status": { "value": "ended" } }, "errors": {}, "message": "", "token": "" }
+     * @response 200 { "success": true, "data": { "status": { "value": "pending_counterparty_end_approval" } }, "errors": {}, "message": "", "token": "" }
      * @response 401 { "success": false, "data": [], "errors": {}, "message": "Unauthenticated.", "token": "" }
      * @response 403 { "success": false, "data": [], "errors": {}, "message": "This action is unauthorized.", "token": "" }
      * @response 422 { "success": false, "data": [], "errors": {}, "message": "This status transition is not allowed", "token": "" }
@@ -327,6 +333,76 @@ class GuarantorController extends Controller
             $guarantorRequest,
             auth()->user(),
             $actorRole,
+        );
+
+        return $this->successResponse(
+            GuarantorResource::make($this->service->loadForShow($updated))
+        );
+    }
+
+    /**
+     * Approve a pending end request (counterparty only).
+     *
+     * From `pending_counterparty_end_approval` → `ended`, with the same wallet release
+     * mechanics as a counterparty-initiated End.
+     *
+     * @authenticated
+     *
+     * @urlParam guarantorRequest string required Guarantor request UUID.
+     *
+     * @response 200 { "success": true, "data": { "status": { "value": "ended" } }, "errors": {}, "message": "", "token": "" }
+     * @response 401 { "success": false, "data": [], "errors": {}, "message": "Unauthenticated.", "token": "" }
+     * @response 403 { "success": false, "data": [], "errors": {}, "message": "This action is unauthorized.", "token": "" }
+     * @response 422 { "success": false, "data": [], "errors": {}, "message": "This status transition is not allowed", "token": "" }
+     */
+    public function approveEnd(GuarantorRequest $guarantorRequest): JsonResponse
+    {
+        $this->authorize('approveEnd', $guarantorRequest);
+
+        $actorRole = $this->service->resolveActorRole($guarantorRequest, auth()->user());
+
+        $updated = $this->service->approveEnd(
+            $guarantorRequest,
+            auth()->user(),
+            $actorRole,
+        );
+
+        return $this->successResponse(
+            GuarantorResource::make($this->service->loadForShow($updated))
+        );
+    }
+
+    /**
+     * Reject a pending end request (counterparty only).
+     *
+     * Requires a reason (max 1000). Reverts to whichever status the request came from
+     * (`in_progress` or `overdue`), derived from status history. No wallet change.
+     * Dispute is not available while pending — reject first, then dispute from the reverted status.
+     *
+     * @authenticated
+     *
+     * @urlParam guarantorRequest string required Guarantor request UUID.
+     *
+     * @bodyParam reason string required Why the end request is being rejected (max 1000).
+     *
+     * @response 200 { "success": true, "data": { "status": { "value": "in_progress" } }, "errors": {}, "message": "", "token": "" }
+     * @response 401 { "success": false, "data": [], "errors": {}, "message": "Unauthenticated.", "token": "" }
+     * @response 403 { "success": false, "data": [], "errors": {}, "message": "This action is unauthorized.", "token": "" }
+     * @response 422 { "success": false, "data": [], "errors": { "reason": ["The reason field is required."] }, "message": "Validation Failed", "token": "" }
+     */
+    public function rejectEnd(
+        RejectEndRequestRequest $request,
+        GuarantorRequest $guarantorRequest,
+    ): JsonResponse {
+        $this->authorize('rejectEnd', $guarantorRequest);
+
+        $actorRole = $this->service->resolveActorRole($guarantorRequest, auth()->user());
+
+        $updated = $this->service->rejectEnd(
+            $guarantorRequest,
+            auth()->user(),
+            $actorRole,
+            (string) $request->validated('reason'),
         );
 
         return $this->successResponse(

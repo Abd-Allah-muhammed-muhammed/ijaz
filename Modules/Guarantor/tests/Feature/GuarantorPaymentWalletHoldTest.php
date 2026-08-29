@@ -122,7 +122,7 @@ test('ending an Individual guarantor request that was actually paid now results 
 
     completeGuarantorPayment($counterparty, $request, 1010);
 
-    app(EndGuarantorAction::class)->handle($request->fresh(), $requester, 'requester');
+    app(EndGuarantorAction::class)->handle($request->fresh(), $counterparty, 'counterparty');
 
     expect($request->fresh()->status)->toBe(GuarantorStatusEnum::Ended)
         ->and((float) $requester->wallet->fresh()->balance)->toBe(1000.0)
