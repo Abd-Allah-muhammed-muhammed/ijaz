@@ -5,6 +5,7 @@ namespace Modules\Classifieds\Http\Requests\Api;
 use App\Http\Requests\ApiRequest;
 use App\Rules\ValidPhoneRule;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use JsonException;
 use Modules\Classifieds\Enums\FuelTypeEnum;
@@ -52,6 +53,10 @@ class CarAdvisementRequest extends ApiRequest
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'options' => ['nullable', 'array'],
+            'bank_id' => [
+                'nullable',
+                Rule::exists('banks', 'id')->where('is_active', true),
+            ],
             'files' => ['nullable', 'array'],
             'files.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:'.(1024 * 5)],
         ];

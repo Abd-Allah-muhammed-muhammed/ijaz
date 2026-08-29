@@ -303,6 +303,26 @@ const ShowCarAdvisement = ({ row }: Props) => {
                   <div className="separator separator-dashed"></div>
 
                   <div className="d-flex align-items-center justify-content-between">
+                    <span className="text-muted fw-semibold">{t('financing_bank')}</span>
+                    {row.bank ? (
+                      <span className="d-flex align-items-center gap-2 fs-6 fw-bold text-gray-900">
+                        {row.bank.logo && (
+                          <img
+                            src={row.bank.logo}
+                            alt=""
+                            className="rounded"
+                            style={{ width: 28, height: 28, objectFit: 'contain' }}
+                          />
+                        )}
+                        <span>{row.bank.name}</span>
+                      </span>
+                    ) : (
+                      <span className="fs-6 fw-semibold text-muted fst-italic">{t('no_financing_bank_selected')}</span>
+                    )}
+                  </div>
+                  <div className="separator separator-dashed"></div>
+
+                  <div className="d-flex align-items-center justify-content-between">
                     <span className="text-muted fw-semibold">{t('region')}</span>
                     <span className="fs-6 fw-bold text-gray-900">{row.region?.title ?? '-'}</span>
                   </div>

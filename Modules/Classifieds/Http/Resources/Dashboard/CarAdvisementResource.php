@@ -6,6 +6,7 @@ use App\Http\Resources\Api\V1\MediaResource;
 use App\Http\Resources\Dashboard\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Catalog\Http\Resources\Api\V1\BankResource;
 use Modules\Catalog\Http\Resources\Dashboard\CarBrandResource;
 use Modules\Catalog\Http\Resources\Dashboard\CarCategoryResource;
 use Modules\Catalog\Http\Resources\Dashboard\CarTypeResource;
@@ -63,12 +64,17 @@ class CarAdvisementResource extends JsonResource
             $this->mergeWhen(! $this->relationLoaded('carCategory'), fn () => ['car_category_id' => $this->car_category_id]),
             $this->mergeWhen(! $this->relationLoaded('city'), fn () => ['city_id' => $this->city_id]),
             $this->mergeWhen(! $this->relationLoaded('region'), fn () => ['region_id' => $this->region_id]),
+            $this->mergeWhen(! $this->relationLoaded('bank'), fn () => ['bank_id' => $this->bank_id]),
 
             'car_brand' => new CarBrandResource($this->whenLoaded('carBrand')),
             'car_type' => new CarTypeResource($this->whenLoaded('carType')),
             'car_category' => new CarCategoryResource($this->whenLoaded('carCategory')),
             'city' => new CityResource($this->whenLoaded('city')),
             'region' => new RegionResource($this->whenLoaded('region')),
+            'bank' => $this->whenLoaded(
+                'bank',
+                fn () => ($bank = $this->bank) ? BankResource::make($bank) : null,
+            ),
             'media' => MediaResource::collection($this->whenLoaded('media')),
             'user' => UserResource::make($this->whenLoaded('user')),
         ];

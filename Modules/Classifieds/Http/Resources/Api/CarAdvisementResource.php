@@ -10,6 +10,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Catalog\Http\Resources\Api\CarBrandResource;
 use Modules\Catalog\Http\Resources\Api\CarCategoryResource;
 use Modules\Catalog\Http\Resources\Api\CarTypeResource;
+use Modules\Catalog\Http\Resources\Api\V1\BankResource;
 use Modules\Classifieds\Models\CarAdvisement;
 use Modules\Classifieds\Support\CarAdvisementEnumPresenter;
 use Modules\Geo\Http\Resources\Api\V1\CityResource;
@@ -61,12 +62,17 @@ class CarAdvisementResource extends JsonResource
             'car_category_id' => $this->car_category_id,
             'city_id' => $this->city_id,
             'region_id' => $this->region_id,
+            'bank_id' => $this->bank_id,
 
             'car_brand' => new CarBrandResource($this->whenLoaded('carBrand')),
             'car_type' => new CarTypeResource($this->whenLoaded('carType')),
             'car_category' => new CarCategoryResource($this->whenLoaded('carCategory')),
             'city' => new CityResource($this->whenLoaded('city')),
             'region' => new RegionResource($this->whenLoaded('region')),
+            'bank' => $this->whenLoaded(
+                'bank',
+                fn () => ($bank = $this->bank) ? BankResource::make($bank) : null,
+            ),
 
             'user' => $this->whenLoaded('user', fn () => UserResource::make($this->user)),
             'publisher' => $this->whenLoaded('user', fn () => PublisherResource::make($this->user)),

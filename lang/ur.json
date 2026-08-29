@@ -672,6 +672,8 @@
     "advisement.status.rejected": "مسترد شدہ",
     "advisement.status.closed": "بند",
     "car_details": "کار کی تفصیلات",
+    "financing_bank": "فنانسنگ بینک",
+    "no_financing_bank_selected": "کوئی فنانسنگ بینک منتخب نہیں",
     "status_updated_successfully": "حیثیت کامیابی سے اپ ڈیٹ ہو گئی",
     "electronic_advisements": "الیکٹرانک اشتہارات",
     "electronic_advisement": "الیکٹرانک اشتہار",

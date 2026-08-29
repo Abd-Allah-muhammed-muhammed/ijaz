@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
+use Modules\Catalog\Models\Bank;
 use Modules\Catalog\Models\CarBrand;
 use Modules\Catalog\Models\CarCategory;
 use Modules\Catalog\Models\CarType;
@@ -63,6 +64,7 @@ class CarAdvisement extends Model implements HasMedia
         'address',
         'city_id',
         'region_id',
+        'bank_id',
         'options',
     ];
 
@@ -100,6 +102,11 @@ class CarAdvisement extends Model implements HasMedia
     public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class);
+    }
+
+    public function bank(): BelongsTo
+    {
+        return $this->belongsTo(Bank::class);
     }
 
     public function user(): MorphTo

@@ -6,6 +6,45 @@ Base path: `/api/v1/classifieds`
 
 ---
 
+## Optional financing bank (`bank_id`)
+
+Car ads may optionally record which Catalog bank would finance the purchase. Financing is **not** required — omit `bank_id` (or send `null`) when the listing is cash / not financed.
+
+| Field (request) | Required | Rules |
+|-----------------|----------|--------|
+| `bank_id` | no | Must exist in `banks` **and** `is_active = true` when present |
+
+Valid bank IDs come from the existing Catalog endpoint (same list Guarantor uses):
+
+`GET /api/v1/catalog/banks`
+
+See Guarantor mobile docs for the catalog banks response shape (`id`, `name`, `logo`, `is_active`). Only **active** banks are returned there; inactive IDs are rejected on create/update with a **422** validation error on `bank_id`.
+
+### Response
+
+API and dashboard `CarAdvisementResource` expose nested `bank` by **reusing** `Modules\Catalog\Http\Resources\Api\V1\BankResource` — same `{ id, name, logo, is_active }` object (not a hand-rolled shape). When no bank is set, `bank` is `null`.
+
+```json
+{
+  "bank_id": 1,
+  "bank": {
+    "id": 1,
+    "name": "Saudi National Bank",
+    "logo": "https://example.test/storage/1/logo.png",
+    "is_active": true
+  }
+}
+```
+
+```json
+{
+  "bank_id": null,
+  "bank": null
+}
+```
+
+---
+
 ## Breaking change — `transmission` and `fuel_type` are fixed enums
 
 **Previously:** both fields were nullable free-text strings (`string|max:255`). Arbitrary values such as `"test"` were silently accepted and stored.

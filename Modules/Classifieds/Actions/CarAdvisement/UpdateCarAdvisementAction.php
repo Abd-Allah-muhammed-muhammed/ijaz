@@ -26,6 +26,8 @@ final class UpdateCarAdvisementAction
                 'carCategory',
                 'city',
                 'region',
+                'bank.translations',
+                'bank.media',
                 'user',
                 'media',
             ]);

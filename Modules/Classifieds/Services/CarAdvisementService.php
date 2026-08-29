@@ -113,6 +113,8 @@ final class CarAdvisementService
             'carCategory',
             'city',
             'region',
+            'bank.translations',
+            'bank.media',
             'user',
             'media',
         ]);

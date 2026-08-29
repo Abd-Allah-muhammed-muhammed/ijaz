@@ -674,6 +674,8 @@
     "advisement.status.rejected": "अस्वीकृत",
     "advisement.status.closed": "बंद",
     "car_details": "कार विवरण",
+    "financing_bank": "वित्तपोषण बैंक",
+    "no_financing_bank_selected": "कोई वित्तपोषण बैंक चयनित नहीं",
     "status_updated_successfully": "स्थिति सफलतापूर्वक अपडेट की गई",
     "electronic_advisements": "इलेक्ट्रॉनिक विज्ञापन",
     "electronic_advisement": "इलेक्ट्रॉनिक विज्ञापन",

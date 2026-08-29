@@ -874,6 +874,8 @@
     "advisement.status.rejected": "Rejected",
     "advisement.status.closed": "Closed",
     "car_details": "Car Details",
+    "financing_bank": "Financing Bank",
+    "no_financing_bank_selected": "No financing bank selected",
     "status_updated_successfully": "Status updated successfully",
     "electronic_advisements": "Electronic Advisements",
     "electronic_advisement": "Electronic Advisement",
