@@ -57,7 +57,8 @@ class GuarantorRequest extends Model implements HasMedia
 
     protected $attributes = [
         'status' => GuarantorStatusEnum::PendingAdmin,
-        'fees' => 10,
+        // Defensive fallback only — Create* actions always pass an explicit snapshot.
+        'fees' => 0,
     ];
 
     public function requester(): MorphTo

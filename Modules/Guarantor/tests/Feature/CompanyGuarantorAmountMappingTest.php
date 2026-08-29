@@ -77,6 +77,7 @@ function validatedCompanyGuarantorFormRequest(float $totalAmount = 50000.0): arr
 }
 
 test('creating a company guarantor correctly saves the total amount, not zero', function () {
+    setGuarantorSetting('guarantee_fee_percent', '2.5');
     ['requester' => $requester] = companyAmountMappingActors();
     Sanctum::actingAs($requester);
 
@@ -96,8 +97,10 @@ test('creating a company guarantor correctly saves the total amount, not zero', 
 
     $guarantorRequest->refresh();
 
+    // fees = round(50000 * 2.5 / 100, 2) = 1250 — not the old flat 10
     expect((float) $guarantorRequest->amount)->toBe(50000.0)
-        ->and((float) $guarantorRequest->total)->toBe(50010.0)
+        ->and((float) $guarantorRequest->fees)->toBe(1250.0)
+        ->and((float) $guarantorRequest->total)->toBe(51250.0)
         ->and($guarantorRequest->title)->toBe('Construction')
         ->and($guarantorRequest->project_type)->toBe('Construction');
 });

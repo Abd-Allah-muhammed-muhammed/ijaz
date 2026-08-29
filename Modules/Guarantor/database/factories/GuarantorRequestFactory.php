@@ -29,6 +29,8 @@ class GuarantorRequestFactory extends Factory
             'counterparty_type' => User::class,
             'counterparty_id' => User::factory(),
             'amount' => fake()->randomFloat(2, 100, 10000),
+            // Explicit snapshot for post-creation wallet/proration tests — not the
+            // creation formula (Create* actions compute via CalculateGuarantorFeesAction).
             'fees' => 10,
             'status' => GuarantorStatusEnum::PendingAdmin,
         ];

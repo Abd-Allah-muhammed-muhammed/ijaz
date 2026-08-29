@@ -20,7 +20,8 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->decimal('amount', 10, 2);
-            $table->decimal('fees', 10, 2)->default(10);
+            // Defensive fallback only — Create* actions always pass an explicit snapshot.
+            $table->decimal('fees', 10, 2)->default(0);
 
             if (DB::getDriverName() !== 'sqlite') {
                 $table->decimal('total', 10, 2)->storedAs('amount + fees');

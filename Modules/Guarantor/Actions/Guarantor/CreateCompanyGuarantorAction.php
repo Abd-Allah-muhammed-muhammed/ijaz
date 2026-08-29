@@ -5,6 +5,7 @@ namespace Modules\Guarantor\Actions\Guarantor;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Modules\Guarantor\Actions\Guarantor\CalculateGuarantorFeesAction as CalculateGuarantorFees;
 use Modules\Guarantor\Actions\Guarantor\NotifyAdminsOfGuarantorPendingAction as NotifyAdminsOfGuarantorPending;
 use Modules\Guarantor\Contracts\Repositories\CompanyDetailRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
@@ -27,6 +28,7 @@ class CreateCompanyGuarantorAction
         private readonly GuarantorRepositoryInterface $guarantorRepository,
         private readonly CompanyDetailRepositoryInterface $companyDetailRepository,
         private readonly InstallmentRepositoryInterface $installmentRepository,
+        private readonly CalculateGuarantorFees $calculateGuarantorFees,
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
         private readonly NotifyAdminsOfGuarantorPending $notifyAdminsOfGuarantorPendingAction,
     ) {}
@@ -50,6 +52,9 @@ class CreateCompanyGuarantorAction
                 throw new GuarantorException('guarantor.unauthorized', 403);
             }
 
+            // $data->amount is mapped from company total_amount at the DTO boundary.
+            $fees = $this->calculateGuarantorFees->handle($data->amount);
+
             $guarantorRequest = $this->guarantorRepository->create([
                 'type' => GuarantorTypeEnum::Company,
                 'requester_type' => $requester::class,
@@ -59,6 +64,7 @@ class CreateCompanyGuarantorAction
                 'title' => $data->title,
                 'description' => $data->description,
                 'amount' => $data->amount,
+                'fees' => $fees,
                 'project_type' => $data->project_type,
                 'status' => GuarantorStatusEnum::PendingAdmin,
             ]);

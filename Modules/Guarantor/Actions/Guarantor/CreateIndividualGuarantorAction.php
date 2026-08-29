@@ -5,6 +5,7 @@ namespace Modules\Guarantor\Actions\Guarantor;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Modules\Guarantor\Actions\Guarantor\CalculateGuarantorFeesAction as CalculateGuarantorFees;
 use Modules\Guarantor\Actions\Guarantor\NotifyAdminsOfGuarantorPendingAction as NotifyAdminsOfGuarantorPending;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\DTOs\GuarantorData;
@@ -20,6 +21,7 @@ class CreateIndividualGuarantorAction
 {
     public function __construct(
         private readonly GuarantorRepositoryInterface $guarantorRepository,
+        private readonly CalculateGuarantorFees $calculateGuarantorFees,
         private readonly LogGuarantorStatusHistoryAction $logStatusHistory,
         private readonly NotifyAdminsOfGuarantorPending $notifyAdminsOfGuarantorPendingAction,
     ) {}
@@ -39,6 +41,8 @@ class CreateIndividualGuarantorAction
                 throw new GuarantorException('guarantor.unauthorized', 403);
             }
 
+            $fees = $this->calculateGuarantorFees->handle($data->amount);
+
             $guarantorRequest = $this->guarantorRepository->create([
                 'type' => GuarantorTypeEnum::Individual,
                 'requester_type' => $requester::class,
@@ -48,6 +52,7 @@ class CreateIndividualGuarantorAction
                 'title' => $data->title,
                 'description' => $data->description,
                 'amount' => $data->amount,
+                'fees' => $fees,
                 'status' => GuarantorStatusEnum::PendingAdmin,
             ]);
 

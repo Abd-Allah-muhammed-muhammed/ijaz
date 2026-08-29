@@ -11,6 +11,7 @@ use Modules\Guarantor\Enums\AuthorizationTypeEnum;
 use Modules\Guarantor\Http\Requests\StoreCompanyGuarantorRequest;
 use Modules\Guarantor\Models\GuarantorCompanyDetail;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Settings\Models\Setting;
 
 function activeGuarantorTestBank(?array $translations = null): Bank
 {
@@ -138,4 +139,18 @@ function attachGuarantorCompanyDetail(GuarantorRequest $guarantorRequest, array 
         'requester_bank_id' => defaultGuarantorTestBankId(),
         'counterparty_account_holder' => 'Counterparty Name',
     ], $overrides));
+}
+
+function setGuarantorSetting(string $key, string $content, string $group = 'guarantor', bool $isPublic = true): void
+{
+    Setting::query()->updateOrCreate(
+        ['key' => $key],
+        [
+            'content' => $content,
+            'group' => $group,
+            'is_public' => $isPublic,
+        ],
+    );
+    cache()->forget('settings');
+    app()->forgetInstance('settings');
 }
