@@ -81,7 +81,7 @@ const CarAdvisementCard = ({ row }: Props) => {
           <div className="col-6">
             <div className="bg-light-warning rounded-2 p-2 d-flex align-items-center">
               <KTIcon iconName="gear" className="fs-5 text-warning me-2" />
-              <span className="text-gray-700 fw-bold fs-8 text-truncate">{row.transmission}</span>
+              <span className="text-gray-700 fw-bold fs-8 text-truncate">{row.transmission?.label ?? row.transmission?.value ?? '-'}</span>
             </div>
           </div>
         </div>

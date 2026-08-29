@@ -11,6 +11,7 @@ use Modules\Catalog\Http\Resources\Api\CarBrandResource;
 use Modules\Catalog\Http\Resources\Api\CarCategoryResource;
 use Modules\Catalog\Http\Resources\Api\CarTypeResource;
 use Modules\Classifieds\Models\CarAdvisement;
+use Modules\Classifieds\Support\CarAdvisementEnumPresenter;
 use Modules\Geo\Http\Resources\Api\V1\CityResource;
 use Modules\Geo\Http\Resources\Api\V1\RegionResource;
 
@@ -41,8 +42,8 @@ class CarAdvisementResource extends JsonResource
             ] : null,
             'year' => $this->year,
             'mileage' => $this->mileage,
-            'transmission' => $this->transmission,
-            'fuel_type' => $this->fuel_type,
+            'transmission' => CarAdvisementEnumPresenter::transmission($this->transmission),
+            'fuel_type' => CarAdvisementEnumPresenter::fuelType($this->fuel_type),
             'engine_size' => $this->engine_size,
             'color' => $this->color,
             'price' => $this->price,

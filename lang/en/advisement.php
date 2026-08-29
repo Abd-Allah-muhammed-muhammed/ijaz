@@ -22,5 +22,15 @@ return [
         'used' => 'Used',
         'less_than_year' => 'Less Than a Year',
     ],
+    'transmission' => [
+        'automatic' => 'Automatic',
+        'manual' => 'Manual',
+    ],
+    'fuel_type' => [
+        'petrol' => 'Petrol',
+        'diesel' => 'Diesel',
+        'electric' => 'Electric',
+        'hybrid' => 'Hybrid',
+    ],
     'status_updated_successfully' => 'Status updated successfully',
 ];

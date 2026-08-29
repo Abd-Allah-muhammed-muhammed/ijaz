@@ -171,7 +171,7 @@ const ShowCarAdvisement = ({ row }: Props) => {
                       <div className="min-w-100px me-3 mb-3 rounded border border-dashed border-gray-300 px-4 py-3">
                         <div className="d-flex align-items-center gap-2">
                           <KTIcon iconName="gear" className="fs-3 text-info" />
-                          <div className="fs-2 fw-bolder text-gray-900">{row.transmission ?? '-'}</div>
+                          <div className="fs-2 fw-bolder text-gray-900">{row.transmission?.label ?? row.transmission?.value ?? '-'}</div>
                         </div>
                         <div className="fw-bold fs-6 text-gray-500">{t('transmission')}</div>
                       </div>
@@ -286,7 +286,7 @@ const ShowCarAdvisement = ({ row }: Props) => {
 
                   <div className="d-flex align-items-center justify-content-between">
                     <span className="text-muted fw-semibold">{t('fuel_type')}</span>
-                    <span className="fs-6 fw-bold text-gray-900">{row.fuel_type ?? '-'}</span>
+                    <span className="fs-6 fw-bold text-gray-900">{row.fuel_type?.label ?? row.fuel_type?.value ?? '-'}</span>
                   </div>
                   <div className="separator separator-dashed"></div>
 

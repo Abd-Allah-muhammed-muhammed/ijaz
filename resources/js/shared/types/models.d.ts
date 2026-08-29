@@ -757,8 +757,8 @@ export interface CarAdvisement extends Model {
   car_category_id: number;
   year: number;
   mileage: number;
-  transmission: string;
-  fuel_type: string;
+  transmission: EnumWithColors<string> | null;
+  fuel_type: EnumWithColors<string> | null;
   engine_size?: string;
   color: string;
   price: number;

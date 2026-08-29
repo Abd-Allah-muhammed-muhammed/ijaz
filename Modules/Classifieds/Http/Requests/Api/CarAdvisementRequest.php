@@ -7,7 +7,9 @@ use App\Rules\ValidPhoneRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rules\Enum;
 use JsonException;
+use Modules\Classifieds\Enums\FuelTypeEnum;
 use Modules\Classifieds\Enums\OperationEnum;
+use Modules\Classifieds\Enums\TransmissionEnum;
 use Modules\Classifieds\Enums\UsageStatusEnum;
 
 class CarAdvisementRequest extends ApiRequest
@@ -39,8 +41,8 @@ class CarAdvisementRequest extends ApiRequest
             'region_id' => ['required', 'exists:regions,id'],
             'year' => ['required', 'integer', 'min:1900', 'max:'.(date('Y') + 1)],
             'mileage' => ['nullable', 'integer', 'min:0'],
-            'transmission' => ['nullable', 'string', 'max:255'],
-            'fuel_type' => ['nullable', 'string', 'max:255'],
+            'transmission' => ['nullable', new Enum(TransmissionEnum::class)],
+            'fuel_type' => ['nullable', new Enum(FuelTypeEnum::class)],
             'engine_size' => ['nullable', 'string', 'max:255'],
             'color' => ['nullable', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
