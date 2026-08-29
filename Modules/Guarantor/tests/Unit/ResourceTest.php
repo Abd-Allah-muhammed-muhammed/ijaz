@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Modules\Guarantor\Enums\AuthorizationTypeEnum;
@@ -127,4 +128,23 @@ test('GuarantorParticipantResource returns correct type for User', function () {
 
     expect($data['type'])->toBe('user')
         ->and($data['id'])->toBe($user->getKey());
+});
+
+test('GuarantorParticipantResource still returns the correct name for User/Provider/Admin after removing the redundant fallback — regression', function () {
+    $user = User::factory()->create([
+        'f_name' => 'Grace',
+        'l_name' => 'Hopper',
+    ]);
+    $provider = createWalletProvider(['name' => 'Provider Display Name']);
+    $admin = Admin::query()->create([
+        'name' => 'Admin Display Name',
+        'phone' => fake()->unique()->numerify('05########'),
+        'email' => fake()->unique()->safeEmail(),
+        'password' => 'password',
+        'language' => 'en',
+    ]);
+
+    expect(GuarantorParticipantResource::make($user)->toArray(resourceRequest())['name'])->toBe('Grace Hopper')
+        ->and(GuarantorParticipantResource::make($provider)->toArray(resourceRequest())['name'])->toBe('Provider Display Name')
+        ->and(GuarantorParticipantResource::make($admin)->toArray(resourceRequest())['name'])->toBe('Admin Display Name');
 });
