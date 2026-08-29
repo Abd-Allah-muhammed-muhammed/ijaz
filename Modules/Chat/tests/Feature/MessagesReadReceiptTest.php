@@ -123,3 +123,40 @@ test('read receipt checkmarks only render on messages sent by the current user, 
         ->and($messageOut)->toContain('double-check')
         ->and($messageOut)->toContain('read_at');
 });
+
+test('this addition does not affect Orders or other non-Guarantor chat types — regression', function () {
+    withoutOrdersLocaleMiddleware();
+
+    ['user' => $user, 'provider' => $provider, 'order' => $order] = createOrderWithParticipants();
+    $conversation = createOrderConversation($user, $provider, $order);
+    $admin = createOrdersAdmin();
+
+    ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_type' => $user::class,
+        'sender_id' => $user->getKey(),
+        'receiver_type' => $provider::class,
+        'receiver_id' => $provider->getKey(),
+        'content' => 'Order party message',
+        'has_attachments' => false,
+    ]);
+
+    $response = $this->actingAs($admin, 'admin')
+        ->getJson(action([OrderController::class, 'conversationMessages'], ['order' => $order]))
+        ->assertSuccessful();
+
+    $item = $response->json('data.items.0');
+
+    expect($item)->toBeArray()
+        ->and($item)->not->toHaveKey('party_role')
+        ->and($item['content'] ?? null)->toBe('Order party message');
+});
+
+test('Orders chat-tap does not wire Guarantor party-role badges — regression', function () {
+    $ordersChatTap = file_get_contents(resource_path('js/apps/admin/pages/Orders/components/chat-tap.tsx'));
+
+    expect($ordersChatTap)->not->toContain('resolveSenderBadge')
+        ->and($ordersChatTap)->not->toContain('resolveGuarantorChatSenderBadge')
+        ->and($ordersChatTap)->not->toContain('party_role')
+        ->and($ordersChatTap)->not->toContain('guarantor.requester');
+});

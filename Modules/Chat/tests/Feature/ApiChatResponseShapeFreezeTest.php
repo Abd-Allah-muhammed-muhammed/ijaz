@@ -53,6 +53,24 @@ function frozenMessageSendKeys(): array
     ];
 }
 
+/**
+ * Guarantor send includes party_role (requester|counterparty|null) — Orders/Member do not.
+ */
+function frozenGuarantorMessageSendKeys(): array
+{
+    return [
+        'id',
+        'conversation_id',
+        'content',
+        'sender',
+        'attachments',
+        'party_role',
+        'read_at',
+        'created_at',
+        'created_at_iso',
+    ];
+}
+
 function frozenGuarantorConversationOpenKeys(): array
 {
     return [
@@ -230,7 +248,7 @@ test('freeze: guarantor send ConversationMessageResource key set', function () {
         $this->postJson(action([GuarantorChatController::class, 'send'], ['conversation' => $conversation->id]), [
             'content' => 'Freeze guarantor send',
         ]),
-        frozenMessageSendKeys(),
+        frozenGuarantorMessageSendKeys(),
     );
 });
 

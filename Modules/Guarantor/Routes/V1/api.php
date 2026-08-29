@@ -38,6 +38,12 @@ Route::prefix('guarantor')->name('guarantor.')->group(function () {
         Route::post('/{guarantorRequest}/end', [GuarantorController::class, 'end'])
             ->name('end');
 
+        Route::post('/{guarantorRequest}/end/approve', [GuarantorController::class, 'approveEnd'])
+            ->name('end.approve');
+
+        Route::post('/{guarantorRequest}/end/reject', [GuarantorController::class, 'rejectEnd'])
+            ->name('end.reject');
+
         Route::post('/{guarantorRequest}/dispute', [GuarantorController::class, 'dispute'])
             ->name('dispute');
 

@@ -14,6 +14,7 @@ return [
         'rejected' => 'अस्वीकृत',
         'in_progress' => 'प्रगति पर',
         'overdue' => 'अतिदेय',
+        'pending_counterparty_end_approval' => 'समाप्ति अनुमोदन लंबित',
         'ended' => 'समाप्त',
         'ended_via_dispute' => 'समाप्त (विवाद)',
         'cancelled' => 'रद्द',

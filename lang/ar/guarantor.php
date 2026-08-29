@@ -14,6 +14,7 @@ return [
         'rejected' => 'مرفوض',
         'in_progress' => 'جاري التنفيذ',
         'overdue' => 'متأخر',
+        'pending_counterparty_end_approval' => 'بانتظار موافقة الطرف الآخر على الإنهاء',
         'ended' => 'منتهي',
         'ended_via_dispute' => 'منتهي (نزاع)',
         'cancelled' => 'ملغي',

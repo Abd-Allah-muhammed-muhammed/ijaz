@@ -52,6 +52,8 @@ type Props = {
   syncSidebar?: boolean;
   /** Shown when there is no conversation to display. */
   emptyFallback?: React.ReactNode;
+  /** Optional per-message badge resolver (Guarantor admin Chat party roles). */
+  resolveSenderBadge?: (message: ConversationMessage) => string | null;
 };
 
 type ChatMessage = {
@@ -68,6 +70,7 @@ const ConversationContent = ({
   showComposer = true,
   syncSidebar = true,
   emptyFallback = null,
+  resolveSenderBadge,
 }: Props) => {
   const { t } = useTranslation();
   const {
@@ -523,6 +526,7 @@ const ConversationContent = ({
         typingUser={typingUser}
         messagesBoxRef={messagesBox}
         messagesContentRef={messagesContentRef}
+        resolveSenderBadge={resolveSenderBadge}
         onScroll={() => {
           if (ignoreScrollRef.current || !messagesBox.current) {
             return;

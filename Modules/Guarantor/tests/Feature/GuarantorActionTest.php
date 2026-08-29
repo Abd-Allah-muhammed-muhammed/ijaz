@@ -670,8 +670,8 @@ test('ending a guarantor request still sends the existing Ended notification unc
 
     app(EndGuarantorAction::class)->handle(
         $guarantorRequest,
-        $requester,
-        'requester',
+        $counterparty,
+        'counterparty',
     );
 
     Notification::assertSentTo($requester, GuarantorEndedNotification::class);
@@ -692,8 +692,8 @@ test('ending guarantor notifies both parties', function () {
 
     app(EndGuarantorAction::class)->handle(
         $guarantorRequest,
-        $requester,
-        'requester',
+        $counterparty,
+        'counterparty',
     );
 
     Notification::assertSentTo($requester, GuarantorEndedNotification::class);
@@ -921,8 +921,8 @@ test('End is now reachable for a Company guarantor after its first installment p
 
     $ended = app(EndGuarantorAction::class)->handle(
         $guarantorRequest->fresh(),
-        $guarantorRequest->requester,
-        'requester',
+        $guarantorRequest->counterparty,
+        'counterparty',
     );
 
     expect($ended->status)->toBe(GuarantorStatusEnum::Ended);

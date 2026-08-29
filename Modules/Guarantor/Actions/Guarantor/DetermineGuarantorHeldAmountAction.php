@@ -38,6 +38,7 @@ class DetermineGuarantorHeldAmountAction
         } elseif ($request->status->isIn([
             GuarantorStatusEnum::InProgress,
             GuarantorStatusEnum::Overdue,
+            GuarantorStatusEnum::PendingCounterpartyEndApproval,
             GuarantorStatusEnum::Disputed,
         ])) {
             return true;

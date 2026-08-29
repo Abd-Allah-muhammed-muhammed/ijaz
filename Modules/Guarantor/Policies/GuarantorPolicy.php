@@ -53,6 +53,18 @@ class GuarantorPolicy
             ]);
     }
 
+    public function approveEnd(Model $user, GuarantorRequest $request): bool
+    {
+        return $this->isCounterparty($user, $request)
+            && $request->status->is(GuarantorStatusEnum::PendingCounterpartyEndApproval);
+    }
+
+    public function rejectEnd(Model $user, GuarantorRequest $request): bool
+    {
+        return $this->isCounterparty($user, $request)
+            && $request->status->is(GuarantorStatusEnum::PendingCounterpartyEndApproval);
+    }
+
     public function dispute(Model $user, GuarantorRequest $request): bool
     {
         return $this->isParty($user, $request)
@@ -82,6 +94,7 @@ class GuarantorPolicy
                 GuarantorStatusEnum::Accepted,
                 GuarantorStatusEnum::InProgress,
                 GuarantorStatusEnum::Overdue,
+                GuarantorStatusEnum::PendingCounterpartyEndApproval,
                 GuarantorStatusEnum::Disputed,
             ]);
     }

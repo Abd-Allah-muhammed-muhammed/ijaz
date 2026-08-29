@@ -18,6 +18,7 @@ enum GuarantorStatusEnum: string
     case Rejected = 'rejected';
     case InProgress = 'in_progress';
     case Overdue = 'overdue';
+    case PendingCounterpartyEndApproval = 'pending_counterparty_end_approval';
     case Disputed = 'disputed';
     case Ended = 'ended';
     case EndedViaDispute = 'ended_via_dispute';
@@ -43,6 +44,7 @@ enum GuarantorStatusEnum: string
             self::Rejected => '#f97316',
             self::InProgress => '#06b6d4',
             self::Overdue => '#ef4444',
+            self::PendingCounterpartyEndApproval => '#eab308',
             self::Disputed => '#dc2626',
             self::Ended => '#10b981',
             self::EndedViaDispute => '#10b981',
@@ -144,11 +146,16 @@ enum GuarantorStatusEnum: string
                 self::InProgress,
                 self::Overdue => $new === self::Ended
                     || $new === self::Disputed,
+                // Approve end → Ended; reject end → prior status from history
+                // (in_progress or overdue — not a fixed single target).
+                self::PendingCounterpartyEndApproval => $new === self::Ended
+                    || $new === self::InProgress
+                    || $new === self::Overdue,
                 default => false,
             },
             'requester' => match ($old) {
                 self::InProgress,
-                self::Overdue => $new === self::Ended
+                self::Overdue => $new === self::PendingCounterpartyEndApproval
                     || $new === self::Disputed,
                 default => false,
             },

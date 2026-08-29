@@ -9,6 +9,8 @@ import RelativeTimestamp from '@/shared/chat/components/relative-timestamp';
 type Props = {
   conversationMessage: ConversationMessage;
   highlightTerm?: string | null;
+  /** Optional role/admin badge shown next to the sender label (Guarantor admin Chat). */
+  senderBadge?: string | null;
 };
 
 const hasCaption = (content?: string | null): boolean =>
@@ -19,7 +21,7 @@ const hasCaption = (content?: string | null): boolean =>
  * - Single muted check = sent
  * - Double primary check = read by the other core participant
  */
-const MessageOut = ({ conversationMessage, highlightTerm }: Props) => {
+const MessageOut = ({ conversationMessage, highlightTerm, senderBadge = null }: Props) => {
   const { t } = useTranslation();
   const isRead = Boolean(conversationMessage.read_at);
 
@@ -34,7 +36,14 @@ const MessageOut = ({ conversationMessage, highlightTerm }: Props) => {
       >
         <div className="d-flex align-items-center mb-2 gap-2">
           <div className="min-w-0 text-end">
-            <span className="fs-6 fw-semibold text-gray-900">{t('You')}</span>
+            <div className="d-flex align-items-center justify-content-end flex-wrap gap-2">
+              {senderBadge ? (
+                <span className="badge badge-light-primary rounded-pill fw-bold px-2 py-1 fs-9">
+                  {senderBadge}
+                </span>
+              ) : null}
+              <span className="fs-6 fw-semibold text-gray-900">{t('You')}</span>
+            </div>
             <RelativeTimestamp
               className="text-muted fs-8 d-block lh-1 mt-1"
               iso={conversationMessage.created_at_iso ?? conversationMessage.created_at}

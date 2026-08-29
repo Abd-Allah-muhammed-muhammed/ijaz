@@ -123,7 +123,7 @@ test('ordinary party-initiated End still sets plain Ended — regression, unaffe
     ['requester' => $requester, 'counterparty' => $counterparty, 'request' => $request] = disputeTerminalStatusContext();
     completeDisputeTerminalStatusPayment($counterparty, $request, 1010);
 
-    app(EndGuarantorAction::class)->handle($request->fresh(), $requester, 'requester');
+    app(EndGuarantorAction::class)->handle($request->fresh(), $counterparty, 'counterparty');
 
     expect($request->fresh()->status)->toBe(GuarantorStatusEnum::Ended)
         ->and($request->fresh()->status)->not->toBe(GuarantorStatusEnum::EndedViaDispute);

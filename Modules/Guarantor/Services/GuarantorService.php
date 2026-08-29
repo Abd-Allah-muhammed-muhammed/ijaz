@@ -5,12 +5,14 @@ namespace Modules\Guarantor\Services;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Guarantor\Actions\Guarantor\AcceptGuarantorAction;
+use Modules\Guarantor\Actions\Guarantor\ApproveEndRequestAction;
 use Modules\Guarantor\Actions\Guarantor\CreateCompanyGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\CreateIndividualGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\DeleteGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\DeleteGuarantorMediaAction;
 use Modules\Guarantor\Actions\Guarantor\EndGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\OpenGuarantorDisputeAction;
+use Modules\Guarantor\Actions\Guarantor\RejectEndRequestAction;
 use Modules\Guarantor\Actions\Guarantor\RejectGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\UpdateGuarantorAction;
 use Modules\Guarantor\Actions\Guarantor\WithdrawGuarantorAction;
@@ -38,6 +40,8 @@ class GuarantorService
         private readonly DeleteGuarantorMediaAction $deleteMediaAction,
         private readonly PayIndividualGuarantorAction $payIndividualAction,
         private readonly EndGuarantorAction $endAction,
+        private readonly ApproveEndRequestAction $approveEndRequestAction,
+        private readonly RejectEndRequestAction $rejectEndRequestAction,
         private readonly OpenGuarantorDisputeAction $openDisputeAction,
         private readonly WithdrawGuarantorAction $withdrawAction,
         private readonly AcceptGuarantorAction $acceptAction,
@@ -126,6 +130,29 @@ class GuarantorService
         string $actorRole,
     ): GuarantorRequest {
         return $this->endAction->handle($request, $actor, $actorRole);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function approveEnd(
+        GuarantorRequest $request,
+        Model $actor,
+        string $actorRole,
+    ): GuarantorRequest {
+        return $this->approveEndRequestAction->handle($request, $actor, $actorRole);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function rejectEnd(
+        GuarantorRequest $request,
+        Model $actor,
+        string $actorRole,
+        string $reason,
+    ): GuarantorRequest {
+        return $this->rejectEndRequestAction->handle($request, $actor, $actorRole, $reason);
     }
 
     /**

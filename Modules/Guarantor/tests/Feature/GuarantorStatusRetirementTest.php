@@ -85,31 +85,41 @@ test('POST /guarantor/{id}/reject is rejected for the requester and from any oth
     ])->assertForbidden();
 });
 
-test('POST /guarantor/{id}/end works for either party from in_progress/overdue — reuses the existing EndGuarantorAction unchanged', function () {
-    foreach (['requester', 'counterparty'] as $role) {
-        ['requester' => $requester, 'counterparty' => $counterparty, 'request' => $request] = statusRetirementContext([
-            'status' => GuarantorStatusEnum::InProgress,
-        ]);
-        $actor = $role === 'requester' ? $requester : $counterparty;
-
-        Sanctum::actingAs($actor);
-
-        $this->postJson(route('api.v1.guarantor.guarantor.end', $request))
-            ->assertSuccessful()
-            ->assertJsonPath('data.status.value', GuarantorStatusEnum::Ended->value);
-
-        expect($request->fresh()->status)->toBe(GuarantorStatusEnum::Ended)
-            ->and($request->fresh()->ended_at)->not->toBeNull();
-
-        Notification::assertSentTo($requester, GuarantorEndedNotification::class);
-        Notification::assertSentTo($counterparty, GuarantorEndedNotification::class);
-    }
-
-    ['counterparty' => $counterparty, 'request' => $overdue] = statusRetirementContext([
-        'status' => GuarantorStatusEnum::Overdue,
+test('POST /guarantor/{id}/end is asymmetric — counterparty completes immediately; requester awaits counterparty approval', function () {
+    ['requester' => $requester, 'counterparty' => $counterparty, 'request' => $counterpartyEnd] = statusRetirementContext([
+        'status' => GuarantorStatusEnum::InProgress,
     ]);
 
     Sanctum::actingAs($counterparty);
+
+    $this->postJson(route('api.v1.guarantor.guarantor.end', $counterpartyEnd))
+        ->assertSuccessful()
+        ->assertJsonPath('data.status.value', GuarantorStatusEnum::Ended->value);
+
+    expect($counterpartyEnd->fresh()->status)->toBe(GuarantorStatusEnum::Ended)
+        ->and($counterpartyEnd->fresh()->ended_at)->not->toBeNull();
+
+    Notification::assertSentTo($requester, GuarantorEndedNotification::class);
+    Notification::assertSentTo($counterparty, GuarantorEndedNotification::class);
+
+    ['requester' => $requester2, 'counterparty' => $counterparty2, 'request' => $requesterEnd] = statusRetirementContext([
+        'status' => GuarantorStatusEnum::InProgress,
+    ]);
+
+    Sanctum::actingAs($requester2);
+
+    $this->postJson(route('api.v1.guarantor.guarantor.end', $requesterEnd))
+        ->assertSuccessful()
+        ->assertJsonPath('data.status.value', GuarantorStatusEnum::PendingCounterpartyEndApproval->value);
+
+    expect($requesterEnd->fresh()->status)->toBe(GuarantorStatusEnum::PendingCounterpartyEndApproval)
+        ->and($requesterEnd->fresh()->ended_at)->toBeNull();
+
+    ['counterparty' => $cpOverdue, 'request' => $overdue] = statusRetirementContext([
+        'status' => GuarantorStatusEnum::Overdue,
+    ]);
+
+    Sanctum::actingAs($cpOverdue);
 
     $this->postJson(route('api.v1.guarantor.guarantor.end', $overdue))
         ->assertSuccessful()
@@ -144,9 +154,14 @@ test('EndGuarantorAction and isAllowed() still function correctly when called in
 
     expect(GuarantorStatusEnum::isAllowed(
         GuarantorStatusEnum::InProgress,
-        GuarantorStatusEnum::Ended,
+        GuarantorStatusEnum::PendingCounterpartyEndApproval,
         'requester'
     ))->toBeTrue()
+        ->and(GuarantorStatusEnum::isAllowed(
+            GuarantorStatusEnum::InProgress,
+            GuarantorStatusEnum::Ended,
+            'counterparty'
+        ))->toBeTrue()
         ->and(GuarantorStatusEnum::isAllowed(
             GuarantorStatusEnum::Accepted,
             GuarantorStatusEnum::Ended,

@@ -2,9 +2,12 @@
 
 namespace Modules\Chat\Http\Resources;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Chat\Contracts\ResolvesMessagePartyRole;
 use Modules\Chat\Models\ConversationMessage;
+use Modules\Chat\Registry\ChatTypeRegistry;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
@@ -36,11 +39,59 @@ class ConversationMessageResource extends JsonResource
             'attachments' => $this->when($attachmentsLoaded, $attachments),
             // Only present when at least one attachment payload exists.
             'last_attachment' => $this->when($lastAttachment !== null, $lastAttachment),
+            // Guarantor-only (and any future ResolvesMessagePartyRole handler).
+            // Absent for Orders/Member/etc. so their frozen key sets stay unchanged.
+            'party_role' => $this->when(
+                $this->partyRoleHandler() !== null,
+                fn () => $this->resolvePartyRole(),
+            ),
             'read_at' => $this->read_at,
             // Humanized for display fallback / API freeze; ISO enables live client-side ticks.
             'created_at' => $this->created_at?->shortAbsoluteDiffForHumans() ?: '',
             'created_at_iso' => $this->created_at?->toIso8601String(),
         ];
+    }
+
+    private function partyRoleHandler(): ?ResolvesMessagePartyRole
+    {
+        // Only when the caller eager-loaded conversation (Guarantor dashboard/API).
+        // Avoids N+1 and keeps party_role absent for Orders/Member/etc.
+        if (! $this->relationLoaded('conversation') || $this->conversation === null) {
+            return null;
+        }
+
+        $operationType = $this->conversation->operation_type;
+
+        if (! is_string($operationType) || $operationType === '') {
+            return null;
+        }
+
+        $handler = app(ChatTypeRegistry::class)->getByOperationType($operationType);
+
+        return $handler instanceof ResolvesMessagePartyRole ? $handler : null;
+    }
+
+    /**
+     * @return 'requester'|'counterparty'|null
+     */
+    private function resolvePartyRole(): ?string
+    {
+        $handler = $this->partyRoleHandler();
+
+        if ($handler === null) {
+            return null;
+        }
+
+        $this->loadMissing(['conversation.operation', 'sender']);
+
+        $operation = $this->conversation?->operation;
+        $sender = $this->sender;
+
+        if (! $operation instanceof Model || ! $sender instanceof Model) {
+            return null;
+        }
+
+        return $handler->resolvePartyRole($sender, $operation);
     }
 
     /**

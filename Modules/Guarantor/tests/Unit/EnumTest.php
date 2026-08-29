@@ -2,20 +2,30 @@
 
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 
-test('requester can end from in_progress', function () {
+test('requester can request end approval from in_progress', function () {
     expect(GuarantorStatusEnum::isAllowed(
         GuarantorStatusEnum::InProgress,
-        GuarantorStatusEnum::Ended,
+        GuarantorStatusEnum::PendingCounterpartyEndApproval,
         'requester'
-    ))->toBeTrue();
+    ))->toBeTrue()
+        ->and(GuarantorStatusEnum::isAllowed(
+            GuarantorStatusEnum::InProgress,
+            GuarantorStatusEnum::Ended,
+            'requester'
+        ))->toBeFalse();
 });
 
-test('requester can end from overdue', function () {
+test('requester can request end approval from overdue', function () {
     expect(GuarantorStatusEnum::isAllowed(
         GuarantorStatusEnum::Overdue,
-        GuarantorStatusEnum::Ended,
+        GuarantorStatusEnum::PendingCounterpartyEndApproval,
         'requester'
-    ))->toBeTrue();
+    ))->toBeTrue()
+        ->and(GuarantorStatusEnum::isAllowed(
+            GuarantorStatusEnum::Overdue,
+            GuarantorStatusEnum::Ended,
+            'requester'
+        ))->toBeFalse();
 });
 
 test('requester cannot accept from approved_by_admin', function () {

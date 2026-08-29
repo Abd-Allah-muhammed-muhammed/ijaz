@@ -7,6 +7,8 @@ import RelativeTimestamp from '@/shared/chat/components/relative-timestamp';
 type Props = {
   conversationMessage: ConversationMessage;
   highlightTerm?: string | null;
+  /** Optional role/admin badge shown next to the sender name (Guarantor admin Chat). */
+  senderBadge?: string | null;
 };
 
 const hasCaption = (content?: string | null): boolean =>
@@ -15,7 +17,7 @@ const hasCaption = (content?: string | null): boolean =>
 /**
  * Incoming (other party's) bubble — no read-receipt checkmarks (outgoing-only UX).
  */
-const MessageIn = ({ conversationMessage, highlightTerm }: Props) => {
+const MessageIn = ({ conversationMessage, highlightTerm, senderBadge = null }: Props) => {
   return (
     <div
       className="d-flex justify-content-start mb-8 mw-100 min-w-0"
@@ -30,12 +32,19 @@ const MessageIn = ({ conversationMessage, highlightTerm }: Props) => {
             <img alt="" src={conversationMessage.sender?.image} />
           </div>
           <div className="min-w-0">
-            <span
-              className="fs-6 fw-semibold text-gray-900 text-truncate d-inline-block"
-              style={{ maxWidth: 220 }}
-            >
-              {conversationMessage.sender?.name}
-            </span>
+            <div className="d-flex align-items-center flex-wrap gap-2">
+              <span
+                className="fs-6 fw-semibold text-gray-900 text-truncate d-inline-block"
+                style={{ maxWidth: 220 }}
+              >
+                {conversationMessage.sender?.name}
+              </span>
+              {senderBadge ? (
+                <span className="badge badge-light-primary rounded-pill fw-bold px-2 py-1 fs-9">
+                  {senderBadge}
+                </span>
+              ) : null}
+            </div>
             <RelativeTimestamp
               className="text-muted fs-8 d-block lh-1 mt-1"
               iso={conversationMessage.created_at_iso ?? conversationMessage.created_at}

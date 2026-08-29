@@ -113,7 +113,7 @@ function walletSnapshot(User $user): array
 test('Admin can resolve a disputed guarantor fully in favor of the requester — same wallet outcome as an ordinary End', function () {
     ['requester' => $endRequester, 'counterparty' => $endCounterparty, 'request' => $endRequest] = disputeResolutionBatch2Context();
     completeDisputeResolutionBatch2Payment($endCounterparty, $endRequest, 1010);
-    app(EndGuarantorAction::class)->handle($endRequest->fresh(), $endRequester, 'requester');
+    app(EndGuarantorAction::class)->handle($endRequest->fresh(), $endCounterparty, 'counterparty');
     $endRequesterSnapshot = walletSnapshot($endRequester);
     $endCounterpartySnapshot = walletSnapshot($endCounterparty);
 

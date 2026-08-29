@@ -186,7 +186,7 @@ class GuarantorRepository implements GuarantorRepositoryInterface
 
         $query = $chat->messages()
             ->latest()
-            ->with(['sender', 'media']);
+            ->with(['sender', 'media', 'conversation.operation']);
 
         if ($search !== null && $search !== '') {
             $escaped = addcslashes($search, '%_\\');
