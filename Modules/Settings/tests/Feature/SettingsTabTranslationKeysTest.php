@@ -46,3 +46,49 @@ it('generated frontend translations keep nested guarantor and flat settings_tab 
         ->and($data['settings_tab_payment'])->toBe('Payment')
         ->and($data['settings_tab_chat'])->toBe('Chat');
 });
+
+/**
+ * Settings field labels use t(`settings.${row.key}`) against flat dotted keys so the
+ * top-level "settings" page-title string is preserved (same collision class as settings_tab_*).
+ */
+it('defines flat settings.<key> field labels for every current settings row in all locales', function () {
+    $settingKeys = [
+        'chat_notes',
+        'email',
+        'facebook',
+        'instagram',
+        'offer_note',
+        'phone',
+        'snapchat',
+        'telegram',
+        'tiktok',
+        'whatsapp',
+        'x',
+        'youtube',
+        'guarantee_fee_percent',
+        'guarantee_notes',
+        'guarantor_first_installment_max_days',
+        'min_withdraw_amount',
+        'order_dispute_window_hours',
+        'provider_registration_bonus_amount',
+        'provider_registration_bonus_enabled',
+    ];
+    $locales = ['en', 'ar', 'ur', 'hi'];
+
+    foreach ($locales as $locale) {
+        /** @var array<string, mixed> $data */
+        $data = json_decode((string) file_get_contents(lang_path("{$locale}.json")), true);
+
+        expect($data['settings'])->toBeString()
+            ->and($data['banks'])->toBeString()
+            ->and($data['banks'])->not->toBeEmpty();
+
+        foreach ($settingKeys as $settingKey) {
+            $key = "settings.{$settingKey}";
+            expect($data)->toHaveKey($key)
+                ->and($data[$key])->toBeString()
+                ->and($data[$key])->not->toBeEmpty()
+                ->and($data[$key])->not->toBe($settingKey);
+        }
+    }
+});

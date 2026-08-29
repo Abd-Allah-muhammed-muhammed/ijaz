@@ -95,7 +95,6 @@ const Index = ({ groups, groupOrder }: Props) => {
                     group={group}
                     rows={groups[group] ?? []}
                     canEdit={canEdit}
-                    t={t}
                   />
                 </Tab.Pane>
               ))}
@@ -111,10 +110,10 @@ type FormProps = {
   group: string;
   rows: SettingRow[];
   canEdit: boolean;
-  t: (key: string) => string;
 };
 
-function SettingsGroupForm({ group, rows, canEdit, t }: FormProps) {
+function SettingsGroupForm({ group, rows, canEdit }: FormProps) {
+  const { t } = useTranslation();
   const initialValues = useMemo(
     () =>
       rows.reduce<Record<string, string>>((carry, row) => {
@@ -177,7 +176,9 @@ function SettingsGroupForm({ group, rows, canEdit, t }: FormProps) {
         {rows.map((row) => (
           <Col sm={12} md={6} className="mb-4" key={row.key}>
             <FormGroup>
-              <FormLabel className="fw-semibold">{row.key}</FormLabel>
+              <FormLabel className="fw-semibold">
+                {t(`settings.${row.key}`, { defaultValue: row.key })}
+              </FormLabel>
               <FormControl
                 as={row.content && row.content.length > 80 ? 'textarea' : 'input'}
                 rows={row.content && row.content.length > 80 ? 4 : undefined}
