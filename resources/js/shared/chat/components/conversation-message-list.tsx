@@ -18,6 +18,8 @@ export type ConversationMessageListProps = {
   messagesBoxRef: RefObject<HTMLDivElement | null>;
   messagesContentRef: RefObject<HTMLDivElement | null>;
   onScroll: () => void;
+  /** Optional per-message badge (e.g. Guarantor requester/counterparty). */
+  resolveSenderBadge?: (message: ConversationMessage) => string | null;
 };
 
 const ConversationMessageList = ({
@@ -31,6 +33,7 @@ const ConversationMessageList = ({
   messagesBoxRef,
   messagesContentRef,
   onScroll,
+  resolveSenderBadge,
 }: ConversationMessageListProps) => {
   const { t } = useTranslation();
   const term = highlightTerm.trim();
@@ -66,6 +69,7 @@ const ConversationMessageList = ({
         ) : null}
         {messages.map((messageItem) => {
           const sender = messageItem.sender as ConversationUser;
+          const senderBadge = resolveSenderBadge?.(messageItem) ?? null;
 
           if (sender.socket_id !== currentSocketId) {
             return (
@@ -73,6 +77,7 @@ const ConversationMessageList = ({
                 conversationMessage={messageItem}
                 key={messageItem.id}
                 highlightTerm={term || null}
+                senderBadge={senderBadge}
               />
             );
           }
@@ -81,6 +86,7 @@ const ConversationMessageList = ({
               conversationMessage={messageItem}
               key={messageItem.id}
               highlightTerm={term || null}
+              senderBadge={senderBadge}
             />
           );
         })}

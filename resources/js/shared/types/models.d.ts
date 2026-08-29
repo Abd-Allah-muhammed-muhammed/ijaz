@@ -454,6 +454,8 @@ export interface ConversationUser extends Model {
   image: string;
   socket_id: string;
   online: boolean;
+  /** Present on ChatUserResource — e.g. "user", "admin", "provider". */
+  type?: string;
 }
 
 export interface ConversationMessage extends Model {
@@ -464,6 +466,11 @@ export interface ConversationMessage extends Model {
   sender?: ConversationUser;
   conversation_id: string;
   conversation?: Conversation;
+  /**
+   * Guarantor conversations only: which party sent the message.
+   * Absent on Orders/Member/etc. Null for admin intervention messages.
+   */
+  party_role?: 'requester' | 'counterparty' | null;
   /**
    * API still sends Carbon shortAbsoluteDiffForHumans() here for freeze/compat.
    * Prefer created_at_iso for live relative display.

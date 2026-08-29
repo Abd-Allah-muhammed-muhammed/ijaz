@@ -520,3 +520,77 @@ test('the Dispute tab data is derivable entirely from existing status_histories 
             )
         );
 });
+
+test('a chat message sent by the guarantor requester is identifiable as such via the API response (sender role or equivalent field)', function () {
+    withoutGuarantorDashboardLocaleMiddleware();
+    $admin = createGuarantorDashboardAdmin(['show guarantors']);
+    $guarantorRequest = GuarantorRequest::factory()->accepted()->create();
+    $conversation = app(OpenGuarantorChatAction::class)->handle(
+        $guarantorRequest,
+        $guarantorRequest->requester,
+    );
+
+    ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_type' => $guarantorRequest->requester_type,
+        'sender_id' => $guarantorRequest->requester_id,
+        'receiver_type' => $guarantorRequest->counterparty_type,
+        'receiver_id' => $guarantorRequest->counterparty_id,
+        'content' => 'Hello from requester',
+        'has_attachments' => false,
+    ]);
+
+    $this->actingAs($admin, 'admin')
+        ->getJson(action([DashboardGuarantorController::class, 'conversationMessages'], $guarantorRequest))
+        ->assertSuccessful()
+        ->assertJsonPath('data.items.0.content', 'Hello from requester')
+        ->assertJsonPath('data.items.0.party_role', 'requester');
+});
+
+test('a chat message sent by the counterparty is identifiable as such', function () {
+    withoutGuarantorDashboardLocaleMiddleware();
+    $admin = createGuarantorDashboardAdmin(['show guarantors']);
+    $guarantorRequest = GuarantorRequest::factory()->accepted()->create();
+    $conversation = app(OpenGuarantorChatAction::class)->handle(
+        $guarantorRequest,
+        $guarantorRequest->requester,
+    );
+
+    ConversationMessage::query()->create([
+        'conversation_id' => $conversation->id,
+        'sender_type' => $guarantorRequest->counterparty_type,
+        'sender_id' => $guarantorRequest->counterparty_id,
+        'receiver_type' => $guarantorRequest->requester_type,
+        'receiver_id' => $guarantorRequest->requester_id,
+        'content' => 'Hello from counterparty',
+        'has_attachments' => false,
+    ]);
+
+    $this->actingAs($admin, 'admin')
+        ->getJson(action([DashboardGuarantorController::class, 'conversationMessages'], $guarantorRequest))
+        ->assertSuccessful()
+        ->assertJsonPath('data.items.0.content', 'Hello from counterparty')
+        ->assertJsonPath('data.items.0.party_role', 'counterparty');
+});
+
+test('a chat message sent by an admin (intervention) is identifiable as admin, not mistakenly labeled requester/counterparty', function () {
+    withoutGuarantorDashboardLocaleMiddleware();
+    $admin = createGuarantorDashboardAdmin(['show guarantors', 'manage guarantors']);
+    $guarantorRequest = GuarantorRequest::factory()->accepted()->create();
+    app(OpenGuarantorChatAction::class)->handle($guarantorRequest, $guarantorRequest->requester);
+
+    $this->actingAs($admin, 'admin')
+        ->postJson(action([DashboardGuarantorController::class, 'sendConversationMessage'], $guarantorRequest), [
+            'content' => 'Admin reviewing this guarantor chat.',
+        ])
+        ->assertSuccessful()
+        ->assertJsonPath('data.content', 'Admin reviewing this guarantor chat.')
+        ->assertJsonPath('data.party_role', null)
+        ->assertJsonPath('data.sender.type', 'admin');
+
+    $this->actingAs($admin, 'admin')
+        ->getJson(action([DashboardGuarantorController::class, 'conversationMessages'], $guarantorRequest))
+        ->assertSuccessful()
+        ->assertJsonPath('data.items.0.party_role', null)
+        ->assertJsonPath('data.items.0.sender.type', 'admin');
+});

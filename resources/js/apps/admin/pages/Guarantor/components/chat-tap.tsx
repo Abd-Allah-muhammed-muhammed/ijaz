@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Conversation } from '@/shared/types/models';
 import GuarantorDashboardController from '@/actions/Modules/Guarantor/Http/Controllers/Dashboard/GuarantorController';
 import usePermissions from '@/shared/hooks/use-permissions';
+import { resolveGuarantorChatSenderBadge } from './guarantor-chat-sender-badge';
 
 type Props = {
   guarantorRequestId: string | number;
@@ -62,6 +63,7 @@ const ChatTap = ({ guarantorRequestId, conversation }: Props) => {
             showCloseButton={false}
             showComposer={canReply}
             syncSidebar={false}
+            resolveSenderBadge={(message) => resolveGuarantorChatSenderBadge(message, t)}
             emptyFallback={(
               <Card className="shadow-sm border-0 rounded-4 h-100 bg-white">
                 <Card.Body className="d-flex align-items-center justify-content-center py-15">

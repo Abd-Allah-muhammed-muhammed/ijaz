@@ -45,7 +45,12 @@ class ConversationMessage extends Model implements HasMedia
 
     public function chat(): BelongsTo
     {
-        return $this->belongsTo(Conversation::class);
+        return $this->belongsTo(Conversation::class, 'conversation_id');
+    }
+
+    public function conversation(): BelongsTo
+    {
+        return $this->belongsTo(Conversation::class, 'conversation_id');
     }
 
     public function sender(): MorphTo

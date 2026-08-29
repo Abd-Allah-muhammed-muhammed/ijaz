@@ -5,12 +5,13 @@ namespace Modules\Guarantor\Handlers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Chat\Contracts\ChatTypeHandlerInterface;
+use Modules\Chat\Contracts\ResolvesMessagePartyRole;
 use Modules\Chat\Models\Conversation;
 use Modules\Chat\Support\ParticipantConversationMessenger;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Models\GuarantorRequest;
 
-class GuarantorChatHandler implements ChatTypeHandlerInterface
+class GuarantorChatHandler implements ChatTypeHandlerInterface, ResolvesMessagePartyRole
 {
     public function operationType(): ?string
     {
@@ -73,5 +74,31 @@ class GuarantorChatHandler implements ChatTypeHandlerInterface
     public function findOperation(int|string $id): Model
     {
         return GuarantorRequest::query()->findOrFail($id);
+    }
+
+    /**
+     * @return 'requester'|'counterparty'|null
+     */
+    public function resolvePartyRole(Model $sender, Model $operation): ?string
+    {
+        if (! $operation instanceof GuarantorRequest) {
+            return null;
+        }
+
+        if (
+            $operation->requester_type === $sender::class
+            && (string) $operation->requester_id === (string) $sender->getKey()
+        ) {
+            return 'requester';
+        }
+
+        if (
+            $operation->counterparty_type === $sender::class
+            && (string) $operation->counterparty_id === (string) $sender->getKey()
+        ) {
+            return 'counterparty';
+        }
+
+        return null;
     }
 }

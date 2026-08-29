@@ -28,6 +28,6 @@ class SendAdminGuarantorConversationMessageAction
             $admin,
             $data->content,
             $data->files ?? [],
-        )->loadMissing(['sender', 'media']);
+        )->loadMissing(['sender', 'media', 'conversation.operation']);
     }
 }

@@ -3,11 +3,9 @@
 use App\Models\User;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Registry\ChatTypeRegistry;
-use Modules\Chat\Support\ParticipantConversationMessenger;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Handlers\GuarantorChatHandler;
 use Modules\Guarantor\Models\GuarantorRequest;
-use Modules\Guarantor\Support\GuarantorConversationMessenger;
 
 function createGuarantorForChatHandler(?GuarantorStatusEnum $status = null): GuarantorRequest
 {
@@ -48,9 +46,23 @@ test('ChatTypeRegistry has Guarantor handler self-registered', function () {
         ->toBeInstanceOf(GuarantorChatHandler::class);
 });
 
-test('GuarantorConversationMessenger extends ParticipantConversationMessenger', function () {
-    expect(is_subclass_of(
-        GuarantorConversationMessenger::class,
-        ParticipantConversationMessenger::class,
-    ))->toBeTrue();
+test('GuarantorChatHandler resolvePartyRole returns requester for the request requester', function () {
+    $guarantorRequest = createGuarantorForChatHandler();
+
+    expect((new GuarantorChatHandler)->resolvePartyRole($guarantorRequest->requester, $guarantorRequest))
+        ->toBe('requester');
+});
+
+test('GuarantorChatHandler resolvePartyRole returns counterparty for the request counterparty', function () {
+    $guarantorRequest = createGuarantorForChatHandler();
+
+    expect((new GuarantorChatHandler)->resolvePartyRole($guarantorRequest->counterparty, $guarantorRequest))
+        ->toBe('counterparty');
+});
+
+test('GuarantorChatHandler resolvePartyRole returns null for an admin (or other non-party) sender', function () {
+    $guarantorRequest = createGuarantorForChatHandler();
+    $stranger = User::factory()->create();
+
+    expect((new GuarantorChatHandler)->resolvePartyRole($stranger, $guarantorRequest))->toBeNull();
 });
