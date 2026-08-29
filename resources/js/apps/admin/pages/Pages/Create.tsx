@@ -38,13 +38,16 @@ const Create = ({}: Props) => {
       </PageTitle>
       <ToolbarWrapper/>
       <Content>
-        <KTCard className="p-4">
-          <Form
-            callback={(form) => {
-              if (zodValidate(Inputs, form)) {
-                form.submit(PageController.store());
-              }
-            }}/>
+        <KTCard className="border-0 shadow-sm rounded-4">
+          <div className="card-body p-6 p-lg-9">
+            <Form
+              callback={(form) => {
+                if (zodValidate(Inputs, form)) {
+                  form.submit(PageController.store());
+                }
+              }}
+            />
+          </div>
         </KTCard>
       </Content>
     </>

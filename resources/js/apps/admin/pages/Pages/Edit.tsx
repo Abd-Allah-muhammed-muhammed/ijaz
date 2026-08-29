@@ -42,15 +42,17 @@ const Edit = ({row}: Props) => {
       </PageTitle>
       <ToolbarWrapper/>
       <Content>
-        <KTCard className="p-4">
-          <Form
-            row={row}
-            callback={(form) => {
-              if (zodValidate(Inputs, form)) {
-                form.submit(PageController.update(row));
-              }
-
-            }}/>
+        <KTCard className="border-0 shadow-sm rounded-4">
+          <div className="card-body p-6 p-lg-9">
+            <Form
+              row={row}
+              callback={(form) => {
+                if (zodValidate(Inputs, form)) {
+                  form.submit(PageController.update(row));
+                }
+              }}
+            />
+          </div>
         </KTCard>
       </Content>
     </>

@@ -86,6 +86,43 @@ test('GET /api/v1/catalog/pages/terms returns the seeded Terms page with clean s
         ->and($reSanitized)->toContain('[PLACEHOLDER SECTION — replace with real legal text before launch]');
 });
 
+test('saving Page content via the new editor still sanitizes correctly — regression against PageHtmlSanitizer, Tiptap output must pass through unchanged for safe tags', function () {
+    // Representative HTML produced by the constrained Tiptap Pages editor.
+    $tiptapHtml = <<<'HTML'
+<h2>Acceptance</h2><p>Hello <strong>world</strong> and <em>friends</em>.</p><ul><li>One</li><li>Two</li></ul><ol><li>First</li></ol><p><a target="_blank" rel="noopener noreferrer nofollow" href="https://example.com">Link</a></p><h3>Details</h3><p>More text</p>
+HTML;
+
+    $page = app(StorePageAction::class)->handle(new StorePageDTO(
+        slug: 'tiptap-sanitize-probe',
+        translations: [
+            'en' => ['title' => 'Tiptap Probe', 'content' => $tiptapHtml],
+            'ar' => ['title' => 'فحص', 'content' => $tiptapHtml],
+            'ur' => ['title' => 'جانچ', 'content' => $tiptapHtml],
+            'hi' => ['title' => 'जांच', 'content' => $tiptapHtml],
+        ],
+    ));
+
+    $content = (string) $page->refresh()->load('translations')->translate('en')?->content;
+
+    expect($content)->toContain('<h2>')
+        ->and($content)->toContain('<h3>')
+        ->and($content)->toContain('<p>')
+        ->and($content)->toContain('<strong>')
+        ->and($content)->toContain('<em>')
+        ->and($content)->toContain('<ul>')
+        ->and($content)->toContain('<ol>')
+        ->and($content)->toContain('<li>')
+        ->and($content)->toContain('href="https://example.com"')
+        ->and($content)->not->toContain('<script')
+        ->and($content)->not->toContain('<iframe');
+
+    $direct = PageHtmlSanitizer::clean($tiptapHtml);
+    expect($direct)->toContain('<h2>Acceptance</h2>')
+        ->and($direct)->toContain('<strong>world</strong>')
+        ->and($direct)->toContain('<em>friends</em>')
+        ->and($direct)->toContain('<h3>Details</h3>');
+});
+
 test('existing Pages (e.g. privacy) are unaffected by the sanitization change — regression, safe existing content passes through unchanged', function () {
     $safe = '<h2>Privacy</h2><p>We collect <strong>minimal</strong> data.</p><ul><li>Email</li></ul><p><a href="https://example.com">Policy</a></p>';
 

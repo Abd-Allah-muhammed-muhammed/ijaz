@@ -18,7 +18,6 @@
     "@types/aos": "^3.0.7",
     "@types/bootstrap": "^5.2.10",
     "@types/node": "^22.13.5",
-    "@types/quill": "^2.0.14",
     "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.0.1",
@@ -35,7 +34,7 @@
     "sass-embedded": "^1.86.3",
     "typescript-eslint": "^8.23.0",
     "vite-plugin-run": "^0.6.1",
-    "vitest": "^4.1.11"
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "@formatjs/intl-pluralrules": "^5.4.4",
@@ -50,6 +49,11 @@
     "@popperjs/core": "^2.11.8",
     "@tanstack/react-query": "^5.84.1",
     "@tanstack/react-query-devtools": "^5.84.1",
+    "@tiptap/extension-link": "^3.30.5",
+    "@tiptap/extension-placeholder": "^3.30.5",
+    "@tiptap/pm": "^3.30.5",
+    "@tiptap/react": "^3.30.5",
+    "@tiptap/starter-kit": "^3.30.5",
     "@types/react": "^19.0.3",
     "@types/sass-loader": "8.0.3",
     "@vitejs/plugin-react": "^4.7.0",
@@ -83,7 +87,6 @@
     "react-inlinesvg": "^4.2.0",
     "react-intl": "^7.1.10",
     "react-owl-carousel": "^2.3.3",
-    "react-quill-new": "^3.8.3",
     "react-select": "^5.10.2",
     "sass-loader": "13.0.2",
     "socicon": "^3.0.5",
