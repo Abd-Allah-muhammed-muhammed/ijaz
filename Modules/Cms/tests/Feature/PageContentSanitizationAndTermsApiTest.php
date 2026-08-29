@@ -1,11 +1,16 @@
 <?php
 
 use Database\Seeders\PagesSeeder;
+use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
+use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
+use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
+use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
 use Modules\Cms\Actions\Page\StorePageAction;
 use Modules\Cms\Actions\Page\UpdatePageAction;
 use Modules\Cms\DTOs\StorePageDTO;
 use Modules\Cms\DTOs\UpdatePageDTO;
 use Modules\Cms\Models\Page;
+use Modules\Cms\Support\PageHtmlBrandStyler;
 use Modules\Cms\Support\PageHtmlSanitizer;
 
 test('saving Page content strips dangerous HTML (script tags, on* event attributes, iframe) while preserving safe formatting tags (h1-h6, p, ul, ol, li, strong, em, a)', function () {
@@ -35,7 +40,7 @@ HTML;
     expect($content)->not->toContain('<script')
         ->and($content)->not->toContain('onclick')
         ->and($content)->not->toContain('<iframe')
-        ->and($content)->toContain('<h2>')
+        ->and($content)->toContain('<h2')
         ->and($content)->toContain('<p>')
         ->and($content)->toContain('<strong>')
         ->and($content)->toContain('<em>')
@@ -60,6 +65,39 @@ HTML;
         ->and($updatedContent)->toContain('<p>');
 });
 
+test('saving Page content automatically applies inline brand-color styling to h2/h3 headings (color: #00686D) — admin writes plain semantic HTML, backend applies the brand style on save', function () {
+    $plain = '<h2>Acceptance</h2><h3>Details</h3><p>Body text</p>';
+
+    $page = app(StorePageAction::class)->handle(new StorePageDTO(
+        slug: 'brand-style-probe',
+        translations: [
+            'en' => ['title' => 'Brand Style', 'content' => $plain],
+            'ar' => ['title' => 'فحص', 'content' => $plain],
+            'ur' => ['title' => 'جانچ', 'content' => $plain],
+            'hi' => ['title' => 'जांच', 'content' => $plain],
+        ],
+    ));
+
+    $content = (string) $page->refresh()->load('translations')->translate('en')?->content;
+
+    expect($content)->toContain('style="color: #00686D; font-weight: 700;"')
+        ->and($content)->toContain('<h2 style="color: #00686D; font-weight: 700;">Acceptance</h2>')
+        ->and($content)->toContain('<h3 style="color: #00686D; font-weight: 700;">Details</h3>')
+        ->and($content)->toContain(PageHtmlBrandStyler::BRAND_TEAL);
+});
+
+test('paragraph tags are left with no forced color override (inherit default), matching the existing privacy page behavior', function () {
+    $html = '<h2>Title</h2><p>Plain paragraph</p><ul><li>Item</li></ul>';
+
+    $prepared = PageHtmlSanitizer::prepare($html);
+
+    expect($prepared)->toContain('<p>Plain paragraph</p>')
+        ->and($prepared)->not->toMatch('/<p[^>]*style=/')
+        ->and($prepared)->not->toMatch('/<ul[^>]*style=/')
+        ->and($prepared)->not->toMatch('/<li[^>]*style=/')
+        ->and($prepared)->toContain('<h2 style="color: #00686D; font-weight: 700;">Title</h2>');
+});
+
 test('GET /api/v1/catalog/pages/terms returns the seeded Terms page with clean structured HTML content', function () {
     app(PagesSeeder::class)->run();
 
@@ -70,7 +108,7 @@ test('GET /api/v1/catalog/pages/terms returns the seeded Terms page with clean s
     expect($json)->toHaveKeys(['success', 'message', 'data', 'errors'])
         ->and($json['data'])->toHaveKeys(['id', 'slug', 'title', 'content'])
         ->and($json['data']['slug'])->toBe('terms')
-        ->and($json['data']['content'])->toContain('<h2>')
+        ->and($json['data']['content'])->toContain('<h2')
         ->and($json['data']['content'])->toContain('<p>')
         ->and($json['data']['content'])->toContain('<ul>')
         ->and($json['data']['content'])->toContain('<ol>')
@@ -80,10 +118,23 @@ test('GET /api/v1/catalog/pages/terms returns the seeded Terms page with clean s
 
     // Placeholder structure must survive the same sanitizer used on save.
     $reSanitized = PageHtmlSanitizer::clean($json['data']['content']);
-    expect($reSanitized)->toContain('<h2>')
+    expect($reSanitized)->toContain('<h2')
         ->and($reSanitized)->toContain('<ul>')
         ->and($reSanitized)->toContain('<ol>')
         ->and($reSanitized)->toContain('[PLACEHOLDER SECTION — replace with real legal text before launch]');
+});
+
+test('GET /api/v1/catalog/pages/terms returns content with the inline-styled headings already baked in — this is what mobile receives and renders as-is', function () {
+    app(PagesSeeder::class)->run();
+
+    $response = $this->getJson('/api/v1/catalog/pages/terms');
+    $response->assertSuccessful();
+
+    $content = (string) $response->json('data.content');
+
+    expect($content)->toContain('style="color: #00686D; font-weight: 700;"')
+        ->and($content)->toContain('<h2 style="color: #00686D; font-weight: 700;">')
+        ->and($content)->not->toMatch('/<p[^>]*style=/');
 });
 
 test('saving Page content via the new editor still sanitizes correctly — regression against PageHtmlSanitizer, Tiptap output must pass through unchanged for safe tags', function () {
@@ -104,8 +155,8 @@ HTML;
 
     $content = (string) $page->refresh()->load('translations')->translate('en')?->content;
 
-    expect($content)->toContain('<h2>')
-        ->and($content)->toContain('<h3>')
+    expect($content)->toContain('<h2')
+        ->and($content)->toContain('<h3')
         ->and($content)->toContain('<p>')
         ->and($content)->toContain('<strong>')
         ->and($content)->toContain('<em>')
@@ -113,6 +164,7 @@ HTML;
         ->and($content)->toContain('<ol>')
         ->and($content)->toContain('<li>')
         ->and($content)->toContain('href="https://example.com"')
+        ->and($content)->toContain('color: #00686D')
         ->and($content)->not->toContain('<script')
         ->and($content)->not->toContain('<iframe');
 
@@ -123,11 +175,11 @@ HTML;
         ->and($direct)->toContain('<h3>Details</h3>');
 });
 
-test('existing Pages (e.g. privacy) are unaffected by the sanitization change — regression, safe existing content passes through unchanged', function () {
+test('existing Pages (privacy) are unaffected by the new inline-styling pass unless explicitly re-saved — regression, no silent retroactive rewrite of unrelated content', function () {
     $safe = '<h2>Privacy</h2><p>We collect <strong>minimal</strong> data.</p><ul><li>Email</li></ul><p><a href="https://example.com">Policy</a></p>';
 
     $page = Page::query()->create([
-        'slug' => 'privacy',
+        'slug' => 'privacy-brand-regression',
         'translations' => [
             'en' => ['title' => 'Privacy', 'content' => $safe],
             'ar' => ['title' => 'الخصوصية', 'content' => $safe],
@@ -136,25 +188,35 @@ test('existing Pages (e.g. privacy) are unaffected by the sanitization change �
         ],
     ]);
 
-    $cleaned = PageHtmlSanitizer::clean($safe);
+    $stored = (string) $page->refresh()->load('translations')->translate('en')?->content;
 
-    expect($cleaned)->toContain('<h2>Privacy</h2>')
-        ->and($cleaned)->toContain('<strong>minimal</strong>')
-        ->and($cleaned)->toContain('<ul>')
-        ->and($cleaned)->toContain('<li>Email</li>')
-        ->and($cleaned)->toContain('href="https://example.com"');
+    // Direct Eloquent create bypasses the Action pipeline — no silent rewrite.
+    expect($stored)->toBe($safe)
+        ->and($stored)->not->toContain('#00686D')
+        ->and($stored)->not->toContain('font-weight: 700');
 
-    $updated = app(UpdatePageAction::class)->handle($page, new UpdatePageDTO(
-        slug: 'privacy',
-        translations: [
-            'en' => ['title' => 'Privacy', 'content' => $safe],
-            'ar' => ['title' => 'الخصوصية', 'content' => $safe],
-            'ur' => ['title' => 'رازداری', 'content' => $safe],
-            'hi' => ['title' => 'गोपनीयता', 'content' => $safe],
-        ],
-    ));
+    $cleanedOnly = PageHtmlSanitizer::clean($safe);
+    expect($cleanedOnly)->toContain('<h2>Privacy</h2>')
+        ->and($cleanedOnly)->not->toContain('#00686D');
+});
 
-    expect((string) $updated->translate('en')?->content)->toContain('<h2>Privacy</h2>')
-        ->and((string) $updated->translate('en')?->content)->toContain('<strong>minimal</strong>')
-        ->and((string) $updated->translate('en')?->content)->toContain('<li>Email</li>');
+test('visiting /pages/{slug} on the website renders the reusable CmsPage template with live CMS data', function () {
+    app(PagesSeeder::class)->run();
+
+    $this->withoutMiddleware([
+        LocaleSessionRedirect::class,
+        LaravelLocalizationRedirectFilter::class,
+        LaravelLocalizationRoutes::class,
+        LaravelLocalizationViewPath::class,
+    ]);
+
+    // Locale prefix is empty in the test harness route registration (see route:list).
+    $this->get('/pages/terms')
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Frontend/CmsPage')
+            ->where('page.slug', 'terms')
+            ->where('page.title', 'Terms and Conditions')
+            ->has('page.content')
+        );
 });

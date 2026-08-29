@@ -84,6 +84,7 @@ describe('Pages Form Tiptap editor and locale tabs', () => {
       'strong',
       'em',
       'a',
+      'img',
     ])
     expect([...PAGE_CONTENT_HEADING_LEVELS]).toEqual([2, 3])
     expect([...PAGE_CONTENT_TOOLBAR_ACTIONS]).toEqual([
@@ -94,6 +95,7 @@ describe('Pages Form Tiptap editor and locale tabs', () => {
       'bulletList',
       'orderedList',
       'link',
+      'insertLogo',
     ])
 
     expect(editorConfigSrc).toContain('StarterKit')
@@ -147,5 +149,18 @@ describe('Pages Form Tiptap editor and locale tabs', () => {
       },
     })
     expect(valid.success).toBe(true)
+  })
+
+  it('the Pages Form editor has an "Insert Logo" toolbar button that inserts the fixed logo image (/media/logos/default.svg), centered, at the cursor position', () => {
+    expect(editorSrc).toContain('Insert Logo')
+    expect(editorSrc).toContain('PAGE_CONTENT_LOGO_HTML')
+    expect(editorSrc).toMatch(/insertContent\(PAGE_CONTENT_LOGO_HTML\)/)
+    expect(editorConfigSrc).toContain("PAGE_CONTENT_LOGO_SRC = '/media/logos/default.svg'")
+    expect(editorConfigSrc).toContain('text-align:center')
+    expect(editorConfigSrc).toContain("alt=\"Ijaz\"")
+    expect(editorConfigSrc).toContain('width="120"')
+    expect(editorConfigSrc).toContain('height="120"')
+    expect(editorConfigSrc).toContain('insertLogo')
+    expect(editorConfigSrc).toContain('@tiptap/extension-image')
   })
 })

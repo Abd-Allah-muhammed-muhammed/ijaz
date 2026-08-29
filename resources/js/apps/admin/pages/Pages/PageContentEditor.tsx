@@ -5,6 +5,7 @@ import {
   faLink,
   faListOl,
   faListUl,
+  faImage,
 } from '@fortawesome/free-solid-svg-icons';
 import { EditorContent, useEditor } from '@tiptap/react';
 import clsx from 'clsx';
@@ -15,6 +16,7 @@ import {
   isPageContentRtlLocale,
   normalizeEditorHtml,
   PAGE_CONTENT_HEADING_LEVELS,
+  PAGE_CONTENT_LOGO_HTML,
 } from './page-content-editor';
 import './page-content-editor.css';
 
@@ -216,6 +218,15 @@ export default function PageContentEditor({
           }}
         >
           <FontAwesomeIcon icon={faLink} />
+        </ToolbarButton>
+        <ToolbarButton
+          label="Insert Logo"
+          onClick={() => {
+            editor.chain().focus().insertContent(PAGE_CONTENT_LOGO_HTML).run();
+          }}
+        >
+          <FontAwesomeIcon icon={faImage} />
+          <span className="ms-1 fw-semibold d-none d-md-inline">Logo</span>
         </ToolbarButton>
 
         {linkOpen && (

@@ -40,6 +40,7 @@ Route::group(
             Route::get('/service-provider-authorization-terms-and-conditions', 'serviceProviderAuthorizationTermsAndConditions')->name('service-provider-authorization-terms-and-conditions');
             Route::get('/how-to-use-agency', 'howToUseAgency')->name('how-to-use-agency');
             Route::get('/real-estate-marketplace-terms-of-use', 'realEstateMarketplaceTermsOfUse')->name('real-estate-marketplace-terms-of-use');
+            Route::get('/pages/{page}', 'cmsPage')->name('cms.pages.show');
             //    Route::get('/contact', 'contact')->name('contact');
             //    Route::post('/contact', 'sendContactMessage')->name('contact.send');
             //    Route::get('/privacy-policy', 'privacyPolicy')->name('privacy.policy');

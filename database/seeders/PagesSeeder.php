@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\Cms\Models\Page;
+use Modules\Cms\Support\PageHtmlSanitizer;
 
 /**
  * Seeds the Terms & Conditions CMS page (slug: terms) with clean placeholder HTML.
@@ -82,7 +83,7 @@ class PagesSeeder extends Seeder
 
         $mark = self::PLACEHOLDER_MARK;
 
-        return <<<HTML
+        $html = <<<HTML
 <h2>{$sectionAcceptance}</h2>
 <p>{$intro}</p>
 <p><strong>{$mark}</strong></p>
@@ -96,5 +97,8 @@ class PagesSeeder extends Seeder
 <li>{$mark}</li>
 </ol>
 HTML;
+
+        // Seed through the same prepare pipeline as admin save (sanitize + brand styles).
+        return PageHtmlSanitizer::prepare($html);
     }
 }

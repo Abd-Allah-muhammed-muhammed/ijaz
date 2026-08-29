@@ -1,9 +1,20 @@
+import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import Link from '@tiptap/extension-link';
 import StarterKit from '@tiptap/starter-kit';
 
 /** Locales that edit RTL in the Pages content editor. */
 export const PAGE_CONTENT_RTL_LOCALES = ['ar', 'ur'] as const;
+
+/**
+ * Official Ijaz logo — root-relative path matching existing web legal pages
+ * (`PrivacyAndPolicies.tsx`, etc.). Production-safe on any host; mobile WebViews
+ * should resolve against the API origin.
+ */
+export const PAGE_CONTENT_LOGO_SRC = '/media/logos/default.svg';
+
+export const PAGE_CONTENT_LOGO_HTML =
+  `<p style="text-align:center;"><img src="${PAGE_CONTENT_LOGO_SRC}" alt="Ijaz" width="120" height="120" /></p>`;
 
 /**
  * Safe HTML tags accepted by PageHtmlSanitizer / the constrained legal-text editor.
@@ -23,14 +34,15 @@ export const PAGE_CONTENT_ALLOWED_TAGS = [
   'strong',
   'em',
   'a',
+  'img',
 ] as const;
 
 /** Heading levels exposed in the toolbar (paragraph + these). */
 export const PAGE_CONTENT_HEADING_LEVELS = [2, 3] as const;
 
 /**
- * Constrained toolbar actions — same legal-text set as the previous Quill editor.
- * No fonts, colors, tables, media, strike, code, or blockquote.
+ * Constrained toolbar actions — legal-text set + Insert Logo.
+ * No fonts, colors, tables, free media upload, strike, code, or blockquote.
  */
 export const PAGE_CONTENT_TOOLBAR_ACTIONS = [
   'paragraph',
@@ -40,6 +52,7 @@ export const PAGE_CONTENT_TOOLBAR_ACTIONS = [
   'bulletList',
   'orderedList',
   'link',
+  'insertLogo',
 ] as const;
 
 export function isPageContentRtlLocale(locale: string): boolean {
@@ -82,6 +95,27 @@ export function getPageContentEditorExtensions(placeholder?: string) {
         target: '_blank',
       },
     }),
+    Image.extend({
+      addAttributes() {
+        return {
+          ...this.parent?.(),
+          style: {
+            default: null,
+            parseHTML: (element: HTMLElement) => element.getAttribute('style'),
+            renderHTML: (attributes: { style?: string | null }) => {
+              if (!attributes.style) {
+                return {};
+              }
+
+              return { style: attributes.style };
+            },
+          },
+        };
+      },
+    }).configure({
+      inline: false,
+      allowBase64: false,
+    }),
     Placeholder.configure({
       placeholder: placeholder || '',
     }),
@@ -112,5 +146,5 @@ export function normalizeEditorHtml(html: string): string {
 
 /** True when a string looks like semantic HTML (not a raw plain textarea value alone). */
 export function isStructuredHtmlContent(html: string): boolean {
-  return /<\/?(?:h[1-6]|p|ul|ol|li|strong|em|a)\b/i.test(html);
+  return /<\/?(?:h[1-6]|p|ul|ol|li|strong|em|a|img)\b/i.test(html);
 }
