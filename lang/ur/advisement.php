@@ -22,5 +22,15 @@ return [
         'used' => 'استعمال شدہ',
         'less_than_year' => 'سال سے کم',
     ],
+    'transmission' => [
+        'automatic' => 'آٹومیٹک',
+        'manual' => 'مینوئل',
+    ],
+    'fuel_type' => [
+        'petrol' => 'پٹرول',
+        'diesel' => 'ڈیزل',
+        'electric' => 'الیکٹرک',
+        'hybrid' => 'ہائبرڈ',
+    ],
     'status_updated_successfully' => 'حالت کامیابی سے اپ ڈیٹ ہوگئی',
 ];

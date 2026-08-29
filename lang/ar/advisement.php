@@ -22,5 +22,15 @@ return [
         'used' => 'مستعمل',
         'less_than_year' => 'أقل من سنة',
     ],
+    'transmission' => [
+        'automatic' => 'أوتوماتيك',
+        'manual' => 'يدوي',
+    ],
+    'fuel_type' => [
+        'petrol' => 'بنزين',
+        'diesel' => 'ديزل',
+        'electric' => 'كهربائي',
+        'hybrid' => 'هجين',
+    ],
     'status_updated_successfully' => 'تم تحديث الحالة بنجاح',
 ];

@@ -43,7 +43,7 @@ class CarAdvisementController extends Controller implements HasMiddleware
 
     public function show(CarAdvisement $carAdvisement): Response
     {
-        $carAdvisement->load(['carBrand', 'carType', 'carCategory', 'city', 'region', 'user', 'media']);
+        $carAdvisement->load(['carBrand', 'carType', 'carCategory', 'city', 'region', 'bank.translations', 'bank.media', 'user', 'media']);
 
         return inertia('Dashboard/CarAdvisement/Show', [
             'row' => CarAdvisementResource::make($carAdvisement),

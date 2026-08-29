@@ -36,6 +36,7 @@ final readonly class CarAdvisementDTO
         public ?float $longitude = null,
         public ?array $options = null,
         public ?array $files = null,
+        public ?int $bankId = null,
     ) {}
 
     public static function fromRequest(Request $request): self
@@ -66,6 +67,7 @@ final readonly class CarAdvisementDTO
             longitude: isset($validated['longitude']) ? (float) $validated['longitude'] : null,
             options: $validated['options'] ?? null,
             files: $request->hasFile('files') ? $request->file('files') : null,
+            bankId: isset($validated['bank_id']) ? (int) $validated['bank_id'] : null,
         );
     }
 
@@ -115,6 +117,7 @@ final readonly class CarAdvisementDTO
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'options' => $this->options,
+            'bank_id' => $this->bankId,
         ];
     }
 }

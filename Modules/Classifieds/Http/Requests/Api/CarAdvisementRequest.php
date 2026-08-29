@@ -5,9 +5,12 @@ namespace Modules\Classifieds\Http\Requests\Api;
 use App\Http\Requests\ApiRequest;
 use App\Rules\ValidPhoneRule;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use JsonException;
+use Modules\Classifieds\Enums\FuelTypeEnum;
 use Modules\Classifieds\Enums\OperationEnum;
+use Modules\Classifieds\Enums\TransmissionEnum;
 use Modules\Classifieds\Enums\UsageStatusEnum;
 
 class CarAdvisementRequest extends ApiRequest
@@ -39,8 +42,8 @@ class CarAdvisementRequest extends ApiRequest
             'region_id' => ['required', 'exists:regions,id'],
             'year' => ['required', 'integer', 'min:1900', 'max:'.(date('Y') + 1)],
             'mileage' => ['nullable', 'integer', 'min:0'],
-            'transmission' => ['nullable', 'string', 'max:255'],
-            'fuel_type' => ['nullable', 'string', 'max:255'],
+            'transmission' => ['nullable', new Enum(TransmissionEnum::class)],
+            'fuel_type' => ['nullable', new Enum(FuelTypeEnum::class)],
             'engine_size' => ['nullable', 'string', 'max:255'],
             'color' => ['nullable', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
@@ -50,6 +53,10 @@ class CarAdvisementRequest extends ApiRequest
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'options' => ['nullable', 'array'],
+            'bank_id' => [
+                'nullable',
+                Rule::exists('banks', 'id')->where('is_active', true),
+            ],
             'files' => ['nullable', 'array'],
             'files.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:'.(1024 * 5)],
         ];

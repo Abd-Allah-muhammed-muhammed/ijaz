@@ -24,6 +24,8 @@ final class CarAdvisementRepository implements CarAdvisementRepositoryInterface
                 'carCategory.translations',
                 'city.translations',
                 'region.translations',
+                'bank.translations',
+                'bank.media',
                 'media',
             ])
             ->latest()
@@ -42,6 +44,8 @@ final class CarAdvisementRepository implements CarAdvisementRepositoryInterface
                 'carCategory.translations',
                 'city.translations',
                 'region.translations',
+                'bank.translations',
+                'bank.media',
                 'user',
                 'media',
             ])
@@ -61,6 +65,8 @@ final class CarAdvisementRepository implements CarAdvisementRepositoryInterface
                 'carCategory.translations',
                 'city.translations',
                 'region.translations',
+                'bank.translations',
+                'bank.media',
                 'user',
                 'media',
             ])
@@ -105,6 +111,8 @@ final class CarAdvisementRepository implements CarAdvisementRepositoryInterface
                 'carCategory.translations',
                 'city.translations',
                 'region.translations',
+                'bank.translations',
+                'bank.media',
                 'user',
             ])
             ->paginate($request->integer('per_page', 10))

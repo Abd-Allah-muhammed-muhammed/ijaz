@@ -34,6 +34,8 @@ final class CreateCarAdvisementAction
                 'carCategory',
                 'city',
                 'region',
+                'bank.translations',
+                'bank.media',
                 'user',
                 'media',
             ]);

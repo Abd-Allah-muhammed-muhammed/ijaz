@@ -22,5 +22,15 @@ return [
         'used' => 'इस्तेमाल किया हुआ',
         'less_than_year' => 'एक साल से कम',
     ],
+    'transmission' => [
+        'automatic' => 'ऑटोमैटिक',
+        'manual' => 'मैनुअल',
+    ],
+    'fuel_type' => [
+        'petrol' => 'पेट्रोल',
+        'diesel' => 'डीज़ल',
+        'electric' => 'इलेक्ट्रिक',
+        'hybrid' => 'हाइब्रिड',
+    ],
     'status_updated_successfully' => 'स्थिति सफलतापूर्वक अपडेट की गई',
 ];

@@ -8,7 +8,9 @@ use Modules\Catalog\Models\CarBrand;
 use Modules\Catalog\Models\CarCategory;
 use Modules\Catalog\Models\CarType;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
+use Modules\Classifieds\Enums\FuelTypeEnum;
 use Modules\Classifieds\Enums\OperationEnum;
+use Modules\Classifieds\Enums\TransmissionEnum;
 use Modules\Classifieds\Enums\UsageStatusEnum;
 use Modules\Classifieds\Models\CarAdvisement;
 use Modules\Geo\Models\City;
@@ -40,8 +42,8 @@ final class CarAdvisementFactory extends Factory
             'car_category_id' => CarCategory::factory(),
             'year' => $this->faker->numberBetween(1990, now()->year + 1),
             'mileage' => $this->faker->numberBetween(0, 250000),
-            'transmission' => $this->faker->randomElement(['automatic', 'manual']),
-            'fuel_type' => $this->faker->randomElement(['petrol', 'diesel', 'hybrid', 'electric']),
+            'transmission' => $this->faker->randomElement(TransmissionEnum::cases())->value,
+            'fuel_type' => $this->faker->randomElement(FuelTypeEnum::cases())->value,
             'engine_size' => $this->faker->randomElement(['1.4', '1.6', '2.0', '2.5', '3.0']),
             'color' => $this->faker->randomElement(['black', 'white', 'silver', 'gray', 'red', 'blue', 'green']),
             'price' => $this->faker->numberBetween(10000, 500000),
