@@ -1,31 +1,65 @@
-import { KTIcon } from '@/vendor/metronic/helpers';
-import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
-import { Content } from '@/vendor/metronic/layout/components/content';
-import { PageTitle } from '@/vendor/metronic/layout/core';
 import CarAdvisementController from '@/actions/Modules/Classifieds/Http/Controllers/Dashboard/CarAdvisementController';
 import { AdvisementStatusEnum, OperationEnum, UsageStatusEnum } from '@/Enums/Advisements';
-import { Media, CarAdvisement } from '@/shared/types/models';
-import { Head, Link, router } from '@inertiajs/react';
 import usePermissions from '@/shared/hooks/use-permissions';
-import { ReactElement } from 'react';
+import { CarAdvisement, Media } from '@/shared/types/models';
+import { KTCard, KTCardBody, KTIcon } from '@/vendor/metronic/helpers';
+import { Content } from '@/vendor/metronic/layout/components/content';
+import { PageTitle } from '@/vendor/metronic/layout/core';
+import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
+import { Head, Link, router } from '@inertiajs/react';
+import { ReactElement, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 type Props = {
   row: CarAdvisement;
 };
 
-
-
-const operationConfig: Record<string, { badge: string; color: string }> = {
-  [OperationEnum.SALE]: { badge: 'badge-light-primary', color: 'text-primary' },
-  [OperationEnum.RENT]: { badge: 'badge-light-info', color: 'text-info' },
-  [OperationEnum.BUY]: { badge: 'badge-light-success', color: 'text-success' },
+const operationBadgeClass: Record<string, string> = {
+  [OperationEnum.SALE]: 'badge-light-primary',
+  [OperationEnum.RENT]: 'badge-light-info',
+  [OperationEnum.BUY]: 'badge-light-success',
 };
 
-const usageStatusConfig: Record<string, { badge: string; color: string }> = {
-    [UsageStatusEnum.NEW]: { badge: 'badge-light-success', color: 'text-success' },
-    [UsageStatusEnum.USED]: { badge: 'badge-light-warning', color: 'text-warning' },
+const usageBadgeClass: Record<string, string> = {
+  [UsageStatusEnum.NEW]: 'badge-light-success',
+  [UsageStatusEnum.USED]: 'badge-light-warning',
 };
+
+const statusBadgeClass: Record<string, string> = {
+  [AdvisementStatusEnum.PUBLISHED]: 'badge-light-success',
+  [AdvisementStatusEnum.PENDING]: 'badge-light-warning',
+  [AdvisementStatusEnum.REJECTED]: 'badge-light-danger',
+  [AdvisementStatusEnum.CLOSED]: 'badge-light-secondary',
+};
+
+const Field = ({ label, value }: { label: string; value?: ReactNode }) => (
+  <div>
+    <div className="text-muted fs-8 text-uppercase fw-bold mb-1">{label}</div>
+    <div className="fw-semibold text-gray-900 fs-6">{value || '—'}</div>
+  </div>
+);
+
+const MediaCard = ({ item }: { item: Media }) => (
+  <a
+    href={item.url}
+    target="_blank"
+    rel="noreferrer"
+    className="card border border-gray-200 shadow-xs rounded-4 text-decoration-none h-100 hover-elevate-up"
+    style={{ width: 160, minHeight: 170 }}
+  >
+    <div className="card-body d-flex flex-column align-items-center justify-content-center p-4">
+      <img
+        src={item.url}
+        alt=""
+        className="rounded-3 border border-gray-100 mb-3 object-fit-cover"
+        style={{ width: 96, height: 96 }}
+      />
+      <span className="fw-semibold text-gray-800 fs-8 text-center text-truncate w-100">
+        #{item.id}
+      </span>
+    </div>
+  </a>
+);
 
 const ShowCarAdvisement = ({ row }: Props) => {
   const { t } = useTranslation();
@@ -33,149 +67,130 @@ const ShowCarAdvisement = ({ row }: Props) => {
   const canEdit = hasPermission('edit carAdvisements');
   const canDelete = hasPermission('delete carAdvisements');
 
+  const createdDate = row.created_at ? new Date(row.created_at).toLocaleDateString() : '—';
+  const typeLabel = row.car_type?.name ?? row.car_brand?.name ?? t('car_advisement');
+  const subtitle = `${typeLabel} · ${createdDate}`;
+
+  const operationBadge =
+    operationBadgeClass[row.operation?.value as string] ?? 'badge-light-secondary';
+  const usageBadge = usageBadgeClass[row.usage_status?.value as string] ?? 'badge-light-secondary';
+  const statusBadge = statusBadgeClass[row.status?.value as string] ?? 'badge-light-secondary';
+
+  const options = Array.isArray(row.options) ? row.options : [];
+  const media = row.media ?? [];
+
   const handleStatusChange = (newStatus: string) => {
     router.put(CarAdvisementController.update(row.id as number).url, { status: newStatus }, { preserveScroll: true });
   };
 
-  const oCfg = operationConfig[row.operation?.value as string] ?? { badge: 'badge-light-secondary', color: 'text-gray-500' };
-  const uCfg = usageStatusConfig[row.usage_status?.value as string] ?? { badge: 'badge-light-secondary', color: 'text-gray-500' };
+  const confirmDelete = () => {
+    if (window.confirm(t('are_you_sure_delete'))) {
+      router.delete(CarAdvisementController.destroy(row.id as number).url);
+    }
+  };
 
   return (
     <Content>
       <Head title={`${t('view_car_advisement')} #${row.id}`} />
-      <PageTitle breadcrumbs={[{ title: t('car_advisements'), path: CarAdvisementController.index().url, isSeparator: false, isActive: false }]}>
+      <PageTitle
+        breadcrumbs={[
+          {
+            title: t('car_advisements'),
+            path: CarAdvisementController.index().url,
+            isSeparator: false,
+            isActive: false,
+          },
+        ]}
+      >
         {t('view_car_advisement')}
       </PageTitle>
 
-      <div className="d-flex flex-column gap-lg-10 gap-7">
-        {/* Header Section */}
-        <div className="card border-0 shadow-sm">
-          <div className="card-body p-9">
-            <div className="d-flex flex-sm-nowrap flex-wrap">
-              {/* Media Wrap */}
-              <div className="me-7 mb-4">
-                <div
-                  className="symbol symbol-100px symbol-lg-160px symbol-fixed position-relative rounded-3"
-                  style={{
-                    background: row.image ? `url(${row.image}) center/cover no-repeat` : 'linear-gradient(135deg, #f5f8fa 0%, #e4e6ef 100%)',
-                    width: '160px',
-                    height: '160px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {!row.image && <KTIcon iconName="car-2" className="fs-5x text-gray-400" />}
-
-                  <div className="position-absolute align-items-center justify-content-between d-flex inset-e-0 top-0 w-100 gap-2 p-2">
-                    <span className="badge bg-body fw-bold fs-8 text-gray-800 shadow-sm">#{row.id}</span>
+      <div className="d-flex flex-column gap-7 gap-lg-10">
+        {/* Header card — mirrors Guarantor Show */}
+        <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
+          <div className="card-body p-6 p-lg-8 bg-light-primary bg-opacity-10">
+            <div className="d-flex justify-content-between align-items-start flex-wrap gap-5 mb-6">
+              <div className="d-flex align-items-start gap-4 min-w-0">
+                <div className="symbol symbol-55px symbol-circle flex-shrink-0">
+                  <span className="symbol-label bg-white text-primary shadow-sm">
+                    <KTIcon iconName="car-2" className="fs-2x" />
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
+                    <h1 className="fs-2 fw-bolder text-gray-900 mb-0 text-truncate">{row.title}</h1>
+                    <span className={`badge ${statusBadge} rounded-pill fw-bold px-3 py-2`}>
+                      {row.status?.label ?? row.status?.value}
+                    </span>
+                    <span className={`badge ${operationBadge} rounded-pill fw-bold px-3 py-2`}>
+                      {row.operation?.label ?? row.operation?.value}
+                    </span>
+                    <span className={`badge ${usageBadge} rounded-pill fw-bold px-3 py-2`}>
+                      {row.usage_status?.label ?? row.usage_status?.value}
+                    </span>
                   </div>
+                  <div className="text-muted fw-semibold fs-6">{subtitle}</div>
                 </div>
               </div>
 
-              <div className="grow">
-                <div className="d-flex justify-content-between align-items-start mb-2 flex-wrap">
-                  <div className="d-flex flex-column">
-                    <div className="d-flex align-items-center mb-2 gap-2">
-                      <h3 className="fs-2 fw-bolder mb-0 text-gray-900">{row.title}</h3>
-                      <span className={`badge ${oCfg.badge} fw-bolder fs-8`}>{row.operation?.label ?? row.operation?.value}</span>
-                      <span className={`badge ${uCfg.badge} fw-bolder fs-8`}>{row.usage_status?.label ?? row.usage_status?.value}</span>
-                    </div>
+              {/* Action group: Back (ghost) then Delete (danger). Same flex pattern as Guarantor — logical end alignment works in LTR and RTL. */}
+              <div className="d-flex gap-2 flex-wrap align-items-center">
+                <Link
+                  href={CarAdvisementController.index().url}
+                  className="btn btn-sm btn-light btn-active-light-primary rounded-pill"
+                >
+                  <KTIcon iconName="arrow-left" className="fs-6" />
+                  {t('back')}
+                </Link>
+                {canDelete && (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-light-danger rounded-pill"
+                    onClick={confirmDelete}
+                  >
+                    <KTIcon iconName="trash" className="fs-5" />
+                    {t('delete')}
+                  </button>
+                )}
+              </div>
+            </div>
 
-                    <div className="d-flex fw-bold fs-6 mb-4 flex-wrap gap-4 pe-2">
-                      {row.car_brand && (
-                        <div className="d-flex align-items-center hover-primary text-gray-500">
-                          <KTIcon iconName="car-2" className="fs-6 text-primary me-1" />
-                          {row.car_brand.name}
-                        </div>
-                      )}
-                      {row.car_type && (
-                        <div className="d-flex align-items-center hover-primary text-gray-500">
-                          <KTIcon iconName="car" className="fs-6 text-info me-1" />
-                          {row.car_type.name}
-                        </div>
-                      )}
-                      {row.city && (
-                        <div className="d-flex align-items-center hover-primary text-gray-500">
-                          <KTIcon iconName="map" className="fs-6 text-info me-1" />
-                          {row.city.title}
-                        </div>
-                      )}
-                      {row.phone && (
-                        <div className="d-flex align-items-center hover-primary text-gray-500">
-                          <KTIcon iconName="phone" className="fs-6 text-success me-1" />
-                          {row.phone}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="d-flex my-4 gap-3">
-                    <Link href={CarAdvisementController.index().url} className="btn btn-sm btn-light">
-                      <KTIcon iconName="arrow-left" className="fs-6 px-1" />
-                      {t('back')}
-                    </Link>
-                    {canDelete && (
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-icon btn-light-danger"
-                        onClick={() => {
-                          if (window.confirm(t('are_you_sure_delete'))) {
-                            router.delete(CarAdvisementController.destroy(row.id as number).url);
-                          }
-                        }}
-                      >
-                        <KTIcon iconName="trash" className="fs-3" />
-                      </button>
+            <div className="row g-4">
+              <div className="col-6 col-md-3">
+                <div className="bg-white rounded-3 p-4 border border-gray-100 h-100">
+                  <div className="text-muted fs-8 text-uppercase fw-bold mb-1">{t('price')}</div>
+                  <div className="fs-3 fw-bolder text-gray-900">
+                    {row.show_price ? (
+                      <>
+                        {Number(row.price).toLocaleString()}{' '}
+                        <span className="fs-6 text-muted fw-semibold">{t('SAR')}</span>
+                      </>
+                    ) : (
+                      <span className="fs-5 fst-italic text-muted">{t('not_available')}</span>
                     )}
                   </div>
                 </div>
-
-                {/* Info Stats */}
-                <div className="d-flex flex-stack flex-wrap">
-                  <div className="d-flex flex-column grow pe-8">
-                    <div className="d-flex flex-wrap gap-6">
-                      <div className="min-w-125px me-3 mb-3 rounded border border-dashed border-gray-300 px-4 py-3">
-                        <div className="d-flex align-items-center">
-                          <div className={`fs-2 fw-bolder ${oCfg.color}`}>
-                            {row.show_price ? (
-                              <>
-                                {Number(row.price).toLocaleString()} <span className="fs-6 text-gray-600">{t('SAR')}</span>
-                              </>
-                            ) : (
-                              <span className="fs-5 fst-italic text-gray-600">{t('not_available')}</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="fw-bold fs-6 text-gray-500">{t('price')}</div>
-                      </div>
-
-                      <div className="min-w-100px me-3 mb-3 rounded border border-dashed border-gray-300 px-4 py-3">
-                        <div className="d-flex align-items-center gap-2">
-                          <KTIcon iconName="speedometer-2" className="fs-3 text-success" />
-                          <div className="fs-2 fw-bolder text-gray-900">
-                            {row.mileage ?? 0} <span className="fs-6 d-none d-xxl-inline">{t('km')}</span>
-                          </div>
-                        </div>
-                        <div className="fw-bold fs-6 text-gray-500">{t('mileage')}</div>
-                      </div>
-
-                      <div className="min-w-100px me-3 mb-3 rounded border border-dashed border-gray-300 px-4 py-3">
-                        <div className="d-flex align-items-center gap-2">
-                          <KTIcon iconName="calendar-8" className="fs-3 text-primary" />
-                          <div className="fs-2 fw-bolder text-gray-900">{row.year ?? '-'}</div>
-                        </div>
-                        <div className="fw-bold fs-6 text-gray-500">{t('year')}</div>
-                      </div>
-
-                      <div className="min-w-100px me-3 mb-3 rounded border border-dashed border-gray-300 px-4 py-3">
-                        <div className="d-flex align-items-center gap-2">
-                          <KTIcon iconName="gear" className="fs-3 text-info" />
-                          <div className="fs-2 fw-bolder text-gray-900">{row.transmission?.label ?? row.transmission?.value ?? '-'}</div>
-                        </div>
-                        <div className="fw-bold fs-6 text-gray-500">{t('transmission')}</div>
-                      </div>
-                    </div>
+              </div>
+              <div className="col-6 col-md-3">
+                <div className="bg-white rounded-3 p-4 border border-gray-100 h-100">
+                  <div className="text-muted fs-8 text-uppercase fw-bold mb-1">{t('mileage')}</div>
+                  <div className="fs-3 fw-bolder text-gray-900">
+                    {row.mileage ?? 0}{' '}
+                    <span className="fs-6 text-muted fw-semibold">{t('km')}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="col-6 col-md-3">
+                <div className="bg-white rounded-3 p-4 border border-gray-100 h-100">
+                  <div className="text-muted fs-8 text-uppercase fw-bold mb-1">{t('year')}</div>
+                  <div className="fs-3 fw-bolder text-gray-900">{row.year ?? '—'}</div>
+                </div>
+              </div>
+              <div className="col-6 col-md-3">
+                <div className="bg-white rounded-3 p-4 border border-gray-100 h-100">
+                  <div className="text-muted fs-8 text-uppercase fw-bold mb-1">{t('transmission')}</div>
+                  <div className="fs-3 fw-bolder text-gray-900">
+                    {row.transmission?.label ?? row.transmission?.value ?? '—'}
                   </div>
                 </div>
               </div>
@@ -183,161 +198,126 @@ const ShowCarAdvisement = ({ row }: Props) => {
           </div>
         </div>
 
-        <div className="row g-7 mx-0">
-          {/* Details / Desc */}
-          <div className="col-xl-8 ps-0">
-            <div className="card mb-xl-8 mb-5 border-0 shadow-sm">
-              <div className="card-header border-0 pt-6">
-                <div className="card-title">
-                  <h3 className="fw-bolder m-0">{t('car_description')}</h3>
-                </div>
-              </div>
-              <div className="card-body pt-4">
-                <div className="fs-5 fw-semibold mb-8 whitespace-pre-wrap text-gray-700">
-                  {row.description || <span className="text-muted fst-italic">{t('no_description')}</span>}
-                </div>
+        <div className="row g-7">
+          <div className="col-xl-8">
+            <KTCard className="border-0 shadow-sm rounded-4 mb-7">
+              <KTCardBody className="p-6 p-lg-9">
+                <div className="d-flex flex-column gap-6">
+                  <div>
+                    <div className="text-muted fs-8 text-uppercase fw-bold mb-2">{t('car_description')}</div>
+                    <p className={`fs-6 mb-0 lh-lg ${row.description ? 'text-gray-800' : 'text-muted'}`}>
+                      {row.description || t('no_description')}
+                    </p>
+                  </div>
 
-                <div className="separator separator-dashed my-8"></div>
+                  <div className="separator separator-dashed my-1" />
 
-                <h3 className="fw-bolder m-0 mb-5">{t('features_and_options')}</h3>
-                {row.options && Array.isArray(row.options) && row.options.length > 0 ? (
-                  <div className="d-flex flex-wrap gap-2">
-                    {row.options.map((opt, i) => (
-                      <span key={i} className="badge badge-light-primary fs-7 fw-bold px-4 py-3">
-                        <KTIcon iconName="check" className="fs-6 text-primary me-1" /> {opt}
-                      </span>
+                  <div>
+                    <div className="text-muted fs-8 text-uppercase fw-bold mb-3">{t('features_and_options')}</div>
+                    {options.length > 0 ? (
+                      <div className="d-flex flex-wrap gap-2">
+                        {options.map((opt, i) => (
+                          <span
+                            key={`${opt}-${i}`}
+                            className="badge badge-light-primary rounded-pill fw-bold px-3 py-2"
+                          >
+                            {String(opt)}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-muted fst-italic fs-6">{t('no_features_listed')}</span>
+                    )}
+                  </div>
+                </div>
+              </KTCardBody>
+            </KTCard>
+
+            <KTCard className="border-0 shadow-sm rounded-4">
+              <KTCardBody className="p-6 p-lg-9">
+                <h3 className="fw-bolder text-gray-900 mb-5">{t('media')}</h3>
+                {media.length > 0 ? (
+                  <div className="d-flex flex-wrap gap-4">
+                    {media.map((med: Media) => (
+                      <MediaCard key={med.id} item={med} />
                     ))}
                   </div>
                 ) : (
-                  <span className="text-muted fst-italic">{t('no_features_listed')}</span>
+                  <div
+                    className="rounded-4 border border-dashed border-gray-300 bg-light d-flex flex-column align-items-center justify-content-center text-center px-4 py-8"
+                  >
+                    <KTIcon iconName="picture" className="fs-2x text-gray-400 mb-2" />
+                    <span className="text-muted fs-8 fw-semibold">{t('no_media', { defaultValue: 'No media uploaded' })}</span>
+                  </div>
                 )}
-              </div>
-            </div>
-
-            <div className="card border-0 shadow-sm">
-              <div className="card-header border-0 pt-6">
-                <div className="card-title">
-                  <h3 className="fw-bolder m-0">{t('media')}</h3>
-                </div>
-              </div>
-              <div className="card-body pt-4 pb-8">
-                <div className="row g-4">
-                  {row.media?.map((med: Media) => (
-                    <div className="col-md-4 col-sm-6" key={med.id}>
-                      <div
-                        className="rounded-3"
-                        style={{
-                          height: '150px',
-                          background: `url(${med.url}) center/cover no-repeat`,
-                          border: '1px solid #e4e6ef',
-                        }}
-                      ></div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+              </KTCardBody>
+            </KTCard>
           </div>
 
-          {/* Meta Info Sidebar */}
-          <div className="col-xl-4 pe-0">
-            <div className="card mb-5 border-0 shadow-sm">
-              <div className="card-header border-0 pt-6">
-                <div className="card-title">
-                  <h3 className="fw-bolder m-0">{t('advertiser')}</h3>
-                </div>
-              </div>
-              <div className="card-body pt-4">
-                <div className="d-flex align-items-center gap-4">
+          <div className="col-xl-4">
+            <div className="card border-0 shadow-xs rounded-4 h-auto bg-light mb-7">
+              <div className="card-body p-5">
+                <div className="text-muted fs-8 text-uppercase fw-bold mb-3">{t('advertiser')}</div>
+                <div className="d-flex align-items-center gap-3">
                   <div className="symbol symbol-50px symbol-circle">
                     {row.user?.image ? (
-                      <img src={row.user.image} alt="Avatar" />
+                      <img src={row.user.image} alt="" />
                     ) : (
-                      <span className="symbol-label bg-light-primary text-primary fs-3 fw-bold">{row.user?.name?.charAt(0).toUpperCase()}</span>
+                      <span className="symbol-label bg-light-primary text-primary fw-bolder fs-4">
+                        {row.user?.name?.charAt(0)?.toUpperCase() ?? '?'}
+                      </span>
                     )}
                   </div>
-                  <div className="d-flex flex-column">
-                    <span className="fw-bold fs-5 text-gray-900">{row.user?.name}</span>
-                    {row.user?.phone && <span className="text-muted fs-7">{row.user.phone}</span>}
-                    {row.user?.email && <span className="text-muted fs-7">{row.user.email}</span>}
+                  <div className="min-w-0">
+                    <div className="fw-bolder text-gray-900 fs-5 text-truncate">{row.user?.name ?? '—'}</div>
+                    {row.user?.phone ? (
+                      <div className="text-muted fs-7" dir="ltr">
+                        {row.user.phone}
+                      </div>
+                    ) : (
+                      <div className="text-muted fs-7">—</div>
+                    )}
+                    {row.user?.email && <div className="text-muted fs-7 text-truncate">{row.user.email}</div>}
                   </div>
                 </div>
               </div>
             </div>
-            <div className="card border-0 shadow-sm">
-              <div className="card-header border-0 pt-6">
-                <div className="card-title">
-                  <h3 className="fw-bolder m-0">{t('car_details')}</h3>
-                </div>
-              </div>
-              <div className="card-body pt-4">
-                <div className="d-flex flex-column gap-5">
-                  <div className="d-flex align-items-center justify-content-between">
-                    <span className="text-muted fw-semibold">{t('brand')}</span>
-                    <span className="fs-6 fw-bold text-gray-900">{row.car_brand?.name ?? '-'}</span>
-                  </div>
-                  <div className="separator separator-dashed"></div>
 
-                  <div className="d-flex align-items-center justify-content-between">
-                    <span className="text-muted fw-semibold">{t('type')}</span>
-                    <span className="fs-6 fw-bold text-gray-900">{row.car_type?.name ?? '-'}</span>
+            <div className="card border-0 bg-light rounded-4 shadow-xs mb-7">
+              <div className="card-body p-5">
+                <h4 className="fw-bolder text-gray-900 mb-5">{t('car_details')}</h4>
+                <div className="row g-5">
+                  <div className="col-12">
+                    <Field label={t('brand')} value={row.car_brand?.name} />
                   </div>
-                  <div className="separator separator-dashed"></div>
-
-                  <div className="d-flex align-items-center justify-content-between">
-                    <span className="text-muted fw-semibold">{t('fuel_type')}</span>
-                    <span className="fs-6 fw-bold text-gray-900">{row.fuel_type?.label ?? row.fuel_type?.value ?? '-'}</span>
+                  <div className="col-12">
+                    <Field label={t('type')} value={row.car_type?.name} />
                   </div>
-                  <div className="separator separator-dashed"></div>
-
-                  <div className="d-flex align-items-center justify-content-between">
-                    <span className="text-muted fw-semibold">{t('engine_size')}</span>
-                    <span className="fs-6 fw-bold text-gray-900">{row.engine_size ?? '-'}</span>
+                  <div className="col-12">
+                    <Field
+                      label={t('fuel_type')}
+                      value={row.fuel_type?.label ?? row.fuel_type?.value}
+                    />
                   </div>
-                  <div className="separator separator-dashed"></div>
-
-                  <div className="d-flex align-items-center justify-content-between">
-                    <span className="text-muted fw-semibold">{t('color')}</span>
-                    <span className="fs-6 fw-bold text-gray-900">{row.color ?? '-'}</span>
+                  <div className="col-12">
+                    <Field label={t('engine_size')} value={row.engine_size} />
                   </div>
-                  <div className="separator separator-dashed"></div>
-
-                  <div className="d-flex align-items-center justify-content-between">
-                    <span className="text-muted fw-semibold">{t('financing_bank')}</span>
-                    {row.bank ? (
-                      <span className="d-flex align-items-center gap-2 fs-6 fw-bold text-gray-900">
-                        {row.bank.logo && (
-                          <img
-                            src={row.bank.logo}
-                            alt=""
-                            className="rounded"
-                            style={{ width: 28, height: 28, objectFit: 'contain' }}
-                          />
-                        )}
-                        <span>{row.bank.name}</span>
-                      </span>
-                    ) : (
-                      <span className="fs-6 fw-semibold text-muted fst-italic">{t('no_financing_bank_selected')}</span>
-                    )}
+                  <div className="col-12">
+                    <Field label={t('color')} value={row.color} />
                   </div>
-                  <div className="separator separator-dashed"></div>
-
-                  <div className="d-flex align-items-center justify-content-between">
-                    <span className="text-muted fw-semibold">{t('region')}</span>
-                    <span className="fs-6 fw-bold text-gray-900">{row.region?.title ?? '-'}</span>
+                  <div className="col-12">
+                    <Field
+                      label={t('region')}
+                      value={[row.city?.title, row.region?.title].filter(Boolean).join(', ')}
+                    />
                   </div>
-                  <div className="separator separator-dashed"></div>
-
-                  <div className="d-flex align-items-center justify-content-between">
-                    <span className="text-muted fw-semibold">{t('city')}</span>
-                    <span className="fs-6 fw-bold text-gray-900">{row.city?.title ?? '-'}</span>
+                  <div className="col-12">
+                    <Field label={t('created_at')} value={createdDate} />
                   </div>
-                  <div className="separator separator-dashed"></div>
-
-                  <div className="d-flex align-items-center justify-content-between">
-                    <span className="text-muted fw-semibold">{t('advisement_status')}</span>
+                  <div className="col-12">
+                    <div className="text-muted fs-8 text-uppercase fw-bold mb-1">{t('advisement_status')}</div>
                     <select
-                      className={`form-select form-select-sm form-select-solid fw-bold fs-7 w-150px`}
+                      className="form-select form-select-sm form-select-solid fw-bold fs-7"
                       value={row.status?.value}
                       disabled={!canEdit}
                       onChange={(e) => {
@@ -351,13 +331,37 @@ const ShowCarAdvisement = ({ row }: Props) => {
                       <option value={AdvisementStatusEnum.CLOSED}>{t('advisement.status.closed')}</option>
                     </select>
                   </div>
-                  <div className="separator separator-dashed"></div>
-
-                  <div className="d-flex align-items-center justify-content-between">
-                    <span className="text-muted fw-semibold">{t('created_at')}</span>
-                    <span className="fs-6 fw-bold text-gray-900">{row.created_at ? new Date(row.created_at).toLocaleDateString() : '-'}</span>
-                  </div>
                 </div>
+              </div>
+            </div>
+
+            <div className="card border border-dashed border-gray-300 rounded-4 bg-white shadow-xs">
+              <div className="card-body p-5">
+                <div className="d-flex align-items-center gap-2 mb-4">
+                  <KTIcon iconName="bank" className="fs-2 text-primary" />
+                  <h4 className="fw-bolder text-gray-900 mb-0">{t('financing_bank')}</h4>
+                </div>
+                {row.bank ? (
+                  <div className="d-flex align-items-center gap-3">
+                    {row.bank.logo ? (
+                      <img
+                        src={row.bank.logo}
+                        alt=""
+                        className="rounded border border-gray-100"
+                        style={{ width: 40, height: 40, objectFit: 'contain' }}
+                      />
+                    ) : (
+                      <div className="symbol symbol-40px symbol-circle">
+                        <span className="symbol-label bg-light-primary text-primary">
+                          <KTIcon iconName="bank" className="fs-3" />
+                        </span>
+                      </div>
+                    )}
+                    <div className="fw-bolder text-gray-900 fs-5">{row.bank.name}</div>
+                  </div>
+                ) : (
+                  <div className="text-muted fs-6 fst-italic">{t('no_financing_bank_selected')}</div>
+                )}
               </div>
             </div>
           </div>
