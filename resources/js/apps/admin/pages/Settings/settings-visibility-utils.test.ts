@@ -32,19 +32,15 @@ describe('Settings Index visibility control', () => {
 })
 
 describe('Settings history UI', () => {
-  it('each setting field has a "View history" action showing past changes (old -> new, actor, timestamp) in a simple list, mirroring the Timeline style used on Guarantor Show', () => {
+  it('the Settings page no longer renders any "View history" trigger, modal, or related UI for any field', () => {
     const settingsSrc = readFileSync(join(__dirname, 'Index.tsx'), 'utf8')
-    const guarantorSrc = readFileSync(join(__dirname, '..', 'Guarantor', 'Show.tsx'), 'utf8')
 
-    expect(settingsSrc).toContain('view_history')
-    expect(settingsSrc).toContain('SettingHistoryModal')
-    expect(settingsSrc).toContain('old_content')
-    expect(settingsSrc).toContain('new_content')
-    expect(settingsSrc).toContain('actor')
-    expect(settingsSrc).toContain('created_at')
-
-    // Reuse the same timeline rail pattern from Guarantor Show
-    expect(guarantorSrc).toContain('rounded-circle border border-3')
-    expect(settingsSrc).toContain('rounded-circle border border-3')
+    expect(settingsSrc).not.toContain('view_history')
+    expect(settingsSrc).not.toContain('SettingHistoryModal')
+    expect(settingsSrc).not.toContain('onViewHistory')
+    expect(settingsSrc).not.toContain('historyKey')
+    expect(settingsSrc).not.toContain('old_content')
+    expect(settingsSrc).not.toContain('new_content')
+    expect(settingsSrc).not.toMatch(/\.history\(/)
   })
 })

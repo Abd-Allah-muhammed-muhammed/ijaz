@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use Modules\Settings\Http\Controllers\Dashboard\SettingController;
 use Modules\Settings\Models\Setting;
 use Modules\Settings\Models\SettingHistory;
@@ -148,6 +149,7 @@ test('updating a setting value creates a setting_histories row with the actor, o
         ->and($history->old_content)->toBe('966500000000')
         ->and($history->new_content)->toBe('966511111111')
         ->and($history->admin_id)->toBe($admin->id)
+        ->and($history->actor_name)->toBe($admin->name)
         ->and($history->created_at)->not->toBeNull();
 
     // Unchanged value must not create a noise row
@@ -160,6 +162,91 @@ test('updating a setting value creates a setting_histories row with the actor, o
         ->assertRedirect();
 
     expect(SettingHistory::query()->where('key', 'phone')->count())->toBe($countBefore);
+});
+
+test('a setting_histories row captures both admin_id and a snapshotted actor_name at the moment of the change', function () {
+    $admin = createSettingsDashboardAdmin(['edit settings']);
+    $admin->forceFill(['name' => 'Snapshot Admin Name'])->save();
+
+    Setting::query()->updateOrCreate(
+        ['key' => 'email'],
+        ['content' => 'before@ijaz.sa', 'group' => 'general', 'is_public' => true],
+    );
+
+    $this->actingAs($admin, 'admin')
+        ->put(action([SettingController::class, 'update']), [
+            'values' => ['email' => 'after@ijaz.sa'],
+        ])
+        ->assertRedirect();
+
+    $history = SettingHistory::query()->where('key', 'email')->latest('id')->first();
+
+    expect($history)->not->toBeNull()
+        ->and($history->admin_id)->toBe($admin->id)
+        ->and($history->actor_name)->toBe('Snapshot Admin Name');
+});
+
+test('actor_name remains readable/correct even if the admin_id record is later deleted (simulate deletion, confirm actor_name is untouched)', function () {
+    $admin = createSettingsDashboardAdmin(['edit settings']);
+    $admin->forceFill(['name' => 'Deleted Admin Snapshot'])->save();
+
+    Setting::query()->updateOrCreate(
+        ['key' => 'whatsapp'],
+        ['content' => '966500000000', 'group' => 'general', 'is_public' => true],
+    );
+
+    $this->actingAs($admin, 'admin')
+        ->put(action([SettingController::class, 'update']), [
+            'values' => ['whatsapp' => '966511111111'],
+        ])
+        ->assertRedirect();
+
+    $historyId = SettingHistory::query()->where('key', 'whatsapp')->latest('id')->value('id');
+    expect($historyId)->not->toBeNull();
+
+    $admin->delete();
+
+    $history = SettingHistory::query()->find($historyId);
+
+    expect($history)->not->toBeNull()
+        ->and($history->admin_id)->toBeNull()
+        ->and($history->actor_name)->toBe('Deleted Admin Snapshot')
+        ->and($history->old_content)->toBe('966500000000')
+        ->and($history->new_content)->toBe('966511111111');
+});
+
+test('the "View history" endpoint no longer exists — route removed', function () {
+    expect(Route::has('dashboard.settings.history'))->toBeFalse();
+
+    $admin = createSettingsDashboardAdmin(['show settings']);
+
+    $this->actingAs($admin, 'admin')
+        ->get('/dashboard/settings/phone/history')
+        ->assertNotFound();
+});
+
+test('updating a setting still logs to setting_histories correctly — regression, only the actor snapshot and UI removal changed, not the core logging behavior', function () {
+    $admin = createSettingsDashboardAdmin(['edit settings']);
+
+    Setting::query()->updateOrCreate(
+        ['key' => 'telegram'],
+        ['content' => 'old', 'group' => 'general', 'is_public' => true],
+    );
+
+    $this->actingAs($admin, 'admin')
+        ->put(action([SettingController::class, 'update']), [
+            'values' => ['telegram' => 'new'],
+        ])
+        ->assertRedirect();
+
+    expect(SettingHistory::query()->where('key', 'telegram')->count())->toBe(1);
+
+    $history = SettingHistory::query()->where('key', 'telegram')->first();
+
+    expect($history->old_content)->toBe('old')
+        ->and($history->new_content)->toBe('new')
+        ->and($history->admin_id)->toBe($admin->id)
+        ->and($history->actor_name)->toBe($admin->name);
 });
 
 test('is_public can no longer be changed via the Dashboard update endpoint — sending is_public in the request is ignored/rejected, only readable via GET', function () {
@@ -191,26 +278,4 @@ test('is_public can no longer be changed via the Dashboard update endpoint — s
                     && ($row['is_public'] ?? null) === false
             ))
         );
-});
-
-test('settings history endpoint returns past changes for a key', function () {
-    $admin = createSettingsDashboardAdmin(['show settings', 'edit settings']);
-
-    Setting::query()->updateOrCreate(
-        ['key' => 'email'],
-        ['content' => 'old@ijaz.sa', 'group' => 'general', 'is_public' => true],
-    );
-
-    $this->actingAs($admin, 'admin')
-        ->put(action([SettingController::class, 'update']), [
-            'values' => ['email' => 'new@ijaz.sa'],
-        ])
-        ->assertRedirect();
-
-    $this->actingAs($admin, 'admin')
-        ->getJson(action([SettingController::class, 'history'], ['key' => 'email']))
-        ->assertSuccessful()
-        ->assertJsonPath('data.0.old_content', 'old@ijaz.sa')
-        ->assertJsonPath('data.0.new_content', 'new@ijaz.sa')
-        ->assertJsonPath('data.0.actor.name', $admin->name);
 });

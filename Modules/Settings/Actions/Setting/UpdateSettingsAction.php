@@ -21,6 +21,7 @@ class UpdateSettingsAction
         DB::transaction(function () use ($dto, $admin): void {
             $existing = $this->repository->pluckContentByKeys(array_keys($dto->values));
             $contentUpdates = [];
+            $actorName = $admin?->name;
 
             foreach ($dto->values as $key => $newContent) {
                 if (! array_key_exists($key, $existing)) {
@@ -41,6 +42,7 @@ class UpdateSettingsAction
                     'old_content' => $oldContent,
                     'new_content' => $normalizedNew,
                     'admin_id' => $admin?->id,
+                    'actor_name' => $actorName,
                 ]);
             }
 

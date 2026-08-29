@@ -6,12 +6,10 @@ use App\Models\Admin;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
 use Modules\Settings\Actions\Setting\ListPublicSettingsAction;
-use Modules\Settings\Actions\Setting\ListSettingHistoryAction;
 use Modules\Settings\Actions\Setting\ListSettingsGroupedAction;
 use Modules\Settings\Actions\Setting\UpdateSettingsAction;
 use Modules\Settings\DTOs\UpdateSettingsDTO;
 use Modules\Settings\Models\Setting;
-use Modules\Settings\Models\SettingHistory;
 
 class SettingService
 {
@@ -19,7 +17,6 @@ class SettingService
         private readonly ListSettingsGroupedAction $listGroupedAction,
         private readonly UpdateSettingsAction $updateAction,
         private readonly ListPublicSettingsAction $listPublicAction,
-        private readonly ListSettingHistoryAction $listHistoryAction,
     ) {}
 
     /**
@@ -41,13 +38,5 @@ class SettingService
     public function publicBag(): array
     {
         return $this->listPublicAction->handle();
-    }
-
-    /**
-     * @return Collection<int, SettingHistory>
-     */
-    public function historyForKey(string $key): Collection
-    {
-        return $this->listHistoryAction->handle($key);
     }
 }

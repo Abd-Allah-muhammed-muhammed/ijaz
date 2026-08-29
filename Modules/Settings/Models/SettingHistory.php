@@ -15,6 +15,7 @@ class SettingHistory extends Model
         'old_content',
         'new_content',
         'admin_id',
+        'actor_name',
         'created_at',
     ];
 
