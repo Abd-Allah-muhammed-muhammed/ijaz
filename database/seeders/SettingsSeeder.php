@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\Payment\Services\PaymentService;
 use Modules\Settings\Enums\SettingGroupEnum;
 use Modules\Settings\Enums\SettingTypeEnum;
 use Modules\Settings\Models\Setting;
@@ -17,68 +18,83 @@ class SettingsSeeder extends Seeder
      *
      * type defaults to text via the column default; only long-form notes set
      * textarea explicitly so updateOrCreate backfills existing rows.
+     *
+     * section is nullable — only General contact/social keys set it so the
+     * dashboard can group without dropping uncategorized/future keys.
      */
     public function run(): void
     {
+        $driverFeesKey = app(PaymentService::class)->getDefaultDriver().'_fees';
+
         $settings = collect([
             [
                 'key' => 'youtube',
                 'content' => '',
                 'group' => SettingGroupEnum::General,
+                'section' => 'social',
                 'is_public' => true,
             ],
             [
                 'key' => 'facebook',
                 'content' => '',
                 'group' => SettingGroupEnum::General,
+                'section' => 'social',
                 'is_public' => true,
             ],
             [
                 'key' => 'whatsapp',
                 'content' => '966500000000',
                 'group' => SettingGroupEnum::General,
+                'section' => 'contact',
                 'is_public' => true,
             ],
             [
                 'key' => 'x',
                 'content' => '',
                 'group' => SettingGroupEnum::General,
+                'section' => 'social',
                 'is_public' => true,
             ],
             [
                 'key' => 'instagram',
                 'content' => '',
                 'group' => SettingGroupEnum::General,
+                'section' => 'social',
                 'is_public' => true,
             ],
             [
                 'key' => 'tiktok',
                 'content' => '',
                 'group' => SettingGroupEnum::General,
+                'section' => 'social',
                 'is_public' => true,
             ],
             [
                 'key' => 'snapchat',
                 'content' => '',
                 'group' => SettingGroupEnum::General,
+                'section' => 'social',
                 'is_public' => true,
             ],
             [
                 'key' => 'telegram',
                 'content' => '',
                 'group' => SettingGroupEnum::General,
+                'section' => 'contact',
                 'is_public' => true,
             ],
             [
                 'key' => 'phone',
                 'content' => '966500000000',
                 'group' => SettingGroupEnum::General,
+                'section' => 'contact',
                 'is_public' => true,
             ],
             [
                 'key' => 'email',
                 'content' => 'info@ijaz.sa',
                 'group' => SettingGroupEnum::General,
+                'section' => 'contact',
                 'is_public' => true,
             ],
             [
@@ -138,6 +154,12 @@ class SettingsSeeder extends Seeder
                 'group' => SettingGroupEnum::Guarantor,
                 'is_public' => false,
             ],
+            [
+                'key' => $driverFeesKey,
+                'content' => '15',
+                'group' => SettingGroupEnum::Payment,
+                'is_public' => false,
+            ],
         ]);
 
         $settings->each(function (array $setting): void {
@@ -149,6 +171,10 @@ class SettingsSeeder extends Seeder
 
             if (array_key_exists('type', $setting)) {
                 $attributes['type'] = $setting['type'];
+            }
+
+            if (array_key_exists('section', $setting)) {
+                $attributes['section'] = $setting['section'];
             }
 
             Setting::query()->updateOrCreate(

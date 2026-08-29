@@ -1,5 +1,7 @@
 <?php
 
+use Database\Seeders\SettingsSeeder;
+use Modules\Payment\Services\PaymentService;
 use Modules\Settings\Actions\Setting\ListPublicSettingsAction;
 use Modules\Settings\Http\Controllers\Dashboard\SettingController;
 use Modules\Settings\Models\Setting;
@@ -22,6 +24,26 @@ test('admin with show settings can view settings dashboard index', function () {
             ->has('groupOrder')
             ->where('groups.general', fn ($rows) => collect($rows)->contains(
                 fn ($row) => ($row['key'] ?? null) === 'phone' && ($row['type'] ?? null) === 'text'
+            ))
+        );
+});
+
+test('the Payment tab now shows at least one field after the seeder is updated', function () {
+    withoutSettingsDashboardLocaleMiddleware();
+    $admin = createSettingsDashboardAdmin(['show settings']);
+
+    $this->seed(SettingsSeeder::class);
+
+    $driverFeesKey = app(PaymentService::class)->getDefaultDriver().'_fees';
+
+    $this->actingAs($admin, 'admin')
+        ->get(action([SettingController::class, 'index']))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Settings/Index')
+            ->has('groups.payment')
+            ->where('groups.payment', fn ($rows) => collect($rows)->contains(
+                fn ($row) => ($row['key'] ?? null) === $driverFeesKey
             ))
         );
 });

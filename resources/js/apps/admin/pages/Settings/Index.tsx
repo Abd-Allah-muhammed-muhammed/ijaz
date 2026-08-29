@@ -4,7 +4,7 @@ import { PageTitle } from '@/vendor/metronic/layout/core';
 import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
 import { Content } from '@/vendor/metronic/layout/components/content';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { KTCard, KTCardBody } from '@/vendor/metronic/helpers';
+import { KTCard, KTCardBody, KTIcon } from '@/vendor/metronic/helpers';
 import clsx from 'clsx';
 import { ReactElement, useMemo, useState } from 'react';
 import {
@@ -20,6 +20,7 @@ import SettingController from '@/actions/Modules/Settings/Http/Controllers/Dashb
 import usePermissions from '@/shared/hooks/use-permissions';
 import InputError from '@/shared/components/inputs/InputError';
 import ActionButton from '@/shared/components/action-button';
+import { groupSettingsBySection } from './settings-section-utils';
 
 type SettingType = 'text' | 'textarea';
 
@@ -29,12 +30,18 @@ type SettingRow = {
   content: string;
   type: SettingType;
   group: string;
+  section: string | null;
   is_public: boolean;
 };
 
 type Props = {
   groups: Record<string, SettingRow[]>;
   groupOrder: string[];
+};
+
+const SECTION_META: Record<string, { icon: string; labelKey: string }> = {
+  contact: { icon: 'phone', labelKey: 'contact' },
+  social: { icon: 'share', labelKey: 'social' },
 };
 
 const Index = ({ groups, groupOrder }: Props) => {
@@ -130,20 +137,7 @@ function SettingsGroupForm({ group, rows, canEdit }: FormProps) {
     [rows],
   );
 
-  const { textRows, textareaRows } = useMemo(() => {
-    const text: SettingRow[] = [];
-    const textarea: SettingRow[] = [];
-
-    for (const row of rows) {
-      if (isTextareaRow(row)) {
-        textarea.push(row);
-      } else {
-        text.push(row);
-      }
-    }
-
-    return { textRows: text, textareaRows: textarea };
-  }, [rows]);
+  const sectionBuckets = useMemo(() => groupSettingsBySection(rows), [rows]);
 
   const form = useForm<{
     values: Record<string, string>;
@@ -166,68 +160,86 @@ function SettingsGroupForm({ group, rows, canEdit }: FormProps) {
   }
 
   return (
-    <KTCard className="border-0 shadow-sm rounded-4">
-      <KTCardBody className="p-6 p-lg-9">
-        <BTForm
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!canEdit) {
-              return;
-            }
-            form.transform((data) => ({
-              values: data.values,
-              is_public: data.is_public,
-              group: data.group,
-            }));
-            form.put(SettingController.update().url, {
-              preserveScroll: true,
-              onSuccess: () => {
-                router.reload({ only: ['groups'] });
-              },
-            });
-          }}
-        >
-          {textRows.length > 0 && (
-            <Row className="g-4">
-              {textRows.map((row) => (
-                <Col sm={12} md={6} key={row.key}>
-                  <SettingField
-                    row={row}
-                    form={form}
-                    canEdit={canEdit}
-                    t={t}
-                  />
-                </Col>
-              ))}
-            </Row>
-          )}
+    <BTForm
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!canEdit) {
+          return;
+        }
+        form.transform((data) => ({
+          values: data.values,
+          is_public: data.is_public,
+          group: data.group,
+        }));
+        form.put(SettingController.update().url, {
+          preserveScroll: true,
+          onSuccess: () => {
+            router.reload({ only: ['groups'] });
+          },
+        });
+      }}
+    >
+      <div className="d-flex flex-column gap-6">
+        {sectionBuckets.map((bucket) => {
+          const meta = bucket.section
+            ? (SECTION_META[bucket.section] ?? {
+                icon: 'setting-2',
+                labelKey: bucket.section,
+              })
+            : { icon: 'abstract-26', labelKey: 'other' };
 
-          {textareaRows.length > 0 && (
-            <div className={clsx('d-flex flex-column gap-4', textRows.length > 0 && 'mt-6')}>
-              {textareaRows.map((row) => (
-                <SettingField
-                  key={row.key}
-                  row={row}
-                  form={form}
-                  canEdit={canEdit}
-                  t={t}
-                />
-              ))}
-            </div>
-          )}
+          return (
+            <KTCard key={bucket.section ?? '__other__'} className="border-0 shadow-sm rounded-4">
+              <KTCardBody className="p-6 p-lg-9">
+                <div className="d-flex align-items-center gap-3 mb-6">
+                  <span className="symbol symbol-40px">
+                    <span className="symbol-label bg-light-primary">
+                      <KTIcon iconName={meta.icon} className="fs-2 text-primary" />
+                    </span>
+                  </span>
+                  <h4 className="fw-bold text-gray-900 mb-0">
+                    {t(meta.labelKey, { defaultValue: meta.labelKey })}
+                  </h4>
+                </div>
 
-          {canEdit && (
-            <div className="d-flex justify-content-end mt-8">
-              <ActionButton
-                isProcessing={form.processing}
-                text={t('save')}
-                className="btn btn-primary"
-              />
-            </div>
-          )}
-        </BTForm>
-      </KTCardBody>
-    </KTCard>
+                {bucket.textRows.length > 0 && (
+                  <Row className="g-4">
+                    {bucket.textRows.map((row) => (
+                      <Col sm={12} md={6} key={row.key}>
+                        <SettingField row={row} form={form} canEdit={canEdit} t={t} />
+                      </Col>
+                    ))}
+                  </Row>
+                )}
+
+                {bucket.textareaRows.length > 0 && (
+                  <div
+                    className={clsx(
+                      'd-flex flex-column gap-4',
+                      bucket.textRows.length > 0 && 'mt-6',
+                    )}
+                  >
+                    {bucket.textareaRows.map((row) => (
+                      <SettingField key={row.key} row={row} form={form} canEdit={canEdit} t={t} />
+                    ))}
+                  </div>
+                )}
+              </KTCardBody>
+            </KTCard>
+          );
+        })}
+      </div>
+
+      {canEdit && (
+        <div className="d-flex justify-content-end mt-6">
+          <ActionButton
+            isProcessing={form.processing}
+            text={t('save')}
+            className="btn btn-primary"
+          />
+        </div>
+      )}
+    </BTForm>
   );
 }
 
@@ -267,24 +279,20 @@ function SettingField({ row, form, canEdit, t }: SettingFieldProps) {
         }}
       />
       <InputError message={form.errors[`values.${row.key}`]} />
-      <div className="d-flex align-items-center gap-2 mt-2">
-        <FormCheck
-          type="checkbox"
-          id={`is-public-${row.key}`}
-          className="mb-0"
-          disabled={!canEdit || form.processing}
-          checked={Boolean(form.data.is_public[row.key])}
-          onChange={(e) => {
-            form.setData('is_public', {
-              ...form.data.is_public,
-              [row.key]: e.currentTarget.checked,
-            });
-          }}
-        />
-        <label htmlFor={`is-public-${row.key}`} className="text-muted fs-7 mb-0 cursor-pointer">
-          {t('visible_in_public_api')}
-        </label>
-      </div>
+      <FormCheck
+        className="mt-2"
+        type="switch"
+        id={`is-public-${row.key}`}
+        label={t('visible_in_public_api')}
+        disabled={!canEdit || form.processing}
+        checked={Boolean(form.data.is_public[row.key])}
+        onChange={(e) => {
+          form.setData('is_public', {
+            ...form.data.is_public,
+            [row.key]: e.currentTarget.checked,
+          });
+        }}
+      />
       <InputError message={form.errors[`is_public.${row.key}`]} />
     </FormGroup>
   );

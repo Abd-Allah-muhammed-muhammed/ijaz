@@ -13,6 +13,7 @@ class Setting extends Model
         'content',
         'type',
         'group',
+        'section',
         'is_public',
     ];
 

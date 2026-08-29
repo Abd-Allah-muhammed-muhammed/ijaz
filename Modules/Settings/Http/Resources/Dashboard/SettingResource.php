@@ -19,6 +19,7 @@ class SettingResource extends JsonResource
             'content' => $this->content,
             'type' => $this->type?->value ?? SettingTypeEnum::Text->value,
             'group' => $this->group?->value ?? SettingGroupEnum::General->value,
+            'section' => $this->section,
             'is_public' => (bool) $this->is_public,
         ];
     }
