@@ -29,7 +29,8 @@ class SettingsSeeder extends Seeder
             ['key' => 'email', 'content' => 'info@ijaz.sa', 'group' => SettingGroupEnum::General, 'is_public' => true],
             ['key' => 'offer_note', 'content' => 'Special offer: Get a 10% discount on your first service booking! Use code FIRST10 at checkout.', 'group' => SettingGroupEnum::General, 'is_public' => true],
             ['key' => 'guarantee_notes', 'content' => 'The guarantee fee is a refundable amount held to ensure the successful completion of the service. It is returned to the user upon satisfactory completion of the service as per the agreed terms.', 'group' => SettingGroupEnum::Guarantor, 'is_public' => true],
-            ['key' => 'guarantee_fee', 'content' => '20', 'group' => SettingGroupEnum::Guarantor, 'is_public' => true],
+            // PLACEHOLDER — confirm the live business rate via Settings dashboard before launch.
+            ['key' => 'guarantee_fee_percent', 'content' => '2.5', 'group' => SettingGroupEnum::Guarantor, 'is_public' => true],
             ['key' => 'chat_notes', 'content' => 'Please be respectful and professional in your communication. Avoid sharing personal information and adhere to our community guidelines.', 'group' => SettingGroupEnum::Chat, 'is_public' => true],
             ['key' => 'provider_registration_bonus_enabled', 'content' => '1', 'group' => SettingGroupEnum::Wallet, 'is_public' => true],
             ['key' => 'provider_registration_bonus_amount', 'content' => '50', 'group' => SettingGroupEnum::Wallet, 'is_public' => true],

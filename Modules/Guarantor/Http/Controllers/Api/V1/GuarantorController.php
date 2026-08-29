@@ -58,8 +58,8 @@ class GuarantorController extends Controller
      *         "title": "Software development guarantee",
      *         "description": "Guarantee for a 3-month project",
      *         "amount": 5000.00,
-     *         "fees": 10.00,
-     *         "total": 5010.00,
+     *         "fees": 125.00,
+     *         "total": 5125.00,
      *         "requester": { "id": "...", "name": "Ahmed Mohamed", "type": "user" },
      *         "counterparty": { "id": "...", "name": "Ali Hassan", "type": "user" },
      *         "installments_count": 0,
@@ -109,8 +109,8 @@ class GuarantorController extends Controller
      *     "status": { "value": "pending_admin", "label": "Pending Admin Review", "color": "#f59e0b" },
      *     "title": "Project guarantee",
      *     "amount": 5000.00,
-     *     "fees": 10.00,
-     *     "total": 5010.00,
+     *     "fees": 125.00,
+     *     "total": 5125.00,
      *     "media": [{ "uuid": "...", "url": "...", "mime_type": "application/pdf" }]
      *   }
      * }

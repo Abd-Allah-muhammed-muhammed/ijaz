@@ -52,7 +52,7 @@ There is **no third “guarantor company” actor** on the mobile API. “Compan
 | `individual` | Person-to-person guarantee | One payment of **amount + fees** after accept. Request moves to `in_progress` when the gateway confirms that payment. |
 | `company` | Company / project contract with a schedule | Counterparty pays **each installment amount only** (fees are not added to the charge). Paying the first installment moves the request to `in_progress` (same as Individual after payment). If the request was `overdue`, payment also clears `overdue_at`. |
 
-Fees are **always `10.00` on create**. The client cannot send `fees`. `total` is `amount + fees`.
+Fees are a **percentage of the contract amount**, snapshotted at create from the admin setting `guarantee_fee_percent` (e.g. `2.5` → 2.5%). Formula: `round(amount × percent / 100, 2)`. The client **cannot** send `fees` and **must not hardcode** `10` or `20` — always use `fees` / `total` from the API response as the source of truth. `total` is `amount + fees`.
 
 ### Who is the counterparty?
 
@@ -415,7 +415,7 @@ Keys that are **always** present:
 | `title` | string | Individual: client-sent title. Company: **copied from `project_type`** (there is no separate title field on create). |
 | `description` | string | Individual: client-sent. Company: **always `""`** on create. |
 | `amount` | decimal string | Individual: requested amount. Company: `total_amount` from create. |
-| `fees` | decimal string | `10.00` at create |
+| `fees` | decimal string | Platform fee snapshotted at create: `round(amount × guarantee_fee_percent / 100, 2)` — **not** a flat 10 SAR |
 | `total` | decimal string | `amount + fees` |
 | `project_type` | string \| null | Company: same as title. Individual: usually `null`. |
 | `cancellation_reason` | string \| null | Set when admin cancels |
@@ -517,9 +517,9 @@ Who may succeed is from the **policy** (403 if it fails) plus extra business che
 | `description` | string | yes | max 2000 | `Guarantee for a 3-month finishing contract` |
 | `signature` | file | yes | mimes: `jpg,jpeg,png,pdf`; max **5120** KB (5 MB) | (binary) |
 
-**Success `200`:** `data` is a guarantor resource with `type.value = "individual"`, `status.value = "pending_admin"`, `fees` typically `"10.00"`, `total` = amount + fees, `requester`, `counterparty`, `media` (requester_signature). No `installments` / `company_detail` / `status_histories` keys (relations not loaded).
+**Success `200`:** `data` is a guarantor resource with `type.value = "individual"`, `status.value = "pending_admin"`, `fees` = percentage of `amount` (see fees note above — do not assume `"10.00"`), `total` = amount + fees, `requester`, `counterparty`, `media` (requester_signature). No `installments` / `company_detail` / `status_histories` keys (relations not loaded).
 
-Example `data` (truncated):
+Example `data` (truncated; assumes `guarantee_fee_percent = 2.5` so fees = `round(5000 × 2.5 / 100, 2) = 125.00`):
 
 ```json
 {
@@ -529,8 +529,8 @@ Example `data` (truncated):
   "title": "Apartment renovation guarantee",
   "description": "Guarantee for a 3-month finishing contract",
   "amount": "5000.00",
-  "fees": "10.00",
-  "total": "5010.00",
+  "fees": "125.00",
+  "total": "5125.00",
   "project_type": null,
   "cancellation_reason": null,
   "requester": { "id": 10, "name": "Provider Co", "type": "user", "image": null, "phone": "0501110000" },
@@ -1027,8 +1027,8 @@ This is the **only** mobile path to `disputed`. The old `POST .../status` dual-p
     "title": "Project guarantee",
     "description": "…",
     "amount": "5000.00",
-    "fees": "10.00",
-    "total": "5010.00",
+    "fees": "125.00",
+    "total": "5125.00",
     "project_type": null,
     "cancellation_reason": null,
     "requester": { "id": 1, "name": "…", "type": "user", "image": null, "phone": "0501112233" },
@@ -1825,7 +1825,7 @@ Be explicit with QA and with UI copy:
 
 9. **Chat id is not on the guarantor resource.** Use the chat endpoints.
 
-10. **Fees are not client-controlled** (`10.00`). Individual checkout charges `total`; company installment checkout charges the installment `amount` only.
+10. **Fees are not client-controlled** — they are `round(amount × guarantee_fee_percent / 100, 2)` snapshotted at create. Never hardcode `10`/`20`; read `fees`/`total` from the response. Individual checkout charges `total`; company installment checkout charges the installment `amount` only.
 
 11. **Company create has no description field**; show will have `description: ""`. Use `project_type` / `title` for headings.
 

@@ -31,8 +31,8 @@ beforeEach(function () {
         ['content' => '50', 'group' => 'wallet', 'is_public' => true],
     );
     Setting::query()->updateOrCreate(
-        ['key' => 'guarantee_fee'],
-        ['content' => '20', 'group' => 'guarantor', 'is_public' => true],
+        ['key' => 'guarantee_fee_percent'],
+        ['content' => '2.5', 'group' => 'guarantor', 'is_public' => true],
     );
     Setting::query()->updateOrCreate(
         ['key' => 'phone'],
@@ -68,7 +68,7 @@ it('resolves the same keys each of the five consumers read via app(settings)', f
     // Public settings API historically exposed the bag (allowlisted subset still includes these)
     expect(app('settings')->get('phone'))->toBe('966500000000')
         ->and(app('settings')->get('email'))->toBe('info@ijaz.sa')
-        ->and(app('settings')->get('guarantee_fee'))->toBe('20');
+        ->and(app('settings')->get('guarantee_fee_percent'))->toBe('2.5');
 });
 
 it('keeps catalog settings endpoint serving values sourced from app(settings)', function () {
@@ -79,7 +79,9 @@ it('keeps catalog settings endpoint serving values sourced from app(settings)', 
         ->assertJsonPath('data.email', 'info@ijaz.sa')
         ->assertJsonPath('data.min_withdraw_amount', '200')
         ->assertJsonPath('data.provider_registration_bonus_amount', '50')
-        ->assertJsonPath('data.guarantee_fee', '20');
+        ->assertJsonPath('data.guarantee_fee_percent', '2.5');
+
+    expect($response->json('data'))->not->toHaveKey('guarantee_fee');
 
     // Sensitive/dynamic payment fee keys default to private (is_public = false)
     $driverFeesKey = app(PaymentService::class)->getDefaultDriver().'_fees';
