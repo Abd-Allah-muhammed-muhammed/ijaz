@@ -3,13 +3,20 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\Payment\Services\PaymentService;
 use Modules\Settings\Enums\SettingGroupEnum;
 use Modules\Settings\Enums\SettingTypeEnum;
 use Modules\Settings\Models\Setting;
 
 class SettingsSeeder extends Seeder
 {
+    /**
+     * PLACEHOLDER — gateway fee amount (SAR) applied by CalculateOrderFeesAction.
+     * Not a real business rate: set the live value per driver in the Settings
+     * dashboard (Payment tab) before launch. firstOrCreate preserves any value
+     * already configured in an environment.
+     */
+    private const GATEWAY_FEE_PLACEHOLDER = '0';
+
     /**
      * Run the database seeds.
      *
@@ -21,11 +28,13 @@ class SettingsSeeder extends Seeder
      *
      * section is nullable — only General contact/social keys set it so the
      * dashboard can group without dropping uncategorized/future keys.
+     *
+     * Payment gateway fees: one `{driver}_fees` row per key in
+     * config('payment.gateways') — same source PaymentService::resolveGateway()
+     * uses — via firstOrCreate so re-seeds never clobber configured amounts.
      */
     public function run(): void
     {
-        $driverFeesKey = app(PaymentService::class)->getDefaultDriver().'_fees';
-
         $settings = collect([
             [
                 'key' => 'youtube',
@@ -154,12 +163,6 @@ class SettingsSeeder extends Seeder
                 'group' => SettingGroupEnum::Guarantor,
                 'is_public' => false,
             ],
-            [
-                'key' => $driverFeesKey,
-                'content' => '15',
-                'group' => SettingGroupEnum::Payment,
-                'is_public' => false,
-            ],
         ]);
 
         $settings->each(function (array $setting): void {
@@ -182,6 +185,18 @@ class SettingsSeeder extends Seeder
                 $attributes,
             );
         });
+
+        foreach (array_keys(config('payment.gateways', [])) as $driver) {
+            Setting::query()->firstOrCreate(
+                ['key' => "{$driver}_fees"],
+                [
+                    // PLACEHOLDER — replace with the live gateway fee (SAR) before launch.
+                    'content' => self::GATEWAY_FEE_PLACEHOLDER,
+                    'group' => SettingGroupEnum::Payment,
+                    'is_public' => false,
+                ],
+            );
+        }
 
         cache()->forget('settings');
         app()->forgetInstance('settings');

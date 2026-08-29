@@ -1,23 +1,62 @@
 <?php
 
 use Database\Seeders\SettingsSeeder;
-use Modules\Payment\Services\PaymentService;
 use Modules\Settings\Http\Resources\Dashboard\SettingResource;
 use Modules\Settings\Models\Setting;
 
-test('SettingsSeeder seeds the active payment driver fee key under group=payment', function () {
-    $driverFeesKey = app(PaymentService::class)->getDefaultDriver().'_fees';
+test('SettingsSeeder seeds a {driver}_fees row for every driver in config(payment.gateways), not just the current default', function () {
+    $drivers = array_keys(config('payment.gateways', []));
 
-    Setting::query()->where('key', $driverFeesKey)->delete();
+    expect($drivers)->not->toBeEmpty();
+
+    foreach ($drivers as $driver) {
+        Setting::query()->where('key', "{$driver}_fees")->delete();
+    }
 
     $this->seed(SettingsSeeder::class);
 
-    $row = Setting::query()->where('key', $driverFeesKey)->first();
+    foreach ($drivers as $driver) {
+        $row = Setting::query()->where('key', "{$driver}_fees")->first();
 
-    expect($row)->not->toBeNull()
-        ->and($row->group?->value)->toBe('payment')
-        ->and($row->content)->not->toBeEmpty()
-        ->and((bool) $row->is_public)->toBeFalse();
+        expect($row)->not->toBeNull()
+            ->and($row->group?->value)->toBe('payment')
+            ->and((bool) $row->is_public)->toBeFalse();
+    }
+});
+
+test('paytabs_fees, rajhi_fees, and testing_fees all exist in settings after seeding', function () {
+    $this->seed(SettingsSeeder::class);
+
+    foreach (['paytabs_fees', 'rajhi_fees', 'testing_fees'] as $key) {
+        expect(Setting::query()->where('key', $key)->exists())->toBeTrue();
+    }
+});
+
+test('adding a new driver to config(payment.gateways) and re-running the seeder creates its fee row automatically, without any seeder code change', function () {
+    config([
+        'payment.gateways' => [
+            ...config('payment.gateways', []),
+            'future_gateway' => 'Modules\\Payment\\Gateways\\TestingGateway',
+        ],
+    ]);
+
+    Setting::query()->where('key', 'future_gateway_fees')->delete();
+
+    $this->seed(SettingsSeeder::class);
+
+    expect(Setting::query()->where('key', 'future_gateway_fees')->exists())->toBeTrue()
+        ->and(Setting::query()->where('key', 'future_gateway_fees')->first()?->group?->value)->toBe('payment');
+});
+
+test('re-running the seeder does not duplicate or reset existing driver fee values (upsert-safe, matching this session\'s established seeder pattern)', function () {
+    $this->seed(SettingsSeeder::class);
+
+    Setting::query()->where('key', 'testing_fees')->update(['content' => '42.5']);
+
+    $this->seed(SettingsSeeder::class);
+
+    expect(Setting::query()->where('key', 'testing_fees')->count())->toBe(1)
+        ->and(Setting::query()->where('key', 'testing_fees')->value('content'))->toBe('42.5');
 });
 
 test('Settings model has a nullable section column', function () {
