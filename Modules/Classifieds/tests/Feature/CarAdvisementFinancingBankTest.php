@@ -176,3 +176,65 @@ test('CarAdvisementResource exposes bank using the same {id, name, logo, is_acti
         ->and($carPayload['bank'])->toBe($expected)
         ->and($carPayload['bank'])->not->toHaveKeys(['value', 'label', 'logo_url']);
 });
+
+test('CarAdvisementResource no longer exposes a top-level bank_id field — only the nested bank object', function () {
+    $bank = Bank::factory()->create([
+        'translations' => geoNameTranslations('No Flat Id Bank'),
+    ]);
+
+    $withBank = CarAdvisement::factory()->create(['bank_id' => $bank->id]);
+    $withBank->load(['bank.translations', 'bank.media']);
+
+    $withoutBank = CarAdvisement::factory()->create(['bank_id' => null]);
+    $withoutBank->load(['bank']);
+
+    $request = Request::create('/');
+
+    $withPayload = CarAdvisementResource::make($withBank)->response($request)->getData(true);
+    $withoutPayload = CarAdvisementResource::make($withoutBank)->response($request)->getData(true);
+
+    expect($withPayload)->not->toHaveKey('bank_id')
+        ->and($withPayload)->toHaveKey('bank')
+        ->and($withPayload['bank']['id'])->toBe($bank->id)
+        ->and($withoutPayload)->not->toHaveKey('bank_id')
+        ->and($withoutPayload['bank'])->toBeNull();
+});
+
+test('creating/updating a car ad still accepts bank_id as an input field — unaffected, this is a response-shape-only change', function () {
+    Sanctum::actingAs($this->user);
+
+    $bank = Bank::factory()->create([
+        'translations' => geoNameTranslations('Input Still Works Bank'),
+    ]);
+
+    $create = $this->postJson(action([CarAdvisementController::class, 'store']), carAdBankPayload($this, [
+        'bank_id' => $bank->id,
+        'title' => 'Create With Bank Id Input',
+    ]))->assertOk();
+
+    expect($create->json('data'))->not->toHaveKey('bank_id')
+        ->and($create->json('data.bank.id'))->toBe($bank->id);
+
+    $advisementId = $create->json('data.id');
+
+    $otherBank = Bank::factory()->create([
+        'translations' => geoNameTranslations('Update Bank Id Input'),
+    ]);
+
+    $update = $this->putJson(
+        action([CarAdvisementController::class, 'update'], $advisementId),
+        carAdBankPayload($this, [
+            'bank_id' => $otherBank->id,
+            'title' => 'Updated With Bank Id Input',
+        ])
+    )->assertOk();
+
+    expect($update->json('data'))->not->toHaveKey('bank_id')
+        ->and($update->json('data.bank.id'))->toBe($otherBank->id);
+
+    $this->assertDatabaseHas('car_advisements', [
+        'id' => $advisementId,
+        'bank_id' => $otherBank->id,
+        'title' => 'Updated With Bank Id Input',
+    ]);
+});

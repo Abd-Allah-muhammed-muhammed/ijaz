@@ -769,7 +769,6 @@ export interface CarAdvisement extends Model {
   address: string;
   city_id: number;
   region_id: number;
-  bank_id?: number | null;
   show_price: boolean;
   car_brand?: CarBrand;
   car_type?: CarType;

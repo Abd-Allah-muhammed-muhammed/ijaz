@@ -64,7 +64,6 @@ class CarAdvisementResource extends JsonResource
             $this->mergeWhen(! $this->relationLoaded('carCategory'), fn () => ['car_category_id' => $this->car_category_id]),
             $this->mergeWhen(! $this->relationLoaded('city'), fn () => ['city_id' => $this->city_id]),
             $this->mergeWhen(! $this->relationLoaded('region'), fn () => ['region_id' => $this->region_id]),
-            $this->mergeWhen(! $this->relationLoaded('bank'), fn () => ['bank_id' => $this->bank_id]),
 
             'car_brand' => new CarBrandResource($this->whenLoaded('carBrand')),
             'car_type' => new CarTypeResource($this->whenLoaded('carType')),

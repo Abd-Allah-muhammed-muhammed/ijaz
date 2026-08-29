@@ -62,7 +62,6 @@ class CarAdvisementResource extends JsonResource
             'car_category_id' => $this->car_category_id,
             'city_id' => $this->city_id,
             'region_id' => $this->region_id,
-            'bank_id' => $this->bank_id,
 
             'car_brand' => new CarBrandResource($this->whenLoaded('carBrand')),
             'car_type' => new CarTypeResource($this->whenLoaded('carType')),

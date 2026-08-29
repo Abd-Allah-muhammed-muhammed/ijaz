@@ -26,7 +26,6 @@ API and dashboard `CarAdvisementResource` expose nested `bank` by **reusing** `M
 
 ```json
 {
-  "bank_id": 1,
   "bank": {
     "id": 1,
     "name": "Saudi National Bank",
@@ -38,11 +37,11 @@ API and dashboard `CarAdvisementResource` expose nested `bank` by **reusing** `M
 
 ```json
 {
-  "bank_id": null,
   "bank": null
 }
 ```
 
+There is **no** top-level `bank_id` on the response — the nested `bank.id` is the single source of truth (same convention as Guarantor’s `requester_bank` / `counterparty_bank`). Clients still **send** `bank_id` on create/update.
 ---
 
 ## Breaking change — `transmission` and `fuel_type` are fixed enums
