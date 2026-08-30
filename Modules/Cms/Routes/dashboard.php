@@ -9,6 +9,8 @@ use Modules\Cms\Http\Controllers\Dashboard\QuestionController;
 Route::middleware(['localeSessionRedirect', 'localizationRedirect', 'localeViewPath', 'auth:admin'])
     ->group(function () {
         Route::resource('banners', BannerController::class)->except(['show']);
+        Route::post('pages/content-images', [PageController::class, 'uploadContentImage'])
+            ->name('pages.content-images.store');
         Route::resource('pages', PageController::class)->except(['show']);
         Route::resource('questions', QuestionController::class)->except(['show']);
         Route::controller(MessageController::class)->prefix('messages')->as('messages.')->group(function () {

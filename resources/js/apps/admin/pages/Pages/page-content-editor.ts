@@ -41,8 +41,8 @@ export const PAGE_CONTENT_ALLOWED_TAGS = [
 export const PAGE_CONTENT_HEADING_LEVELS = [2, 3] as const;
 
 /**
- * Constrained toolbar actions — legal-text set + Insert Logo.
- * No fonts, colors, tables, free media upload, strike, code, or blockquote.
+ * Constrained toolbar actions — formatting set + Insert Logo + Insert Image upload.
+ * No fonts, colors, tables, strike, code, or blockquote.
  */
 export const PAGE_CONTENT_TOOLBAR_ACTIONS = [
   'paragraph',
@@ -53,7 +53,74 @@ export const PAGE_CONTENT_TOOLBAR_ACTIONS = [
   'orderedList',
   'link',
   'insertLogo',
+  'insertImage',
 ] as const;
+
+/** Build a centered img fragment for an uploaded (or any) content image URL. */
+export function buildPageContentImageHtml(src: string, alt = ''): string {
+  const safeSrc = src.trim();
+  const safeAlt = alt.replaceAll('"', '&quot;');
+
+  return `<p style="text-align:center;"><img src="${safeSrc}" alt="${safeAlt}" /></p>`;
+}
+
+export type PageContentImageUploadResult = {
+  url: string;
+  path?: string;
+};
+
+type PageContentImageUploadPayload = {
+  success?: boolean;
+  data?: PageContentImageUploadResult;
+  message?: string;
+  errors?: Record<string, string[]>;
+};
+
+function extractPageContentImageUploadError(error: unknown): string {
+  const axiosLike = error as {
+    response?: { data?: PageContentImageUploadPayload };
+    message?: string;
+  };
+
+  return (
+    axiosLike.response?.data?.errors?.image?.[0] ||
+    axiosLike.response?.data?.message ||
+    (error instanceof Error ? error.message : null) ||
+    axiosLike.message ||
+    'Image upload failed.'
+  );
+}
+
+/**
+ * Upload a Pages content image via the dashboard endpoint.
+ * Throws with a user-facing message on validation / network failure.
+ */
+export async function uploadPageContentImage(
+  file: File,
+  post: (url: string, body: FormData) => Promise<PageContentImageUploadPayload>,
+  uploadUrl: string,
+): Promise<PageContentImageUploadResult> {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  let payload: PageContentImageUploadPayload;
+
+  try {
+    payload = await post(uploadUrl, formData);
+  } catch (error) {
+    throw new Error(extractPageContentImageUploadError(error));
+  }
+
+  const url = payload.data?.url?.trim();
+
+  if (!payload.success || !url) {
+    throw new Error(
+      payload.errors?.image?.[0] || payload.message || 'Image upload failed.',
+    );
+  }
+
+  return { url, path: payload.data?.path };
+}
 
 export function isPageContentRtlLocale(locale: string): boolean {
   return (PAGE_CONTENT_RTL_LOCALES as readonly string[]).includes(locale);

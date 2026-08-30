@@ -37,7 +37,7 @@ return [
          */
         'pages' => [
             'HTML.Doctype' => 'HTML 4.01 Transitional',
-            // Headings may carry inline brand styles; img is the fixed Insert Logo asset only.
+            // Headings may carry inline brand styles; img covers Insert Logo + uploaded content images.
             'HTML.Allowed' => 'h1[style],h2[style],h3[style],h4[style],h5[style],h6[style],p[style],br,ul,ol,li,strong,em,b,i,a[href|title|rel|target],img[src|alt|width|height]',
             'CSS.AllowedProperties' => 'color,font-weight,text-align',
             'AutoFormat.AutoParagraph' => false,

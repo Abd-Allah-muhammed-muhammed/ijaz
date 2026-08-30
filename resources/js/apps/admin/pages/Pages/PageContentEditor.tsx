@@ -6,17 +6,22 @@ import {
   faListOl,
   faListUl,
   faImage,
+  faUpload,
 } from '@fortawesome/free-solid-svg-icons';
+import { uploadContentImage } from '@/actions/Modules/Cms/Http/Controllers/Dashboard/PageController';
 import { EditorContent, useEditor } from '@tiptap/react';
 import clsx from 'clsx';
-import { useEffect, useState, type ChangeEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import apiClient from '@/shared/lib/api-client';
 import {
+  buildPageContentImageHtml,
   getPageContentEditorExtensions,
   isPageContentRtlLocale,
   normalizeEditorHtml,
   PAGE_CONTENT_HEADING_LEVELS,
   PAGE_CONTENT_LOGO_HTML,
+  uploadPageContentImage,
 } from './page-content-editor';
 import './page-content-editor.css';
 
@@ -33,11 +38,13 @@ function ToolbarButton({
   active,
   label,
   onClick,
+  disabled,
   children,
 }: {
   active?: boolean;
   label: string;
   onClick: () => void;
+  disabled?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -50,6 +57,7 @@ function ToolbarButton({
       aria-label={label}
       title={label}
       aria-pressed={active}
+      disabled={disabled}
       onClick={onClick}
     >
       {children}
@@ -67,6 +75,9 @@ export default function PageContentEditor({
   const rtl = isPageContentRtlLocale(locale);
   const [linkUrl, setLinkUrl] = useState('');
   const [linkOpen, setLinkOpen] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
     extensions: getPageContentEditorExtensions(placeholder),
@@ -151,6 +162,40 @@ export default function PageContentEditor({
     setLinkUrl('');
   };
 
+  const handleImageFileSelected = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    setImageUploadError(null);
+    setUploadingImage(true);
+
+    try {
+      const uploaded = await uploadPageContentImage(
+        file,
+        async (url, body) => {
+          const { data } = await apiClient.post(url, body);
+          return data;
+        },
+        uploadContentImage.url(),
+      );
+
+      editor
+        .chain()
+        .focus()
+        .insertContent(buildPageContentImageHtml(uploaded.url, file.name.replace(/\.[^.]+$/, '')))
+        .run();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Image upload failed.';
+      setImageUploadError(message);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   return (
     <div
       className="page-content-editor border border-gray-300 rounded-3 overflow-hidden bg-white"
@@ -228,6 +273,24 @@ export default function PageContentEditor({
           <FontAwesomeIcon icon={faImage} />
           <span className="ms-1 fw-semibold d-none d-md-inline">Logo</span>
         </ToolbarButton>
+        <ToolbarButton
+          label="Insert Image"
+          disabled={uploadingImage}
+          onClick={() => imageInputRef.current?.click()}
+        >
+          <FontAwesomeIcon icon={faUpload} spin={uploadingImage} />
+          <span className="ms-1 fw-semibold d-none d-md-inline">
+            {uploadingImage ? 'Uploading…' : 'Image'}
+          </span>
+        </ToolbarButton>
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/jpg,image/gif,image/svg+xml,image/webp"
+          className="d-none"
+          data-testid={`page-content-image-input-${locale}`}
+          onChange={handleImageFileSelected}
+        />
 
         {linkOpen && (
           <div className="d-flex flex-wrap align-items-center gap-2 w-100 mt-1">
@@ -259,6 +322,16 @@ export default function PageContentEditor({
             >
               {t('remove')}
             </button>
+          </div>
+        )}
+
+        {imageUploadError && (
+          <div
+            className="alert alert-danger py-2 px-3 mb-0 w-100"
+            role="alert"
+            data-testid={`page-content-image-upload-error-${locale}`}
+          >
+            {imageUploadError}
           </div>
         )}
       </div>

@@ -12,8 +12,11 @@ use Modules\Cms\Actions\Page\ShowPageAction;
 use Modules\Cms\Actions\Page\ShowPageForCatalogAction;
 use Modules\Cms\Actions\Page\StorePageAction;
 use Modules\Cms\Actions\Page\UpdatePageAction;
+use Modules\Cms\Actions\Page\UploadPageContentImageAction;
 use Modules\Cms\DTOs\StorePageDTO;
 use Modules\Cms\DTOs\UpdatePageDTO;
+use Modules\Cms\DTOs\UploadedPageContentImageDTO;
+use Modules\Cms\DTOs\UploadPageContentImageDTO;
 use Modules\Cms\Models\Page;
 
 class PageService
@@ -26,6 +29,7 @@ class PageService
         private readonly ShowPageAction $showAction,
         private readonly ListPagesForCatalogAction $listForCatalogAction,
         private readonly ShowPageForCatalogAction $showForCatalogAction,
+        private readonly UploadPageContentImageAction $uploadContentImageAction,
     ) {}
 
     public function index(Request $request): LengthAwarePaginator
@@ -64,5 +68,10 @@ class PageService
     public function showForCatalog(Page $page): Page
     {
         return $this->showForCatalogAction->handle($page);
+    }
+
+    public function uploadContentImage(UploadPageContentImageDTO $dto): UploadedPageContentImageDTO
+    {
+        return $this->uploadContentImageAction->handle($dto);
     }
 }

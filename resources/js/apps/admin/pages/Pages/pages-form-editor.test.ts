@@ -96,6 +96,7 @@ describe('Pages Form Tiptap editor and locale tabs', () => {
       'orderedList',
       'link',
       'insertLogo',
+      'insertImage',
     ])
 
     expect(editorConfigSrc).toContain('StarterKit')
@@ -162,5 +163,64 @@ describe('Pages Form Tiptap editor and locale tabs', () => {
     expect(editorConfigSrc).toContain('height="120"')
     expect(editorConfigSrc).toContain('insertLogo')
     expect(editorConfigSrc).toContain('@tiptap/extension-image')
+  })
+
+  it('the Pages content editor toolbar now has both "Insert Logo" and "Insert Image" actions', () => {
+    expect(editorSrc).toContain('Insert Logo')
+    expect(editorSrc).toContain('Insert Image')
+    expect(editorConfigSrc).toContain("'insertLogo'")
+    expect(editorConfigSrc).toContain("'insertImage'")
+    expect([...PAGE_CONTENT_TOOLBAR_ACTIONS]).toContain('insertLogo')
+    expect([...PAGE_CONTENT_TOOLBAR_ACTIONS]).toContain('insertImage')
+  })
+
+  it('"Insert Image" opens a file picker, uploads on selection, and inserts the resulting image into the editor at the cursor position', () => {
+    expect(editorSrc).toContain('type="file"')
+    expect(editorSrc).toContain('imageInputRef.current?.click()')
+    expect(editorSrc).toContain('uploadPageContentImage')
+    expect(editorSrc).toContain('uploadContentImage.url()')
+    expect(editorSrc).toContain('buildPageContentImageHtml')
+    expect(editorSrc).toMatch(/insertContent\(buildPageContentImageHtml\(/)
+    expect(editorSrc).toContain('Uploading…')
+  })
+
+  it('upload failure (e.g. oversized file) shows a clear error, does not silently fail or insert a broken image', async () => {
+    expect(editorSrc).toContain('imageUploadError')
+    expect(editorSrc).toContain('setImageUploadError')
+    expect(editorSrc).toContain('page-content-image-upload-error')
+    expect(editorSrc).toContain('role="alert"')
+
+    const { uploadPageContentImage, buildPageContentImageHtml } = await import('./page-content-editor')
+
+    expect(buildPageContentImageHtml('/storage/pages/content/a.png', 'Hero')).toContain(
+      'src="/storage/pages/content/a.png"',
+    )
+
+    const file = new File(['x'], 'big.jpg', { type: 'image/jpeg' })
+
+    await expect(
+      uploadPageContentImage(
+        file,
+        async () => {
+          throw {
+            response: {
+              data: {
+                message: 'The image failed to upload.',
+                errors: { image: ['The image field must not be greater than 512 kilobytes.'] },
+              },
+            },
+          }
+        },
+        '/dashboard/pages/content-images',
+      ),
+    ).rejects.toThrow('The image field must not be greater than 512 kilobytes.')
+
+    await expect(
+      uploadPageContentImage(
+        file,
+        async () => ({ success: false, message: 'Upload failed.', data: undefined }),
+        '/dashboard/pages/content-images',
+      ),
+    ).rejects.toThrow('Upload failed.')
   })
 })
