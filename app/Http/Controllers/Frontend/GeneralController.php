@@ -41,29 +41,29 @@ class GeneralController extends Controller
         return inertia('Frontend/CustomerReviews', []);
     }
 
-    public function privacyAndPolicies()
+    public function privacyAndPolicies(): Response
     {
-        return inertia('Frontend/PrivacyAndPolicies', []);
+        return $this->renderCmsPageBySlug('policies-and-privacy');
     }
 
-    public function privacyPolicy()
+    public function privacyPolicy(): Response
     {
-        return inertia('Frontend/PrivacyPolicy', []);
+        return $this->renderCmsPageBySlug('privacy');
     }
 
-    public function serviceProviderAuthorizationTermsAndConditions()
+    public function serviceProviderAuthorizationTermsAndConditions(): Response
     {
-        return inertia('Frontend/ServiceProviderAuthorizationTermsAndConditions', []);
+        return $this->renderCmsPageBySlug('service-provider-authorization');
     }
 
-    public function howToUseAgency()
+    public function howToUseAgency(): Response
     {
-        return inertia('Frontend/HowToUseAgency', []);
+        return $this->renderCmsPageBySlug('how-to-use-agency');
     }
 
-    public function realEstateMarketplaceTermsOfUse()
+    public function realEstateMarketplaceTermsOfUse(): Response
     {
-        return inertia('Frontend/RealEstateMarketplaceTermsOfUse', []);
+        return $this->renderCmsPageBySlug('real-estate-marketplace-terms');
     }
 
     /**
@@ -71,16 +71,7 @@ class GeneralController extends Controller
      */
     public function cmsPage(Page $page): Response
     {
-        $page = $this->pageService->showForCatalog($page);
-
-        return inertia('Frontend/CmsPage', [
-            'page' => [
-                'id' => $page->id,
-                'slug' => $page->slug,
-                'title' => $page->title,
-                'content' => $page->content,
-            ],
-        ]);
+        return $this->renderCmsPage($this->pageService->showForCatalog($page));
     }
 
     public function switchLang($locale): RedirectResponse
@@ -92,5 +83,22 @@ class GeneralController extends Controller
         }
 
         return redirect()->to($url);
+    }
+
+    private function renderCmsPageBySlug(string $slug): Response
+    {
+        return $this->renderCmsPage($this->pageService->showForCatalogBySlug($slug));
+    }
+
+    private function renderCmsPage(Page $page): Response
+    {
+        return inertia('Frontend/CmsPage', [
+            'page' => [
+                'id' => $page->id,
+                'slug' => $page->slug,
+                'title' => $page->title,
+                'content' => $page->content,
+            ],
+        ]);
     }
 }

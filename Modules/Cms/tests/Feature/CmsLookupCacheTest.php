@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Provider\HomeController;
 use App\Support\LookupCache;
+use Database\Seeders\PagesSeeder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -244,11 +245,17 @@ test('API questions search path remains uncached and still returns matching item
         ->and($response->json('data.items.0.title'))->toBe('How to pay?');
 });
 
-test('Frontend web About/FAQ/Privacy pages do not query CMS Banner/Page/Question models', function (): void {
-    // Static marketing pages use lang strings, not Modules\Cms models.
+test('Frontend web About/home remain static and privacy-policy renders seeded CMS page', function (): void {
+    app(PagesSeeder::class)->run();
+
     $this->get(route('about-us'))->assertSuccessful();
-    $this->get(route('privacy-policy'))->assertSuccessful();
     $this->get(route('home'))->assertSuccessful();
+    $this->get(route('privacy-policy'))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Frontend/CmsPage')
+            ->where('page.slug', 'privacy')
+        );
 });
 
 test('DeleteBannerAction invalidates banners:all cache', function (): void {

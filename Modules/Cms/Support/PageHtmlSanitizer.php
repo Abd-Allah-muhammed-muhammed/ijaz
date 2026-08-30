@@ -7,7 +7,7 @@ use Modules\Cms\Support\PageHtmlBrandStyler as BrandStyler;
 
 /**
  * Sanitizes CMS Page HTML for public API / mobile rendering.
- * Allows only the formatting set produced by the constrained Pages admin editor.
+ * Allowlist matches the unrestricted Pages admin editor.
  * After sanitization, applies inline brand styles so content is self-contained.
  */
 final class PageHtmlSanitizer

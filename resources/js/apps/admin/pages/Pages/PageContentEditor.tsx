@@ -1,11 +1,21 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
+  faAlignCenter,
+  faAlignJustify,
+  faAlignLeft,
+  faAlignRight,
   faBold,
+  faCode,
   faItalic,
   faLink,
   faListOl,
   faListUl,
   faImage,
+  faMinus,
+  faQuoteRight,
+  faStrikethrough,
+  faTable,
+  faUnderline,
   faUpload,
 } from '@fortawesome/free-solid-svg-icons';
 import { uploadContentImage } from '@/actions/Modules/Cms/Http/Controllers/Dashboard/PageController';
@@ -21,6 +31,7 @@ import {
   normalizeEditorHtml,
   PAGE_CONTENT_HEADING_LEVELS,
   PAGE_CONTENT_LOGO_HTML,
+  PAGE_CONTENT_TEXT_COLORS,
   uploadPageContentImage,
 } from './page-content-editor';
 import './page-content-editor.css';
@@ -238,6 +249,40 @@ export default function PageContentEditor({
           <FontAwesomeIcon icon={faItalic} />
         </ToolbarButton>
         <ToolbarButton
+          label="Underline"
+          active={editor.isActive('underline')}
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+        >
+          <FontAwesomeIcon icon={faUnderline} />
+        </ToolbarButton>
+        <ToolbarButton
+          label="Strikethrough"
+          active={editor.isActive('strike')}
+          onClick={() => editor.chain().focus().toggleStrike().run()}
+        >
+          <FontAwesomeIcon icon={faStrikethrough} />
+        </ToolbarButton>
+        <ToolbarButton
+          label="Code"
+          active={editor.isActive('code')}
+          onClick={() => editor.chain().focus().toggleCode().run()}
+        >
+          <FontAwesomeIcon icon={faCode} />
+        </ToolbarButton>
+        <ToolbarButton
+          label="Blockquote"
+          active={editor.isActive('blockquote')}
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        >
+          <FontAwesomeIcon icon={faQuoteRight} />
+        </ToolbarButton>
+        <ToolbarButton
+          label="Horizontal rule"
+          onClick={() => editor.chain().focus().setHorizontalRule().run()}
+        >
+          <FontAwesomeIcon icon={faMinus} />
+        </ToolbarButton>
+        <ToolbarButton
           label="Bullet list"
           active={editor.isActive('bulletList')}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -250,6 +295,63 @@ export default function PageContentEditor({
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
         >
           <FontAwesomeIcon icon={faListOl} />
+        </ToolbarButton>
+        <ToolbarButton
+          label="Align left"
+          active={editor.isActive({ textAlign: 'left' })}
+          onClick={() => editor.chain().focus().setTextAlign('left').run()}
+        >
+          <FontAwesomeIcon icon={faAlignLeft} />
+        </ToolbarButton>
+        <ToolbarButton
+          label="Align center"
+          active={editor.isActive({ textAlign: 'center' })}
+          onClick={() => editor.chain().focus().setTextAlign('center').run()}
+        >
+          <FontAwesomeIcon icon={faAlignCenter} />
+        </ToolbarButton>
+        <ToolbarButton
+          label="Align right"
+          active={editor.isActive({ textAlign: 'right' })}
+          onClick={() => editor.chain().focus().setTextAlign('right').run()}
+        >
+          <FontAwesomeIcon icon={faAlignRight} />
+        </ToolbarButton>
+        <ToolbarButton
+          label="Justify"
+          active={editor.isActive({ textAlign: 'justify' })}
+          onClick={() => editor.chain().focus().setTextAlign('justify').run()}
+        >
+          <FontAwesomeIcon icon={faAlignJustify} />
+        </ToolbarButton>
+        <label className="d-inline-flex align-items-center gap-1 btn btn-sm btn-light rounded-pill px-3 py-1 mb-0">
+          <span className="fw-semibold small">Color</span>
+          <input
+            type="color"
+            className="form-control form-control-color border-0 p-0"
+            style={{ width: '1.75rem', height: '1.75rem' }}
+            aria-label="Text color"
+            value={
+              typeof editor.getAttributes('textStyle').color === 'string'
+                ? editor.getAttributes('textStyle').color
+                : '#00686D'
+            }
+            list="page-content-text-colors"
+            onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
+          />
+          <datalist id="page-content-text-colors">
+            {PAGE_CONTENT_TEXT_COLORS.map((color) => (
+              <option key={color} value={color} />
+            ))}
+          </datalist>
+        </label>
+        <ToolbarButton
+          label="Insert table"
+          onClick={() =>
+            editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+          }
+        >
+          <FontAwesomeIcon icon={faTable} />
         </ToolbarButton>
         <ToolbarButton
           label="Link"

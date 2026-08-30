@@ -58,7 +58,7 @@ describe('Pages Form Tiptap editor and locale tabs', () => {
     expect(editorSrc).not.toContain('ReactQuill')
   })
 
-  it('editor output remains valid HTML matching the same safe-tag set as before (h1-h6, p, ul/ol/li, strong, em, a)', () => {
+  it('editor output remains valid HTML matching the expanded safe-tag set (headings, lists, tables, marks, media)', () => {
     const html =
       '<h2>Acceptance</h2><p>Hello <strong>world</strong></p><ul><li>One</li></ul><ol><li>First</li></ol><p><a href="https://example.com">Link</a></p><h3>More</h3><p><em>italic</em></p>'
 
@@ -68,6 +68,7 @@ describe('Pages Form Tiptap editor and locale tabs', () => {
     expect(normalizeEditorHtml('<p><br class="ProseMirror-trailingBreak"></p>')).toBe('')
     expect(normalizeEditorHtml(`  ${html}  `)).toBe(html)
     expect(isStructuredHtmlContent(html)).toBe(true)
+    expect(isStructuredHtmlContent('<table><tr><td>x</td></tr></table>')).toBe(true)
     expect(isStructuredHtmlContent('plain text only')).toBe(false)
 
     expect([...PAGE_CONTENT_ALLOWED_TAGS]).toEqual([
@@ -83,17 +84,38 @@ describe('Pages Form Tiptap editor and locale tabs', () => {
       'li',
       'strong',
       'em',
+      'u',
+      's',
+      'blockquote',
+      'code',
+      'pre',
+      'hr',
+      'span',
+      'table',
+      'thead',
+      'tbody',
+      'tr',
+      'th',
+      'td',
       'a',
       'img',
     ])
-    expect([...PAGE_CONTENT_HEADING_LEVELS]).toEqual([2, 3])
+    expect([...PAGE_CONTENT_HEADING_LEVELS]).toEqual([1, 2, 3, 4, 5, 6])
     expect([...PAGE_CONTENT_TOOLBAR_ACTIONS]).toEqual([
       'paragraph',
       'heading',
       'bold',
       'italic',
+      'underline',
+      'strike',
+      'code',
+      'blockquote',
+      'horizontalRule',
       'bulletList',
       'orderedList',
+      'textAlign',
+      'textColor',
+      'table',
       'link',
       'insertLogo',
       'insertImage',
@@ -222,5 +244,46 @@ describe('Pages Form Tiptap editor and locale tabs', () => {
         '/dashboard/pages/content-images',
       ),
     ).rejects.toThrow('Upload failed.')
+  })
+
+  it('Pages editor toolbar now exposes strikethrough, code, blockquote, horizontal rule, text color, alignment, underline, table insert, and all heading levels', () => {
+    expect(editorSrc).toContain('Strikethrough')
+    expect(editorSrc).toContain('toggleStrike')
+    expect(editorSrc).toContain('toggleCode')
+    expect(editorSrc).toContain('toggleBlockquote')
+    expect(editorSrc).toContain('setHorizontalRule')
+    expect(editorSrc).toContain('toggleUnderline')
+    expect(editorSrc).toContain('setTextAlign')
+    expect(editorSrc).toContain('setColor')
+    expect(editorSrc).toContain('insertTable')
+    expect(editorSrc).toContain('type="color"')
+    expect(editorConfigSrc).toContain('@tiptap/extension-underline')
+    expect(editorConfigSrc).toContain('@tiptap/extension-text-align')
+    expect(editorConfigSrc).toContain('@tiptap/extension-color')
+    expect(editorConfigSrc).toContain('@tiptap/extension-table')
+    expect([...PAGE_CONTENT_HEADING_LEVELS]).toEqual([1, 2, 3, 4, 5, 6])
+    for (const action of [
+      'underline',
+      'strike',
+      'code',
+      'blockquote',
+      'horizontalRule',
+      'textAlign',
+      'textColor',
+      'table',
+    ]) {
+      expect([...PAGE_CONTENT_TOOLBAR_ACTIONS]).toContain(action)
+    }
+  })
+
+  it('the 5 migrated pages are editable via the admin Pages CRUD like any other page', () => {
+    // Admin Pages Form is slug-agnostic — same Form/editor for every CMS page.
+    expect(formSrc).toContain('PageContentEditor')
+    expect(formSrc).toContain('slug')
+    expect(formSrc).toContain('translations')
+    expect(editorSrc).toContain('Insert Logo')
+    expect(editorSrc).toContain('Insert Image')
+    expect([...PAGE_CONTENT_TOOLBAR_ACTIONS]).toContain('insertLogo')
+    expect([...PAGE_CONTENT_TOOLBAR_ACTIONS]).toContain('insertImage')
   })
 })

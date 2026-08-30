@@ -70,6 +70,14 @@ class PageService
         return $this->showForCatalogAction->handle($page);
     }
 
+    public function showForCatalogBySlug(string $slug): Page
+    {
+        $page = new Page;
+        $page->slug = $slug;
+
+        return $this->showForCatalogAction->handle($page);
+    }
+
     public function uploadContentImage(UploadPageContentImageDTO $dto): UploadedPageContentImageDTO
     {
         return $this->uploadContentImageAction->handle($dto);

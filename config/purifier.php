@@ -32,14 +32,12 @@ return [
             'AutoFormat.RemoveEmpty' => true,
         ],
         /*
-         * CMS Pages content (legal text / mobile HTML body).
-         * Matches the constrained Pages admin editor toolbar: headings, bold/italic, lists, links.
+         * CMS Pages content — matches the unrestricted Pages admin editor.
          */
         'pages' => [
             'HTML.Doctype' => 'HTML 4.01 Transitional',
-            // Headings may carry inline brand styles; img covers Insert Logo + uploaded content images.
-            'HTML.Allowed' => 'h1[style],h2[style],h3[style],h4[style],h5[style],h6[style],p[style],br,ul,ol,li,strong,em,b,i,a[href|title|rel|target],img[src|alt|width|height]',
-            'CSS.AllowedProperties' => 'color,font-weight,text-align',
+            'HTML.Allowed' => 'h1[style],h2[style],h3[style],h4[style],h5[style],h6[style],p[style],br,ul,ol,li,strong,em,b,i,u,s,strike,del,blockquote,code,pre,hr,span[style],table,thead,tbody,tr,th[style|colspan|rowspan],td[style|colspan|rowspan],a[href|title|rel|target],img[src|alt|width|height|style]',
+            'CSS.AllowedProperties' => 'color,font-weight,text-align,text-decoration,background-color,width,height',
             'AutoFormat.AutoParagraph' => false,
             'AutoFormat.RemoveEmpty' => true,
             'HTML.ForbiddenElements' => 'script,iframe,object,embed,form,input,button,style',
