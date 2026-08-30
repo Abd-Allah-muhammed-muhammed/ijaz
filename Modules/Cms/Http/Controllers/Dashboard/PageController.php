@@ -54,9 +54,7 @@ class PageController extends Controller implements HasMiddleware
 
     public function create(): Response
     {
-        return inertia('Dashboard/Pages/Create', [
-            'pageOptions' => $this->service->compositionOptions(),
-        ]);
+        return inertia('Dashboard/Pages/Create');
     }
 
     public function edit(Page $page): Response
@@ -65,7 +63,6 @@ class PageController extends Controller implements HasMiddleware
 
         return inertia('Dashboard/Pages/Edit', [
             'row' => PageResource::make($page),
-            'pageOptions' => $this->service->compositionOptions($page),
         ]);
     }
 

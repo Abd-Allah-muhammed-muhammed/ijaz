@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Provider\HomeController;
 use App\Support\LookupCache;
-use Database\Seeders\PagesSeeder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -246,16 +245,22 @@ test('API questions search path remains uncached and still returns matching item
         ->and($response->json('data.items.0.title'))->toBe('How to pay?');
 });
 
-test('Frontend web About/home remain static and privacy-policy renders seeded CMS page', function (): void {
-    app(PagesSeeder::class)->run();
+test('Frontend web About/home remain static and privacy-policy renders the original static component', function (): void {
+    $this->withoutMiddleware([
+        LocaleSessionRedirect::class,
+        LaravelLocalizationRedirectFilter::class,
+        LaravelLocalizationRoutes::class,
+        LaravelLocalizationViewPath::class,
+    ]);
+    $this->withoutVite();
 
     $this->get(route('about-us'))->assertSuccessful();
     $this->get(route('home'))->assertSuccessful();
     $this->get(route('privacy-policy'))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Frontend/CmsPage')
-            ->where('page.slug', 'privacy')
+            ->component('Frontend/PrivacyPolicy')
+            ->missing('page')
         );
 });
 

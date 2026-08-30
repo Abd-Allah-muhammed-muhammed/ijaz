@@ -16,7 +16,6 @@ class PageResource extends JsonResource
             'slug' => $this->slug,
             'title' => $this->title,
             'content' => $this->content,
-            'composed_of_slugs' => $this->composed_of_slugs,
             'created_at' => $this->created_at,
             'translations' => $this->when($this->relationLoaded('translations'), fn () => $this->translations->mapWithKeys(fn ($item) => [$item->locale => [
                 'title' => $item->title,

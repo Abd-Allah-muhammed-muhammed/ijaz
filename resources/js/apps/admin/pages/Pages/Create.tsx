@@ -7,17 +7,12 @@ import {Head} from "@inertiajs/react";
 import {KTCard} from "@/vendor/metronic/helpers";
 import Form from "./Form";
 import {ReactNode} from "react";
-import NationalityController from "@/actions/Modules/Geo/Http/Controllers/Dashboard/NationalityController";
 import {zodValidate} from "@/shared/helpers/general";
 import {Inputs} from "@/apps/admin/pages/Pages/validation";
 import PageController from "@/actions/Modules/Cms/Http/Controllers/Dashboard/PageController";
 
 
-type Props = {
-  pageOptions?: { value: string; label: string }[];
-};
-
-const Create = ({ pageOptions = [] }: Props) => {
+const Create = () => {
   const { t } = useTranslation();
   return (
     <>
@@ -43,7 +38,6 @@ const Create = ({ pageOptions = [] }: Props) => {
         <KTCard className="border-0 shadow-sm rounded-4">
           <div className="card-body p-6 p-lg-9">
             <Form
-              pageOptions={pageOptions}
               callback={(form) => {
                 if (zodValidate(Inputs, form)) {
                   form.submit(PageController.store());

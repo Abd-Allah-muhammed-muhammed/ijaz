@@ -41,29 +41,29 @@ class GeneralController extends Controller
         return inertia('Frontend/CustomerReviews', []);
     }
 
-    public function privacyAndPolicies(): Response
+    public function privacyAndPolicies()
     {
-        return $this->renderCmsPageBySlug('policies-and-privacy');
+        return inertia('Frontend/PrivacyAndPolicies', []);
     }
 
-    public function privacyPolicy(): Response
+    public function privacyPolicy()
     {
-        return $this->renderCmsPageBySlug('privacy');
+        return inertia('Frontend/PrivacyPolicy', []);
     }
 
-    public function serviceProviderAuthorizationTermsAndConditions(): Response
+    public function serviceProviderAuthorizationTermsAndConditions()
     {
-        return $this->renderCmsPageBySlug('service-provider-authorization');
+        return inertia('Frontend/ServiceProviderAuthorizationTermsAndConditions', []);
     }
 
-    public function howToUseAgency(): Response
+    public function howToUseAgency()
     {
-        return $this->renderCmsPageBySlug('how-to-use-agency');
+        return inertia('Frontend/HowToUseAgency', []);
     }
 
-    public function realEstateMarketplaceTermsOfUse(): Response
+    public function realEstateMarketplaceTermsOfUse()
     {
-        return $this->renderCmsPageBySlug('real-estate-marketplace-terms');
+        return inertia('Frontend/RealEstateMarketplaceTermsOfUse', []);
     }
 
     /**
@@ -83,11 +83,6 @@ class GeneralController extends Controller
         }
 
         return redirect()->to($url);
-    }
-
-    private function renderCmsPageBySlug(string $slug): Response
-    {
-        return $this->renderCmsPagePayload($this->pageService->catalogPayloadBySlug($slug));
     }
 
     /**

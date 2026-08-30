@@ -2,10 +2,6 @@
 
 use Database\Seeders\PagesSeeder;
 use Illuminate\Support\Facades\File;
-use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
-use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
-use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
-use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
 use Modules\Cms\Models\Page;
 use Modules\Cms\Support\PageHtmlSanitizer;
 
@@ -69,7 +65,7 @@ HTML;
         ->and($prepared)->toContain('code block');
 });
 
-test('seeding the 5 real pages populates all 4 locales with the actual extracted lang content, not placeholder text', function () {
+test('seeding CMS pages populates all 4 locales with the actual extracted lang content, not placeholder text', function () {
     app(PagesSeeder::class)->run();
 
     $fixtureEn = json_decode(
@@ -88,8 +84,7 @@ test('seeding the 5 real pages populates all 4 locales with the actual extracted
 
     foreach ($expectedSnippets as $slug => $snippet) {
         $page = Page::query()->where('slug', $slug)->first();
-        expect($page)->not->toBeNull()
-            ->and($page->composed_of_slugs)->toBeNull();
+        expect($page)->not->toBeNull();
 
         foreach (['en', 'ar', 'ur', 'hi'] as $locale) {
             $translation = $page->translate($locale);
@@ -106,28 +101,21 @@ test('seeding the 5 real pages populates all 4 locales with the actual extracted
     }
 
     $terms = Page::query()->where('slug', 'terms')->firstOrFail();
-    $hub = Page::query()->where('slug', 'policies-and-privacy')->firstOrFail();
+    $mergedEn = (string) $terms->translate('en')?->content;
 
-    expect($terms->composed_of_slugs)->toBe([
-        'service-provider-authorization',
-        'how-to-use-agency',
-    ])
-        ->and($hub->composed_of_slugs)->toBe([
-            'privacy',
-            'service-provider-authorization',
-            'how-to-use-agency',
-            'real-estate-marketplace-terms',
-        ])
-        ->and((string) $terms->translate('en')?->content)->toBe('')
-        ->and((string) $hub->translate('en')?->content)->toBe('');
+    expect($mergedEn)->toContain('authorization must be made exclusively inside Ijaz platform')
+        ->and($mergedEn)->toContain('The client logs into their account in the app')
+        ->and($mergedEn)->toBe(
+            (string) $fixtureEn['service-provider-authorization']['content']."\r\n".(string) $fixtureEn['how-to-use-agency']['content']
+        );
 });
 
-test('GET /api/v1/catalog/pages/{slug} returns correct real content for each of the 5 migrated slugs', function () {
+test('GET /api/v1/catalog/pages/{slug} returns correct real content for CMS catalog slugs', function () {
     app(PagesSeeder::class)->run();
 
     $slugs = [
         'privacy',
-        'policies-and-privacy',
+        'terms',
         'how-to-use-agency',
         'real-estate-marketplace-terms',
         'service-provider-authorization',
@@ -148,58 +136,5 @@ test('GET /api/v1/catalog/pages/{slug} returns correct real content for each of 
             ->and($content)->not->toContain('[PLACEHOLDER SECTION')
             ->and($content)->toContain('data-testid="cms-page-card"')
             ->and($content)->toContain('<h2');
-    }
-});
-
-test('the 5 original website URLs still return 200 and now render via CmsPageView with equivalent real content', function () {
-    app(PagesSeeder::class)->run();
-
-    $this->withoutMiddleware([
-        LocaleSessionRedirect::class,
-        LaravelLocalizationRedirectFilter::class,
-        LaravelLocalizationRoutes::class,
-        LaravelLocalizationViewPath::class,
-    ]);
-    $this->withoutVite();
-
-    $routes = [
-        '/privacy-and-policies' => [
-            'slug' => 'policies-and-privacy',
-            'snippet' => 'This privacy statement explains how Ijaz collects',
-            'cards' => 4,
-        ],
-        '/privacy-policy' => [
-            'slug' => 'privacy',
-            'snippet' => 'This privacy statement explains how Ijaz collects',
-            'cards' => 1,
-        ],
-        '/how-to-use-agency' => [
-            'slug' => 'how-to-use-agency',
-            'snippet' => 'The client logs into their account in the app',
-            'cards' => 1,
-        ],
-        '/real-estate-marketplace-terms-of-use' => [
-            'slug' => 'real-estate-marketplace-terms',
-            'snippet' => 'valid license issued by the Saudi Real Estate Authority',
-            'cards' => 1,
-        ],
-        '/service-provider-authorization-terms-and-conditions' => [
-            'slug' => 'service-provider-authorization',
-            'snippet' => 'authorization must be made exclusively',
-            'cards' => 1,
-        ],
-    ];
-
-    foreach ($routes as $path => $expectation) {
-        $this->get($path)
-            ->assertSuccessful()
-            ->assertInertia(fn ($page) => $page
-                ->component('Frontend/CmsPage')
-                ->where('page.slug', $expectation['slug'])
-                ->where('page.content', fn ($content) => is_string($content)
-                    && str_contains($content, $expectation['snippet'])
-                    && substr_count($content, 'data-testid="cms-page-card"') === $expectation['cards']
-                    && ! str_contains($content, '[PLACEHOLDER SECTION'))
-            );
     }
 });

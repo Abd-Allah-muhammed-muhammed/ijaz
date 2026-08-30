@@ -15,10 +15,9 @@ import {Inputs} from "@/apps/admin/pages/Pages/validation";
 
 type Props = {
   row: Page,
-  pageOptions?: { value: string; label: string }[];
 };
 
-const Edit = ({row, pageOptions = []}: Props) => {
+const Edit = ({row}: Props) => {
   const { t } = useTranslation();
 
   return (
@@ -46,7 +45,6 @@ const Edit = ({row, pageOptions = []}: Props) => {
           <div className="card-body p-6 p-lg-9">
             <Form
               row={row}
-              pageOptions={pageOptions}
               callback={(form) => {
                 if (zodValidate(Inputs, form)) {
                   form.submit(PageController.update(row));

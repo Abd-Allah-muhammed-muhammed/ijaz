@@ -9,12 +9,12 @@ use Modules\Cms\Models\Page;
 use RuntimeException;
 
 /**
- * Seeds CMS Pages:
- * - leaf pages from extracted fixtures (privacy, how-to-use-agency, …)
- * - `terms` and `policies-and-privacy` as compositions (composed_of_slugs)
- *   of those leaf pages — own content left empty
+ * Seeds CMS Pages from extracted fixtures:
+ * - four standalone leaf pages (privacy, how-to-use-agency, …)
+ * - `terms` as one normal page whose content is service-provider-authorization
+ *   + how-to-use-agency merged directly (per locale)
  *
- * Upsert-safe: re-running updates title/content/composition for each slug.
+ * Upsert-safe: re-running updates title/content for each slug.
  */
 class PagesSeeder extends Seeder
 {
@@ -26,24 +26,16 @@ class PagesSeeder extends Seeder
         'service-provider-authorization',
     ];
 
-    /** @var array<string, list<string>> */
-    private const array COMPOSITIONS = [
-        'terms' => [
-            'service-provider-authorization',
-            'how-to-use-agency',
-        ],
-        'policies-and-privacy' => [
-            'privacy',
-            'service-provider-authorization',
-            'how-to-use-agency',
-            'real-estate-marketplace-terms',
-        ],
+    /** @var list<string> */
+    private const array TERMS_MERGE_SOURCES = [
+        'service-provider-authorization',
+        'how-to-use-agency',
     ];
 
     public function run(): void
     {
         $this->seedLeafPages();
-        $this->seedComposedPages();
+        $this->seedTermsPage();
     }
 
     private function seedLeafPages(): void
@@ -66,54 +58,54 @@ class PagesSeeder extends Seeder
                 ];
             }
 
-            $this->upsertPage($slug, $translations, null);
+            $this->upsertPage($slug, $translations);
         }
     }
 
-    private function seedComposedPages(): void
+    private function seedTermsPage(): void
     {
         $byLocale = [];
         foreach (['en', 'ar', 'ur', 'hi'] as $locale) {
             $byLocale[$locale] = $this->loadFixture($locale);
         }
 
-        foreach (self::COMPOSITIONS as $slug => $composedOf) {
-            $translations = [];
-            foreach (['en', 'ar', 'ur', 'hi'] as $locale) {
-                $translations[$locale] = [
-                    'title' => $this->composedTitleFor($slug, $locale, $byLocale[$locale]),
-                    'content' => '',
-                ];
-            }
-
-            $this->upsertPage($slug, $translations, $composedOf);
+        $translations = [];
+        foreach (['en', 'ar', 'ur', 'hi'] as $locale) {
+            $translations[$locale] = [
+                'title' => $this->termsTitleFor($locale),
+                'content' => $this->mergedTermsContent($byLocale[$locale]),
+            ];
         }
+
+        $this->upsertPage('terms', $translations);
+    }
+
+    private function termsTitleFor(string $locale): string
+    {
+        return match ($locale) {
+            'ar' => 'الشروط والأحكام',
+            'ur' => 'شرائط و ضوابط',
+            'hi' => 'नियम और शर्तें',
+            default => 'Terms and Conditions',
+        };
     }
 
     /**
      * @param  array<string, array{title: string, content: string}>  $fixture
      */
-    private function composedTitleFor(string $slug, string $locale, array $fixture): string
+    private function mergedTermsContent(array $fixture): string
     {
-        if ($slug === 'terms') {
-            return match ($locale) {
-                'ar' => 'الشروط والأحكام',
-                'ur' => 'شرائط و ضوابط',
-                'hi' => 'नियम और शर्तें',
-                default => 'Terms and Conditions',
-            };
+        $parts = [];
+
+        foreach (self::TERMS_MERGE_SOURCES as $slug) {
+            if (! isset($fixture[$slug]['content'])) {
+                throw new RuntimeException("Missing CMS fixture for [{$slug}] when merging terms.");
+            }
+
+            $parts[] = (string) $fixture[$slug]['content'];
         }
 
-        if (isset($fixture[$slug]['title'])) {
-            return (string) $fixture[$slug]['title'];
-        }
-
-        return match ($locale) {
-            'ar' => 'السياسات والخصوصية في المنصة',
-            'ur' => 'پلیٹ فارم کی پالیسیز اور پرائیویسی',
-            'hi' => 'प्लेटफ़ॉर्म पर नीतियाँ और गोपनीयता',
-            default => 'Policies and Privacy in the Platform',
-        };
+        return implode("\r\n", $parts);
     }
 
     /**
@@ -133,13 +125,11 @@ class PagesSeeder extends Seeder
 
     /**
      * @param  array<string, array{title: string, content: string}>  $translations
-     * @param  list<string>|null  $composedOfSlugs
      */
-    private function upsertPage(string $slug, array $translations, ?array $composedOfSlugs): void
+    private function upsertPage(string $slug, array $translations): void
     {
         $page = Page::query()->firstOrNew(['slug' => $slug]);
         $page->slug = $slug;
-        $page->composed_of_slugs = $composedOfSlugs;
 
         foreach ($translations as $locale => $fields) {
             $page->translateOrNew($locale)->fill($fields);

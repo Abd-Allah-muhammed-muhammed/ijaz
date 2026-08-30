@@ -14,7 +14,6 @@ use Modules\Cms\Actions\Page\ShowPageForCatalogAction;
 use Modules\Cms\Actions\Page\StorePageAction;
 use Modules\Cms\Actions\Page\UpdatePageAction;
 use Modules\Cms\Actions\Page\UploadPageContentImageAction;
-use Modules\Cms\Contracts\Repositories\PageRepositoryInterface;
 use Modules\Cms\DTOs\StorePageDTO;
 use Modules\Cms\DTOs\UpdatePageDTO;
 use Modules\Cms\DTOs\UploadedPageContentImageDTO;
@@ -33,7 +32,6 @@ class PageService
         private readonly ShowPageForCatalogAction $showForCatalogAction,
         private readonly RenderCmsPageContentAction $renderCmsPageContentAction,
         private readonly UploadPageContentImageAction $uploadContentImageAction,
-        private readonly PageRepositoryInterface $pageRepository,
     ) {}
 
     public function index(Request $request): LengthAwarePaginator
@@ -83,7 +81,7 @@ class PageService
     }
 
     /**
-     * Final HTML for website + API (card/badge + absolute image URLs, composition-aware).
+     * Final HTML for website + API (card/badge + absolute image URLs).
      */
     public function renderContent(Page $page): string
     {
@@ -113,21 +111,6 @@ class PageService
     public function catalogPayloadBySlug(string $slug): array
     {
         return $this->catalogPayload($this->showForCatalogBySlug($slug));
-    }
-
-    /**
-     * @return list<array{value: string, label: string}>
-     */
-    public function compositionOptions(?Page $exclude = null): array
-    {
-        return $this->pageRepository
-            ->getAllForCompositionOptions($exclude?->id)
-            ->map(fn (Page $page): array => [
-                'value' => (string) $page->slug,
-                'label' => (string) ($page->title ?: $page->slug),
-            ])
-            ->values()
-            ->all();
     }
 
     public function uploadContentImage(UploadPageContentImageDTO $dto): UploadedPageContentImageDTO

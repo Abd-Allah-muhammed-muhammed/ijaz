@@ -24,7 +24,6 @@ class StorePageAction
     {
         $page = DB::transaction(fn (): Page => $this->repository->create([
             'slug' => Str::slug($dto->slug),
-            'composed_of_slugs' => $dto->composedOfSlugs,
             'translations' => PageHtmlSanitizer::cleanTranslations($dto->translations),
         ]));
 
