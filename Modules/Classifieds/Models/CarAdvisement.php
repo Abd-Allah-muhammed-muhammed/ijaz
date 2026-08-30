@@ -106,7 +106,7 @@ class CarAdvisement extends Model implements HasMedia
 
     public function bank(): BelongsTo
     {
-        return $this->belongsTo(Bank::class);
+        return $this->belongsTo(Bank::class)->withTrashed();
     }
 
     public function user(): MorphTo

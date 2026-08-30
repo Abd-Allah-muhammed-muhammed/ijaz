@@ -55,12 +55,12 @@ class GuarantorCompanyDetail extends Model implements HasMedia
 
     public function requesterBank(): BelongsTo
     {
-        return $this->belongsTo(Bank::class, 'requester_bank_id');
+        return $this->belongsTo(Bank::class, 'requester_bank_id')->withTrashed();
     }
 
     public function counterpartyBank(): BelongsTo
     {
-        return $this->belongsTo(Bank::class, 'counterparty_bank_id');
+        return $this->belongsTo(Bank::class, 'counterparty_bank_id')->withTrashed();
     }
 
     public function registerMediaCollections(): void

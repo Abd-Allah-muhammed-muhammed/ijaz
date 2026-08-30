@@ -44,7 +44,8 @@ class BankRepository implements BankRepositoryInterface
 
     public function delete(Bank $bank): void
     {
-        $bank->clearMediaCollection('logo');
+        // Soft delete only — keep logo/media so historical Guarantor/CarAdvisement
+        // relations can still resolve name + logo via withTrashed().
         $bank->delete();
     }
 

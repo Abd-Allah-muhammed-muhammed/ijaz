@@ -1,5 +1,6 @@
 import BankController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/BankController';
 import Table, { LinkAction } from '@/shared/components/Table';
+import ConfirmAction from '@/shared/components/Table/partials/confirm-action';
 import usePermissions from '@/shared/hooks/use-permissions';
 import { PaginationResource } from '@/shared/types';
 import { Bank } from '@/shared/types/models';
@@ -99,6 +100,21 @@ const Index = ({ rows, prams }: Props) => {
                     key={`edit-bank-${row.id}`}
                     href={BankController.edit(row.id as number).url}
                     title={t('edit')}
+                  />
+                ),
+              },
+              {
+                show: hasPermission('delete banks'),
+                ele: (row) => (
+                  <ConfirmAction
+                    key={`delete-bank-${row.id}`}
+                    callback={() => {
+                      router.delete(BankController.destroy(row.id as number).url, {
+                        only: ['rows', 'flash'],
+                        preserveScroll: true,
+                      });
+                    }}
+                    title={t('delete')}
                   />
                 ),
               },

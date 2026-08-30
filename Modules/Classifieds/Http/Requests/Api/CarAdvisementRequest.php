@@ -55,7 +55,7 @@ class CarAdvisementRequest extends ApiRequest
             'options' => ['nullable', 'array'],
             'bank_id' => [
                 'nullable',
-                Rule::exists('banks', 'id')->where('is_active', true),
+                Rule::exists('banks', 'id')->where('is_active', true)->whereNull('deleted_at'),
             ],
             'files' => ['nullable', 'array'],
             'files.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:'.(1024 * 5)],

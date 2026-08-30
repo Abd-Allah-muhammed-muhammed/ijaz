@@ -263,7 +263,9 @@ test('Bank admin CRUD respects the same permission pattern as Region (show/creat
         ->delete(action([BankController::class, 'destroy'], $bank))
         ->assertRedirect(route('dashboard.banks.index'));
 
-    expect(Bank::query()->whereKey($bank->id)->exists())->toBeFalse();
+    expect(Bank::query()->whereKey($bank->id)->exists())->toBeFalse()
+        ->and(Bank::withTrashed()->whereKey($bank->id)->exists())->toBeTrue()
+        ->and(Bank::withTrashed()->find($bank->id)?->trashed())->toBeTrue();
 });
 
 test('the BanksSeeder is idempotent — running it twice does not create duplicate banks', function () {

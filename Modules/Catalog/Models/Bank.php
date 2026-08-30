@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Catalog\Database\Factories\BankFactory;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -15,7 +16,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Bank extends Model implements HasMedia, IReactSelect
 {
     /** @use HasFactory<BankFactory> */
-    use HasFactory, InteractsWithMedia, Translatable;
+    use HasFactory, InteractsWithMedia, SoftDeletes, Translatable;
 
     protected $fillable = [
         'is_active',

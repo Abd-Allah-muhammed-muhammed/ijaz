@@ -50,13 +50,13 @@ class StoreCompanyGuarantorRequest extends ApiRequest
             'requester_iban' => ['required', 'string', 'max:50', new SaudiIban],
             'requester_bank_id' => [
                 'required',
-                Rule::exists('banks', 'id')->where('is_active', true),
+                Rule::exists('banks', 'id')->where('is_active', true)->whereNull('deleted_at'),
             ],
             'counterparty_account_holder' => ['required', 'string', 'max:255'],
             'counterparty_iban' => ['nullable', 'string', 'max:50', new SaudiIban],
             'counterparty_bank_id' => [
                 'nullable',
-                Rule::exists('banks', 'id')->where('is_active', true),
+                Rule::exists('banks', 'id')->where('is_active', true)->whereNull('deleted_at'),
             ],
             'terms_notes' => ['nullable', 'string', 'max:2000'],
             'signature' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
