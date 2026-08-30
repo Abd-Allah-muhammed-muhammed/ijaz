@@ -76,7 +76,9 @@ test('catalog page show response shape contract', function () {
     expect($json)->toHaveKeys(['success', 'message', 'data', 'errors'])
         ->and($json['data'])->toHaveKeys(['id', 'slug', 'title', 'content'])
         ->and($json['data']['slug'])->toBe('terms')
-        ->and($json['data']['content'])->toBe('Terms body');
+        ->and($json['data']['content'])->toBeString()
+        ->and($json['data']['content'])->toContain('Terms body')
+        ->and($json['data']['content'])->toContain('data-testid="cms-page-card"');
 });
 
 test('catalog questions paginated response shape contract', function () {

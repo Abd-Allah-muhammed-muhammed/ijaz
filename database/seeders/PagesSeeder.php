@@ -6,57 +6,54 @@ use App\Support\LookupCache;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 use Modules\Cms\Models\Page;
-use Modules\Cms\Support\PageHtmlSanitizer;
 use RuntimeException;
 
 /**
  * Seeds CMS Pages:
- * - `terms` — placeholder Terms & Conditions (mobile API)
- * - five real marketing/legal pages from extracted fixtures
- *   (database/seeders/data/cms-static-pages/{locale}.json)
+ * - leaf pages from extracted fixtures (privacy, how-to-use-agency, …)
+ * - `terms` and `policies-and-privacy` as compositions (composed_of_slugs)
+ *   of those leaf pages — own content left empty
  *
- * Upsert-safe: re-running updates title/content for each slug.
+ * Upsert-safe: re-running updates title/content/composition for each slug.
  */
 class PagesSeeder extends Seeder
 {
-    private const string PLACEHOLDER_MARK = '[PLACEHOLDER SECTION — replace with real legal text before launch]';
-
     /** @var list<string> */
-    private const array MIGRATED_SLUGS = [
+    private const array LEAF_SLUGS = [
         'privacy',
-        'policies-and-privacy',
         'how-to-use-agency',
         'real-estate-marketplace-terms',
         'service-provider-authorization',
     ];
 
+    /** @var array<string, list<string>> */
+    private const array COMPOSITIONS = [
+        'terms' => [
+            'service-provider-authorization',
+            'how-to-use-agency',
+        ],
+        'policies-and-privacy' => [
+            'privacy',
+            'service-provider-authorization',
+            'how-to-use-agency',
+            'real-estate-marketplace-terms',
+        ],
+    ];
+
     public function run(): void
     {
-        $this->seedTermsPlaceholder();
-        $this->seedMigratedStaticPages();
+        $this->seedLeafPages();
+        $this->seedComposedPages();
     }
 
-    private function seedTermsPlaceholder(): void
-    {
-        $translations = [];
-        foreach (['en', 'ar', 'ur', 'hi'] as $locale) {
-            $translations[$locale] = [
-                'title' => $this->termsTitleFor($locale),
-                'content' => $this->termsPlaceholderContentFor($locale),
-            ];
-        }
-
-        $this->upsertPage('terms', $translations);
-    }
-
-    private function seedMigratedStaticPages(): void
+    private function seedLeafPages(): void
     {
         $byLocale = [];
         foreach (['en', 'ar', 'ur', 'hi'] as $locale) {
             $byLocale[$locale] = $this->loadFixture($locale);
         }
 
-        foreach (self::MIGRATED_SLUGS as $slug) {
+        foreach (self::LEAF_SLUGS as $slug) {
             $translations = [];
             foreach (['en', 'ar', 'ur', 'hi'] as $locale) {
                 if (! isset($byLocale[$locale][$slug])) {
@@ -69,8 +66,54 @@ class PagesSeeder extends Seeder
                 ];
             }
 
-            $this->upsertPage($slug, $translations);
+            $this->upsertPage($slug, $translations, null);
         }
+    }
+
+    private function seedComposedPages(): void
+    {
+        $byLocale = [];
+        foreach (['en', 'ar', 'ur', 'hi'] as $locale) {
+            $byLocale[$locale] = $this->loadFixture($locale);
+        }
+
+        foreach (self::COMPOSITIONS as $slug => $composedOf) {
+            $translations = [];
+            foreach (['en', 'ar', 'ur', 'hi'] as $locale) {
+                $translations[$locale] = [
+                    'title' => $this->composedTitleFor($slug, $locale, $byLocale[$locale]),
+                    'content' => '',
+                ];
+            }
+
+            $this->upsertPage($slug, $translations, $composedOf);
+        }
+    }
+
+    /**
+     * @param  array<string, array{title: string, content: string}>  $fixture
+     */
+    private function composedTitleFor(string $slug, string $locale, array $fixture): string
+    {
+        if ($slug === 'terms') {
+            return match ($locale) {
+                'ar' => 'الشروط والأحكام',
+                'ur' => 'شرائط و ضوابط',
+                'hi' => 'नियम और शर्तें',
+                default => 'Terms and Conditions',
+            };
+        }
+
+        if (isset($fixture[$slug]['title'])) {
+            return (string) $fixture[$slug]['title'];
+        }
+
+        return match ($locale) {
+            'ar' => 'السياسات والخصوصية في المنصة',
+            'ur' => 'پلیٹ فارم کی پالیسیز اور پرائیویسی',
+            'hi' => 'प्लेटफ़ॉर्म पर नीतियाँ और गोपनीयता',
+            default => 'Policies and Privacy in the Platform',
+        };
     }
 
     /**
@@ -90,11 +133,13 @@ class PagesSeeder extends Seeder
 
     /**
      * @param  array<string, array{title: string, content: string}>  $translations
+     * @param  list<string>|null  $composedOfSlugs
      */
-    private function upsertPage(string $slug, array $translations): void
+    private function upsertPage(string $slug, array $translations, ?array $composedOfSlugs): void
     {
         $page = Page::query()->firstOrNew(['slug' => $slug]);
         $page->slug = $slug;
+        $page->composed_of_slugs = $composedOfSlugs;
 
         foreach ($translations as $locale => $fields) {
             $page->translateOrNew($locale)->fill($fields);
@@ -104,72 +149,5 @@ class PagesSeeder extends Seeder
 
         LookupCache::forgetAllLocales('pages:all');
         LookupCache::forgetScopedAllLocales('pages:single', $slug);
-    }
-
-    private function termsTitleFor(string $locale): string
-    {
-        return match ($locale) {
-            'ar' => 'الشروط والأحكام',
-            'ur' => 'شرائط و ضوابط',
-            'hi' => 'नियम और शर्तें',
-            default => 'Terms and Conditions',
-        };
-    }
-
-    private function termsPlaceholderContentFor(string $locale): string
-    {
-        $intro = match ($locale) {
-            'ar' => 'هذا محتوى تجريبي للشروط والأحكام — ليس نصًا قانونيًا.',
-            'ur' => 'یہ شرائط و ضوابط کا عارضی مواد ہے — قانونی متن نہیں۔',
-            'hi' => 'यह नियम और शर्तों का प्लेसहोल्डर सामग्री है — कानूनी पाठ नहीं।',
-            default => 'This is placeholder Terms and Conditions content — not legal text.',
-        };
-
-        $sectionAcceptance = match ($locale) {
-            'ar' => 'القبول',
-            'ur' => 'قبول',
-            'hi' => 'स्वीकृति',
-            default => 'Acceptance',
-        };
-
-        $sectionUse = match ($locale) {
-            'ar' => 'استخدام المنصة',
-            'ur' => 'پلیٹ فارم کا استعمال',
-            'hi' => 'प्लेटफ़ॉर्म का उपयोग',
-            default => 'Platform use',
-        };
-
-        $listItemOne = match ($locale) {
-            'ar' => 'بند تجريبي أول',
-            'ur' => 'پہلا عارضی نقطہ',
-            'hi' => 'पहला प्लेसहोल्डर बिंदु',
-            default => 'First placeholder bullet',
-        };
-
-        $listItemTwo = match ($locale) {
-            'ar' => 'بند تجريبي ثانٍ',
-            'ur' => 'دوسرا عارضی نقطہ',
-            'hi' => 'दूसरा प्लेसहोल्डर बिंदु',
-            default => 'Second placeholder bullet',
-        };
-
-        $mark = self::PLACEHOLDER_MARK;
-
-        $html = <<<HTML
-<h2>{$sectionAcceptance}</h2>
-<p>{$intro}</p>
-<p><strong>{$mark}</strong></p>
-<h2>{$sectionUse}</h2>
-<p>{$mark}</p>
-<ul>
-<li>{$listItemOne}</li>
-<li>{$listItemTwo}</li>
-</ul>
-<ol>
-<li>{$mark}</li>
-</ol>
-HTML;
-
-        return PageHtmlSanitizer::prepare($html);
     }
 }

@@ -8,7 +8,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Cms\Http\Resources\Api\V1\BannerResource;
-use Modules\Cms\Http\Resources\Api\V1\PageResource;
 use Modules\Cms\Http\Resources\Api\V1\QuestionCollection;
 use Modules\Cms\Models\Page;
 use Modules\Cms\Services\BannerService;
@@ -56,7 +55,7 @@ class CmsController extends Controller
     public function page(Page $page): JsonResponse
     {
         return $this->successResponse(
-            PageResource::make($this->pageService->showForCatalog($page))
+            $this->pageService->catalogPayload($page)
         );
     }
 

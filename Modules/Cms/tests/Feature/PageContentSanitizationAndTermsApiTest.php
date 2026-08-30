@@ -98,7 +98,7 @@ test('paragraph tags are left with no forced color override (inherit default), m
         ->and($prepared)->toContain('<h2 style="color: #00686D; font-weight: 700;">Title</h2>');
 });
 
-test('GET /api/v1/catalog/pages/terms returns the seeded Terms page with clean structured HTML content', function () {
+test('GET /api/v1/catalog/pages/terms returns a flat content string of composed wrapped cards (unchanged response shape)', function () {
     app(PagesSeeder::class)->run();
 
     $response = $this->getJson('/api/v1/catalog/pages/terms');
@@ -108,20 +108,12 @@ test('GET /api/v1/catalog/pages/terms returns the seeded Terms page with clean s
     expect($json)->toHaveKeys(['success', 'message', 'data', 'errors'])
         ->and($json['data'])->toHaveKeys(['id', 'slug', 'title', 'content'])
         ->and($json['data']['slug'])->toBe('terms')
+        ->and($json['data']['content'])->toBeString()
+        ->and($json['data']['content'])->toContain('data-testid="cms-page-card"')
         ->and($json['data']['content'])->toContain('<h2')
         ->and($json['data']['content'])->toContain('<p>')
-        ->and($json['data']['content'])->toContain('<ul>')
-        ->and($json['data']['content'])->toContain('<ol>')
-        ->and($json['data']['content'])->toContain('[PLACEHOLDER SECTION — replace with real legal text before launch]')
         ->and($json['data']['content'])->not->toContain('<script')
         ->and($json['data']['content'])->not->toContain('<iframe');
-
-    // Placeholder structure must survive the same sanitizer used on save.
-    $reSanitized = PageHtmlSanitizer::clean($json['data']['content']);
-    expect($reSanitized)->toContain('<h2')
-        ->and($reSanitized)->toContain('<ul>')
-        ->and($reSanitized)->toContain('<ol>')
-        ->and($reSanitized)->toContain('[PLACEHOLDER SECTION — replace with real legal text before launch]');
 });
 
 test('GET /api/v1/catalog/pages/terms returns content with the inline-styled headings already baked in — this is what mobile receives and renders as-is', function () {
@@ -134,7 +126,7 @@ test('GET /api/v1/catalog/pages/terms returns content with the inline-styled hea
 
     expect($content)->toContain('style="color: #00686D; font-weight: 700;"')
         ->and($content)->toContain('<h2 style="color: #00686D; font-weight: 700;">')
-        ->and($content)->not->toMatch('/<p[^>]*style=/');
+        ->and($content)->toContain('data-testid="cms-page-card"');
 });
 
 test('saving Page content via the new editor still sanitizes correctly — regression against PageHtmlSanitizer, Tiptap output must pass through unchanged for safe tags', function () {
@@ -211,12 +203,14 @@ test('visiting /pages/{slug} on the website renders the reusable CmsPage templat
     ]);
 
     // Locale prefix is empty in the test harness route registration (see route:list).
-    $this->get('/pages/terms')
+    $this->get('/pages/how-to-use-agency')
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
             ->component('Frontend/CmsPage')
-            ->where('page.slug', 'terms')
-            ->where('page.title', 'Terms and Conditions')
-            ->has('page.content')
+            ->where('page.slug', 'how-to-use-agency')
+            ->has('page.title')
+            ->where('page.content', fn ($content) => is_string($content)
+                && str_contains($content, 'data-testid="cms-page-card"')
+                && str_contains($content, 'The client logs into their account in the app'))
         );
 });

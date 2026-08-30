@@ -64,8 +64,11 @@ class PageRepository implements PageRepositoryInterface
 
     public function loadForCatalog(Page $page): Page
     {
-        $slug = (string) $page->slug;
+        return $this->loadForCatalogBySlug((string) $page->slug);
+    }
 
+    public function loadForCatalogBySlug(string $slug): Page
+    {
         /** @var Page */
         return LookupCache::rememberForeverScoped(
             'pages:single',
@@ -76,5 +79,17 @@ class PageRepository implements PageRepositoryInterface
                 ->with('translation')
                 ->firstOrFail(),
         );
+    }
+
+    /**
+     * @return Collection<int, Page>
+     */
+    public function getAllForCompositionOptions(?int $excludePageId = null): Collection
+    {
+        return Page::query()
+            ->with('translation')
+            ->when($excludePageId !== null, fn (Builder $query) => $query->whereKeyNot($excludePageId))
+            ->orderBy('slug')
+            ->get();
     }
 }

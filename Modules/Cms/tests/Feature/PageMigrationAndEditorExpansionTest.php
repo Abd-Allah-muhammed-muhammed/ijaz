@@ -81,7 +81,6 @@ test('seeding the 5 real pages populates all 4 locales with the actual extracted
 
     $expectedSnippets = [
         'privacy' => 'This privacy statement explains how Ijaz collects',
-        'policies-and-privacy' => 'Welcome to Ijaz platform, where we aim to create a secure',
         'how-to-use-agency' => 'The client logs into their account in the app',
         'real-estate-marketplace-terms' => 'No user is allowed to add a property unless they hold a valid license',
         'service-provider-authorization' => 'the authorization must be made exclusively inside Ijaz platform',
@@ -89,7 +88,8 @@ test('seeding the 5 real pages populates all 4 locales with the actual extracted
 
     foreach ($expectedSnippets as $slug => $snippet) {
         $page = Page::query()->where('slug', $slug)->first();
-        expect($page)->not->toBeNull();
+        expect($page)->not->toBeNull()
+            ->and($page->composed_of_slugs)->toBeNull();
 
         foreach (['en', 'ar', 'ur', 'hi'] as $locale) {
             $translation = $page->translate($locale);
@@ -104,6 +104,22 @@ test('seeding the 5 real pages populates all 4 locales with the actual extracted
             ->and($enContent)->toContain('/media/logos/default.svg')
             ->and($enContent)->toBe((string) $fixtureEn[$slug]['content']);
     }
+
+    $terms = Page::query()->where('slug', 'terms')->firstOrFail();
+    $hub = Page::query()->where('slug', 'policies-and-privacy')->firstOrFail();
+
+    expect($terms->composed_of_slugs)->toBe([
+        'service-provider-authorization',
+        'how-to-use-agency',
+    ])
+        ->and($hub->composed_of_slugs)->toBe([
+            'privacy',
+            'service-provider-authorization',
+            'how-to-use-agency',
+            'real-estate-marketplace-terms',
+        ])
+        ->and((string) $terms->translate('en')?->content)->toBe('')
+        ->and((string) $hub->translate('en')?->content)->toBe('');
 });
 
 test('GET /api/v1/catalog/pages/{slug} returns correct real content for each of the 5 migrated slugs', function () {
@@ -130,6 +146,7 @@ test('GET /api/v1/catalog/pages/{slug} returns correct real content for each of 
         expect($title)->not->toBeEmpty()
             ->and($content)->not->toBeEmpty()
             ->and($content)->not->toContain('[PLACEHOLDER SECTION')
+            ->and($content)->toContain('data-testid="cms-page-card"')
             ->and($content)->toContain('<h2');
     }
 });
@@ -146,11 +163,31 @@ test('the 5 original website URLs still return 200 and now render via CmsPageVie
     $this->withoutVite();
 
     $routes = [
-        '/privacy-and-policies' => ['slug' => 'policies-and-privacy', 'snippet' => 'Welcome to Ijaz platform'],
-        '/privacy-policy' => ['slug' => 'privacy', 'snippet' => 'This privacy statement explains how Ijaz collects'],
-        '/how-to-use-agency' => ['slug' => 'how-to-use-agency', 'snippet' => 'The client logs into their account in the app'],
-        '/real-estate-marketplace-terms-of-use' => ['slug' => 'real-estate-marketplace-terms', 'snippet' => 'valid license issued by the Saudi Real Estate Authority'],
-        '/service-provider-authorization-terms-and-conditions' => ['slug' => 'service-provider-authorization', 'snippet' => 'authorization must be made exclusively'],
+        '/privacy-and-policies' => [
+            'slug' => 'policies-and-privacy',
+            'snippet' => 'This privacy statement explains how Ijaz collects',
+            'cards' => 4,
+        ],
+        '/privacy-policy' => [
+            'slug' => 'privacy',
+            'snippet' => 'This privacy statement explains how Ijaz collects',
+            'cards' => 1,
+        ],
+        '/how-to-use-agency' => [
+            'slug' => 'how-to-use-agency',
+            'snippet' => 'The client logs into their account in the app',
+            'cards' => 1,
+        ],
+        '/real-estate-marketplace-terms-of-use' => [
+            'slug' => 'real-estate-marketplace-terms',
+            'snippet' => 'valid license issued by the Saudi Real Estate Authority',
+            'cards' => 1,
+        ],
+        '/service-provider-authorization-terms-and-conditions' => [
+            'slug' => 'service-provider-authorization',
+            'snippet' => 'authorization must be made exclusively',
+            'cards' => 1,
+        ],
     ];
 
     foreach ($routes as $path => $expectation) {
@@ -161,6 +198,7 @@ test('the 5 original website URLs still return 200 and now render via CmsPageVie
                 ->where('page.slug', $expectation['slug'])
                 ->where('page.content', fn ($content) => is_string($content)
                     && str_contains($content, $expectation['snippet'])
+                    && substr_count($content, 'data-testid="cms-page-card"') === $expectation['cards']
                     && ! str_contains($content, '[PLACEHOLDER SECTION'))
             );
     }

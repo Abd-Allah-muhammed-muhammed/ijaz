@@ -642,6 +642,7 @@ export interface Page extends Model {
   title: string;
   slug: string;
   content: string;
+  composed_of_slugs?: string[] | null;
   translations?: Record<string, PageTranslation>;
   translation?: PageTranslation;
 }

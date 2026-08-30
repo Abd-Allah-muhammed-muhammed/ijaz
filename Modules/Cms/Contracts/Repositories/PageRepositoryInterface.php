@@ -25,4 +25,11 @@ interface PageRepositoryInterface
     public function getAllForCatalog(): Collection;
 
     public function loadForCatalog(Page $page): Page;
+
+    public function loadForCatalogBySlug(string $slug): Page;
+
+    /**
+     * @return Collection<int, Page>
+     */
+    public function getAllForCompositionOptions(?int $excludePageId = null): Collection;
 }

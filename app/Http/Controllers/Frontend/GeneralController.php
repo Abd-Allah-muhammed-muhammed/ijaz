@@ -67,11 +67,11 @@ class GeneralController extends Controller
     }
 
     /**
-     * Reusable CMS page by slug (e.g. /pages/terms). Content is self-styled HTML from admin.
+     * Reusable CMS page by slug (e.g. /pages/terms). Content is render-time wrapped HTML.
      */
     public function cmsPage(Page $page): Response
     {
-        return $this->renderCmsPage($this->pageService->showForCatalog($page));
+        return $this->renderCmsPagePayload($this->pageService->catalogPayload($page));
     }
 
     public function switchLang($locale): RedirectResponse
@@ -87,18 +87,16 @@ class GeneralController extends Controller
 
     private function renderCmsPageBySlug(string $slug): Response
     {
-        return $this->renderCmsPage($this->pageService->showForCatalogBySlug($slug));
+        return $this->renderCmsPagePayload($this->pageService->catalogPayloadBySlug($slug));
     }
 
-    private function renderCmsPage(Page $page): Response
+    /**
+     * @param  array{id: int, slug: string, title: string, content: string}  $page
+     */
+    private function renderCmsPagePayload(array $page): Response
     {
         return inertia('Frontend/CmsPage', [
-            'page' => [
-                'id' => $page->id,
-                'slug' => $page->slug,
-                'title' => $page->title,
-                'content' => $page->content,
-            ],
+            'page' => $page,
         ]);
     }
 }

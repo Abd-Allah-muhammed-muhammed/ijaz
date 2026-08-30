@@ -201,7 +201,8 @@ test('API page show is byte-for-byte identical cold vs warm via pages:single', f
     $warmHttp = $this->getJson(action([CmsController::class, 'page'], ['page' => 'about-us']))
         ->assertSuccessful();
     assertCmsSha256Identical($coldBody, $warmHttp->getContent(), 'api.pages.show.http');
-    expect($warmHttp->json('data.content'))->toBe('About content EN');
+    expect($warmHttp->json('data.content'))->toContain('About content EN')
+        ->and($warmHttp->json('data.content'))->toContain('data-testid="cms-page-card"');
 });
 
 test('API questions paginated response is byte-for-byte identical cold vs warm (no search)', function (): void {

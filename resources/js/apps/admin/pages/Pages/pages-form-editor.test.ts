@@ -127,8 +127,9 @@ describe('Pages Form Tiptap editor and locale tabs', () => {
   })
 
   it('form validation still correctly requires title + content per locale before submit', async () => {
-    expect(validationSrc).toMatch(/title:\s*z\.string\(\)\.min\(2/)
-    expect(validationSrc).toMatch(/content:\s*z\.string\(\)\.min\(2/)
+    expect(validationSrc).toContain(".min(2, { message: 'Title is required' })")
+    expect(validationSrc).toContain("message: 'content is required'")
+    expect(validationSrc).toContain('superRefine')
     expect(formSrc).toContain('translations.${activeLocale}.title')
     expect(formSrc).toContain('translations.${activeLocale}.content')
 
@@ -144,6 +145,8 @@ describe('Pages Form Tiptap editor and locale tabs', () => {
     const { Inputs } = await import('./validation')
 
     const empty = Inputs.safeParse({
+      slug: 'probe',
+      composed_of_slugs: [],
       translations: {
         en: { title: '', content: '' },
         ar: { title: '', content: '' },
@@ -154,6 +157,8 @@ describe('Pages Form Tiptap editor and locale tabs', () => {
     expect(empty.success).toBe(false)
 
     const missingContent = Inputs.safeParse({
+      slug: 'probe',
+      composed_of_slugs: [],
       translations: {
         en: { title: 'Title', content: '' },
         ar: { title: 'عنوان', content: '<p>ok</p>' },
@@ -163,7 +168,21 @@ describe('Pages Form Tiptap editor and locale tabs', () => {
     })
     expect(missingContent.success).toBe(false)
 
+    const composedAllowsEmptyContent = Inputs.safeParse({
+      slug: 'hub',
+      composed_of_slugs: ['privacy'],
+      translations: {
+        en: { title: 'Hub', content: '' },
+        ar: { title: 'مجمع', content: '' },
+        ur: { title: 'مرکز', content: '' },
+        hi: { title: 'हब', content: '' },
+      },
+    })
+    expect(composedAllowsEmptyContent.success).toBe(true)
+
     const valid = Inputs.safeParse({
+      slug: 'probe',
+      composed_of_slugs: [],
       translations: {
         en: { title: 'Title', content: '<p>Hello</p>' },
         ar: { title: 'عنوان', content: '<p>مرحبا</p>' },
@@ -285,5 +304,16 @@ describe('Pages Form Tiptap editor and locale tabs', () => {
     expect(editorSrc).toContain('Insert Image')
     expect([...PAGE_CONTENT_TOOLBAR_ACTIONS]).toContain('insertLogo')
     expect([...PAGE_CONTENT_TOOLBAR_ACTIONS]).toContain('insertImage')
+  })
+
+  it('Pages Form has a "Composed of" multi-select field listing other pages, selection order preserved', () => {
+    expect(formSrc).toContain('data-testid="pages-composed-of-field"')
+    expect(formSrc).toContain('composed_of_slugs')
+    expect(formSrc).toContain('isMulti')
+    expect(formSrc).toContain('pageOptions')
+    expect(formSrc).toContain('Selection order is preserved by react-select multi')
+    expect(formSrc).toContain('data-testid="pages-composed-of-help"')
+    expect(formSrc).toContain('ignores its own content')
+    expect(validationSrc).toContain('composed_of_slugs')
   })
 })

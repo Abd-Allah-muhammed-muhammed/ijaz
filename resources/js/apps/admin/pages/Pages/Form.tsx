@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Page } from '@/shared/types/models';
-import { Form as BTForm, FormControl, FormGroup, FormLabel } from 'react-bootstrap';
+import { Form as BTForm, FormControl, FormGroup, FormLabel, FormText } from 'react-bootstrap';
 import { InertiaFormProps, Link, useForm } from '@inertiajs/react';
 import { TranslatedAttributes } from './types';
 import ActionButton from '@/shared/components/action-button';
@@ -11,20 +11,20 @@ import { Inputs } from '@/apps/admin/pages/Pages/validation';
 import PageController from '@/actions/Modules/Cms/Http/Controllers/Dashboard/PageController';
 import PageContentEditor from './PageContentEditor';
 import clsx from 'clsx';
+import Select, { MultiValue } from 'react-select';
+
+type PageOption = {
+  value: string;
+  label: string;
+};
 
 type Props = {
-  /**
-   * The page to be edited
-   */
   row?: Page;
-  /**
-   * The callback function to be called when the form is submitted
-   * @param form
-   */
+  pageOptions?: PageOption[];
   callback?: (form: InertiaFormProps<Inputs>) => void;
 };
 
-export default function Form({ callback, row }: Props) {
+export default function Form({ callback, row, pageOptions = [] }: Props) {
   const { t } = useTranslation();
   const locales = getSupportedLocales();
   const localeKeys = Object.keys(locales);
@@ -32,6 +32,7 @@ export default function Form({ callback, row }: Props) {
 
   const form = useForm<Inputs>({
     slug: row?.slug || '',
+    composed_of_slugs: row?.composed_of_slugs ?? [],
     translations: localeKeys.reduce<Record<string, TranslatedAttributes>>(
       (previousValue, currentValue) => {
         const translation = row?.translations?.[currentValue];
@@ -44,6 +45,15 @@ export default function Form({ callback, row }: Props) {
       {} as Record<string, TranslatedAttributes>,
     ),
   });
+
+  const selectedComposed = useMemo(() => {
+    const bySlug = new Map(pageOptions.map((option) => [option.value, option]));
+    return (form.data.composed_of_slugs ?? [])
+      .map((slug) => bySlug.get(slug))
+      .filter((option): option is PageOption => option !== undefined);
+  }, [form.data.composed_of_slugs, pageOptions]);
+
+  const isComposed = (form.data.composed_of_slugs?.length ?? 0) > 0;
 
   const updateTranslation = (locale: string, field: keyof TranslatedAttributes, value: string) => {
     form.setData((previousData) => ({
@@ -81,6 +91,30 @@ export default function Form({ callback, row }: Props) {
             defaultValue={form.data.slug}
           />
           <InputError message={form.errors.slug} />
+        </FormGroup>
+
+        <FormGroup data-testid="pages-composed-of-field">
+          <FormLabel>{t('composed of')}</FormLabel>
+          <Select
+            isMulti
+            options={pageOptions}
+            value={selectedComposed}
+            placeholder={t('composed of')}
+            classNamePrefix="pages-composed-of"
+            onChange={(values: MultiValue<PageOption>) => {
+              // Selection order is preserved by react-select multi.
+              form.setData(
+                'composed_of_slugs',
+                values.map((option) => option.value),
+              );
+            }}
+          />
+          <FormText className="text-muted" data-testid="pages-composed-of-help">
+            When set, this page ignores its own content and instead renders each selected page as
+            its own badge/card, stacked in the order selected. Leave content blank for composed
+            pages.
+          </FormText>
+          <InputError message={form.errors.composed_of_slugs} />
         </FormGroup>
 
         <div>
@@ -122,7 +156,7 @@ export default function Form({ callback, row }: Props) {
             </FormGroup>
 
             <FormGroup>
-              <FormLabel aria-required={true} className="required">
+              <FormLabel aria-required={!isComposed} className={clsx(!isComposed && 'required')}>
                 {t('content in', { locale: activeLocale })}
               </FormLabel>
               <PageContentEditor

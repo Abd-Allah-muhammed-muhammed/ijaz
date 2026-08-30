@@ -27,6 +27,7 @@ class UpdatePageAction
 
         $page = DB::transaction(fn (): Page => $this->repository->update($page, [
             'slug' => $newSlug,
+            'composed_of_slugs' => $dto->composedOfSlugs,
             'translations' => PageHtmlSanitizer::cleanTranslations($dto->translations),
         ]));
 
