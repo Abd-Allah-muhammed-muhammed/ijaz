@@ -9,6 +9,7 @@ use Modules\Orders\DTOs\StoreOrderDTO;
 use Modules\Orders\Events\NewOrderCreated;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Notifications\NewOrderAssignNotification;
+use Modules\Orders\Notifications\OrderCreatedConfirmationNotification;
 use Throwable;
 
 class CreateOrderAction
@@ -37,6 +38,9 @@ class CreateOrderAction
             } else {
                 $order->provider->notify(new NewOrderAssignNotification($order));
             }
+
+            $user->notify(new OrderCreatedConfirmationNotification($order));
+
             $order->load(['media', 'skills.translation', 'city.translation', 'region.translation', 'category.translation']);
 
             return $order;

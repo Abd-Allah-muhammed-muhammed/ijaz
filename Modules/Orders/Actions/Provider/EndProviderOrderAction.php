@@ -7,6 +7,7 @@ use Modules\Orders\Contracts\Repositories\OrderRepositoryInterface;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Exceptions\OrdersException;
 use Modules\Orders\Models\Order;
+use Modules\Orders\Notifications\OrderEndedByProviderNotification;
 use Symfony\Component\HttpFoundation\Response;
 
 class EndProviderOrderAction
@@ -25,6 +26,8 @@ class EndProviderOrderAction
             throw new OrdersException('you can not ed this order', Response::HTTP_BAD_REQUEST);
         }
 
-        $this->orders->update($order, ['status' => OrderStatusEnum::EndedByProvider]);
+        $order = $this->orders->update($order, ['status' => OrderStatusEnum::EndedByProvider]);
+        $order->loadMissing('user');
+        $order->user->notify(new OrderEndedByProviderNotification($order));
     }
 }

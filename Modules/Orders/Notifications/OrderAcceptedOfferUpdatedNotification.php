@@ -32,6 +32,8 @@ class OrderAcceptedOfferUpdatedNotification extends DomainNotification implement
     {
         return [
             'order_id' => $this->order->id,
+            'offer_id' => $this->order->accepted_offer_id,
+            'screen' => 'orders',
         ];
     }
 

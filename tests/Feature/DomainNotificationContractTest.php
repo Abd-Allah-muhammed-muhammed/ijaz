@@ -11,26 +11,25 @@ use Illuminate\Notifications\Messages\BroadcastMessage;
 use Modules\Chat\Infrastructure\Notifications\NewMessageSentNotification;
 use Modules\Guarantor\Enums\GuarantorDisputeResolutionEnum;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
+use Modules\Guarantor\Enums\GuarantorWithdrawnNotificationAudience;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
-use Modules\Guarantor\Notifications\GuarantorPaymentReceivedNotification;
 use Modules\Guarantor\Notifications\GuarantorAcceptedNotification;
 use Modules\Guarantor\Notifications\GuarantorAdminApprovedNotification;
 use Modules\Guarantor\Notifications\GuarantorAdminRejectedNotification;
 use Modules\Guarantor\Notifications\GuarantorCancelledNotification;
 use Modules\Guarantor\Notifications\GuarantorCounterpartyRejectedNotification;
 use Modules\Guarantor\Notifications\GuarantorCreatedNotification;
-use Modules\Guarantor\Notifications\GuarantorDisputeResolvedNotification;
 use Modules\Guarantor\Notifications\GuarantorDisputedNotification;
+use Modules\Guarantor\Notifications\GuarantorDisputeResolvedNotification;
 use Modules\Guarantor\Notifications\GuarantorEndedNotification;
-use Modules\Guarantor\Enums\GuarantorWithdrawnNotificationAudience;
-use Modules\Guarantor\Notifications\GuarantorWithdrawnNotification;
+use Modules\Guarantor\Notifications\GuarantorPaymentReceivedNotification;
 use Modules\Guarantor\Notifications\GuarantorPendingReviewNotification;
+use Modules\Guarantor\Notifications\GuarantorWithdrawnNotification;
 use Modules\Guarantor\Notifications\InstallmentDueNotification;
 use Modules\Guarantor\Notifications\InstallmentOverdueNotification;
 use Modules\Guarantor\Notifications\InstallmentReleasedNotification;
 use Modules\Opportunity\Models\Opportunity;
-use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Opportunity\Models\OpportunityOffer;
 use Modules\Opportunity\Notifications\OpportunityExpiredNotification;
 use Modules\Opportunity\Notifications\OpportunityOfferAcceptedNotification;
@@ -43,10 +42,14 @@ use Modules\Orders\Models\Order;
 use Modules\Orders\Notifications\NewOrderAssignNotification;
 use Modules\Orders\Notifications\OrderAcceptedOfferUpdatedNotification;
 use Modules\Orders\Notifications\OrderCancelledNotification;
+use Modules\Orders\Notifications\OrderCreatedConfirmationNotification;
+use Modules\Orders\Notifications\OrderEndedByProviderNotification;
 use Modules\Orders\Notifications\OrderOfferAcceptedNotification;
 use Modules\Orders\Notifications\OrderOfferCanceledNotification;
 use Modules\Orders\Notifications\OrderOfferCreatedNotification;
 use Modules\Orders\Notifications\OrderOfferRejectedNotification;
+use Modules\Orders\Notifications\OrderPaymentCompletedNotification;
+use Modules\Payment\Enums\PaymentStatusEnum;
 use Tests\TestCase;
 
 /**
@@ -145,7 +148,11 @@ describe('Orders domain notification contracts', function (): void {
             $notification->toFirebase($user),
             trans('order_offer_created', locale: 'en'),
             trans('order_offer_has_been_created', locale: 'en'),
-            ['order_id' => $offer->order_id],
+            [
+                'order_id' => $offer->order_id,
+                'offer_id' => $offer->id,
+                'screen' => 'orders',
+            ],
         );
     });
 
@@ -180,7 +187,11 @@ describe('Orders domain notification contracts', function (): void {
             $notification->toFirebase($user),
             trans('order_accepted_offer_updated', locale: 'en'),
             trans('the_order_accepted_offer_has_been_updated', locale: 'en'),
-            ['order_id' => $order->id],
+            [
+                'order_id' => $order->id,
+                'offer_id' => $order->accepted_offer_id,
+                'screen' => 'orders',
+            ],
         );
     });
 
@@ -208,6 +219,17 @@ describe('Orders domain notification contracts', function (): void {
             'order_id' => $offer->order_id,
             'offer_id' => $offer->id,
         ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans('order_offer_accepted', locale: 'en'),
+            trans('order_offer_has_been_accepted', locale: 'en'),
+            [
+                'order_id' => $offer->order_id,
+                'offer_id' => $offer->id,
+                'screen' => 'orders',
+            ],
+        );
     });
 
     it('locks OrderOfferRejectedNotification channel outputs', function (): void {
@@ -233,6 +255,17 @@ describe('Orders domain notification contracts', function (): void {
             'order_id' => $offer->order_id,
             'offer_id' => $offer->id,
         ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans('order_offer_rejected', locale: 'en'),
+            trans('order_offer_has_been_rejected', locale: 'en'),
+            [
+                'order_id' => $offer->order_id,
+                'offer_id' => $offer->id,
+                'screen' => 'orders',
+            ],
+        );
     });
 
     it('locks OrderOfferCanceledNotification channel outputs', function (): void {
@@ -258,6 +291,17 @@ describe('Orders domain notification contracts', function (): void {
             'order_id' => $offer->order_id,
             'offer_id' => $offer->id,
         ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans('order_offer_canceled', locale: 'en'),
+            trans('order_offer_has_been_canceled', locale: 'en'),
+            [
+                'order_id' => $offer->order_id,
+                'offer_id' => $offer->id,
+                'screen' => 'orders',
+            ],
+        );
     });
 
     it('locks OrderCancelledNotification channel outputs', function (): void {
@@ -289,6 +333,7 @@ describe('Orders domain notification contracts', function (): void {
             'order_id' => $order->id,
             'final_status' => $order->status->value,
             'cancellation_reason' => $order->cancellation_reason,
+            'screen' => 'orders',
         ]);
 
         assertFirebaseMessage(
@@ -299,6 +344,118 @@ describe('Orders domain notification contracts', function (): void {
                 'order_id' => $order->id,
                 'final_status' => $order->status->value,
                 'cancellation_reason' => $order->cancellation_reason,
+                'screen' => 'orders',
+            ],
+        );
+    });
+
+    it('locks OrderCreatedConfirmationNotification channel outputs', function (): void {
+        /** @var TestCase $this */
+        $order = Order::factory()->create();
+        $notification = new OrderCreatedConfirmationNotification($order);
+        $user = domainNotifiableUser();
+
+        expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
+            ->and($notification->broadcastType())->toBe('order created confirmation')
+            ->and($notification->toArray($user))->toBe([
+                'title_translated_key' => 'order_created',
+                'body_translated_key' => 'order_has_been_created',
+                'translated_attributes' => [],
+                'order_id' => $order->id,
+            ]);
+
+        assertBroadcastPayload($notification->toBroadcast($user), [
+            'title' => trans('order_created', locale: 'en'),
+            'body' => trans('order_has_been_created', locale: 'en'),
+            'order_id' => $order->id,
+            'screen' => 'orders',
+        ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans('order_created', locale: 'en'),
+            trans('order_has_been_created', locale: 'en'),
+            [
+                'order_id' => $order->id,
+                'screen' => 'orders',
+            ],
+        );
+    });
+
+    it('locks OrderEndedByProviderNotification channel outputs', function (): void {
+        /** @var TestCase $this */
+        $order = Order::factory()->create(['status' => OrderStatusEnum::EndedByProvider]);
+        $notification = new OrderEndedByProviderNotification($order);
+        $user = domainNotifiableUser();
+
+        expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
+            ->and($notification->broadcastType())->toBe('order ended by provider')
+            ->and($notification->toArray($user))->toBe([
+                'title_translated_key' => 'order_ended_by_provider',
+                'body_translated_key' => 'order_has_been_ended_by_provider',
+                'translated_attributes' => [],
+                'order_id' => $order->id,
+                'final_status' => $order->status->value,
+            ]);
+
+        assertBroadcastPayload($notification->toBroadcast($user), [
+            'title' => trans('order_ended_by_provider', locale: 'en'),
+            'body' => trans('order_has_been_ended_by_provider', locale: 'en'),
+            'order_id' => $order->id,
+            'final_status' => $order->status->value,
+            'screen' => 'orders',
+        ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans('order_ended_by_provider', locale: 'en'),
+            trans('order_has_been_ended_by_provider', locale: 'en'),
+            [
+                'order_id' => $order->id,
+                'final_status' => $order->status->value,
+                'screen' => 'orders',
+            ],
+        );
+    });
+
+    it('locks OrderPaymentCompletedNotification channel outputs', function (): void {
+        /** @var TestCase $this */
+        $order = Order::factory()->inProgress()->create();
+        $notification = new OrderPaymentCompletedNotification($order);
+        $user = domainNotifiableUser();
+        $provider = domainNotifiableProvider();
+
+        expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
+            ->and($notification->broadcastType())->toBe('order payment completed')
+            ->and($notification->toArray($user))->toBe([
+                'title_translated_key' => 'order_payment_completed',
+                'body_translated_key' => 'order_payment_has_been_completed',
+                'translated_attributes' => [],
+                'order_id' => $order->id,
+                'final_status' => $order->status->value,
+                'accepted_offer_id' => $order->accepted_offer_id,
+            ]);
+
+        assertBroadcastPayload($notification->toBroadcast($user), [
+            'title' => trans('order_payment_completed', locale: 'en'),
+            'body' => trans('order_payment_has_been_completed', locale: 'en'),
+            'order_id' => $order->id,
+            'final_status' => $order->status->value,
+            'screen' => 'orders',
+        ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans('order_payment_completed', locale: 'en'),
+            trans('order_payment_has_been_completed', locale: 'en'),
+            [
+                'order_id' => $order->id,
+                'final_status' => $order->status->value,
+                'screen' => 'orders',
             ],
         );
     });

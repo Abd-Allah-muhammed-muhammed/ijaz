@@ -31,7 +31,11 @@ class OrderOfferCanceledNotification extends DomainNotification implements Shoul
 
     protected function firebaseData(object $notifiable): array
     {
-        return [];
+        return [
+            'order_id' => $this->offer->order_id,
+            'offer_id' => $this->offer->id,
+            'screen' => 'orders',
+        ];
     }
 
     public function broadcastType(): string

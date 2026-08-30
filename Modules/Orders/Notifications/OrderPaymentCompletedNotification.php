@@ -9,18 +9,18 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Modules\Orders\Models\Order;
 
-class OrderCancelledNotification extends DomainNotification implements ShouldBroadcastNow, ShouldDispatchAfterCommit
+class OrderPaymentCompletedNotification extends DomainNotification implements ShouldBroadcastNow, ShouldDispatchAfterCommit
 {
     public function __construct(public Order $order) {}
 
     protected function titleKey(): string
     {
-        return 'order_cancelled';
+        return 'order_payment_completed';
     }
 
     protected function bodyKey(): string
     {
-        return 'order_has_been_cancelled';
+        return 'order_payment_has_been_completed';
     }
 
     protected function payload(): array
@@ -28,7 +28,7 @@ class OrderCancelledNotification extends DomainNotification implements ShouldBro
         return [
             'order_id' => $this->order->id,
             'final_status' => $this->order->status->value,
-            'cancellation_reason' => $this->order->cancellation_reason,
+            'accepted_offer_id' => $this->order->accepted_offer_id,
         ];
     }
 
@@ -42,7 +42,6 @@ class OrderCancelledNotification extends DomainNotification implements ShouldBro
         return [
             'order_id' => $this->order->id,
             'final_status' => $this->order->status->value,
-            'cancellation_reason' => $this->order->cancellation_reason,
             'screen' => 'orders',
         ];
     }
@@ -54,6 +53,6 @@ class OrderCancelledNotification extends DomainNotification implements ShouldBro
 
     public function broadcastType(): string
     {
-        return 'order cancelled';
+        return 'order payment completed';
     }
 }

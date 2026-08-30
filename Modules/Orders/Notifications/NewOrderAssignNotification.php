@@ -29,7 +29,10 @@ class NewOrderAssignNotification extends DomainNotification implements ShouldBro
 
     protected function firebaseData(object $notifiable): array
     {
-        return [];
+        return [
+            'order_id' => $this->order->id,
+            'screen' => 'orders',
+        ];
     }
 
     public function broadcastType(): string
