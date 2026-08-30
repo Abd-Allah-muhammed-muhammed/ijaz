@@ -37,7 +37,7 @@ return [
     'unauthorized' => 'आपको यह कार्रवाई करने की अनुमति नहीं है',
     'status_transition_not_allowed' => 'यह स्थिति परिवर्तन अनुमत नहीं है',
     'status_updated_successfully' => 'स्थिति सफलतापूर्वक अपडेट की गई',
-    'cannot_delete_non_new' => 'आप केवल नई स्थिति वाले अवसर हटा सकते हैं',
+    'cannot_delete_non_new' => 'आप केवल नए, व्यवस्थापक समीक्षा लंबित, या व्यवस्थापक द्वारा अस्वीकृत अवसर हटा सकते हैं',
     'cannot_delete_media_non_new' => 'आप मीडिया केवल तभी हटा सकते हैं जब अवसर की स्थिति नई हो',
     'cannot_submit_offer_non_new' => 'प्रस्ताव केवल खुले अवसरों पर जमा किए जा सकते हैं',
     'cannot_submit_offer_on_own_opportunity' => 'आप अपने स्वयं के अवसर पर प्रस्ताव नहीं भेज सकते',
@@ -52,4 +52,12 @@ return [
     'chat_unauthorized' => 'आप इस अवसर में भागीदार नहीं हैं',
     'chat_opened_successfully' => 'चैट सफलतापूर्वक खोली गई',
     'opportunity_expired' => 'आपका अवसर समाप्त हो गया है',
+    'resubmitted_successfully' => 'अवसर व्यवस्थापक समीक्षा के लिए पुनः जमा किया गया',
+
+    'approve' => 'स्वीकृत करें',
+    'reject' => 'अस्वीकृत करें',
+    'reason' => 'कारण',
+    'notes' => 'नोट्स',
+    'enter_reason' => 'कारण दर्ज करें',
+    'enter_notes' => 'नोट्स दर्ज करें (वैकल्पिक)',
 ];

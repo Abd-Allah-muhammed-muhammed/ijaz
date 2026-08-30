@@ -32,7 +32,17 @@ class OpportunityPolicy
 
     public function delete(Model $user, Opportunity $opportunity): bool
     {
-        return $opportunity->status === OpportunityStatusEnum::New;
+        return $opportunity->status->isIn([
+            OpportunityStatusEnum::New,
+            OpportunityStatusEnum::PendingAdmin,
+            OpportunityStatusEnum::RejectedByAdmin,
+        ]);
+    }
+
+    public function resubmit(Model $user, Opportunity $opportunity): bool
+    {
+        return $this->isAuthor($user, $opportunity)
+            && $opportunity->status === OpportunityStatusEnum::RejectedByAdmin;
     }
 
     public function deleteMedia(Model $user, Opportunity $opportunity): bool

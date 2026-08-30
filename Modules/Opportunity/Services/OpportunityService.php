@@ -13,8 +13,10 @@ use Modules\Opportunity\Actions\Opportunity\CreateOpportunityAction;
 use Modules\Opportunity\Actions\Opportunity\DeleteOpportunityAction;
 use Modules\Opportunity\Actions\Opportunity\DeleteOpportunityForDashboardAction;
 use Modules\Opportunity\Actions\Opportunity\EnsureOpportunityVisibleToViewerAction;
+use Modules\Opportunity\Actions\Opportunity\GetOpportunityDashboardStatsAction;
 use Modules\Opportunity\Actions\Opportunity\ListOpportunitiesForDashboardAction;
 use Modules\Opportunity\Actions\Opportunity\RenewOpportunityAction;
+use Modules\Opportunity\Actions\Opportunity\ResubmitOpportunityAction;
 use Modules\Opportunity\Actions\Opportunity\UpdateOpportunityAction;
 use Modules\Opportunity\Contracts\Repositories\OpportunityRepositoryInterface;
 use Modules\Opportunity\DTOs\OpportunityData;
@@ -34,14 +36,24 @@ class OpportunityService
         private readonly DeleteOpportunityForDashboardAction $deleteForDashboardAction,
         private readonly RenewOpportunityAction $renewAction,
         private readonly ListOpportunitiesForDashboardAction $listForDashboardAction,
+        private readonly GetOpportunityDashboardStatsAction $getDashboardStatsAction,
         private readonly EnsureOpportunityVisibleToViewerAction $ensureVisibleToViewerAction,
         private readonly AdminApproveOpportunityAction $approveAction,
         private readonly AdminRejectOpportunityAction $rejectAction,
+        private readonly ResubmitOpportunityAction $resubmitAction,
     ) {}
 
     public function listForDashboard(Request $request): LengthAwarePaginator
     {
         return $this->listForDashboardAction->handle($request);
+    }
+
+    /**
+     * @return array{total: int, pending_admin: int}
+     */
+    public function getDashboardStats(): array
+    {
+        return $this->getDashboardStatsAction->handle();
     }
 
     public function listPublic(?Model $actor = null, int $perPage = 10, ?int $regionId = null, ?int $cityId = null): LengthAwarePaginator
@@ -134,6 +146,14 @@ class OpportunityService
     public function renew(Opportunity $opportunity, ?Carbon $expiresAt = null): Opportunity
     {
         return $this->renewAction->handle($opportunity, $expiresAt);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function resubmit(Opportunity $opportunity): Opportunity
+    {
+        return $this->resubmitAction->handle($opportunity);
     }
 
     public function deleteMedia(Opportunity $opportunity, Media $media): void

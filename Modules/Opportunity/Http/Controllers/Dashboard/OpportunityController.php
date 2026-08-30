@@ -43,6 +43,7 @@ class OpportunityController extends Controller implements HasMiddleware
                     ->map(fn ($status) => $status->toArray())
                     ->values(),
             ],
+            'stats' => fn () => $this->service->getDashboardStats(),
         ]);
     }
 

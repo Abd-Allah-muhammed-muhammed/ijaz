@@ -17,6 +17,7 @@ Route::prefix('opportunities')->name('opportunities.')->group(function () {
         Route::post('/', [OpportunityController::class, 'store'])->name('store');
         Route::post('{opportunity}', [OpportunityController::class, 'update'])->name('update');
         Route::post('{opportunity}/renew', [OpportunityController::class, 'renew'])->name('renew');
+        Route::post('{opportunity}/resubmit', [OpportunityController::class, 'resubmit'])->name('resubmit');
         Route::delete('{opportunity}', [OpportunityController::class, 'destroy'])->name('destroy');
         Route::delete('{opportunity}/media/{media:uuid}', [OpportunityController::class, 'deleteMedia'])->name('deleteMedia');
 

@@ -38,7 +38,7 @@ return [
     'unauthorized' => 'غير مصرح لك بتنفيذ هذا الإجراء',
     'status_transition_not_allowed' => 'هذا التحول في الحالة غير مسموح به',
     'status_updated_successfully' => 'تم تحديث الحالة بنجاح',
-    'cannot_delete_non_new' => 'يمكنك حذف الفرص فقط عندما تكون حالتها جديدة',
+    'cannot_delete_non_new' => 'يمكنك حذف الفرص فقط عندما تكون جديدة أو بانتظار مراجعة الإدارة أو مرفوضة من الإدارة',
     'cannot_delete_media_non_new' => 'يمكنك حذف الملفات فقط عندما تكون حالة الفرصة جديدة',
     'cannot_submit_offer_non_new' => 'يمكن تقديم العروض فقط على الفرص المفتوحة',
     'cannot_submit_offer_on_own_opportunity' => 'لا يمكنك تقديم عرض على فرصتك الخاصة',
@@ -53,6 +53,7 @@ return [
     'chat_unauthorized' => 'أنت لست مشاركاً في هذه الفرصة',
     'chat_opened_successfully' => 'تم فتح المحادثة بنجاح',
     'opportunity_expired' => 'انتهت صلاحية فرصتك',
+    'resubmitted_successfully' => 'تم إعادة تقديم الفرصة لمراجعة الإدارة',
 
     'opportunities' => 'الفرص',
     'opportunity' => 'فرصة',
@@ -65,4 +66,10 @@ return [
     'no_comments' => 'لا توجد تعليقات',
     'accepted_offer' => 'العرض المقبول',
     'details' => 'تفاصيل',
+    'approve' => 'موافقة',
+    'reject' => 'رفض',
+    'reason' => 'السبب',
+    'notes' => 'ملاحظات',
+    'enter_reason' => 'أدخل السبب',
+    'enter_notes' => 'أدخل ملاحظات (اختياري)',
 ];

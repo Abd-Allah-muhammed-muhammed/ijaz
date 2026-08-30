@@ -57,6 +57,8 @@ test('admin with permission can view opportunities dashboard index', function ()
         ->assertInertia(fn ($page) => $page
             ->component('Dashboard/Opportunity/Index')
             ->has('rows.data', 2)
+            ->has('stats.pending_admin')
+            ->has('stats.total')
         );
 });
 

@@ -37,7 +37,7 @@ return [
     'unauthorized' => 'آپ کو یہ عمل کرنے کی اجازت نہیں ہے',
     'status_transition_not_allowed' => 'یہ حالت کی تبدیلی مجاز نہیں ہے',
     'status_updated_successfully' => 'حالت کامیابی سے اپ ڈیٹ ہوئی',
-    'cannot_delete_non_new' => 'آپ صرف نئی حالت والی مواقع حذف کر سکتے ہیں',
+    'cannot_delete_non_new' => 'آپ صرف نئی، انتظامی جائزے کے منتظر، یا انتظامیہ سے مسترد مواقع حذف کر سکتے ہیں',
     'cannot_delete_media_non_new' => 'آپ میڈیا صرف اس وقت حذف کر سکتے ہیں جب موقع کی حالت نئی ہو',
     'cannot_submit_offer_non_new' => 'پیشکشیں صرف کھلی مواقع پر جمع کی جا سکتی ہیں',
     'cannot_submit_offer_on_own_opportunity' => 'آپ اپنی موقع پر پیشکش جمع نہیں کر سکتے',
@@ -52,4 +52,12 @@ return [
     'chat_unauthorized' => 'آپ اس موقع میں شریک نہیں ہیں',
     'chat_opened_successfully' => 'چیٹ کامیابی سے کھل گئی',
     'opportunity_expired' => 'آپ کی موقع کی میعاد ختم ہو گئی ہے',
+    'resubmitted_successfully' => 'موقع انتظامی جائزے کے لیے دوبارہ جمع کرا دیا گیا',
+
+    'approve' => 'منظور',
+    'reject' => 'مسترد',
+    'reason' => 'وجہ',
+    'notes' => 'نوٹس',
+    'enter_reason' => 'وجہ درج کریں',
+    'enter_notes' => 'نوٹس درج کریں (اختیاری)',
 ];

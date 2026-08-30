@@ -1291,7 +1291,7 @@ test('error messages are translated', function () {
 
     $this->deleteJson(action([OpportunityController::class, 'destroy'], ['opportunity' => $opportunity->id]))
         ->assertForbidden()
-        ->assertJsonPath('message', 'You can only delete opportunities with status New');
+        ->assertJsonPath('message', __('opportunity.cannot_delete_non_new'));
 });
 
 test('response contains status as array', function () {

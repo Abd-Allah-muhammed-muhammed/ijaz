@@ -6,9 +6,16 @@ import { KTIcon, KTCard, KTCardBody } from '@/vendor/metronic/helpers';
 import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
 import { Content } from '@/vendor/metronic/layout/components/content';
 import { PageTitle } from '@/vendor/metronic/layout/core';
-import { Head, Link, router } from '@inertiajs/react';
-import { ReactElement } from 'react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { ReactElement, useState } from 'react';
+import { Button, Modal } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import {
+  OPPORTUNITY_PAGE_TITLE_KEY,
+  canApproveRejectOpportunity,
+  canSubmitOpportunityReject,
+  getOpportunityStatusBadgeClass,
+} from './opportunity-admin-utils';
 
 type Author = {
   id: string | number;
@@ -61,13 +68,7 @@ type Props = {
   opportunity: OpportunityResource;
 };
 
-const statusBadgeClass: Record<string, string> = {
-  new: 'badge-light-primary',
-  offer_accepted: 'badge-light-warning',
-  in_progress: 'badge-light-info',
-  ended: 'badge-light-success',
-  cancelled: 'badge-light-danger',
-};
+type AdminAction = 'approve' | 'reject' | null;
 
 const offerStatusBadgeClass: Record<string, string> = {
   pending: 'badge-light-primary',
@@ -80,7 +81,14 @@ const Show = ({ opportunity }: Props) => {
   const { t } = useTranslation();
   const { hasPermission } = usePermissions();
   const canDelete = hasPermission('delete opportunities');
-  const badgeClass = statusBadgeClass[opportunity.status?.value] ?? 'badge-light-secondary';
+  const canManage = hasPermission('manage opportunities');
+  const currentStatus = opportunity.status?.value ?? '';
+  const canApproveReject = canApproveRejectOpportunity(currentStatus, canManage);
+  const badgeClass = getOpportunityStatusBadgeClass(currentStatus);
+  const [adminAction, setAdminAction] = useState<AdminAction>(null);
+
+  const approveForm = useForm({ notes: '' });
+  const rejectForm = useForm({ reason: '', notes: '' });
 
   const confirmDelete = (callback: () => void) => {
     if (window.confirm(t('are_you_sure_delete'))) {
@@ -88,15 +96,44 @@ const Show = ({ opportunity }: Props) => {
     }
   };
 
+  const closeAdminModal = () => {
+    setAdminAction(null);
+    approveForm.reset();
+    rejectForm.reset();
+  };
+
+  const submitAdminAction = () => {
+    const options = {
+      preserveScroll: true,
+      onSuccess: () => closeAdminModal(),
+    };
+
+    if (adminAction === 'approve') {
+      approveForm.post(OpportunityController.approveByAdmin(opportunity.id).url, options);
+      return;
+    }
+
+    if (adminAction === 'reject') {
+      if (!canSubmitOpportunityReject(rejectForm.data.reason)) {
+        rejectForm.setError('reason', t('opportunity.enter_reason'));
+        return;
+      }
+
+      rejectForm.post(OpportunityController.rejectByAdmin(opportunity.id).url, options);
+    }
+  };
+
+  const activeForm = adminAction === 'approve' ? approveForm : rejectForm;
+
   return (
     <Content>
-      <Head title={`${t('opportunity')} #${opportunity.id}`} />
+      <Head title={`${t(OPPORTUNITY_PAGE_TITLE_KEY)} #${opportunity.id}`} />
       <PageTitle
         breadcrumbs={[
           { title: t('opportunities'), path: OpportunityController.index().url, isSeparator: false, isActive: false },
         ]}
       >
-        {t('opportunity')}
+        {t(OPPORTUNITY_PAGE_TITLE_KEY)}
       </PageTitle>
 
       <div className="d-flex flex-column gap-lg-10 gap-7">
@@ -131,11 +168,29 @@ const Show = ({ opportunity }: Props) => {
                   </span>
                 </div>
               </div>
-              <div className="d-flex gap-2">
+              <div className="d-flex gap-2 flex-wrap align-items-center">
                 <Link href={OpportunityController.index().url} className="btn btn-sm btn-light">
                   <KTIcon iconName="arrow-left" className="fs-6 px-1" />
                   {t('back')}
                 </Link>
+                {canApproveReject && (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-light-success"
+                      onClick={() => setAdminAction('approve')}
+                    >
+                      {t('opportunity.approve')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-light-danger"
+                      onClick={() => setAdminAction('reject')}
+                    >
+                      {t('opportunity.reject')}
+                    </button>
+                  </>
+                )}
                 {canDelete && (
                   <button
                     type="button"
@@ -314,6 +369,74 @@ const Show = ({ opportunity }: Props) => {
           </KTCardBody>
         </KTCard>
       </div>
+
+      <Modal show={adminAction !== null} onHide={closeAdminModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {adminAction === 'approve' && t('opportunity.approve')}
+            {adminAction === 'reject' && t('opportunity.reject')}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {adminAction === 'approve' && (
+            <div className="mb-0">
+              <label className="form-label">{t('opportunity.notes')}</label>
+              <textarea
+                className="form-control"
+                rows={3}
+                value={approveForm.data.notes}
+                onChange={(e) => approveForm.setData('notes', e.target.value)}
+                placeholder={t('opportunity.enter_notes')}
+              />
+              {approveForm.errors.notes && (
+                <div className="text-danger fs-7 mt-1">{approveForm.errors.notes}</div>
+              )}
+            </div>
+          )}
+          {adminAction === 'reject' && (
+            <>
+              <div className="mb-4">
+                <label className="form-label required">{t('opportunity.reason')}</label>
+                <textarea
+                  className="form-control"
+                  rows={3}
+                  value={rejectForm.data.reason}
+                  onChange={(e) => rejectForm.setData('reason', e.target.value)}
+                  placeholder={t('opportunity.enter_reason')}
+                />
+                {rejectForm.errors.reason && (
+                  <div className="text-danger fs-7 mt-1">{rejectForm.errors.reason}</div>
+                )}
+              </div>
+              <div className="mb-0">
+                <label className="form-label">{t('opportunity.notes')}</label>
+                <textarea
+                  className="form-control"
+                  rows={2}
+                  value={rejectForm.data.notes}
+                  onChange={(e) => rejectForm.setData('notes', e.target.value)}
+                  placeholder={t('opportunity.enter_notes')}
+                />
+                {rejectForm.errors.notes && (
+                  <div className="text-danger fs-7 mt-1">{rejectForm.errors.notes}</div>
+                )}
+              </div>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="light" onClick={closeAdminModal}>
+            {t('cancel')}
+          </Button>
+          <Button
+            variant={adminAction === 'reject' ? 'danger' : 'success'}
+            onClick={submitAdminAction}
+            disabled={activeForm.processing}
+          >
+            {adminAction === 'approve' ? t('opportunity.approve') : t('opportunity.reject')}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Content>
   );
 };

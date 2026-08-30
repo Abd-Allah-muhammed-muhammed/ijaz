@@ -16,7 +16,11 @@ class DeleteOpportunityAction
     public function handle(Opportunity $opportunity): void
     {
         DB::transaction(function () use ($opportunity) {
-            if ($opportunity->status->isNot(OpportunityStatusEnum::New)) {
+            if ($opportunity->status->isNotIn([
+                OpportunityStatusEnum::New,
+                OpportunityStatusEnum::PendingAdmin,
+                OpportunityStatusEnum::RejectedByAdmin,
+            ])) {
                 throw new OpportunityException('opportunity.cannot_delete_non_new', 403);
             }
 

@@ -3,6 +3,7 @@ import usePermissions from '@/shared/hooks/use-permissions';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import { Link, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
+import { getOpportunityStatusBadgeClass } from '../opportunity-admin-utils';
 
 export type OpportunityListItem = {
   id: string;
@@ -21,18 +22,10 @@ type Props = {
   row: OpportunityListItem;
 };
 
-const statusBadgeClass: Record<string, string> = {
-  new: 'badge-light-primary',
-  offer_accepted: 'badge-light-warning',
-  in_progress: 'badge-light-info',
-  ended: 'badge-light-success',
-  cancelled: 'badge-light-danger',
-};
-
 const OpportunityCard = ({ row }: Props) => {
   const { t } = useTranslation();
   const { hasPermission } = usePermissions();
-  const badgeClass = statusBadgeClass[row.status?.value] ?? 'badge-light-secondary';
+  const badgeClass = getOpportunityStatusBadgeClass(row.status?.value);
 
   return (
     <div className="card h-100 border-0 shadow-sm">

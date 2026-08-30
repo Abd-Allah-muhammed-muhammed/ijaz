@@ -13,13 +13,16 @@ use Modules\Opportunity\Actions\Dashboard\AdminRejectOpportunityAction;
 use Modules\Opportunity\Enums\OfferStatusEnum;
 use Modules\Opportunity\Enums\OpportunityStatusEnum;
 use Modules\Opportunity\Exceptions\OpportunityException;
+use Modules\Opportunity\Http\Controllers\Api\V1\CommentController;
 use Modules\Opportunity\Http\Controllers\Api\V1\OfferController;
 use Modules\Opportunity\Http\Controllers\Api\V1\OpportunityController;
 use Modules\Opportunity\Http\Controllers\Dashboard\OpportunityController as DashboardOpportunityController;
 use Modules\Opportunity\Models\Opportunity;
+use Modules\Opportunity\Models\OpportunityComment;
 use Modules\Opportunity\Models\OpportunityOffer;
 use Modules\Opportunity\Notifications\OpportunityAdminApprovedNotification;
 use Modules\Opportunity\Notifications\OpportunityAdminRejectedNotification;
+use Modules\Opportunity\Notifications\OpportunityPendingReviewNotification;
 use Spatie\Permission\Models\Permission;
 
 function createOpportunityAdminApprovalAdmin(array $permissions = ['show opportunities', 'manage opportunities']): Admin
@@ -388,4 +391,212 @@ test('an opportunity that already existed as new before this change is completel
     $this->getJson(action([OpportunityController::class, 'show'], $existing))
         ->assertSuccessful()
         ->assertJsonPath('data.status.value', OpportunityStatusEnum::New->value);
+});
+
+test('a pending_admin opportunity notifies admins with manage opportunities permission (mirrors GuarantorPendingReviewNotification)', function () {
+    Notification::fake();
+
+    $manageAdmin = createOpportunityAdminApprovalAdmin(['manage opportunities']);
+    $otherManageAdmin = createOpportunityAdminApprovalAdmin(['manage opportunities']);
+    $viewOnlyAdmin = createOpportunityAdminApprovalAdmin(['show opportunities']);
+
+    $user = User::factory()->create();
+    Sanctum::actingAs($user);
+
+    $this->postJson(action([OpportunityController::class, 'store']), [
+        'title' => 'Needs admin eyes',
+        'description' => 'Should fan out pending-review notifications.',
+        'budget' => 900,
+    ])->assertSuccessful();
+
+    Notification::assertSentTo($manageAdmin, OpportunityPendingReviewNotification::class);
+    Notification::assertSentTo($otherManageAdmin, OpportunityPendingReviewNotification::class);
+    Notification::assertNotSentTo($viewOnlyAdmin, OpportunityPendingReviewNotification::class);
+});
+
+test('author can delete/withdraw their own pending_admin opportunity', function () {
+    $author = User::factory()->create();
+    Sanctum::actingAs($author);
+
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::PendingAdmin,
+    ]);
+
+    $this->deleteJson(action([OpportunityController::class, 'destroy'], $opportunity))
+        ->assertSuccessful()
+        ->assertJsonPath('message', __('opportunity.deleted_successfully'));
+
+    expect(Opportunity::query()->find($opportunity->id))->toBeNull();
+});
+
+test('author can delete/withdraw their own rejected_by_admin opportunity', function () {
+    $author = User::factory()->create();
+    Sanctum::actingAs($author);
+
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::RejectedByAdmin,
+    ]);
+
+    $this->deleteJson(action([OpportunityController::class, 'destroy'], $opportunity))
+        ->assertSuccessful()
+        ->assertJsonPath('message', __('opportunity.deleted_successfully'));
+
+    expect(Opportunity::query()->find($opportunity->id))->toBeNull();
+});
+
+test('author can resubmit a rejected_by_admin opportunity, transitioning it back to pending_admin', function () {
+    Notification::fake();
+
+    $author = User::factory()->create();
+    Sanctum::actingAs($author);
+
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::RejectedByAdmin,
+        'title' => 'Fixed after rejection',
+    ]);
+
+    $this->postJson(action([OpportunityController::class, 'resubmit'], $opportunity))
+        ->assertSuccessful()
+        ->assertJsonPath('data.status.value', OpportunityStatusEnum::PendingAdmin->value);
+
+    expect($opportunity->fresh()->status)->toBe(OpportunityStatusEnum::PendingAdmin);
+});
+
+test('resubmitting requires the opportunity to currently be rejected_by_admin — cannot resubmit from any other status', function () {
+    $author = User::factory()->create();
+    Sanctum::actingAs($author);
+
+    foreach ([
+        OpportunityStatusEnum::PendingAdmin,
+        OpportunityStatusEnum::New,
+        OpportunityStatusEnum::OfferAccepted,
+    ] as $status) {
+        $opportunity = Opportunity::factory()->create([
+            'author_type' => User::class,
+            'author_id' => $author->id,
+            'status' => $status,
+        ]);
+
+        $this->postJson(action([OpportunityController::class, 'resubmit'], $opportunity))
+            ->assertForbidden()
+            ->assertJsonPath('message', __('opportunity.unauthorized'));
+
+        expect($opportunity->fresh()->status)->toBe($status);
+    }
+});
+
+test('resubmitting notifies admins again, same as original creation', function () {
+    Notification::fake();
+
+    $manageAdmin = createOpportunityAdminApprovalAdmin(['manage opportunities']);
+    $viewOnlyAdmin = createOpportunityAdminApprovalAdmin(['show opportunities']);
+
+    $author = User::factory()->create();
+    Sanctum::actingAs($author);
+
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::RejectedByAdmin,
+    ]);
+
+    $this->postJson(action([OpportunityController::class, 'resubmit'], $opportunity))
+        ->assertSuccessful();
+
+    Notification::assertSentTo($manageAdmin, OpportunityPendingReviewNotification::class);
+    Notification::assertNotSentTo($viewOnlyAdmin, OpportunityPendingReviewNotification::class);
+});
+
+test('GET .../comments on a pending_admin or rejected_by_admin opportunity is restricted to the author only, matching show\'s existing visibility rule — non-author gets 404 or empty, pick and test the safer consistent behavior', function () {
+    $author = User::factory()->create();
+    $stranger = User::factory()->create();
+
+    foreach ([OpportunityStatusEnum::PendingAdmin, OpportunityStatusEnum::RejectedByAdmin] as $status) {
+        $opportunity = Opportunity::factory()->create([
+            'author_type' => User::class,
+            'author_id' => $author->id,
+            'status' => $status,
+        ]);
+        OpportunityComment::factory()->create([
+            'opportunity_id' => $opportunity->id,
+            'author_type' => User::class,
+            'author_id' => $author->id,
+        ]);
+
+        auth()->forgetGuards();
+
+        $this->getJson(action([CommentController::class, 'index'], ['opportunity' => $opportunity->id]))
+            ->assertNotFound();
+
+        Sanctum::actingAs($stranger);
+        $this->getJson(action([CommentController::class, 'index'], ['opportunity' => $opportunity->id]))
+            ->assertNotFound();
+
+        Sanctum::actingAs($author);
+        $this->getJson(action([CommentController::class, 'index'], ['opportunity' => $opportunity->id]))
+            ->assertSuccessful()
+            ->assertJsonPath('data.total', 1);
+    }
+});
+
+test('POST .../comments (create) is rejected on a pending_admin or rejected_by_admin opportunity for non-authors', function () {
+    $author = User::factory()->create();
+    $stranger = User::factory()->create();
+
+    foreach ([OpportunityStatusEnum::PendingAdmin, OpportunityStatusEnum::RejectedByAdmin] as $status) {
+        $opportunity = Opportunity::factory()->create([
+            'author_type' => User::class,
+            'author_id' => $author->id,
+            'status' => $status,
+        ]);
+
+        Sanctum::actingAs($stranger);
+        $this->postJson(action([CommentController::class, 'store'], $opportunity), [
+            'body' => 'Should not leak',
+        ])->assertNotFound();
+
+        expect(OpportunityComment::query()->where('opportunity_id', $opportunity->id)->count())->toBe(0);
+    }
+});
+
+test('existing comment behavior on new/offer_accepted opportunities is completely unaffected — regression', function () {
+    $opportunity = Opportunity::factory()->create([
+        'status' => OpportunityStatusEnum::New,
+    ]);
+    OpportunityComment::factory()->count(2)->create([
+        'opportunity_id' => $opportunity->id,
+    ]);
+
+    $this->getJson(action([CommentController::class, 'index'], $opportunity))
+        ->assertSuccessful()
+        ->assertJsonPath('data.total', 2);
+
+    $user = User::factory()->create();
+    Sanctum::actingAs($user);
+
+    $this->postJson(action([CommentController::class, 'store'], $opportunity), [
+        'body' => 'Still works on public opportunities',
+    ])->assertSuccessful()
+        ->assertJsonPath('data.body', 'Still works on public opportunities');
+
+    $accepted = Opportunity::factory()->create([
+        'status' => OpportunityStatusEnum::OfferAccepted,
+    ]);
+    OpportunityComment::factory()->create([
+        'opportunity_id' => $accepted->id,
+    ]);
+
+    $this->getJson(action([CommentController::class, 'index'], $accepted))
+        ->assertSuccessful()
+        ->assertJsonPath('data.total', 1);
+
+    $this->postJson(action([CommentController::class, 'store'], $accepted), [
+        'body' => 'Comment on accepted opportunity',
+    ])->assertSuccessful();
 });

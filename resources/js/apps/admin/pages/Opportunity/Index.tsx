@@ -22,6 +22,10 @@ type Props = {
   rows: PaginationResource<OpportunityListItem>;
   prams: SearchPrams | null;
   selects: { statuses: StatusOption[] };
+  stats: {
+    total: number;
+    pending_admin: number;
+  };
 };
 
 type SearchPrams = {
@@ -30,7 +34,7 @@ type SearchPrams = {
   status?: string;
 };
 
-const Index = ({ rows, prams, selects }: Props) => {
+const Index = ({ rows, prams, selects, stats }: Props) => {
   const { t } = useTranslation();
   const searchPrams: SearchPrams = prams || { per_page: 10 };
   const [searchValue, setSearchValue] = useState(searchPrams.search ?? '');
@@ -42,7 +46,7 @@ const Index = ({ rows, prams, selects }: Props) => {
       name,
       value,
     );
-    visitWithFilters(window.location.pathname, next, { only: ['rows', 'prams'] });
+    visitWithFilters(window.location.pathname, next, { only: ['rows', 'prams', 'stats'] });
   };
 
   useEffect(() => {
@@ -66,6 +70,14 @@ const Index = ({ rows, prams, selects }: Props) => {
   const endedCount = rows.data.filter((r) => r.status?.value === 'ended').length;
   const cancelledCount = rows.data.filter((r) => r.status?.value === 'cancelled').length;
 
+  const statCards = [
+    { label: t('total_requests'), value: stats.total ?? rows.meta.total ?? 0, icon: 'briefcase', bg: 'bg-light-primary', color: 'text-primary' },
+    { label: t('opportunity.status.pending_admin'), value: stats.pending_admin ?? 0, icon: 'plus-square', bg: 'bg-light-warning', color: 'text-warning' },
+    { label: t('active_requests'), value: activeCount, icon: 'time', bg: 'bg-light-info', color: 'text-info' },
+    { label: t('opportunity.status.ended'), value: endedCount, icon: 'check-circle', bg: 'bg-light-success', color: 'text-success' },
+    { label: t('opportunity.status.cancelled'), value: cancelledCount, icon: 'cross-circle', bg: 'bg-light-danger', color: 'text-danger' },
+  ];
+
   return (
     <>
       <Head title={t('opportunities')} />
@@ -73,13 +85,8 @@ const Index = ({ rows, prams, selects }: Props) => {
       <ToolbarWrapper />
       <Content>
         <div className="row g-5 g-xl-8 mb-8">
-          {[
-            { label: t('total_requests'), value: rows.meta.total ?? 0, icon: 'briefcase', bg: 'bg-light-primary', color: 'text-primary' },
-            { label: t('active_requests'), value: activeCount, icon: 'time', bg: 'bg-light-warning', color: 'text-warning' },
-            { label: t('opportunity.status.ended'), value: endedCount, icon: 'check-circle', bg: 'bg-light-success', color: 'text-success' },
-            { label: t('opportunity.status.cancelled'), value: cancelledCount, icon: 'cross-circle', bg: 'bg-light-danger', color: 'text-danger' },
-          ].map((stat) => (
-            <div className="col-xl-3 col-md-6" key={stat.label}>
+          {statCards.map((stat) => (
+            <div className="col-xl col-md-6 col-12" key={stat.label}>
               <div className="card h-100 border-0 shadow-sm">
                 <div className="card-body d-flex align-items-center p-6">
                   <div className="symbol symbol-55px me-5">
@@ -159,7 +166,7 @@ const Index = ({ rows, prams, selects }: Props) => {
         )}
 
         <div className="mt-8">
-          <Pagination paginationMeta={rows.meta} preserveScroll only={['rows', 'prams']} />
+          <Pagination paginationMeta={rows.meta} preserveScroll only={['rows', 'prams', 'stats']} />
         </div>
       </Content>
     </>

@@ -35,6 +35,11 @@ interface OpportunityRepositoryInterface
 
     public function paginateForDashboard(Request $request): LengthAwarePaginator;
 
+    /**
+     * @return array{total: int, pending_admin: int}
+     */
+    public function getDashboardStats(): array;
+
     public function getExpired(int $chunkSize = 100): LazyCollection;
 
     public function getMissingExpiry(int $chunkSize = 100): LazyCollection;

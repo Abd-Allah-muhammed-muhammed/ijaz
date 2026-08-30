@@ -754,6 +754,8 @@
     "opportunity_has_been_admin_approved": "آپ کا موقع منظور ہو گیا ہے اور اب عوامی طور پر نظر آ رہا ہے۔",
     "opportunity_admin_rejected": "موقع مسترد",
     "opportunity_has_been_admin_rejected": "آپ کا موقع ایڈمن نے مسترد کر دیا ہے۔",
+    "opportunity_pending_review_title": "نیا موقع",
+    "opportunity_pending_review_body": "ایک موقع آپ کے جائزے کا انتظار کر رہا ہے۔",
     "guarantor_admin_approved": "ایڈمن کی طرف سے ضامن درخواست منظور",
     "guarantor_has_been_admin_approved": "ایڈمن نے آپ کی ضامن درخواست منظور کر لی ہے، دوسرے فریق کا جواب باقی ہے",
     "guarantor_admin_rejected": "ایڈمن کی طرف سے ضامن درخواست مسترد",

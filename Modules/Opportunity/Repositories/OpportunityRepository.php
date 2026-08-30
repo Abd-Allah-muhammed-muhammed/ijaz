@@ -2,12 +2,14 @@
 
 namespace Modules\Opportunity\Repositories;
 
+use App\Support\LookupCache;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\LazyCollection;
 use Modules\Opportunity\Contracts\Repositories\OpportunityRepositoryInterface;
+use Modules\Opportunity\Enums\OpportunityStatusEnum;
 use Modules\Opportunity\Models\Opportunity;
 
 class OpportunityRepository implements OpportunityRepositoryInterface
@@ -102,6 +104,20 @@ class OpportunityRepository implements OpportunityRepositoryInterface
             ->latest()
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();
+    }
+
+    /**
+     * @return array{total: int, pending_admin: int}
+     */
+    public function getDashboardStats(): array
+    {
+        /** @var array{total: int, pending_admin: int} */
+        return LookupCache::rememberFor('stats:opportunity:dashboard', 30, fn (): array => [
+            'total' => Opportunity::query()->count(),
+            'pending_admin' => Opportunity::query()
+                ->where('status', OpportunityStatusEnum::PendingAdmin)
+                ->count(),
+        ]);
     }
 
     public function getExpired(int $chunkSize = 100): LazyCollection

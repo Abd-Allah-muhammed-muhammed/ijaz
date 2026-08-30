@@ -331,6 +331,55 @@ class OpportunityController extends Controller
     }
 
     /**
+     * Resubmit a rejected opportunity for admin review.
+     *
+     * Author-only. Requires current status rejected_by_admin; transitions to pending_admin.
+     * Any prior updates via the update endpoint are what get re-reviewed.
+     *
+     * @authenticated
+     *
+     * @throws Throwable
+     *
+     * @urlParam opportunity string required The opportunity UUID.
+     *
+     * @response 200 {
+     *   "status": true,
+     *   "data": {
+     *     "id": "01234567-89ab-cdef-0123-456789abcdef",
+     *     "status": { "value": "pending_admin", "label": "Pending Admin Review", "color": "#f59e0b" }
+     *   }
+     * }
+     * @response 403 { "status": false, "message": "You are not authorized to perform this action" }
+     * @response 422 { "status": false, "message": "This status transition is not allowed" }
+     */
+    public function resubmit(Opportunity $opportunity): JsonResponse
+    {
+        try {
+            $this->authorizeOrFail('resubmit', $opportunity, 'opportunity.unauthorized');
+
+            $opportunity = $this->service->resubmit($opportunity);
+
+            return $this->successResponse(
+                OpportunityResource::make(
+                    $this->service->loadForShow($opportunity, request()->user()),
+                ),
+            );
+        } catch (Throwable $throwable) {
+            if ($throwable instanceof ApiException) {
+                throw $throwable;
+            }
+
+            report($throwable);
+
+            if ($throwable instanceof HttpExceptionInterface) {
+                return $this->failedMessageResponse($throwable->getMessage(), $throwable->getStatusCode());
+            }
+
+            return $this->failedMessageResponse(__('something went wrong'));
+        }
+    }
+
+    /**
      * Delete media from an opportunity.
      *
      * Only the author can delete media, and only when status is New.

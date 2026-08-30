@@ -38,7 +38,7 @@ return [
     'unauthorized' => 'You are not authorized to perform this action',
     'status_transition_not_allowed' => 'This status transition is not allowed',
     'status_updated_successfully' => 'Status updated successfully',
-    'cannot_delete_non_new' => 'You can only delete opportunities with status New',
+    'cannot_delete_non_new' => 'You can only delete opportunities that are new, pending admin review, or rejected by admin',
     'cannot_delete_media_non_new' => 'You can only delete media when opportunity status is New',
     'cannot_submit_offer_non_new' => 'Offers can only be submitted on open opportunities',
     'cannot_submit_offer_on_own_opportunity' => 'You cannot submit an offer on your own opportunity',
@@ -53,6 +53,7 @@ return [
     'chat_unauthorized' => 'You are not a participant in this opportunity',
     'chat_opened_successfully' => 'Chat opened successfully',
     'opportunity_expired' => 'Your opportunity has expired',
+    'resubmitted_successfully' => 'Opportunity resubmitted for admin review',
 
     'opportunities' => 'Opportunities',
     'opportunity' => 'Opportunity',
@@ -65,4 +66,10 @@ return [
     'no_comments' => 'No comments found',
     'accepted_offer' => 'Accepted Offer',
     'details' => 'Details',
+    'approve' => 'Approve',
+    'reject' => 'Reject',
+    'reason' => 'Reason',
+    'notes' => 'Notes',
+    'enter_reason' => 'Enter reason',
+    'enter_notes' => 'Enter notes (optional)',
 ];

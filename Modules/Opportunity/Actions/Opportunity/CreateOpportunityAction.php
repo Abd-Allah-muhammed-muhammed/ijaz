@@ -5,6 +5,7 @@ namespace Modules\Opportunity\Actions\Opportunity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\Opportunity\Actions\Opportunity\NotifyAdminsOfOpportunityPendingAction as NotifyAdminsOfOpportunityPending;
 use Modules\Opportunity\Contracts\Repositories\OpportunityRepositoryInterface;
 use Modules\Opportunity\DTOs\OpportunityData;
 use Modules\Opportunity\Enums\OpportunityStatusEnum;
@@ -16,6 +17,7 @@ class CreateOpportunityAction
 {
     public function __construct(
         private readonly OpportunityRepositoryInterface $opportunities,
+        private readonly NotifyAdminsOfOpportunityPending $notifyAdminsOfOpportunityPendingAction,
     ) {}
 
     /**
@@ -47,6 +49,7 @@ class CreateOpportunityAction
             $opportunity->load(['author', 'region.translation', 'city.translation', 'media']);
 
             $author->notify(new OpportunityCreatedConfirmationNotification($opportunity));
+            $this->notifyAdminsOfOpportunityPendingAction->handle($opportunity);
 
             return $opportunity;
         });

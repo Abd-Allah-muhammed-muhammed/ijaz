@@ -31,11 +31,21 @@ test('opportunity policy denies non owner update', function () {
     expect(Gate::forUser($other)->allows('update', $opportunity))->toBeFalse();
 });
 
-test('opportunity policy allows delete only when status is new', function () {
+test('opportunity policy allows delete when status is new, pending_admin, or rejected_by_admin', function () {
     $user = User::factory()->create();
     $newOpportunity = Opportunity::factory()->create([
         'author_type' => User::class,
         'author_id' => $user->id,
+    ]);
+    $pendingOpportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $user->id,
+        'status' => OpportunityStatusEnum::PendingAdmin,
+    ]);
+    $rejectedOpportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $user->id,
+        'status' => OpportunityStatusEnum::RejectedByAdmin,
     ]);
     $acceptedOpportunity = Opportunity::factory()->create([
         'author_type' => User::class,
@@ -44,7 +54,28 @@ test('opportunity policy allows delete only when status is new', function () {
     ]);
 
     expect(Gate::forUser($user)->allows('delete', $newOpportunity))->toBeTrue()
+        ->and(Gate::forUser($user)->allows('delete', $pendingOpportunity))->toBeTrue()
+        ->and(Gate::forUser($user)->allows('delete', $rejectedOpportunity))->toBeTrue()
         ->and(Gate::forUser($user)->allows('delete', $acceptedOpportunity))->toBeFalse();
+});
+
+test('opportunity policy allows resubmit only for author when status is rejected_by_admin', function () {
+    $author = User::factory()->create();
+    $other = User::factory()->create();
+    $rejected = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::RejectedByAdmin,
+    ]);
+    $pending = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::PendingAdmin,
+    ]);
+
+    expect(Gate::forUser($author)->allows('resubmit', $rejected))->toBeTrue()
+        ->and(Gate::forUser($other)->allows('resubmit', $rejected))->toBeFalse()
+        ->and(Gate::forUser($author)->allows('resubmit', $pending))->toBeFalse();
 });
 
 test('opportunity offer policy allows create only on new opportunities', function () {

@@ -3,13 +3,24 @@
 namespace Modules\Opportunity\Policies;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Opportunity\Enums\OpportunityStatusEnum;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityComment;
+use Modules\Opportunity\Policies\Concerns\AuthorizesOpportunityAuthor;
 
 class OpportunityCommentPolicy
 {
+    use AuthorizesOpportunityAuthor;
+
     public function create(Model $user, Opportunity $opportunity): bool
     {
+        if ($opportunity->status->isIn([
+            OpportunityStatusEnum::PendingAdmin,
+            OpportunityStatusEnum::RejectedByAdmin,
+        ])) {
+            return $this->isAuthor($user, $opportunity);
+        }
+
         return true;
     }
 

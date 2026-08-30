@@ -5,6 +5,7 @@ namespace Modules\Opportunity\Http\Controllers\Api\V1;
 use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use MMAE\ApiResponse\Traits\HasApiResponse;
@@ -61,7 +62,11 @@ class CommentController extends Controller
     {
         return $this->successResponse(
             CommentCollection::make(
-                $this->service->listByOpportunity($opportunity, $request->integer('per_page', 10))
+                $this->service->listByOpportunity(
+                    $opportunity,
+                    $request->integer('per_page', 10),
+                    $request->user('sanctum') ?? $request->user(),
+                )
             )
         );
     }
@@ -93,6 +98,9 @@ class CommentController extends Controller
     public function store(StoreCommentRequest $request, Opportunity $opportunity): JsonResponse
     {
         try {
+            // Visibility first — mirrors show (404 for pending/rejected to non-authors).
+            $this->service->assertVisibleToViewer($opportunity, $request->user());
+
             $this->authorize('create', [OpportunityComment::class, $opportunity]);
 
             $data = CommentData::fromRequest($request);
@@ -100,6 +108,10 @@ class CommentController extends Controller
 
             return $this->successResponse(CommentResource::make($comment));
         } catch (Throwable $throwable) {
+            if ($throwable instanceof ModelNotFoundException) {
+                throw $throwable;
+            }
+
             if ($throwable instanceof ApiException) {
                 throw $throwable;
             }
