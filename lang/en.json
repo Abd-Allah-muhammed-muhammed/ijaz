@@ -208,6 +208,8 @@
     "actions": "Actions",
     "delete": "Delete",
     "restore": "Restore",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
     "trashed": "Trashed",
     "edit": "Edit",
     "save": "Save",

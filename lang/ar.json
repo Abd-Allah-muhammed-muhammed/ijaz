@@ -208,6 +208,8 @@
     "actions": "إجراءات",
     "delete": "حذف",
     "restore": "استعادة",
+    "activate": "تفعيل",
+    "deactivate": "إلغاء التفعيل",
     "trashed": "المحذوفات",
     "edit": "تعديل",
     "save": "حفظ",

@@ -106,20 +106,33 @@ test('toggle is permission-gated the same as edit', function (): void {
     expect($bank->fresh()->is_active)->toBeFalse();
 });
 
-test('Banks Index row shows a quick Active/Inactive toggle alongside Edit/Delete', function (): void {
+test('Banks Index status column shows the badge again, not an inline switch', function (): void {
     $path = resource_path('js/apps/admin/pages/Banks/Index.tsx');
     expect(file_exists($path))->toBeTrue();
 
     $source = (string) file_get_contents($path);
 
-    expect($source)->toContain('toggleActive')
-        ->and($source)->toContain('FormCheck')
-        ->and($source)->toContain('edit banks')
-        ->and($source)->toContain('BankController.edit')
-        ->and($source)->toContain('BankController.destroy');
+    expect($source)->toContain("property: 'is_active'")
+        ->and($source)->toContain('badge bg-light-')
+        ->and($source)->toContain("t('active')")
+        ->and($source)->toContain("t('inactive')")
+        ->and($source)->not->toContain('FormCheck')
+        ->and($source)->not->toContain('form-switch');
 });
 
-test('clicking the toggle flips the status immediately with a success toast, without navigating to the edit form', function (): void {
+test('the Actions dropdown includes an Activate/Deactivate item alongside Edit/Delete', function (): void {
+    $path = resource_path('js/apps/admin/pages/Banks/Index.tsx');
+    $source = (string) file_get_contents($path);
+
+    expect($source)->toContain('ButtonAction')
+        ->and($source)->toContain("t('deactivate')")
+        ->and($source)->toContain("t('activate')")
+        ->and($source)->toContain('BankController.edit')
+        ->and($source)->toContain('BankController.destroy')
+        ->and($source)->toContain('BankController.toggleActive');
+});
+
+test('clicking it correctly toggles is_active with a success toast', function (): void {
     $path = resource_path('js/apps/admin/pages/Banks/Index.tsx');
     $source = (string) file_get_contents($path);
 
@@ -127,10 +140,4 @@ test('clicking the toggle flips the status immediately with a success toast, wit
         "/router\.patch\(\s*BankController\.toggleActive[\s\S]*?only:\s*\[\s*'rows'\s*,\s*'flash'\s*\]/",
         $source
     ))->toBe(1, 'Expected patch toggleActive with flash-inclusive partial reload');
-
-    // Must not navigate to the edit form from the toggle handler.
-    expect(preg_match(
-        "/toggleActive[\s\S]{0,400}BankController\.edit/",
-        $source
-    ))->toBe(0, 'Toggle must not navigate to edit');
 });
