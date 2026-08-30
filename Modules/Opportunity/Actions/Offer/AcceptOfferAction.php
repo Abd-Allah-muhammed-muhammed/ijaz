@@ -11,6 +11,7 @@ use Modules\Opportunity\Exceptions\OpportunityException;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityOffer;
 use Modules\Opportunity\Notifications\OpportunityOfferAcceptedNotification;
+use Modules\Opportunity\Notifications\OpportunityOfferRejectedNotification;
 use Throwable;
 
 class AcceptOfferAction
@@ -43,6 +44,12 @@ class AcceptOfferAction
 
             $offer->update(['status' => OfferStatusEnum::Accepted]);
 
+            $otherPendingOffers = $opportunity->offers()
+                ->where('id', '!=', $offer->id)
+                ->where('status', OfferStatusEnum::Pending)
+                ->with('author')
+                ->get();
+
             $opportunity->offers()
                 ->where('id', '!=', $offer->id)
                 ->where('status', OfferStatusEnum::Pending)
@@ -59,6 +66,11 @@ class AcceptOfferAction
 
             $offer->refresh()->load('author');
             $offer->author->notify(new OpportunityOfferAcceptedNotification($offer));
+
+            foreach ($otherPendingOffers as $rejectedOffer) {
+                $rejectedOffer->setAttribute('status', OfferStatusEnum::Rejected);
+                $rejectedOffer->author->notify(new OpportunityOfferRejectedNotification($rejectedOffer));
+            }
 
             $opportunity->load([
                 'author',

@@ -7,35 +7,38 @@ use App\Models\User;
 use App\Notifications\DomainNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
-use Modules\Opportunity\Models\OpportunityOffer;
+use Modules\Opportunity\Models\Opportunity;
 
-class OpportunityOfferRejectedNotification extends DomainNotification implements ShouldBroadcastNow, ShouldDispatchAfterCommit
+class OpportunityCreatedConfirmationNotification extends DomainNotification implements ShouldBroadcastNow, ShouldDispatchAfterCommit
 {
-    public function __construct(public OpportunityOffer $offer) {}
+    public function __construct(public Opportunity $opportunity) {}
 
     protected function titleKey(): string
     {
-        return 'opportunity_offer_rejected';
+        return 'opportunity_created';
     }
 
     protected function bodyKey(): string
     {
-        return 'opportunity_offer_has_been_rejected';
+        return 'opportunity_has_been_created';
     }
 
     protected function payload(): array
     {
         return [
-            'opportunity_id' => $this->offer->opportunity_id,
-            'offer_id' => $this->offer->id,
+            'opportunity_id' => $this->opportunity->id,
         ];
+    }
+
+    protected function broadcastData(object $notifiable): array
+    {
+        return $this->firebaseData($notifiable);
     }
 
     protected function firebaseData(object $notifiable): array
     {
         return [
-            'opportunity_id' => $this->offer->opportunity_id,
-            'offer_id' => $this->offer->id,
+            'opportunity_id' => $this->opportunity->id,
             'screen' => 'opportunity',
         ];
     }
@@ -47,6 +50,6 @@ class OpportunityOfferRejectedNotification extends DomainNotification implements
 
     public function broadcastType(): string
     {
-        return 'opportunity offer rejected';
+        return 'opportunity created confirmation';
     }
 }

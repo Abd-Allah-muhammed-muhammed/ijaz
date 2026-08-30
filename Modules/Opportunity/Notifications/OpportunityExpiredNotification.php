@@ -2,6 +2,7 @@
 
 namespace Modules\Opportunity\Notifications;
 
+use App\Models\Provider;
 use App\Models\User;
 use App\Notifications\DomainNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -33,12 +34,13 @@ class OpportunityExpiredNotification extends DomainNotification implements Shoul
     {
         return [
             'opportunity_id' => $this->opportunity->id,
+            'screen' => 'opportunity',
         ];
     }
 
     protected function sendsFirebase(object $notifiable): bool
     {
-        return $notifiable instanceof User;
+        return $notifiable instanceof User || $notifiable instanceof Provider;
     }
 
     public function broadcastType(): string

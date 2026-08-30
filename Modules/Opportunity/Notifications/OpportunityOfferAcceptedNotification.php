@@ -2,6 +2,8 @@
 
 namespace Modules\Opportunity\Notifications;
 
+use App\Models\Provider;
+use App\Models\User;
 use App\Notifications\DomainNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
@@ -31,7 +33,16 @@ class OpportunityOfferAcceptedNotification extends DomainNotification implements
 
     protected function firebaseData(object $notifiable): array
     {
-        return [];
+        return [
+            'opportunity_id' => $this->offer->opportunity_id,
+            'offer_id' => $this->offer->id,
+            'screen' => 'opportunity',
+        ];
+    }
+
+    protected function sendsFirebase(object $notifiable): bool
+    {
+        return $notifiable instanceof User || $notifiable instanceof Provider;
     }
 
     public function broadcastType(): string

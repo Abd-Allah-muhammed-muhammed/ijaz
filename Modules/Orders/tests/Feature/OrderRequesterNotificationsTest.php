@@ -10,6 +10,7 @@ use Modules\Orders\Actions\Offer\UpdateOfferStatusAction;
 use Modules\Orders\Actions\Provider\EndProviderOrderAction;
 use Modules\Orders\Actions\Provider\SubmitOfferAction;
 use Modules\Orders\Actions\User\CreateOrderAction;
+use Modules\Orders\Database\Factories\OrderOfferFactory;
 use Modules\Orders\DTOs\StoreOrderDTO;
 use Modules\Orders\DTOs\StoreOrderOfferDTO;
 use Modules\Orders\DTOs\UpdateOfferStatusDTO;
@@ -119,13 +120,16 @@ test('every user-facing Orders notification includes a screen key + relevant ent
         'status' => OrderStatusEnum::CancelledByClient,
         'cancellation_reason' => 'Provider did not start the work as agreed',
     ]);
-    $offer = createDomainOrderOffer($cancelledOrder);
+    $offer = OrderOfferFactory::new()
+        ->forOrder($cancelledOrder)
+        ->forProvider(createWalletProvider())
+        ->create();
     $cancelledOrder->update(['accepted_offer_id' => $offer->id]);
     $cancelledOrder->refresh();
 
     $endedOrder = Order::factory()->create(['status' => OrderStatusEnum::EndedByProvider]);
     $inProgressOrder = Order::factory()->inProgress()->create();
-    $user = domainNotifiableUser();
+    $user = User::factory()->create(['language' => 'en']);
 
     $cases = [
         new OrderOfferCreatedNotification($offer),

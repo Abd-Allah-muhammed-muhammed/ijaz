@@ -959,6 +959,8 @@
     "opportunity_offer_has_been_accepted": "The client accepted your offer on the opportunity",
     "opportunity_offer_rejected": "Your offer was rejected",
     "opportunity_offer_has_been_rejected": "The client rejected your offer on the opportunity",
+    "opportunity_created": "Opportunity Created",
+    "opportunity_has_been_created": "Your opportunity has been created successfully.",
     "opportunity_expired": "Opportunity Expired",
     "opportunity_has_expired": "Your opportunity has passed its expiry date",
     "guarantor_created": "Guarantor Request Submitted",

@@ -2,6 +2,7 @@
 
 namespace Modules\Opportunity\Notifications;
 
+use App\Models\Provider;
 use App\Models\User;
 use App\Notifications\DomainNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -35,12 +36,13 @@ class OpportunityOfferSubmittedNotification extends DomainNotification implement
         return [
             'opportunity_id' => $this->offer->opportunity_id,
             'offer_id' => $this->offer->id,
+            'screen' => 'opportunity',
         ];
     }
 
     protected function sendsFirebase(object $notifiable): bool
     {
-        return $notifiable instanceof User;
+        return $notifiable instanceof User || $notifiable instanceof Provider;
     }
 
     public function broadcastType(): string

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Opportunity\Contracts\Repositories\OpportunityRepositoryInterface;
 use Modules\Opportunity\DTOs\OpportunityData;
 use Modules\Opportunity\Models\Opportunity;
+use Modules\Opportunity\Notifications\OpportunityCreatedConfirmationNotification;
 use Throwable;
 
 class CreateOpportunityAction
@@ -42,6 +43,8 @@ class CreateOpportunityAction
             }
 
             $opportunity->load(['author', 'region.translation', 'city.translation', 'media']);
+
+            $author->notify(new OpportunityCreatedConfirmationNotification($opportunity));
 
             return $opportunity;
         });

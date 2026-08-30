@@ -31,6 +31,7 @@ use Modules\Guarantor\Notifications\InstallmentOverdueNotification;
 use Modules\Guarantor\Notifications\InstallmentReleasedNotification;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityOffer;
+use Modules\Opportunity\Notifications\OpportunityCreatedConfirmationNotification;
 use Modules\Opportunity\Notifications\OpportunityExpiredNotification;
 use Modules\Opportunity\Notifications\OpportunityOfferAcceptedNotification;
 use Modules\Opportunity\Notifications\OpportunityOfferRejectedNotification;
@@ -1131,7 +1132,7 @@ describe('Opportunity domain notification contracts', function (): void {
         $provider = domainNotifiableProvider();
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
             ->and($notification->broadcastType())->toBe('opportunity expired')
             ->and($notification->toArray($user))->toBe([
@@ -1151,7 +1152,10 @@ describe('Opportunity domain notification contracts', function (): void {
             $notification->toFirebase($user),
             trans('opportunity_expired', locale: 'en'),
             trans('opportunity_has_expired', locale: 'en'),
-            ['opportunity_id' => $opportunity->id],
+            [
+                'opportunity_id' => $opportunity->id,
+                'screen' => 'opportunity',
+            ],
         );
     });
 
@@ -1163,7 +1167,7 @@ describe('Opportunity domain notification contracts', function (): void {
         $provider = domainNotifiableProvider();
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('opportunity offer submitted')
             ->and($notification->toArray($user))->toBe([
                 'title_translated_key' => 'opportunity_offer_submitted',
@@ -1187,6 +1191,7 @@ describe('Opportunity domain notification contracts', function (): void {
             [
                 'opportunity_id' => $offer->opportunity_id,
                 'offer_id' => $offer->id,
+                'screen' => 'opportunity',
             ],
         );
     });
@@ -1198,8 +1203,8 @@ describe('Opportunity domain notification contracts', function (): void {
         $user = domainNotifiableUser();
         $provider = domainNotifiableProvider();
 
-        expect($notification->via($user))->toBe(['database', 'broadcast'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+        expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('opportunity offer accepted')
             ->and($notification->toArray($user))->toBe([
                 'title_translated_key' => 'opportunity_offer_accepted',
@@ -1215,6 +1220,17 @@ describe('Opportunity domain notification contracts', function (): void {
             'opportunity_id' => $offer->opportunity_id,
             'offer_id' => $offer->id,
         ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans('opportunity_offer_accepted', locale: 'en'),
+            trans('opportunity_offer_has_been_accepted', locale: 'en'),
+            [
+                'opportunity_id' => $offer->opportunity_id,
+                'offer_id' => $offer->id,
+                'screen' => 'opportunity',
+            ],
+        );
     });
 
     it('locks OpportunityOfferRejectedNotification channel outputs', function (): void {
@@ -1222,8 +1238,10 @@ describe('Opportunity domain notification contracts', function (): void {
         $offer = OpportunityOffer::factory()->create();
         $notification = new OpportunityOfferRejectedNotification($offer);
         $user = domainNotifiableUser();
+        $provider = domainNotifiableProvider();
 
-        expect($notification->via($user))->toBe(['database', 'broadcast'])
+        expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('opportunity offer rejected')
             ->and($notification->toArray($user))->toBe([
                 'title_translated_key' => 'opportunity_offer_rejected',
@@ -1239,6 +1257,53 @@ describe('Opportunity domain notification contracts', function (): void {
             'opportunity_id' => $offer->opportunity_id,
             'offer_id' => $offer->id,
         ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans('opportunity_offer_rejected', locale: 'en'),
+            trans('opportunity_offer_has_been_rejected', locale: 'en'),
+            [
+                'opportunity_id' => $offer->opportunity_id,
+                'offer_id' => $offer->id,
+                'screen' => 'opportunity',
+            ],
+        );
+    });
+
+    it('locks OpportunityCreatedConfirmationNotification channel outputs', function (): void {
+        /** @var TestCase $this */
+        $opportunity = Opportunity::factory()->create();
+        $notification = new OpportunityCreatedConfirmationNotification($opportunity);
+        $user = domainNotifiableUser();
+        $provider = domainNotifiableProvider();
+
+        expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
+            ->and($notification->broadcastType())->toBe('opportunity created confirmation')
+            ->and($notification->toArray($user))->toBe([
+                'title_translated_key' => 'opportunity_created',
+                'body_translated_key' => 'opportunity_has_been_created',
+                'translated_attributes' => [],
+                'opportunity_id' => $opportunity->id,
+            ]);
+
+        assertBroadcastPayload($notification->toBroadcast($user), [
+            'title' => trans('opportunity_created', locale: 'en'),
+            'body' => trans('opportunity_has_been_created', locale: 'en'),
+            'opportunity_id' => $opportunity->id,
+            'screen' => 'opportunity',
+        ]);
+
+        assertFirebaseMessage(
+            $notification->toFirebase($user),
+            trans('opportunity_created', locale: 'en'),
+            trans('opportunity_has_been_created', locale: 'en'),
+            [
+                'opportunity_id' => $opportunity->id,
+                'screen' => 'opportunity',
+            ],
+        );
     });
 });
 

@@ -849,6 +849,8 @@
     "opportunity_offer_has_been_accepted": "قبل العميل عرضك على الفرصة",
     "opportunity_offer_rejected": "تم رفض عرضك",
     "opportunity_offer_has_been_rejected": "رفض العميل عرضك على الفرصة",
+    "opportunity_created": "تم إنشاء الفرصة",
+    "opportunity_has_been_created": "تم إنشاء فرصتك بنجاح.",
     "opportunity_expired": "انتهت صلاحية الفرصة",
     "opportunity_has_expired": "لقد تجاوزت فرصتك تاريخ انتهاء الصلاحية",
     "guarantor_created": "تم تقديم طلب الضامن",
