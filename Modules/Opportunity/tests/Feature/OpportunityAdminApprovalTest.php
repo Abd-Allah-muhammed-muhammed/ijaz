@@ -600,3 +600,119 @@ test('existing comment behavior on new/offer_accepted opportunities is completel
         'body' => 'Comment on accepted opportunity',
     ])->assertSuccessful();
 });
+
+test('rejecting an opportunity persists the reason on the opportunity record', function () {
+    withoutOpportunityAdminApprovalLocaleMiddleware();
+    Notification::fake();
+
+    $admin = createOpportunityAdminApprovalAdmin();
+    $author = User::factory()->create();
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::PendingAdmin,
+        'rejection_reason' => null,
+    ]);
+
+    $this->actingAs($admin, 'admin')
+        ->post(action([DashboardOpportunityController::class, 'rejectByAdmin'], $opportunity), [
+            'reason' => 'Missing budget details',
+        ])
+        ->assertRedirect();
+
+    expect($opportunity->fresh()->rejection_reason)->toBe('Missing budget details')
+        ->and($opportunity->fresh()->status)->toBe(OpportunityStatusEnum::RejectedByAdmin);
+});
+
+test('the persisted rejection_reason is exposed on OpportunityResource (mobile API)', function () {
+    $author = User::factory()->create();
+    Sanctum::actingAs($author);
+
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::RejectedByAdmin,
+        'rejection_reason' => 'Policy violation',
+    ]);
+
+    $this->getJson(action([OpportunityController::class, 'show'], $opportunity))
+        ->assertSuccessful()
+        ->assertJsonPath('data.rejection_reason', 'Policy violation');
+});
+
+test('the persisted rejection_reason is exposed on OpportunityDashboardResource (admin Show props)', function () {
+    withoutOpportunityAdminApprovalLocaleMiddleware();
+
+    $admin = createOpportunityAdminApprovalAdmin(['show opportunities']);
+    $opportunity = Opportunity::factory()->create([
+        'status' => OpportunityStatusEnum::RejectedByAdmin,
+        'rejection_reason' => 'Incomplete description',
+    ]);
+
+    $this->actingAs($admin, 'admin')
+        ->get(action([DashboardOpportunityController::class, 'show'], $opportunity))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Opportunity/Show')
+            ->where('opportunity.rejection_reason', 'Incomplete description')
+        );
+});
+
+test('resubmitting an opportunity clears the previous rejection_reason', function () {
+    Notification::fake();
+
+    $author = User::factory()->create();
+    Sanctum::actingAs($author);
+
+    $opportunity = Opportunity::factory()->create([
+        'author_type' => User::class,
+        'author_id' => $author->id,
+        'status' => OpportunityStatusEnum::RejectedByAdmin,
+        'rejection_reason' => 'Needs clearer title',
+    ]);
+
+    $this->postJson(action([OpportunityController::class, 'resubmit'], $opportunity))
+        ->assertSuccessful()
+        ->assertJsonPath('data.status.value', OpportunityStatusEnum::PendingAdmin->value)
+        ->assertJsonPath('data.rejection_reason', null);
+
+    expect($opportunity->fresh()->rejection_reason)->toBeNull();
+});
+
+test('an opportunity that was never rejected has a null rejection_reason', function () {
+    $opportunity = Opportunity::factory()->create([
+        'status' => OpportunityStatusEnum::New,
+    ]);
+
+    $this->getJson(action([OpportunityController::class, 'show'], $opportunity))
+        ->assertSuccessful()
+        ->assertJsonPath('data.rejection_reason', null);
+
+    expect($opportunity->fresh()->rejection_reason)->toBeNull();
+});
+
+test('dashboard stats (active/ended/cancelled) are now computed server-wide via the repository, matching pending_admin/total — not limited to the current page', function () {
+    withoutOpportunityAdminApprovalLocaleMiddleware();
+
+    $admin = createOpportunityAdminApprovalAdmin(['show opportunities']);
+
+    Opportunity::factory()->count(2)->create(['status' => OpportunityStatusEnum::New]);
+    Opportunity::factory()->create(['status' => OpportunityStatusEnum::OfferAccepted]);
+    Opportunity::factory()->create(['status' => OpportunityStatusEnum::InProgress]);
+    Opportunity::factory()->count(3)->create(['status' => OpportunityStatusEnum::Ended]);
+    Opportunity::factory()->count(2)->create(['status' => OpportunityStatusEnum::Cancelled]);
+    Opportunity::factory()->count(4)->create(['status' => OpportunityStatusEnum::PendingAdmin]);
+
+    $this->actingAs($admin, 'admin')
+        ->get(action([DashboardOpportunityController::class, 'index'], ['per_page' => 1]))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Opportunity/Index')
+            ->has('rows.data', 1)
+            ->where('stats.total', 13)
+            ->where('stats.pending_admin', 4)
+            ->where('stats.active', 4)
+            ->where('stats.ended', 3)
+            ->where('stats.cancelled', 2)
+        );
+});

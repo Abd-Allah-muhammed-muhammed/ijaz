@@ -25,6 +25,9 @@ type Props = {
   stats: {
     total: number;
     pending_admin: number;
+    active: number;
+    ended: number;
+    cancelled: number;
   };
 };
 
@@ -66,16 +69,12 @@ const Index = ({ rows, prams, selects, stats }: Props) => {
     };
   }, [searchValue]);
 
-  const activeCount = rows.data.filter((r) => ['new', 'offer_accepted', 'in_progress'].includes(r.status?.value)).length;
-  const endedCount = rows.data.filter((r) => r.status?.value === 'ended').length;
-  const cancelledCount = rows.data.filter((r) => r.status?.value === 'cancelled').length;
-
   const statCards = [
-    { label: t('total_requests'), value: stats.total ?? rows.meta.total ?? 0, icon: 'briefcase', bg: 'bg-light-primary', color: 'text-primary' },
+    { label: t('total_requests'), value: stats.total ?? 0, icon: 'briefcase', bg: 'bg-light-primary', color: 'text-primary' },
     { label: t('opportunity.status.pending_admin'), value: stats.pending_admin ?? 0, icon: 'plus-square', bg: 'bg-light-warning', color: 'text-warning' },
-    { label: t('active_requests'), value: activeCount, icon: 'time', bg: 'bg-light-info', color: 'text-info' },
-    { label: t('opportunity.status.ended'), value: endedCount, icon: 'check-circle', bg: 'bg-light-success', color: 'text-success' },
-    { label: t('opportunity.status.cancelled'), value: cancelledCount, icon: 'cross-circle', bg: 'bg-light-danger', color: 'text-danger' },
+    { label: t('active_requests'), value: stats.active ?? 0, icon: 'time', bg: 'bg-light-info', color: 'text-info' },
+    { label: t('opportunity.status.ended'), value: stats.ended ?? 0, icon: 'check-circle', bg: 'bg-light-success', color: 'text-success' },
+    { label: t('opportunity.status.cancelled'), value: stats.cancelled ?? 0, icon: 'cross-circle', bg: 'bg-light-danger', color: 'text-danger' },
   ];
 
   return (

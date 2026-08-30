@@ -15,6 +15,7 @@ import {
   canApproveRejectOpportunity,
   canSubmitOpportunityReject,
   getOpportunityStatusBadgeClass,
+  shouldRenderRejectionReason,
 } from './opportunity-admin-utils';
 
 type Author = {
@@ -51,6 +52,7 @@ type OpportunityResource = {
   description: string;
   budget: string | number;
   status: { value: string; label: string; color: string };
+  rejection_reason?: string | null;
   author?: Author;
   region?: { title?: string };
   city?: { title?: string };
@@ -145,6 +147,9 @@ const Show = ({ opportunity }: Props) => {
                   <h1 className="fs-2 fw-bolder text-gray-900 mb-0">{opportunity.title}</h1>
                   <span className={`badge ${badgeClass} fw-bold px-3 py-2`}>{opportunity.status?.label}</span>
                 </div>
+                {shouldRenderRejectionReason(currentStatus, opportunity.rejection_reason) ? (
+                  <div className="mb-3">{opportunity.rejection_reason}</div>
+                ) : null}
                 <div className="d-flex flex-wrap gap-4 text-muted fw-semibold fs-6">
                   {opportunity.author && (
                     <span>

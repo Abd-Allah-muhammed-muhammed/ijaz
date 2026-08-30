@@ -107,15 +107,28 @@ class OpportunityRepository implements OpportunityRepositoryInterface
     }
 
     /**
-     * @return array{total: int, pending_admin: int}
+     * @return array{total: int, pending_admin: int, active: int, ended: int, cancelled: int}
      */
     public function getDashboardStats(): array
     {
-        /** @var array{total: int, pending_admin: int} */
+        /** @var array{total: int, pending_admin: int, active: int, ended: int, cancelled: int} */
         return LookupCache::rememberFor('stats:opportunity:dashboard', 30, fn (): array => [
             'total' => Opportunity::query()->count(),
             'pending_admin' => Opportunity::query()
                 ->where('status', OpportunityStatusEnum::PendingAdmin)
+                ->count(),
+            'active' => Opportunity::query()
+                ->whereIn('status', [
+                    OpportunityStatusEnum::New,
+                    OpportunityStatusEnum::OfferAccepted,
+                    OpportunityStatusEnum::InProgress,
+                ])
+                ->count(),
+            'ended' => Opportunity::query()
+                ->where('status', OpportunityStatusEnum::Ended)
+                ->count(),
+            'cancelled' => Opportunity::query()
+                ->where('status', OpportunityStatusEnum::Cancelled)
                 ->count(),
         ]);
     }

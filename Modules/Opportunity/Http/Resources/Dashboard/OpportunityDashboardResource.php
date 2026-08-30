@@ -23,6 +23,7 @@ class OpportunityDashboardResource extends JsonResource
             'description' => $this->description,
             'budget' => $this->budget,
             'status' => $this->status->toArray(),
+            'rejection_reason' => $this->rejection_reason,
             'author' => $this->whenLoaded('author', fn () => [
                 'id' => $this->author->getKey(),
                 'name' => $this->author instanceof User

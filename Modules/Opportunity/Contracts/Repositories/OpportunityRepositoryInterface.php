@@ -36,7 +36,7 @@ interface OpportunityRepositoryInterface
     public function paginateForDashboard(Request $request): LengthAwarePaginator;
 
     /**
-     * @return array{total: int, pending_admin: int}
+     * @return array{total: int, pending_admin: int, active: int, ended: int, cancelled: int}
      */
     public function getDashboardStats(): array;
 

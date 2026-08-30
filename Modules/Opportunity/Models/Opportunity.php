@@ -43,6 +43,7 @@ class Opportunity extends Model implements HasMedia
         'phone',
         'email',
         'status',
+        'rejection_reason',
         'accepted_offer_id',
         'expires_at',
     ];

@@ -23,6 +23,7 @@ class OpportunityResource extends JsonResource
             'description' => $this->description,
             'budget' => $this->budget,
             'status' => $this->status->toArray(),
+            'rejection_reason' => $this->rejection_reason,
             'author' => $this->whenLoaded('author', fn () => OpportunityAuthorResource::make($this->author)),
             'region' => RegionResource::make($this->whenLoaded('region')),
             'city' => CityResource::make($this->whenLoaded('city')),

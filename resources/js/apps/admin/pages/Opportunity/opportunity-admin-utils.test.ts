@@ -6,6 +6,7 @@ import {
   canSubmitOpportunityReject,
   getOpportunityStatusBadgeClass,
   opportunityStatusBadgeClass,
+  shouldRenderRejectionReason,
 } from './opportunity-admin-utils';
 
 describe('canApproveRejectOpportunity', () => {
@@ -59,9 +60,22 @@ describe('opportunity i18next page title key', () => {
 
 describe('admin Opportunity Index pending-admin visibility', () => {
   it('admin Opportunity Index has a way to filter/see a pending-admin count, mirroring Guarantor\'s stats.pending_admin pattern', () => {
-    const stats = { total: 10, pending_admin: 3 };
+    const stats = { total: 10, pending_admin: 3, active: 4, ended: 2, cancelled: 1 };
     expect(stats).toHaveProperty('pending_admin');
     expect(typeof stats.pending_admin).toBe('number');
     expect(stats.pending_admin).toBeGreaterThan(0);
+    expect(stats).toHaveProperty('active');
+    expect(stats).toHaveProperty('ended');
+    expect(stats).toHaveProperty('cancelled');
+  });
+});
+
+describe('shouldRenderRejectionReason', () => {
+  it('admin Show page renders the rejection reason when status is rejected_by_admin (no styling work, just render the text if present)', () => {
+    expect(shouldRenderRejectionReason('rejected_by_admin', 'Missing budget details')).toBe(true);
+    expect(shouldRenderRejectionReason('rejected_by_admin', null)).toBe(false);
+    expect(shouldRenderRejectionReason('rejected_by_admin', '   ')).toBe(false);
+    expect(shouldRenderRejectionReason('pending_admin', 'Should not show')).toBe(false);
+    expect(shouldRenderRejectionReason('new', null)).toBe(false);
   });
 });

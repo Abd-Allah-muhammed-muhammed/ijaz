@@ -30,3 +30,10 @@ export function canSubmitOpportunityReject(reason: string): boolean {
 
 /** Page-title key that must not collide with nested opportunity.status.* / opportunity.php tree. */
 export const OPPORTUNITY_PAGE_TITLE_KEY = 'opportunity_label' as const;
+
+export function shouldRenderRejectionReason(
+  status: string | undefined | null,
+  rejectionReason: string | null | undefined,
+): boolean {
+  return status === 'rejected_by_admin' && Boolean(rejectionReason?.trim());
+}

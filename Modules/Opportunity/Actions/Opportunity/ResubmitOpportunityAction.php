@@ -31,6 +31,7 @@ class ResubmitOpportunityAction
 
             $opportunity = $this->opportunities->update($opportunity, [
                 'status' => OpportunityStatusEnum::PendingAdmin,
+                'rejection_reason' => null,
             ]);
 
             $this->notifyAdminsOfOpportunityPendingAction->handle($opportunity);

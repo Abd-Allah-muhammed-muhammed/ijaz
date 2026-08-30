@@ -59,6 +59,9 @@ test('admin with permission can view opportunities dashboard index', function ()
             ->has('rows.data', 2)
             ->has('stats.pending_admin')
             ->has('stats.total')
+            ->has('stats.active')
+            ->has('stats.ended')
+            ->has('stats.cancelled')
         );
 });
 

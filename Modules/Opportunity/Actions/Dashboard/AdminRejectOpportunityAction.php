@@ -35,6 +35,7 @@ class AdminRejectOpportunityAction
 
             $opportunity = $this->opportunities->update($opportunity, [
                 'status' => OpportunityStatusEnum::RejectedByAdmin,
+                'rejection_reason' => $reason,
             ]);
 
             $opportunity->loadMissing('author');
