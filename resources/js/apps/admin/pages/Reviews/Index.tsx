@@ -12,6 +12,7 @@ import {Review} from "@/shared/types/models";
 import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
 import ReviewController from "@/actions/Modules/Reviews/Http/Controllers/Dashboard/ReviewController";
+import { formatDate } from '@/shared/lib/formatters';
 
 
 type Props = {
@@ -105,6 +106,7 @@ const Index = (
               {
                 title: t('created_at'),
                 property: 'created_at',
+                render: (row) => formatDate(row.created_at),
               },
             ]}
             actions={[

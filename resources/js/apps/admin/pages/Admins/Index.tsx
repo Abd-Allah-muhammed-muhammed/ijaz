@@ -14,6 +14,7 @@ import UserInfo from "@/shared/components/User/user-info";
 import withReactContent from "sweetalert2-react-content";
 import Swal from "sweetalert2";
 import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
+import { formatDate } from '@/shared/lib/formatters';
 
 
 type Props = {
@@ -110,6 +111,7 @@ const Index = (
               {
                 title: t('created_at'),
                 property: 'created_at',
+                render: (row) => formatDate(row.created_at),
               },
             ]}
             actions={[
