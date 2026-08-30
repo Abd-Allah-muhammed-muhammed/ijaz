@@ -92,6 +92,18 @@ const Show = ({ opportunity }: Props) => {
   const approveForm = useForm({ notes: '' });
   const rejectForm = useForm({ reason: '', notes: '' });
 
+  const createdDate = new Date(opportunity.created_at).toLocaleDateString();
+  const authorLabel = opportunity.author
+    ? `${opportunity.author.name} (${opportunity.author.type === 'user' ? t('user') : t('provider')})`
+    : null;
+  const subtitle = authorLabel
+    ? t('opportunity.subtitle', {
+        author: authorLabel,
+        date: createdDate,
+        defaultValue: `${authorLabel} · ${createdDate}`,
+      })
+    : createdDate;
+
   const confirmDelete = (callback: () => void) => {
     if (window.confirm(t('are_you_sure_delete'))) {
       callback();
@@ -138,58 +150,53 @@ const Show = ({ opportunity }: Props) => {
         {t(OPPORTUNITY_PAGE_TITLE_KEY)}
       </PageTitle>
 
-      <div className="d-flex flex-column gap-lg-10 gap-7">
-        <KTCard className="border-0 shadow-sm">
-          <KTCardBody className="p-9">
-            <div className="d-flex justify-content-between align-items-start flex-wrap mb-6">
-              <div>
-                <div className="d-flex align-items-center gap-2 mb-3 flex-wrap">
-                  <h1 className="fs-2 fw-bolder text-gray-900 mb-0">{opportunity.title}</h1>
-                  <span className={`badge ${badgeClass} fw-bold px-3 py-2`}>{opportunity.status?.label}</span>
-                </div>
-                {shouldRenderRejectionReason(currentStatus, opportunity.rejection_reason) ? (
-                  <div className="mb-3">{opportunity.rejection_reason}</div>
-                ) : null}
-                <div className="d-flex flex-wrap gap-4 text-muted fw-semibold fs-6">
-                  {opportunity.author && (
-                    <span>
-                      <KTIcon iconName="profile-circle" className="fs-6 me-1" />
-                      {opportunity.author.name}
-                      <span className="badge badge-light ms-2 fs-8">
-                        {opportunity.author.type === 'user' ? t('user') : t('provider')}
-                      </span>
-                    </span>
-                  )}
-                  {opportunity.city?.title && (
-                    <span>
-                      <KTIcon iconName="map" className="fs-6 me-1" />
-                      {opportunity.city.title}
-                      {opportunity.region?.title ? ` - ${opportunity.region.title}` : ''}
-                    </span>
-                  )}
-                  <span>
-                    <KTIcon iconName="calendar-8" className="fs-6 me-1" />
-                    {new Date(opportunity.created_at).toLocaleString()}
+      <div className="d-flex flex-column gap-7 gap-lg-10">
+        {/* Header card — mirrors Guarantor / CarAdvisement Show */}
+        <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
+          <div className="card-body p-6 p-lg-8 bg-light-primary bg-opacity-10">
+            <div className="d-flex justify-content-between align-items-start flex-wrap gap-5 mb-6">
+              <div className="d-flex align-items-start gap-4 min-w-0">
+                <div className="symbol symbol-55px symbol-circle flex-shrink-0">
+                  <span className="symbol-label bg-white text-primary shadow-sm">
+                    <KTIcon iconName="briefcase" className="fs-2x" />
                   </span>
                 </div>
+                <div className="min-w-0">
+                  <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
+                    <h1 className="fs-2 fw-bolder text-gray-900 mb-0 text-truncate">{opportunity.title}</h1>
+                    <span className={`badge ${badgeClass} rounded-pill fw-bold px-3 py-2`}>
+                      {opportunity.status?.label}
+                    </span>
+                    {opportunity.author && (
+                      <span className="badge badge-light-info rounded-pill fw-bold px-3 py-2">
+                        {opportunity.author.type === 'user' ? t('user') : t('provider')}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-muted fw-semibold fs-6">{subtitle}</div>
+                </div>
               </div>
+
               <div className="d-flex gap-2 flex-wrap align-items-center">
-                <Link href={OpportunityController.index().url} className="btn btn-sm btn-light">
-                  <KTIcon iconName="arrow-left" className="fs-6 px-1" />
+                <Link
+                  href={OpportunityController.index().url}
+                  className="btn btn-sm btn-light btn-active-light-primary rounded-pill"
+                >
+                  <KTIcon iconName="arrow-left" className="fs-6" />
                   {t('back')}
                 </Link>
                 {canApproveReject && (
                   <>
                     <button
                       type="button"
-                      className="btn btn-sm btn-light-success"
+                      className="btn btn-sm btn-light-success rounded-pill"
                       onClick={() => setAdminAction('approve')}
                     >
                       {t('opportunity.approve')}
                     </button>
                     <button
                       type="button"
-                      className="btn btn-sm btn-light-danger"
+                      className="btn btn-sm btn-light-danger rounded-pill"
                       onClick={() => setAdminAction('reject')}
                     >
                       {t('opportunity.reject')}
@@ -199,49 +206,68 @@ const Show = ({ opportunity }: Props) => {
                 {canDelete && (
                   <button
                     type="button"
-                    className="btn btn-sm btn-light-danger"
+                    className="btn btn-sm btn-light-danger rounded-pill"
                     onClick={() =>
                       confirmDelete(() => router.delete(OpportunityController.destroy(opportunity.id).url))
                     }
                   >
+                    <KTIcon iconName="trash" className="fs-5" />
                     {t('delete')}
                   </button>
                 )}
               </div>
             </div>
 
-            <div className="d-flex flex-wrap gap-6">
-              <div className="min-w-125px rounded border border-dashed border-gray-300 px-4 py-3">
-                <div className="fs-2 fw-bolder text-primary">
-                  {Number(opportunity.budget).toLocaleString()} <span className="fs-6 text-gray-600">{t('SAR')}</span>
+            {shouldRenderRejectionReason(currentStatus, opportunity.rejection_reason) && (
+              <div className="bg-light rounded-3 p-4 mb-6">
+                <div className="text-muted fs-8 text-uppercase fw-bold mb-1">
+                  {t('opportunity.reason', { defaultValue: 'Rejection reason' })}
                 </div>
-                <div className="fw-bold fs-6 text-gray-500">{t('budget')}</div>
+                <div className="fw-semibold text-gray-800">{opportunity.rejection_reason}</div>
               </div>
-              <div className="min-w-100px rounded border border-dashed border-gray-300 px-4 py-3">
-                <div className="fs-2 fw-bolder text-gray-900">{opportunity.offers_count ?? 0}</div>
-                <div className="fw-bold fs-6 text-gray-500">{t('offers')}</div>
+            )}
+
+            <div className="row g-4">
+              <div className="col-md-4">
+                <div className="bg-white rounded-3 p-4 border border-gray-100 h-100">
+                  <div className="text-muted fs-8 text-uppercase fw-bold mb-1">{t('budget')}</div>
+                  <div className="fs-3 fw-bolder text-gray-900">
+                    {Number(opportunity.budget).toLocaleString()}{' '}
+                    <span className="fs-6 text-muted fw-semibold">{t('SAR')}</span>
+                  </div>
+                </div>
               </div>
-              <div className="min-w-100px rounded border border-dashed border-gray-300 px-4 py-3">
-                <div className="fs-2 fw-bolder text-gray-900">{opportunity.comments_count ?? 0}</div>
-                <div className="fw-bold fs-6 text-gray-500">{t('comments')}</div>
+              <div className="col-md-4">
+                <div className="bg-white rounded-3 p-4 border border-gray-100 h-100">
+                  <div className="text-muted fs-8 text-uppercase fw-bold mb-1">{t('offers')}</div>
+                  <div className="fs-3 fw-bolder text-gray-900">{opportunity.offers_count ?? 0}</div>
+                </div>
+              </div>
+              <div className="col-md-4">
+                <div className="bg-white rounded-3 p-4 border border-gray-100 h-100">
+                  <div className="text-muted fs-8 text-uppercase fw-bold mb-1">
+                    {t('opportunity.comments', { defaultValue: 'Comments' })}
+                  </div>
+                  <div className="fs-3 fw-bolder text-gray-900">{opportunity.comments_count ?? 0}</div>
+                </div>
               </div>
             </div>
-          </KTCardBody>
-        </KTCard>
+          </div>
+        </div>
 
-        <KTCard className="border-0 shadow-sm">
-          <KTCardBody className="p-9">
-            <h3 className="fw-bolder mb-5">{t('description')}</h3>
-            <p className="fs-5 fw-semibold text-gray-700 whitespace-pre-wrap mb-0">
-              {opportunity.description || <span className="text-muted fst-italic">{t('no_description')}</span>}
+        <KTCard className="border-0 shadow-sm rounded-4">
+          <KTCardBody className="p-6 p-lg-9">
+            <div className="text-muted fs-8 text-uppercase fw-bold mb-2">{t('description')}</div>
+            <p className={`fs-6 mb-0 lh-lg ${opportunity.description ? 'text-gray-800' : 'text-muted'}`}>
+              {opportunity.description || t('no_description')}
             </p>
           </KTCardBody>
         </KTCard>
 
         {opportunity.media && opportunity.media.length > 0 && (
-          <KTCard className="border-0 shadow-sm">
-            <KTCardBody className="p-9">
-              <h3 className="fw-bolder mb-5">{t('media')}</h3>
+          <KTCard className="border-0 shadow-sm rounded-4">
+            <KTCardBody className="p-6 p-lg-9">
+              <h3 className="fw-bolder text-gray-900 mb-5">{t('media')}</h3>
               <div className="row g-4">
                 {opportunity.media.map((med) => (
                   <div className="col-md-4 col-sm-6" key={med.uuid}>
@@ -257,7 +283,7 @@ const Show = ({ opportunity }: Props) => {
                         />
                       </a>
                     ) : (
-                      <a href={med.url} target="_blank" rel="noreferrer" className="btn btn-light-primary btn-sm">
+                      <a href={med.url} target="_blank" rel="noreferrer" className="btn btn-light-primary btn-sm rounded-pill">
                         {t('download')}
                       </a>
                     )}
@@ -269,9 +295,9 @@ const Show = ({ opportunity }: Props) => {
         )}
 
         {opportunity.accepted_offer && (
-          <KTCard className="border-0 shadow-sm">
-            <KTCardBody className="p-9">
-              <h3 className="fw-bolder mb-5">{t('accepted_offer')}</h3>
+          <KTCard className="border-0 shadow-sm rounded-4">
+            <KTCardBody className="p-6 p-lg-9">
+              <h3 className="fw-bolder text-gray-900 mb-5">{t('accepted_offer')}</h3>
               <div className="d-flex justify-content-between align-items-start flex-wrap gap-3">
                 <div>
                   <div className="fs-4 fw-bolder text-gray-900 mb-1">
@@ -285,7 +311,7 @@ const Show = ({ opportunity }: Props) => {
                   )}
                 </div>
                 <span
-                  className={`badge ${offerStatusBadgeClass[opportunity.accepted_offer.status?.value] ?? 'badge-light-secondary'} fw-bold`}
+                  className={`badge ${offerStatusBadgeClass[opportunity.accepted_offer.status?.value] ?? 'badge-light-secondary'} rounded-pill fw-bold px-3 py-2`}
                 >
                   {opportunity.accepted_offer.status?.label}
                 </span>
@@ -294,9 +320,9 @@ const Show = ({ opportunity }: Props) => {
           </KTCard>
         )}
 
-        <KTCard className="border-0 shadow-sm">
-          <KTCardBody className="p-9">
-            <h3 className="fw-bolder mb-5">{t('offers')}</h3>
+        <KTCard className="border-0 shadow-sm rounded-4">
+          <KTCardBody className="p-6 p-lg-9">
+            <h3 className="fw-bolder text-gray-900 mb-5">{t('offers')}</h3>
             {!opportunity.offers?.length ? (
               <p className="text-muted fst-italic mb-0">{t('no_offers')}</p>
             ) : (
@@ -304,7 +330,7 @@ const Show = ({ opportunity }: Props) => {
                 {opportunity.offers.map((offer) => (
                   <div
                     key={offer.id}
-                    className="d-flex justify-content-between align-items-start flex-wrap gap-3 border border-dashed border-gray-300 rounded p-4"
+                    className="d-flex justify-content-between align-items-start flex-wrap gap-3 border border-dashed border-gray-300 rounded-3 p-4"
                   >
                     <div>
                       <div className="fs-5 fw-bolder text-gray-900 mb-1">
@@ -315,15 +341,19 @@ const Show = ({ opportunity }: Props) => {
                       <div className="text-muted fs-8 mt-2">{new Date(offer.created_at).toLocaleString()}</div>
                     </div>
                     <div className="d-flex align-items-center gap-2">
-                      <span className={`badge ${offerStatusBadgeClass[offer.status?.value] ?? 'badge-light-secondary'} fw-bold`}>
+                      <span
+                        className={`badge ${offerStatusBadgeClass[offer.status?.value] ?? 'badge-light-secondary'} rounded-pill fw-bold px-3 py-2`}
+                      >
                         {offer.status?.label}
                       </span>
                       {canDelete && (
                         <button
                           type="button"
-                          className="btn btn-sm btn-light-danger"
+                          className="btn btn-sm btn-light-danger rounded-pill"
                           onClick={() =>
-                            confirmDelete(() => router.delete(OfferController.destroy(offer.id).url, { preserveScroll: true }))
+                            confirmDelete(() =>
+                              router.delete(OfferController.destroy(offer.id).url, { preserveScroll: true }),
+                            )
                           }
                         >
                           {t('delete')}
@@ -337,9 +367,11 @@ const Show = ({ opportunity }: Props) => {
           </KTCardBody>
         </KTCard>
 
-        <KTCard className="border-0 shadow-sm">
-          <KTCardBody className="p-9">
-            <h3 className="fw-bolder mb-5">{t('comments')}</h3>
+        <KTCard className="border-0 shadow-sm rounded-4">
+          <KTCardBody className="p-6 p-lg-9">
+            <h3 className="fw-bolder text-gray-900 mb-5">
+              {t('opportunity.comments', { defaultValue: 'Comments' })}
+            </h3>
             {!opportunity.comments?.length ? (
               <p className="text-muted fst-italic mb-0">{t('no_comments')}</p>
             ) : (
@@ -347,7 +379,7 @@ const Show = ({ opportunity }: Props) => {
                 {opportunity.comments.map((comment) => (
                   <div
                     key={comment.id}
-                    className="d-flex justify-content-between align-items-start flex-wrap gap-3 border border-dashed border-gray-300 rounded p-4"
+                    className="d-flex justify-content-between align-items-start flex-wrap gap-3 border border-dashed border-gray-300 rounded-3 p-4"
                   >
                     <div>
                       {comment.author && <div className="fw-bold text-gray-900 mb-1">{comment.author.name}</div>}
@@ -357,7 +389,7 @@ const Show = ({ opportunity }: Props) => {
                     {canDelete && (
                       <button
                         type="button"
-                        className="btn btn-sm btn-light-danger"
+                        className="btn btn-sm btn-light-danger rounded-pill"
                         onClick={() =>
                           confirmDelete(() =>
                             router.delete(CommentController.destroy(comment.id).url, { preserveScroll: true }),
