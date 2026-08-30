@@ -46,5 +46,7 @@ Route::middleware(['localeSessionRedirect', 'localizationRedirect', 'localeViewP
         Route::post('banks/{bank}/restore', [BankController::class, 'restore'])
             ->withTrashed()
             ->name('banks.restore');
+        Route::patch('banks/{bank}/toggle-active', [BankController::class, 'toggleActive'])
+            ->name('banks.toggle-active');
         Route::resource('banks', BankController::class)->except(['show']);
     });

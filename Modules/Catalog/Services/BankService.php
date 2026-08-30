@@ -12,6 +12,7 @@ use Modules\Catalog\Actions\Bank\ListBanksForSelectAction;
 use Modules\Catalog\Actions\Bank\RestoreBankAction;
 use Modules\Catalog\Actions\Bank\ShowBankAction;
 use Modules\Catalog\Actions\Bank\StoreBankAction;
+use Modules\Catalog\Actions\Bank\ToggleActiveBankAction;
 use Modules\Catalog\Actions\Bank\UpdateBankAction;
 use Modules\Catalog\Contracts\Services\BankServiceInterface;
 use Modules\Catalog\DTOs\StoreBankDTO;
@@ -28,6 +29,7 @@ class BankService implements BankServiceInterface
         private readonly UpdateBankAction $updateAction,
         private readonly DeleteBankAction $deleteAction,
         private readonly RestoreBankAction $restoreAction,
+        private readonly ToggleActiveBankAction $toggleActiveAction,
         private readonly ShowBankAction $showAction,
     ) {}
 
@@ -54,6 +56,11 @@ class BankService implements BankServiceInterface
     public function restore(Bank $bank): void
     {
         $this->restoreAction->handle($bank);
+    }
+
+    public function toggleActive(Bank $bank): Bank
+    {
+        return $this->toggleActiveAction->handle($bank);
     }
 
     public function show(Bank $bank): Bank

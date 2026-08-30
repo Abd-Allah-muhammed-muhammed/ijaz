@@ -28,7 +28,7 @@ class BankController extends Controller implements HasMiddleware
         return [
             new Middleware('permission:show banks', only: ['index']),
             new Middleware('permission:create banks', only: ['create', 'store']),
-            new Middleware('permission:edit banks', only: ['edit', 'update']),
+            new Middleware('permission:edit banks', only: ['edit', 'update', 'toggleActive']),
             new Middleware('permission:delete banks', only: ['destroy', 'restore']),
         ];
     }
@@ -107,5 +107,12 @@ class BankController extends Controller implements HasMiddleware
         $this->service->restore($bank);
 
         return redirect()->back()->with('success', __('data restored successfully'));
+    }
+
+    public function toggleActive(Bank $bank): RedirectResponse
+    {
+        $this->service->toggleActive($bank);
+
+        return redirect()->back()->with('success', __('data saved successfully'));
     }
 }

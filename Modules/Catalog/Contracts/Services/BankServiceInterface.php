@@ -21,6 +21,8 @@ interface BankServiceInterface
 
     public function restore(Bank $bank): void;
 
+    public function toggleActive(Bank $bank): Bank;
+
     public function show(Bank $bank): Bank;
 
     public function listForApi(?string $search = null, int $perPage = 10): LengthAwarePaginator;

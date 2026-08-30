@@ -13,6 +13,7 @@ import { PageTitle } from '@/vendor/metronic/layout/core';
 import { Head, Link, router } from '@inertiajs/react';
 import { ReactElement } from 'react';
 import { Nav } from 'react-bootstrap';
+import FormCheckInput from 'react-bootstrap/FormCheck';
 import { useTranslation } from 'react-i18next';
 
 type Props = {
@@ -107,13 +108,39 @@ const Index = ({ rows, prams }: Props) => {
               {
                 title: t('status'),
                 property: 'is_active',
-                render: (row) => (
-                  <span
-                    className={`badge bg-light-${row.is_active ? 'success' : 'danger'} text-${row.is_active ? 'success' : 'danger'} fw-bold fs-7 px-3 py-2 rounded-pill border border-${row.is_active ? 'success' : 'danger'} border-opacity-25`}
-                  >
-                    {row.is_active ? t('active') : t('inactive')}
-                  </span>
-                ),
+                render: (row) =>
+                  viewingTrashed ? (
+                    <span
+                      className={`badge bg-light-${row.is_active ? 'success' : 'danger'} text-${row.is_active ? 'success' : 'danger'} fw-bold fs-7 px-3 py-2 rounded-pill border border-${row.is_active ? 'success' : 'danger'} border-opacity-25`}
+                    >
+                      {row.is_active ? t('active') : t('inactive')}
+                    </span>
+                  ) : (
+                    <div
+                      className="form-check form-switch form-check-custom form-check-solid"
+                      title={row.is_active ? t('active') : t('inactive')}
+                    >
+                      <FormCheckInput
+                        className="h-20px w-30px"
+                        type="checkbox"
+                        checked={Boolean(row.is_active)}
+                        disabled={!hasPermission('edit banks')}
+                        onChange={() => {
+                          if (!hasPermission('edit banks')) {
+                            return;
+                          }
+                          router.patch(
+                            BankController.toggleActive(row.id as number).url,
+                            {},
+                            {
+                              only: ['rows', 'flash'],
+                              preserveScroll: true,
+                            },
+                          );
+                        }}
+                      />
+                    </div>
+                  ),
               },
             ]}
             actions={
