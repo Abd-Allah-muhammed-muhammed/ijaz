@@ -113,7 +113,7 @@ const Index = ({ rows, prams }: Props) => {
                   <ConfirmAction
                     callback={() => {
                       router.delete(PropertyTypeController.destroy(row.id as number).url, {
-                        only: ['rows'],
+                        only: ['rows', 'flash'],
                         preserveScroll: true,
                       });
                     }}

@@ -131,7 +131,7 @@ const Index = ({ rows, prams }: Props) => {
                   <ConfirmAction
                     callback={() => {
                       router.delete(CarTypeController.destroy(row.id as number).url, {
-                        only: ['rows'],
+                        only: ['rows', 'flash'],
                         preserveScroll: true,
                       });
                     }}
