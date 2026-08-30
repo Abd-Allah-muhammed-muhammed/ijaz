@@ -17,6 +17,11 @@ Route::middleware([
     Route::delete('opportunities/comments/{comment}', [CommentController::class, 'destroy'])
         ->name('opportunities.comments.destroy');
 
+    Route::post('opportunities/{opportunity}/approve', [OpportunityController::class, 'approveByAdmin'])
+        ->name('opportunities.approveByAdmin');
+    Route::post('opportunities/{opportunity}/reject', [OpportunityController::class, 'rejectByAdmin'])
+        ->name('opportunities.rejectByAdmin');
+
     Route::resource('opportunities', OpportunityController::class)
         ->only(['index', 'show', 'destroy']);
 });

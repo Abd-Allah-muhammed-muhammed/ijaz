@@ -3,6 +3,8 @@
 return [
     'status' => [
         'new' => 'नया',
+        'pending_admin' => 'एडमिन समीक्षा लंबित',
+        'rejected_by_admin' => 'एडमिन द्वारा अस्वीकृत',
         'offer_accepted' => 'प्रस्ताव स्वीकृत',
         'in_progress' => 'प्रगति पर',
         'ended' => 'समाप्त',
@@ -33,6 +35,8 @@ return [
     'offer_not_found' => 'प्रस्ताव नहीं मिला',
     'comment_not_found' => 'टिप्पणी नहीं मिली',
     'unauthorized' => 'आपको यह कार्रवाई करने की अनुमति नहीं है',
+    'status_transition_not_allowed' => 'यह स्थिति परिवर्तन अनुमत नहीं है',
+    'status_updated_successfully' => 'स्थिति सफलतापूर्वक अपडेट की गई',
     'cannot_delete_non_new' => 'आप केवल नई स्थिति वाले अवसर हटा सकते हैं',
     'cannot_delete_media_non_new' => 'आप मीडिया केवल तभी हटा सकते हैं जब अवसर की स्थिति नई हो',
     'cannot_submit_offer_non_new' => 'प्रस्ताव केवल खुले अवसरों पर जमा किए जा सकते हैं',

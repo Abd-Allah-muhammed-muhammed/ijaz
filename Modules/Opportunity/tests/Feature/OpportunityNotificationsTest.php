@@ -8,6 +8,8 @@ use Modules\Opportunity\Http\Controllers\Api\V1\OfferController;
 use Modules\Opportunity\Http\Controllers\Api\V1\OpportunityController;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Models\OpportunityOffer;
+use Modules\Opportunity\Notifications\OpportunityAdminApprovedNotification;
+use Modules\Opportunity\Notifications\OpportunityAdminRejectedNotification;
 use Modules\Opportunity\Notifications\OpportunityCreatedConfirmationNotification;
 use Modules\Opportunity\Notifications\OpportunityExpiredNotification;
 use Modules\Opportunity\Notifications\OpportunityOfferAcceptedNotification;
@@ -21,6 +23,8 @@ test('every Opportunity notification class includes screen + relevant entity id 
 
     $cases = [
         new OpportunityCreatedConfirmationNotification($opportunity),
+        new OpportunityAdminApprovedNotification($opportunity),
+        new OpportunityAdminRejectedNotification($opportunity, 'Incomplete details'),
         new OpportunityOfferSubmittedNotification($offer),
         new OpportunityOfferAcceptedNotification($offer),
         new OpportunityOfferRejectedNotification($offer),

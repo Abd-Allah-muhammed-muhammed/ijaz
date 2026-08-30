@@ -48,7 +48,7 @@ class Opportunity extends Model implements HasMedia
     ];
 
     protected $attributes = [
-        'status' => OpportunityStatusEnum::New,
+        'status' => OpportunityStatusEnum::PendingAdmin,
     ];
 
     public function author(): MorphTo
@@ -109,6 +109,8 @@ class Opportunity extends Model implements HasMedia
     protected function active(Builder $query): Builder
     {
         return $query->whereNotIn('status', [
+            OpportunityStatusEnum::PendingAdmin->value,
+            OpportunityStatusEnum::RejectedByAdmin->value,
             OpportunityStatusEnum::Ended->value,
             OpportunityStatusEnum::Cancelled->value,
             OpportunityStatusEnum::Expired->value,

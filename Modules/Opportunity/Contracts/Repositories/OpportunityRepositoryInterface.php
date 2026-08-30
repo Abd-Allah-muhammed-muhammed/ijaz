@@ -22,6 +22,8 @@ interface OpportunityRepositoryInterface
 
     public function findById(string $id): Opportunity;
 
+    public function findForUpdate(Opportunity $opportunity): Opportunity;
+
     public function listPublic(?Model $actor = null, int $perPage = 10, ?int $regionId = null, ?int $cityId = null): LengthAwarePaginator;
 
     /**

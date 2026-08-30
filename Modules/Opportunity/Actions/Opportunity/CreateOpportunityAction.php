@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\Opportunity\Contracts\Repositories\OpportunityRepositoryInterface;
 use Modules\Opportunity\DTOs\OpportunityData;
+use Modules\Opportunity\Enums\OpportunityStatusEnum;
 use Modules\Opportunity\Models\Opportunity;
 use Modules\Opportunity\Notifications\OpportunityCreatedConfirmationNotification;
 use Throwable;
@@ -27,6 +28,7 @@ class CreateOpportunityAction
                 ...$data->toPersistenceArray(),
                 'author_type' => $author::class,
                 'author_id' => $author->getKey(),
+                'status' => OpportunityStatusEnum::PendingAdmin,
             ];
 
             // Omit expires_at → default listing window (null reads as 00:00:00 on mobile).

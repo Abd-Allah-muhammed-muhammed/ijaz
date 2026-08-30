@@ -2,18 +2,24 @@
 
 namespace Modules\Opportunity\Services;
 
+use App\Models\Admin;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Modules\Opportunity\Actions\Dashboard\AdminApproveOpportunityAction;
+use Modules\Opportunity\Actions\Dashboard\AdminRejectOpportunityAction;
 use Modules\Opportunity\Actions\Opportunity\CreateOpportunityAction;
 use Modules\Opportunity\Actions\Opportunity\DeleteOpportunityAction;
 use Modules\Opportunity\Actions\Opportunity\DeleteOpportunityForDashboardAction;
+use Modules\Opportunity\Actions\Opportunity\EnsureOpportunityVisibleToViewerAction;
 use Modules\Opportunity\Actions\Opportunity\ListOpportunitiesForDashboardAction;
 use Modules\Opportunity\Actions\Opportunity\RenewOpportunityAction;
 use Modules\Opportunity\Actions\Opportunity\UpdateOpportunityAction;
 use Modules\Opportunity\Contracts\Repositories\OpportunityRepositoryInterface;
 use Modules\Opportunity\DTOs\OpportunityData;
+use Modules\Opportunity\Http\Requests\Dashboard\ApproveOpportunityRequest;
+use Modules\Opportunity\Http\Requests\Dashboard\RejectOpportunityRequest;
 use Modules\Opportunity\Models\Opportunity;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Throwable;
@@ -28,6 +34,9 @@ class OpportunityService
         private readonly DeleteOpportunityForDashboardAction $deleteForDashboardAction,
         private readonly RenewOpportunityAction $renewAction,
         private readonly ListOpportunitiesForDashboardAction $listForDashboardAction,
+        private readonly EnsureOpportunityVisibleToViewerAction $ensureVisibleToViewerAction,
+        private readonly AdminApproveOpportunityAction $approveAction,
+        private readonly AdminRejectOpportunityAction $rejectAction,
     ) {}
 
     public function listForDashboard(Request $request): LengthAwarePaginator
@@ -50,6 +59,8 @@ class OpportunityService
 
     public function loadForShow(Opportunity $opportunity, ?Model $actor = null): Opportunity
     {
+        $this->ensureVisibleToViewerAction->handle($opportunity, $actor);
+
         return $this->opportunities->loadForShow($opportunity, $actor);
     }
 
@@ -84,6 +95,37 @@ class OpportunityService
     public function deleteForDashboard(Opportunity $opportunity): void
     {
         $this->deleteForDashboardAction->handle($opportunity);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function approve(
+        Opportunity $opportunity,
+        ApproveOpportunityRequest $formRequest,
+        Admin $admin,
+    ): Opportunity {
+        return $this->approveAction->handle(
+            $opportunity,
+            $formRequest->validated('notes'),
+            $admin,
+        );
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function reject(
+        Opportunity $opportunity,
+        RejectOpportunityRequest $formRequest,
+        Admin $admin,
+    ): void {
+        $this->rejectAction->handle(
+            $opportunity,
+            $formRequest->validated('reason'),
+            $formRequest->validated('notes'),
+            $admin,
+        );
     }
 
     /**

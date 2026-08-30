@@ -13,6 +13,7 @@ class OpportunityPermissionSeeder extends Seeder
         $permissions = [
             'show opportunities',
             'delete opportunities',
+            'manage opportunities',
         ];
 
         foreach ($permissions as $permission) {

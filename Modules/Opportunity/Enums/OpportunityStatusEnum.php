@@ -11,6 +11,8 @@ enum OpportunityStatusEnum: string
     use Collectable, HasOperations, Stringable;
 
     case New = 'new';
+    case PendingAdmin = 'pending_admin';
+    case RejectedByAdmin = 'rejected_by_admin';
     case OfferAccepted = 'offer_accepted';
     case InProgress = 'in_progress';
     case Ended = 'ended';
@@ -26,6 +28,8 @@ enum OpportunityStatusEnum: string
     {
         return match ($this) {
             self::New => 'primary',
+            self::PendingAdmin => '#f59e0b',
+            self::RejectedByAdmin => '#ef4444',
             self::OfferAccepted, self::InProgress => 'info',
             self::Ended => 'success',
             self::Cancelled => 'danger',
@@ -56,7 +60,7 @@ enum OpportunityStatusEnum: string
                 self::New => in_array($new, [self::OfferAccepted, self::Cancelled], true),
                 self::OfferAccepted => $new === self::Cancelled,
                 self::InProgress => in_array($new, [self::Ended, self::Cancelled], true),
-                self::Expired => false,
+                self::PendingAdmin, self::RejectedByAdmin, self::Expired => false,
                 default => false,
             };
         }

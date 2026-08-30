@@ -9,6 +9,8 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Response;
 use Modules\Opportunity\Enums\OpportunityStatusEnum;
+use Modules\Opportunity\Http\Requests\Dashboard\ApproveOpportunityRequest;
+use Modules\Opportunity\Http\Requests\Dashboard\RejectOpportunityRequest;
 use Modules\Opportunity\Http\Resources\Dashboard\OpportunityDashboardCollection;
 use Modules\Opportunity\Http\Resources\Dashboard\OpportunityDashboardResource;
 use Modules\Opportunity\Models\Opportunity;
@@ -24,6 +26,7 @@ class OpportunityController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('permission:show opportunities', only: ['index', 'show']),
+            new Middleware('permission:manage opportunities', only: ['approveByAdmin', 'rejectByAdmin']),
             new Middleware('permission:delete opportunities', only: ['destroy']),
         ];
     }
@@ -59,6 +62,24 @@ class OpportunityController extends Controller implements HasMiddleware
         return inertia('Dashboard/Opportunity/Show', [
             'opportunity' => fn () => new OpportunityDashboardResource($opportunity),
         ]);
+    }
+
+    public function approveByAdmin(
+        ApproveOpportunityRequest $request,
+        Opportunity $opportunity,
+    ): RedirectResponse {
+        $this->service->approve($opportunity, $request, auth('admin')->user());
+
+        return back()->with('success', __('opportunity.status_updated_successfully'));
+    }
+
+    public function rejectByAdmin(
+        RejectOpportunityRequest $request,
+        Opportunity $opportunity,
+    ): RedirectResponse {
+        $this->service->reject($opportunity, $request, auth('admin')->user());
+
+        return back()->with('success', __('opportunity.status_updated_successfully'));
     }
 
     public function destroy(Opportunity $opportunity): RedirectResponse

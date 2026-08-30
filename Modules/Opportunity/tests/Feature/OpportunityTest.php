@@ -509,7 +509,7 @@ test('authenticated user can create opportunity', function () {
         'budget' => 5000,
     ])->assertSuccessful()
         ->assertJsonPath('data.title', 'Backend Developer Needed')
-        ->assertJsonPath('data.status.value', OpportunityStatusEnum::New->value);
+        ->assertJsonPath('data.status.value', OpportunityStatusEnum::PendingAdmin->value);
 
     expect(Opportunity::query()->count())->toBe(1);
     expect(Carbon::parse($response->json('data.expires_at'))->equalTo(now()->addDays(Opportunity::DEFAULT_DURATION_DAYS)))->toBeTrue();

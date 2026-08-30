@@ -3,6 +3,8 @@
 return [
     'status' => [
         'new' => 'New',
+        'pending_admin' => 'Pending Admin Review',
+        'rejected_by_admin' => 'Rejected by Admin',
         'offer_accepted' => 'Offer Accepted',
         'in_progress' => 'In Progress',
         'ended' => 'Ended',
@@ -34,6 +36,8 @@ return [
     'offer_not_found' => 'Offer not found',
     'comment_not_found' => 'Comment not found',
     'unauthorized' => 'You are not authorized to perform this action',
+    'status_transition_not_allowed' => 'This status transition is not allowed',
+    'status_updated_successfully' => 'Status updated successfully',
     'cannot_delete_non_new' => 'You can only delete opportunities with status New',
     'cannot_delete_media_non_new' => 'You can only delete media when opportunity status is New',
     'cannot_submit_offer_non_new' => 'Offers can only be submitted on open opportunities',

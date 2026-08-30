@@ -35,6 +35,14 @@ class OpportunityRepository implements OpportunityRepositoryInterface
         return Opportunity::query()->findOrFail($id);
     }
 
+    public function findForUpdate(Opportunity $opportunity): Opportunity
+    {
+        return Opportunity::query()
+            ->whereKey($opportunity->getKey())
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
+
     public function listPublic(?Model $actor = null, int $perPage = 10, ?int $regionId = null, ?int $cityId = null): LengthAwarePaginator
     {
         return Opportunity::query()

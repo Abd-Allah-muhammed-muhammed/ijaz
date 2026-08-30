@@ -60,7 +60,7 @@ class RolePermissionSeeder extends Seeder
         'payouts' => ['guard' => 'admin', 'actions' => ['request payouts', 'confirm payouts']],
         'supportTicket' => ['guard' => 'admin', 'actions' => ['show', 'edit']],
         'orders' => ['guard' => 'admin', 'actions' => ['show', 'edit']],
-        'opportunities' => ['guard' => 'admin', 'actions' => ['show', 'delete']],
+        'opportunities' => ['guard' => 'admin', 'actions' => ['show', 'delete', 'manage opportunities']],
         'guarantors' => ['guard' => 'admin', 'actions' => ['show', 'manage guarantors']],
         'settings' => ['guard' => 'admin', 'actions' => ['show', 'edit']],
         'reviews' => ['guard' => 'admin', 'actions' => ['show', 'delete']],

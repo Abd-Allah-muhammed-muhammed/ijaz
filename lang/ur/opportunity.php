@@ -3,6 +3,8 @@
 return [
     'status' => [
         'new' => 'نیا',
+        'pending_admin' => 'ایڈمن جائزہ زیر التواء',
+        'rejected_by_admin' => 'ایڈمن کی طرف سے مسترد',
         'offer_accepted' => 'پیشکش قبول',
         'in_progress' => 'جاری',
         'ended' => 'ختم',
@@ -33,6 +35,8 @@ return [
     'offer_not_found' => 'پیشکش نہیں ملی',
     'comment_not_found' => 'تبصرہ نہیں ملا',
     'unauthorized' => 'آپ کو یہ عمل کرنے کی اجازت نہیں ہے',
+    'status_transition_not_allowed' => 'یہ حالت کی تبدیلی مجاز نہیں ہے',
+    'status_updated_successfully' => 'حالت کامیابی سے اپ ڈیٹ ہوئی',
     'cannot_delete_non_new' => 'آپ صرف نئی حالت والی مواقع حذف کر سکتے ہیں',
     'cannot_delete_media_non_new' => 'آپ میڈیا صرف اس وقت حذف کر سکتے ہیں جب موقع کی حالت نئی ہو',
     'cannot_submit_offer_non_new' => 'پیشکشیں صرف کھلی مواقع پر جمع کی جا سکتی ہیں',

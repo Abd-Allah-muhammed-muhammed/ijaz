@@ -3,6 +3,8 @@
 return [
     'status' => [
         'new' => 'جديد',
+        'pending_admin' => 'بانتظار مراجعة الإدارة',
+        'rejected_by_admin' => 'مرفوض من الإدارة',
         'offer_accepted' => 'تم قبول العرض',
         'in_progress' => 'قيد التنفيذ',
         'ended' => 'منتهي',
@@ -34,6 +36,8 @@ return [
     'offer_not_found' => 'العرض غير موجود',
     'comment_not_found' => 'التعليق غير موجود',
     'unauthorized' => 'غير مصرح لك بتنفيذ هذا الإجراء',
+    'status_transition_not_allowed' => 'هذا التحول في الحالة غير مسموح به',
+    'status_updated_successfully' => 'تم تحديث الحالة بنجاح',
     'cannot_delete_non_new' => 'يمكنك حذف الفرص فقط عندما تكون حالتها جديدة',
     'cannot_delete_media_non_new' => 'يمكنك حذف الملفات فقط عندما تكون حالة الفرصة جديدة',
     'cannot_submit_offer_non_new' => 'يمكن تقديم العروض فقط على الفرص المفتوحة',
