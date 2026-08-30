@@ -9,6 +9,7 @@ use Modules\Catalog\Actions\Bank\DeleteBankAction;
 use Modules\Catalog\Actions\Bank\ListBanksAction;
 use Modules\Catalog\Actions\Bank\ListBanksForApiAction;
 use Modules\Catalog\Actions\Bank\ListBanksForSelectAction;
+use Modules\Catalog\Actions\Bank\RestoreBankAction;
 use Modules\Catalog\Actions\Bank\ShowBankAction;
 use Modules\Catalog\Actions\Bank\StoreBankAction;
 use Modules\Catalog\Actions\Bank\UpdateBankAction;
@@ -26,6 +27,7 @@ class BankService implements BankServiceInterface
         private readonly StoreBankAction $storeAction,
         private readonly UpdateBankAction $updateAction,
         private readonly DeleteBankAction $deleteAction,
+        private readonly RestoreBankAction $restoreAction,
         private readonly ShowBankAction $showAction,
     ) {}
 
@@ -47,6 +49,11 @@ class BankService implements BankServiceInterface
     public function destroy(Bank $bank): void
     {
         $this->deleteAction->handle($bank);
+    }
+
+    public function restore(Bank $bank): void
+    {
+        $this->restoreAction->handle($bank);
     }
 
     public function show(Bank $bank): Bank

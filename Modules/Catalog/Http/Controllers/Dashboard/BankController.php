@@ -29,7 +29,7 @@ class BankController extends Controller implements HasMiddleware
             new Middleware('permission:show banks', only: ['index']),
             new Middleware('permission:create banks', only: ['create', 'store']),
             new Middleware('permission:edit banks', only: ['edit', 'update']),
-            new Middleware('permission:delete banks', only: ['destroy']),
+            new Middleware('permission:delete banks', only: ['destroy', 'restore']),
         ];
     }
 
@@ -100,5 +100,12 @@ class BankController extends Controller implements HasMiddleware
         $this->service->destroy($bank);
 
         return redirect()->route('dashboard.banks.index')->with('success', __('data deleted successfully'));
+    }
+
+    public function restore(Bank $bank): RedirectResponse
+    {
+        $this->service->restore($bank);
+
+        return redirect()->back()->with('success', __('data restored successfully'));
     }
 }

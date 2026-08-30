@@ -2,6 +2,7 @@ import BankController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard
 import Table, { LinkAction } from '@/shared/components/Table';
 import ConfirmAction from '@/shared/components/Table/partials/confirm-action';
 import usePermissions from '@/shared/hooks/use-permissions';
+import { applyFilterParam, visitWithFilters } from '@/shared/lib/filters';
 import { PaginationResource } from '@/shared/types';
 import { Bank } from '@/shared/types/models';
 import { KTCard, KTIcon } from '@/vendor/metronic/helpers';
@@ -11,8 +12,8 @@ import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
 import { PageTitle } from '@/vendor/metronic/layout/core';
 import { Head, Link, router } from '@inertiajs/react';
 import { ReactElement } from 'react';
+import { Nav } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-import { applyFilterParam, visitWithFilters } from '@/shared/lib/filters';
 
 type Props = {
   rows: PaginationResource<Bank>;
@@ -22,6 +23,7 @@ type Props = {
 type SearchPrams = {
   per_page: number;
   search: string;
+  trashed?: string | number | boolean;
 };
 
 const Index = ({ rows, prams }: Props) => {
@@ -31,10 +33,20 @@ const Index = ({ rows, prams }: Props) => {
     per_page: 10,
     search: '',
   };
+  const viewingTrashed = Boolean(searchPrams.trashed);
 
-  const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
+  const searchPramsChanged = (name: keyof SearchPrams, value: string | number | undefined) => {
     const next = applyFilterParam({ ...searchPrams } as Record<string, unknown>, name, value);
     visitWithFilters(BankController.index().url, next);
+  };
+
+  const changeTrashedFilter = (trashed: boolean) => {
+    const next = applyFilterParam(
+      { ...searchPrams } as Record<string, unknown>,
+      'trashed',
+      trashed ? 1 : null,
+    );
+    visitWithFilters(BankController.index().url, next, { only: ['rows', 'prams', 'flash'] });
   };
 
   return (
@@ -54,6 +66,18 @@ const Index = ({ rows, prams }: Props) => {
       </PageTitle>
       <ToolbarWrapper />
       <Content>
+        <Nav variant="tabs" className="nav-line-tabs nav-line-tabs-2x border-transparent fs-6 fw-bold mb-5">
+          <Nav.Item>
+            <Nav.Link active={!viewingTrashed} onClick={() => changeTrashedFilter(false)} role="button">
+              {t('active')}
+            </Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link active={viewingTrashed} onClick={() => changeTrashedFilter(true)} role="button">
+              {t('trashed')}
+            </Nav.Link>
+          </Nav.Item>
+        </Nav>
         <KTCard>
           <Table<Bank>
             name="banks"
@@ -92,35 +116,55 @@ const Index = ({ rows, prams }: Props) => {
                 ),
               },
             ]}
-            actions={[
-              {
-                show: hasPermission('edit banks'),
-                ele: (row) => (
-                  <LinkAction
-                    key={`edit-bank-${row.id}`}
-                    href={BankController.edit(row.id as number).url}
-                    title={t('edit')}
-                  />
-                ),
-              },
-              {
-                show: hasPermission('delete banks'),
-                ele: (row) => (
-                  <ConfirmAction
-                    key={`delete-bank-${row.id}`}
-                    callback={() => {
-                      router.delete(BankController.destroy(row.id as number).url, {
-                        only: ['rows', 'flash'],
-                        preserveScroll: true,
-                      });
-                    }}
-                    title={t('delete')}
-                  />
-                ),
-              },
-            ]}
+            actions={
+              viewingTrashed
+                ? [
+                    {
+                      show: hasPermission('delete banks'),
+                      ele: (row) => (
+                        <ConfirmAction
+                          key={`restore-bank-${row.id}`}
+                          callback={() => {
+                            router.post(BankController.restore(row.id as number).url, {}, {
+                              only: ['rows', 'flash'],
+                              preserveScroll: true,
+                            });
+                          }}
+                          title={t('restore')}
+                        />
+                      ),
+                    },
+                  ]
+                : [
+                    {
+                      show: hasPermission('edit banks'),
+                      ele: (row) => (
+                        <LinkAction
+                          key={`edit-bank-${row.id}`}
+                          href={BankController.edit(row.id as number).url}
+                          title={t('edit')}
+                        />
+                      ),
+                    },
+                    {
+                      show: hasPermission('delete banks'),
+                      ele: (row) => (
+                        <ConfirmAction
+                          key={`delete-bank-${row.id}`}
+                          callback={() => {
+                            router.delete(BankController.destroy(row.id as number).url, {
+                              only: ['rows', 'flash'],
+                              preserveScroll: true,
+                            });
+                          }}
+                          title={t('delete')}
+                        />
+                      ),
+                    },
+                  ]
+            }
             addButton={
-              hasPermission('create banks') ? (
+              !viewingTrashed && hasPermission('create banks') ? (
                 <Link href={BankController.create().url} className="btn btn-primary">
                   <KTIcon iconName="plus" className="fs-2" />
                 </Link>

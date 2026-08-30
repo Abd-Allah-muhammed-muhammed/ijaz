@@ -15,7 +15,11 @@ class BankRepository implements BankRepositoryInterface
 {
     public function paginate(Request $request): LengthAwarePaginator
     {
-        return Bank::query()
+        $query = $request->boolean('trashed')
+            ? Bank::onlyTrashed()
+            : Bank::query();
+
+        return $query
             ->with(['translation', 'media'])
             ->when(
                 $request->input('search'),
@@ -47,6 +51,11 @@ class BankRepository implements BankRepositoryInterface
         // Soft delete only — keep logo/media so historical Guarantor/CarAdvisement
         // relations can still resolve name + logo via withTrashed().
         $bank->delete();
+    }
+
+    public function restore(Bank $bank): void
+    {
+        $bank->restore();
     }
 
     public function loadForEdit(Bank $bank): Bank

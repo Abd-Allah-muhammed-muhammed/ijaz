@@ -19,6 +19,8 @@ interface BankRepositoryInterface
 
     public function delete(Bank $bank): void;
 
+    public function restore(Bank $bank): void;
+
     public function loadForEdit(Bank $bank): Bank;
 
     /**

@@ -43,5 +43,8 @@ Route::middleware(['localeSessionRedirect', 'localizationRedirect', 'localeViewP
         Route::resource('specializations', SpecializationController::class)->except(['show']);
 
         // Banks
+        Route::post('banks/{bank}/restore', [BankController::class, 'restore'])
+            ->withTrashed()
+            ->name('banks.restore');
         Route::resource('banks', BankController::class)->except(['show']);
     });

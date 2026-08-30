@@ -19,6 +19,8 @@ interface BankServiceInterface
 
     public function destroy(Bank $bank): void;
 
+    public function restore(Bank $bank): void;
+
     public function show(Bank $bank): Bank;
 
     public function listForApi(?string $search = null, int $perPage = 10): LengthAwarePaginator;
