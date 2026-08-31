@@ -4,6 +4,7 @@ namespace Modules\Guarantor\Actions\Installment;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
@@ -17,6 +18,7 @@ class PayInstallmentAction
 {
     public function __construct(
         private readonly PaymentService $paymentService,
+        private readonly GuarantorRepositoryInterface $guarantorRepository,
     ) {}
 
     /**
@@ -31,20 +33,38 @@ class PayInstallmentAction
                 throw new GuarantorException('guarantor.installment_not_found', 404);
             }
 
+            $installment->loadMissing('guarantorRequest');
+
+            /** @var GuarantorRequest $request */
+            $request = $this->guarantorRepository->findForUpdate($installment->guarantorRequest);
+            $installment->setRelation('guarantorRequest', $request);
+
             if ($request->type->isNot(GuarantorTypeEnum::Company)) {
                 throw new GuarantorException('guarantor.pay_denied_individual_use_lump_sum', 422);
             }
 
-            if (! in_array($request->status, [
+            if ($installment->status->is(InstallmentStatusEnum::Voided)) {
+                throw new GuarantorException('guarantor.pay_denied_installment_voided', 422);
+            }
+
+            if ($installment->status->is(InstallmentStatusEnum::Reversed)) {
+                throw new GuarantorException('guarantor.release_denied_installment_reversed', 422);
+            }
+
+            if ($request->status->is(GuarantorStatusEnum::Disputed)) {
+                throw new GuarantorException('guarantor.pay_denied_active_dispute', 422);
+            }
+
+            if ($request->status->isTerminal()) {
+                throw new GuarantorException('guarantor.pay_denied_already_resolved', 422);
+            }
+
+            if ($request->status->isNotIn([
                 GuarantorStatusEnum::Accepted,
                 GuarantorStatusEnum::InProgress,
                 GuarantorStatusEnum::Overdue,
-            ], true)) {
-                throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
-            }
-
-            if ($installment->status->is(InstallmentStatusEnum::Voided)) {
-                throw new GuarantorException('guarantor.pay_denied_installment_voided', 422);
+            ])) {
+                throw new GuarantorException('guarantor.pay_denied_already_resolved', 422);
             }
 
             if ($installment->status->isNot(InstallmentStatusEnum::Pending)

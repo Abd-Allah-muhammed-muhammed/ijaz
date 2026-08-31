@@ -208,18 +208,14 @@ test('attempting to pay an installment while the guarantor is Disputed returns a
         'status' => InstallmentStatusEnum::Pending,
     ]);
 
-    $response = Gate::forUser($counterparty)->inspect('pay', $installment);
-
-    expect($response->denied())->toBeTrue()
-        ->and($response->message())->toBe(__('guarantor.pay_denied_active_dispute'))
-        ->and($response->message())->not->toBe('This action is unauthorized.');
+    expect(Gate::forUser($counterparty)->allows('pay', [$installment, $request]))->toBeTrue();
 
     Sanctum::actingAs($counterparty);
     $this->postJson(route('api.v1.guarantor.guarantor.installments.pay', [
         'guarantorRequest' => $request,
         'installment' => $installment,
     ]))
-        ->assertForbidden()
+        ->assertUnprocessable()
         ->assertJson([
             'message' => __('guarantor.pay_denied_active_dispute'),
         ]);
@@ -235,17 +231,14 @@ test('attempting to pay a Voided installment returns a specific "this installmen
         'status' => InstallmentStatusEnum::Voided,
     ]);
 
-    $response = Gate::forUser($counterparty)->inspect('pay', $installment);
-
-    expect($response->denied())->toBeTrue()
-        ->and($response->message())->toBe(__('guarantor.pay_denied_installment_voided'));
+    expect(Gate::forUser($counterparty)->allows('pay', [$installment, $request]))->toBeTrue();
 
     Sanctum::actingAs($counterparty);
     $this->postJson(route('api.v1.guarantor.guarantor.installments.pay', [
         'guarantorRequest' => $request,
         'installment' => $installment,
     ]))
-        ->assertForbidden()
+        ->assertUnprocessable()
         ->assertJson([
             'message' => __('guarantor.pay_denied_installment_voided'),
         ]);

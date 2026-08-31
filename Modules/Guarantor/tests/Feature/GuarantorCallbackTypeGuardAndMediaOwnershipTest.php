@@ -221,10 +221,7 @@ test('PayInstallmentAction/InstallmentPolicy::pay now also explicitly reject Ind
         'amount' => 500,
     ]);
 
-    $gate = Gate::forUser($counterparty)->inspect('pay', [$installment, $request]);
-
-    expect($gate->denied())->toBeTrue()
-        ->and($gate->message())->toBe(__('guarantor.pay_denied_individual_use_lump_sum'));
+    expect(Gate::forUser($counterparty)->allows('pay', [$installment, $request]))->toBeTrue();
 
     expect(fn () => app(PayInstallmentAction::class)->handle($request->fresh(), $installment->fresh(), $counterparty))
         ->toThrow(function (GuarantorException $e): void {

@@ -161,7 +161,7 @@ test('a Withdrawn guarantor is terminal — no further End/pay/dispute/withdraw 
         ->and(Gate::forUser($requester)->denies('dispute', $request))->toBeTrue()
         ->and(Gate::forUser($requester)->denies('withdraw', $request))->toBeTrue()
         ->and(Gate::forUser($counterparty)->denies('pay', $request))->toBeTrue()
-        ->and(Gate::forUser($counterparty)->denies('pay', $installment))->toBeTrue();
+        ->and(Gate::forUser($counterparty)->allows('pay', $installment))->toBeTrue();
 
     expect(fn () => app(EndGuarantorAction::class)->handle($request->fresh(), $requester, 'requester'))
         ->toThrow(GuarantorException::class);

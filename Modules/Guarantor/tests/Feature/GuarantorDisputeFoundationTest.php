@@ -216,7 +216,7 @@ test('a disputed guarantor cannot accept further installment payments', function
         'status' => InstallmentStatusEnum::Pending,
     ]);
 
-    expect(Gate::forUser($counterparty)->denies('pay', $installment))->toBeTrue();
+    expect(Gate::forUser($counterparty)->allows('pay', $installment))->toBeTrue();
 
     expect(fn () => app(PayInstallmentAction::class)->handle($request->fresh(), $installment, $counterparty))
         ->toThrow(GuarantorException::class);

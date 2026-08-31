@@ -192,7 +192,7 @@ test('an escalated guarantor is terminal — no further End/pay/dispute/cancel a
 
     expect(Gate::forUser($requester)->denies('end', $escalated))->toBeTrue()
         ->and(Gate::forUser($requester)->denies('dispute', $escalated))->toBeTrue()
-        ->and(Gate::forUser($counterparty)->denies('pay', $installment))->toBeTrue();
+        ->and(Gate::forUser($counterparty)->allows('pay', $installment))->toBeTrue();
 
     expect(fn () => app(EndGuarantorAction::class)->handle($escalated, $requester, 'requester'))
         ->toThrow(GuarantorException::class);

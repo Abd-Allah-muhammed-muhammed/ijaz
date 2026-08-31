@@ -67,7 +67,7 @@ test('a PayoutException thrown from any endpoint returns the unified envelope', 
     expect($response->getData(true)['message'])->toBe(__('payout.cannot_fail_status'));
 });
 
-test('attempting to pay a Reversed/Voided installment (AuthorizationException via Response::deny) now returns the unified envelope with a 403 status and the specific deny message, not raw Laravel debug output', function () {
+test('attempting to pay a Voided installment (GuarantorException via PayInstallmentAction) returns the unified envelope with a 422 status and the specific message, not raw Laravel debug output', function () {
     config(['app.debug' => true]);
 
     $requester = User::factory()->create();
@@ -93,8 +93,8 @@ test('attempting to pay a Reversed/Voided installment (AuthorizationException vi
         'installment' => $installment,
     ]));
 
-    $response->assertForbidden();
-    expectUnifiedApiErrorEnvelope($response->json(), 403);
+    $response->assertUnprocessable();
+    expectUnifiedApiErrorEnvelope($response->json(), 422);
     expect($response->json('message'))->toBe(__('guarantor.pay_denied_installment_voided'))
         ->and($response->json())->not->toHaveKey('trace')
         ->and($response->json())->not->toHaveKey('file')

@@ -5,9 +5,6 @@ namespace Modules\Guarantor\Policies;
 use App\Models\Admin;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Guarantor\Enums\GuarantorStatusEnum;
-use Modules\Guarantor\Enums\GuarantorTypeEnum;
-use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 
@@ -24,25 +21,6 @@ class InstallmentPolicy
             return Response::denyAsNotFound();
         }
 
-        $installment->loadMissing('guarantorRequest');
-        $request = $installment->guarantorRequest;
-
-        if ($request->status->is(GuarantorStatusEnum::Disputed)) {
-            return Response::deny(__('guarantor.release_denied_active_dispute'));
-        }
-
-        if ($request->status->isTerminal()) {
-            return Response::deny(__('guarantor.release_denied_guarantor_terminal'));
-        }
-
-        if ($installment->status->is(InstallmentStatusEnum::Reversed)) {
-            return Response::deny(__('guarantor.release_denied_installment_reversed'));
-        }
-
-        if ($installment->status->isNot(InstallmentStatusEnum::Paid)) {
-            return Response::deny(__('guarantor.status_transition_not_allowed'));
-        }
-
         return Response::allow();
     }
 
@@ -56,39 +34,11 @@ class InstallmentPolicy
         $installment->loadMissing('guarantorRequest');
         $request = $installment->guarantorRequest;
 
-        if ($request->type->isNot(GuarantorTypeEnum::Company)) {
-            return Response::deny(__('guarantor.pay_denied_individual_use_lump_sum'));
-        }
-
         $isCounterparty = $request->counterparty_type === $user::class
             && (string) $request->counterparty_id === (string) $user->getKey();
 
         if (! $isCounterparty) {
             return Response::deny(__('guarantor.unauthorized'));
-        }
-
-        if ($installment->status->is(InstallmentStatusEnum::Voided)) {
-            return Response::deny(__('guarantor.pay_denied_installment_voided'));
-        }
-
-        if ($installment->status->is(InstallmentStatusEnum::Reversed)) {
-            return Response::deny(__('guarantor.release_denied_installment_reversed'));
-        }
-
-        if ($request->status->is(GuarantorStatusEnum::Disputed)) {
-            return Response::deny(__('guarantor.pay_denied_active_dispute'));
-        }
-
-        if ($request->status->isTerminal()) {
-            return Response::deny(__('guarantor.pay_denied_already_resolved'));
-        }
-
-        if ($request->status->isNotIn([
-            GuarantorStatusEnum::Accepted,
-            GuarantorStatusEnum::InProgress,
-            GuarantorStatusEnum::Overdue,
-        ])) {
-            return Response::deny(__('guarantor.pay_denied_already_resolved'));
         }
 
         return Response::allow();

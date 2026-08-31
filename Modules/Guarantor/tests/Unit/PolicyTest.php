@@ -223,7 +223,7 @@ test('counterparty can pay installment when status is accepted', function () {
     expect(Gate::forUser($counterparty)->allows('pay', $installment))->toBeTrue();
 });
 
-test('counterparty cannot pay installment when status is pending_admin', function () {
+test('counterparty can pass installment pay policy when status is pending_admin — business state is enforced in PayInstallmentAction', function () {
     $counterparty = User::factory()->create();
     $requester = User::factory()->create();
     $guarantorRequest = policyGuarantorRequest([
@@ -236,7 +236,7 @@ test('counterparty cannot pay installment when status is pending_admin', functio
     ]);
     $installment = GuarantorInstallment::factory()->for($guarantorRequest, 'guarantorRequest')->create();
 
-    expect(Gate::forUser($counterparty)->allows('pay', $installment))->toBeFalse();
+    expect(Gate::forUser($counterparty)->allows('pay', $installment))->toBeTrue();
 });
 
 test('counterparty can pay installment', function () {

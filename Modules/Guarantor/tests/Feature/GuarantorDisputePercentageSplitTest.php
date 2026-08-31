@@ -174,7 +174,7 @@ test('a settled guarantor is terminal — no further actions allowed', function 
 
     expect(Gate::forUser($requester)->denies('end', $settled))->toBeTrue()
         ->and(Gate::forUser($requester)->denies('dispute', $settled))->toBeTrue()
-        ->and(Gate::forUser($counterparty)->denies('pay', $installment))->toBeTrue();
+        ->and(Gate::forUser($counterparty)->allows('pay', $installment))->toBeTrue();
 
     expect(fn () => app(EndGuarantorAction::class)->handle($settled, $requester, 'requester'))
         ->toThrow(GuarantorException::class);

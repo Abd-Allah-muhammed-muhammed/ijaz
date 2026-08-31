@@ -169,20 +169,18 @@ test('the Release button does not render on the admin Show page when currentStat
         );
 });
 
-test('a direct API/dashboard call to release while Disputed is denied at the Policy layer even if somehow reached, not just the Action layer — defense in depth', function () {
+test('dashboard release while Disputed passes Policy authorization but is rejected by ReleaseInstallmentAction as GuarantorException (422)', function () {
     withoutReleaseDuringDisputeLocaleMiddleware();
 
     ['request' => $request, 'admin' => $admin, 'installment' => $installment] = releaseDuringDisputeContext();
 
-    expect(Gate::forUser($admin)->allows('release', $installment->fresh()))->toBeFalse();
+    expect(Gate::forUser($admin)->allows('release', [$installment->fresh(), $request]))->toBeTrue();
 
-    $this->actingAs($admin, 'admin')
-        ->from(action([DashboardGuarantorController::class, 'show'], $request))
-        ->post(action([DashboardGuarantorController::class, 'releaseInstallment'], [
-            'guarantorRequest' => $request,
-            'installment' => $installment,
-        ]))
-        ->assertForbidden();
+    expect(fn () => app(ReleaseInstallmentAction::class)->handle($installment->fresh(), 'admin', $request))
+        ->toThrow(function (GuarantorException $exception): void {
+            expect($exception->getTranslationKey())->toBe('guarantor.release_denied_active_dispute')
+                ->and($exception->getHttpStatusCode())->toBe(422);
+        });
 
     expect($installment->fresh()->status)->toBe(InstallmentStatusEnum::Paid);
 });
