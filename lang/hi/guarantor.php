@@ -76,6 +76,7 @@ return [
     'pay_denied_active_dispute' => 'इस गारंटी पर सक्रिय विवाद है और भुगतान स्वीकार नहीं किए जा सकते',
     'pay_denied_already_resolved' => 'यह गारंटी पहले ही सुलझा दी गई है',
     'pay_denied_installment_voided' => 'यह किस्त अब भुगतान योग्य नहीं है',
+    'pay_denied_company_use_installments' => 'कंपनी गारंटर का भुगतान व्यक्तिगत भुगतान एंडपॉइंट से नहीं, बल्कि किस्त-दर-किस्त होना चाहिए',
     'already_paid' => 'यह किस्त पहले ही भुगतान की जा चुकी है',
     'release_denied_installment_reversed' => 'इस किस्त की होल्ड रिवर्स कर दी गई है और इसे रिलीज़ नहीं किया जा सकता',
     'release_denied_guarantor_terminal' => 'यह गारंटर अनुरोध पहले से बंद है और किस्तें रिलीज़ नहीं की जा सकतीं',

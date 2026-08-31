@@ -2,8 +2,10 @@
 
 namespace Modules\Guarantor\Policies;
 
+use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
+use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Models\GuarantorRequest;
 
 class GuarantorPolicy
@@ -38,10 +40,21 @@ class GuarantorPolicy
             && $request->status->is(GuarantorStatusEnum::ApprovedByAdmin);
     }
 
-    public function pay(Model $user, GuarantorRequest $request): bool
+    public function pay(Model $user, GuarantorRequest $request): Response
     {
-        return $this->isCounterparty($user, $request)
-            && $request->status->is(GuarantorStatusEnum::Accepted);
+        if (! $this->isCounterparty($user, $request)) {
+            return Response::deny(__('guarantor.unauthorized'));
+        }
+
+        if ($request->type->isNot(GuarantorTypeEnum::Individual)) {
+            return Response::deny(__('guarantor.pay_denied_company_use_installments'));
+        }
+
+        if ($request->status->isNot(GuarantorStatusEnum::Accepted)) {
+            return Response::deny(__('guarantor.unauthorized'));
+        }
+
+        return Response::allow();
     }
 
     public function end(Model $user, GuarantorRequest $request): bool

@@ -5,6 +5,7 @@ namespace Modules\Guarantor\Actions\Payment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
+use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Payment\Services\PaymentService;
@@ -24,6 +25,10 @@ class PayIndividualGuarantorAction
     public function handle(GuarantorRequest $request, Model $actor): array
     {
         return DB::transaction(function () use ($request, $actor) {
+            if ($request->type->isNot(GuarantorTypeEnum::Individual)) {
+                throw new GuarantorException('guarantor.pay_denied_company_use_installments', 422);
+            }
+
             if ($request->status->isNot(GuarantorStatusEnum::Accepted)) {
                 throw new GuarantorException('guarantor.status_transition_not_allowed', 422);
             }

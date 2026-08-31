@@ -76,6 +76,7 @@ return [
     'pay_denied_active_dispute' => 'This guarantee has an active dispute and cannot accept payments',
     'pay_denied_already_resolved' => 'This guarantee has already been resolved',
     'pay_denied_installment_voided' => 'This installment is no longer payable',
+    'pay_denied_company_use_installments' => 'Company guarantors must be paid installment by installment, not through the individual payment endpoint',
     'already_paid' => 'This installment has already been paid',
     'release_denied_installment_reversed' => 'This installment hold was reversed and cannot be released',
     'release_denied_guarantor_terminal' => 'This guarantor request is already closed and installments cannot be released',
