@@ -77,6 +77,8 @@ return [
     'pay_denied_already_resolved' => 'This guarantee has already been resolved',
     'pay_denied_installment_voided' => 'This installment is no longer payable',
     'pay_denied_company_use_installments' => 'Company guarantors must be paid installment by installment, not through the individual payment endpoint',
+    'pay_denied_individual_use_lump_sum' => 'Individual guarantors must be paid through the lump-sum payment endpoint, not installment payment',
+    'media_not_found' => 'Media not found for this guarantor request',
     'already_paid' => 'This installment has already been paid',
     'release_denied_installment_reversed' => 'This installment hold was reversed and cannot be released',
     'release_denied_guarantor_terminal' => 'This guarantor request is already closed and installments cannot be released',

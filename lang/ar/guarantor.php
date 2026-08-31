@@ -77,6 +77,8 @@ return [
     'pay_denied_already_resolved' => 'تم حل هذا الضمان مسبقاً',
     'pay_denied_installment_voided' => 'هذه الدفعة لم تعد قابلة للدفع',
     'pay_denied_company_use_installments' => 'ضمانات الشركات يجب دفعها قسطاً بقسط عبر مسار دفع الأقساط، وليس عبر نقطة الدفع الفردية',
+    'pay_denied_individual_use_lump_sum' => 'ضمانات الأفراد يجب دفعها عبر نقطة الدفع الإجمالية، وليس عبر دفع الأقساط',
+    'media_not_found' => 'الوسائط غير موجودة لهذا الطلب',
     'already_paid' => 'هذه الدفعة تم سدادها مسبقاً',
     'release_denied_installment_reversed' => 'تم عكس حجز هذه الدفعة ولا يمكن الإفراج عنها',
     'release_denied_guarantor_terminal' => 'طلب الضمان مغلق بالفعل ولا يمكن الإفراج عن الدفعات',

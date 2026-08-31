@@ -4,6 +4,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Modules\Chat\Models\Conversation;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
+use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 
@@ -210,6 +211,7 @@ test('counterparty can pay installment when status is accepted', function () {
     $counterparty = User::factory()->create();
     $requester = User::factory()->create();
     $guarantorRequest = policyGuarantorRequest([
+        'type' => GuarantorTypeEnum::Company,
         'requester_type' => User::class,
         'requester_id' => $requester->getKey(),
         'counterparty_type' => User::class,
@@ -225,6 +227,7 @@ test('counterparty cannot pay installment when status is pending_admin', functio
     $counterparty = User::factory()->create();
     $requester = User::factory()->create();
     $guarantorRequest = policyGuarantorRequest([
+        'type' => GuarantorTypeEnum::Company,
         'requester_type' => User::class,
         'requester_id' => $requester->getKey(),
         'counterparty_type' => User::class,
@@ -240,6 +243,7 @@ test('counterparty can pay installment', function () {
     $counterparty = User::factory()->create();
     $requester = User::factory()->create();
     $guarantorRequest = policyGuarantorRequest([
+        'type' => GuarantorTypeEnum::Company,
         'requester_type' => User::class,
         'requester_id' => $requester->getKey(),
         'counterparty_type' => User::class,
@@ -255,6 +259,7 @@ test('requester cannot pay installment', function () {
     $counterparty = User::factory()->create();
     $requester = User::factory()->create();
     $guarantorRequest = policyGuarantorRequest([
+        'type' => GuarantorTypeEnum::Company,
         'requester_type' => User::class,
         'requester_id' => $requester->getKey(),
         'counterparty_type' => User::class,

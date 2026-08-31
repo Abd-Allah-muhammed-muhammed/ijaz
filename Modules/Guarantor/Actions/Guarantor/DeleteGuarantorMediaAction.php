@@ -22,6 +22,13 @@ class DeleteGuarantorMediaAction
     public function handle(GuarantorRequest $request, Media $media): void
     {
         DB::transaction(function () use ($request, $media) {
+            if (
+                $media->model_type !== GuarantorRequest::class
+                || (string) $media->model_id !== (string) $request->getKey()
+            ) {
+                throw new GuarantorException('guarantor.media_not_found', 404);
+            }
+
             if ($request->status->isNot(GuarantorStatusEnum::PendingAdmin)) {
                 throw new GuarantorException('guarantor.cannot_delete_media_non_new', 422);
             }

@@ -77,6 +77,8 @@ return [
     'pay_denied_already_resolved' => 'یہ ضمانت پہلے ہی حل ہو چکی ہے',
     'pay_denied_installment_voided' => 'یہ قسط اب قابلِ ادائیگی نہیں ہے',
     'pay_denied_company_use_installments' => 'کمپنی گارنٹرز کی ادائیگی انفرادی ادائیگی اینڈپوائنٹ سے نہیں بلکہ قسط بہ قسط ہونی چاہیے',
+    'pay_denied_individual_use_lump_sum' => 'انفرادی گارنٹرز کی ادائیگی قسط اینڈپوائنٹ سے نہیں بلکہ یکمشت ادائیگی اینڈپوائنٹ سے ہونی چاہیے',
+    'media_not_found' => 'اس گارنٹر درخواست کے لیے میڈیا نہیں ملا',
     'already_paid' => 'یہ قسط پہلے ہی ادا کی جا چکی ہے',
     'release_denied_installment_reversed' => 'اس قسط کی ہولڈ واپس لے لی گئی ہے اور اسے جاری نہیں کیا جا سکتا',
     'release_denied_guarantor_terminal' => 'یہ گارنٹر درخواست پہلے ہی بند ہے اور قسطیں جاری نہیں کی جا سکتیں',

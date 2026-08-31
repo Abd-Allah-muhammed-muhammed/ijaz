@@ -51,7 +51,8 @@ Route::prefix('guarantor')->name('guarantor.')->group(function () {
             ->name('withdraw');
 
         Route::delete('/{guarantorRequest}/media/{media:uuid}', [GuarantorController::class, 'deleteMedia'])
-            ->name('deleteMedia');
+            ->name('deleteMedia')
+            ->scopeBindings();
 
         Route::prefix('{guarantorRequest}/installments')
             ->name('installments.')

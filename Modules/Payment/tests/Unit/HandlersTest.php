@@ -200,7 +200,7 @@ test('HandleGuarantorPaymentCompleted ignores non-guarantor payments', function 
 
 test('HandleGuarantorPaymentCompleted handles GuarantorInstallment product type', function () {
     $user = createWalletUser();
-    $request = GuarantorRequest::factory()->accepted()->create();
+    $request = GuarantorRequest::factory()->company()->accepted()->create();
     $installment = GuarantorInstallment::factory()->for($request, 'guarantorRequest')->create([
         'amount' => 500,
     ]);

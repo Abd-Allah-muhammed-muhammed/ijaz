@@ -7,6 +7,7 @@ use Modules\Guarantor\Actions\Guarantor\LogGuarantorStatusHistoryAction;
 use Modules\Guarantor\Contracts\Repositories\GuarantorRepositoryInterface;
 use Modules\Guarantor\Contracts\Repositories\InstallmentRepositoryInterface;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
+use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Jobs\ReleaseInstallmentJob;
 use Modules\Guarantor\Models\GuarantorInstallment;
@@ -145,6 +146,10 @@ class ProcessGuarantorPayment
 
     private function isIndividualPayable(GuarantorRequest $request): bool
     {
+        if ($request->type->isNot(GuarantorTypeEnum::Individual)) {
+            return false;
+        }
+
         if ($request->status->is(GuarantorStatusEnum::Disputed)) {
             return false;
         }
@@ -158,6 +163,10 @@ class ProcessGuarantorPayment
 
     private function isCompanyPaymentPayable(GuarantorRequest $request, GuarantorInstallment $installment): bool
     {
+        if ($request->type->isNot(GuarantorTypeEnum::Company)) {
+            return false;
+        }
+
         if ($request->status->is(GuarantorStatusEnum::Disputed)) {
             return false;
         }
@@ -174,6 +183,6 @@ class ProcessGuarantorPayment
             return false;
         }
 
-        return $installment->status->is(InstallmentStatusEnum::Pending);
+        return $installment->status->isPayable();
     }
 }

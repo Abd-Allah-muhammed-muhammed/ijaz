@@ -4,6 +4,8 @@ namespace Modules\Guarantor\Actions\Payment;
 
 use Closure;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Guarantor\Enums\GuarantorTypeEnum;
+use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
 use Modules\Payment\Enums\PaymentStatusEnum;
@@ -52,6 +54,10 @@ class AddRequesterWalletTransaction
      */
     private function fromGuarantorRequest(GuarantorRequest $request): array
     {
+        if ($request->type->isNot(GuarantorTypeEnum::Individual)) {
+            throw new GuarantorException('guarantor.pay_denied_company_use_installments', 422);
+        }
+
         $request->loadMissing('counterparty');
 
         return [$request->counterparty, $request];

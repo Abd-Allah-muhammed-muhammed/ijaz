@@ -5,6 +5,7 @@ namespace Modules\Guarantor\Actions\Installment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
+use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Exceptions\GuarantorException;
 use Modules\Guarantor\Models\GuarantorInstallment;
@@ -28,6 +29,10 @@ class PayInstallmentAction
         return DB::transaction(function () use ($request, $installment, $actor) {
             if ((string) $installment->guarantor_request_id !== (string) $request->getKey()) {
                 throw new GuarantorException('guarantor.installment_not_found', 404);
+            }
+
+            if ($request->type->isNot(GuarantorTypeEnum::Company)) {
+                throw new GuarantorException('guarantor.pay_denied_individual_use_lump_sum', 422);
             }
 
             if (! in_array($request->status, [

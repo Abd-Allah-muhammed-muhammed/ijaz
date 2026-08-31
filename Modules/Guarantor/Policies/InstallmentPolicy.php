@@ -6,6 +6,7 @@ use App\Models\Admin;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
+use Modules\Guarantor\Enums\GuarantorTypeEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
@@ -54,6 +55,10 @@ class InstallmentPolicy
 
         $installment->loadMissing('guarantorRequest');
         $request = $installment->guarantorRequest;
+
+        if ($request->type->isNot(GuarantorTypeEnum::Company)) {
+            return Response::deny(__('guarantor.pay_denied_individual_use_lump_sum'));
+        }
 
         $isCounterparty = $request->counterparty_type === $user::class
             && (string) $request->counterparty_id === (string) $user->getKey();
