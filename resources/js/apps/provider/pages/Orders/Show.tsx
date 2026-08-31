@@ -370,24 +370,22 @@ const Show = ({ order }: Props) => {
 
             {/* My Offers */}
             <div className="card border-0 shadow-sm rounded-4 mb-5">
-              <div className="card-header border-0 pt-6 px-6 px-lg-8 bg-transparent">
-                <div className="card-title flex-column align-items-start m-0">
-                  <h3 className="fw-bolder text-gray-900 mb-1">{t('my offers')}</h3>
-                  <span className="text-muted fw-semibold fs-7">
+              <div className="card-header border-0 pt-6 px-6 px-lg-8 bg-transparent d-flex align-items-center justify-content-between gap-3">
+                <div className="d-flex align-items-center gap-2 m-0 min-w-0">
+                  <h3 className="fw-bolder text-gray-900 mb-0">{t('my offers')}</h3>
+                  <span className="badge badge-light text-muted fw-semibold fs-8">
                     {t(offerCountLabelKey(offers.length), { count: offers.length })}
                   </span>
                 </div>
                 {showAddOffer && (
-                  <div className="card-toolbar">
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-primary rounded-pill d-inline-flex align-items-center gap-2"
-                      onClick={handleCreateClick}
-                    >
-                      <KTIcon iconName="plus" className="fs-4" />
-                      {t('add_offer')}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-primary rounded-pill d-inline-flex align-items-center gap-2 flex-shrink-0"
+                    onClick={handleCreateClick}
+                  >
+                    <KTIcon iconName="plus" className="fs-4" />
+                    {t('add_offer')}
+                  </button>
                 )}
               </div>
               <div className="card-body pt-0 px-6 px-lg-8 pb-6">
