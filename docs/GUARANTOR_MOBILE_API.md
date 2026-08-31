@@ -1240,9 +1240,17 @@ Extra check: status must still be `accepted` → else `422` `"This status transi
 
 After the user completes checkout, the **request does not update until the gateway callback**. Both parties receive **`GuarantorPaymentReceivedNotification`** when payment is successfully applied. Poll `GET` show or wait for the push; Individual should move to `in_progress`.
 
-**Errors:** `401`, `403` (not counterparty, or status ≠ `accepted`), `404`, `422` wrong status.
+Do **not** call this for Company requests. Company payments go through installment pay — see [§2.15 Pay installment (Company)](#215-pay-installment-company). Calling this endpoint on a Company-type guarantor is rejected with **403** and the specific message below (not a generic unauthorized string).
 
-Do **not** call this for Company requests. Use installment pay.
+**Errors:**
+
+| HTTP | Condition | Translation key | English `message` |
+|---|---|---|---|
+| 401 | Missing / invalid token | — | `Unauthenticated.` |
+| 403 | Not counterparty, or status ≠ `accepted` | `guarantor.unauthorized` | `You are not authorized to perform this action` |
+| 403 | Called on a Company-type guarantor (policy denial) | `guarantor.pay_denied_company_use_installments` | `Company guarantors must be paid installment by installment, not through the individual payment endpoint` |
+| 404 | Unknown guarantor UUID | `guarantor.not_found` | `Guarantor request not found` |
+| 422 | Status no longer `accepted` at Action layer | `guarantor.status_transition_not_allowed` | `This status transition is not allowed` |
 
 ---
 
