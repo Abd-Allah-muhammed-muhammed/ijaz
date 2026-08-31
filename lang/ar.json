@@ -1020,6 +1020,8 @@
     "add_offer": "إضافة عرض",
     "no_offers_submitted_yet": "لم يتم تقديم أي عروض بعد",
     "no_offers_submitted_yet_hint": "قدّم أول عرض لهذا الطلب للبدء.",
+    "n_offer": "{{count}} عرض",
+    "n_offers": "{{count}} عروض",
     "attachments_empty_hint": "لا توجد ملفات مرفقة بهذا الطلب.",
     "You": "أنت",
     "Order ID": "رقم الطلب",

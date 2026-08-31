@@ -924,6 +924,8 @@
     "add_offer": "پیشکش شامل کریں",
     "no_offers_submitted_yet": "ابھی کوئی پیشکش جمع نہیں کرائی گئی",
     "no_offers_submitted_yet_hint": "شروع کرنے کے لیے اس آرڈر کے لیے اپنی پہلی پیشکش جمع کروائیں۔",
+    "n_offer": "{{count}} پیشکش",
+    "n_offers": "{{count}} پیشکشیں",
     "attachments_empty_hint": "اس آرڈر کے ساتھ کوئی فائل منسلک نہیں ہے۔",
     "no_attachments": "کوئی منسلکات نہیں",
     "You": "آپ",

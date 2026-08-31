@@ -12,8 +12,11 @@ class ListProviderOffersAction
         private readonly OrderOfferRepositoryInterface $offers,
     ) {}
 
-    public function handle(Provider $provider, int $perPage): LengthAwarePaginator
+    /**
+     * @param  array{status?: mixed, search?: mixed}  $filters
+     */
+    public function handle(Provider $provider, array $filters, int $perPage): LengthAwarePaginator
     {
-        return $this->offers->paginateForProvider($provider, $perPage);
+        return $this->offers->paginateForProvider($provider, $filters, $perPage);
     }
 }

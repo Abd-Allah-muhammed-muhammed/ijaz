@@ -28,6 +28,7 @@ import {
   canShowChatCta,
   getOfferStatusBadgeClass,
   getOrderStatusBadgeClass,
+  offerCountLabelKey,
   shouldShowOrderEndedAlert,
   shouldShowProviderReviewForm,
   truncateText,
@@ -372,7 +373,9 @@ const Show = ({ order }: Props) => {
               <div className="card-header border-0 pt-6 px-6 px-lg-8 bg-transparent">
                 <div className="card-title flex-column align-items-start m-0">
                   <h3 className="fw-bolder text-gray-900 mb-1">{t('my offers')}</h3>
-                  <span className="text-muted fw-semibold fs-7">{offers.length}</span>
+                  <span className="text-muted fw-semibold fs-7">
+                    {t(offerCountLabelKey(offers.length), { count: offers.length })}
+                  </span>
                 </div>
                 {showAddOffer && (
                   <div className="card-toolbar">

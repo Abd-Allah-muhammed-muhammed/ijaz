@@ -21,5 +21,8 @@ interface OrderOfferRepositoryInterface
 
     public function delete(OrderOffer $offer): void;
 
-    public function paginateForProvider(Provider $provider, int $perPage): LengthAwarePaginator;
+    /**
+     * @param  array{status?: mixed, search?: mixed}  $filters
+     */
+    public function paginateForProvider(Provider $provider, array $filters, int $perPage): LengthAwarePaginator;
 }

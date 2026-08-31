@@ -23,7 +23,23 @@ class OfferResource extends JsonResource
             'user_id' => $this->user_id,
             'provider_id' => $this->provider_id,
             'category_id' => $this->category_id,
+            'order' => $this->whenLoaded('order', function () {
+                $order = $this->order;
 
+                $payload = [
+                    'id' => $order->id,
+                    'title' => $order->title,
+                ];
+
+                if ($order->relationLoaded('user') && $order->user !== null) {
+                    $payload['user'] = [
+                        'id' => $order->user->id,
+                        'name' => $order->user->name,
+                    ];
+                }
+
+                return $payload;
+            }),
         ];
     }
 }

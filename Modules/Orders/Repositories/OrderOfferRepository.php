@@ -33,10 +33,19 @@ class OrderOfferRepository implements OrderOfferRepositoryInterface
         $offer->delete();
     }
 
-    public function paginateForProvider(Provider $provider, int $perPage): LengthAwarePaginator
+    /**
+     * @param  array{status?: mixed, search?: mixed}  $filters
+     */
+    public function paginateForProvider(Provider $provider, array $filters, int $perPage): LengthAwarePaginator
     {
         return $provider->orderOffers()
-            ->with(['order'])
+            ->with(['order.user'])
+            ->when(isset($filters['status']), fn ($q) => $q->where('status', $filters['status']))
+            ->when(isset($filters['search']), function ($q) use ($filters) {
+                $search = (string) $filters['search'];
+
+                return $q->whereHas('order', fn ($orderQuery) => $orderQuery->where('title', 'like', "%{$search}%"));
+            })
             ->latest()
             ->paginate($perPage);
     }

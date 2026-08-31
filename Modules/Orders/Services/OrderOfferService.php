@@ -63,9 +63,12 @@ class OrderOfferService
         $this->updateProviderOffer->handle($order, $offer, $provider, $data);
     }
 
-    public function listForProvider(Provider $provider, int $perPage): LengthAwarePaginator
+    /**
+     * @param  array{status?: mixed, search?: mixed}  $filters
+     */
+    public function listForProvider(Provider $provider, array $filters, int $perPage): LengthAwarePaginator
     {
-        return $this->listProviderOffers->handle($provider, $perPage);
+        return $this->listProviderOffers->handle($provider, $filters, $perPage);
     }
 
     public function deleteForProvider(Order $order, OrderOffer $offer, ?Authenticatable $authUser): void

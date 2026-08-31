@@ -137,3 +137,10 @@ export const ORDER_SHOW_END_ORDER_KEY = 'end_order';
 export const ORDER_SHOW_EMPTY_OFFERS_TITLE_KEY = 'no_offers_submitted_yet';
 export const ORDER_SHOW_EMPTY_OFFERS_HINT_KEY = 'no_offers_submitted_yet_hint';
 export const ORDER_SHOW_ADD_OFFER_KEY = 'add_offer';
+export const OFFER_COUNT_SINGULAR_KEY = 'n_offer';
+export const OFFER_COUNT_PLURAL_KEY = 'n_offers';
+
+/** i18n key for the muted "N offer(s)" label under My Offers. */
+export function offerCountLabelKey(count: number): typeof OFFER_COUNT_SINGULAR_KEY | typeof OFFER_COUNT_PLURAL_KEY {
+  return count === 1 ? OFFER_COUNT_SINGULAR_KEY : OFFER_COUNT_PLURAL_KEY;
+}

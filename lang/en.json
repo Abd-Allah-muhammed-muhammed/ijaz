@@ -1103,6 +1103,8 @@
     "add_offer": "Add Offer",
     "no_offers_submitted_yet": "No offers submitted yet",
     "no_offers_submitted_yet_hint": "Submit your first offer for this order to get started.",
+    "n_offer": "{{count}} offer",
+    "n_offers": "{{count}} offers",
     "attachments_empty_hint": "No files were attached to this order.",
     "You": "You",
     "Order ID": "Order ID",

@@ -139,15 +139,23 @@ class OrderController extends Controller
 
     public function offers(Request $request)
     {
+        $filters = [];
+        if ($request->filled('status')) {
+            $filters['status'] = $request->status;
+        }
+        if ($request->filled('search')) {
+            $filters['search'] = $request->search;
+        }
+
         $rows = $this->orderOfferService->listForProvider(
             auth('provider')->user(),
+            $filters,
             $request->integer('perPage', 16),
         );
 
         return inertia('Provider/Orders/Offers', [
             'rows' => OfferCollection::make($rows),
             'prams' => $request->all() ?: [],
-
         ]);
     }
 

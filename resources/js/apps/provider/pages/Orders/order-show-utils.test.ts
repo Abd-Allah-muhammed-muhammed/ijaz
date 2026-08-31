@@ -5,6 +5,8 @@ import en from '@/lang/en.json';
 import { OfferStatusEnum, OrderStatusEnum } from '@/Enums/Order';
 import { formatCurrency, formatDateTime } from '@/shared/lib/formatters';
 import {
+  OFFER_COUNT_PLURAL_KEY,
+  OFFER_COUNT_SINGULAR_KEY,
   ORDER_SHOW_ADD_OFFER_KEY,
   ORDER_SHOW_EMPTY_OFFERS_HINT_KEY,
   ORDER_SHOW_EMPTY_OFFERS_TITLE_KEY,
@@ -17,12 +19,15 @@ import {
   canShowChatCta,
   getOfferStatusBadgeClass,
   getOrderStatusBadgeClass,
+  offerCountLabelKey,
   shouldShowOrderEndedAlert,
   shouldShowProviderReviewForm,
   truncateText,
 } from './order-show-utils';
 
 const showSrc = readFileSync(join(__dirname, 'Show.tsx'), 'utf8');
+const offersSrc = readFileSync(join(__dirname, 'Offers.tsx'), 'utf8');
+const indexSrc = readFileSync(join(__dirname, 'Index.tsx'), 'utf8');
 
 describe('order hero', () => {
   it('order hero renders status pill, formatted budget with currency, and 4 stat tiles', () => {
@@ -71,6 +76,19 @@ describe('End Order button', () => {
 });
 
 describe('My Offers table', () => {
+  it('My Offers count under the heading renders as "N offer(s)", not a bare number', () => {
+    expect(offerCountLabelKey(1)).toBe(OFFER_COUNT_SINGULAR_KEY);
+    expect(offerCountLabelKey(0)).toBe(OFFER_COUNT_PLURAL_KEY);
+    expect(offerCountLabelKey(2)).toBe(OFFER_COUNT_PLURAL_KEY);
+    expect(en).toHaveProperty(OFFER_COUNT_SINGULAR_KEY);
+    expect(en).toHaveProperty(OFFER_COUNT_PLURAL_KEY);
+    expect(en[OFFER_COUNT_SINGULAR_KEY as keyof typeof en]).toContain('{{count}}');
+    expect(en[OFFER_COUNT_PLURAL_KEY as keyof typeof en]).toContain('{{count}}');
+    expect(showSrc).toContain('offerCountLabelKey');
+    expect(showSrc).toContain('offerCountLabelKey(offers.length)');
+    expect(showSrc).not.toMatch(/text-muted fw-semibold fs-7">\{offers\.length\}</);
+  });
+
   it('My Offers table shows a row number, not the raw offer UUID', () => {
     expect(showSrc).toMatch(/index\s*\+\s*1|rowNumber|row_number/);
     expect(showSrc).not.toMatch(/<td[^>]*>\{offer\.id\}<\/td>/);
@@ -108,6 +126,41 @@ describe('My Offers table', () => {
     expect(showSrc).not.toContain('Hover to view offers table');
     expect(canAddOffer(OrderStatusEnum.New, [])).toBe(true);
     expect(canAddOffer(OrderStatusEnum.New, [{ status: { value: OfferStatusEnum.Pending } }])).toBe(false);
+  });
+});
+
+describe('Offers list page', () => {
+  it('Offers list page has a search input and a status filter, wired via applyFilterParam/visitWithFilters matching Orders Index', () => {
+    expect(indexSrc).toContain('applyFilterParam');
+    expect(indexSrc).toContain('visitWithFilters');
+    expect(offersSrc).toContain('applyFilterParam');
+    expect(offersSrc).toContain('visitWithFilters');
+    expect(offersSrc).toContain("searchPramsChanged('search'");
+    expect(offersSrc).toContain("searchPramsChanged('status'");
+    expect(offersSrc).toContain('OfferStatusEnum');
+    expect(offersSrc).toContain('OrderController.offers().url');
+    expect(offersSrc).toMatch(/type=['"]text['"]/);
+    expect(offersSrc).toMatch(/<select[\s\S]*name=['"]status['"]/);
+  });
+
+  it('Offers list cards show the order title as the primary label, not the raw order UUID', () => {
+    expect(offersSrc).toContain('row.order?.title');
+    expect(offersSrc).toContain('title={row.order_id}');
+    expect(offersSrc).not.toMatch(/\{t\(['"]Order ID['"]\)\}:\s*\{row\.order_id\}/);
+  });
+
+  it('Offers list cards use formatCurrency for price and formatDateTime for the date', () => {
+    expect(offersSrc).toContain('formatCurrency');
+    expect(offersSrc).toContain('formatDateTime');
+    expect(offersSrc).not.toContain('toLocaleDateString');
+  });
+
+  it('Offers list empty state matches the established pattern (icon + message), consistent with Orders Index\'s empty state', () => {
+    expect(indexSrc).toContain("t('no_orders_found')");
+    expect(indexSrc).toContain('KTIcon');
+    expect(offersSrc).toContain("t('no_offers')");
+    expect(offersSrc).toContain('KTIcon');
+    expect(offersSrc).toMatch(/card border-0 shadow-sm[\s\S]*text-center[\s\S]*no_offers/);
   });
 });
 

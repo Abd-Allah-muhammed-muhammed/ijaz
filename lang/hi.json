@@ -925,6 +925,8 @@
     "add_offer": "ऑफर जोड़ें",
     "no_offers_submitted_yet": "अभी कोई ऑफर जमा नहीं किया गया",
     "no_offers_submitted_yet_hint": "शुरू करने के लिए इस ऑर्डर के लिए अपना पहला ऑफर जमा करें।",
+    "n_offer": "{{count}} ऑफर",
+    "n_offers": "{{count}} ऑफर",
     "attachments_empty_hint": "इस ऑर्डर के साथ कोई फ़ाइल संलग्न नहीं है।",
     "no_attachments": "कोई संलग्नक नहीं",
     "You": "आप",
