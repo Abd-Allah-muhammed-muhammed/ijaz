@@ -23,7 +23,9 @@ Route::middleware([
         Route::post('/{guarantorRequest}/reject', [GuarantorController::class, 'rejectByAdmin'])->name('rejectByAdmin');
         Route::post('/{guarantorRequest}/cancel', [GuarantorController::class, 'cancel'])->name('cancel');
         Route::put('/{guarantorRequest}/resolve-dispute', [GuarantorController::class, 'resolveDispute'])->name('resolveDispute');
-        Route::post('/{guarantorRequest}/installments/{installment}/release', [GuarantorController::class, 'releaseInstallment'])->name('releaseInstallment');
+        Route::post('/{guarantorRequest}/installments/{installment}/release', [GuarantorController::class, 'releaseInstallment'])
+            ->name('releaseInstallment')
+            ->scopeBindings();
         Route::delete('/{guarantorRequest}', [GuarantorController::class, 'destroy'])->name('destroy');
     });
 });

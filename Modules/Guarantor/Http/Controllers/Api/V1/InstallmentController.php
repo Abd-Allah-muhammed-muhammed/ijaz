@@ -83,7 +83,7 @@ class InstallmentController extends Controller
         GuarantorRequest $guarantorRequest,
         GuarantorInstallment $installment,
     ): JsonResponse {
-        $this->authorize('pay', $installment);
+        $this->authorize('pay', [$installment, $guarantorRequest]);
 
         $paymentResponse = $this->service->pay(
             $guarantorRequest,

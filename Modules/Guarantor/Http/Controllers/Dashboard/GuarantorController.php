@@ -181,9 +181,9 @@ class GuarantorController extends Controller implements HasMiddleware
         GuarantorRequest $guarantorRequest,
         GuarantorInstallment $installment,
     ): RedirectResponse {
-        $this->authorize('release', $installment);
+        $this->authorize('release', [$installment, $guarantorRequest]);
 
-        $this->service->releaseInstallment($installment);
+        $this->service->releaseInstallment($guarantorRequest, $installment);
 
         return back()->with('success', __('guarantor.installment_released_successfully'));
     }

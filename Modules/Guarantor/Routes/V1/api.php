@@ -55,6 +55,7 @@ Route::prefix('guarantor')->name('guarantor.')->group(function () {
 
         Route::prefix('{guarantorRequest}/installments')
             ->name('installments.')
+            ->scopeBindings()
             ->group(function () {
 
                 Route::get('/', [InstallmentController::class, 'index'])

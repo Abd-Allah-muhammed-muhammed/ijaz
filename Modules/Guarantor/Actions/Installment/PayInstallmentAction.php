@@ -26,6 +26,10 @@ class PayInstallmentAction
     public function handle(GuarantorRequest $request, GuarantorInstallment $installment, Model $actor): array
     {
         return DB::transaction(function () use ($request, $installment, $actor) {
+            if ((string) $installment->guarantor_request_id !== (string) $request->getKey()) {
+                throw new GuarantorException('guarantor.installment_not_found', 404);
+            }
+
             if (! in_array($request->status, [
                 GuarantorStatusEnum::Accepted,
                 GuarantorStatusEnum::InProgress,

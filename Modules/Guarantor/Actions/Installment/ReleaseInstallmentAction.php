@@ -27,9 +27,17 @@ class ReleaseInstallmentAction
     /**
      * @throws Throwable
      */
-    public function handle(GuarantorInstallment $installment, string $trigger = 'payment'): void
-    {
-        DB::transaction(function () use ($installment, $trigger) {
+    public function handle(
+        GuarantorInstallment $installment,
+        string $trigger = 'payment',
+        ?GuarantorRequest $expectedParent = null,
+    ): void {
+        DB::transaction(function () use ($installment, $trigger, $expectedParent) {
+            if ($expectedParent !== null
+                && (string) $installment->guarantor_request_id !== (string) $expectedParent->getKey()) {
+                throw new GuarantorException('guarantor.installment_not_found', 404);
+            }
+
             $installment->loadMissing('guarantorRequest.requester');
 
             /** @var GuarantorRequest $guarantorRequest */

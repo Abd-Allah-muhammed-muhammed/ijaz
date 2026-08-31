@@ -8,13 +8,19 @@ use Illuminate\Database\Eloquent\Model;
 use Modules\Guarantor\Enums\GuarantorStatusEnum;
 use Modules\Guarantor\Enums\InstallmentStatusEnum;
 use Modules\Guarantor\Models\GuarantorInstallment;
+use Modules\Guarantor\Models\GuarantorRequest;
 
 class InstallmentPolicy
 {
-    public function release(Admin $admin, GuarantorInstallment $installment): Response
+    public function release(Admin $admin, GuarantorInstallment $installment, ?GuarantorRequest $guarantorRequest = null): Response
     {
         if (! $admin->can('manage guarantors')) {
             return Response::deny(__('guarantor.unauthorized'));
+        }
+
+        if ($guarantorRequest !== null
+            && (string) $installment->guarantor_request_id !== (string) $guarantorRequest->getKey()) {
+            return Response::denyAsNotFound();
         }
 
         $installment->loadMissing('guarantorRequest');
@@ -39,8 +45,13 @@ class InstallmentPolicy
         return Response::allow();
     }
 
-    public function pay(Model $user, GuarantorInstallment $installment): Response
+    public function pay(Model $user, GuarantorInstallment $installment, ?GuarantorRequest $guarantorRequest = null): Response
     {
+        if ($guarantorRequest !== null
+            && (string) $installment->guarantor_request_id !== (string) $guarantorRequest->getKey()) {
+            return Response::denyAsNotFound();
+        }
+
         $installment->loadMissing('guarantorRequest');
         $request = $installment->guarantorRequest;
 

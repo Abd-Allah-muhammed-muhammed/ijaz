@@ -130,9 +130,9 @@ class GuarantorDashboardService
         };
     }
 
-    public function releaseInstallment(GuarantorInstallment $installment): void
+    public function releaseInstallment(GuarantorRequest $request, GuarantorInstallment $installment): void
     {
-        $this->releaseAction->handle($installment, 'admin');
+        $this->releaseAction->handle($installment, 'admin', $request);
     }
 
     public function delete(GuarantorRequest $request): void
