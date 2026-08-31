@@ -373,7 +373,7 @@ const Show = ({ order }: Props) => {
               <div className="card-header border-0 pt-6 px-6 px-lg-8 bg-transparent d-flex align-items-center justify-content-between gap-3">
                 <div className="d-flex align-items-center gap-2 m-0 min-w-0">
                   <h3 className="fw-bolder text-gray-900 mb-0">{t('my offers')}</h3>
-                  <span className="badge badge-light text-muted fw-semibold fs-8">
+                  <span className="badge badge-light-primary text-primary fs-7 rounded-pill fw-semibold px-3 py-2">
                     {t(offerCountLabelKey(offers.length), { count: offers.length })}
                   </span>
                 </div>
