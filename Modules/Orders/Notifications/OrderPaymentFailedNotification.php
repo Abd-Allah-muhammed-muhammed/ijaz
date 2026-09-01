@@ -2,29 +2,34 @@
 
 namespace Modules\Orders\Notifications;
 
+use App\Models\User;
 use App\Notifications\DomainNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Modules\Orders\Models\Order;
+use Modules\Orders\Models\OrderOffer;
 
-class OrderAcceptedOfferUpdatedNotification extends DomainNotification implements ShouldBroadcastNow
+class OrderPaymentFailedNotification extends DomainNotification implements ShouldBroadcastNow
 {
-    public function __construct(public Order $order) {}
+    public function __construct(
+        public Order $order,
+        public OrderOffer $offer,
+    ) {}
 
     protected function titleKey(): string
     {
-        return 'order_accepted_offer_updated';
+        return 'order_payment_failed';
     }
 
     protected function bodyKey(): string
     {
-        return 'the_order_accepted_offer_has_been_updated';
+        return 'order_payment_failed_body';
     }
 
     protected function payload(): array
     {
         return [
             'order_id' => $this->order->id,
-            'offer_id' => $this->order->accepted_offer_id,
+            'offer_id' => $this->offer->id,
         ];
     }
 
@@ -32,18 +37,18 @@ class OrderAcceptedOfferUpdatedNotification extends DomainNotification implement
     {
         return [
             'order_id' => $this->order->id,
-            'offer_id' => $this->order->accepted_offer_id,
+            'offer_id' => $this->offer->id,
             'screen' => 'orders',
         ];
     }
 
     protected function sendsFirebase(object $notifiable): bool
     {
-        return true;
+        return $notifiable instanceof User;
     }
 
     public function broadcastType(): string
     {
-        return 'new assigned order';
+        return 'order payment failed';
     }
 }

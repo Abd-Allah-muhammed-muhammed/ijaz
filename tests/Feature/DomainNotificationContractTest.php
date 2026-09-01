@@ -41,7 +41,8 @@ use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Notifications\NewOrderAssignNotification;
-use Modules\Orders\Notifications\OrderAcceptedOfferUpdatedNotification;
+use Modules\Orders\Notifications\OrderAcceptedOfferPriceDecreasedNotification;
+use Modules\Orders\Notifications\OrderAcceptedOfferPriceIncreaseBlockedNotification;
 use Modules\Orders\Notifications\OrderCancelledNotification;
 use Modules\Orders\Notifications\OrderCreatedConfirmationNotification;
 use Modules\Orders\Notifications\OrderEndedByProviderNotification;
@@ -157,43 +158,66 @@ describe('Orders domain notification contracts', function (): void {
         );
     });
 
-    it('locks OrderAcceptedOfferUpdatedNotification channel outputs', function (): void {
+    it('locks OrderAcceptedOfferPriceDecreasedNotification channel outputs', function (): void {
         /** @var TestCase $this */
         $order = Order::factory()->create();
         $offer = createDomainOrderOffer($order, ['status' => OfferStatusEnum::Accepted]);
         $order->update(['accepted_offer_id' => $offer->id]);
         $order->refresh();
-        $notification = new OrderAcceptedOfferUpdatedNotification($order);
+        $notification = new OrderAcceptedOfferPriceDecreasedNotification($order, 200.0, 175.0);
         $user = domainNotifiableUser();
 
         expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification)->not->toBeInstanceOf(ShouldDispatchAfterCommit::class)
             ->and($notification->broadcastType())->toBe('new assigned order')
             ->and($notification->toArray($user))->toBe([
-                'title_translated_key' => 'order_accepted_offer_updated',
-                'body_translated_key' => 'the_order_accepted_offer_has_been_updated',
-                'translated_attributes' => [],
+                'title_translated_key' => 'order_accepted_offer_price_decreased',
+                'body_translated_key' => 'order_accepted_offer_price_decreased_body',
+                'translated_attributes' => [
+                    'old_price' => '200.00',
+                    'new_price' => '175.00',
+                ],
                 'order_id' => $order->id,
                 'offer_id' => $order->accepted_offer_id,
+                'old_price' => '200.00',
+                'new_price' => '175.00',
             ]);
 
         assertBroadcastPayload($notification->toBroadcast($user), [
-            'title' => trans('order_accepted_offer_updated', locale: 'en'),
-            'body' => trans('the_order_accepted_offer_has_been_updated', locale: 'en'),
+            'title' => trans('order_accepted_offer_price_decreased', locale: 'en'),
+            'body' => trans('order_accepted_offer_price_decreased_body', ['old_price' => '200.00', 'new_price' => '175.00'], locale: 'en'),
             'order_id' => $order->id,
             'offer_id' => $order->accepted_offer_id,
+            'old_price' => '200.00',
+            'new_price' => '175.00',
         ]);
 
         assertFirebaseMessage(
             $notification->toFirebase($user),
-            trans('order_accepted_offer_updated', locale: 'en'),
-            trans('the_order_accepted_offer_has_been_updated', locale: 'en'),
+            trans('order_accepted_offer_price_decreased', locale: 'en'),
+            trans('order_accepted_offer_price_decreased_body', ['old_price' => '200.00', 'new_price' => '175.00'], locale: 'en'),
             [
                 'order_id' => $order->id,
                 'offer_id' => $order->accepted_offer_id,
+                'old_price' => '200.00',
+                'new_price' => '175.00',
                 'screen' => 'orders',
             ],
         );
+    });
+
+    it('locks OrderAcceptedOfferPriceIncreaseBlockedNotification channel outputs', function (): void {
+        /** @var TestCase $this */
+        $order = Order::factory()->create();
+        $offer = createDomainOrderOffer($order, ['status' => OfferStatusEnum::Cancelled]);
+        $notification = new OrderAcceptedOfferPriceIncreaseBlockedNotification($order, $offer, 200.0, 300.0);
+        $user = domainNotifiableUser();
+
+        expect($notification->via($user))->toBe(['database', 'broadcast', 'firebase'])
+            ->and($notification->broadcastType())->toBe('new assigned order')
+            ->and($notification->toArray($user)['title_translated_key'])->toBe('order_accepted_offer_price_increase_blocked')
+            ->and($notification->toArray($user)['old_price'])->toBe('200.00')
+            ->and($notification->toArray($user)['attempted_new_price'])->toBe('300.00');
     });
 
     it('locks OrderOfferAcceptedNotification channel outputs', function (): void {

@@ -9,7 +9,7 @@ use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Http\Controllers\Provider\OrderController;
 use Modules\Orders\Models\Order;
-use Modules\Orders\Notifications\OrderAcceptedOfferUpdatedNotification;
+use Modules\Orders\Notifications\OrderAcceptedOfferPriceDecreasedNotification;
 use Modules\Orders\Notifications\OrderOfferCreatedNotification;
 use Modules\Reviews\Models\Review;
 
@@ -102,7 +102,7 @@ it('submits an offer and notifies the order owner', function () {
  * updateOfferStatus uses PaymentService::getDefaultDriver().'_fees'. Today both
  * resolve to the same key when getDefaultDriver() === config('payment.default').
  */
-it('updates an accepted offer price and recalculates provider_fees via config payment.default', function () {
+it('updates an accepted offer price decrease and recalculates provider_fees via config payment.default', function () {
     ['owner' => $owner, 'provider' => $provider, 'order' => $order, 'offer' => $offer] = createOrderWithOffer(
         orderAttrs: [
             'status' => OrderStatusEnum::OfferProvided,
@@ -126,16 +126,15 @@ it('updates an accepted offer price and recalculates provider_fees via config pa
             'order' => $order,
             'offer' => $offer,
         ]), [
-            'price' => 300,
+            'price' => 150,
             'description' => 'Updated price',
         ])
         ->assertRedirect(route('provider.orders.show', $order));
 
-    // categoryFees=10 FIXED, gateway=20 → 20 + 10 + 1.5 = 31.5 (unchanged category fee base)
-    expect((float) $order->fresh()->price)->toBe(300.0)
+    expect((float) $order->fresh()->price)->toBe(150.0)
         ->and((float) $order->fresh()->provider_fees)->toBe(31.5);
 
-    Notification::assertSentTo($owner, OrderAcceptedOfferUpdatedNotification::class);
+    Notification::assertSentTo($owner, OrderAcceptedOfferPriceDecreasedNotification::class);
 });
 
 it('lists provider order offers', function () {

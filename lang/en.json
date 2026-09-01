@@ -606,6 +606,10 @@
     "you_have_been_assigned_a_new_order": "You have been assigned a new order",
     "order_accepted_offer_updated": "Order Accepted Offer Updated",
     "the_order_accepted_offer_has_been_updated": "The order accepted offer has been updated",
+    "order_accepted_offer_price_decreased": "Offer price reduced",
+    "order_accepted_offer_price_decreased_body": "The accepted offer price was lowered from :old_price to :new_price SAR.",
+    "order_accepted_offer_price_increase_blocked": "Price increase requires new acceptance",
+    "order_accepted_offer_price_increase_blocked_body": "The provider requested a price increase from :old_price to :attempted_new_price SAR. The order has been reopened — please review and accept a new offer before paying.",
     "order_offer_accepted": "Order offer accepted",
     "order_offer_has_been_accepted": "The order offer has been accepted.",
     "order_offer_canceled": "Order offer canceled",
@@ -1187,5 +1191,9 @@
     "order_ended_by_provider": "Order ended by provider",
     "order_has_been_ended_by_provider": "The provider has marked this order as complete.",
     "order_payment_completed": "Order payment completed",
-    "order_payment_has_been_completed": "Payment was completed and the order is now in progress."
+    "order_payment_has_been_completed": "Payment was completed and the order is now in progress.",
+    "order_payment_failed": "Order payment failed",
+    "order_payment_failed_body": "Your payment for this order could not be completed. Please try again or contact support if the issue persists.",
+    "order_payment_amount_mismatch": "Order payment needs review",
+    "order_payment_amount_mismatch_body": "We received a payment of :paid_amount SAR but expected :expected_total SAR. Your payment needs review — please contact support."
 }

@@ -464,6 +464,10 @@
     "secure_connection": "सुरक्षित कनेक्शन",
     "order_accepted_offer_updated": "ऑर्डर की स्वीकृत पेशकश अपडेट की गई",
     "the_order_accepted_offer_has_been_updated": "ऑर्डर की स्वीकृत पेशकश को अपडेट किया गया है",
+    "order_accepted_offer_price_decreased": "ऑफ़र की कीमत कम की गई",
+    "order_accepted_offer_price_decreased_body": "स्वीकृत ऑफ़र की कीमत :old_price से घटाकर :new_price SAR कर दी गई है।",
+    "order_accepted_offer_price_increase_blocked": "कीमत बढ़ाने के लिए नई स्वीकृति आवश्यक है",
+    "order_accepted_offer_price_increase_blocked_body": "प्रदाता ने कीमत :old_price से बढ़ाकर :attempted_new_price SAR करने का अनुरोध किया। ऑर्डर फिर से खोला गया है — कृपया भुगतान से पहले नया ऑफ़र देखें और स्वीकार करें।",
     "order_offer_accepted": "ऑर्डर ऑफ़र स्वीकार किया गया",
     "order_offer_has_been_accepted": "ऑर्डर ऑफ़र स्वीकार कर लिया गया है।",
     "order_offer_canceled": "ऑर्डर ऑफ़र रद्द किया गया",
@@ -1014,5 +1018,9 @@
     "order_has_been_ended_by_provider": "प्रदाता ने इस ऑर्डर को पूर्ण चिह्नित कर दिया है।",
     "order_payment_completed": "ऑर्डर भुगतान पूर्ण",
     "order_payment_has_been_completed": "भुगतान पूरा हो गया और ऑर्डर अब प्रगति पर है।",
+    "order_payment_failed": "ऑर्डर भुगतान विफल",
+    "order_payment_failed_body": "इस ऑर्डर के लिए आपका भुगतान पूरा नहीं हो सका। कृपया पुनः प्रयास करें या समस्या बनी रहने पर सहायता से संपर्क करें।",
+    "order_payment_amount_mismatch": "ऑर्डर भुगतान की समीक्षा आवश्यक",
+    "order_payment_amount_mismatch_body": "हमें :paid_amount SAR का भुगतान मिला, जबकि अपेक्षित :expected_total SAR था। आपके भुगतान की समीक्षा आवश्यक है — कृपया सहायता से संपर्क करें।",
     "order_created": "ऑर्डर बनाया गया"
 }

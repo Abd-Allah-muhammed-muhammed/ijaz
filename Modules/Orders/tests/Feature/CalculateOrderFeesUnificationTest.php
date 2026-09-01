@@ -39,14 +39,14 @@ it('produces identical provider_fees from User accept and Provider update via th
         $offer->fresh(),
         $provider,
         UpdateOrderOfferDTO::fromValidated([
-            'price' => 250.0,
-            'description' => 'Price bump',
+            'price' => 175.0,
+            'description' => 'Price reduction',
         ]),
     );
 
-    $sharedAt250 = app(CalculateOrderFeesAction::class)->handle($order->fresh(), 250.0);
+    $sharedAt175 = app(CalculateOrderFeesAction::class)->handle($order->fresh(), 175.0);
 
-    expect((float) $order->fresh()->provider_fees)->toBe($sharedAt250->providerFees)
+    expect((float) $order->fresh()->provider_fees)->toBe($sharedAt175->providerFees)
         ->and((float) $order->fresh()->provider_fees)->toBe(31.5)
-        ->and((float) $order->fresh()->price)->toBe(250.0);
+        ->and((float) $order->fresh()->price)->toBe(175.0);
 });

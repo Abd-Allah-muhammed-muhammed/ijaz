@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Orders\DTOs\ValidateOrderPaymentAmountResult;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Models\OrderOffer;
+use Modules\Orders\Notifications\OrderPaymentAmountMismatchNotification;
 use Modules\Payment\Enums\PaymentStatusEnum;
 use Modules\Payment\Models\Payment;
 
@@ -36,5 +37,13 @@ class RejectOrderPaymentAmountMismatchAction
             'expected_total' => $validation->expectedTotal,
             'offer_price' => (float) $offer->price,
         ]);
+
+        $order->loadMissing('user');
+        $order->user->notify(new OrderPaymentAmountMismatchNotification(
+            order: $order,
+            offer: $offer,
+            paidAmount: $validation->paidAmount,
+            expectedTotal: $validation->expectedTotal,
+        ));
     }
 }

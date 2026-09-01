@@ -26,6 +26,7 @@ class UpdateOfferStatusAction
         private readonly CalculateOrderFeesAction $calculateOrderFees,
         private readonly OrderRepositoryInterface $orders,
         private readonly OrderOfferRepositoryInterface $offers,
+        private readonly RevertOrderToNewAction $revertOrderToNew,
     ) {}
 
     /**
@@ -103,12 +104,7 @@ class UpdateOfferStatusAction
 
     private function revertOrderToNew(Order $order): void
     {
-        $this->orders->update($order, [
-            'provider_id' => null,
-            'accepted_offer_id' => null,
-            'status' => OrderStatusEnum::New,
-            'price' => null,
-        ]);
+        $this->revertOrderToNew->handle($order);
     }
 
     /**

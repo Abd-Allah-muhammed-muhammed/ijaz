@@ -501,6 +501,10 @@
     "you_have_been_assigned_a_new_order": "تم تعيين طلب جديد لك",
     "order_accepted_offer_updated": "تم تحديث العرض المقبول للطلب",
     "the_order_accepted_offer_has_been_updated": "تم تحديث العرض المقبول للطلب",
+    "order_accepted_offer_price_decreased": "تم خفض سعر العرض",
+    "order_accepted_offer_price_decreased_body": "تم خفض سعر العرض المقبول من :old_price إلى :new_price ريال.",
+    "order_accepted_offer_price_increase_blocked": "زيادة السعر تتطلب قبولاً جديداً",
+    "order_accepted_offer_price_increase_blocked_body": "طلب مقدم الخدمة زيادة السعر من :old_price إلى :attempted_new_price ريال. تم إعادة فتح الطلب — يرجى مراجعة العرض وقبول عرض جديد قبل الدفع.",
     "order_offer_accepted": "تم قبول عرض الطلب",
     "order_offer_has_been_accepted": "تم قبول عرض الطلب.",
     "order_offer_canceled": "تم إلغاء عرض الطلب",
@@ -1107,5 +1111,9 @@
     "order_ended_by_provider": "انتهى الطلب من قبل مزود الخدمة",
     "order_has_been_ended_by_provider": "قام مزود الخدمة بتعليم هذا الطلب كمكتمل.",
     "order_payment_completed": "اكتمل دفع الطلب",
-    "order_payment_has_been_completed": "تم إكمال الدفع وأصبح الطلب قيد التنفيذ."
+    "order_payment_has_been_completed": "تم إكمال الدفع وأصبح الطلب قيد التنفيذ.",
+    "order_payment_failed": "فشل دفع الطلب",
+    "order_payment_failed_body": "تعذر إكمال الدفع لهذا الطلب. يرجى المحاولة مرة أخرى أو التواصل مع الدعم إذا استمرت المشكلة.",
+    "order_payment_amount_mismatch": "دفع الطلب يحتاج إلى مراجعة",
+    "order_payment_amount_mismatch_body": "استلمنا دفعة بقيمة :paid_amount ريال بينما كان المتوقع :expected_total ريال. يحتاج دفعك إلى مراجعة — يرجى التواصل مع الدعم."
 }

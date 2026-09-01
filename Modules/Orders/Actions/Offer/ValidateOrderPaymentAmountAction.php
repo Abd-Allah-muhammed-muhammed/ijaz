@@ -4,6 +4,8 @@ namespace Modules\Orders\Actions\Offer;
 
 use Modules\Orders\Actions\CalculateOrderFeesAction;
 use Modules\Orders\DTOs\ValidateOrderPaymentAmountResult;
+use Modules\Orders\Enums\OfferStatusEnum;
+use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Models\OrderOffer;
 use Modules\Payment\Models\Payment;
@@ -21,7 +23,11 @@ class ValidateOrderPaymentAmountAction
         $fees = $this->calculateOrderFees->handle($order, (float) $offer->price);
         $expectedTotal = $fees->price + $fees->userFees;
         $paidAmount = (float) $payment->amount;
-        $isValid = abs($expectedTotal - $paidAmount) < 0.01;
+        $amountMatches = abs($expectedTotal - $paidAmount) < 0.01;
+        $isPayableState = $offer->status->is(OfferStatusEnum::Accepted)
+            && $order->status->is(OrderStatusEnum::OfferProvided)
+            && $order->accepted_offer_id === $offer->id;
+        $isValid = $isPayableState && $amountMatches;
 
         return new ValidateOrderPaymentAmountResult(
             isValid: $isValid,

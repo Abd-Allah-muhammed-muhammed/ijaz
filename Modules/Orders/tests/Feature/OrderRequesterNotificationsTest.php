@@ -19,7 +19,7 @@ use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Events\NewOrderCreated;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Notifications\NewOrderAssignNotification;
-use Modules\Orders\Notifications\OrderAcceptedOfferUpdatedNotification;
+use Modules\Orders\Notifications\OrderAcceptedOfferPriceDecreasedNotification;
 use Modules\Orders\Notifications\OrderCancelledNotification;
 use Modules\Orders\Notifications\OrderCreatedConfirmationNotification;
 use Modules\Orders\Notifications\OrderEndedByProviderNotification;
@@ -140,7 +140,7 @@ test('every user-facing Orders notification includes a screen key + relevant ent
         new OrderCreatedConfirmationNotification($cancelledOrder),
         new OrderEndedByProviderNotification($endedOrder),
         new OrderPaymentCompletedNotification($inProgressOrder),
-        new OrderAcceptedOfferUpdatedNotification($cancelledOrder),
+        new OrderAcceptedOfferPriceDecreasedNotification($cancelledOrder, 200.0, 175.0),
     ];
 
     foreach ($cases as $notification) {

@@ -39,8 +39,8 @@ test('a stale payment (amount no longer matching order.user_total after a provid
     DB::transaction(fn () => app(HandleOrderPaymentCompleted::class)->handle(new PaymentCompleted($payment)));
 
     expect($payment->fresh()->status)->toBe(PaymentStatusEnum::NeedsReview)
-        ->and($offer->fresh()->status)->not->toBe(OfferStatusEnum::Paid)
-        ->and($order->fresh()->status)->toBe(OrderStatusEnum::OfferProvided)
+        ->and($offer->fresh()->status)->toBe(OfferStatusEnum::Cancelled)
+        ->and($order->fresh()->status)->toBe(OrderStatusEnum::New)
         ->and((float) ($user->wallet?->fresh()?->pending_debit ?? 0))->toBe(0.0)
         ->and((float) ($provider->wallet?->fresh()?->pending_credit ?? 0))->toBe(0.0);
 });

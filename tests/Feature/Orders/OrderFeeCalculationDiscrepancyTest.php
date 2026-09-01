@@ -56,13 +56,13 @@ it('applies identical provider_fees when user accepts then provider updates pric
         'order' => $order,
         'offer' => $offer->fresh(),
     ]), [
-        'price' => 250,
-        'description' => 'Price bump',
+        'price' => 175,
+        'description' => 'Price reduction',
     ])->assertRedirect();
 
     // FIXED category fees + shared CalculateOrderFeesAction → same provider_fees.
     expect((float) $order->fresh()->provider_fees)->toBe($feesAfterUserAccept)
-        ->and((float) $order->fresh()->price)->toBe(250.0)
+        ->and((float) $order->fresh()->price)->toBe(175.0)
         ->and($order->fresh()->status)->toBe(OrderStatusEnum::OfferProvided);
 });
 
