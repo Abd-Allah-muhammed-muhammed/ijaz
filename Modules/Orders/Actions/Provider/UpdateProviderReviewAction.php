@@ -2,8 +2,8 @@
 
 namespace Modules\Orders\Actions\Provider;
 
+use App\Models\Provider;
 use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Database\Eloquent\Model;
 use Modules\Orders\DTOs\EndAndReviewDTO;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Exceptions\OrdersException;
@@ -22,7 +22,7 @@ class UpdateProviderReviewAction
             throw new OrdersException('you can not review this order');
         }
 
-        if (! $authUser instanceof Model) {
+        if (! $authUser instanceof Provider || $order->provider()->isNot($authUser)) {
             throw new OrdersException('you can not review this order');
         }
 

@@ -3,6 +3,7 @@
 namespace Modules\Orders\Providers;
 
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Orders\Console\Commands\AlertUnsettledOrderSettlementsCommand;
@@ -14,6 +15,8 @@ use Modules\Orders\Listeners\HandleOrderPaymentCompleted;
 use Modules\Orders\Listeners\HandleOrderPaymentFailed;
 use Modules\Orders\Listeners\NotifyOrderPaymentCompleted;
 use Modules\Orders\Listeners\NotifyOrderPaymentFailed;
+use Modules\Orders\Models\Order;
+use Modules\Orders\Policies\OrderPolicy;
 use Modules\Orders\Repositories\OrderOfferRepository;
 use Modules\Orders\Repositories\OrderRepository;
 use Modules\Payment\Events\PaymentCompleted;
@@ -41,6 +44,8 @@ class OrdersServiceProvider extends ModuleServiceProvider
     public function boot(): void
     {
         parent::boot();
+
+        Gate::policy(Order::class, OrderPolicy::class);
 
         Event::listen(PaymentCompleted::class, HandleOrderPaymentCompleted::class);
         Event::listen(PaymentCompleted::class, NotifyOrderPaymentCompleted::class);

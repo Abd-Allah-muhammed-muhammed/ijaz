@@ -4,7 +4,9 @@ namespace Modules\Orders\Repositories;
 
 use App\Models\Provider;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Modules\Orders\Contracts\Repositories\OrderOfferRepositoryInterface;
+use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Models\OrderOffer;
 
@@ -48,5 +50,20 @@ class OrderOfferRepository implements OrderOfferRepositoryInterface
             })
             ->latest()
             ->paginate($perPage);
+    }
+
+    public function rejectPendingSiblings(Order $order, OrderOffer $except): EloquentCollection
+    {
+        $siblings = $order->offers()
+            ->where('status', OfferStatusEnum::Pending)
+            ->whereKeyNot($except->getKey())
+            ->with('provider')
+            ->get();
+
+        foreach ($siblings as $sibling) {
+            $sibling->update(['status' => OfferStatusEnum::Rejected]);
+        }
+
+        return $siblings;
     }
 }

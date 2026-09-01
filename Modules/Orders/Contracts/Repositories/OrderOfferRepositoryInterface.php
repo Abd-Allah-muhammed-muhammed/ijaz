@@ -4,6 +4,7 @@ namespace Modules\Orders\Contracts\Repositories;
 
 use App\Models\Provider;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Modules\Orders\Models\Order;
 use Modules\Orders\Models\OrderOffer;
 
@@ -25,4 +26,9 @@ interface OrderOfferRepositoryInterface
      * @param  array{status?: mixed, search?: mixed}  $filters
      */
     public function paginateForProvider(Provider $provider, array $filters, int $perPage): LengthAwarePaginator;
+
+    /**
+     * @return EloquentCollection<int, OrderOffer>
+     */
+    public function rejectPendingSiblings(Order $order, OrderOffer $except): EloquentCollection;
 }

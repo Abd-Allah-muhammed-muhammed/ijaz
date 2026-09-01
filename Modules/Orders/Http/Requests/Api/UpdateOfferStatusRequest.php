@@ -4,7 +4,7 @@ namespace Modules\Orders\Http\Requests\Api;
 
 use App\Http\Requests\ApiRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\Rule;
 use Modules\Orders\Enums\OfferStatusEnum;
 
 class UpdateOfferStatusRequest extends ApiRequest
@@ -25,7 +25,14 @@ class UpdateOfferStatusRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', new Enum(OfferStatusEnum::class)],
+            'status' => [
+                'required',
+                Rule::in([
+                    OfferStatusEnum::Accepted->value,
+                    OfferStatusEnum::Rejected->value,
+                    OfferStatusEnum::Cancelled->value,
+                ]),
+            ],
         ];
     }
 }

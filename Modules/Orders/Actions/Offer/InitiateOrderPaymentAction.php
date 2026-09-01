@@ -24,8 +24,9 @@ class InitiateOrderPaymentAction
     public function handle(Order $order, OrderOffer $offer, User $user): PaymentInitResult
     {
         if (
-            $offer->status->isIn([OfferStatusEnum::Cancelled, OfferStatusEnum::Rejected, OfferStatusEnum::Paid]) ||
+            $offer->status->isNot(OfferStatusEnum::Accepted) ||
             $offer->order()->isNot($order) ||
+            $order->accepted_offer_id !== $offer->id ||
             $order->user()->isNot($user)
         ) {
             throw new OrdersException('you can not pay for this order', Response::HTTP_BAD_REQUEST);

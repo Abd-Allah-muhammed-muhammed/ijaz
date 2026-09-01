@@ -27,6 +27,9 @@ class UpdateProviderOfferAction
         if ($offer->provider()->isNot($provider)) {
             abort(404);
         }
+        if ($offer->order()->isNot($order)) {
+            throw new OrdersException('sorry this offer does not belong to this order.');
+        }
         if ($offer->status->isNotIn([OfferStatusEnum::Pending, OfferStatusEnum::Accepted])) {
             throw new OrdersException('you can not edit this offer because it has been processed.');
         }
