@@ -68,6 +68,7 @@ it('defines flat settings.<key> field labels for every current settings row in a
         'guarantee_fee_percent',
         'guarantee_notes',
         'guarantor_first_installment_max_days',
+        'order_offer_expiry_days',
         'min_withdraw_amount',
         'order_dispute_window_hours',
         'provider_registration_bonus_amount',

@@ -35,6 +35,23 @@ class OrderOfferRepository implements OrderOfferRepositoryInterface
         $offer->delete();
     }
 
+    public function providerHasActiveOffer(Order $order, Provider $provider): bool
+    {
+        return $order->offers()
+            ->where('provider_id', $provider->id)
+            ->whereIn('status', [OfferStatusEnum::Pending, OfferStatusEnum::Accepted])
+            ->exists();
+    }
+
+    public function getPendingCreatedBefore(\DateTimeInterface $createdBefore): EloquentCollection
+    {
+        return OrderOffer::query()
+            ->where('status', OfferStatusEnum::Pending)
+            ->where('created_at', '<=', $createdBefore)
+            ->with('provider')
+            ->get();
+    }
+
     /**
      * @param  array{status?: mixed, search?: mixed}  $filters
      */

@@ -158,6 +158,12 @@ class SettingsSeeder extends Seeder
                 'is_public' => true,
             ],
             [
+                'key' => 'order_offer_expiry_days',
+                'content' => '7',
+                'group' => SettingGroupEnum::Payment,
+                'is_public' => false,
+            ],
+            [
                 'key' => 'guarantor_first_installment_max_days',
                 'content' => '5',
                 'group' => SettingGroupEnum::Guarantor,

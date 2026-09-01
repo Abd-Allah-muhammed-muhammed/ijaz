@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Gate;
 use Modules\Chat\Enums\ChatTypeEnum;
 use Modules\Chat\Registry\ChatTypeRegistry;
 use Modules\Orders\Console\Commands\AlertUnsettledOrderSettlementsCommand;
+use Modules\Orders\Console\Commands\ExpirePendingOrderOffersCommand;
 use Modules\Orders\Console\Commands\SettleCompletedOrdersCommand;
 use Modules\Orders\Contracts\Repositories\OrderOfferRepositoryInterface;
 use Modules\Orders\Contracts\Repositories\OrderRepositoryInterface;
@@ -59,6 +60,7 @@ class OrdersServiceProvider extends ModuleServiceProvider
             $this->commands([
                 SettleCompletedOrdersCommand::class,
                 AlertUnsettledOrderSettlementsCommand::class,
+                ExpirePendingOrderOffersCommand::class,
             ]);
         }
     }

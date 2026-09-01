@@ -110,6 +110,8 @@ class OrderController extends Controller
             );
 
             return redirect()->route('provider.orders.show', $order)->with('success', __('data saved successfully'));
+        } catch (OrdersException $e) {
+            return redirect()->back()->with('error', __($e->getTranslationKey()));
         } catch (Throwable $th) {
             report($th);
 

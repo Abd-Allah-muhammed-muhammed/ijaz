@@ -22,6 +22,13 @@ interface OrderOfferRepositoryInterface
 
     public function delete(OrderOffer $offer): void;
 
+    public function providerHasActiveOffer(Order $order, Provider $provider): bool;
+
+    /**
+     * @return EloquentCollection<int, OrderOffer>
+     */
+    public function getPendingCreatedBefore(\DateTimeInterface $createdBefore): EloquentCollection;
+
     /**
      * @param  array{status?: mixed, search?: mixed}  $filters
      */
