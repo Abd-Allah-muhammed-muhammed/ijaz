@@ -15,10 +15,15 @@ enum OrderStatusEnum: string
     case OfferProvided = 'offer_provided';
     case PaymentCompleted = 'payment_completed';
     case InProgress = 'in_progress';
+    case Disputed = 'disputed';
     case CancelledByProvider = 'cancelled_by_provider';
     case CancelledByClient = 'cancelled_by_client';
+    case CancelledViaDispute = 'cancelled_via_dispute';
     case EndedByProvider = 'ended_by_provider';
     case EndedByClient = 'ended_by_client';
+    case EndedViaDispute = 'ended_via_dispute';
+    case Escalated = 'escalated';
+    case Settled = 'settled';
 
     public function toArray(): array
     {
@@ -35,16 +40,61 @@ enum OrderStatusEnum: string
             self::New, self::Hold => 'primary',
             self::OfferProvided, self::InProgress => 'info',
             self::PaymentCompleted => 'warning',
-            self::CancelledByClient, self::CancelledByProvider => 'danger',
-            self::EndedByClient, self::EndedByProvider => 'success',
+            self::Disputed => 'danger',
+            self::CancelledByClient, self::CancelledByProvider, self::CancelledViaDispute => 'danger',
+            self::EndedByClient, self::EndedByProvider, self::EndedViaDispute => 'success',
+            self::Escalated => 'dark',
+            self::Settled => 'success',
         };
+    }
+
+    public function isTerminal(): bool
+    {
+        return in_array($this, self::terminalCases(), true);
+    }
+
+    /**
+     * @return list<self>
+     */
+    public static function terminalCases(): array
+    {
+        return [
+            self::CancelledByProvider,
+            self::CancelledByClient,
+            self::CancelledViaDispute,
+            self::EndedByProvider,
+            self::EndedByClient,
+            self::EndedViaDispute,
+            self::Escalated,
+            self::Settled,
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function terminalValues(): array
+    {
+        return array_map(
+            static fn (self $status): string => $status->value,
+            self::terminalCases(),
+        );
     }
 
     public static function isAllowed(self $old, self $new, string $actor): bool
     {
+        if ($old->isTerminal()) {
+            return false;
+        }
+
+        if ($old === $new) {
+            return false;
+        }
+
         return match ($actor) {
             'provider' => $old === self::InProgress && $new === self::CancelledByProvider,
             'user' => $old === self::InProgress && $new === self::CancelledByClient,
+            'user_dispute', 'provider_dispute' => $old === self::InProgress && $new === self::Disputed,
             default => false,
         };
     }

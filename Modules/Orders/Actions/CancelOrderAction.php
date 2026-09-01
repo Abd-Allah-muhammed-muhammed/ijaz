@@ -45,6 +45,10 @@ class CancelOrderAction
                 throw new OrdersException('you can not cancel this order', Response::HTTP_UNPROCESSABLE_ENTITY);
             }
 
+            if ($order->status->is(OrderStatusEnum::Disputed)) {
+                throw new OrdersException('you can not cancel this order', Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
+
             $this->reverseOrderPaymentHolds->handle($order);
 
             $order = $this->orders->update($order, [

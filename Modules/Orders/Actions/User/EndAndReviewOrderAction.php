@@ -27,6 +27,10 @@ class EndAndReviewOrderAction
         if ($order->user()->isNot($user)) {
             abort(404);
         }
+        if ($order->status->is(OrderStatusEnum::Disputed)) {
+            throw new OrdersException('you can not end this order', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         if ($order->status->isNotIn([OrderStatusEnum::InProgress, OrderStatusEnum::EndedByProvider])) {
             throw new OrdersException('you can not end this order', Response::HTTP_BAD_REQUEST);
         }

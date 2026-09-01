@@ -1,7 +1,10 @@
-import { Head } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { Order } from "@/shared/types/models";
 import { useTranslation } from 'react-i18next';
-import { Badge } from "react-bootstrap";
+import { Badge, Button, Modal } from "react-bootstrap";
+import OrderDashboardController from '@/actions/Modules/Orders/Http/Controllers/Dashboard/OrderController';
+import usePermissions from '@/shared/hooks/use-permissions';
+import DisputeTab from './components/dispute-tab';
 import { Content } from '@/vendor/metronic/layout/components/content';
 import { KTIcon } from "@/vendor/metronic/helpers";
 import React, { useState } from 'react';
@@ -16,11 +19,55 @@ type Props = {
   order: Order
 }
 
+const RESOLUTION_OPTIONS = [
+  'full_user',
+  'full_provider',
+  'percentage_split',
+  'escalate',
+] as const;
+
+type ResolutionOption = (typeof RESOLUTION_OPTIONS)[number];
+
 const Show = ({ order }: Props) => {
   const { t } = useTranslation();
+  const { hasPermission } = usePermissions();
   const [activeTab, setActiveTab] = useState('details');
   const [imageFailed, setImageFailed] = useState(false);
+  const [showResolveModal, setShowResolveModal] = useState(false);
+  const [resolveClientError, setResolveClientError] = useState<string | null>(null);
   const showUserImage = Boolean(order.user?.image) && !imageFailed;
+  const statusHistories = order.status_histories ?? [];
+  const hasDisputeHistory = statusHistories.some((history) => history.to_status?.value === 'disputed');
+  const isDisputed = order.status?.value === 'disputed';
+  const canResolveDispute = hasPermission('manage orders') && isDisputed;
+
+  const resolveForm = useForm({
+    resolution: '' as ResolutionOption | '',
+    user_percentage: 60,
+    notes: '',
+  });
+
+  const isValidUserPercentage = (value: number): boolean =>
+    Number.isInteger(value) && value >= 0 && value <= 100;
+
+  const submitResolveDispute = () => {
+    if (
+      resolveForm.data.resolution === 'percentage_split' &&
+      !isValidUserPercentage(Number(resolveForm.data.user_percentage))
+    ) {
+      setResolveClientError(t('orders.invalid_user_percentage'));
+      return;
+    }
+
+    setResolveClientError(null);
+    resolveForm.put(OrderDashboardController.resolveDispute(order.id as string).url, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setShowResolveModal(false);
+        resolveForm.reset();
+      },
+    });
+  };
 
   // Status Badge Helper
   const getStatusBadge = (statusColor: string, statusLabel: string) => (
@@ -87,8 +134,13 @@ const Show = ({ order }: Props) => {
                     </div>
                   </div>
 
-                  <div className="d-flex my-4">
+                  <div className="d-flex my-4 gap-2">
                     {getStatusBadge(order.status.color, order.status.label)}
+                    {canResolveDispute && (
+                      <Button variant="warning" size="sm" onClick={() => setShowResolveModal(true)}>
+                        {t('orders.resolve_dispute')}
+                      </Button>
+                    )}
                   </div>
                 </div>
 
@@ -165,6 +217,15 @@ const Show = ({ order }: Props) => {
                   </a>
                 </li>
 
+                {hasDisputeHistory && (
+                  <li className="nav-item">
+                    <a href="#" className={clsx("nav-link text-active-primary me-6", activeTab === 'dispute' && "active")} onClick={(e) => { e.preventDefault(); setActiveTab('dispute'); }}>
+                      <KTIcon iconName="information-5" className="fs-3 me-2" />
+                      {t('orders.dispute')}
+                    </a>
+                  </li>
+                )}
+
                 <li className="nav-item">
                   <a href="#" className={clsx("nav-link text-active-primary me-6", activeTab === 'chat' && "active")} onClick={(e) => { e.preventDefault(); setActiveTab('chat'); }}>
                     <KTIcon iconName="message-text-2" className="fs-3 me-2" />
@@ -180,8 +241,91 @@ const Show = ({ order }: Props) => {
           {activeTab === 'details' && <OverviewTap order={order} />}
           {activeTab === 'offers' && <OffersTap order={order} />}
           {activeTab === 'reviews' && <ReviewsTap order={order} />}
+          {activeTab === 'dispute' && <DisputeTab statusHistories={statusHistories} />}
           {activeTab === 'chat' && <ChatTap order={order} />}
         </div>
+
+        <Modal show={showResolveModal} onHide={() => setShowResolveModal(false)} centered size="lg">
+          <Modal.Header closeButton>
+            <Modal.Title>{t('orders.resolve_dispute')}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div className="d-flex flex-column gap-3">
+              {RESOLUTION_OPTIONS.map((option) => (
+                <label key={option} className="form-check form-check-custom form-check-solid">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    name="resolution"
+                    checked={resolveForm.data.resolution === option}
+                    onChange={() => {
+                      setResolveClientError(null);
+                      resolveForm.setData('resolution', option);
+                    }}
+                  />
+                  <span className="form-check-label fw-semibold">
+                    {t(`orders.dispute_resolution.${option}`)}
+                  </span>
+                </label>
+              ))}
+
+              {resolveForm.data.resolution === 'percentage_split' && (
+                <div className="mt-2">
+                  <label className="form-label">{t('orders.user_percentage')}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    className="form-control"
+                    value={resolveForm.data.user_percentage}
+                    onChange={(e) => {
+                      setResolveClientError(null);
+                      resolveForm.setData('user_percentage', Number(e.target.value));
+                    }}
+                  />
+                  <div className="text-muted fs-8 mt-1">
+                    {t('orders.split_preview', {
+                      user: Number(resolveForm.data.user_percentage) || 0,
+                      provider: 100 - (Number(resolveForm.data.user_percentage) || 0),
+                    })}
+                  </div>
+                  {(resolveClientError || resolveForm.errors.user_percentage) && (
+                    <div className="text-danger fs-7 mt-1">
+                      {resolveClientError || resolveForm.errors.user_percentage}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div>
+                <label className="form-label">{t('notes')}</label>
+                <textarea
+                  className="form-control"
+                  rows={3}
+                  value={resolveForm.data.notes}
+                  onChange={(e) => resolveForm.setData('notes', e.target.value)}
+                />
+              </div>
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="light" onClick={() => setShowResolveModal(false)}>
+              {t('cancel')}
+            </Button>
+            <Button
+              variant="primary"
+              disabled={
+                resolveForm.processing ||
+                resolveForm.data.resolution === '' ||
+                (resolveForm.data.resolution === 'percentage_split' &&
+                  !isValidUserPercentage(Number(resolveForm.data.user_percentage)))
+              }
+              onClick={submitResolveDispute}
+            >
+              {t('orders.resolve_dispute_confirm')}
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </Content>
     </>
   );

@@ -64,6 +64,8 @@ class OrderResource extends JsonResource
             'reviews' => ReviewResource::collection($this->whenLoaded('reviews')),
             'media' => MediaResource::collection($this->whenLoaded('media')),
             'conversation' => ConversationResource::make($this->whenLoaded('conversation')),
+            'status_histories' => StatusHistoryResource::collection($this->whenLoaded('histories')),
+            'dispute_resolution' => $this->disputeResolutionForApi(),
             'cancellation_reason' => $this->cancellation_reason,
             'cancelled_at' => $this->cancelled_at?->toIso8601String(),
         ];

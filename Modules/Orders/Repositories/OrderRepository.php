@@ -371,6 +371,7 @@ class OrderRepository implements OrderRepositoryInterface
             'reviews',
             'conversation.user1',
             'conversation.user2',
+            'histories.actor',
         ]);
         $order->loadCount([
             'offers',

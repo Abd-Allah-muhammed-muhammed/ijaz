@@ -31,6 +31,14 @@ class RouteServiceProvider extends BaseModuleRouteServiceProvider
         Route::middleware('api')
             ->prefix($prefix)
             ->group($routesPath);
+
+        $disputePath = module_path($this->moduleName, 'Routes/'.$version.'/dispute.php');
+
+        if (is_file($disputePath)) {
+            Route::middleware('api')
+                ->prefix($prefix)
+                ->group($disputePath);
+        }
     }
 
     protected function mapProviderRoutes(): void

@@ -22,6 +22,10 @@ class EndProviderOrderAction
             abort(404);
         }
 
+        if ($order->status->is(OrderStatusEnum::Disputed)) {
+            throw new OrdersException('you can not ed this order', Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         if ($order->status->isNotIn([OrderStatusEnum::InProgress])) {
             throw new OrdersException('you can not ed this order', Response::HTTP_BAD_REQUEST);
         }

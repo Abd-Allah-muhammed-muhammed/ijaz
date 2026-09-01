@@ -18,8 +18,13 @@ use Modules\Orders\Actions\Dashboard\GetOrderStatusDistributionAction;
 use Modules\Orders\Actions\Dashboard\ListDashboardHomeWindowedOrdersAction;
 use Modules\Orders\Actions\Dashboard\ListDashboardOrdersAction;
 use Modules\Orders\Actions\Dashboard\ListOrderConversationMessagesAction;
+use Modules\Orders\Actions\Dashboard\ResolveOrderDisputeEscalateAction;
+use Modules\Orders\Actions\Dashboard\ResolveOrderDisputeFullToClientAction;
+use Modules\Orders\Actions\Dashboard\ResolveOrderDisputeFullToProviderAction;
+use Modules\Orders\Actions\Dashboard\ResolveOrderDisputePercentageSplitAction;
 use Modules\Orders\Actions\Dashboard\SendAdminOrderConversationMessageAction;
 use Modules\Orders\Actions\Dashboard\ShowDashboardOrderAction;
+use Modules\Orders\Actions\OpenOrderDisputeAction;
 use Modules\Orders\Actions\Provider\EndProviderOrderAction;
 use Modules\Orders\Actions\Provider\GetProviderHomeOrderStatsAction;
 use Modules\Orders\Actions\Provider\ListProviderHomeRecommendedOrdersAction;
@@ -40,6 +45,8 @@ use Modules\Orders\DTOs\CancelOrderDTO;
 use Modules\Orders\DTOs\EndAndReviewDTO;
 use Modules\Orders\DTOs\StoreOrderDTO;
 use Modules\Orders\DTOs\UpdateOrderDTO;
+use Modules\Orders\Enums\OrderDisputeResolutionEnum;
+use Modules\Orders\Http\Requests\Dashboard\ResolveOrderDisputeRequest;
 use Modules\Orders\Models\Order;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Throwable;
@@ -72,6 +79,11 @@ class OrderService
         private readonly ListOrderConversationMessagesAction $listConversationMessages,
         private readonly SendAdminOrderConversationMessageAction $sendAdminConversationMessage,
         private readonly BroadcastAdminOrderConversationTypingAction $broadcastAdminConversationTyping,
+        private readonly OpenOrderDisputeAction $openOrderDisputeAction,
+        private readonly ResolveOrderDisputeFullToProviderAction $resolveOrderDisputeFullToProviderAction,
+        private readonly ResolveOrderDisputeFullToClientAction $resolveOrderDisputeFullToClientAction,
+        private readonly ResolveOrderDisputeEscalateAction $resolveOrderDisputeEscalateAction,
+        private readonly ResolveOrderDisputePercentageSplitAction $resolveOrderDisputePercentageSplitAction,
     ) {}
 
     public function listForUser(User $user, int $perPage): LengthAwarePaginator
@@ -250,5 +262,53 @@ class OrderService
     public function typingAsAdmin(Order $order, Admin $admin): void
     {
         $this->broadcastAdminConversationTyping->handle($order, $admin);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function openDispute(
+        Order $order,
+        Authenticatable $actor,
+        string $actorRole,
+        string $reason,
+    ): Order {
+        return $this->openOrderDisputeAction->handle($order, $actor, $actorRole, $reason);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function resolveDispute(
+        Order $order,
+        ResolveOrderDisputeRequest $formRequest,
+        Admin $admin,
+    ): Order {
+        $resolution = OrderDisputeResolutionEnum::from($formRequest->validated('resolution'));
+        $notes = $formRequest->validated('notes');
+
+        return match ($resolution) {
+            OrderDisputeResolutionEnum::FullProvider => $this->resolveOrderDisputeFullToProviderAction->handle(
+                $order,
+                $admin,
+                $notes,
+            ),
+            OrderDisputeResolutionEnum::FullUser => $this->resolveOrderDisputeFullToClientAction->handle(
+                $order,
+                $admin,
+                $notes,
+            ),
+            OrderDisputeResolutionEnum::Escalate => $this->resolveOrderDisputeEscalateAction->handle(
+                $order,
+                $admin,
+                $notes,
+            ),
+            OrderDisputeResolutionEnum::PercentageSplit => $this->resolveOrderDisputePercentageSplitAction->handle(
+                $order,
+                $admin,
+                (int) $formRequest->validated('user_percentage'),
+                $notes,
+            ),
+        };
     }
 }

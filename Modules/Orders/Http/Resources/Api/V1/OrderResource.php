@@ -54,6 +54,7 @@ class OrderResource extends JsonResource
             'provider_fees' => $this->provider_fees,
             'cancellation_reason' => $this->cancellation_reason,
             'cancelled_at' => $this->cancelled_at?->toIso8601String(),
+            'dispute_resolution' => $this->disputeResolutionForApi(),
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace Modules\Orders\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -13,6 +14,7 @@ use Modules\Chat\Http\Requests\ListConversationMessagesRequest;
 use Modules\Chat\Http\Requests\SendSupportMessageRequest;
 use Modules\Chat\Http\Resources\ConversationMessageCollection;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
+use Modules\Orders\Http\Requests\Dashboard\ResolveOrderDisputeRequest;
 use Modules\Orders\Http\Resources\Dashboard\OrderCollection;
 use Modules\Orders\Http\Resources\Dashboard\OrderResource;
 use Modules\Orders\Models\Order;
@@ -31,6 +33,7 @@ class OrderController extends Controller implements HasMiddleware
         return [
             new Middleware('permission:show orders', only: ['index', 'show', 'conversationMessages']),
             new Middleware('permission:edit orders', only: ['sendConversationMessage', 'conversationTyping']),
+            new Middleware('permission:manage orders', only: ['resolveDispute']),
         ];
     }
 
@@ -116,5 +119,12 @@ class OrderController extends Controller implements HasMiddleware
         $this->orderService->typingAsAdmin($order, auth('admin')->user());
 
         return $this->successResponse([]);
+    }
+
+    public function resolveDispute(ResolveOrderDisputeRequest $request, Order $order): RedirectResponse
+    {
+        $this->orderService->resolveDispute($order, $request, auth('admin')->user());
+
+        return back()->with('success', __('data saved successfully'));
     }
 }

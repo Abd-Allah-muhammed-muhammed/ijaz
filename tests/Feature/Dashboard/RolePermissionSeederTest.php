@@ -19,13 +19,13 @@ beforeEach(function (): void {
 function expectedRolePermissionCounts(): array
 {
     return [
-        'super-admin' => 126,
-        'operations' => 12,
-        'finance' => 7,
+        'super-admin' => 127,
+        'operations' => 13,
+        'finance' => 8,
         'support' => 8,
         'content-manager' => 56,
         'viewer-monitor' => 1,
-        'developer' => 102,
+        'developer' => 103,
     ];
 }
 
@@ -40,7 +40,7 @@ it('seeds every declared admin permission name', function (): void {
         ->all();
 
     expect($actual)->toEqualCanonicalizing($expected)
-        ->and($actual)->toHaveCount(126);
+        ->and($actual)->toHaveCount(127);
 });
 
 it('keeps super-admin synced to every admin permission', function (): void {
@@ -49,7 +49,7 @@ it('keeps super-admin synced to every admin permission', function (): void {
 
     expect($role->permissions->pluck('name')->sort()->values()->all())
         ->toEqual($all->all())
-        ->and($role->permissions)->toHaveCount(126);
+        ->and($role->permissions)->toHaveCount(127);
 });
 
 it('is idempotent when re-seeded', function (): void {

@@ -45,7 +45,34 @@ class Order extends Model implements HasMedia
         'budget_end', 'accepted_offer_id', 'city_id', 'region_id',
         'user_fees', 'provider_fees', 'total_fees', 'user_total', 'provider_total',
         'wallet_settled_at', 'cancellation_reason', 'cancelled_at',
+        'dispute_user_percentage', 'dispute_user_amount', 'dispute_provider_amount',
     ];
+
+    /**
+     * Percentage-split dispute resolution snapshot for API consumers.
+     *
+     * @return array{
+     *     user_percentage: int,
+     *     provider_percentage: int,
+     *     user_amount: string,
+     *     provider_amount: string
+     * }|null
+     */
+    public function disputeResolutionForApi(): ?array
+    {
+        if ($this->dispute_user_percentage === null) {
+            return null;
+        }
+
+        $userPercentage = (int) $this->dispute_user_percentage;
+
+        return [
+            'user_percentage' => $userPercentage,
+            'provider_percentage' => 100 - $userPercentage,
+            'user_amount' => number_format((float) $this->dispute_user_amount, 2, '.', ''),
+            'provider_amount' => number_format((float) $this->dispute_provider_amount, 2, '.', ''),
+        ];
+    }
 
     protected static function newFactory(): Factory
     {
@@ -114,6 +141,8 @@ class Order extends Model implements HasMedia
             'status' => OrderStatusEnum::class,
             'wallet_settled_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'dispute_user_amount' => 'decimal:2',
+            'dispute_provider_amount' => 'decimal:2',
         ];
     }
 
