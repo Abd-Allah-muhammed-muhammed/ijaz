@@ -1018,6 +1018,8 @@
     "order_has_been_created": "آپ کا آرڈر کامیابی سے بنا دیا گیا ہے۔",
     "order_ended_by_provider": "فراہم کنندہ نے آرڈر ختم کر دیا",
     "order_has_been_ended_by_provider": "فراہم کنندہ نے اس آرڈر کو مکمل قرار دے دیا ہے۔",
+    "order_ended_by_client": "کلائنٹ نے آرڈر ختم کر دیا",
+    "order_has_been_ended_by_client_with_review": "کلائنٹ نے اس آرڈر کو مکمل قرار دیا اور ایک جائزہ چھوڑا۔",
     "order_payment_completed": "آرڈر کی ادائیگی مکمل",
     "order_payment_has_been_completed": "ادائیگی مکمل ہو گئی اور آرڈر اب جاری ہے۔",
     "order_payment_failed": "آرڈر کی ادائیگی ناکام",

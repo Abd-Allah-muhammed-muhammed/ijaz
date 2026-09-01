@@ -2,6 +2,7 @@
 
 namespace Modules\Orders\Notifications;
 
+use App\Models\Provider;
 use App\Notifications\DomainNotification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
@@ -36,6 +37,11 @@ class OrderOfferAcceptedNotification extends DomainNotification implements Shoul
             'offer_id' => $this->offer->id,
             'screen' => 'orders',
         ];
+    }
+
+    protected function sendsFirebase(object $notifiable): bool
+    {
+        return $notifiable instanceof Provider;
     }
 
     public function broadcastType(): string

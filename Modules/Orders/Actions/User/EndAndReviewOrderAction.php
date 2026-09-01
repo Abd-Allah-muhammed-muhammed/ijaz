@@ -8,6 +8,7 @@ use Modules\Orders\DTOs\EndAndReviewDTO;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Exceptions\OrdersException;
 use Modules\Orders\Models\Order;
+use Modules\Orders\Notifications\OrderEndedByClientNotification;
 use Modules\Reviews\Services\ReviewService;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
@@ -30,7 +31,7 @@ class EndAndReviewOrderAction
             throw new OrdersException('you can not end this order', Response::HTTP_BAD_REQUEST);
         }
 
-        DB::transaction(function () use ($order, $user, $data) {
+        DB::transaction(function () use ($order, $user, $data): void {
             $order->update(['status' => OrderStatusEnum::EndedByClient]);
             $this->reviewService->submit(
                 reviewer: $user,
@@ -39,6 +40,12 @@ class EndAndReviewOrderAction
                 rating: $data->rating,
                 comment: $data->comment,
             );
+
+            $order->loadMissing('provider');
+
+            if ($order->provider !== null) {
+                $order->provider->notify(new OrderEndedByClientNotification($order->fresh(), $data->rating));
+            }
         });
     }
 }

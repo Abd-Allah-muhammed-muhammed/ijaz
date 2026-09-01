@@ -1019,6 +1019,8 @@
     "order_has_been_created": "आपका ऑर्डर सफलतापूर्वक बनाया गया है।",
     "order_ended_by_provider": "प्रदाता द्वारा ऑर्डर समाप्त",
     "order_has_been_ended_by_provider": "प्रदाता ने इस ऑर्डर को पूर्ण चिह्नित कर दिया है।",
+    "order_ended_by_client": "ग्राहक द्वारा ऑर्डर समाप्त",
+    "order_has_been_ended_by_client_with_review": "ग्राहक ने इस ऑर्डर को पूर्ण चिह्नित किया और एक समीक्षा छोड़ी।",
     "order_payment_completed": "ऑर्डर भुगतान पूर्ण",
     "order_payment_has_been_completed": "भुगतान पूरा हो गया और ऑर्डर अब प्रगति पर है।",
     "order_payment_failed": "ऑर्डर भुगतान विफल",

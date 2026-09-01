@@ -1113,6 +1113,8 @@
     "order_has_been_created": "تم إنشاء طلبك بنجاح.",
     "order_ended_by_provider": "انتهى الطلب من قبل مزود الخدمة",
     "order_has_been_ended_by_provider": "قام مزود الخدمة بتعليم هذا الطلب كمكتمل.",
+    "order_ended_by_client": "انتهى الطلب من قبل العميل",
+    "order_has_been_ended_by_client_with_review": "قام العميل بتعليم هذا الطلب كمكتمل وترك تقييماً.",
     "order_payment_completed": "اكتمل دفع الطلب",
     "order_payment_has_been_completed": "تم إكمال الدفع وأصبح الطلب قيد التنفيذ.",
     "order_payment_failed": "فشل دفع الطلب",

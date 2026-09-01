@@ -1193,6 +1193,8 @@
     "order_has_been_created": "Your order has been created successfully.",
     "order_ended_by_provider": "Order ended by provider",
     "order_has_been_ended_by_provider": "The provider has marked this order as complete.",
+    "order_ended_by_client": "Order ended by client",
+    "order_has_been_ended_by_client_with_review": "The client marked this order complete and left a review.",
     "order_payment_completed": "Order payment completed",
     "order_payment_has_been_completed": "Payment was completed and the order is now in progress.",
     "order_payment_failed": "Order payment failed",

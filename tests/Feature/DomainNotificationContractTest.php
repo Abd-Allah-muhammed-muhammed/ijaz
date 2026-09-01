@@ -102,7 +102,7 @@ describe('Orders domain notification contracts', function (): void {
         $provider = domainNotifiableProvider();
 
         expect($notification->via($user))->toBe(['database', 'broadcast'])
-            ->and($notification->via($provider))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification)->toBeInstanceOf(ShouldBroadcastNow::class)
             ->and($notification)->toBeInstanceOf(ShouldQueue::class)
             ->and($notification)->not->toBeInstanceOf(ShouldDispatchAfterCommit::class)
@@ -226,8 +226,10 @@ describe('Orders domain notification contracts', function (): void {
         $offer = createDomainOrderOffer($order);
         $notification = new OrderOfferAcceptedNotification($offer);
         $user = domainNotifiableUser();
+        $provider = domainNotifiableProvider();
 
         expect($notification->via($user))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification)->toBeInstanceOf(ShouldDispatchAfterCommit::class)
             ->and($notification->broadcastType())->toBe('order offer accepted')
             ->and($notification->toArray($user))->toBe([
@@ -263,8 +265,10 @@ describe('Orders domain notification contracts', function (): void {
         $offer = createDomainOrderOffer($order);
         $notification = new OrderOfferRejectedNotification($offer);
         $user = domainNotifiableUser();
+        $provider = domainNotifiableProvider();
 
         expect($notification->via($user))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('order offer rejected')
             ->and($notification->toArray($user))->toBe([
                 'title_translated_key' => 'order_offer_rejected',
@@ -299,8 +303,10 @@ describe('Orders domain notification contracts', function (): void {
         $offer = createDomainOrderOffer($order);
         $notification = new OrderOfferCanceledNotification($offer);
         $user = domainNotifiableUser();
+        $provider = domainNotifiableProvider();
 
         expect($notification->via($user))->toBe(['database', 'broadcast'])
+            ->and($notification->via($provider))->toBe(['database', 'broadcast', 'firebase'])
             ->and($notification->broadcastType())->toBe('order offer canceled')
             ->and($notification->toArray($user))->toBe([
                 'title_translated_key' => 'order_offer_canceled',
