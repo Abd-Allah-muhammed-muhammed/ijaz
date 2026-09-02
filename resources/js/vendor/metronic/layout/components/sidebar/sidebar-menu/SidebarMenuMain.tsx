@@ -28,6 +28,7 @@ import PayoutRequestController from '@/actions/Modules/Payout/Http/Controllers/D
 import useActiveRoute from '@/shared/hooks/use-active-route';
 import usePermissions from '@/shared/hooks/use-permissions';
 import { useTranslation } from 'react-i18next';
+import { ORDERS_PAGE_TITLE_KEY } from '@/shared/i18n/orders-label';
 import { SidebarMenuItem } from './SidebarMenuItem';
 import DeviceCategoryController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/DeviceCategoryController';
 import ElectronicBrandController from '@/actions/Modules/Catalog/Http/Controllers/Dashboard/ElectronicBrandController';
@@ -61,14 +62,14 @@ const SidebarMenuMain = () => {
         <>
           <div className="menu-item">
             <div className="menu-content pt-8 pb-2">
-              <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t('orders')}</span>
+              <span className="menu-section text-muted text-uppercase fs-8 ls-1">{t(ORDERS_PAGE_TITLE_KEY)}</span>
             </div>
           </div>
           <SidebarMenuItem
             isActive={matchComponents('dashboard.orders.*')}
             to={OrderController.index().url}
             icon="basket"
-            title={t('orders')}
+            title={t(ORDERS_PAGE_TITLE_KEY)}
             fontIcon="bi-cart"
             show={hasPermission('show orders')}
           />

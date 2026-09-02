@@ -13,6 +13,7 @@ import OrderCard from "@/shared/components/order/order-card";
 import {Col, Row} from "react-bootstrap";
 import {OrderStatusEnum} from "@/Enums/Order";
 import {applyFilterParam, visitWithFilters} from "@/shared/lib/filters";
+import { ORDERS_PAGE_TITLE_KEY } from '@/shared/i18n/orders-label';
 
 type Props = {
   rows: PaginationResource<Order>,
@@ -47,7 +48,7 @@ const Index = (
   };
   return (
     <>
-      <Head title={t('orders')}/>
+      <Head title={t(ORDERS_PAGE_TITLE_KEY)}/>
       <PageTitle breadcrumbs={[
         {
           title: '',
@@ -56,7 +57,7 @@ const Index = (
           isActive: false,
         },
       ]}>
-        {t('orders')}
+        {t(ORDERS_PAGE_TITLE_KEY)}
       </PageTitle>
       <ToolbarWrapper/>
       <Content>

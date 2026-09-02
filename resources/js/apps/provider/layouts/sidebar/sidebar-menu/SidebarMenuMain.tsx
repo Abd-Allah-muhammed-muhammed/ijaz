@@ -8,6 +8,7 @@ import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/
 import AuthController from "@/actions/App/Http/Controllers/Provider/AuthController";
 import WithdrawController from '@/actions/Modules/Wallet/Http/Controllers/Provider/WithdrawController';
 import { useTranslation } from 'react-i18next';
+import { ORDERS_PAGE_TITLE_KEY } from '@/shared/i18n/orders-label';
 
 const SidebarMenuMain = () => {
   const {matchUrl, matchComponents} = useActiveRoute();
@@ -23,7 +24,7 @@ const SidebarMenuMain = () => {
       />
       <div className='menu-item'>
         <div className='menu-content pt-8 pb-2'>
-          <span className='menu-section text-muted text-uppercase fs-8 ls-1'>{t('orders')}</span>
+          <span className='menu-section text-muted text-uppercase fs-8 ls-1'>{t(ORDERS_PAGE_TITLE_KEY)}</span>
         </div>
       </div>
 

@@ -18,6 +18,7 @@ import axios from '@/shared/helpers/axios';
 import ProviderChatIndexController from '@/actions/Modules/Orders/Http/Controllers/Provider/ProviderChatIndexController';
 import ProviderOrderChatController from '@/actions/Modules/Chat/Http/Controllers/Provider/OrderChatController';
 import { formatCurrency, formatDateTime } from '@/shared/lib/formatters';
+import { ORDERS_PAGE_TITLE_KEY } from '@/shared/i18n/orders-label';
 import withReactContent from 'sweetalert2-react-content';
 import Swal from 'sweetalert2';
 import {
@@ -232,7 +233,7 @@ const Show = ({ order }: Props) => {
 
   return (
     <>
-      <Head title={t('orders')} />
+      <Head title={t(ORDERS_PAGE_TITLE_KEY)} />
       <Content>
         <Row className="g-5 g-lg-7">
           <Col sm={12} lg={8}>

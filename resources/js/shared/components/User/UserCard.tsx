@@ -3,6 +3,7 @@ import { FC } from 'react'
 import UserMenu from "@/shared/components/User/UserMenu";
 import { User } from "@/shared/types/models";
 import { useTranslation } from 'react-i18next';
+import { ORDERS_PAGE_TITLE_KEY } from '@/shared/i18n/orders-label';
 
 type Props = {
   user: User
@@ -63,7 +64,7 @@ const UserCard: FC<Props> = ({ user }: Props) => {
         <div className='d-flex flex-stack w-100 mb-6 bg-light rounded p-4'>
           <div className='d-flex flex-column align-items-center'>
             <span className='fs-5 fw-bold text-gray-900'>{user.orders_count || 0}</span>
-            <span className='fs-8 text-muted fw-bold text-uppercase'>{t('orders')}</span>
+            <span className='fs-8 text-muted fw-bold text-uppercase'>{t(ORDERS_PAGE_TITLE_KEY)}</span>
           </div>
           <div className='bullet bg-gray-300 h-25px w-1px mx-2'></div>
           <div className='d-flex flex-column align-items-center'>

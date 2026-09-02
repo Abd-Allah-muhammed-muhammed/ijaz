@@ -291,7 +291,7 @@
     "orders.dispute_resolution.percentage_split": "Percentage split",
     "orders.dispute_resolution.escalate": "Escalate",
     "Order": "Order",
-    "orders": "Orders",
+    "orders_label": "Orders",
     "order_count": "Order Count",
     "order_status": "Order Status",
     "service_count": "Service Count",

@@ -12,6 +12,7 @@ import { Order, Provider, User } from '@/shared/types/models';
 import UserController from '@/actions/App/Http/Controllers/Dashboard/UserController';
 import ProviderController from '@/actions/App/Http/Controllers/Dashboard/ProviderController';
 import { KTIcon } from '@/vendor/metronic/helpers';
+import { ORDERS_PAGE_TITLE_KEY } from '@/shared/i18n/orders-label';
 
 type Props = {
   stats: {
@@ -308,7 +309,7 @@ const UserItem = ({ user, isLast, t }: { user: User; isLast: boolean; t: (key: s
           </span>
           <span className='badge badge-light-success fw-semibold fs-8 px-2 py-1'>
             <KTIcon iconName='basket' className='text-success fs-9 me-1' />
-            {user.orders_count || 0} {t('orders')}
+            {user.orders_count || 0} {t(ORDERS_PAGE_TITLE_KEY)}
           </span>
         </div>
       </div>
@@ -342,7 +343,7 @@ const ProviderItem = ({ provider, isLast, t }: { provider: Provider; isLast: boo
           </span>
           <span className='badge badge-light-success fw-semibold fs-8 px-2 py-1'>
             <KTIcon iconName='basket' className='text-success fs-9 me-1' />
-            {provider.orders_count || 0} {t('orders')}
+            {provider.orders_count || 0} {t(ORDERS_PAGE_TITLE_KEY)}
           </span>
           <span className='badge badge-light-warning fw-semibold fs-8 px-2 py-1'>
             <KTIcon iconName='star' className='text-warning fs-9 me-1' />

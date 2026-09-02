@@ -276,7 +276,7 @@
     "service": "الخدمة",
     "order": "طلب",
     "Order": "طلب",
-    "orders": "الطلبات",
+    "orders_label": "الطلبات",
     "order_count": "عدد الطلبات",
     "order_status": "حالة الطلب",
     "service_count": "عدد الخدمات",

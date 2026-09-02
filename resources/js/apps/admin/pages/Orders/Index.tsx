@@ -14,6 +14,7 @@ import { Col, Row } from "react-bootstrap";
 import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
 import { OrderStatusEnum } from "@/Enums/Order";
 import { applyFilterParam, visitWithFilters } from "@/shared/lib/filters";
+import { ORDERS_PAGE_TITLE_KEY } from '@/shared/i18n/orders-label';
 
 
 type Props = {
@@ -57,7 +58,7 @@ const Index = (
   };
   return (
     <>
-      <Head title={t('orders')} />
+      <Head title={t(ORDERS_PAGE_TITLE_KEY)} />
       <PageTitle breadcrumbs={[
         {
           title: '',
@@ -66,7 +67,7 @@ const Index = (
           isActive: false,
         },
       ]}>
-        {t('orders')}
+        {t(ORDERS_PAGE_TITLE_KEY)}
       </PageTitle>
       <ToolbarWrapper />
       <Content>

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import ReactApexChart from 'react-apexcharts'
 import { ApexOptions } from 'apexcharts'
 import { getCSSVariableValue } from '@/vendor/metronic/assets/ts/_utils'
+import { ORDERS_PAGE_TITLE_KEY } from '@/shared/i18n/orders-label'
 
 type RegistrationChartsProps = {
   dates: string[]
@@ -218,7 +219,7 @@ export const OrderStatusChart: React.FC<OrderStatusChartProps> = ({ distribution
             show: true,
             total: {
               show: true,
-              label: t('orders'),
+              label: t(ORDERS_PAGE_TITLE_KEY),
               formatter: () => series.reduce((a, b) => a + b, 0).toString(),
             },
           },

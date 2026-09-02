@@ -272,7 +272,7 @@
     "service": "सेवा",
     "order": "ऑर्डर",
     "Order": "ऑर्डर",
-    "orders": "ऑर्डर",
+    "orders_label": "ऑर्डर",
     "order_count": "ऑर्डर की संख्या",
     "order_status": "ऑर्डर स्थिति",
     "service_count": "सेवाओं की संख्या",
