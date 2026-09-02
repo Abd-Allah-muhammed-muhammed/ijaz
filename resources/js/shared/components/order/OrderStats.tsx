@@ -6,6 +6,7 @@ type Props = {
         total: number;
         active: number;
         pending: number;
+        disputed: number;
         completed: number;
         cancelled: number;
     };
@@ -32,28 +33,35 @@ const OrderStats = ({ stats }: Props) => {
         {
             title: t('pending_orders'),
             value: stats.pending,
-            icon: 'time', // changed to time icon which usually looks like clock
+            icon: 'time',
             color: 'warning',
             bg: 'bg-light-warning',
         },
         {
+            title: t('disputed'),
+            value: stats.disputed,
+            icon: 'information-5',
+            color: 'danger',
+            bg: 'bg-light-danger',
+        },
+        {
             title: t('completed_orders'),
             value: stats.completed,
-            icon: 'check-circle', // abstract-20 might not be check
+            icon: 'check-circle',
             color: 'success',
             bg: 'bg-light-success',
         },
         {
             title: t('cancelled_orders'),
             value: stats.cancelled,
-            icon: 'cross-circle', // abstract-12 might not be cross
+            icon: 'cross-circle',
             color: 'danger',
             bg: 'bg-light-danger',
         },
     ];
 
     return (
-        <div className='row row-cols-1 row-cols-sm-2 row-cols-xl-5 g-5 g-xl-8 mb-5'>
+        <div className='row row-cols-1 row-cols-sm-2 row-cols-xl-6 g-5 g-xl-8 mb-5'>
             {statItems.map((item, index) => (
                 <div className='col' key={index}>
                     <div className={`card card-xl-stretch mb-xl-8 ${item.bg} border-0 shadow-sm`}>

@@ -1,4 +1,5 @@
 import { Head } from "@inertiajs/react";
+import { ReactElement, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PageTitle } from "@/vendor/metronic/layout/core";
 import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
@@ -12,18 +13,24 @@ import OrderCard from "@/shared/components/order/order-card";
 import OrderStats from "@/shared/components/order/OrderStats";
 import { Col, Row } from "react-bootstrap";
 import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
-import { OrderStatusEnum } from "@/Enums/Order";
 import { applyFilterParam, visitWithFilters } from "@/shared/lib/filters";
 import { ORDERS_PAGE_TITLE_KEY } from '@/shared/i18n/orders-label';
 
+type StatusOption = {
+  value: string;
+  label: string;
+  color: string;
+};
 
 type Props = {
   rows: PaginationResource<Order>,
   prams: SearchPrams | null;
+  selects: { statuses: StatusOption[] };
   stats: {
     total: number;
     active: number;
     pending: number;
+    disputed: number;
     completed: number;
     cancelled: number;
   };
@@ -36,10 +43,12 @@ type SearchPrams = {
   date_from?: string;
   date_to?: string;
 };
+
 const Index = (
   {
     rows,
     prams,
+    selects,
     stats,
   }: Props
 ) => {
@@ -48,14 +57,35 @@ const Index = (
     per_page: 10,
     search: '',
   };
-  const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
+  const [searchValue, setSearchValue] = useState(searchPrams.search ?? '');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const searchPramsChanged = (name: keyof SearchPrams, value: string | number | undefined) => {
     const next = applyFilterParam(
       { ...searchPrams } as Record<string, unknown>,
       name,
       value,
     );
-    visitWithFilters(OrderController.index().url, next, { only: ['rows', 'prams'] });
+    visitWithFilters(OrderController.index().url, next, { only: ['rows', 'prams', 'stats'] });
   };
+
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      if (searchValue !== (searchPrams.search ?? '')) {
+        searchPramsChanged('search', searchValue || undefined);
+      }
+    }, 400);
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [searchValue]);
+
   return (
     <>
       <Head title={t(ORDERS_PAGE_TITLE_KEY)} />
@@ -78,15 +108,11 @@ const Index = (
               <KTIcon iconName='magnifier' className='fs-1 position-absolute ms-6' />
               <input
                 type='text'
-                defaultValue={searchPrams.search}
+                value={searchValue}
                 data-kt-user-table-filter='search'
                 className='form-control  ps-14'
                 placeholder={t('search')}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    searchPramsChanged('search', e.currentTarget.value)
-                  }
-                }}
+                onChange={(e) => setSearchValue(e.target.value)}
               />
             </div>
           </h3>
@@ -102,9 +128,9 @@ const Index = (
                 onChange={(e) => searchPramsChanged('status', e.target.value)}
                 >
                 <option value=''>{t('all')}</option>
-                {Object.values(OrderStatusEnum).map((status) => (
-                    <option key={status} value={status}>
-                    {t(status)}
+                {selects.statuses.map((status) => (
+                    <option key={status.value} value={status.value}>
+                    {status.label}
                     </option>
                 ))}
                 </select>
@@ -143,7 +169,7 @@ const Index = (
 }
 
 
-Index.layout = (page: React.ReactNode) => {
+Index.layout = (page: ReactElement) => {
   return <MasterLayout>{page}</MasterLayout>
 }
 

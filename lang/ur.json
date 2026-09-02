@@ -594,6 +594,7 @@
     "percentage": "فیصد",
     "cancelled_by_provider": "فراہم کنندہ کی طرف سے منسوخ",
     "cancelled_by_client": "کلائنٹ کی طرف سے منسوخ",
+    "cancelled": "منسوخ",
     "disputed": "متنازعہ",
     "ended_via_dispute": "تنازعہ کے ذریعے ختم",
     "cancelled_via_dispute": "تنازعہ کے ذریعے منسوخ",

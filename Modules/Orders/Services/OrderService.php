@@ -13,6 +13,7 @@ use Modules\Chat\DTOs\ChatMessageData;
 use Modules\Chat\Models\ConversationMessage;
 use Modules\Orders\Actions\CancelOrderAction;
 use Modules\Orders\Actions\Dashboard\BroadcastAdminOrderConversationTypingAction;
+use Modules\Orders\Actions\Dashboard\CancelOrderDuringDisputeAction;
 use Modules\Orders\Actions\Dashboard\CountAllOrdersAction;
 use Modules\Orders\Actions\Dashboard\GetOrderStatusDistributionAction;
 use Modules\Orders\Actions\Dashboard\ListDashboardHomeWindowedOrdersAction;
@@ -46,6 +47,7 @@ use Modules\Orders\DTOs\EndAndReviewDTO;
 use Modules\Orders\DTOs\StoreOrderDTO;
 use Modules\Orders\DTOs\UpdateOrderDTO;
 use Modules\Orders\Enums\OrderDisputeResolutionEnum;
+use Modules\Orders\Http\Requests\Dashboard\CancelOrderDuringDisputeRequest;
 use Modules\Orders\Http\Requests\Dashboard\ResolveOrderDisputeRequest;
 use Modules\Orders\Models\Order;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -84,6 +86,7 @@ class OrderService
         private readonly ResolveOrderDisputeFullToClientAction $resolveOrderDisputeFullToClientAction,
         private readonly ResolveOrderDisputeEscalateAction $resolveOrderDisputeEscalateAction,
         private readonly ResolveOrderDisputePercentageSplitAction $resolveOrderDisputePercentageSplitAction,
+        private readonly CancelOrderDuringDisputeAction $cancelOrderDuringDisputeAction,
     ) {}
 
     public function listForUser(User $user, int $perPage): LengthAwarePaginator
@@ -310,5 +313,21 @@ class OrderService
                 $notes,
             ),
         };
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function cancelDuringDispute(
+        Order $order,
+        CancelOrderDuringDisputeRequest $formRequest,
+        Admin $admin,
+    ): void {
+        $this->cancelOrderDuringDisputeAction->handle(
+            $order,
+            $formRequest->validated('reason'),
+            $formRequest->validated('notes'),
+            $admin,
+        );
     }
 }

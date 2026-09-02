@@ -20,5 +20,6 @@ Route::middleware([
         Route::post('/{order}/conversation-messages', 'sendConversationMessage')->name('conversation-messages.store');
         Route::post('/{order}/conversation-typing', 'conversationTyping')->name('conversation-typing');
         Route::put('/{order}/resolve-dispute', 'resolveDispute')->name('resolveDispute');
+        Route::post('/{order}/cancel', 'cancel')->name('cancel');
     });
 });

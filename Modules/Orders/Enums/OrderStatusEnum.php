@@ -16,6 +16,7 @@ enum OrderStatusEnum: string
     case PaymentCompleted = 'payment_completed';
     case InProgress = 'in_progress';
     case Disputed = 'disputed';
+    case Cancelled = 'cancelled';
     case CancelledByProvider = 'cancelled_by_provider';
     case CancelledByClient = 'cancelled_by_client';
     case CancelledViaDispute = 'cancelled_via_dispute';
@@ -41,7 +42,7 @@ enum OrderStatusEnum: string
             self::OfferProvided, self::InProgress => 'info',
             self::PaymentCompleted => 'warning',
             self::Disputed => 'danger',
-            self::CancelledByClient, self::CancelledByProvider, self::CancelledViaDispute => 'danger',
+            self::Cancelled, self::CancelledByClient, self::CancelledByProvider, self::CancelledViaDispute => 'danger',
             self::EndedByClient, self::EndedByProvider, self::EndedViaDispute => 'success',
             self::Escalated => 'dark',
             self::Settled => 'success',
@@ -59,6 +60,7 @@ enum OrderStatusEnum: string
     public static function terminalCases(): array
     {
         return [
+            self::Cancelled,
             self::CancelledByProvider,
             self::CancelledByClient,
             self::CancelledViaDispute,
@@ -79,6 +81,33 @@ enum OrderStatusEnum: string
             static fn (self $status): string => $status->value,
             self::terminalCases(),
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function endedAggregateValues(): array
+    {
+        return [
+            self::EndedByProvider->value,
+            self::EndedByClient->value,
+            self::EndedViaDispute->value,
+            self::Settled->value,
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function cancelledAggregateValues(): array
+    {
+        return [
+            self::Cancelled->value,
+            self::CancelledByProvider->value,
+            self::CancelledByClient->value,
+            self::CancelledViaDispute->value,
+            self::Escalated->value,
+        ];
     }
 
     public static function isAllowed(self $old, self $new, string $actor): bool

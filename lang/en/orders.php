@@ -12,6 +12,8 @@ return [
     'dispute_outcome_escalated' => 'Escalated to court',
     'dispute_outcome_percentage_split' => 'Resolved via percentage split',
     'dispute_outcome_percentage_split_detail' => 'Split :user% client / :provider% provider',
+    'dispute_outcome_admin_cancel' => 'Closed by admin cancellation during dispute',
+    'dispute_closed' => 'Dispute closed',
     'status_transition_not_allowed' => 'This status transition is not allowed',
     'dispute_already_resolved' => 'This dispute has already been resolved',
     'invalid_user_percentage' => 'Invalid user percentage',

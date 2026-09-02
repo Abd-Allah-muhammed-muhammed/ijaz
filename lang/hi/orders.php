@@ -12,6 +12,8 @@ return [
     'dispute_outcome_escalated' => 'अदालत में एस्केलेट',
     'dispute_outcome_percentage_split' => 'प्रतिशत विभाजन से हल',
     'dispute_outcome_percentage_split_detail' => 'विभाजन :user% ग्राहक / :provider% प्रदाता',
+    'dispute_outcome_admin_cancel' => 'विवाद के दौरान एडमिन रद्दीकरण से बंद',
+    'dispute_closed' => 'विवाद बंद',
     'status_transition_not_allowed' => 'स्थिति संक्रमण अनुमत नहीं',
     'dispute_already_resolved' => 'यह विवाद पहले ही हल हो चुका है',
     'invalid_user_percentage' => 'अमान्य ग्राहक प्रतिशत',

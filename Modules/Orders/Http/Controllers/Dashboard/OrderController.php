@@ -14,6 +14,8 @@ use Modules\Chat\Http\Requests\ListConversationMessagesRequest;
 use Modules\Chat\Http\Requests\SendSupportMessageRequest;
 use Modules\Chat\Http\Resources\ConversationMessageCollection;
 use Modules\Chat\Http\Resources\ConversationMessageResource;
+use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Http\Requests\Dashboard\CancelOrderDuringDisputeRequest;
 use Modules\Orders\Http\Requests\Dashboard\ResolveOrderDisputeRequest;
 use Modules\Orders\Http\Resources\Dashboard\OrderCollection;
 use Modules\Orders\Http\Resources\Dashboard\OrderResource;
@@ -33,7 +35,7 @@ class OrderController extends Controller implements HasMiddleware
         return [
             new Middleware('permission:show orders', only: ['index', 'show', 'conversationMessages']),
             new Middleware('permission:edit orders', only: ['sendConversationMessage', 'conversationTyping']),
-            new Middleware('permission:manage orders', only: ['resolveDispute']),
+            new Middleware('permission:manage orders', only: ['resolveDispute', 'cancel']),
         ];
     }
 
@@ -63,6 +65,11 @@ class OrderController extends Controller implements HasMiddleware
             'prams' => function () use ($request) {
                 return $request->all() ?: [];
             },
+            'selects' => fn () => [
+                'statuses' => OrderStatusEnum::collect()
+                    ->map(fn ($status) => $status->toArray())
+                    ->values(),
+            ],
             'stats' => function () {
                 return $this->orderService->dashboardStats();
             },
@@ -124,6 +131,19 @@ class OrderController extends Controller implements HasMiddleware
     public function resolveDispute(ResolveOrderDisputeRequest $request, Order $order): RedirectResponse
     {
         $this->orderService->resolveDispute($order, $request, auth('admin')->user());
+
+        return back()->with('success', __('data saved successfully'));
+    }
+
+    public function cancel(
+        CancelOrderDuringDisputeRequest $request,
+        Order $order,
+    ): RedirectResponse {
+        $this->orderService->cancelDuringDispute(
+            $order,
+            $request,
+            auth('admin')->user(),
+        );
 
         return back()->with('success', __('data saved successfully'));
     }

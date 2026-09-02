@@ -12,6 +12,8 @@ return [
     'dispute_outcome_escalated' => 'تم التصعيد للمحكمة',
     'dispute_outcome_percentage_split' => 'تم الحل بتقسيم نسبي',
     'dispute_outcome_percentage_split_detail' => 'تقسيم :user% عميل / :provider% مقدم خدمة',
+    'dispute_outcome_admin_cancel' => 'أُغلق بإلغاء إداري أثناء النزاع',
+    'dispute_closed' => 'تم إغلاق النزاع',
     'status_transition_not_allowed' => 'انتقال الحالة غير مسموح',
     'dispute_already_resolved' => 'تم حل هذا النزاع مسبقاً',
     'invalid_user_percentage' => 'نسبة العميل غير صالحة',

@@ -12,6 +12,8 @@ return [
     'dispute_outcome_escalated' => 'عدالت میں بڑھایا گیا',
     'dispute_outcome_percentage_split' => 'فیصد تقسیم سے حل',
     'dispute_outcome_percentage_split_detail' => 'تقسیم :user% کلائنٹ / :provider% فراہم کنندہ',
+    'dispute_outcome_admin_cancel' => 'تنازعہ کے دوران ایڈمن منسوخی سے بند',
+    'dispute_closed' => 'تنازعہ بند',
     'status_transition_not_allowed' => 'حالت کی تبدیلی کی اجازت نہیں',
     'dispute_already_resolved' => 'یہ تنازعہ پہلے ہی حل ہو چکا ہے',
     'invalid_user_percentage' => 'غلط کلائنٹ فیصد',

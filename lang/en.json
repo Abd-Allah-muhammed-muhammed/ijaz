@@ -486,6 +486,7 @@
     "offer_details": "Offer Details",
     "cancelled_by_provider": "Cancelled By Provider",
     "cancelled_by_client": "Cancelled By Client",
+    "cancelled": "Cancelled",
     "disputed": "Disputed",
     "ended_via_dispute": "Ended Via Dispute",
     "cancelled_via_dispute": "Cancelled Via Dispute",

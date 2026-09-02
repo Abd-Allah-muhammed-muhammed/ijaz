@@ -237,8 +237,9 @@ class OrderRepository implements OrderRepositoryInterface
             'total' => Order::count(),
             'active' => Order::whereIn('status', [OrderStatusEnum::PaymentCompleted, OrderStatusEnum::InProgress])->count(),
             'pending' => Order::whereIn('status', [OrderStatusEnum::New, OrderStatusEnum::Hold, OrderStatusEnum::OfferProvided])->count(),
-            'completed' => Order::whereIn('status', [OrderStatusEnum::EndedByProvider, OrderStatusEnum::EndedByClient])->count(),
-            'cancelled' => Order::whereIn('status', [OrderStatusEnum::CancelledByProvider, OrderStatusEnum::CancelledByClient])->count(),
+            'disputed' => Order::where('status', OrderStatusEnum::Disputed)->count(),
+            'completed' => Order::whereIn('status', OrderStatusEnum::endedAggregateValues())->count(),
+            'cancelled' => Order::whereIn('status', OrderStatusEnum::cancelledAggregateValues())->count(),
             'stuckUnsettled' => $this->countDueForWalletSettlement(now()->subHours((int) app('settings')->get('order_dispute_window_hours', 48))),
         ]);
     }

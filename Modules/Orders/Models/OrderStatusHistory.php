@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Modules\Orders\Enums\OrderStatusEnum;
+use Modules\Orders\Support\OrderDisputeHistoryReason;
 
 class OrderStatusHistory extends Model
 {
@@ -85,6 +86,7 @@ class OrderStatusHistory extends Model
             $value === 'dispute_resolved_full_user' => __('orders.dispute_outcome_full_user'),
             $value === 'dispute_resolved_full_provider' => __('orders.dispute_outcome_full_provider'),
             $value === 'dispute_escalated_to_court' => __('orders.dispute_outcome_escalated'),
+            $value === OrderDisputeHistoryReason::ClosedByAdminCancel => __('orders.dispute_outcome_admin_cancel'),
             str_starts_with($value, 'dispute_resolved_percentage_split') => $this->percentageSplitReasonLabel($value),
             default => $value,
         };

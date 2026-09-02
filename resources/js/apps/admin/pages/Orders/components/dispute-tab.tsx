@@ -1,4 +1,8 @@
-import { isDisputeResolutionHistory, type HistoryReason } from '@/apps/admin/pages/Orders/components/dispute-tab-utils';
+import {
+  ADMIN_CANCEL_DURING_DISPUTE_REASON,
+  isDisputeResolutionHistory,
+  type HistoryReason,
+} from '@/apps/admin/pages/Orders/components/dispute-tab-utils';
 import { OrderStatusEnum } from '@/Enums/Orders';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import { useTranslation } from 'react-i18next';
@@ -35,6 +39,7 @@ const DisputeTab = ({ statusHistories }: Props) => {
   const opening = statusHistories.find((history) => history.to_status?.value === 'disputed');
   const resolution = statusHistories.find((history) => isDisputeResolutionHistory(history));
   const isEscalated = resolution?.to_status?.value === OrderStatusEnum.Escalated;
+  const isAdminCancelClosed = resolution?.reason?.value === ADMIN_CANCEL_DURING_DISPUTE_REASON;
 
   if (!opening) {
     return <p className="text-muted fst-italic mb-0">{t('orders.no_dispute')}</p>;
@@ -109,13 +114,27 @@ const DisputeTab = ({ statusHistories }: Props) => {
         {resolution ? (
           <div
             className={`card border-0 shadow-sm rounded-4 flex-grow-1 ${
-              isEscalated ? 'bg-light bg-opacity-75' : 'bg-light-success bg-opacity-10'
+              isEscalated
+                ? 'bg-light bg-opacity-75'
+                : isAdminCancelClosed
+                  ? 'bg-light-secondary bg-opacity-10'
+                  : 'bg-light-success bg-opacity-10'
             }`}
           >
             <div className="card-body p-5">
               <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-                <h4 className="fw-bolder text-gray-900 mb-0">{t('orders.dispute_resolved')}</h4>
-                <span className="badge badge-light-success rounded-pill px-3 py-2 fw-bold">
+                <h4 className="fw-bolder text-gray-900 mb-0">
+                  {isAdminCancelClosed ? t('orders.dispute_closed') : t('orders.dispute_resolved')}
+                </h4>
+                <span
+                  className={`badge rounded-pill px-3 py-2 fw-bold ${
+                    isEscalated
+                      ? 'badge-light-dark'
+                      : isAdminCancelClosed
+                        ? 'badge-light-secondary'
+                        : 'badge-light-success'
+                  }`}
+                >
                   {resolution.to_status?.label ?? t('orders.dispute_resolved')}
                 </span>
               </div>

@@ -28,22 +28,43 @@ const RESOLUTION_OPTIONS = [
 
 type ResolutionOption = (typeof RESOLUTION_OPTIONS)[number];
 
+const TERMINAL_STATUSES = [
+  'cancelled',
+  'cancelled_by_provider',
+  'cancelled_by_client',
+  'cancelled_via_dispute',
+  'ended_by_provider',
+  'ended_by_client',
+  'ended_via_dispute',
+  'escalated',
+  'settled',
+];
+
 const Show = ({ order }: Props) => {
   const { t } = useTranslation();
   const { hasPermission } = usePermissions();
   const [activeTab, setActiveTab] = useState('details');
   const [imageFailed, setImageFailed] = useState(false);
   const [showResolveModal, setShowResolveModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const [resolveClientError, setResolveClientError] = useState<string | null>(null);
   const showUserImage = Boolean(order.user?.image) && !imageFailed;
   const statusHistories = order.status_histories ?? [];
   const hasDisputeHistory = statusHistories.some((history) => history.to_status?.value === 'disputed');
-  const isDisputed = order.status?.value === 'disputed';
-  const canResolveDispute = hasPermission('manage orders') && isDisputed;
+  const currentStatus = order.status?.value ?? '';
+  const isDisputed = currentStatus === 'disputed';
+  const canManage = hasPermission('manage orders');
+  const canCancel = canManage && !TERMINAL_STATUSES.includes(currentStatus);
+  const canResolveDispute = canManage && isDisputed;
 
   const resolveForm = useForm({
     resolution: '' as ResolutionOption | '',
     user_percentage: 60,
+    notes: '',
+  });
+
+  const cancelForm = useForm({
+    reason: '',
     notes: '',
   });
 
@@ -65,6 +86,16 @@ const Show = ({ order }: Props) => {
       onSuccess: () => {
         setShowResolveModal(false);
         resolveForm.reset();
+      },
+    });
+  };
+
+  const submitCancelOrder = () => {
+    cancelForm.post(OrderDashboardController.cancel(order.id as string).url, {
+      preserveScroll: true,
+      onSuccess: () => {
+        setShowCancelModal(false);
+        cancelForm.reset();
       },
     });
   };
@@ -136,6 +167,11 @@ const Show = ({ order }: Props) => {
 
                   <div className="d-flex my-4 gap-2">
                     {getStatusBadge(order.status.color, order.status.label)}
+                    {canCancel && (
+                      <Button variant="outline-warning" size="sm" onClick={() => setShowCancelModal(true)}>
+                        {t('cancel')}
+                      </Button>
+                    )}
                     {canResolveDispute && (
                       <Button variant="warning" size="sm" onClick={() => setShowResolveModal(true)}>
                         {t('orders.resolve_dispute')}
@@ -323,6 +359,47 @@ const Show = ({ order }: Props) => {
               onClick={submitResolveDispute}
             >
               {t('orders.resolve_dispute_confirm')}
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal show={showCancelModal} onHide={() => setShowCancelModal(false)} centered>
+          <Modal.Header closeButton>
+            <Modal.Title>{t('cancel')}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div className="mb-4">
+              <label className="form-label required">{t('reason')}</label>
+              <textarea
+                className="form-control"
+                rows={3}
+                value={cancelForm.data.reason}
+                onChange={(e) => cancelForm.setData('reason', e.target.value)}
+              />
+              {cancelForm.errors.reason && (
+                <div className="text-danger fs-7 mt-1">{cancelForm.errors.reason}</div>
+              )}
+            </div>
+            <div className="mb-0">
+              <label className="form-label">{t('notes')}</label>
+              <textarea
+                className="form-control"
+                rows={3}
+                value={cancelForm.data.notes}
+                onChange={(e) => cancelForm.setData('notes', e.target.value)}
+              />
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="light" onClick={() => setShowCancelModal(false)}>
+              {t('cancel')}
+            </Button>
+            <Button
+              variant="warning"
+              disabled={cancelForm.processing || cancelForm.data.reason.trim() === ''}
+              onClick={submitCancelOrder}
+            >
+              {t('cancel')}
             </Button>
           </Modal.Footer>
         </Modal>

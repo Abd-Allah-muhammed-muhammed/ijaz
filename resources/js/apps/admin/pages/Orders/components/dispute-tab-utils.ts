@@ -1,10 +1,6 @@
-export const OrderStatusEnum = {
-  Disputed: 'disputed',
-  EndedViaDispute: 'ended_via_dispute',
-  CancelledViaDispute: 'cancelled_via_dispute',
-  Escalated: 'escalated',
-  Settled: 'settled',
-} as const;
+import { OrderStatusEnum } from '@/Enums/Orders';
+
+export const ADMIN_CANCEL_DURING_DISPUTE_REASON = 'dispute_closed_by_admin_cancel';
 
 export type HistoryReason = {
   value: string;
@@ -26,5 +22,10 @@ const DISPUTE_RESOLUTION_STATUSES = new Set<string>([
 export function isDisputeResolutionHistory(history: DisputeHistoryItem): boolean {
   const status = history.to_status?.value;
 
-  return status !== undefined && DISPUTE_RESOLUTION_STATUSES.has(status);
+  if (status && DISPUTE_RESOLUTION_STATUSES.has(status)) {
+    return true;
+  }
+
+  return status === OrderStatusEnum.Cancelled
+    && history.reason?.value === ADMIN_CANCEL_DURING_DISPUTE_REASON;
 }

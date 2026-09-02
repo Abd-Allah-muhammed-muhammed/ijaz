@@ -597,6 +597,7 @@
     "percentage": "प्रतिशत",
     "cancelled_by_provider": "प्रदाता द्वारा रद्द",
     "cancelled_by_client": "ग्राहक द्वारा रद्द",
+    "cancelled": "रद्द",
     "disputed": "विवादित",
     "ended_via_dispute": "विवाद के माध्यम से समाप्त",
     "cancelled_via_dispute": "विवाद के माध्यम से रद्द",
