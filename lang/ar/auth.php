@@ -23,6 +23,8 @@ return [
     'rejected' => 'حسابك مرفوض',
     'blocked' => 'حسابك محظور',
     'banned' => 'حسابك محظور بشكل دائم',
+    'self_deactivated' => 'تم إلغاء تفعيل حسابك',
+    'self_deactivate_requires_approved' => 'يمكن إلغاء تفعيل الحساب المعتمد فقط.',
     'deleted' => 'تم حذف حسابك',
     'inactive' => 'حسابك غير نشط',
     'user_not_found' => 'المستخدم غير موجود',

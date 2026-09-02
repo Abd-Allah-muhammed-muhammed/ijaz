@@ -7,6 +7,7 @@ use App\DTOs\Provider\UpdateProviderDTO;
 use App\Enums\ProviderTypeFilesEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Provider\Auth\LoginRequest;
+use App\Http\Requests\Provider\Auth\SelfDeactivateProviderRequest;
 use App\Http\Requests\Provider\Auth\UpdateProfileRequest;
 use App\Http\Resources\Dashboard\ProviderResource;
 use App\Models\Provider;
@@ -111,6 +112,17 @@ class AuthController extends Controller
 
             return redirect()->back()->with('error', __('something went wrong'));
         }
+    }
+
+    public function deactivate(SelfDeactivateProviderRequest $request): RedirectResponse
+    {
+        $provider = \auth('provider')->user();
+
+        $this->providerAuthService->selfDeactivate($provider, $request);
+
+        return redirect()
+            ->route('provider.login')
+            ->with('success', __('auth.self_deactivated'));
     }
 
     public function statements(Request $request)

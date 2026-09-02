@@ -15,6 +15,7 @@ enum ProviderStatusEnum: string
     case Suspended = 'suspended';
     case Rejected = 'rejected';
     case Blocked = 'blocked';
+    case SelfDeactivated = 'self_deactivated';
 
     /**
      * Returns an associative array with the following keys:
@@ -43,6 +44,7 @@ enum ProviderStatusEnum: string
         return match ($this) {
             self::Pending => 'warning',
             self::Approved => 'success',
+            self::SelfDeactivated => 'secondary',
             self::Suspended, self::Rejected, self::Blocked => 'danger',
         };
     }
@@ -60,6 +62,7 @@ enum ProviderStatusEnum: string
             self::Suspended => __('auth.suspended'),
             self::Rejected => __('auth.rejected'),
             self::Blocked => $isTemporaryBlock ? __('auth.blocked') : __('auth.banned'),
+            self::SelfDeactivated => __('auth.self_deactivated'),
         };
     }
 }

@@ -45,7 +45,6 @@ class WithdrawController extends Controller
 
         return inertia('Provider/WithdrawRequests/Show', [
             'row' => WithdrawResource::make($withdrawRequest),
-            'paymentResponse' => null,
         ]);
     }
 

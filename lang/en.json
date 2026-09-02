@@ -397,6 +397,7 @@
     "rejected": "Rejected",
     "suspended": "Suspended",
     "blocked": "Blocked",
+    "self_deactivated": "Self-deactivated",
     "active": "Active",
     "deleted": "Deleted",
     "search_placeholder": "Search...",

@@ -23,6 +23,7 @@ Route::group(
                 Route::group(['middleware' => ['auth:provider', EnsureProviderIsApprovedMiddleware::class]], static function () {
                     Route::get('/profile', 'profile')->name('profile');
                     Route::post('/profile', 'updateProfile')->name('profile.update');
+                    Route::post('/deactivate', 'deactivate')->name('deactivate');
                     Route::get('/statements', 'statements')->name('statements');
                     Route::get('/lang/{locale}', 'switchLang')->name('switchLang');
                 });

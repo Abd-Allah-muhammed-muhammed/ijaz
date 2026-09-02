@@ -377,6 +377,7 @@
     "approved": "अनुमोदित",
     "rejected": "अस्वीकृत",
     "suspended": "निलंबित",
+    "self_deactivated": "स्वयं निष्क्रिय",
     "active": "सक्रिय",
     "search_placeholder": "खोजें...",
     "no_results_found": "कोई परिणाम नहीं मिला",

@@ -383,6 +383,7 @@
     "rejected": "مرفوض",
     "suspended": "معلق",
     "blocked": "محظور",
+    "self_deactivated": "ملغى من قبل المزود",
     "active": "نشط",
     "deleted": "محذوف",
     "search_placeholder": "ابحث...",

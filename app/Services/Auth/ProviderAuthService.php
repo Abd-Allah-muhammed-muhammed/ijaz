@@ -7,6 +7,7 @@ use App\Actions\Auth\Provider\RegisterProviderAction;
 use App\Actions\Auth\Provider\SendProviderRegistrationOtpAction;
 use App\Actions\DeviceToken\ClearDeviceTokenByTokenAction;
 use App\Actions\Provider\NotifyAdminsOfProviderPendingApprovalAction;
+use App\Actions\Provider\SelfDeactivateProviderAction;
 use App\Actions\Provider\UpdateProviderAction;
 use App\DTOs\Auth\ProviderLoginResult;
 use App\DTOs\Auth\ProviderRegisterResult;
@@ -26,6 +27,7 @@ class ProviderAuthService
         private readonly RegisterProviderAction $registerProviderAction,
         private readonly SendProviderRegistrationOtpAction $sendProviderRegistrationOtpAction,
         private readonly UpdateProviderAction $updateProviderAction,
+        private readonly SelfDeactivateProviderAction $selfDeactivateProviderAction,
         private readonly ClearDeviceTokenByTokenAction $clearDeviceTokenByTokenAction,
         private readonly NotifyAdminsOfProviderPendingApprovalAction $notifyAdminsOfProviderPendingApprovalAction,
     ) {}
@@ -90,5 +92,16 @@ class ProviderAuthService
         DB::transaction(function () use ($provider, $dto): void {
             $this->updateProviderAction->handle($provider, $dto);
         });
+    }
+
+    /**
+     * Provider-initiated account deactivation. Transitions to SelfDeactivated
+     * (distinct from admin Suspended/Blocked), then ends the session.
+     * Does not cascade to orders, offers, or guarantor rows.
+     */
+    public function selfDeactivate(Provider $provider, Request $request): void
+    {
+        $this->selfDeactivateProviderAction->handle($provider);
+        $this->logout($request);
     }
 }

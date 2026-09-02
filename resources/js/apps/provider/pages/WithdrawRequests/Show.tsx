@@ -2,25 +2,21 @@ import { useTranslation } from 'react-i18next';
 import { PageTitle } from "@/vendor/metronic/layout/core";
 import { ToolbarWrapper } from "@/vendor/metronic/layout/components/toolbar";
 import { Content } from "@/vendor/metronic/layout/components/content";
-import { Head, usePage } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 import { KTCard } from "@/vendor/metronic/helpers";
 import { WithdrawRequest } from "@/shared/types/models";
 import { ReactNode } from "react";
 import WithdrawController from "@/actions/Modules/Wallet/Http/Controllers/Provider/WithdrawController";
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
-import { PaymentResponse } from "@/shared/types/api";
 import { build_date } from "@/shared/helpers/general";
-import BankCardBootstrap from "@/shared/components/BankCardBootstrap";
 
 
 type Props = {
   row: WithdrawRequest
-  paymentResponse: PaymentResponse | null
 };
 
-const Show = ({ row, paymentResponse }: Props) => {
+const Show = ({ row }: Props) => {
   const { t } = useTranslation();
-  const auth = usePage().props.auth.user
   return (
     <>
       <Head title={t('withdraw_requests')} />

@@ -24,6 +24,8 @@ return [
     'rejected' => 'Your account is rejected',
     'blocked' => 'Your account is blocked',
     'banned' => 'Your account is permanently banned',
+    'self_deactivated' => 'Your account has been deactivated',
+    'self_deactivate_requires_approved' => 'Only an approved account can be deactivated.',
     'deleted' => 'Your account has been deleted',
     'inactive' => 'Your account is not active',
     'user_not_found' => 'User not found',

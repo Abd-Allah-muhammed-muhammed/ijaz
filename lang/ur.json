@@ -377,6 +377,7 @@
     "approved": "منظور شدہ",
     "rejected": "مسترد شدہ",
     "suspended": "معطل شدہ",
+    "self_deactivated": "خود غیر فعال",
     "active": "فعال",
     "search_placeholder": "تلاش کریں...",
     "no_results_found": "کوئی نتیجہ نہیں ملا",
