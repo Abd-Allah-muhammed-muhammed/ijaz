@@ -48,15 +48,6 @@ const Show = ({ row, paymentResponse }: Props) => {
             <KTCard className="p-4 h-100">
               <h2 className="text-xl font-bold mb-6">{t('withdraw_request_details')}</h2>
               <dl className="divide-y divide-gray-200 dark:divide-gray-700">
-                {/*<div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">*/}
-                {/*  <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{trans('user')}</dt>*/}
-                {/*  <dd className="text-gray-900 dark:text-white">*/}
-                {/*    {row.user?.name || trans('not_available')}*/}
-                {/*    {row.user_type ? (*/}
-                {/*      <span className="ml-2 text-xs text-gray-400">({trans(row.user_type)})</span>*/}
-                {/*    ) : null}*/}
-                {/*  </dd>*/}
-                {/*</div>*/}
                 <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
                   <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('amount')}</dt>
                   <dd className="text-gray-900 dark:text-white">{row.amount}</dd>
