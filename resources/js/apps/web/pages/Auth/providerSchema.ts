@@ -9,6 +9,17 @@ export const SAUDI_PHONE_MAX_LENGTH = 14;
 /** Saudi IBAN: `SA` + 22 digits. */
 export const SAUDI_IBAN_MAX_LENGTH = 24;
 
+/** OWASP-aligned provider registration password bounds. */
+export const PASSWORD_MIN_LENGTH = 8;
+export const PASSWORD_MAX_LENGTH = 64;
+
+/** Certificate uploads accept PDF and images, matching backend mimetypes. */
+export const PROVIDER_CERTIFICATE_ACCEPT = 'application/pdf,image/jpeg,image/png,image/webp,image/gif';
+
+export function isAllowedCertificateMimeType(type: string): boolean {
+  return type === 'application/pdf' || type.startsWith('image/');
+}
+
 const SAUDI_IBAN_PATTERN = /^SA\d{22}$/;
 
 const KSA_PHONE_PATTERN = /^(?<key>(\+|00)?966|0)?(?<provider>5)(?<digits>\d{8})$/;
@@ -153,10 +164,23 @@ export const formSchema = z.object({
         return;
       }
 
-      if (value.length < 6) {
+      if (value.length < PASSWORD_MIN_LENGTH) {
         ctx.addIssue({
           code: 'custom',
-          message: i18n.t('validation.min.string', {attribute: i18n.t('password'), min: '6'}),
+          message: i18n.t('validation.min.string', {
+            attribute: i18n.t('password'),
+            min: String(PASSWORD_MIN_LENGTH),
+          }),
+        });
+      }
+
+      if (value.length > PASSWORD_MAX_LENGTH) {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.max.string', {
+            attribute: i18n.t('password'),
+            max: String(PASSWORD_MAX_LENGTH),
+          }),
         });
       }
     }),
@@ -172,10 +196,23 @@ export const formSchema = z.object({
         return;
       }
 
-      if (value.length < 6) {
+      if (value.length < PASSWORD_MIN_LENGTH) {
         ctx.addIssue({
           code: 'custom',
-          message: i18n.t('validation.min.string', {attribute: i18n.t('password_confirmation'), min: '6'}),
+          message: i18n.t('validation.min.string', {
+            attribute: i18n.t('password_confirmation'),
+            min: String(PASSWORD_MIN_LENGTH),
+          }),
+        });
+      }
+
+      if (value.length > PASSWORD_MAX_LENGTH) {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.max.string', {
+            attribute: i18n.t('password_confirmation'),
+            max: String(PASSWORD_MAX_LENGTH),
+          }),
         });
       }
     }),
@@ -285,7 +322,7 @@ const filesStepRules = formSchema.pick({
 }).superRefine((data, ctx) => {
   const maxBytes = fileSize * 1024 * 1024;
 
-  const validatePdfFile = (
+  const validateCertificateFile = (
     file: File | undefined,
     attributeKey: string,
     path: string,
@@ -316,19 +353,19 @@ const filesStepRules = formSchema.pick({
       });
     }
 
-    if (file.type !== 'application/pdf') {
+    if (! isAllowedCertificateMimeType(file.type)) {
       ctx.addIssue({
         code: 'custom',
-        message: i18n.t('validation.mimes', {attribute: i18n.t(attributeKey), values: 'pdf'}),
+        message: i18n.t('validation.mimes', {attribute: i18n.t(attributeKey), values: 'pdf, jpeg, png, webp, gif'}),
         path: [path],
       });
     }
   };
 
-  validatePdfFile(data.id_image, 'id_image', 'id_image', data.requiredFiles.id_image);
-  validatePdfFile(data.commercial_record, 'commercial_record', 'commercial_record', data.requiredFiles.commercial_record);
-  validatePdfFile(data.iban_certification, 'iban_certification', 'iban_certification', data.requiredFiles.iban_certification);
-  validatePdfFile(data.freelancer_certification, 'freelancer_certification', 'freelancer_certification', data.requiredFiles.freelancer_certification);
+  validateCertificateFile(data.id_image, 'id_image', 'id_image', data.requiredFiles.id_image);
+  validateCertificateFile(data.commercial_record, 'commercial_record', 'commercial_record', data.requiredFiles.commercial_record);
+  validateCertificateFile(data.iban_certification, 'iban_certification', 'iban_certification', data.requiredFiles.iban_certification);
+  validateCertificateFile(data.freelancer_certification, 'freelancer_certification', 'freelancer_certification', data.requiredFiles.freelancer_certification);
 
   if (!data.logo) {
     ctx.addIssue({
@@ -376,6 +413,7 @@ export const availableSteps = [
     titleKey: 'account_information',
     descriptionKey: 'setup_your_account_information',
     requiresPhoneAvailabilityCheck: true,
+    requiresEmailAvailabilityCheck: true,
     rules: accountInformationStepRules,
   },
 

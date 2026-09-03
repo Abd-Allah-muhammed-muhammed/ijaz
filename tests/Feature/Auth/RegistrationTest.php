@@ -19,6 +19,7 @@ use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
 use Modules\Marketplace\Models\Category;
 use Modules\Marketplace\Models\ProviderType;
+use Modules\Marketplace\Models\Skill;
 use Modules\Sms\DTOs\SmsResult;
 use Modules\Sms\Services\SmsService;
 use Modules\Wallet\Models\WalletTransaction;
@@ -277,6 +278,124 @@ test('registration generates a provider code after creation', function () {
 
     expect($provider)->not->toBeNull()
         ->and($provider->code)->toBe(date('dmy').$provider->id);
+});
+
+test('registration syncs selected category skills', function () {
+    $payload = validRegistrationPayload();
+    $category = $payload['_category'];
+    $skill = Skill::query()->create([
+        'category_id' => $category->id,
+        'translations' => [
+            'en' => ['title' => 'Plumbing'],
+            'ar' => ['title' => 'سباكة'],
+            'ur' => ['title' => 'Plumbing UR'],
+            'hi' => ['title' => 'Plumbing HI'],
+        ],
+    ]);
+    $payload['categories'] = [
+        ['id' => $category->id, 'skills' => [$skill->id]],
+    ];
+    $payload['email'] = 'skills-provider@example.com';
+    unset($payload['_category']);
+
+    $this->from(route('auth.register'))
+        ->post(route('auth.register.submit'), $payload)
+        ->assertRedirect(route('auth.register'))
+        ->assertSessionHas('success', __('data saved successfully'));
+
+    $provider = Provider::query()->where('email', 'skills-provider@example.com')->first();
+
+    expect($provider)->not->toBeNull()
+        ->and($provider->providerCategories()->pluck('category_id')->all())->toBe([$category->id])
+        ->and($provider->categorySkills()->pluck('skill_id')->all())->toBe([$skill->id]);
+});
+
+test('registration fails without required region and city', function () {
+    $payload = validRegistrationPayload([
+        'region_id' => null,
+        'city_id' => null,
+        'email' => 'missing-region@example.com',
+    ]);
+    unset($payload['_category']);
+
+    $this->from(route('auth.register'))
+        ->post(route('auth.register.submit'), $payload)
+        ->assertRedirect(route('auth.register'))
+        ->assertSessionHasErrors(['region_id', 'city_id']);
+
+    expect(Provider::query()->where('email', 'missing-region@example.com')->exists())->toBeFalse();
+});
+
+test('registration fails when password is shorter than eight characters', function () {
+    $payload = validRegistrationPayload([
+        'password' => 'short',
+        'password_confirmation' => 'short',
+        'email' => 'short-password@example.com',
+    ]);
+    unset($payload['_category']);
+
+    $this->from(route('auth.register'))
+        ->post(route('auth.register.submit'), $payload)
+        ->assertRedirect(route('auth.register'))
+        ->assertSessionHasErrors('password');
+
+    expect(Provider::query()->where('email', 'short-password@example.com')->exists())->toBeFalse();
+});
+
+test('ajax check-email rejects duplicate provider email', function () {
+    createWalletProvider([
+        'phone' => Phone::make('512345682')->toString(),
+        'email' => 'existing-email@example.com',
+    ]);
+
+    $this->postJson(action([AjaxController::class, 'checkEmail']), [
+        'email' => 'existing-email@example.com',
+    ])->assertUnprocessable()
+        ->assertJsonValidationErrors('email');
+});
+
+test('ajax check-email rejects duplicate provider email on repeated checks', function () {
+    createWalletProvider([
+        'phone' => Phone::make('512345683')->toString(),
+        'email' => 'repeat-email@example.com',
+    ]);
+
+    $endpoint = action([AjaxController::class, 'checkEmail']);
+
+    $this->postJson($endpoint, ['email' => 'repeat-email@example.com'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('email');
+
+    $this->postJson($endpoint, ['email' => 'repeat-email@example.com'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('email');
+});
+
+test('ajax check-email accepts available email', function () {
+    $this->postJson(action([AjaxController::class, 'checkEmail']), [
+        'email' => 'available-email@example.com',
+    ])->assertSuccessful()
+        ->assertJsonPath('data.available', true);
+});
+
+test('registration fails with duplicate email at final submit', function () {
+    createWalletProvider([
+        'phone' => Phone::make('512345684')->toString(),
+        'email' => 'duplicate-email@example.com',
+    ]);
+
+    $payload = validRegistrationPayload([
+        'phone' => '512345685',
+        'email' => 'duplicate-email@example.com',
+    ]);
+    unset($payload['_category']);
+
+    $this->from(route('auth.register'))
+        ->post(route('auth.register.submit'), $payload)
+        ->assertRedirect(route('auth.register'))
+        ->assertSessionHasErrors('email');
+
+    expect(Provider::query()->where('phone', Phone::make('512345685')->toString())->exists())->toBeFalse();
 });
 
 test('registration syncs selected categories', function () {

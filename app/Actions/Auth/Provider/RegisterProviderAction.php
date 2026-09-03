@@ -2,6 +2,7 @@
 
 namespace App\Actions\Auth\Provider;
 
+use App\Actions\Provider\SyncProviderCategoriesAndSkillsAction as SyncProviderCategoriesAndSkills;
 use App\Contracts\Auth\ProviderRepositoryInterface;
 use App\DTOs\Auth\ProviderRegisterResult;
 use App\Enums\Providers\ProviderStatusEnum;
@@ -18,6 +19,7 @@ class RegisterProviderAction
 
     public function __construct(
         private readonly ProviderRepositoryInterface $providerRepository,
+        private readonly SyncProviderCategoriesAndSkills $syncProviderCategoriesAndSkillsAction,
     ) {}
 
     /**
@@ -91,8 +93,10 @@ class RegisterProviderAction
                 if ($request->hasFile(ProviderTypeFilesEnum::FREELANCER_CERTIFICATION->value)) {
                     $provider->addMediaFromRequest(ProviderTypeFilesEnum::FREELANCER_CERTIFICATION->value)->toMediaCollection(ProviderTypeFilesEnum::FREELANCER_CERTIFICATION->value, 'local');
                 }
-                $categories = collect($validatedData['categories']);
-                $provider->categories()->sync($categories->pluck('id')->toArray());
+                $this->syncProviderCategoriesAndSkillsAction->handle(
+                    $provider,
+                    $validatedData['categories'],
+                );
 
                 return ProviderRegisterResult::success($provider);
             },

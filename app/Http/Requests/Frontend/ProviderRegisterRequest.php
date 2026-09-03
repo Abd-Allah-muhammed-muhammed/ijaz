@@ -31,8 +31,8 @@ class ProviderRegisterRequest extends FormRequest
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'provider_type_id' => ['required', 'exists:provider_types,id'],
-            'region_id' => ['nullable', 'exists:regions,id'],
-            'city_id' => ['nullable', 'exists:cities,id'],
+            'region_id' => ['required', 'exists:regions,id'],
+            'city_id' => ['required', 'exists:cities,id'],
             'address' => ['required', 'string', 'max:500'],
             'phone' => ['required', 'string', function ($attribute, $value, $fail) {
                 $x = Phone::make($value);
@@ -50,7 +50,7 @@ class ProviderRegisterRequest extends FormRequest
             'iban' => ['required', 'string', 'max:24', new SaudiIban, Rule::unique('providers', 'iban')],
             'about' => ['required', 'string', 'max:1000'],
             'logo' => ['required', 'image', 'max:8192'],
-            'password' => ['required', 'string', 'max:20', 'confirmed:password_confirmation'],
+            'password' => ['required', 'string', 'min:8', 'max:64', 'confirmed:password_confirmation'],
             'categories' => ['required', 'array'],
             'categories.*.id' => ['required', 'exists:categories,id'],
             'categories.*.skills' => ['sometimes', 'array'],

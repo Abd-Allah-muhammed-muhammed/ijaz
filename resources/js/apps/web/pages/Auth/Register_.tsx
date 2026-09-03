@@ -10,9 +10,16 @@ import { toast } from 'sonner'
 import { KTIcon } from "@/vendor/metronic/helpers";
 import './style.css'
 // import {TreeSelect} from "antd";
-import { availableSteps, CategoryOption, Inputs, SAUDI_IBAN_MAX_LENGTH, SAUDI_PHONE_MAX_LENGTH } from "./providerSchema";
+import { availableSteps, CategoryOption, Inputs, PROVIDER_CERTIFICATE_ACCEPT, SAUDI_IBAN_MAX_LENGTH, SAUDI_PHONE_MAX_LENGTH } from "./providerSchema";
 import { checkProviderRegistrationPhone } from "./check-provider-phone";
+import { checkProviderRegistrationEmail } from "./check-provider-email";
 import { validateRegistrationStepAdvance } from "./register-step-advance";
+import {
+  clearStoredRegistrationStep,
+  REGISTRATION_OTP_STEP,
+  resolveInitialRegistrationStep,
+  writeStoredRegistrationStep,
+} from "./registration-step-storage";
 // import SkillsSelect from "@/shared/components/skills/skills-select";
 // import {useGetCategory} from "@/shared/hooks/use-CategoryQuery";
 import ImageInput from "@/shared/components/inputs/ImageInput";
@@ -91,12 +98,16 @@ const Register_ = (
   }, {} as RequiredFilesState));
 
   const [providerType, setProviderType] = useState<ProviderType | null>(null)
+  const { t } = useTranslation();
+  const page = usePage<{ errors?: Record<string, string> }>();
+  const locale = page.props.app.locale;
+  const phoneCheckGenerationRef = useRef(0);
+  const emailCheckGenerationRef = useRef(0);
+  const serverErrorCount = Object.keys(page.props.errors ?? {}).length;
   const steps = useSteps({
     totalSteps: availableSteps.length,
-  })
-  const { t } = useTranslation();
-  const locale = usePage().props.app.locale;
-  const phoneCheckGenerationRef = useRef(0);
+    initialStep: resolveInitialRegistrationStep(availableSteps.length, serverErrorCount > 0),
+  });
   const formatStepTitle = (stepNumber: number, titleKey: string) =>
     t('registration_step_label', { number: stepNumber, title: t(titleKey) });
   // const categoriesSelect = useMemo(() => {
@@ -131,17 +142,34 @@ const Register_ = (
   const handleSubmit = function (e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
+    writeStoredRegistrationStep(steps.currentStep);
+
     form.post(AuthController.store().url, {
+      preserveState: true,
+      preserveScroll: true,
       onSuccess: (e) => {
         if (!e.props.flash?.error && Object.keys(e.props.errors || {}).length === 0) {
           steps.nextStep();
+          clearStoredRegistrationStep();
         }
       },
       onError: (res) => {
+        steps.goToStep(REGISTRATION_OTP_STEP);
+        writeStoredRegistrationStep(REGISTRATION_OTP_STEP);
         Object.values(res).forEach(i => toast.error(i));
       }
     })
   }
+
+  useEffect(() => {
+    writeStoredRegistrationStep(steps.currentStep);
+  }, [steps.currentStep]);
+
+  useEffect(() => {
+    if (steps.stepIs(availableSteps.length)) {
+      clearStoredRegistrationStep();
+    }
+  }, [steps.currentStep]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -424,8 +452,28 @@ const Register_ = (
                           <Form.Control
                             type="email"
                             placeholder={t('email')}
+                            value={form.data.email ?? ''}
                             onChange={(event) => {
                               form.setData('email', event.currentTarget.value);
+                            }}
+                            onBlur={async (event) => {
+                              const email = event.currentTarget.value;
+                              const generation = ++emailCheckGenerationRef.current;
+                              const result = await checkProviderRegistrationEmail(locale, email);
+
+                              if (generation !== emailCheckGenerationRef.current) {
+                                return;
+                              }
+
+                              if (email !== (form.data.email ?? '')) {
+                                return;
+                              }
+
+                              if (result.status === 'available') {
+                                form.clearErrors('email');
+                              } else if (result.status === 'invalid') {
+                                form.setError('email', result.message);
+                              }
                             }}
                           />
                           <InputError message={form.errors.email} />
@@ -622,7 +670,7 @@ const Register_ = (
                               className="form-control "
                               id={`file-${fileName}`}
                               type="file"
-                              accept="application/pdf"
+                              accept={PROVIDER_CERTIFICATE_ACCEPT}
                               onChange={(event) => {
                                 if (!event.currentTarget.files || event.currentTarget.files.length === 0) {
                                   return;
@@ -1004,6 +1052,7 @@ const Register_ = (
                           }
 
                           const previousPhoneError = form.errors.phone;
+                          const previousEmailError = form.errors.email;
                           form.clearErrors();
 
                           if (steps.stepIs(availableSteps.length - 2)) {
@@ -1028,6 +1077,7 @@ const Register_ = (
                             data,
                             locale,
                             form.data.phone,
+                            form.data.email,
                           );
 
                           if (!advance.success) {
@@ -1037,6 +1087,10 @@ const Register_ = (
 
                             if (advance.blockedOnPhoneCheck && !advance.fieldErrors.phone && previousPhoneError) {
                               form.setError('phone', previousPhoneError);
+                            }
+
+                            if (advance.blockedOnEmailCheck && !advance.fieldErrors.email && previousEmailError) {
+                              form.setError('email', previousEmailError);
                             }
 
                             return;

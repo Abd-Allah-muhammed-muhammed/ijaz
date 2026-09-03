@@ -1,3 +1,4 @@
+import { checkProviderRegistrationEmail } from './check-provider-email';
 import { checkProviderRegistrationPhone } from './check-provider-phone';
 import { availableSteps, Inputs } from './providerSchema';
 
@@ -9,6 +10,7 @@ export type StepAdvanceResult =
       success: false;
       fieldErrors: Partial<Record<keyof Inputs | string, string>>;
       blockedOnPhoneCheck?: boolean;
+      blockedOnEmailCheck?: boolean;
     };
 
 export async function validateRegistrationStepAdvance(
@@ -16,6 +18,7 @@ export async function validateRegistrationStepAdvance(
   data: unknown,
   locale: string,
   phone: string | null,
+  email: string | null,
 ): Promise<StepAdvanceResult> {
   if (!step.rules) {
     return { success: true };
@@ -49,6 +52,26 @@ export async function validateRegistrationStepAdvance(
         success: false,
         fieldErrors: {},
         blockedOnPhoneCheck: true,
+      };
+    }
+  }
+
+  if (step.requiresEmailAvailabilityCheck) {
+    const result = await checkProviderRegistrationEmail(locale, email ?? '');
+
+    if (result.status === 'invalid') {
+      return {
+        success: false,
+        fieldErrors: { email: result.message },
+        blockedOnEmailCheck: true,
+      };
+    }
+
+    if (result.status === 'failed') {
+      return {
+        success: false,
+        fieldErrors: {},
+        blockedOnEmailCheck: true,
       };
     }
   }

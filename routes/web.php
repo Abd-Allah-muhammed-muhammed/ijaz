@@ -70,6 +70,7 @@ Route::group(
         });
         Route::controller(AjaxController::class)->prefix('ajax')->as('ajax.')->group(function () {
             Route::post('/check-phone', 'checkPhone')->name('check-phone');
+            Route::post('/check-email', 'checkEmail')->name('check-email');
             Route::get('/categories/tree', 'categoriesTree')->name('categories.tree');
             Route::get('/categories', 'categories')->name('categories.index');
             Route::get('/categories/{category}', 'category')->name('categories.show');

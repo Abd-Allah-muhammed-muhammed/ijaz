@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\General;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Frontend\CheckProviderRegistrationEmailRequest;
 use App\Http\Requests\Frontend\CheckProviderRegistrationPhoneRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -56,6 +57,13 @@ class AjaxController extends Controller
     }
 
     public function checkPhone(CheckProviderRegistrationPhoneRequest $request): JsonResponse
+    {
+        return $this->successResponse([
+            'available' => true,
+        ]);
+    }
+
+    public function checkEmail(CheckProviderRegistrationEmailRequest $request): JsonResponse
     {
         return $this->successResponse([
             'available' => true,
