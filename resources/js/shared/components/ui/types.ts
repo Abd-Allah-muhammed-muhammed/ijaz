@@ -31,6 +31,14 @@ export const SECTION_CARD_BODY_CLASS = 'card-body pt-0 px-6 px-lg-8 pb-6';
 
 export const SECTION_CARD_TITLE_CLASS = 'fw-bolder text-gray-900 mb-0';
 
+/** Default tinted body for `variant="hero"` (Orders/Show approved language). */
+export const SECTION_CARD_HERO_BODY_CLASS =
+  'card-body p-6 p-lg-8 bg-light-primary bg-opacity-10';
+
+/** Optional trailing body under the hero tint (e.g. description strip). */
+export const SECTION_CARD_HERO_FOOTER_CLASS =
+  'card-body p-6 p-lg-8 bg-white border-top border-gray-100';
+
 export const EMPTY_STATE_DEFAULT_PADDING_CLASS = 'text-center py-12 px-4';
 
 export const EMPTY_STATE_COMPACT_PADDING_CLASS = 'text-center py-10';
@@ -45,6 +53,9 @@ export const EMPTY_STATE_COMPACT_DESCRIPTION_CLASS = 'text-muted fs-7 mb-0';
 
 export const PAGE_FILTER_BAR_CLASS = 'd-flex flex-wrap flex-stack mb-6';
 
+/** Visual-only search column wrapper (was an invalid `<h3>` in the source pages). */
+export const PAGE_FILTER_SEARCH_COLUMN_CLASS = 'fw-bolder my-2';
+
 export const PAGE_FILTER_SEARCH_ICON_CLASS = 'fs-1 position-absolute ms-6';
 
 export const PAGE_FILTER_SEARCH_INPUT_CLASS = 'form-control  ps-14';
@@ -52,6 +63,10 @@ export const PAGE_FILTER_SEARCH_INPUT_CLASS = 'form-control  ps-14';
 export const PAGE_FILTER_SELECT_CLASS = 'form-select form-select-white form-select-sm';
 
 export const PAGE_FILTER_DATE_CLASS = 'form-control form-control-white form-control-sm';
+
+export const PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS = 'w-200px';
+
+export const PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS = 'w-150px';
 
 /**
  * Generic labeled status payload — matches EnumWithColors shape from shared models
@@ -118,10 +133,16 @@ export type SectionCardProps = {
   header?: ReactNode;
   /** Actions / badges aligned opposite the title. */
   headerExtra?: ReactNode;
+  /**
+   * Optional trailing body under the hero tint (e.g. description strip).
+   * Only rendered when `variant="hero"`.
+   */
+  footer?: ReactNode;
   variant?: SectionCardVariant;
   className?: string;
   bodyClassName?: string;
   headerClassName?: string;
+  footerClassName?: string;
 };
 
 export type PageFilterFieldType = 'search' | 'select' | 'date';

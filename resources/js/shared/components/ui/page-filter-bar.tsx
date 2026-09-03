@@ -2,13 +2,22 @@ import { KTIcon } from '@/vendor/metronic/helpers';
 import {
   PAGE_FILTER_BAR_CLASS,
   PAGE_FILTER_DATE_CLASS,
+  PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS,
+  PAGE_FILTER_SEARCH_COLUMN_CLASS,
   PAGE_FILTER_SEARCH_ICON_CLASS,
   PAGE_FILTER_SEARCH_INPUT_CLASS,
   PAGE_FILTER_SELECT_CLASS,
+  PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS,
   type PageFilterBarProps,
   type PageFilterField,
 } from './types';
 
+/**
+ * Search submits on Enter; select/date fire immediately on change.
+ * Matches the pre-existing Provider Orders Index / Recommended / Offers
+ * filter bars (Enter-only search + onChange selects/dates) — not a
+ * generalization invent.
+ */
 function SearchFilterField({
   field,
   onFilterChange,
@@ -44,7 +53,7 @@ function SelectFilterField({
   onFilterChange: PageFilterBarProps['onFilterChange'];
 }) {
   return (
-    <div className={field.widthClassName ?? 'w-200px'}>
+    <div className={field.widthClassName ?? PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS}>
       <select
         name={field.name}
         data-control="select2"
@@ -71,7 +80,7 @@ function DateFilterField({
   onFilterChange: PageFilterBarProps['onFilterChange'];
 }) {
   return (
-    <div className={field.widthClassName ?? 'w-150px'}>
+    <div className={field.widthClassName ?? PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS}>
       <input
         type="date"
         name={field.name}
@@ -95,7 +104,7 @@ export default function PageFilterBar({
 
   return (
     <div className={rootClass}>
-      <h3 className="fw-bolder my-2">
+      <div className={PAGE_FILTER_SEARCH_COLUMN_CLASS}>
         {searchFields.map((field) => (
           <SearchFilterField
             key={field.name}
@@ -103,7 +112,7 @@ export default function PageFilterBar({
             onFilterChange={onFilterChange}
           />
         ))}
-      </h3>
+      </div>
 
       {controlFields.length > 0 ? (
         <div className="d-flex align-items-center my-2 gap-2">

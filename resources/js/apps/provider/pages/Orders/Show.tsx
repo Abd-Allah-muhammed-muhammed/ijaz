@@ -245,112 +245,112 @@ const Show = ({ order }: Props) => {
       <Content>
         <Row className="g-5 g-lg-7">
           <Col sm={12} lg={8}>
-            <SectionCard variant="hero" className="mb-5">
-              <div className="card-body p-6 p-lg-8 bg-light-primary bg-opacity-10">
-                <div className="d-flex justify-content-between align-items-start flex-wrap gap-5 mb-6">
-                  <div className="d-flex align-items-start gap-4 min-w-0">
-                    <div className="symbol symbol-55px symbol-circle flex-shrink-0">
-                      {order.user?.image ? (
-                        <img
-                          src={order.user.image}
-                          alt=""
-                          className="symbol-label object-fit-cover"
-                        />
-                      ) : (
-                        <span className="symbol-label bg-white text-primary shadow-sm fw-bolder fs-3">
-                          {order.user?.name?.[0]?.toUpperCase() ?? '?'}
-                        </span>
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
-                        <h2 className="fw-bolder text-gray-900 mb-0 fs-2 text-truncate">
-                          {order.user?.name ?? '—'}
-                        </h2>
-                        <StatusBadge
-                          label={order.status?.label}
-                          colorClass={statusBadgeClass}
-                        />
-                      </div>
-                      {subtitle && (
-                        <div className="text-muted fw-semibold fs-6">{subtitle}</div>
-                      )}
-                      {order.skills && order.skills.length > 0 && (
-                        <div className="d-flex flex-wrap gap-2 mt-3">
-                          {order.skills.map((skill) => (
-                            <span
-                              key={skill.id}
-                              className="badge badge-light-primary rounded-pill fw-semibold px-3 py-2"
-                            >
-                              {skill.title}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="d-flex gap-2 flex-wrap align-items-center">
-                    {showChat && (
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-light-primary rounded-pill d-inline-flex align-items-center gap-2"
-                        onClick={StartChat}
-                      >
-                        <KTIcon iconName="message-text-2" className="fs-5" />
-                        {t('Start Conversation')}
-                      </button>
+            <SectionCard
+              variant="hero"
+              className="mb-5"
+              footer={(
+                <DetailSection label={t('description')} value={order.description} />
+              )}
+            >
+              <div className="d-flex justify-content-between align-items-start flex-wrap gap-5 mb-6">
+                <div className="d-flex align-items-start gap-4 min-w-0">
+                  <div className="symbol symbol-55px symbol-circle flex-shrink-0">
+                    {order.user?.image ? (
+                      <img
+                        src={order.user.image}
+                        alt=""
+                        className="symbol-label object-fit-cover"
+                      />
+                    ) : (
+                      <span className="symbol-label bg-white text-primary shadow-sm fw-bolder fs-3">
+                        {order.user?.name?.[0]?.toUpperCase() ?? '?'}
+                      </span>
                     )}
-                    {showEndOrder && (
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-light-danger rounded-pill d-inline-flex align-items-center gap-2"
-                        onClick={confirmEndOrder}
-                      >
-                        <KTIcon iconName="check-circle" className="fs-5" />
-                        {t('end_order')}
-                      </button>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
+                      <h2 className="fw-bolder text-gray-900 mb-0 fs-2 text-truncate">
+                        {order.user?.name ?? '—'}
+                      </h2>
+                      <StatusBadge
+                        label={order.status?.label}
+                        colorClass={statusBadgeClass}
+                      />
+                    </div>
+                    {subtitle && (
+                      <div className="text-muted fw-semibold fs-6">{subtitle}</div>
+                    )}
+                    {order.skills && order.skills.length > 0 && (
+                      <div className="d-flex flex-wrap gap-2 mt-3">
+                        {order.skills.map((skill) => (
+                          <span
+                            key={skill.id}
+                            className="badge badge-light-primary rounded-pill fw-semibold px-3 py-2"
+                          >
+                            {skill.title}
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>
 
-                {shouldShowOrderEndedAlert(order.status?.value) && (
-                  <div className="alert alert-info d-flex align-items-center p-4 mb-6" role="alert">
-                    <i className="ki-duotone ki-information fs-2hx text-info me-4">
-                      <span className="path1" />
-                      <span className="path2" />
-                      <span className="path3" />
-                    </i>
-                    <span className="fs-6 text-gray-700">
-                      {t('sorry this order has been ended')}
-                    </span>
-                  </div>
-                )}
-
-                <div className="row g-4">
-                  <div className="col-6 col-md-3">
-                    <StatTile label={t('budget')} value={budgetDisplay || '—'} />
-                  </div>
-                  <div className="col-6 col-md-3">
-                    <StatTile
-                      label={t('expected_time')}
-                      value={order.expected_time || '—'}
-                    />
-                  </div>
-                  <div className="col-6 col-md-3">
-                    <StatTile label={t('attachments')} value={mediaItems.length} />
-                  </div>
-                  <div className="col-6 col-md-3">
-                    <StatTile
-                      label={t('offer count')}
-                      value={order.offers_count ?? offers.length}
-                    />
-                  </div>
+                <div className="d-flex gap-2 flex-wrap align-items-center">
+                  {showChat && (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-light-primary rounded-pill d-inline-flex align-items-center gap-2"
+                      onClick={StartChat}
+                    >
+                      <KTIcon iconName="message-text-2" className="fs-5" />
+                      {t('Start Conversation')}
+                    </button>
+                  )}
+                  {showEndOrder && (
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-light-danger rounded-pill d-inline-flex align-items-center gap-2"
+                      onClick={confirmEndOrder}
+                    >
+                      <KTIcon iconName="check-circle" className="fs-5" />
+                      {t('end_order')}
+                    </button>
+                  )}
                 </div>
               </div>
 
-              <div className="card-body p-6 p-lg-8 bg-white border-top border-gray-100">
-                <DetailSection label={t('description')} value={order.description} />
+              {shouldShowOrderEndedAlert(order.status?.value) && (
+                <div className="alert alert-info d-flex align-items-center p-4 mb-6" role="alert">
+                  <i className="ki-duotone ki-information fs-2hx text-info me-4">
+                    <span className="path1" />
+                    <span className="path2" />
+                    <span className="path3" />
+                  </i>
+                  <span className="fs-6 text-gray-700">
+                    {t('sorry this order has been ended')}
+                  </span>
+                </div>
+              )}
+
+              <div className="row g-4">
+                <div className="col-6 col-md-3">
+                  <StatTile label={t('budget')} value={budgetDisplay || '—'} />
+                </div>
+                <div className="col-6 col-md-3">
+                  <StatTile
+                    label={t('expected_time')}
+                    value={order.expected_time || '—'}
+                  />
+                </div>
+                <div className="col-6 col-md-3">
+                  <StatTile label={t('attachments')} value={mediaItems.length} />
+                </div>
+                <div className="col-6 col-md-3">
+                  <StatTile
+                    label={t('offer count')}
+                    value={order.offers_count ?? offers.length}
+                  />
+                </div>
               </div>
             </SectionCard>
 
