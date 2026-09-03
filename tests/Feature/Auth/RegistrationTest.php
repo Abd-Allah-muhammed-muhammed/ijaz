@@ -123,7 +123,7 @@ test('registration page can be rendered', function () {
     $this->get(route('auth.register'))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Frontend/Auth/Register_')
+            ->component('Frontend/Auth/Register/Register_')
             ->has('types')
             ->has('regions')
             ->has('cities')

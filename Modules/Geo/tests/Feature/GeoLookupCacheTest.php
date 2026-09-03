@@ -219,7 +219,7 @@ test('Frontend register regions/cities props are byte-for-byte identical cold vs
     $this->get(route('auth.register'))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Frontend/Auth/Register_')
+            ->component('Frontend/Auth/Register/Register_')
             ->has('regions', 1)
             ->has('cities', 1)
             ->where('regions.0.title', 'Riyadh AR')

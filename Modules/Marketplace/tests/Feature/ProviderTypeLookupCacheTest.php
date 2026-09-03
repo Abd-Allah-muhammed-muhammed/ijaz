@@ -137,7 +137,7 @@ test('Frontend register types prop is byte-for-byte identical whether served fro
     $this->get(route('auth.register'))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Frontend/Auth/Register_')
+            ->component('Frontend/Auth/Register/Register_')
             ->has('types', 1)
             ->where('types.0.name', 'Individual AR')
         );

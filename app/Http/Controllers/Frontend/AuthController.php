@@ -52,7 +52,7 @@ class AuthController extends Controller
 
     public function create()
     {
-        return inertia('Frontend/Auth/Register_', [
+        return inertia('Frontend/Auth/Register/Register_', [
             'types' => ProviderTypeResource::collection($this->providerTypeService->listForApi()),
             'regions' => RegionResource::collection($this->regionService->listForSelect()),
             'cities' => CityResource::collection($this->cityService->listForSelect()),
