@@ -48,7 +48,7 @@ Route::group(
         });
         Route::controller(AuthController::class)->as('auth.')->group(function () {
             Route::get('/register', 'create')->name('register');
-            Route::post('/register', 'store')->name('register.submit');
+            Route::post('/register', 'store')->middleware('precognitive')->name('register.submit');
             Route::post('/otp/register', 'otp')->name('register.otp');
         });
         Route::controller(ReactSelectController::class)->prefix('general')->as('general.')->group(function () {
@@ -69,8 +69,6 @@ Route::group(
             Route::get('/specializations', 'specializations')->name('specializations');
         });
         Route::controller(AjaxController::class)->prefix('ajax')->as('ajax.')->group(function () {
-            Route::post('/check-phone', 'checkPhone')->name('check-phone');
-            Route::post('/check-email', 'checkEmail')->name('check-email');
             Route::get('/categories/tree', 'categoriesTree')->name('categories.tree');
             Route::get('/categories', 'categories')->name('categories.index');
             Route::get('/categories/{category}', 'category')->name('categories.show');

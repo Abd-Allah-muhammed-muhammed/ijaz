@@ -49,22 +49,42 @@ class ProviderRegisterRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', Rule::unique('providers', 'email')],
             'iban' => ['required', 'string', 'max:24', new SaudiIban, Rule::unique('providers', 'iban')],
             'about' => ['required', 'string', 'max:1000'],
-            'logo' => ['required', 'image', 'max:8192'],
             'password' => ['required', 'string', 'min:8', 'max:64', 'confirmed:password_confirmation'],
             'categories' => ['required', 'array'],
             'categories.*.id' => ['required', 'exists:categories,id'],
             'categories.*.skills' => ['sometimes', 'array'],
             'categories.*.skills.*' => ['sometimes', 'exists:skills,id'],
-            'otp' => ['required', new ValidProviderRegistrationOtpRule],
         ];
-        $providerType = $this->get('provider_type_id') ? ProviderType::find($this->get('provider_type_id')) : null;
-        if ($providerType) {
-            $files = array_keys(array_filter($providerType->files));
-            foreach ($files as $file) {
-                $rules[$file] = ['required', 'mimetypes:image/*,application/pdf', 'max:8192'];
+
+        // File uploads and OTP are final-submit concerns. Precognition uses
+        // Precognition-Validate-Only for field filtering; also skip these
+        // entirely on any precognitive request so an unscoped validate never
+        // demands logo/OTP mid-wizard.
+        if (! $this->isPrecognitive()) {
+            $rules['logo'] = ['required', 'image', 'max:8192'];
+            $rules['otp'] = ['required', new ValidProviderRegistrationOtpRule];
+
+            $providerType = $this->get('provider_type_id') ? ProviderType::find($this->get('provider_type_id')) : null;
+            if ($providerType) {
+                $files = array_keys(array_filter($providerType->files));
+                foreach ($files as $file) {
+                    $rules[$file] = ['required', 'mimetypes:image/*,application/pdf', 'max:8192'];
+                }
             }
         }
 
         return $rules;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'phone' => __('phone'),
+            'email' => __('email'),
+            'iban' => __('iban'),
+        ];
     }
 }

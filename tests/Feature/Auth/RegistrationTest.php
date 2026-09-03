@@ -2,7 +2,6 @@
 
 use App\Enums\Auth\OtpPurposeEnum;
 use App\Enums\Providers\ProviderStatusEnum;
-use App\Http\Controllers\General\AjaxController;
 use App\Models\Otp;
 use App\Models\Provider;
 use App\Support\Phone;
@@ -342,40 +341,148 @@ test('registration fails when password is shorter than eight characters', functi
     expect(Provider::query()->where('email', 'short-password@example.com')->exists())->toBeFalse();
 });
 
-test('ajax check-email rejects duplicate provider email', function () {
+/**
+ * @param  list<string>|string  $only
+ * @return array<string, string>
+ */
+function precognitionHeaders(array|string $only): array
+{
+    $fields = is_array($only) ? implode(',', $only) : $only;
+
+    return [
+        'Precognition' => 'true',
+        'Precognition-Validate-Only' => $fields,
+        'Accept' => 'application/json',
+    ];
+}
+
+const REGISTRATION_VALID_SAUDI_IBAN = 'SA0380000000608010167519';
+
+test('precognitive phone validation rejects duplicate provider phone without creating a provider', function () {
+    $phone = '512345679';
+    createWalletProvider([
+        'phone' => Phone::make($phone)->toString(),
+        'email' => 'existing-provider@example.com',
+    ]);
+
+    $before = Provider::query()->count();
+
+    $this->withHeaders(precognitionHeaders('phone'))
+        ->post(route('auth.register.submit'), ['phone' => $phone])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('phone');
+
+    expect(Provider::query()->count())->toBe($before);
+});
+
+test('precognitive phone validation rejects duplicate provider phone on repeated checks', function () {
+    $phone = '512345678';
+    createWalletProvider([
+        'phone' => Phone::make($phone)->toString(),
+        'email' => 'repeat-check-provider@example.com',
+    ]);
+
+    $this->withHeaders(precognitionHeaders('phone'))
+        ->post(route('auth.register.submit'), ['phone' => $phone])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('phone');
+
+    $this->withHeaders(precognitionHeaders('phone'))
+        ->post(route('auth.register.submit'), ['phone' => $phone])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('phone');
+});
+
+test('precognitive phone validation accepts available phone without creating a provider', function () {
+    $before = Provider::query()->count();
+
+    $this->withHeaders(precognitionHeaders('phone'))
+        ->post(route('auth.register.submit'), ['phone' => '512345680'])
+        ->assertNoContent()
+        ->assertHeader('Precognition-Success', 'true');
+
+    expect(Provider::query()->count())->toBe($before);
+});
+
+test('precognitive email validation rejects duplicate provider email without creating a provider', function () {
     createWalletProvider([
         'phone' => Phone::make('512345682')->toString(),
         'email' => 'existing-email@example.com',
     ]);
 
-    $this->postJson(action([AjaxController::class, 'checkEmail']), [
-        'email' => 'existing-email@example.com',
-    ])->assertUnprocessable()
+    $before = Provider::query()->count();
+
+    $this->withHeaders(precognitionHeaders('email'))
+        ->post(route('auth.register.submit'), ['email' => 'existing-email@example.com'])
+        ->assertUnprocessable()
         ->assertJsonValidationErrors('email');
+
+    expect(Provider::query()->count())->toBe($before);
 });
 
-test('ajax check-email rejects duplicate provider email on repeated checks', function () {
+test('precognitive email validation rejects duplicate provider email on repeated checks', function () {
     createWalletProvider([
         'phone' => Phone::make('512345683')->toString(),
         'email' => 'repeat-email@example.com',
     ]);
 
-    $endpoint = action([AjaxController::class, 'checkEmail']);
-
-    $this->postJson($endpoint, ['email' => 'repeat-email@example.com'])
+    $this->withHeaders(precognitionHeaders('email'))
+        ->post(route('auth.register.submit'), ['email' => 'repeat-email@example.com'])
         ->assertUnprocessable()
         ->assertJsonValidationErrors('email');
 
-    $this->postJson($endpoint, ['email' => 'repeat-email@example.com'])
+    $this->withHeaders(precognitionHeaders('email'))
+        ->post(route('auth.register.submit'), ['email' => 'repeat-email@example.com'])
         ->assertUnprocessable()
         ->assertJsonValidationErrors('email');
 });
 
-test('ajax check-email accepts available email', function () {
-    $this->postJson(action([AjaxController::class, 'checkEmail']), [
-        'email' => 'available-email@example.com',
-    ])->assertSuccessful()
-        ->assertJsonPath('data.available', true);
+test('precognitive email validation accepts available email without creating a provider', function () {
+    $before = Provider::query()->count();
+
+    $this->withHeaders(precognitionHeaders('email'))
+        ->post(route('auth.register.submit'), ['email' => 'available-email@example.com'])
+        ->assertNoContent()
+        ->assertHeader('Precognition-Success', 'true');
+
+    expect(Provider::query()->count())->toBe($before);
+});
+
+test('precognitive iban validation rejects invalid and duplicate ibans without creating a provider', function () {
+    createWalletProvider([
+        'phone' => Phone::make('512345686')->toString(),
+        'email' => 'iban-owner@example.com',
+        'iban' => REGISTRATION_VALID_SAUDI_IBAN,
+    ]);
+
+    $before = Provider::query()->count();
+
+    $this->withHeaders(precognitionHeaders('iban'))
+        ->post(route('auth.register.submit'), ['iban' => 'NOT-A-VALID-IBAN'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('iban');
+
+    $this->withHeaders(precognitionHeaders('iban'))
+        ->post(route('auth.register.submit'), ['iban' => REGISTRATION_VALID_SAUDI_IBAN])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('iban');
+
+    expect(Provider::query()->count())->toBe($before);
+});
+
+test('precognitive account-information fields validate together without creating a provider', function () {
+    $before = Provider::query()->count();
+
+    $this->withHeaders(precognitionHeaders(['phone', 'email', 'iban']))
+        ->post(route('auth.register.submit'), [
+            'phone' => '512345687',
+            'email' => 'precog-ok@example.com',
+            'iban' => 'SA0380000000608010167519',
+        ])
+        ->assertNoContent()
+        ->assertHeader('Precognition-Success', 'true');
+
+    expect(Provider::query()->count())->toBe($before);
 });
 
 test('registration fails with duplicate email at final submit', function () {
@@ -413,8 +520,6 @@ test('registration syncs selected categories', function () {
         ->and($provider->categories()->pluck('categories.id')->all())->toBe([$category->id]);
 });
 
-const REGISTRATION_VALID_SAUDI_IBAN = 'SA0380000000608010167519';
-
 test('registration fails with invalid iban format', function () {
     $payload = validRegistrationPayload(['iban' => 'NOT-A-VALID-IBAN']);
     unset($payload['_category']);
@@ -443,44 +548,6 @@ test('registration accepts valid saudi iban format', function () {
 
     expect($provider)->not->toBeNull()
         ->and($provider->iban)->toBe(REGISTRATION_VALID_SAUDI_IBAN);
-});
-
-test('ajax check-phone rejects duplicate provider phone', function () {
-    $phone = '512345679';
-    createWalletProvider([
-        'phone' => Phone::make($phone)->toString(),
-        'email' => 'existing-provider@example.com',
-    ]);
-
-    $this->postJson(action([AjaxController::class, 'checkPhone']), [
-        'phone' => $phone,
-    ])->assertUnprocessable()
-        ->assertJsonValidationErrors('phone');
-});
-
-test('ajax check-phone rejects duplicate provider phone on repeated checks', function () {
-    $phone = '512345678';
-    createWalletProvider([
-        'phone' => Phone::make($phone)->toString(),
-        'email' => 'repeat-check-provider@example.com',
-    ]);
-
-    $endpoint = action([AjaxController::class, 'checkPhone']);
-
-    $this->postJson($endpoint, ['phone' => $phone])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('phone');
-
-    $this->postJson($endpoint, ['phone' => $phone])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('phone');
-});
-
-test('ajax check-phone accepts available phone', function () {
-    $this->postJson(action([AjaxController::class, 'checkPhone']), [
-        'phone' => '512345680',
-    ])->assertSuccessful()
-        ->assertJsonPath('data.available', true);
 });
 
 test('registration fails with duplicate phone at final submit', function () {

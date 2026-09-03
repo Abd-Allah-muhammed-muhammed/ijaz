@@ -412,8 +412,8 @@ export const availableSteps = [
   {
     titleKey: 'account_information',
     descriptionKey: 'setup_your_account_information',
-    requiresPhoneAvailabilityCheck: true,
-    requiresEmailAvailabilityCheck: true,
+    /** Free-text fields with unique/custom server rules — Precognition on blur + Next. */
+    precognitionFields: ['phone', 'email', 'iban'] as const,
     rules: accountInformationStepRules,
   },
 

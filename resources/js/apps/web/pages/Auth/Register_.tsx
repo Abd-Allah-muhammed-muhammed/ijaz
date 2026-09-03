@@ -2,7 +2,7 @@ import { Button, Col, Form, Nav, Row } from "react-bootstrap";
 import { url, whenLocale } from "@/shared/helpers/general";
 import { City, ProviderType, Region } from "@/shared/types/models";
 import { Head, useForm, usePage } from "@inertiajs/react";
-import React, { FormEvent, Fragment, ReactNode, useEffect, useRef, useState } from 'react';
+import React, { FormEvent, Fragment, ReactNode, useEffect, useState } from 'react';
 import useSteps from "@/shared/hooks/use-steps";
 import { useTranslation } from 'react-i18next';
 import ToastContainer from "@/shared/components/toaster/toast-container";
@@ -11,9 +11,7 @@ import { KTIcon } from "@/vendor/metronic/helpers";
 import './style.css'
 // import {TreeSelect} from "antd";
 import { availableSteps, CategoryOption, Inputs, PROVIDER_CERTIFICATE_ACCEPT, SAUDI_IBAN_MAX_LENGTH, SAUDI_PHONE_MAX_LENGTH } from "./providerSchema";
-import { checkProviderRegistrationPhone } from "./check-provider-phone";
-import { checkProviderRegistrationEmail } from "./check-provider-email";
-import { validateRegistrationStepAdvance } from "./register-step-advance";
+import { runPrecognitiveValidation, validateRegistrationStepClient } from "./register-step-advance";
 import {
   clearStoredRegistrationStep,
   REGISTRATION_OTP_STEP,
@@ -66,7 +64,7 @@ const Register_ = (
     cities,
   }: Props
 ) => {
-  const form = useForm<Inputs>({
+  const form = useForm(AuthController.store(), {
     provider_type_id: null,
     name: null,
     phone: null,
@@ -85,7 +83,7 @@ const Register_ = (
     iban_certification: undefined,
     freelancer_certification: undefined,
     logo: undefined,
-  })
+  }).setValidationTimeout(0);
   const [seconds, setSeconds] = useState(0)
   const [citiesData, setCitiesData] = useState<City[]>([]);
   // const [category, setCategory] = useState<number>(0)
@@ -100,9 +98,6 @@ const Register_ = (
   const [providerType, setProviderType] = useState<ProviderType | null>(null)
   const { t } = useTranslation();
   const page = usePage<{ errors?: Record<string, string> }>();
-  const locale = page.props.app.locale;
-  const phoneCheckGenerationRef = useRef(0);
-  const emailCheckGenerationRef = useRef(0);
   const serverErrorCount = Object.keys(page.props.errors ?? {}).length;
   const steps = useSteps({
     totalSteps: availableSteps.length,
@@ -423,23 +418,9 @@ const Register_ = (
                             onChange={(event) => {
                               form.setData('phone', event.currentTarget.value);
                             }}
-                            onBlur={async (event) => {
-                              const phone = event.currentTarget.value;
-                              const generation = ++phoneCheckGenerationRef.current;
-                              const result = await checkProviderRegistrationPhone(locale, phone);
-
-                              if (generation !== phoneCheckGenerationRef.current) {
-                                return;
-                              }
-
-                              if (phone !== (form.data.phone ?? '')) {
-                                return;
-                              }
-
-                              if (result.status === 'available') {
-                                form.clearErrors('phone');
-                              } else if (result.status === 'invalid') {
-                                form.setError('phone', result.message);
+                            onBlur={() => {
+                              if ((form.data.phone ?? '').trim() !== '') {
+                                form.validate('phone');
                               }
                             }}
                           />
@@ -456,23 +437,9 @@ const Register_ = (
                             onChange={(event) => {
                               form.setData('email', event.currentTarget.value);
                             }}
-                            onBlur={async (event) => {
-                              const email = event.currentTarget.value;
-                              const generation = ++emailCheckGenerationRef.current;
-                              const result = await checkProviderRegistrationEmail(locale, email);
-
-                              if (generation !== emailCheckGenerationRef.current) {
-                                return;
-                              }
-
-                              if (email !== (form.data.email ?? '')) {
-                                return;
-                              }
-
-                              if (result.status === 'available') {
-                                form.clearErrors('email');
-                              } else if (result.status === 'invalid') {
-                                form.setError('email', result.message);
+                            onBlur={() => {
+                              if ((form.data.email ?? '').trim() !== '') {
+                                form.validate('email');
                               }
                             }}
                           />
@@ -489,6 +456,11 @@ const Register_ = (
                             value={form.data.iban ?? ''}
                             onChange={(event) => {
                               form.setData('iban', event.currentTarget.value);
+                            }}
+                            onBlur={() => {
+                              if ((form.data.iban ?? '').trim() !== '') {
+                                form.validate('iban');
+                              }
                             }}
                           />
                           <InputError message={form.errors.iban} />
@@ -1051,8 +1023,11 @@ const Register_ = (
                             return;
                           }
 
-                          const previousPhoneError = form.errors.phone;
-                          const previousEmailError = form.errors.email;
+                          const previousServerErrors = {
+                            phone: form.errors.phone,
+                            email: form.errors.email,
+                            iban: form.errors.iban,
+                          };
                           form.clearErrors();
 
                           if (steps.stepIs(availableSteps.length - 2)) {
@@ -1072,28 +1047,43 @@ const Register_ = (
                             ...form.data,
                             requiredFiles
                           };
-                          const advance = await validateRegistrationStepAdvance(
-                            currentStep,
-                            data,
-                            locale,
-                            form.data.phone,
-                            form.data.email,
-                          );
+                          const clientAdvance = validateRegistrationStepClient(currentStep, data);
 
-                          if (!advance.success) {
-                            Object.entries(advance.fieldErrors).forEach(([field, message]) => {
+                          if (!clientAdvance.success) {
+                            Object.entries(clientAdvance.fieldErrors).forEach(([field, message]) => {
                               form.setError(field as keyof Inputs, message);
                             });
 
-                            if (advance.blockedOnPhoneCheck && !advance.fieldErrors.phone && previousPhoneError) {
-                              form.setError('phone', previousPhoneError);
-                            }
-
-                            if (advance.blockedOnEmailCheck && !advance.fieldErrors.email && previousEmailError) {
-                              form.setError('email', previousEmailError);
-                            }
-
                             return;
+                          }
+
+                          const precognitionFields = [...(currentStep.precognitionFields ?? [])];
+                          if (precognitionFields.length > 0) {
+                            const outcome = await runPrecognitiveValidation(
+                              (config) => {
+                                form.validate({
+                                  only: config.only as Array<'phone' | 'email' | 'iban'>,
+                                  onPrecognitionSuccess: config.onPrecognitionSuccess,
+                                  onValidationError: config.onValidationError,
+                                  onFinish: config.onFinish,
+                                });
+                              },
+                              precognitionFields,
+                            );
+
+                            if (outcome === 'validation_error') {
+                              return;
+                            }
+
+                            if (outcome === 'failed') {
+                              (['phone', 'email', 'iban'] as const).forEach((field) => {
+                                if (previousServerErrors[field] && !form.errors[field]) {
+                                  form.setError(field, previousServerErrors[field]);
+                                }
+                              });
+
+                              return;
+                            }
                           }
 
                           steps.nextStep();

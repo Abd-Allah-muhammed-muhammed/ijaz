@@ -1,32 +1,44 @@
-import { checkProviderRegistrationEmail } from './check-provider-email';
-import { checkProviderRegistrationPhone } from './check-provider-phone';
 import { availableSteps, Inputs } from './providerSchema';
 
 export type RegistrationStep = (typeof availableSteps)[number];
 
-export type StepAdvanceResult =
+export type ClientStepAdvanceResult =
   | { success: true }
   | {
       success: false;
       fieldErrors: Partial<Record<keyof Inputs | string, string>>;
-      blockedOnPhoneCheck?: boolean;
-      blockedOnEmailCheck?: boolean;
     };
 
-export async function validateRegistrationStepAdvance(
+export type PrecognitiveValidationOutcome = 'success' | 'validation_error' | 'failed';
+
+/**
+ * Minimal config shape for Inertia 3.0.2 `useForm().validate({ only, ... })`.
+ * Callers wrap the form method because its generics reject a plain ValidationConfig.
+ */
+export type PrecognitiveValidateConfig = {
+  only: string[];
+  onPrecognitionSuccess?: () => void;
+  onValidationError?: () => void;
+  onFinish?: () => void;
+};
+
+export type PrecognitiveValidate = (config: PrecognitiveValidateConfig) => unknown;
+
+/**
+ * Instant client-side Zod checks for the current wizard step.
+ * Server-confirmed uniqueness/format lives in Precognition (`runPrecognitiveValidation`).
+ */
+export function validateRegistrationStepClient(
   step: RegistrationStep,
   data: unknown,
-  locale: string,
-  phone: string | null,
-  email: string | null,
-): Promise<StepAdvanceResult> {
-  if (!step.rules) {
+): ClientStepAdvanceResult {
+  if (! step.rules) {
     return { success: true };
   }
 
   const validation = step.rules.safeParse(data);
 
-  if (!validation.success) {
+  if (! validation.success) {
     const fieldErrors: Partial<Record<string, string>> = {};
 
     for (const issue of validation.error.issues) {
@@ -36,45 +48,36 @@ export async function validateRegistrationStepAdvance(
     return { success: false, fieldErrors };
   }
 
-  if (step.requiresPhoneAvailabilityCheck) {
-    const result = await checkProviderRegistrationPhone(locale, phone ?? '');
-
-    if (result.status === 'invalid') {
-      return {
-        success: false,
-        fieldErrors: { phone: result.message },
-        blockedOnPhoneCheck: true,
-      };
-    }
-
-    if (result.status === 'failed') {
-      return {
-        success: false,
-        fieldErrors: {},
-        blockedOnPhoneCheck: true,
-      };
-    }
-  }
-
-  if (step.requiresEmailAvailabilityCheck) {
-    const result = await checkProviderRegistrationEmail(locale, email ?? '');
-
-    if (result.status === 'invalid') {
-      return {
-        success: false,
-        fieldErrors: { email: result.message },
-        blockedOnEmailCheck: true,
-      };
-    }
-
-    if (result.status === 'failed') {
-      return {
-        success: false,
-        fieldErrors: {},
-        blockedOnEmailCheck: true,
-      };
-    }
-  }
-
   return { success: true };
+}
+
+/**
+ * Wraps Inertia 3.0.2
+ * `useForm().validate({ only, onPrecognitionSuccess, onValidationError, onFinish })`
+ * in a Promise so wizard "Next" can await a fresh server check.
+ */
+export function runPrecognitiveValidation(
+  validate: PrecognitiveValidate,
+  fields: string[],
+): Promise<PrecognitiveValidationOutcome> {
+  if (fields.length === 0) {
+    return Promise.resolve('success');
+  }
+
+  return new Promise((resolve) => {
+    let outcome: PrecognitiveValidationOutcome | 'pending' = 'pending';
+
+    validate({
+      only: fields,
+      onPrecognitionSuccess: () => {
+        outcome = 'success';
+      },
+      onValidationError: () => {
+        outcome = 'validation_error';
+      },
+      onFinish: () => {
+        resolve(outcome === 'pending' ? 'failed' : outcome);
+      },
+    });
+  });
 }

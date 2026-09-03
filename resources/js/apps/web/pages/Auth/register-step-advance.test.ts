@@ -1,24 +1,14 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  runPrecognitiveValidation,
+  validateRegistrationStepClient,
+  type PrecognitiveValidateConfig,
+} from './register-step-advance';
 import { availableSteps } from './providerSchema';
-
-const { checkProviderRegistrationPhone, checkProviderRegistrationEmail } = vi.hoisted(() => ({
-  checkProviderRegistrationPhone: vi.fn(),
-  checkProviderRegistrationEmail: vi.fn(),
-}));
-
-vi.mock('./check-provider-phone', () => ({
-  checkProviderRegistrationPhone,
-}));
-
-vi.mock('./check-provider-email', () => ({
-  checkProviderRegistrationEmail,
-}));
-
-import { validateRegistrationStepAdvance } from './register-step-advance';
 
 const accountStep = availableSteps.find((step) => step.titleKey === 'account_information');
 
-if (!accountStep) {
+if (! accountStep) {
   throw new Error('Account information step is missing from availableSteps');
 }
 
@@ -35,97 +25,58 @@ const validAccountData = {
   password_confirmation: 'secret12',
 };
 
-describe('validateRegistrationStepAdvance phone duplicate guard', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    checkProviderRegistrationEmail.mockResolvedValue({ status: 'available' });
-  });
-
-  it('blocks step advance when duplicate phone is returned (blur error then Next without changing value)', async () => {
-    checkProviderRegistrationPhone.mockResolvedValue({
-      status: 'invalid',
-      message: 'Phone already taken',
+describe('validateRegistrationStepClient', () => {
+  it('blocks advance when Zod format validation fails', () => {
+    const result = validateRegistrationStepClient(accountStep, {
+      ...validAccountData,
+      phone: 'not-a-phone',
     });
 
-    const blurResult = await checkProviderRegistrationPhone('en', validAccountData.phone);
-    expect(blurResult.status).toBe('invalid');
-
-    const nextResult = await validateRegistrationStepAdvance(
-      accountStep,
-      validAccountData,
-      'en',
-      validAccountData.phone,
-      validAccountData.email,
-    );
-
-    expect(nextResult.success).toBe(false);
-    if (!nextResult.success) {
-      expect(nextResult.fieldErrors.phone).toBe('Phone already taken');
-      expect(nextResult.blockedOnPhoneCheck).toBe(true);
+    expect(result.success).toBe(false);
+    if (! result.success) {
+      expect(result.fieldErrors.phone).toBeDefined();
     }
-
-    expect(checkProviderRegistrationPhone).toHaveBeenCalledTimes(2);
   });
 
-  it('re-runs duplicate check on every Next click', async () => {
-    checkProviderRegistrationPhone.mockResolvedValue({
-      status: 'invalid',
-      message: 'Phone already taken',
-    });
-
-    const first = await validateRegistrationStepAdvance(
-      accountStep,
-      validAccountData,
-      'en',
-      validAccountData.phone,
-      validAccountData.email,
-    );
-    const second = await validateRegistrationStepAdvance(
-      accountStep,
-      validAccountData,
-      'en',
-      validAccountData.phone,
-      validAccountData.email,
-    );
-
-    expect(first.success).toBe(false);
-    expect(second.success).toBe(false);
-    if (!second.success) {
-      expect(second.fieldErrors.phone).toBe('Phone already taken');
-    }
-    expect(checkProviderRegistrationPhone).toHaveBeenCalledTimes(2);
+  it('passes client validation for well-formed account data', () => {
+    expect(validateRegistrationStepClient(accountStep, validAccountData).success).toBe(true);
   });
 });
 
-describe('validateRegistrationStepAdvance email duplicate guard', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    checkProviderRegistrationPhone.mockResolvedValue({ status: 'available' });
-  });
-
-  it('blocks step advance when duplicate email is returned (blur error then Next without changing value)', async () => {
-    checkProviderRegistrationEmail.mockResolvedValue({
-      status: 'invalid',
-      message: 'Email already taken',
+describe('runPrecognitiveValidation', () => {
+  it('resolves success when onPrecognitionSuccess fires (blur then Next duplicate-guard path)', async () => {
+    const validate = vi.fn((config: PrecognitiveValidateConfig) => {
+      config.onPrecognitionSuccess?.();
+      config.onFinish?.();
     });
 
-    const blurResult = await checkProviderRegistrationEmail('en', validAccountData.email);
-    expect(blurResult.status).toBe('invalid');
+    await expect(runPrecognitiveValidation(validate, ['phone', 'email', 'iban'])).resolves.toBe('success');
+    expect(validate).toHaveBeenCalledWith(expect.objectContaining({
+      only: ['phone', 'email', 'iban'],
+    }));
+  });
 
-    const nextResult = await validateRegistrationStepAdvance(
-      accountStep,
-      validAccountData,
-      'en',
-      validAccountData.phone,
-      validAccountData.email,
-    );
+  it('blocks Next when duplicate/invalid fields return validation_error', async () => {
+    const validate = vi.fn((config: PrecognitiveValidateConfig) => {
+      config.onValidationError?.();
+      config.onFinish?.();
+    });
 
-    expect(nextResult.success).toBe(false);
-    if (!nextResult.success) {
-      expect(nextResult.fieldErrors.email).toBe('Email already taken');
-      expect(nextResult.blockedOnEmailCheck).toBe(true);
-    }
+    await expect(runPrecognitiveValidation(validate, ['phone'])).resolves.toBe('validation_error');
+  });
 
-    expect(checkProviderRegistrationEmail).toHaveBeenCalledTimes(2);
+  it('returns failed on network/non-422 outcomes without treating them as success', async () => {
+    const validate = vi.fn((config: PrecognitiveValidateConfig) => {
+      config.onFinish?.();
+    });
+
+    await expect(runPrecognitiveValidation(validate, ['email'])).resolves.toBe('failed');
+  });
+
+  it('short-circuits to success when no fields need server validation', async () => {
+    const validate = vi.fn();
+
+    await expect(runPrecognitiveValidation(validate, [])).resolves.toBe('success');
+    expect(validate).not.toHaveBeenCalled();
   });
 });
