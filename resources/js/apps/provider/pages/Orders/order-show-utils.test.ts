@@ -32,12 +32,14 @@ const indexSrc = readFileSync(join(__dirname, 'Index.tsx'), 'utf8');
 describe('order hero', () => {
   it('order hero renders status pill, formatted budget with currency, and 4 stat tiles', () => {
     expect(showSrc).toContain('getOrderStatusBadgeClass');
+    expect(showSrc).toContain('StatusBadge');
+    expect(showSrc).toContain('StatTile');
+    expect(showSrc).toContain("from '@/shared/components/design-system'");
     expect(showSrc).toContain('formatCurrency');
     expect(showSrc).toContain("t('budget')");
     expect(showSrc).toContain("t('expected_time')");
     expect(showSrc).toContain("t('attachments')");
     expect(showSrc).toContain("t('offer count')");
-    expect(showSrc).toMatch(/stat|tile|bg-white rounded-3 p-4 border/i);
     expect(getOrderStatusBadgeClass(OrderStatusEnum.InProgress)).toContain('badge-light-');
     expect(formatCurrency(20, { locale: 'en', currencyLabel: 'SAR', maximumFractionDigits: 2 })).toMatch(/20/);
     expect(formatCurrency(20, { locale: 'en', currencyLabel: 'SAR', maximumFractionDigits: 2 })).toContain('SAR');
