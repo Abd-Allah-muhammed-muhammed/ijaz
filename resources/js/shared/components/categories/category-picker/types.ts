@@ -34,6 +34,8 @@ export type FlatLeafMatch = {
   breadcrumb: string;
 };
 
+/** Registration wizard step 3 — fills available width up to a desktop cap (sidebar-aware). */
+export const REGISTRATION_CATEGORY_STEP_CONTAINER_CLASS = 'w-100 mw-xl-900px mw-xxl-1000px';
 /** Shared layout constants (Bootstrap/Metronic utility classes). */
 /** ~2–3 wrapped chip rows before internal scroll; keeps panels anchored below. */
 export const CATEGORY_PICKER_CHIP_ROW_MAX_HEIGHT_CLASS = 'mh-125px';
@@ -41,7 +43,10 @@ export const CATEGORY_PICKER_CHIP_ROW_SCROLL_CLASS = 'overflow-y-auto';
 /** Aligns with design spec (340–360px); 350px fits ~800px-tall viewports once chips are capped. */
 export const CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS = 'mh-350px';
 export const CATEGORY_PICKER_PANEL_SCROLL_CLASS = 'overflow-auto';
-export const CATEGORY_PICKER_ROOT_LIST_WIDTH_CLASS = 'w-100 w-md-275px';
+export const CATEGORY_PICKER_ROOT_LIST_SCROLL_CLASS = 'overflow-y-auto overflow-x-hidden';
+export const CATEGORY_PICKER_ROOT_LIST_WIDTH_CLASS = 'w-100 w-md-325px w-lg-350px';
+export const CATEGORY_PICKER_FLEX_SHRINK_0_CLASS = 'flex-shrink-0';
+export const CATEGORY_PICKER_TRUNCATE_LABEL_CLASS = 'text-truncate min-w-0';
 export const CATEGORY_PICKER_CHIP_BADGE_CLASS = 'badge badge-light-primary d-inline-flex align-items-center gap-2 py-2 px-3';
 export const CATEGORY_PICKER_COUNT_BADGE_CLASS = 'badge badge-circle badge-primary';
 

@@ -20,7 +20,7 @@ import axios from '@/shared/helpers/axios';
 import AuthController from '@/actions/App/Http/Controllers/Frontend/AuthController';
 import ToastEffect from '@/shared/components/toaster/toast-effect';
 import GeneralController from '@/actions/App/Http/Controllers/Frontend/GeneralController';
-import { CategoryPicker } from '@/shared/components/categories/category-picker';
+import { CategoryPicker, REGISTRATION_CATEGORY_STEP_CONTAINER_CLASS } from '@/shared/components/categories/category-picker';
 import { ProviderTypeFilesEnum } from "@/Enums/Enums";
 import { AxiosError } from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -292,8 +292,8 @@ const Register_ = (
         </div>
         <div className="d-flex flex-column flex-lg-row-fluid">
           <div className="d-flex flex-center flex-column flex-column-fluid">
-            <div className="w-100 w-lg-650px w-xl-700px p-3 p-md-4 p-lg-10 p-xl-15 mx-auto">
-              <Form className="my-auto pb-3 pb-lg-5" noValidate id="kt_create_account_form" onSubmit={handleSubmit}>
+            <Form className="w-100 my-auto pb-3 pb-lg-5" noValidate id="kt_create_account_form" onSubmit={handleSubmit}>
+              <div className="w-100 w-lg-650px w-xl-700px p-3 p-md-4 p-lg-10 p-xl-15 mx-auto">
                 <div className={`${steps.stepIs(1) ? "current" : ''}`} data-kt-stepper-element="content">
                   <div className="w-100">
                     <div className="pb-10 pb-lg-15">
@@ -516,6 +516,8 @@ const Register_ = (
                     </Row>
                   </div>
                 </div>
+              </div>
+              <div className={`${REGISTRATION_CATEGORY_STEP_CONTAINER_CLASS} p-3 p-md-4 p-lg-10 p-xl-15 mx-auto`}>
                 <div className={steps.stepIs(3) ? "current" : ''} data-kt-stepper-element="content">
                   <div className="w-100">
                     <Row className='mb-7 fv-row'>
@@ -551,6 +553,8 @@ const Register_ = (
                     </Row>
                   </div>
                 </div>
+              </div>
+              <div className="w-100 w-lg-650px w-xl-700px p-3 p-md-4 p-lg-10 p-xl-15 mx-auto">
                 <div className={steps.stepIs(4) ? "current" : ''} data-kt-stepper-element="content">
                   <div className="w-100">
                     <div className="pb-8 pb-lg-10">
@@ -1028,8 +1032,8 @@ const Register_ = (
                     {t('return_to_home_page')}
                   </a>
                 </div>
-              </Form>
-            </div>
+              </div>
+            </Form>
           </div>
         </div>
       </div>

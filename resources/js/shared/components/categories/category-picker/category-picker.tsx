@@ -18,9 +18,12 @@ import {
   CATEGORY_PICKER_CHIP_ROW_MAX_HEIGHT_CLASS,
   CATEGORY_PICKER_CHIP_ROW_SCROLL_CLASS,
   CATEGORY_PICKER_COUNT_BADGE_CLASS,
+  CATEGORY_PICKER_FLEX_SHRINK_0_CLASS,
   CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS,
   CATEGORY_PICKER_PANEL_SCROLL_CLASS,
+  CATEGORY_PICKER_ROOT_LIST_SCROLL_CLASS,
   CATEGORY_PICKER_ROOT_LIST_WIDTH_CLASS,
+  CATEGORY_PICKER_TRUNCATE_LABEL_CLASS,
   collectLeaves,
   countSelectedUnder,
   filterLeafMatches,
@@ -33,6 +36,18 @@ import {
   type CategoryTreeNode,
   type TriState,
 } from './types';
+
+function TruncatedLabel({ text, className }: { text: string; className?: string }) {
+  const labelClassName = [CATEGORY_PICKER_TRUNCATE_LABEL_CLASS, className]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <span className={labelClassName} title={text}>
+      {text}
+    </span>
+  );
+}
 
 function IndeterminateCheckbox({
   id,
@@ -56,7 +71,7 @@ function IndeterminateCheckbox({
   }, [triState]);
 
   return (
-    <span className="form-check form-check-custom form-check-solid m-0">
+    <span className={`form-check form-check-custom form-check-solid m-0 ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS}`}>
       <input
         ref={ref}
         id={id}
@@ -248,10 +263,10 @@ export default function CategoryPicker({
                   >
                     <label
                       htmlFor={`search-leaf-check-${match.leaf.id}`}
-                      className="d-flex align-items-center gap-3 flex-grow-1 cursor-pointer mb-0"
+                      className="d-flex align-items-center gap-3 flex-grow-1 min-w-0 cursor-pointer mb-0 overflow-hidden"
                     >
                       {match.leaf.icon ? (
-                        <span className="symbol symbol-40px">
+                        <span className={`symbol symbol-40px ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS}`}>
                           <span className="symbol-label bg-light-primary">
                             <img
                               src={match.leaf.icon}
@@ -261,12 +276,12 @@ export default function CategoryPicker({
                           </span>
                         </span>
                       ) : null}
-                      <span className="d-flex flex-column">
-                        <span className="fw-bold text-gray-900">{match.leaf.title}</span>
-                        <span className="text-muted fs-7">{match.breadcrumb}</span>
+                      <span className="d-flex flex-column min-w-0 flex-grow-1 overflow-hidden">
+                        <TruncatedLabel text={match.leaf.title} className="fw-bold text-gray-900" />
+                        <TruncatedLabel text={match.breadcrumb} className="text-muted fs-7" />
                       </span>
                     </label>
-                    <span className="form-check form-check-custom form-check-solid m-0">
+                    <span className={`form-check form-check-custom form-check-solid m-0 ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS}`}>
                       <input
                         id={`search-leaf-check-${match.leaf.id}`}
                         type="checkbox"
@@ -284,9 +299,9 @@ export default function CategoryPicker({
           )}
         </div>
       ) : (
-        <div className="d-flex flex-column flex-md-row gap-5">
+        <div className="d-flex flex-column flex-md-row gap-5 min-w-0">
           <div
-            className={`${CATEGORY_PICKER_ROOT_LIST_WIDTH_CLASS} flex-shrink-0 border border-gray-200 rounded ${CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS} ${CATEGORY_PICKER_PANEL_SCROLL_CLASS}`}
+            className={`${CATEGORY_PICKER_ROOT_LIST_WIDTH_CLASS} ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS} border border-gray-200 rounded overflow-hidden ${CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS} ${CATEGORY_PICKER_ROOT_LIST_SCROLL_CLASS}`}
             role="listbox"
             aria-label={t('categories')}
           >
@@ -303,25 +318,23 @@ export default function CategoryPicker({
                         type="button"
                         role="option"
                         aria-selected={isActive}
-                        className={`btn btn-flush w-100 d-flex align-items-center justify-content-between gap-3 px-4 py-4 text-start ${
+                        className={`btn btn-flush w-100 d-flex align-items-center gap-3 px-4 py-4 text-start overflow-hidden ${
                           isActive ? 'bg-light-primary' : ''
                         }`}
                         onClick={() => setActiveRootId(root.id)}
                       >
-                        <span className="d-flex align-items-center gap-3 min-w-0">
+                        <span className="d-flex align-items-center gap-3 min-w-0 flex-grow-1 overflow-hidden">
                           {root.icon ? (
-                            <span className="symbol symbol-35px flex-shrink-0">
+                            <span className={`symbol symbol-35px ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS}`}>
                               <span className="symbol-label bg-light">
                                 <img src={root.icon} alt="" className="w-100 h-100" />
                               </span>
                             </span>
                           ) : null}
-                          <span className="fw-semibold text-gray-900 text-truncate">
-                            {root.title}
-                          </span>
+                          <TruncatedLabel text={root.title} className="fw-semibold text-gray-900" />
                         </span>
                         {selectedCount > 0 ? (
-                          <span className={CATEGORY_PICKER_COUNT_BADGE_CLASS}>
+                          <span className={`${CATEGORY_PICKER_COUNT_BADGE_CLASS} ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS}`}>
                             {selectedCount}
                           </span>
                         ) : null}
@@ -334,7 +347,7 @@ export default function CategoryPicker({
           </div>
 
           <div
-            className={`flex-grow-1 border border-gray-200 rounded ${CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS} ${CATEGORY_PICKER_PANEL_SCROLL_CLASS} p-4`}
+            className={`flex-grow-1 min-w-0 border border-gray-200 rounded overflow-hidden ${CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS} ${CATEGORY_PICKER_PANEL_SCROLL_CLASS} p-4`}
           >
             {!activeRoot ? (
               <EmptyState compact title={t('no_matching_records_found')} />
@@ -350,14 +363,14 @@ export default function CategoryPicker({
                         return (
                           <li
                             key={`root-leaf-${child.id}`}
-                            className="d-flex align-items-center justify-content-between gap-3 py-3 border-bottom border-gray-100"
+                            className="d-flex align-items-center justify-content-between gap-3 py-3 border-bottom border-gray-100 min-w-0"
                           >
                             <label
                               htmlFor={`root-leaf-check-${child.id}`}
-                              className="d-flex align-items-center gap-3 flex-grow-1 cursor-pointer mb-0"
+                              className="d-flex align-items-center gap-3 flex-grow-1 min-w-0 cursor-pointer mb-0 overflow-hidden"
                             >
                               {child.icon ? (
-                                <span className="symbol symbol-40px">
+                                <span className={`symbol symbol-40px ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS}`}>
                                   <span className="symbol-label bg-light-primary">
                                     <img
                                       src={child.icon}
@@ -367,9 +380,9 @@ export default function CategoryPicker({
                                   </span>
                                 </span>
                               ) : null}
-                              <span className="fw-semibold text-gray-900">{child.title}</span>
+                              <TruncatedLabel text={child.title} className="fw-semibold text-gray-900" />
                             </label>
-                            <span className="form-check form-check-custom form-check-solid m-0">
+                            <span className={`form-check form-check-custom form-check-solid m-0 ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS}`}>
                               <input
                                 id={`root-leaf-check-${child.id}`}
                                 type="checkbox"
@@ -393,14 +406,14 @@ export default function CategoryPicker({
                           key={`sub-${child.id}`}
                           className="border-bottom border-gray-100 py-2"
                         >
-                          <div className="d-flex align-items-center justify-content-between gap-3">
+                          <div className="d-flex align-items-center justify-content-between gap-3 min-w-0">
                             <button
                               type="button"
-                              className="btn btn-flush d-flex align-items-center gap-3 flex-grow-1 text-start px-0 py-2"
+                              className="btn btn-flush d-flex align-items-center gap-3 flex-grow-1 min-w-0 text-start px-0 py-2 overflow-hidden"
                               aria-expanded={expanded}
                               onClick={() => toggleExpanded(child.id)}
                             >
-                              <span className="text-primary" aria-hidden="true">
+                              <span className={`text-primary ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS}`} aria-hidden="true">
                                 {expanded ? (
                                   <FontAwesomeIcon icon={faChevronDown} className="fs-7" />
                                 ) : (
@@ -408,7 +421,7 @@ export default function CategoryPicker({
                                 )}
                               </span>
                               {child.icon ? (
-                                <span className="symbol symbol-35px">
+                                <span className={`symbol symbol-35px ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS}`}>
                                   <span className="symbol-label bg-light-primary">
                                     <img
                                       src={child.icon}
@@ -418,18 +431,20 @@ export default function CategoryPicker({
                                   </span>
                                 </span>
                               ) : null}
-                              <span className="fw-bold text-gray-900">{child.title}</span>
-                              <span className="text-muted fs-8">
+                              <TruncatedLabel text={child.title} className="fw-bold text-gray-900" />
+                              <span className={`text-muted fs-8 ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS}`}>
                                 ({collectLeaves(child).length})
                               </span>
                             </button>
-                            <IndeterminateCheckbox
-                              id={`sub-select-all-${child.id}`}
-                              checked={state === 'all'}
-                              triState={state}
-                              ariaLabel={`${t('select-all')} ${child.title}`}
-                              onChange={(checked) => applyTriStateToggle(child, checked)}
-                            />
+                            <div className={CATEGORY_PICKER_FLEX_SHRINK_0_CLASS}>
+                              <IndeterminateCheckbox
+                                id={`sub-select-all-${child.id}`}
+                                checked={state === 'all'}
+                                triState={state}
+                                ariaLabel={`${t('select-all')} ${child.title}`}
+                                onChange={(checked) => applyTriStateToggle(child, checked)}
+                              />
+                            </div>
                           </div>
                           {expanded ? (
                             <ul className="list-unstyled ms-8 mb-2">
@@ -443,14 +458,14 @@ export default function CategoryPicker({
                                   return (
                                     <li
                                       key={`leaf-${selectable.id}`}
-                                      className="d-flex align-items-center justify-content-between gap-3 py-2"
+                                      className="d-flex align-items-center justify-content-between gap-3 py-2 min-w-0"
                                     >
                                       <label
                                         htmlFor={`leaf-check-${selectable.id}`}
-                                        className="d-flex align-items-center gap-3 flex-grow-1 cursor-pointer mb-0"
+                                        className="d-flex align-items-center gap-3 flex-grow-1 min-w-0 cursor-pointer mb-0 overflow-hidden"
                                       >
                                         {selectable.icon ? (
-                                          <span className="symbol symbol-30px">
+                                          <span className={`symbol symbol-30px ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS}`}>
                                             <span className="symbol-label bg-light">
                                               <img
                                                 src={selectable.icon}
@@ -460,9 +475,9 @@ export default function CategoryPicker({
                                             </span>
                                           </span>
                                         ) : null}
-                                        <span className="text-gray-800">{selectable.title}</span>
+                                        <TruncatedLabel text={selectable.title} className="text-gray-800" />
                                       </label>
-                                      <span className="form-check form-check-custom form-check-solid m-0">
+                                      <span className={`form-check form-check-custom form-check-solid m-0 ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS}`}>
                                         <input
                                           id={`leaf-check-${selectable.id}`}
                                           type="checkbox"
