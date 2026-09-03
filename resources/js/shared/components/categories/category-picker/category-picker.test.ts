@@ -3,10 +3,12 @@ import {
   buildLeafIndex,
   CATEGORY_PICKER_CHIP_ROW_MAX_HEIGHT_CLASS,
   CATEGORY_PICKER_CHIP_ROW_SCROLL_CLASS,
-  CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS,
-  CATEGORY_PICKER_ROOT_LIST_SCROLL_CLASS,
+  CATEGORY_PICKER_CHIP_ROW_SURFACE_CLASS,
+  CATEGORY_PICKER_FLEX_SCROLL_CHILD_CLASS,
+  CATEGORY_PICKER_PANEL_HEIGHT_CLASS,
+  CATEGORY_PICKER_PANEL_SCROLL_CLASS,
   CATEGORY_PICKER_ROOT_LIST_WIDTH_CLASS,
-  REGISTRATION_CATEGORY_STEP_CONTAINER_CLASS,
+  REGISTRATION_STEP_CONTAINER_CLASS,
   collectLeaves,
   filterLeafMatches,
   flattenLeafMatches,
@@ -89,11 +91,15 @@ describe('category-picker tree helpers', () => {
   });
 
   it('exports stable layout utility class constants', () => {
+    expect(REGISTRATION_STEP_CONTAINER_CLASS).toBe('w-100 mw-xl-850px mw-xxl-950px');
     expect(CATEGORY_PICKER_CHIP_ROW_MAX_HEIGHT_CLASS).toBe('mh-125px');
     expect(CATEGORY_PICKER_CHIP_ROW_SCROLL_CLASS).toBe('overflow-y-auto');
-    expect(CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS).toBe('mh-350px');
-    expect(CATEGORY_PICKER_ROOT_LIST_SCROLL_CLASS).toBe('overflow-y-auto overflow-x-hidden');
+    expect(CATEGORY_PICKER_CHIP_ROW_SURFACE_CLASS).toBe(
+      'border border-gray-200 rounded p-3 bg-light',
+    );
+    expect(CATEGORY_PICKER_PANEL_HEIGHT_CLASS).toBe('h-350px');
+    expect(CATEGORY_PICKER_PANEL_SCROLL_CLASS).toBe('overflow-y-auto overflow-x-hidden');
+    expect(CATEGORY_PICKER_FLEX_SCROLL_CHILD_CLASS).toBe('category-picker-flex-scroll-child');
     expect(CATEGORY_PICKER_ROOT_LIST_WIDTH_CLASS).toBe('w-100 w-md-325px w-lg-350px');
-    expect(REGISTRATION_CATEGORY_STEP_CONTAINER_CLASS).toBe('w-100 mw-xl-900px mw-xxl-1000px');
   });
 });

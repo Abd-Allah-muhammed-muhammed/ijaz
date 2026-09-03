@@ -12,16 +12,19 @@ import { faChevronDown, faChevronLeft, faChevronRight, faXmark } from '@fortawes
 import { whenLocale } from '@/shared/helpers/general';
 import { EmptyState } from '@/shared/components/ui';
 import { useCategoryTree } from './use-category-tree';
+import './category-picker.css';
 import {
   buildLeafIndex,
   CATEGORY_PICKER_CHIP_BADGE_CLASS,
   CATEGORY_PICKER_CHIP_ROW_MAX_HEIGHT_CLASS,
   CATEGORY_PICKER_CHIP_ROW_SCROLL_CLASS,
+  CATEGORY_PICKER_CHIP_ROW_SURFACE_CLASS,
   CATEGORY_PICKER_COUNT_BADGE_CLASS,
+  CATEGORY_PICKER_FLEX_SCROLL_CHILD_CLASS,
   CATEGORY_PICKER_FLEX_SHRINK_0_CLASS,
-  CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS,
+  CATEGORY_PICKER_PANEL_HEIGHT_CLASS,
   CATEGORY_PICKER_PANEL_SCROLL_CLASS,
-  CATEGORY_PICKER_ROOT_LIST_SCROLL_CLASS,
+  CATEGORY_PICKER_PANEL_SURFACE_CLASS,
   CATEGORY_PICKER_ROOT_LIST_WIDTH_CLASS,
   CATEGORY_PICKER_TRUNCATE_LABEL_CLASS,
   collectLeaves,
@@ -206,6 +209,13 @@ export default function CategoryPicker({
     );
   }
 
+  const panelScrollClassName = [
+    CATEGORY_PICKER_PANEL_SURFACE_CLASS,
+    CATEGORY_PICKER_PANEL_HEIGHT_CLASS,
+    CATEGORY_PICKER_PANEL_SCROLL_CLASS,
+    CATEGORY_PICKER_FLEX_SCROLL_CHILD_CLASS,
+  ].join(' ');
+
   return (
     <div className={rootClassName}>
       <div className="mb-5">
@@ -224,7 +234,7 @@ export default function CategoryPicker({
 
       {selectedChips.length > 0 && (
         <div
-          className={`d-flex flex-wrap align-content-start gap-2 mb-5 ${CATEGORY_PICKER_CHIP_ROW_MAX_HEIGHT_CLASS} ${CATEGORY_PICKER_CHIP_ROW_SCROLL_CLASS}`}
+          className={`d-flex flex-wrap align-content-start gap-2 mb-5 ${CATEGORY_PICKER_CHIP_ROW_SURFACE_CLASS} ${CATEGORY_PICKER_CHIP_ROW_MAX_HEIGHT_CLASS} ${CATEGORY_PICKER_CHIP_ROW_SCROLL_CLASS}`}
           aria-label={t('categories')}
         >
           {selectedChips.map((chip) => (
@@ -247,9 +257,7 @@ export default function CategoryPicker({
       )}
 
       {isSearching ? (
-        <div
-          className={`${CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS} ${CATEGORY_PICKER_PANEL_SCROLL_CLASS} border border-gray-200 rounded p-4`}
-        >
+        <div className={`${panelScrollClassName} p-4`}>
           {searchResults.length === 0 ? (
             <EmptyState compact title={t('no_matching_records_found')} />
           ) : (
@@ -299,9 +307,9 @@ export default function CategoryPicker({
           )}
         </div>
       ) : (
-        <div className="d-flex flex-column flex-md-row gap-5 min-w-0">
+        <div className={`d-flex flex-column flex-md-row gap-4 gap-md-5 min-w-0 ${CATEGORY_PICKER_FLEX_SCROLL_CHILD_CLASS}`}>
           <div
-            className={`${CATEGORY_PICKER_ROOT_LIST_WIDTH_CLASS} ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS} border border-gray-200 rounded overflow-hidden ${CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS} ${CATEGORY_PICKER_ROOT_LIST_SCROLL_CLASS}`}
+            className={`${CATEGORY_PICKER_ROOT_LIST_WIDTH_CLASS} ${CATEGORY_PICKER_FLEX_SHRINK_0_CLASS} ${panelScrollClassName}`}
             role="listbox"
             aria-label={t('categories')}
           >
@@ -346,17 +354,13 @@ export default function CategoryPicker({
             )}
           </div>
 
-          <div
-            className={`flex-grow-1 min-w-0 border border-gray-200 rounded overflow-hidden ${CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS} ${CATEGORY_PICKER_PANEL_SCROLL_CLASS} p-4`}
-          >
+          <div className={`flex-grow-1 min-w-0 ${panelScrollClassName} p-4`}>
             {!activeRoot ? (
               <EmptyState compact title={t('no_matching_records_found')} />
+            ) : (activeRoot.children ?? []).length === 0 ? (
+              <EmptyState compact title={t('no_matching_records_found')} />
             ) : (
-              <div>
-                {(activeRoot.children ?? []).length === 0 ? (
-                  <EmptyState compact title={t('no_matching_records_found')} />
-                ) : (
-                  <ul className="list-unstyled mb-0">
+              <ul className="list-unstyled mb-0">
                     {(activeRoot.children ?? []).map((child) => {
                       if (!nodeHasChildren(child)) {
                         const checked = selectedIds.has(child.id);
@@ -497,9 +501,7 @@ export default function CategoryPicker({
                         </li>
                       );
                     })}
-                  </ul>
-                )}
-              </div>
+              </ul>
             )}
           </div>
         </div>

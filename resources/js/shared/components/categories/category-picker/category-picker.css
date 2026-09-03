@@ -1,0 +1,4 @@
+/* Allows flex children with overflow-auto / max-height to shrink and scroll (Bootstrap has no min-h-0 utility). */
+.category-picker-flex-scroll-child {
+  min-height: 0;
+}
