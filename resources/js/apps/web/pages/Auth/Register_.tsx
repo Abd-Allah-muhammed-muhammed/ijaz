@@ -153,7 +153,7 @@ const Register_ = (
 
   return (
     <div className="d-flex flex-column flex-root h-100" id="kt_app_root" data-pan="register-page">
-      
+
       <ToastContainer />
       <ToastEffect />
       <Head title={t('register')} />
@@ -292,7 +292,7 @@ const Register_ = (
         </div>
         <div className="d-flex flex-column flex-lg-row-fluid">
           <div className="d-flex flex-center flex-column flex-column-fluid">
-            <div className="w-lg-650px w-xl-700px p-3 p-md-4 p-lg-10 p-xl-15 mx-auto">
+            <div className="w-100 w-lg-650px w-xl-700px p-3 p-md-4 p-lg-10 p-xl-15 mx-auto">
               <Form className="my-auto pb-3 pb-lg-5" noValidate id="kt_create_account_form" onSubmit={handleSubmit}>
                 <div className={`${steps.stepIs(1) ? "current" : ''}`} data-kt-stepper-element="content">
                   <div className="w-100">
@@ -1034,7 +1034,7 @@ const Register_ = (
         </div>
       </div>
     </div>
-  );  
+  );
 }
 
 export default Register_

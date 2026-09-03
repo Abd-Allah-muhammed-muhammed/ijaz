@@ -15,6 +15,8 @@ import { useCategoryTree } from './use-category-tree';
 import {
   buildLeafIndex,
   CATEGORY_PICKER_CHIP_BADGE_CLASS,
+  CATEGORY_PICKER_CHIP_ROW_MAX_HEIGHT_CLASS,
+  CATEGORY_PICKER_CHIP_ROW_SCROLL_CLASS,
   CATEGORY_PICKER_COUNT_BADGE_CLASS,
   CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS,
   CATEGORY_PICKER_PANEL_SCROLL_CLASS,
@@ -206,7 +208,10 @@ export default function CategoryPicker({
       </div>
 
       {selectedChips.length > 0 && (
-        <div className="d-flex flex-wrap gap-2 mb-5" aria-label={t('categories')}>
+        <div
+          className={`d-flex flex-wrap align-content-start gap-2 mb-5 ${CATEGORY_PICKER_CHIP_ROW_MAX_HEIGHT_CLASS} ${CATEGORY_PICKER_CHIP_ROW_SCROLL_CLASS}`}
+          aria-label={t('categories')}
+        >
           {selectedChips.map((chip) => (
             <span key={`chip-${chip.id}`} className={CATEGORY_PICKER_CHIP_BADGE_CLASS}>
               {chip.icon ? (

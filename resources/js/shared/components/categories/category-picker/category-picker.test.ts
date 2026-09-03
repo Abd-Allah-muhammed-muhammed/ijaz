@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildLeafIndex,
+  CATEGORY_PICKER_CHIP_ROW_MAX_HEIGHT_CLASS,
+  CATEGORY_PICKER_CHIP_ROW_SCROLL_CLASS,
+  CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS,
   collectLeaves,
   filterLeafMatches,
   flattenLeafMatches,
@@ -80,5 +83,11 @@ describe('category-picker tree helpers', () => {
   it('nodeHasChildren treats empty children as a leaf', () => {
     expect(nodeHasChildren(leaf(1, 'x'))).toBe(false);
     expect(nodeHasChildren(branch(1, 'x', [leaf(2, 'y')]))).toBe(true);
+  });
+
+  it('exports stable layout utility class constants', () => {
+    expect(CATEGORY_PICKER_CHIP_ROW_MAX_HEIGHT_CLASS).toBe('mh-125px');
+    expect(CATEGORY_PICKER_CHIP_ROW_SCROLL_CLASS).toBe('overflow-y-auto');
+    expect(CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS).toBe('mh-350px');
   });
 });

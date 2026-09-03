@@ -35,7 +35,11 @@ export type FlatLeafMatch = {
 };
 
 /** Shared layout constants (Bootstrap/Metronic utility classes). */
-export const CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS = 'mh-400px';
+/** ~2–3 wrapped chip rows before internal scroll; keeps panels anchored below. */
+export const CATEGORY_PICKER_CHIP_ROW_MAX_HEIGHT_CLASS = 'mh-125px';
+export const CATEGORY_PICKER_CHIP_ROW_SCROLL_CLASS = 'overflow-y-auto';
+/** Aligns with design spec (340–360px); 350px fits ~800px-tall viewports once chips are capped. */
+export const CATEGORY_PICKER_PANEL_MAX_HEIGHT_CLASS = 'mh-350px';
 export const CATEGORY_PICKER_PANEL_SCROLL_CLASS = 'overflow-auto';
 export const CATEGORY_PICKER_ROOT_LIST_WIDTH_CLASS = 'w-100 w-md-275px';
 export const CATEGORY_PICKER_CHIP_BADGE_CLASS = 'badge badge-light-primary d-inline-flex align-items-center gap-2 py-2 px-3';
