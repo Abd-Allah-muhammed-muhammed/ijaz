@@ -6,7 +6,7 @@ import {
   isValidSaudiIban,
   normalizeSaudiIban,
   PASSWORD_MIN_LENGTH,
-} from '@/apps/web/pages/Auth/providerSchema';
+} from './providerSchema';
 
 const validAccountData = {
   name: 'Test Provider',
