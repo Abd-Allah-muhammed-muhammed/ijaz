@@ -74,6 +74,8 @@ return [
 
     'not_in' => ':attribute का चयन अमान्य है।',
     'numeric' => ':attribute एक संख्या होनी चाहिए।',
+    'regex' => ':attribute का फ़ॉर्मेट अमान्य है।',
+    'invalid_saudi_iban' => ':attribute एक मान्य सऊदी आईबीएएन होना चाहिए (SA के बाद 22 अंक)।',
     'required' => ':attribute फ़ील्ड आवश्यक है।',
     'same' => ':attribute और :other मेल खाने चाहिए।',
 

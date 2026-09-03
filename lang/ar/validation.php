@@ -72,6 +72,8 @@ return [
 
     'not_in' => 'القيمة المحددة في الحقل :attribute غير صالحة.',
     'numeric' => 'يجب أن يكون الحقل :attribute رقمًا.',
+    'regex' => 'صيغة الحقل :attribute غير صالحة.',
+    'invalid_saudi_iban' => 'يجب أن يكون :attribute آيباناً سعودياً صالحاً (SA متبوعاً بـ 22 رقماً).',
     'required' => 'الحقل :attribute مطلوب.',
     'same' => 'يجب أن يتطابق الحقل :attribute مع :other.',
     'size' => [

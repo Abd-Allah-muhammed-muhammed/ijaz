@@ -254,7 +254,7 @@ export type Inputs = {
   logo: File | undefined;
 }
 
-const accountInformationStepRules = formSchema.pick({
+export const accountInformationStepRules = formSchema.pick({
   name: true,
   about: true,
   email: true,
@@ -375,6 +375,7 @@ export const availableSteps = [
   {
     titleKey: 'account_information',
     descriptionKey: 'setup_your_account_information',
+    requiresPhoneAvailabilityCheck: true,
     rules: accountInformationStepRules,
   },
 

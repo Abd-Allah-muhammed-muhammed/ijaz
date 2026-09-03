@@ -75,6 +75,8 @@ return [
 
     'not_in' => 'منتخب کردہ :attribute درست نہیں ہے۔',
     'numeric' => ':attribute ایک عدد ہونا چاہیے۔',
+    'regex' => ':attribute کا فارمیٹ غلط ہے۔',
+    'invalid_saudi_iban' => ':attribute ایک درست سعودی آئی بین ہونا چاہیے (SA کے بعد 22 ہندسے)۔',
     'required' => ':attribute کا خانہ لازمی ہے۔',
     'same' => ':attribute اور :other ایک جیسے ہونے چاہییں۔',
 

@@ -12,6 +12,7 @@ import './style.css'
 // import {TreeSelect} from "antd";
 import { availableSteps, CategoryOption, Inputs, SAUDI_IBAN_MAX_LENGTH, SAUDI_PHONE_MAX_LENGTH } from "./providerSchema";
 import { checkProviderRegistrationPhone } from "./check-provider-phone";
+import { validateRegistrationStepAdvance } from "./register-step-advance";
 // import SkillsSelect from "@/shared/components/skills/skills-select";
 // import {useGetCategory} from "@/shared/hooks/use-CategoryQuery";
 import ImageInput from "@/shared/components/inputs/ImageInput";
@@ -996,12 +997,15 @@ const Register_ = (
                         className="w-100 w-md-auto"
                         data-pan={`register-step-${steps.currentStep}-next-button`}
                         onClick={async () => {
-                          form.clearErrors()
                           const currentStep = availableSteps[steps.currentStep - 1];
                           if (!currentStep) {
                             console.error('Current step is not defined');
                             return;
                           }
+
+                          const previousPhoneError = form.errors.phone;
+                          form.clearErrors();
+
                           if (steps.stepIs(availableSteps.length - 2)) {
                             const [_, errors] = await sendOtp();
                             if (errors) {
@@ -1014,23 +1018,31 @@ const Register_ = (
                             }
                             setSeconds(60 * MINUTES);
                           }
-                          if (!currentStep.rules) {
-                            steps.nextStep()
-                            return;
-                          }
+
                           const data = {
                             ...form.data,
                             requiredFiles
                           };
-                          const validation = currentStep.rules.safeParse(data)
-                          if (validation.success) {
-                            steps.nextStep()
-                          } else {
-                            validation.error.issues.forEach(issue => {
-                              form.setError(issue.path.join('.') as keyof Inputs, issue.message)
-                            })
+                          const advance = await validateRegistrationStepAdvance(
+                            currentStep,
+                            data,
+                            locale,
+                            form.data.phone,
+                          );
+
+                          if (!advance.success) {
+                            Object.entries(advance.fieldErrors).forEach(([field, message]) => {
+                              form.setError(field as keyof Inputs, message);
+                            });
+
+                            if (advance.blockedOnPhoneCheck && !advance.fieldErrors.phone && previousPhoneError) {
+                              form.setError('phone', previousPhoneError);
+                            }
+
+                            return;
                           }
 
+                          steps.nextStep();
                         }}>
                         {t('next')}
                         {

@@ -169,6 +169,7 @@ return [
     'category_cannot_be_own_parent' => 'A category cannot be set as its own parent.',
     'specialization_cannot_be_own_parent' => 'A specialization cannot be set as its own parent.',
     'invalid_authenticatable_id' => 'The selected :authenticatable could not be found.',
+    'invalid_saudi_iban' => 'The :attribute must be a valid Saudi IBAN (SA followed by 22 digits).',
 
     /*
     |--------------------------------------------------------------------------
