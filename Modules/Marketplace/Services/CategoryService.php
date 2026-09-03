@@ -11,6 +11,7 @@ use Modules\Marketplace\Actions\Category\ListCategoriesAction;
 use Modules\Marketplace\Actions\Category\ListCategoriesForAjaxAction;
 use Modules\Marketplace\Actions\Category\ListCategoriesForApiAction;
 use Modules\Marketplace\Actions\Category\ListCategoriesForSelectAction;
+use Modules\Marketplace\Actions\Category\ListCategoryTreeAction;
 use Modules\Marketplace\Actions\Category\ListLeafCategoriesAction;
 use Modules\Marketplace\Actions\Category\ListRootCategoriesAction;
 use Modules\Marketplace\Actions\Category\ShowCategoryAction;
@@ -27,6 +28,7 @@ class CategoryService
         private readonly ListCategoriesForApiAction $listForApiAction,
         private readonly ListCategoriesForAjaxAction $listForAjaxAction,
         private readonly ListCategoriesForSelectAction $listForSelectAction,
+        private readonly ListCategoryTreeAction $listTreeAction,
         private readonly ListRootCategoriesAction $listRootAction,
         private readonly ListLeafCategoriesAction $listLeafAction,
         private readonly StoreCategoryAction $storeAction,
@@ -111,5 +113,13 @@ class CategoryService
     public function listForAjax(?string $search = null, int $parentId = 0, ?int $providerTypeId = null): Collection
     {
         return $this->listForAjaxAction->handle($search, $parentId, $providerTypeId);
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    public function listTree(?int $providerTypeId = null): Collection
+    {
+        return $this->listTreeAction->handle($providerTypeId);
     }
 }

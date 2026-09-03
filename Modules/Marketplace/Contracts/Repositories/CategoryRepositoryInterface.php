@@ -51,4 +51,11 @@ interface CategoryRepositoryInterface
      * @return Collection<int, Category>
      */
     public function listForAjax(?string $search = null, int $parentId = 0, ?int $providerTypeId = null): Collection;
+
+    /**
+     * Full category tree (roots with nested childrenRecursive).
+     *
+     * @return Collection<int, Category>
+     */
+    public function listTree(?int $providerTypeId = null): Collection;
 }

@@ -157,4 +157,24 @@ class CategoryRepository implements CategoryRepositoryInterface
             ->withExists('children')
             ->get();
     }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    public function listTree(?int $providerTypeId = null): Collection
+    {
+        return Category::query()
+            ->withTranslation()
+            ->with('childrenRecursive')
+            ->whereNull('parent_id')
+            ->when(
+                $providerTypeId,
+                fn ($query) => $query->whereHas(
+                    'providerTypes',
+                    fn ($q) => $q->where('provider_types.id', $providerTypeId)
+                )
+            )
+            ->orderBy('id')
+            ->get();
+    }
 }

@@ -47,7 +47,10 @@ class Category extends Model implements IReactSelect
 
     public function childrenRecursive(): HasMany
     {
-        return $this->hasMany(self::class, 'parent_id')->with('childrenRecursive.translation');
+        return $this->hasMany(self::class, 'parent_id')->with([
+            'translation',
+            'childrenRecursive',
+        ]);
     }
 
     public function deleteIcon(): void

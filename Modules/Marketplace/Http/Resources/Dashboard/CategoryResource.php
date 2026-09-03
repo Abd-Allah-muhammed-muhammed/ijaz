@@ -16,7 +16,7 @@ class CategoryResource extends JsonResource
             'value' => $this->id,
             'icon' => $this->icon_url,
             'children_count' => $this->whenCounted('children'),
-            'has_children' => $this->whenExistsLoaded('children'),
+            'has_children' => $this->resolveHasChildren(),
             'parent_id' => $this->parent_id,
             'children' => $this->when($this->relationLoaded('children') || $this->relationLoaded('childrenRecursive'), function () {
                 if ($this->relationLoaded('childrenRecursive')) {
@@ -54,5 +54,21 @@ class CategoryResource extends JsonResource
             'fees' => $this->fees,
             'fees_type' => $this->fees_type->toArray(),
         ];
+    }
+
+    /**
+     * Prefer loaded relation emptiness (tree payloads) over withExists when available.
+     */
+    private function resolveHasChildren(): mixed
+    {
+        if ($this->relationLoaded('childrenRecursive')) {
+            return $this->childrenRecursive->isNotEmpty();
+        }
+
+        if ($this->relationLoaded('children')) {
+            return $this->children->isNotEmpty();
+        }
+
+        return $this->whenExistsLoaded('children');
     }
 }

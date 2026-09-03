@@ -42,4 +42,15 @@ class AjaxController extends Controller
             )
         );
     }
+
+    public function categoriesTree(Request $request): JsonResponse
+    {
+        return $this->successResponse(
+            CategoryResource::collection(
+                $this->categoryService->listTree(
+                    $request->filled('provider_type_id') ? $request->integer('provider_type_id') : null,
+                )
+            )
+        );
+    }
 }

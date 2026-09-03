@@ -20,14 +20,9 @@ import axios from '@/shared/helpers/axios';
 import AuthController from '@/actions/App/Http/Controllers/Frontend/AuthController';
 import ToastEffect from '@/shared/components/toaster/toast-effect';
 import GeneralController from '@/actions/App/Http/Controllers/Frontend/GeneralController';
-// import { CategoryFormData } from '@/apps/admin/pages/Providers/types';
-import {
-  Data as SelectCategoryModalData,
-  SelectCategoryModal
-} from '@/shared/components/categories/category-selector/select-category-modal';
+import { CategoryPicker } from '@/shared/components/categories/category-picker';
 import { ProviderTypeFilesEnum } from "@/Enums/Enums";
 import { AxiosError } from "axios";
-import { faPlus } from "@fortawesome/free-solid-svg-icons/faPlus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowLeft,
@@ -36,7 +31,6 @@ import {
   faCircleCheck,
   faCommentDots,
   faRocket,
-  faTrash
 } from "@fortawesome/free-solid-svg-icons";
 import ActionButton from "@/shared/components/action-button";
 
@@ -93,7 +87,6 @@ const Register_ = (
     acc[file] = false;
     return acc;
   }, {} as RequiredFilesState));
-  const [showCateModal, setShowCateModal] = useState<boolean>(false);
 
   const [providerType, setProviderType] = useState<ProviderType | null>(null)
   const steps = useSteps({
@@ -110,58 +103,6 @@ const Register_ = (
   //     }}
   //   />
   // }, [categories])
-
-  // const addCategory = async () => {
-  //   const {data} = await categoryQuery.refetch()
-  //   if (!data) {
-  //     toast.error('Category not found');
-  //     return;
-  //   }
-  //   const newCategory = {
-  //     id: data.id as number,
-  //     title: data.title,
-  //     icon: data.icon,
-  //     skills
-  //   };
-  //   const $new = new Map(categoriesOptions).set(newCategory.id, newCategory);
-  //   setCategoriesOptions($new);
-  //   setSkills([]);
-  //
-  //   form.setData('categories', Array.from(
-  //     $new.values().map(category => {
-  //       return {
-  //         id: category.id,
-  //         skills: category.skills.map(s => parseInt(s.value as string))
-  //       }
-  //     })
-  //   ))
-  //
-  // }
-
-
-  const addCategory = (data: SelectCategoryModalData[]) => {
-    const $new = new Map(categoriesOptions);
-    data.forEach(c => {
-      $new.set(c.category!.id as number, {
-        id: c.category!.id as number,
-        title: c.category!.title,
-        icon: c.category!.icon,
-        skills: c.skills
-      })
-    })
-    setCategoriesOptions($new);
-    // setSkills([]);
-
-    form.setData('categories', Array.from(
-      $new.values().map(category => {
-        return {
-          id: category.id,
-          skills: category.skills.map(s => parseInt(s.value as string))
-        }
-      })
-    ))
-
-  }
 
   const sendOtp = async (): Promise<[any, Record<string, string[]> | null]> => {
     try {
@@ -577,126 +518,37 @@ const Register_ = (
                 </div>
                 <div className={steps.stepIs(3) ? "current" : ''} data-kt-stepper-element="content">
                   <div className="w-100">
-                    {/*<div className="pb-5">*/}
-                    {/*  <h2 className="fw-bold text-gray-900">{t('categories & skills')}</h2>*/}
-                    {/*  /!*<div className="text-muted fw-semibold fs-6">If you need more info, please check out*!/*/}
-                    {/*  /!*  <a href="#" className="text-primary fw-bold">Help Page</a>.*!/*/}
-                    {/*  /!*</div>*!/*/}
-                    {/*</div>*/}
-                    {/*<Form.Group className="d-flex flex-column mb-7 fv-row">*/}
-                    {/*  <Form.Label className="d-flex align-items-center fs-6 fw-semibold form-label mb-2">*/}
-                    {/*    <span className="required">{t('category')}</span>*/}
-                    {/*  </Form.Label>*/}
-                    {/*  {categoriesSelect}*/}
-                    {/*</Form.Group>*/}
-                    {/*<Form.Group className="d-flex flex-column mb-7 fv-row">*/}
-                    {/*  <Form.Label className="required fs-6 fw-semibold form-label mb-2">{t('skills')}</Form.Label>*/}
-                    {/*  <div className="position-relative">*/}
-                    {/*    <SkillsSelect categoryId={category} setValues={setSkills} values={skills}/>*/}
-                    {/*  </div>*/}
-                    {/*</Form.Group>*/}
                     <Row className='mb-7 fv-row'>
-                      <Col sm={6}>
+                      <Col sm={12} className="mb-5">
                         <h4 className='fw-bold text-gray-900'>{t('categories')}</h4>
-                      </Col>
-                      <Col sm={6} className='d-flex justify-content-end'>
-                        <Button
-                          variant='primary'
-                          size='sm'
-                          onClick={() => setShowCateModal(true)}
-                          className="d-flex gap-5 align-items-center"
-                          enterKeyHint="enter">
-                          <FontAwesomeIcon icon={faPlus} className="fs-4" size={'sm'} />
-                        </Button>
-                        <SelectCategoryModal
-                          show={showCateModal}
-                          handleClose={() => {
-                            setShowCateModal(false)
-                          }}
-                          submitCallback={(data) => {
-                            addCategory(data);
-                            setShowCateModal(false);
-                          }}
-                          provider_type_id={providerType?.id as string}
-                        />
-                        {/*<Button type='button' variant='secondary' className="text-primary" onClick={addCategory}>*/}
-                        {/*  {t('add')}*/}
-                        {/*  <i className="ki-duotone ki-plus fs-4 ">*/}
-                        {/*    <span className="path1"></span>*/}
-                        {/*    <span className="path2"></span>*/}
-                        {/*  </i>*/}
-                        {/*</Button>*/}
+                        <InputError message={form.errors.categories} />
                       </Col>
                       <Col sm={12}>
-                        <div className='mb-0 fv-row'>
-                          <label className='d-flex align-items-center form-label mb-5'>
-                            {/*
-                              your account plane
-                            */}
-                            <i
-                              className='fas fa-exclamation-circle ms-2 fs-7'
-                              data-bs-toggle='tooltip'
-                              title='Monthly billing will be based on your account plan'
-                            ></i>
-                          </label>
-                          <InputError message={form.errors.categories} />
-
-                          <div className='mb-0'>
-                            {Array.from(categoriesOptions.values()).map((ca, index) => (
-                              <div key={'category-container-' + ca.id} className='mb-5'>
-                                <div className='d-flex flex-stack mb-5 cursor-pointer'>
-                                  <span className='d-flex align-items-center me-2'>
-                                    <span className='symbol symbol-50px me-6'>
-                                      <span className='symbol-label'>
-                                        <img src={ca.icon} className='h-50px align-self-center' alt={ca.title} />
-                                      </span>
-                                    </span>
-
-                                    <span className='d-flex flex-column'>
-                                      <span className='fw-bolder text-gray-800 text-hover-primary fs-5'>
-                                        {ca.title}
-                                      </span>
-                                      <span className='fs-6 fw-bold text-gray-500'>
-                                        {/*{ca.skills.map(skill => skill.label).join(', ')}*/}
-                                      </span>
-                                    </span>
-                                  </span>
-                                  <span className='form-check form-check-custom form-check-solid'>
-                                    <Button
-                                      variant={'danger'}
-                                      size={'sm'}
-                                      onClick={() => {
-                                        form.setData('categories', form.data.categories.filter(c => c.id !== ca.id));
-                                        setCategoriesOptions((prev) => {
-                                          const newMap = new Map(prev);
-                                          newMap.delete(ca.id);
-                                          return newMap;
-                                        });
-                                      }}
-                                    >
-                                      <FontAwesomeIcon icon={faTrash} />
-                                    </Button>
-                                  </span>
-                                </div>
-
-                                {/*
-                                  @ts-expect-error
-                                  eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                */}
-                                <InputError message={form.errors?.[`categories.${index}`]} />
-                                {/*
-                                  @ts-expect-error
-                                  eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                */}
-                                <InputError message={form.errors?.[`categories.${index}.skills`]} />
-                              </div>
-
-                            ))}
-                          </div>
-                        </div>
+                        <CategoryPicker
+                          provider_type_id={providerType?.id}
+                          value={form.data.categories}
+                          onChange={(selected) => {
+                            const next = new Map<number, CategoryOption>();
+                            selected.forEach((item) => {
+                              next.set(item.id, {
+                                id: item.id,
+                                title: item.title,
+                                icon: item.icon,
+                                skills: [],
+                              });
+                            });
+                            setCategoriesOptions(next);
+                            form.setData(
+                              'categories',
+                              selected.map((item) => ({
+                                id: item.id,
+                                skills: [],
+                              })),
+                            );
+                          }}
+                        />
                       </Col>
                     </Row>
-
                   </div>
                 </div>
                 <div className={steps.stepIs(4) ? "current" : ''} data-kt-stepper-element="content">
