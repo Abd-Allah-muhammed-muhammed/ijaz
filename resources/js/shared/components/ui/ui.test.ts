@@ -15,7 +15,7 @@ const statusBadgeSrc = readFileSync(join(dir, 'status-badge.tsx'), 'utf8');
 const confirmDialogSrc = readFileSync(join(dir, 'confirm-dialog.tsx'), 'utf8');
 const pageFilterBarSrc = readFileSync(join(dir, 'page-filter-bar.tsx'), 'utf8');
 
-describe('design-system barrel', () => {
+describe('ui barrel', () => {
   it('exports all 7 components from the subdomain barrel', () => {
     expect(barrelSrc).toContain("export { default as StatusBadge }");
     expect(barrelSrc).toContain("export { default as StatTile }");

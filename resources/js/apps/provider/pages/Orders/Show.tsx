@@ -19,7 +19,7 @@ import {
   SectionCard,
   StatTile,
   StatusBadge,
-} from '@/shared/components/design-system';
+} from '@/shared/components/ui';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faStar } from '@fortawesome/free-solid-svg-icons';
 import axios from '@/shared/helpers/axios';

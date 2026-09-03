@@ -34,7 +34,7 @@ describe('order hero', () => {
     expect(showSrc).toContain('getOrderStatusBadgeClass');
     expect(showSrc).toContain('StatusBadge');
     expect(showSrc).toContain('StatTile');
-    expect(showSrc).toContain("from '@/shared/components/design-system'");
+    expect(showSrc).toContain("from '@/shared/components/ui'");
     expect(showSrc).toContain('formatCurrency');
     expect(showSrc).toContain("t('budget')");
     expect(showSrc).toContain("t('expected_time')");
