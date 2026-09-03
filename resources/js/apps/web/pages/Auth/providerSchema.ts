@@ -3,8 +3,32 @@ import i18n from "@/lang/i18next";
 
 const fileSize = 8; // 8 MB
 
+/** Longest valid KSA mobile input: `00966` + `5` + 8 digits. */
+export const SAUDI_PHONE_MAX_LENGTH = 14;
+
+/** Saudi IBAN: `SA` + 22 digits. */
+export const SAUDI_IBAN_MAX_LENGTH = 24;
+
+const SAUDI_IBAN_PATTERN = /^SA\d{22}$/;
+
+const KSA_PHONE_PATTERN = /^(?<key>(\+|00)?966|0)?(?<provider>5)(?<digits>\d{8})$/;
+
+export function normalizeSaudiIban(value: string): string {
+  return value.toUpperCase().replace(/\s+/g, '');
+}
+
+export function isValidSaudiIban(value: string): boolean {
+  return SAUDI_IBAN_PATTERN.test(normalizeSaudiIban(value));
+}
+
+function isValidKsaPhone(value: string): boolean {
+  return KSA_PHONE_PATTERN.test(value);
+}
+
 export const formSchema = z.object({
-  provider_type_id: z.number(i18n.t('validation.required', {attribute: i18n.t('provider_type')})),
+  provider_type_id: z.number({
+    error: () => i18n.t('validation.required', {attribute: i18n.t('provider_type')}),
+  }),
 
   requiredFiles: z.object({
     id_image: z.boolean(),
@@ -13,107 +37,184 @@ export const formSchema = z.object({
     iban_certification: z.boolean(),
   }),
 
-  name: z.string(i18n.t('validation.required', {attribute: i18n.t('name')}))
-    .nonempty(i18n.t('validation.required', {attribute: i18n.t('name')}))
-    .min(3, i18n.t('validation.min.string', {attribute: i18n.t('name'), min: '3'})),
+  name: z.string()
+    .superRefine((value, ctx) => {
+      if (!value || value.trim() === '') {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.required', {attribute: i18n.t('name')}),
+        });
+
+        return;
+      }
+
+      if (value.length < 3) {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.min.string', {attribute: i18n.t('name'), min: '3'}),
+        });
+      }
+    }),
 
   about: z.string()
-    .nonempty(i18n.t('validation.required', {attribute: i18n.t('about')}))
+    .superRefine((value, ctx) => {
+      if (!value || value.trim() === '') {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.required', {attribute: i18n.t('about')}),
+        });
+      }
+    })
     .optional(),
 
-  email: z.email(i18n.t('validation.email', {attribute: i18n.t('email')}))
-    .nonempty(i18n.t('validation.required', {attribute: i18n.t('email')})),
+  email: z.string()
+    .superRefine((value, ctx) => {
+      if (!value || value.trim() === '') {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.required', {attribute: i18n.t('email')}),
+        });
 
-  phone: z.string(i18n.t('validation.required', {attribute: i18n.t('phone')}))
-    .nonempty(i18n.t('validation.required', {attribute: i18n.t('phone')}))
-    .regex(
-      new RegExp('^(?<key>(\\+|00)?966|0)?(?<provider>5)(?<digits>\\d{8})$'),
-      i18n.t('validation.regex', {attribute: i18n.t('phone')})
-    ),
+        return;
+      }
 
-  address: z.string(i18n.t('validation.required', {attribute: i18n.t('address')}))
-    .nonempty(i18n.t('validation.required', {attribute: i18n.t('phone')})),
+      if (!z.email().safeParse(value).success) {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.email', {attribute: i18n.t('email')}),
+        });
+      }
+    }),
 
-  region_id: z.number(i18n.t('validation.required', {attribute: i18n.t('region')})),
+  phone: z.string()
+    .superRefine((value, ctx) => {
+      if (!value || value.trim() === '') {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.required', {attribute: i18n.t('phone')}),
+        });
 
-  city_id: z.number(i18n.t('validation.required', {attribute: i18n.t('city')})),
+        return;
+      }
 
-  iban: z.string(i18n.t('validation.required', {attribute: i18n.t('iban')}))
-    .nonempty(i18n.t('validation.required', {attribute: i18n.t('iban')})),
+      if (!isValidKsaPhone(value)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.regex', {attribute: i18n.t('phone')}),
+        });
+      }
+    }),
 
-  password: z.string(i18n.t('validation.required', {attribute: i18n.t('password')}))
-    .nonempty(i18n.t('validation.required', {attribute: i18n.t('password')}))
-    .min(6, "Password must be at least 6 characters long"),
+  address: z.string()
+    .superRefine((value, ctx) => {
+      if (!value || value.trim() === '') {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.required', {attribute: i18n.t('address')}),
+        });
+      }
+    }),
 
-  password_confirmation: z.string(i18n.t('validation.required', {attribute: i18n.t('password_confirmation')}))
-    .nonempty(i18n.t('validation.required', {attribute: i18n.t('password_confirmation')}))
-    .min(6, "Password confirmation must be at least 6 characters long"),
+  region_id: z.number({
+    error: () => i18n.t('validation.required', {attribute: i18n.t('region')}),
+  }),
 
-  otp: z.string().max(4, i18n.t('validation.max.string', {attribute: i18n.t('otp'), max: '4'})),
+  city_id: z.number({
+    error: () => i18n.t('validation.required', {attribute: i18n.t('city')}),
+  }),
+
+  iban: z.string()
+    .superRefine((value, ctx) => {
+      if (!value || value.trim() === '') {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.required', {attribute: i18n.t('iban')}),
+        });
+
+        return;
+      }
+
+      if (!isValidSaudiIban(value)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.invalid_saudi_iban', {attribute: i18n.t('iban')}),
+        });
+      }
+    }),
+
+  password: z.string()
+    .superRefine((value, ctx) => {
+      if (!value || value === '') {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.required', {attribute: i18n.t('password')}),
+        });
+
+        return;
+      }
+
+      if (value.length < 6) {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.min.string', {attribute: i18n.t('password'), min: '6'}),
+        });
+      }
+    }),
+
+  password_confirmation: z.string()
+    .superRefine((value, ctx) => {
+      if (!value || value === '') {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.required', {attribute: i18n.t('password_confirmation')}),
+        });
+
+        return;
+      }
+
+      if (value.length < 6) {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.min.string', {attribute: i18n.t('password_confirmation'), min: '6'}),
+        });
+      }
+    }),
+
+  otp: z.string()
+    .superRefine((value, ctx) => {
+      if (value.length > 4) {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.max.string', {attribute: i18n.t('otp'), max: '4'}),
+        });
+      }
+    }),
 
   categories: z.array(z.object({
-    id: z.number(i18n.t('validation.required', {attribute: i18n.t('category')})),
-    skills: z.array(z.number()).nullish()
+    id: z.number({
+      error: () => i18n.t('validation.required', {attribute: i18n.t('category')}),
+    }),
+    skills: z.array(z.number()).nullish(),
   }))
-    .min(1, i18n.t('validation.required', {attribute: i18n.t('categories')})),
+    .superRefine((value, ctx) => {
+      if (value.length < 1) {
+        ctx.addIssue({
+          code: 'custom',
+          message: i18n.t('validation.required', {attribute: i18n.t('categories')}),
+        });
+      }
+    }),
 
-  id_image: z.file()
-    .max(fileSize * 1024 * 1024, i18n.t('validation.max.file', {'attribute': i18n.t('id_image'), max: String(fileSize * 1024)}))
-    .mime(['application/pdf'], i18n.t('validation.mimes', {'attribute': i18n.t('id_image'), 'values': 'pdf'}))
-    .optional()
-  ,
+  id_image: z.file().optional(),
 
-  commercial_record: z.file()
-    .max(fileSize * 1024 * 1024, i18n.t('validation.max.file', {'attribute': i18n.t('commercial_record'), max: String(fileSize * 1024)}))
-    .mime(['application/pdf'], i18n.t('validation.mimes', {'attribute': i18n.t('commercial_record'), 'values': 'pdf'}))
-    .optional(),
+  commercial_record: z.file().optional(),
 
-  iban_certification: z.file()
-    .max(fileSize * 1024 * 1024, i18n.t('validation.max.file', {
-      'attribute': i18n.t('iban_certification'),
-      'max': String(fileSize * 1024)
-    }))
-    .mime(['application/pdf'], i18n.t('validation.mimes', {'attribute': i18n.t('iban_certification'), 'values': 'pdf'}))
-    .optional(),
+  iban_certification: z.file().optional(),
 
-  freelancer_certification: z.file()
-    .max(fileSize * 1024 * 1024, i18n.t('validation.max.file', {
-      'attribute': i18n.t('freelancer_certification'),
-      'max': String(fileSize * 1024)
-    }))
-    .mime(['application/pdf'], i18n.t('validation.mimes', {
-      'attribute': i18n.t('freelancer_certification'),
-      'values': 'pdf'
-    }))
-    .optional(),
+  freelancer_certification: z.file().optional(),
 
-  logo: z.file(i18n.t('validation.required', {attribute: i18n.t('logo')}))
-    .max(fileSize * 1024 * 1024, i18n.t('validation.max.file', {
-      'attribute': i18n.t('logo'),
-      'max':  String(fileSize * 1024)
-    }))
-    .mime(['image/jpeg', 'image/png'], i18n.t('validation.mimes', {
-      'attribute': i18n.t('logo'),
-      'values': 'png,jpeg'
-    })),
-})
-  // .refine(data => {
-  //   return data.password === data.password_confirmation
-  // }, {
-  //   message: i18n.t('validation.confirmed', {attribute: i18n.t('password_confirmation')}),
-  //   path: ["password_confirmation"],
-  //   params: {'code': 'passwords_match'}
-  // })
-  // .superRefine((data, ctx) => {
-  //   console.log('refine')
-  //   if (data.requiredFiles.id_image && !data.id_image) {
-  //     ctx.addIssue({
-  //       code: 'custom', // Use custom code for conditional validation
-  //       message: i18n.t('validation.required', {attribute: i18n.t('id_image')}),
-  //       path: ['id_image'],
-  //     });
-  //   }
-  // });
+  logo: z.file().optional(),
+});
 
 
 export type Schema = z.infer<typeof formSchema>;
@@ -153,7 +254,111 @@ export type Inputs = {
   logo: File | undefined;
 }
 
+const accountInformationStepRules = formSchema.pick({
+  name: true,
+  about: true,
+  email: true,
+  phone: true,
+  address: true,
+  region_id: true,
+  city_id: true,
+  iban: true,
+  password: true,
+  password_confirmation: true,
+}).superRefine((data, ctx) => {
+  if (data.password !== data.password_confirmation) {
+    ctx.addIssue({
+      code: 'custom',
+      message: i18n.t('validation.confirmed', {attribute: i18n.t('password')}),
+      path: ['password_confirmation'],
+    });
+  }
+});
 
+const filesStepRules = formSchema.pick({
+  requiredFiles: true,
+  id_image: true,
+  commercial_record: true,
+  iban_certification: true,
+  freelancer_certification: true,
+  logo: true,
+}).superRefine((data, ctx) => {
+  const maxBytes = fileSize * 1024 * 1024;
+
+  const validatePdfFile = (
+    file: File | undefined,
+    attributeKey: string,
+    path: string,
+    required: boolean,
+  ) => {
+    if (required && !file) {
+      ctx.addIssue({
+        code: 'custom',
+        message: i18n.t('validation.required', {attribute: i18n.t(attributeKey)}),
+        path: [path],
+      });
+
+      return;
+    }
+
+    if (!file) {
+      return;
+    }
+
+    if (file.size > maxBytes) {
+      ctx.addIssue({
+        code: 'custom',
+        message: i18n.t('validation.max.file', {
+          attribute: i18n.t(attributeKey),
+          max: String(fileSize * 1024),
+        }),
+        path: [path],
+      });
+    }
+
+    if (file.type !== 'application/pdf') {
+      ctx.addIssue({
+        code: 'custom',
+        message: i18n.t('validation.mimes', {attribute: i18n.t(attributeKey), values: 'pdf'}),
+        path: [path],
+      });
+    }
+  };
+
+  validatePdfFile(data.id_image, 'id_image', 'id_image', data.requiredFiles.id_image);
+  validatePdfFile(data.commercial_record, 'commercial_record', 'commercial_record', data.requiredFiles.commercial_record);
+  validatePdfFile(data.iban_certification, 'iban_certification', 'iban_certification', data.requiredFiles.iban_certification);
+  validatePdfFile(data.freelancer_certification, 'freelancer_certification', 'freelancer_certification', data.requiredFiles.freelancer_certification);
+
+  if (!data.logo) {
+    ctx.addIssue({
+      code: 'custom',
+      message: i18n.t('validation.required', {attribute: i18n.t('logo')}),
+      path: ['logo'],
+    });
+
+    return;
+  }
+
+  if (data.logo.size > maxBytes) {
+    ctx.addIssue({
+      code: 'custom',
+      message: i18n.t('validation.max.file', {
+        attribute: i18n.t('logo'),
+        max: String(fileSize * 1024),
+      }),
+      path: ['logo'],
+    });
+  }
+
+  if (!['image/jpeg', 'image/png'].includes(data.logo.type)) {
+    ctx.addIssue({
+      code: 'custom',
+      message: i18n.t('validation.mimes', {attribute: i18n.t('logo'), values: 'png,jpeg'}),
+      path: ['logo'],
+    });
+  }
+});
 
 /**
  * Step metadata for the provider registration sidebar.
@@ -170,19 +375,7 @@ export const availableSteps = [
   {
     titleKey: 'account_information',
     descriptionKey: 'setup_your_account_information',
-    rules: formSchema.pick({
-      name: true,
-      about: true,
-      email: true,
-      phone: true,
-      address: true,
-      region_id: true,
-      city_id: true,
-      iban: true,
-      password: true,
-      password_confirmation: true,
-    }),
-
+    rules: accountInformationStepRules,
   },
 
   {
@@ -195,42 +388,7 @@ export const availableSteps = [
   {
     titleKey: 'files',
     descriptionKey: 'provide_your_files',
-    rules: formSchema.pick({
-      requiredFiles: true,
-      id_image: true,
-      commercial_record: true,
-      iban_certification: true,
-      freelancer_certification: true,
-      logo: true,
-    })
-      .refine(data => data.requiredFiles.id_image ? Boolean(data.id_image) : true,
-      {
-        message: i18n.t('validation.required', {attribute: i18n.t('id_image')}),
-        path: ['id_image'],
-        params: {'code': 'iban_certification_required'}
-      })
-      .refine(data => {
-        return data.requiredFiles.commercial_record ? Boolean(data.commercial_record) : true
-      }, {
-        message: i18n.t('validation.required', {attribute: i18n.t('commercial_record')}),
-        path: ['commercial_record'],
-        params: {'code': 'commercial_record_required'}
-      })
-      .refine(data => {
-        return data.requiredFiles.iban_certification ? Boolean(data.iban_certification) : true
-      }, {
-        message: i18n.t('validation.required', {attribute: i18n.t('iban_certification')}),
-        path: ['iban_certification'],
-        params: {'code': 'iban_certification_required'}
-      })
-      .refine(data => {
-        return data.requiredFiles.freelancer_certification ? Boolean(data.freelancer_certification) : true
-      }, {
-        message: i18n.t('validation.required', {attribute: i18n.t('freelancer_certification')}),
-        path: ['freelancer_certification'],
-        params: {'code': 'freelancer_certification_required'}
-      })
-    ,
+    rules: filesStepRules,
   },
   {
     titleKey: 'summary',

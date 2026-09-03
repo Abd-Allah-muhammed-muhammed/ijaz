@@ -1,8 +1,8 @@
 import { Button, Col, Form, Nav, Row } from "react-bootstrap";
 import { url, whenLocale } from "@/shared/helpers/general";
 import { City, ProviderType, Region } from "@/shared/types/models";
-import { Head, useForm } from "@inertiajs/react";
-import React, { FormEvent, Fragment, ReactNode, useEffect, useState } from 'react';
+import { Head, useForm, usePage } from "@inertiajs/react";
+import React, { FormEvent, Fragment, ReactNode, useEffect, useRef, useState } from 'react';
 import useSteps from "@/shared/hooks/use-steps";
 import { useTranslation } from 'react-i18next';
 import ToastContainer from "@/shared/components/toaster/toast-container";
@@ -10,7 +10,8 @@ import { toast } from 'sonner'
 import { KTIcon } from "@/vendor/metronic/helpers";
 import './style.css'
 // import {TreeSelect} from "antd";
-import { availableSteps, CategoryOption, Inputs } from "./providerSchema";
+import { availableSteps, CategoryOption, Inputs, SAUDI_IBAN_MAX_LENGTH, SAUDI_PHONE_MAX_LENGTH } from "./providerSchema";
+import { checkProviderRegistrationPhone } from "./check-provider-phone";
 // import SkillsSelect from "@/shared/components/skills/skills-select";
 // import {useGetCategory} from "@/shared/hooks/use-CategoryQuery";
 import ImageInput from "@/shared/components/inputs/ImageInput";
@@ -93,6 +94,8 @@ const Register_ = (
     totalSteps: availableSteps.length,
   })
   const { t } = useTranslation();
+  const locale = usePage().props.app.locale;
+  const phoneCheckGenerationRef = useRef(0);
   const formatStepTitle = (stepNumber: number, titleKey: string) =>
     t('registration_step_label', { number: stepNumber, title: t(titleKey) });
   // const categoriesSelect = useMemo(() => {
@@ -386,8 +389,29 @@ const Register_ = (
                           <Form.Control
                             type="tel"
                             placeholder={t('phone')}
+                            maxLength={SAUDI_PHONE_MAX_LENGTH}
+                            value={form.data.phone ?? ''}
                             onChange={(event) => {
                               form.setData('phone', event.currentTarget.value);
+                            }}
+                            onBlur={async (event) => {
+                              const phone = event.currentTarget.value;
+                              const generation = ++phoneCheckGenerationRef.current;
+                              const result = await checkProviderRegistrationPhone(locale, phone);
+
+                              if (generation !== phoneCheckGenerationRef.current) {
+                                return;
+                              }
+
+                              if (phone !== (form.data.phone ?? '')) {
+                                return;
+                              }
+
+                              if (result.status === 'available') {
+                                form.clearErrors('phone');
+                              } else if (result.status === 'invalid') {
+                                form.setError('phone', result.message);
+                              }
                             }}
                           />
                           <InputError message={form.errors.phone} />
@@ -412,6 +436,8 @@ const Register_ = (
                           <Form.Control
                             type="text"
                             placeholder={t('iban')}
+                            maxLength={SAUDI_IBAN_MAX_LENGTH}
+                            value={form.data.iban ?? ''}
                             onChange={(event) => {
                               form.setData('iban', event.currentTarget.value);
                             }}

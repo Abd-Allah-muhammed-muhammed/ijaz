@@ -2,6 +2,7 @@
 
 use App\Enums\Auth\OtpPurposeEnum;
 use App\Enums\Providers\ProviderStatusEnum;
+use App\Http\Controllers\General\AjaxController;
 use App\Models\Otp;
 use App\Models\Provider;
 use App\Support\Phone;
@@ -291,4 +292,95 @@ test('registration syncs selected categories', function () {
 
     expect($provider)->not->toBeNull()
         ->and($provider->categories()->pluck('categories.id')->all())->toBe([$category->id]);
+});
+
+const REGISTRATION_VALID_SAUDI_IBAN = 'SA0380000000608010167519';
+
+test('registration fails with invalid iban format', function () {
+    $payload = validRegistrationPayload(['iban' => 'NOT-A-VALID-IBAN']);
+    unset($payload['_category']);
+
+    $this->from(route('auth.register'))
+        ->post(route('auth.register.submit'), $payload)
+        ->assertRedirect(route('auth.register'))
+        ->assertSessionHasErrors('iban');
+
+    expect(Provider::query()->count())->toBe(0);
+});
+
+test('registration accepts valid saudi iban format', function () {
+    $payload = validRegistrationPayload([
+        'iban' => REGISTRATION_VALID_SAUDI_IBAN,
+        'email' => 'valid-iban@example.com',
+    ]);
+    unset($payload['_category']);
+
+    $this->from(route('auth.register'))
+        ->post(route('auth.register.submit'), $payload)
+        ->assertRedirect(route('auth.register'))
+        ->assertSessionHas('success', __('data saved successfully'));
+
+    $provider = Provider::query()->where('email', 'valid-iban@example.com')->first();
+
+    expect($provider)->not->toBeNull()
+        ->and($provider->iban)->toBe(REGISTRATION_VALID_SAUDI_IBAN);
+});
+
+test('ajax check-phone rejects duplicate provider phone', function () {
+    $phone = '512345679';
+    createWalletProvider([
+        'phone' => Phone::make($phone)->toString(),
+        'email' => 'existing-provider@example.com',
+    ]);
+
+    $this->postJson(action([AjaxController::class, 'checkPhone']), [
+        'phone' => $phone,
+    ])->assertUnprocessable()
+        ->assertJsonValidationErrors('phone');
+});
+
+test('ajax check-phone rejects duplicate provider phone on repeated checks', function () {
+    $phone = '512345678';
+    createWalletProvider([
+        'phone' => Phone::make($phone)->toString(),
+        'email' => 'repeat-check-provider@example.com',
+    ]);
+
+    $endpoint = action([AjaxController::class, 'checkPhone']);
+
+    $this->postJson($endpoint, ['phone' => $phone])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('phone');
+
+    $this->postJson($endpoint, ['phone' => $phone])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('phone');
+});
+
+test('ajax check-phone accepts available phone', function () {
+    $this->postJson(action([AjaxController::class, 'checkPhone']), [
+        'phone' => '512345680',
+    ])->assertSuccessful()
+        ->assertJsonPath('data.available', true);
+});
+
+test('registration fails with duplicate phone at final submit', function () {
+    $phone = '512345681';
+    createWalletProvider([
+        'phone' => Phone::make($phone)->toString(),
+        'email' => 'duplicate-phone@example.com',
+    ]);
+
+    $payload = validRegistrationPayload([
+        'phone' => $phone,
+        'email' => 'new-provider@example.com',
+    ]);
+    unset($payload['_category']);
+
+    $this->from(route('auth.register'))
+        ->post(route('auth.register.submit'), $payload)
+        ->assertRedirect(route('auth.register'))
+        ->assertSessionHasErrors('phone');
+
+    expect(Provider::query()->where('email', 'new-provider@example.com')->exists())->toBeFalse();
 });

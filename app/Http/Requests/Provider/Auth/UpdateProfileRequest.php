@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Provider\Auth;
 
 use App\Models\Provider;
+use App\Rules\SaudiIban;
 use App\Support\Phone;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -50,7 +51,7 @@ class UpdateProfileRequest extends FormRequest
                 }
             }],
             'email' => ['required', 'email', 'max:255', Rule::unique('providers', 'email')->ignore($id)],
-            'iban' => ['required', 'string', 'max:34', Rule::unique('providers', 'iban')->ignore($id)],
+            'iban' => ['required', 'string', 'max:24', new SaudiIban, Rule::unique('providers', 'iban')->ignore($id)],
             'about' => ['required', 'string', 'max:1000'],
             'logo' => [Rule::when($id, 'nullable', 'required'), 'image', 'max:2048'],
             'password' => [Rule::when($id, 'nullable', 'required'), 'string', 'max:20', 'confirmed:password_confirmation'],

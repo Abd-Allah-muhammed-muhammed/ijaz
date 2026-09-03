@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Frontend;
 
 use App\Models\Provider;
+use App\Rules\SaudiIban;
 use App\Rules\ValidProviderRegistrationOtpRule;
 use App\Support\Phone;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -46,7 +47,7 @@ class ProviderRegisterRequest extends FormRequest
                 }
             }],
             'email' => ['required', 'email', 'max:255', Rule::unique('providers', 'email')],
-            'iban' => ['required', 'string', 'max:34', Rule::unique('providers', 'iban')],
+            'iban' => ['required', 'string', 'max:24', new SaudiIban, Rule::unique('providers', 'iban')],
             'about' => ['required', 'string', 'max:1000'],
             'logo' => ['required', 'image', 'max:8192'],
             'password' => ['required', 'string', 'max:20', 'confirmed:password_confirmation'],
