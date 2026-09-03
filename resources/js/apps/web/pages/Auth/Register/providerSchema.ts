@@ -418,7 +418,7 @@ export const availableSteps = [
   },
 
   {
-    titleKey: 'categories & skills',
+    titleKey: 'categories',
     descriptionKey: 'select_your_categories & skills',
     rules: formSchema.pick({
       categories: true,
