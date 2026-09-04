@@ -1,3 +1,9 @@
+/**
+ * PAUSED (not removed) — Admin dashboard top-up detail page.
+ * Unreachable while Admin top-up routes/sidebar are commented out.
+ * Re-enable with chore/provider-topup-pause (2026-09-04); restore
+ * TopUpRequestController Wayfinder import after wayfinder:generate.
+ */
 import { useTranslation } from 'react-i18next';
 import {PageTitle} from "@/vendor/metronic/layout/core";
 import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
@@ -14,7 +20,8 @@ import MasterLayout from '@/vendor/metronic/layout/MasterLayout';
 import { Button } from 'react-bootstrap';
 import { OperationStatusEnum } from '@/Enums/Enums';
 import { FormInput } from '@/apps/admin/pages/TopUpRequests/types';
-import TopUpRequestController from '@/actions/Modules/Wallet/Http/Controllers/Dashboard/TopUpRequestController';
+// Paused (not removed) — Wayfinder file absent while admin top-up routes are commented out.
+// import TopUpRequestController from '@/actions/Modules/Wallet/Http/Controllers/Dashboard/TopUpRequestController';
 
 
 type Props = {
@@ -34,10 +41,11 @@ const Show = ({row,paymentResponse}: Props) => {
       ...data,
       status: OperationStatusEnum.Approved,
     }));
-    form.put(TopUpRequestController.updateStatus(row).url, {
-      preserveScroll: true,
-      preserveState: true,
-    });
+    // Paused — was form.put(TopUpRequestController.updateStatus(row).url, ...)
+    // form.put(TopUpRequestController.updateStatus(row).url, {
+    //   preserveScroll: true,
+    //   preserveState: true,
+    // });
   };
 
   const disapproveTopUpRequest = () => {
@@ -45,10 +53,11 @@ const Show = ({row,paymentResponse}: Props) => {
       ...data,
       status: OperationStatusEnum.Rejected,
     }));
-    form.put(TopUpRequestController.updateStatus(row).url, {
-      preserveScroll: true,
-      preserveState: true,
-    });
+    // Paused — was form.put(TopUpRequestController.updateStatus(row).url, ...)
+    // form.put(TopUpRequestController.updateStatus(row).url, {
+    //   preserveScroll: true,
+    //   preserveState: true,
+    // });
   };
   return (
     <>
@@ -56,7 +65,8 @@ const Show = ({row,paymentResponse}: Props) => {
       <PageTitle breadcrumbs={[
         {
           title: t('top_up_requests'),
-          path: TopUpRequestController.index().url,
+          // Paused — was TopUpRequestController.index().url
+          path: '#paused-admin-top-up-index',
           isSeparator: false,
           isActive: false,
         },

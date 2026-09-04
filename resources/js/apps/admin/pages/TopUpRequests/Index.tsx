@@ -1,3 +1,12 @@
+/**
+ * PAUSED (not removed) — Admin dashboard top-up list page.
+ * Unreachable while Modules/Wallet/Routes/dashboard.php top-up-requests
+ * routes and the Admin sidebar entry are commented out.
+ * Re-enable: uncomment the route group + sidebar + TopUpRequestController
+ * Wayfinder import/usages below (chore/provider-topup-pause, 2026-09-04).
+ * Note: after re-enabling the route, re-run wayfinder:generate so
+ * TopUpRequestController.ts is restored under resources/js/actions/...
+ */
 import { useTranslation } from 'react-i18next';
 import MasterLayout from "@/vendor/metronic/layout/MasterLayout";
 import {PageTitle} from "@/vendor/metronic/layout/core";
@@ -12,7 +21,8 @@ import {TopUpRequest} from "@/shared/types/models";
 import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
 import {OperationStatusEnum} from "@/Enums/Enums";
-import TopUpRequestController from "@/actions/Modules/Wallet/Http/Controllers/Dashboard/TopUpRequestController";
+// Paused (not removed) — Wayfinder file absent while admin top-up routes are commented out.
+// import TopUpRequestController from "@/actions/Modules/Wallet/Http/Controllers/Dashboard/TopUpRequestController";
 import {applyFilterParam, visitWithFilters} from "@/shared/lib/filters";
 
 
@@ -44,7 +54,8 @@ const Index = (
       name,
       value,
     );
-    visitWithFilters(TopUpRequestController.index().url, next, { only: ['rows'] });
+    // Paused — was TopUpRequestController.index().url
+    visitWithFilters('#paused-admin-top-up-index', next, { only: ['rows'] });
   };
   return (
     <>
@@ -135,7 +146,8 @@ const Index = (
                 ele: (row) => (
                   <LinkAction
                     key={`edit-top-up-${row.id}`}
-                    href={TopUpRequestController.show(row.id as string).url}
+                    // Paused — was TopUpRequestController.show(row.id as string).url
+                    href={`#paused-admin-top-up-show-${row.id}`}
                     title={t('show')}
                   />
                 ),

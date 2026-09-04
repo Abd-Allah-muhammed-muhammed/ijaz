@@ -15,12 +15,12 @@ use Modules\Wallet\Actions\Withdraw\CancelWithdrawRequestAction;
 use Modules\Wallet\DTOs\CreateWithdrawData;
 use Modules\Wallet\Enums\WalletTransactionEntryKindEnum;
 use Modules\Wallet\Http\Controllers\Api\V1\WalletController;
-use Modules\Wallet\Http\Controllers\Dashboard\TopUpRequestController as DashboardTopUpRequestController;
 use Modules\Wallet\Http\Controllers\Dashboard\WithdrawRequestController as DashboardWithdrawRequestController;
 use Modules\Wallet\Listeners\HandleTopUpPaymentCompleted;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Models\WalletTransaction;
 use Modules\Wallet\Models\WithdrawRequest;
+use Modules\Wallet\Services\TopUpRequestService;
 use Modules\Wallet\Services\WithdrawRequestService;
 
 test('unauthenticated cannot get balance → 401', function () {
@@ -647,11 +647,12 @@ test('an offline top-up approval writes TopupCredited', function () {
         'transaction_image' => $path,
     ]);
 
-    $this->actingAs($admin, 'admin')
-        ->from(action([DashboardTopUpRequestController::class, 'index']))
-        ->put(action([DashboardTopUpRequestController::class, 'updateStatus'], ['topUpRequest' => $topUp->id]), [
-            'status' => OperationStatusEnum::Approved->value,
-        ])->assertRedirect();
+    app(TopUpRequestService::class)->updateStatusForDashboard(
+        $topUp,
+        OperationStatusEnum::Approved->value,
+        null,
+        (int) $admin->id,
+    );
 
     $row = WalletTransaction::query()->where('operation_id', (string) $topUp->id)->sole();
 

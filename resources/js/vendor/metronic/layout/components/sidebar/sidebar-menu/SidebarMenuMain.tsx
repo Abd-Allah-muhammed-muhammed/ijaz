@@ -21,7 +21,8 @@ import RegionController from '@/actions/Modules/Geo/Http/Controllers/Dashboard/R
 import RoleController from '@/actions/App/Http/Controllers/Dashboard/RoleController';
 import SkillController from '@/actions/Modules/Marketplace/Http/Controllers/Dashboard/SkillController';
 import SupportController from '@/actions/Modules/Support/Http/Controllers/Dashboard/SupportController';
-import TopUpRequestController from '@/actions/Modules/Wallet/Http/Controllers/Dashboard/TopUpRequestController';
+// Paused (not removed) — Admin top-up UI; chore/provider-topup-pause, 2026-09-04.
+// import TopUpRequestController from '@/actions/Modules/Wallet/Http/Controllers/Dashboard/TopUpRequestController';
 import UserController from '@/actions/App/Http/Controllers/Dashboard/UserController';
 import WithdrawRequestController from '@/actions/Modules/Wallet/Http/Controllers/Dashboard/WithdrawRequestController';
 import PayoutRequestController from '@/actions/Modules/Payout/Http/Controllers/Dashboard/PayoutRequestController';
@@ -370,6 +371,8 @@ const SidebarMenuMain = () => {
           </div>
         </div>
       )}
+      {/* Paused (not removed) — Admin top-up sidebar entry.
+          Re-enable with TopUpRequestController import + chore/provider-topup-pause, 2026-09-04.
       <SidebarMenuItem
         to={TopUpRequestController.index().url}
         title={t('top_up_requests')}
@@ -378,6 +381,7 @@ const SidebarMenuMain = () => {
         isActive={matchComponents('dashboard.top-up-requests.*')}
         show={hasPermission('show topUpRequests')}
       />
+      */}
       <SidebarMenuItem
         to={WithdrawRequestController.index().url}
         title={t('withdraw_requests')}

@@ -37,7 +37,7 @@ test('admin can search top-up requests by user name/phone', function (): void {
             ->has('rows.data', 1)
             ->where('rows.data.0.id', $matchingTopUp->id)
         );
-});
+})->skip('Admin top-up UI paused — see chore/provider-topup-pause');
 
 test('admin can search withdraw requests by user name/phone', function (): void {
     withoutWalletLocaleMiddleware();

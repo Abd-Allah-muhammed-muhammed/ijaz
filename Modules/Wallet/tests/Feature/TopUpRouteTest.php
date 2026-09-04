@@ -192,7 +192,7 @@ test('admin can list all top-up requests', function () {
             ->component('Dashboard/TopUpRequests/Index')
             ->has('rows.data', 2)
         );
-});
+})->skip('Admin top-up UI paused — see chore/provider-topup-pause');
 
 test('admin can view top-up detail', function () {
     withoutWalletLocaleMiddleware();
@@ -207,7 +207,7 @@ test('admin can view top-up detail', function () {
             ->component('Dashboard/TopUpRequests/Show')
             ->where('row.id', $topUp->id)
         );
-});
+})->skip('Admin top-up UI paused — see chore/provider-topup-pause');
 
 test('admin can approve offline top-up → credits wallet', function () {
     Storage::fake('public');
@@ -231,7 +231,7 @@ test('admin can approve offline top-up → credits wallet', function () {
 
     expect((float) $user->wallet->fresh()->balance)->toBe(75.0)
         ->and($topUp->fresh()->status)->toBe(OperationStatusEnum::Approved);
-});
+})->skip('Admin top-up UI paused — see chore/provider-topup-pause');
 
 test('admin approving an offline top-up request updates both status and payment_status', function () {
     Storage::fake('public');
@@ -258,7 +258,7 @@ test('admin approving an offline top-up request updates both status and payment_
 
     expect($topUp->status)->toBe(OperationStatusEnum::Approved)
         ->and($topUp->payment_status)->toBe(PaymentStatusEnum::Accepted);
-});
+})->skip('Admin top-up UI paused — see chore/provider-topup-pause');
 
 test('admin rejecting an offline top-up request updates both status and payment_status', function () {
     withoutWalletLocaleMiddleware();
@@ -282,7 +282,7 @@ test('admin rejecting an offline top-up request updates both status and payment_
 
     expect($topUp->status)->toBe(OperationStatusEnum::Rejected)
         ->and($topUp->payment_status)->toBe(PaymentStatusEnum::Rejected);
-});
+})->skip('Admin top-up UI paused — see chore/provider-topup-pause');
 
 test('admin cannot approve already-processed top-up', function () {
     withoutWalletLocaleMiddleware();
@@ -296,7 +296,7 @@ test('admin cannot approve already-processed top-up', function () {
             'status' => OperationStatusEnum::Rejected->value,
         ])->assertRedirect()
         ->assertSessionHas('error', __('wallet.cannot_update_top_up_request_status'));
-});
+})->skip('Admin top-up UI paused — see chore/provider-topup-pause');
 
 test('admin can reject top-up → no wallet change', function () {
     withoutWalletLocaleMiddleware();
@@ -317,7 +317,7 @@ test('admin can reject top-up → no wallet change', function () {
 
     expect((float) $user->wallet->fresh()->balance)->toBe(0.0)
         ->and($topUp->fresh()->status)->toBe(OperationStatusEnum::Rejected);
-});
+})->skip('Admin top-up UI paused — see chore/provider-topup-pause');
 
 test('admin approving an online top-up request is rejected — online top-ups are payment-owned', function () {
     withoutWalletLocaleMiddleware();
@@ -343,7 +343,7 @@ test('admin approving an online top-up request is rejected — online top-ups ar
     expect($topUp->fresh()->status)->toBe(OperationStatusEnum::Pending)
         ->and((float) $user->wallet->fresh()->balance)->toBe($balanceBefore)
         ->and((float) $user->wallet->fresh()->balance)->toBe(40.0);
-});
+})->skip('Admin top-up UI paused — see chore/provider-topup-pause');
 
 test('approving a top-up request persists admin_id and admin_notes', function () {
     Storage::fake('public');
@@ -371,7 +371,7 @@ test('approving a top-up request persists admin_id and admin_notes', function ()
     expect($topUp->status)->toBe(OperationStatusEnum::Approved)
         ->and($topUp->admin_id)->toBe($admin->id)
         ->and($topUp->admin_notes)->toBe('Bank transfer verified');
-});
+})->skip('Admin top-up UI paused — see chore/provider-topup-pause');
 
 test('approving offline top-up sets wallet_id on request', function () {
     withoutWalletLocaleMiddleware();

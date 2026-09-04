@@ -15,10 +15,10 @@ use Modules\Payment\Models\Payment;
 use Modules\Wallet\Actions\TopUp\UpdateTopUpStatusForDashboardAction;
 use Modules\Wallet\Exceptions\WalletException;
 use Modules\Wallet\Http\Controllers\Api\V1\WalletController;
-use Modules\Wallet\Http\Controllers\Dashboard\TopUpRequestController as DashboardTopUpRequestController;
 use Modules\Wallet\Listeners\HandleTopUpPaymentCompleted;
 use Modules\Wallet\Models\TopUpRequest;
 use Modules\Wallet\Models\WalletTransaction;
+use Modules\Wallet\Services\TopUpRequestService;
 
 test('an admin cannot Approve or Reject an online top-up from the dashboard — online top-ups are payment-owned, not admin-decided', function (string $status) {
     withoutWalletLocaleMiddleware();
@@ -30,12 +30,13 @@ test('an admin cannot Approve or Reject an online top-up from the dashboard — 
         'status' => OperationStatusEnum::Pending->value,
     ]);
 
-    $this->actingAs($admin, 'admin')
-        ->from(action([DashboardTopUpRequestController::class, 'show'], ['topUpRequest' => $topUp->id]))
-        ->put(action([DashboardTopUpRequestController::class, 'updateStatus'], ['topUpRequest' => $topUp->id]), [
-            'status' => $status,
-        ])->assertRedirect()
-        ->assertSessionHas('error', __('wallet.online_top_up_payment_owned'));
+    // Admin HTTP updateStatus is paused — exercise the shared service path instead.
+    expect(fn () => app(TopUpRequestService::class)->updateStatusForDashboard(
+        $topUp,
+        $status,
+        null,
+        (int) $admin->id,
+    ))->toThrow(WalletException::class);
 
     expect($topUp->fresh()->status)->toBe(OperationStatusEnum::Pending)
         ->and((float) $user->wallet->fresh()->balance)->toBe(0.0);
@@ -204,12 +205,12 @@ test('an offline top-up cannot be approved without a transaction_image still pre
         'transaction_image' => null,
     ]);
 
-    $this->actingAs($admin, 'admin')
-        ->from(action([DashboardTopUpRequestController::class, 'show'], ['topUpRequest' => $topUp->id]))
-        ->put(action([DashboardTopUpRequestController::class, 'updateStatus'], ['topUpRequest' => $topUp->id]), [
-            'status' => OperationStatusEnum::Approved->value,
-        ])->assertRedirect()
-        ->assertSessionHas('error', __('wallet.top_up_proof_required'));
+    expect(fn () => app(TopUpRequestService::class)->updateStatusForDashboard(
+        $topUp,
+        OperationStatusEnum::Approved->value,
+        null,
+        (int) $admin->id,
+    ))->toThrow(WalletException::class);
 
     expect($topUp->fresh()->status)->toBe(OperationStatusEnum::Pending)
         ->and((float) $user->wallet->fresh()->balance)->toBe(0.0);
@@ -248,22 +249,22 @@ test('existing offline approve/reject/idempotency tests still pass unchanged —
         'transaction_image' => $path,
     ]);
 
-    $this->actingAs($admin, 'admin')
-        ->from(action([DashboardTopUpRequestController::class, 'index']))
-        ->put(action([DashboardTopUpRequestController::class, 'updateStatus'], ['topUpRequest' => $topUp->id]), [
-            'status' => OperationStatusEnum::Approved->value,
-        ])->assertRedirect(route('dashboard.top-up-requests.index'))
-        ->assertSessionHas('success');
+    app(TopUpRequestService::class)->updateStatusForDashboard(
+        $topUp,
+        OperationStatusEnum::Approved->value,
+        null,
+        (int) $admin->id,
+    );
 
     expect((float) $user->wallet->fresh()->balance)->toBe(75.0)
         ->and($topUp->fresh()->status)->toBe(OperationStatusEnum::Approved);
 
-    $this->actingAs($admin, 'admin')
-        ->from(action([DashboardTopUpRequestController::class, 'show'], ['topUpRequest' => $topUp->id]))
-        ->put(action([DashboardTopUpRequestController::class, 'updateStatus'], ['topUpRequest' => $topUp->id]), [
-            'status' => OperationStatusEnum::Rejected->value,
-        ])->assertRedirect()
-        ->assertSessionHas('error', __('wallet.cannot_update_top_up_request_status'));
+    expect(fn () => app(TopUpRequestService::class)->updateStatusForDashboard(
+        $topUp->fresh(),
+        OperationStatusEnum::Rejected->value,
+        null,
+        (int) $admin->id,
+    ))->toThrow(WalletException::class);
 
     expect((float) $user->wallet->fresh()->balance)->toBe(75.0);
 });

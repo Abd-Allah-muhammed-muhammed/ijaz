@@ -6,7 +6,6 @@ use App\Http\Controllers\Provider\HomeController;
 use Modules\Payment\Enums\PaymentMethodEnum;
 use Modules\Wallet\DTOs\CreateTopUpData;
 use Modules\Wallet\DTOs\CreateWithdrawData;
-use Modules\Wallet\Http\Controllers\Dashboard\TopUpRequestController as DashboardTopUpRequestController;
 use Modules\Wallet\Http\Controllers\Provider\WithdrawController;
 use Modules\Wallet\Http\Resources\Dashboard\WalletTransactionResource;
 use Modules\Wallet\Http\Resources\Dashboard\WithdrawResource;
@@ -101,10 +100,12 @@ test('a top-up wallet transaction row shows its own OperationStatusEnum status w
         ),
     )['topUpRequest'];
 
-    $this->actingAs($admin, 'admin')
-        ->put(action([DashboardTopUpRequestController::class, 'updateStatus'], ['topUpRequest' => $topUp->id]), [
-            'status' => OperationStatusEnum::Approved->value,
-        ])->assertRedirect();
+    app(TopUpRequestService::class)->updateStatusForDashboard(
+        $topUp,
+        OperationStatusEnum::Approved->value,
+        null,
+        (int) $admin->id,
+    );
 
     $transaction = WalletTransaction::query()
         ->where('operation_id', $topUp->id)

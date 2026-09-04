@@ -26,7 +26,7 @@ test('admin without topUpRequests permission cannot access dashboard top-up rout
         ->assertForbidden();
 
     expect($topUp->fresh()->status)->toBe(OperationStatusEnum::Pending);
-});
+})->skip('Admin top-up UI paused — see chore/provider-topup-pause');
 
 test('admin without withdrawRequests permission cannot access dashboard withdraw routes', function () {
     withoutWalletLocaleMiddleware();
