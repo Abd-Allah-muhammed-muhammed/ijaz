@@ -26,7 +26,7 @@ test('provider top-up requests index page can open the create/recharge flow dire
     expect($source)->not->toBeFalse()
         ->and($source)->toContain('RechargeTrigger')
         ->and($source)->toContain('addButton');
-});
+})->skip('Provider top-up paused — see chore/provider-topup-pause');
 
 test('provider withdraw requests index page can open the create/withdraw flow directly from the list page', function (): void {
     withoutWalletLocaleMiddleware();

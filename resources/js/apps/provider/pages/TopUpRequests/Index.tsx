@@ -1,3 +1,12 @@
+/**
+ * PAUSED (not removed) — Provider dashboard top-up list page.
+ * Unreachable while Modules/Wallet/Routes/provider.php top-up-requests
+ * resource and the Provider sidebar entry are commented out.
+ * Re-enable: uncomment the route + sidebar + RechargeTrigger + TopUpController
+ * Wayfinder import/usages below (chore/provider-topup-pause, 2026-09-04).
+ * Note: after re-enabling the route, re-run wayfinder:generate so
+ * TopUpController.ts is restored under resources/js/actions/...
+ */
 import { useTranslation } from 'react-i18next';
 import {PageTitle} from "@/vendor/metronic/layout/core";
 import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
@@ -10,8 +19,10 @@ import {TopUpRequest} from "@/shared/types/models";
 import ConfirmAction from "@/shared/components/Table/partials/confirm-action";
 import {ReactElement} from "react";
 import {OperationStatusEnum} from "@/Enums/Enums";
-import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/TopUpController";
-import {RechargeTrigger} from '@/apps/provider/components/wallet/WalletQuickActions';
+// Paused (not removed) — Wayfinder file absent while provider top-up routes are commented out.
+// import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/TopUpController";
+// Paused (not removed) — chore/provider-topup-pause, 2026-09-04.
+// import {RechargeTrigger} from '@/apps/provider/components/wallet/WalletQuickActions';
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
 
 
@@ -127,7 +138,8 @@ const Index = (
                 ele: (row) => (
                   <LinkAction
                     key={`edit-top-up-${row.id}`}
-                    href={TopUpController.show(row.id as string).url}
+                    // Paused — was TopUpController.show(row.id as string).url
+                    href={`#paused-top-up-show-${row.id}`}
                     title={t('show')}
                   />
                 ),
@@ -138,16 +150,18 @@ const Index = (
                   ? <ConfirmAction
                     key={`delete-top-up-${row.id}`}
                     callback={() => {
-                      router.delete(TopUpController.destroy(row.id as number).url)
+                      // Paused — was router.delete(TopUpController.destroy(row.id as number).url)
+                      // router.delete(TopUpController.destroy(row.id as number).url)
                     }}
                     title={t('delete')}
                   />
                   : <></>,
               },
             ]}
-            addButton={
-              <RechargeTrigger reloadOnly={['rows']} />
-            }
+            // Paused (not removed) — chore/provider-topup-pause, 2026-09-04.
+            // addButton={
+            //   <RechargeTrigger reloadOnly={['rows']} />
+            // }
           />
         </KTCard>
       </Content>

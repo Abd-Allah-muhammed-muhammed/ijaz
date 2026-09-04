@@ -1,3 +1,9 @@
+/**
+ * PAUSED (not removed) — Provider dashboard top-up detail page.
+ * Unreachable while Provider top-up routes/sidebar are commented out.
+ * Re-enable with chore/provider-topup-pause (2026-09-04); restore
+ * TopUpController Wayfinder import after wayfinder:generate.
+ */
 import { useTranslation } from 'react-i18next';
 import {PageTitle} from "@/vendor/metronic/layout/core";
 import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
@@ -6,7 +12,8 @@ import {Deferred, Head, usePage} from "@inertiajs/react";
 import {KTCard} from "@/vendor/metronic/helpers";
 import {TopUpRequest} from "@/shared/types/models";
 import {ReactNode} from "react";
-import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/TopUpController";
+// Paused (not removed) — Wayfinder file absent while provider top-up routes are commented out.
+// import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/TopUpController";
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
 import {PaymentResponse} from "@/shared/types/api";
 import {build_date} from "@/shared/helpers/general";
@@ -36,7 +43,8 @@ const Show = ({row, paymentResponse}: Props) => {
       <PageTitle breadcrumbs={[
         {
           title: t('recharge_requests'),
-          path: TopUpController.index().url,
+          // Paused — was TopUpController.index().url
+          path: '#paused-top-up-index',
           isSeparator: false,
           isActive: false,
         },

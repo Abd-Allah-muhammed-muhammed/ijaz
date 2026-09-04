@@ -8,6 +8,7 @@ use Modules\Orders\Http\Controllers\Provider\ProviderChatIndexController;
 use Modules\Orders\Models\Order;
 use Modules\Wallet\Http\Controllers\Provider\TopUpController;
 use Modules\Wallet\Http\Controllers\Provider\WithdrawController;
+
 beforeEach(function (): void {
     withoutOrdersLocaleMiddleware();
     withoutWalletLocaleMiddleware();
@@ -76,7 +77,8 @@ test('the Provider app builds and every sidebar route still renders correctly af
         'status' => OrderStatusEnum::InProgress,
     ]);
 
-    $topUp = createTopUpFor($provider);
+    // Paused (not removed) — Provider top-up routes are disabled; see skipped test below.
+    // $topUp = createTopUpFor($provider);
     $withdraw = createWithdrawFor($provider);
 
     $this->actingAs($provider, 'provider');
@@ -102,9 +104,10 @@ test('the Provider app builds and every sidebar route still renders correctly af
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page->component('Provider/Auth/Profile/wallet'));
 
-    $this->get(action([TopUpController::class, 'index']))
-        ->assertSuccessful()
-        ->assertInertia(fn ($page) => $page->component('Provider/TopUpRequests/Index'));
+    // Paused (not removed) — chore/provider-topup-pause, 2026-09-04.
+    // $this->get(action([TopUpController::class, 'index']))
+    //     ->assertSuccessful()
+    //     ->assertInertia(fn ($page) => $page->component('Provider/TopUpRequests/Index'));
 
     $this->get(action([WithdrawController::class, 'index']))
         ->assertSuccessful()
@@ -123,9 +126,10 @@ test('the Provider app builds and every sidebar route still renders correctly af
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page->component('Provider/Orders/Show'));
 
-    $this->get(action([TopUpController::class, 'show'], ['top_up_request' => $topUp->id]))
-        ->assertSuccessful()
-        ->assertInertia(fn ($page) => $page->component('Provider/TopUpRequests/Show'));
+    // Paused (not removed) — chore/provider-topup-pause, 2026-09-04.
+    // $this->get(action([TopUpController::class, 'show'], ['top_up_request' => $topUp->id]))
+    //     ->assertSuccessful()
+    //     ->assertInertia(fn ($page) => $page->component('Provider/TopUpRequests/Show'));
 
     $this->get(action([WithdrawController::class, 'show'], ['withdraw_request' => $withdraw->id]))
         ->assertSuccessful()
@@ -137,6 +141,21 @@ test('the Provider app builds and every sidebar route still renders correctly af
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page->component('Provider/Auth/LoginPage'));
 });
+
+test('Provider top-up request index and show still render via TopUpController', function (): void {
+    $provider = createWalletProvider();
+    $topUp = createTopUpFor($provider);
+
+    $this->actingAs($provider, 'provider');
+
+    $this->get(action([TopUpController::class, 'index']))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page->component('Provider/TopUpRequests/Index'));
+
+    $this->get(action([TopUpController::class, 'show'], ['top_up_request' => $topUp->id]))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page->component('Provider/TopUpRequests/Show'));
+})->skip('Provider top-up paused — see chore/provider-topup-pause');
 
 test('ProviderLayout, AccountLayout, and all 15 real Inertia pages have zero remaining imports from any deleted file', function (): void {
     $providerRoot = resource_path('js/apps/provider');

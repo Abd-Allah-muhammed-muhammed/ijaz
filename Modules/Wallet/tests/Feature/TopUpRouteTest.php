@@ -16,7 +16,7 @@ test('unauthenticated cannot access top-up routes → 401', function () {
 
     $this->get(action([TopUpController::class, 'index']))
         ->assertRedirect();
-});
+})->skip('Provider top-up paused — see chore/provider-topup-pause');
 
 test('provider can list their top-up requests', function () {
     withoutWalletLocaleMiddleware();
@@ -31,7 +31,7 @@ test('provider can list their top-up requests', function () {
             ->component('Provider/TopUpRequests/Index')
             ->has('rows.data', 1)
         );
-});
+})->skip('Provider top-up paused — see chore/provider-topup-pause');
 
 test('provider can create online top-up', function () {
     withoutWalletLocaleMiddleware();
@@ -46,7 +46,7 @@ test('provider can create online top-up', function () {
         ->assertJsonStructure(['data' => ['url', 'transaction_id']]);
 
     expect(TopUpRequest::query()->where('user_id', $provider->id)->exists())->toBeTrue();
-});
+})->skip('Provider top-up paused — see chore/provider-topup-pause');
 
 test('provider can create offline top-up', function () {
     Storage::fake('public');
@@ -69,7 +69,7 @@ test('provider can create offline top-up', function () {
         ->and($topUp->wallet_id)->toBe($provider->wallet->id)
         ->and($topUp->transaction_image)->not->toBeNull()
         ->and(Storage::disk('public')->exists($topUp->transaction_image))->toBeTrue();
-});
+})->skip('Provider top-up paused — see chore/provider-topup-pause');
 
 test('provider can view top-up detail', function () {
     withoutWalletLocaleMiddleware();
@@ -83,7 +83,7 @@ test('provider can view top-up detail', function () {
             ->component('Provider/TopUpRequests/Show')
             ->where('row.id', $topUp->id)
         );
-});
+})->skip('Provider top-up paused — see chore/provider-topup-pause');
 
 test('provider top-up details shows the attachment download link when transaction_image exists', function () {
     Storage::fake('public');
@@ -109,7 +109,7 @@ test('provider top-up details shows the attachment download link when transactio
 
     expect($expectedUrl)->toContain('/storage/')
         ->and(Storage::disk('public')->exists($path))->toBeTrue();
-});
+})->skip('Provider top-up paused — see chore/provider-topup-pause');
 
 test('provider top-up details shows a clean no-card-data state for offline payments, not undefined-then-N/A flash', function () {
     withoutWalletLocaleMiddleware();
@@ -131,7 +131,7 @@ test('provider top-up details shows a clean no-card-data state for offline payme
             ->where('paymentResponse', null)
             ->etc()
         );
-});
+})->skip('Provider top-up paused — see chore/provider-topup-pause');
 
 test('provider top-up details renders safely when payment response exists but has no card data', function () {
     withoutWalletLocaleMiddleware();
@@ -166,7 +166,7 @@ test('provider top-up details renders safely when payment response exists but ha
                 ->where('paymentResponse', null)
             )
         );
-});
+})->skip('Provider top-up paused — see chore/provider-topup-pause');
 
 test('provider can delete pending top-up', function () {
     withoutWalletLocaleMiddleware();
@@ -178,7 +178,7 @@ test('provider can delete pending top-up', function () {
         ->assertRedirect(route('provider.top-up-requests.index'));
 
     expect(TopUpRequest::query()->find($topUp->id))->toBeNull();
-});
+})->skip('Provider top-up paused — see chore/provider-topup-pause');
 
 test('admin can list all top-up requests', function () {
     withoutWalletLocaleMiddleware();
@@ -390,4 +390,4 @@ test('approving offline top-up sets wallet_id on request', function () {
     $topUp = TopUpRequest::query()->where('user_id', $provider->id)->first();
 
     expect($topUp->wallet_id)->toBe($provider->wallet->id);
-});
+})->skip('Provider top-up paused — see chore/provider-topup-pause');

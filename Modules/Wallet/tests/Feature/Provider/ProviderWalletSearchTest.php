@@ -25,7 +25,7 @@ test('provider can search top-up requests by transaction id', function (): void 
             ->has('rows.data', 1)
             ->where('rows.data.0.id', $matching->id)
         );
-});
+})->skip('Provider top-up paused — see chore/provider-topup-pause');
 
 test('provider can search withdraw requests by transaction id', function (): void {
     withoutWalletLocaleMiddleware();

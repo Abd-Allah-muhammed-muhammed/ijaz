@@ -176,7 +176,7 @@ test('WalletQuickActions on the Top-up Requests page renders only the recharge t
         ->and($source)->toContain('RechargeTrigger')
         ->and($source)->not->toContain('WithdrawTrigger')
         ->and($source)->not->toContain('<WalletQuickActions');
-});
+})->skip('Provider top-up paused — see chore/provider-topup-pause');
 
 test('home recent transactions expose a non-null transfer_status via the shared resolver', function (): void {
     withoutWalletLocaleMiddleware();

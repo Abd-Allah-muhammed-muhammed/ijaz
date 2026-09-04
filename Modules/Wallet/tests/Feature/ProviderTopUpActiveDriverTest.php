@@ -7,6 +7,9 @@ use Modules\Payment\Services\PaymentService;
 use Modules\Wallet\Http\Controllers\Provider\TopUpController;
 use Modules\Wallet\Models\TopUpRequest;
 
+// Paused (not removed) — Provider dashboard top-up is temporarily disabled.
+beforeEach()->skip('Provider top-up paused — see chore/provider-topup-pause');
+
 test('provider top-up recharge always uses the server-configured payment driver, ignoring any client-supplied driver value', function () {
     withoutWalletLocaleMiddleware();
     config(['payment.default' => PaymentDriverEnum::Testing->value]);

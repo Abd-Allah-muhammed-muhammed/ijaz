@@ -3,7 +3,8 @@ import useActiveRoute from "@/shared/hooks/use-active-route";
 import HomeController from "@/actions/App/Http/Controllers/Provider/HomeController";
 import ProviderChatIndexController from "@/actions/Modules/Orders/Http/Controllers/Provider/ProviderChatIndexController";
 import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/OrderController";
-import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/TopUpController";
+// Paused (not removed) — chore/provider-topup-pause, 2026-09-04.
+// import TopUpController from "@/actions/Modules/Wallet/Http/Controllers/Provider/TopUpController";
 import AuthController from "@/actions/App/Http/Controllers/Provider/AuthController";
 import WithdrawController from '@/actions/Modules/Wallet/Http/Controllers/Provider/WithdrawController';
 import { useTranslation } from 'react-i18next';
@@ -60,6 +61,8 @@ const SidebarMenuMain = () => {
         fontIcon='bi-chat-left'
         icon='wallet'
       />
+      {/* Paused (not removed) — Provider top-up sidebar entry.
+          Re-enable with TopUpController import + chore/provider-topup-pause, 2026-09-04.
       <SidebarMenuItem
         isActive={matchUrl(TopUpController.index().url)}
         to={TopUpController.index().url}
@@ -67,6 +70,7 @@ const SidebarMenuMain = () => {
         fontIcon='bi-chat-left'
         icon='two-credit-cart'
       />
+      */}
       <SidebarMenuItem
         isActive={matchUrl(WithdrawController.index().url)}
         to={WithdrawController.index().url}
