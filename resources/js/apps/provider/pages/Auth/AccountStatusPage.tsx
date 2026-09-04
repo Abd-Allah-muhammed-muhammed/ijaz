@@ -73,6 +73,9 @@ const STATUS_PRESENTATION: Record<
 
 const ICON_CIRCLE_SIZE_PX = 88;
 
+/** Flip to `true` once a real support channel exists (phone / WhatsApp / email). */
+const SHOW_CONTACT_SUPPORT = false;
+
 function resolvePresentation(
   status: AccountStatusGateStatus,
   isTemporaryBlock: boolean,
@@ -193,17 +196,19 @@ const AccountStatusPage = ({
 
           {/*
             Contact support: no support phone / WhatsApp / email is configured in Settings yet.
-            Keep the control visible (disabled) until a business decision picks the channel —
+            Hidden via SHOW_CONTACT_SUPPORT until a business decision picks the channel —
             do not invent a placeholder destination.
           */}
-          <button
-            type="button"
-            className="btn btn-light btn-lg w-100 mb-4 opacity-50"
-            disabled
-            aria-disabled="true"
-          >
-            {t("provider_status_gate_contact_support")}
-          </button>
+          {SHOW_CONTACT_SUPPORT && (
+            <button
+              type="button"
+              className="btn btn-light btn-lg w-100 mb-4 opacity-50"
+              disabled
+              aria-disabled="true"
+            >
+              {t("provider_status_gate_contact_support")}
+            </button>
+          )}
 
           <Link
             href={AuthController.loginForm().url}
