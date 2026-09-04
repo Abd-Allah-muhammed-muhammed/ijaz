@@ -3,17 +3,23 @@ import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import axios from '@/shared/helpers/axios';
 import AuthController from '@/actions/App/Http/Controllers/Frontend/AuthController';
+import type { Inputs } from '../providerSchema';
 
 const OTP_COUNTDOWN_MINUTES = 2;
 const SECONDS_PER_MINUTE = 60;
 const OTP_COUNTDOWN_SECONDS = OTP_COUNTDOWN_MINUTES * SECONDS_PER_MINUTE;
 
-export type OtpFieldErrors = Record<string, string[]>;
+/** Fields the registration form can display errors for from the OTP endpoint. */
+const OTP_FORM_ERROR_FIELDS = ['phone', 'otp'] as const satisfies ReadonlyArray<keyof Inputs>;
+
+type OtpFormErrorField = (typeof OTP_FORM_ERROR_FIELDS)[number];
+
+export type OtpFieldErrors = Partial<Record<string, string[]>>;
 
 export type UseOtpOptions = {
   phone: string | null;
   processing: boolean;
-  onValidationErrors: (errors: OtpFieldErrors) => void;
+  onValidationErrors: (errors: Partial<Record<keyof Inputs, string>>) => void;
 };
 
 export function formatOtpSeconds(totalSeconds: number): string {
@@ -21,6 +27,34 @@ export function formatOtpSeconds(totalSeconds: number): string {
   const seconds = totalSeconds % SECONDS_PER_MINUTE;
 
   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function isOtpFormErrorField(field: string): field is OtpFormErrorField {
+  return (OTP_FORM_ERROR_FIELDS as ReadonlyArray<string>).includes(field);
+}
+
+/**
+ * Maps Laravel-style OTP validation errors (`string[]` per field) onto the
+ * Inertia form error shape (`string` per Inputs key). Unknown keys are dropped.
+ */
+export function otpErrorsToFormErrors(
+  errors: OtpFieldErrors,
+): Partial<Record<keyof Inputs, string>> {
+  const formErrors: Partial<Record<keyof Inputs, string>> = {};
+
+  for (const [field, messages] of Object.entries(errors)) {
+    if (! isOtpFormErrorField(field)) {
+      continue;
+    }
+
+    const message = messages?.[0];
+
+    if (message) {
+      formErrors[field] = message;
+    }
+  }
+
+  return formErrors;
 }
 
 /**
@@ -59,7 +93,7 @@ export function useOtp({ phone, processing, onValidationErrors }: UseOtpOptions)
       return {
         ok: false,
         errors: {
-          error: [String(error)],
+          otp: [String(error)],
         },
       };
     }
@@ -72,9 +106,11 @@ export function useOtp({ phone, processing, onValidationErrors }: UseOtpOptions)
     const result = await sendOtp();
 
     if (! result.ok) {
-      onValidationErrors(result.errors);
+      onValidationErrors(otpErrorsToFormErrors(result.errors));
       Object.values(result.errors).forEach((messages) => {
-        toast.error(messages[0]);
+        if (messages?.[0]) {
+          toast.error(messages[0]);
+        }
       });
 
       return false;

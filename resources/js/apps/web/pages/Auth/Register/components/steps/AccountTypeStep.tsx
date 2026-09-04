@@ -34,7 +34,7 @@ export default function AccountTypeStep({
             <span
               className="ms-1"
               data-bs-toggle="tooltip"
-              title="Billing is issued based on your selected account typ"
+              title={t('account_type_billing_tooltip')}
             >
               <i className="ki-duotone ki-information-5 text-gray-500 fs-6">
                 <span className="path1" />

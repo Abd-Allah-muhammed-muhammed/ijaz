@@ -186,7 +186,7 @@ export default function AccountInfoStep({
           <Form.Control
             as="textarea"
             rows={3}
-            placeholder="مثال: أقدّم خدمات العامة ، إدخال بيانات، وإنجاز مهام متعددة"
+            placeholder={t('about_placeholder')}
             onChange={(event) => {
               form.setData('about', event.currentTarget.value);
             }}

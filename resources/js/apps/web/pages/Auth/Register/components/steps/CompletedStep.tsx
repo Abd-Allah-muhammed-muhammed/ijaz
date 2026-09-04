@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -6,7 +7,9 @@ import {
   faCommentDots,
   faRocket,
 } from '@fortawesome/free-solid-svg-icons';
+import confetti from 'canvas-confetti';
 import { useTranslation } from 'react-i18next';
+import GeneralController from '@/actions/App/Http/Controllers/Frontend/GeneralController';
 import type { ProviderType } from '@/shared/types/models';
 import type { RegistrationForm } from '../../hooks/use-registration-form';
 import StepShell from '../StepShell';
@@ -17,34 +20,71 @@ export type CompletedStepProps = {
   providerType: ProviderType | null;
 };
 
-type NextStepCardProps = {
+const SUCCESS_ICON_SIZE_REM = 5;
+const NEXT_STEP_ICON_CIRCLE_PX = 48;
+const CONFETTI_PARTICLE_COUNT = 120;
+const CONFETTI_SPREAD_DEGREES = 70;
+const CONFETTI_START_VELOCITY = 35;
+const CONFETTI_ORIGIN_Y = 0.65;
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
+type NextStepItemProps = {
   icon: IconDefinition;
   iconClassName: string;
   circleClassName: string;
-  caption: string;
+  label: string;
 };
 
-function NextStepCard({ icon, iconClassName, circleClassName, caption }: NextStepCardProps) {
+function NextStepItem({ icon, iconClassName, circleClassName, label }: NextStepItemProps) {
   return (
     <div className="col-12 col-md-4">
-      <div className="text-center">
+      <div className="text-center px-2">
         <div
           className={`${circleClassName} rounded-circle d-inline-flex align-items-center justify-content-center mb-3`}
-          style={{ width: '50px', height: '50px' }}
+          style={{ width: NEXT_STEP_ICON_CIRCLE_PX, height: NEXT_STEP_ICON_CIRCLE_PX }}
         >
-          <FontAwesomeIcon icon={icon} size="2x" className={iconClassName} />
+          <FontAwesomeIcon icon={icon} className={iconClassName} />
         </div>
-        <div className="fs-7 fw-semibold text-gray-700">{caption}</div>
+        <div className="fs-7 fw-semibold text-gray-700">{label}</div>
       </div>
     </div>
   );
 }
 
-function enrichEmojiHtml(html: string, replacements: Array<[RegExp, string]>): string {
-  return replacements.reduce(
-    (value, [pattern, replacement]) => value.replace(pattern, replacement),
-    html.replace(new RegExp('\r?\n', 'g'), '<br/>'),
+type SummaryRowProps = {
+  label: string;
+  value: string;
+};
+
+function SummaryRow({ label, value }: SummaryRowProps) {
+  return (
+    <div className="d-flex flex-column flex-sm-row justify-content-between gap-1 py-3 border-bottom border-gray-200">
+      <span className="fw-semibold text-gray-600">{label}</span>
+      <span className="fw-bold text-gray-900 text-sm-end">{value}</span>
+    </div>
   );
+}
+
+function prefersReducedMotion(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+
+  return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+
+function fireRegistrationConfetti(): void {
+  if (prefersReducedMotion()) {
+    return;
+  }
+
+  void confetti({
+    particleCount: CONFETTI_PARTICLE_COUNT,
+    spread: CONFETTI_SPREAD_DEGREES,
+    startVelocity: CONFETTI_START_VELOCITY,
+    origin: { y: CONFETTI_ORIGIN_Y },
+    disableForReducedMotion: true,
+  });
 }
 
 export default function CompletedStep({
@@ -53,107 +93,77 @@ export default function CompletedStep({
   providerType,
 }: CompletedStepProps) {
   const { t } = useTranslation();
+  const registrationDate = new Date().toLocaleDateString();
+  const phone = form.data.phone ?? '';
+  const accountType = providerType?.name ?? '';
 
-  const endRegisterHtml = enrichEmojiHtml(t('end_register'), [
-    [/💚/g, '<span class="text-success fs-4">💚</span>'],
-    [/🔔/g, '<span class="text-primary fs-4">🔔</span>'],
-    [/🎯/g, '<span class="text-warning fs-4">🎯</span>'],
-    [/🚀/g, '<span class="text-info fs-4">🚀</span>'],
-    [/🎊/g, '<span class="text-success fs-4">🎊</span>'],
-    [/💪/g, '<span class="text-primary fs-4">💪</span>'],
-    [/🇸🇦/g, '<span class="text-success fs-4">🇸🇦</span>'],
-  ]);
+  useEffect(() => {
+    if (! isCurrent) {
+      return;
+    }
 
-  const registrationSummaryHtml = enrichEmojiHtml(
-    t('registration_summary', {
-      created_at: new Date().toLocaleDateString(),
-      phone: form.data.phone as string,
-      account_type: providerType?.name || '',
-      order_id: '',
-    }),
-    [
-      [/🧾/g, '<span class="text-primary fs-4">🧾</span>'],
-      [/✅/g, '<span class="text-success fs-4">✅</span>'],
-      [/✨/g, '<span class="text-warning fs-4">✨</span>'],
-    ],
-  );
+    fireRegistrationConfetti();
+  }, [isCurrent]);
 
   return (
     <StepShell isCurrent={isCurrent}>
-      <div className="mb-0">
-        <div className="bg-white rounded-3 shadow-sm border border-light-subtle p-8 mb-6">
-          <div className="text-center mb-8">
-            <div className="bg-gradient-to-br from-emerald-100 to-teal-100 rounded-circle d-inline-flex align-items-center justify-content-center mb-4">
-              <FontAwesomeIcon
-                icon={faCircleCheck}
-                size="2xl"
-                className="text-success"
-                style={{
-                  fontSize: '10rem',
-                }}
-              />
-            </div>
-          </div>
+      <div className="mb-0 text-center">
+        <div className="mb-6">
+          <FontAwesomeIcon
+            icon={faCircleCheck}
+            className="text-success"
+            style={{ fontSize: `${SUCCESS_ICON_SIZE_REM}rem` }}
+            aria-hidden
+          />
+        </div>
 
-          <div className="welcome-message mb-8">
-            <div className="text-center mb-6">
-              <h2 className="fs-2 fw-bold text-gray-900 mb-4">
-                🎉 {t('completed')}
-              </h2>
-            </div>
+        <h2 className="fs-2 fw-bold text-gray-900 mb-3">
+          {t('registration_complete_title')}
+        </h2>
+        <p className="fs-5 text-gray-600 mb-8 mx-auto" style={{ maxWidth: '36rem' }}>
+          {t('registration_complete_body')}
+        </p>
 
-            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2 p-6 mb-6 border border-emerald-200">
-              <div className="registration-content text-center">
-                <div
-                  className="fs-5 text-gray-800 lh-lg fw-medium"
-                  style={{
-                    textAlign: 'center',
-                  }}
-                  dangerouslySetInnerHTML={{ __html: endRegisterHtml }}
-                />
-              </div>
-            </div>
-          </div>
+        <div className="row g-4 mb-8">
+          <NextStepItem
+            icon={faBell}
+            circleClassName="bg-light-primary"
+            iconClassName="text-primary"
+            label={t('registration_next_wait_notification')}
+          />
+          <NextStepItem
+            icon={faCommentDots}
+            circleClassName="bg-light-success"
+            iconClassName="text-success"
+            label={t('registration_next_watch_updates')}
+          />
+          <NextStepItem
+            icon={faRocket}
+            circleClassName="bg-light-warning"
+            iconClassName="text-warning"
+            label={t('registration_next_prepare_services')}
+          />
+        </div>
 
-          <div className="registration-summary">
-            <div className="bg-light-primary rounded-2 p-6 border border-primary-subtle">
-              <div className="summary-content">
-                <div
-                  className="fs-6 text-gray-800 lh-lg"
-                  style={{
-                    textAlign: 'center',
-                  }}
-                  dangerouslySetInnerHTML={{ __html: registrationSummaryHtml }}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="next-steps mt-8">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2 p-6 border border-blue-200">
-              <div className="row g-4">
-                <NextStepCard
-                  icon={faBell}
-                  circleClassName="bg-primary bg-opacity-10"
-                  iconClassName="text-primary"
-                  caption="انتظار الإشعار"
-                />
-                <NextStepCard
-                  icon={faCommentDots}
-                  circleClassName="bg-success bg-opacity-10"
-                  iconClassName="text-success"
-                  caption="تابع الإشعارات"
-                />
-                <NextStepCard
-                  icon={faRocket}
-                  circleClassName="bg-warning bg-opacity-10"
-                  iconClassName="text-warning"
-                  caption="جهز خدماتك"
-                />
-              </div>
-            </div>
+        <div className="bg-light rounded-3 p-5 p-md-6 text-start mb-8 mx-auto" style={{ maxWidth: '28rem' }}>
+          <h3 className="fs-6 fw-bold text-gray-800 mb-2">
+            {t('registration_summary_heading')}
+          </h3>
+          <SummaryRow label={t('account_type')} value={accountType} />
+          <SummaryRow label={t('phone')} value={phone} />
+          <div className="d-flex flex-column flex-sm-row justify-content-between gap-1 py-3">
+            <span className="fw-semibold text-gray-600">{t('registration_date')}</span>
+            <span className="fw-bold text-gray-900 text-sm-end">{registrationDate}</span>
           </div>
         </div>
+
+        <a
+          href={GeneralController.index().url}
+          className="btn btn-primary btn-lg"
+          data-pan="register-completed-home-cta"
+        >
+          {t('return_to_home_page')}
+        </a>
       </div>
     </StepShell>
   );

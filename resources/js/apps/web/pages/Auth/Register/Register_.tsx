@@ -8,14 +8,14 @@ import useSteps from '@/shared/hooks/use-steps';
 import { REGISTRATION_STEP_CONTAINER_CLASS } from '@/shared/components/categories/category-picker';
 import { ProviderTypeFilesEnum } from '@/Enums/Enums';
 import type { City, ProviderType, Region } from '@/shared/types/models';
-import { availableSteps, type CategoryOption, type Inputs } from './providerSchema';
+import { availableSteps, type CategoryOption } from './providerSchema';
 import {
   clearStoredRegistrationStep,
   resolveInitialRegistrationStep,
   writeStoredRegistrationStep,
 } from './registration-step-storage';
 import { useRegistrationForm } from './hooks/use-registration-form';
-import { useOtp, type OtpFieldErrors } from './hooks/use-otp';
+import { useOtp } from './hooks/use-otp';
 import { useRegistrationAdvance } from './hooks/use-registration-advance';
 import type { RequiredFilesState } from './types';
 import RegistrationStepper from './components/RegistrationStepper';
@@ -56,8 +56,8 @@ export default function Register_({ types, regions, cities }: RegisterProps) {
   const otp = useOtp({
     phone: form.data.phone,
     processing: form.processing,
-    onValidationErrors: (errors: OtpFieldErrors) => {
-      form.setError(errors as unknown as Partial<Record<keyof Inputs, string>>);
+    onValidationErrors: (errors) => {
+      form.setError(errors);
     },
   });
 
@@ -137,7 +137,6 @@ export default function Register_({ types, regions, cities }: RegisterProps) {
                 <RegistrationFooterControls
                   currentStep={steps.currentStep}
                   processing={form.processing}
-                  isLastStep={steps.isLastStep()}
                   stepIs={steps.stepIs}
                   stepBetween={steps.stepBetween}
                   onPrevious={steps.prevStep}
