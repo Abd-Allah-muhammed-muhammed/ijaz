@@ -2,10 +2,14 @@
 
 use App\Actions\Auth\Provider\GenerateProviderAccountStatusGateUrlAction;
 use App\Enums\Providers\ProviderStatusEnum;
+use App\Http\Controllers\Provider\AccountStatusController;
 use App\Http\Controllers\Provider\HomeController;
 use App\Models\Provider;
+use Illuminate\Contracts\Support\Responsable;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 use Inertia\Testing\AssertableInertia as Assert;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 beforeEach(function (): void {
     withoutOrdersLocaleMiddleware();
@@ -32,11 +36,30 @@ function assertRedirectsToSignedAccountStatusGate($response, Provider $provider)
     $response->assertRedirect();
 
     $location = (string) $response->headers->get('Location');
+    $locale = LaravelLocalization::getCurrentLocale() ?: app()->getLocale();
 
     expect($location)
-        ->toContain('/provider/account-status/'.$provider->id)
+        ->toContain('/'.$locale.'/provider/account-status/'.$provider->id)
         ->toContain('signature=')
         ->toContain('expires=');
+
+    expect(Request::create($location, 'GET')->hasValidSignature())->toBeTrue();
+}
+
+/**
+ * Hit the gate controller with the exact signed URL (bypasses route-prefix
+ * mismatch when locale middleware is disabled in this file).
+ */
+function getAccountStatusGateFromSignedUrl(string $url, Provider $provider)
+{
+    $request = Request::create($url, 'GET');
+    $response = app(AccountStatusController::class)->show($request, $provider);
+
+    if ($response instanceof Responsable) {
+        $response = $response->toResponse($request);
+    }
+
+    return test()->createTestResponse($response, $request);
 }
 
 test('non-approved providers are redirected to the signed account-status gate on login', function (ProviderStatusEnum $status): void {
@@ -138,7 +161,7 @@ test('the gate page shows a suspend/reject reason when present and omits it when
     $withUrl = app(GenerateProviderAccountStatusGateUrlAction::class)->handle($withReason);
     $withoutUrl = app(GenerateProviderAccountStatusGateUrlAction::class)->handle($withoutReason);
 
-    $this->get($withUrl)
+    getAccountStatusGateFromSignedUrl($withUrl, $withReason)
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Provider/Auth/AccountStatusPage')
@@ -146,7 +169,7 @@ test('the gate page shows a suspend/reject reason when present and omits it when
             ->where('reason', 'Incomplete commercial record')
             ->where('block_reason', null));
 
-    $this->get($withoutUrl)
+    getAccountStatusGateFromSignedUrl($withoutUrl, $withoutReason)
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Provider/Auth/AccountStatusPage')
@@ -164,7 +187,7 @@ test('the gate page shows the latest block history reason for blocked providers'
 
     $url = app(GenerateProviderAccountStatusGateUrlAction::class)->handle($provider->fresh());
 
-    $this->get($url)
+    getAccountStatusGateFromSignedUrl($url, $provider->fresh())
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Provider/Auth/AccountStatusPage')
@@ -180,5 +203,18 @@ test('an approved provider hitting a still-valid signed gate URL is redirected t
 
     $provider->forceFill(['status' => ProviderStatusEnum::Approved])->save();
 
-    $this->get($url)->assertRedirect(route('provider.login'));
+    getAccountStatusGateFromSignedUrl($url, $provider->fresh())
+        ->assertRedirect(route('provider.login'));
+});
+
+test('generated gate URLs bake in the active locale prefix and validate under that path', function (): void {
+    $provider = createGateProvider(ProviderStatusEnum::Pending);
+
+    LaravelLocalization::setLocale('ar');
+    app()->setLocale('ar');
+
+    $url = app(GenerateProviderAccountStatusGateUrlAction::class)->handle($provider);
+
+    expect($url)->toContain('/ar/provider/account-status/'.$provider->id);
+    expect(Request::create($url, 'GET')->hasValidSignature())->toBeTrue();
 });
