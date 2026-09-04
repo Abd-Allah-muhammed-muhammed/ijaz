@@ -38,7 +38,11 @@ interface ProviderManagementRepositoryInterface
 
     public function saveStatus(Provider $provider, string $status): Provider;
 
+    public function saveReason(Provider $provider, ?string $reason): Provider;
+
     public function block(Provider $provider, int $blockDays, ?string $reason): void;
+
+    public function loadForAccountStatusGate(Provider $provider): Provider;
 
     /**
      * @param  list<int|string>  $categoryIds

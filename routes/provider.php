@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Provider\AccountStatusController;
 use App\Http\Controllers\Provider\AuthController;
 use App\Http\Controllers\Provider\DeviceTokenController;
 use App\Http\Controllers\Provider\HomeController;
@@ -29,6 +30,13 @@ Route::group(
                 });
 
             });
+
+            // Guest signed status-gate — not behind auth:provider / EnsureProviderIsApproved.
+            // Signature validated in the controller so expired/invalid links redirect to login
+            // instead of a generic 403.
+            Route::get('/account-status/{provider}', [AccountStatusController::class, 'show'])
+                ->name('account-status');
+
             Route::middleware(['auth:provider', EnsureProviderIsApprovedMiddleware::class])->group(static function () {
                 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
                 Route::prefix('dashboard')->group(static function () {

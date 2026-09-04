@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Provider\Auth;
 
+use App\Actions\Auth\Provider\RedirectProviderToAccountStatusGateAction;
 use App\Enums\Providers\ProviderStatusEnum;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -54,9 +55,7 @@ class LoginRequest extends FormRequest
 
         if ($provider->status !== ProviderStatusEnum::Approved) {
             Auth::guard('provider')->logout();
-            throw ValidationException::withMessages([
-                'email' => $provider->status->authRejectionMessage((bool) $provider->blocked_until),
-            ]);
+            resolve(RedirectProviderToAccountStatusGateAction::class)->throwRedirect($provider);
         }
 
         RateLimiter::clear($this->throttleKey());

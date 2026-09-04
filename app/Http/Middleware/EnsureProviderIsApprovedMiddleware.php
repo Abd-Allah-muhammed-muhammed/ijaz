@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Actions\Auth\Provider\RedirectProviderToAccountStatusGateAction;
 use App\Models\Provider;
 use Closure;
 use Illuminate\Http\Request;
@@ -15,6 +16,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class EnsureProviderIsApprovedMiddleware
 {
+    public function __construct(
+        private readonly RedirectProviderToAccountStatusGateAction $redirectToGateAction,
+    ) {}
+
     public function handle(Request $request, Closure $next): Response
     {
         /** @var ?Provider $provider */
@@ -28,7 +33,7 @@ class EnsureProviderIsApprovedMiddleware
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                return redirect()->route('provider.login')->withErrors(['email' => $message]);
+                return $this->redirectToGateAction->handle($provider);
             }
         }
 

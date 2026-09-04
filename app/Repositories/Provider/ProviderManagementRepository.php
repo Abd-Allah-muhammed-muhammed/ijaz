@@ -108,9 +108,22 @@ class ProviderManagementRepository implements ProviderManagementRepositoryInterf
         return $provider;
     }
 
+    public function saveReason(Provider $provider, ?string $reason): Provider
+    {
+        $provider->reason = $reason;
+        $provider->save();
+
+        return $provider;
+    }
+
     public function block(Provider $provider, int $blockDays, ?string $reason): void
     {
         $provider->block($blockDays, $reason);
+    }
+
+    public function loadForAccountStatusGate(Provider $provider): Provider
+    {
+        return $provider->load('latestBlockHistory');
     }
 
     public function syncCategories(Provider $provider, array $categoryIds): void

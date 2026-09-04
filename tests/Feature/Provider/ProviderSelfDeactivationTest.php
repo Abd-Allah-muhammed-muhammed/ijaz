@@ -46,11 +46,16 @@ test('a self-deactivated provider is rejected by EnsureProviderIsApprovedMiddlew
 
     // Re-authenticate session as if middleware must gate a still-open session
     // after status flip (mirrors ProviderBlockedSessionTest pattern).
-    $this->actingAs($provider->fresh(), 'provider')
-        ->get(action(HomeController::class))
-        ->assertRedirect(route('provider.login'));
+    $response = $this->actingAs($provider->fresh(), 'provider')
+        ->get(action(HomeController::class));
 
-    expect(auth('provider')->check())->toBeFalse();
+    $response->assertRedirect();
+    $location = (string) $response->headers->get('Location');
+
+    expect($location)
+        ->toContain('/provider/account-status/'.$provider->id)
+        ->toContain('signature=')
+        ->and(auth('provider')->check())->toBeFalse();
 });
 
 test('self-deactivation does not touch/cancel/hide any of the provider\'s existing orders, offers, or guarantor requests — regression', function (): void {

@@ -1040,5 +1040,21 @@
     "order_payment_failed_body": "اس آرڈر کے لیے آپ کی ادائیگی مکمل نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں یا مسئلہ برقرار رہے تو سپورٹ سے رابطہ کریں۔",
     "order_payment_amount_mismatch": "آرڈر کی ادائیگی کا جائزہ درکار",
     "order_payment_amount_mismatch_body": "ہمیں :paid_amount SAR کی ادائیگی موصول ہوئی، جبکہ متوقع :expected_total SAR تھا۔ آپ کی ادائیگی کا جائزہ درکار ہے — براہ کرم سپورٹ سے رابطہ کریں۔",
-    "order_created": "آرڈر بنایا گیا"
+    "order_created": "آرڈر بنایا گیا",
+    "provider_status_gate_pending_title": "اکاؤنٹ جائزے میں ہے",
+    "provider_status_gate_pending_body": "آپ کی رجسٹریشن کا جائزہ لیا جا رہا ہے۔ منتظم کی منظوری کے بعد آپ سائن اِن کر سکیں گے۔",
+    "provider_status_gate_suspended_title": "اکاؤنٹ معطل",
+    "provider_status_gate_suspended_body": "آپ کا اکاؤنٹ عارضی طور پر معطل ہے اور آپ اس وقت پرووائیڈر ڈیش بورڈ استعمال نہیں کر سکتے۔",
+    "provider_status_gate_rejected_title": "رجسٹریشن مسترد",
+    "provider_status_gate_rejected_body": "آپ کی پرووائیڈر رجسٹریشن منظور نہیں ہوئی۔ اگر وجہ درج ہو تو نیچے دیکھیں۔",
+    "provider_status_gate_blocked_title": "اکاؤنٹ عارضی طور پر بلاک",
+    "provider_status_gate_blocked_body": "آپ کا اکاؤنٹ عارضی طور پر بلاک ہے۔ بلاک کی مدت ختم ہونے پر رسائی بحال ہو گی۔",
+    "provider_status_gate_banned_title": "اکاؤنٹ مستقل طور پر بن",
+    "provider_status_gate_banned_body": "آپ کا اکاؤنٹ مستقل طور پر بن ہے اور پرووائیڈر ڈیش بورڈ استعمال نہیں کر سکتا۔",
+    "provider_status_gate_self_deactivated_title": "اکاؤنٹ غیر فعال",
+    "provider_status_gate_self_deactivated_body": "آپ نے یہ اکاؤنٹ غیر فعال کیا۔ رسائی بحال کرنے میں مدد کے لیے جب سپورٹ چینل دستیاب ہو تو رابطہ کریں۔",
+    "provider_status_gate_reason_label": "وجہ",
+    "provider_status_gate_blocked_until": ":date تک بلاک",
+    "provider_status_gate_contact_support": "سپورٹ سے رابطہ کریں",
+    "provider_status_gate_back_to_login": "لاگ اِن پر واپس جائیں"
 }

@@ -19,11 +19,17 @@ const ProviderMenu = ({ provider }: Props) => {
     status: string,
     block_days: number | null,
     block_reason: string | null,
+    reason: string | null,
   }>({
     status: provider?.status?.value as string || ProviderStatusEnum.Pending,
     block_days: null,
     block_reason: null,
+    reason: null,
   })
+
+  const showSuspendRejectReason =
+    statusForm.data.status === ProviderStatusEnum.Suspended
+    || statusForm.data.status === ProviderStatusEnum.Rejected;
 
   return (
     <div className='menu menu-sub menu-sub-dropdown w-250px py-4 shadow-sm border-0 rounded-3' data-kt-menu='true'>
@@ -117,6 +123,20 @@ const ProviderMenu = ({ provider }: Props) => {
                 placeholder={t('block_reason')}
               />
             </div>
+          </div>
+        )}
+
+        {showSuspendRejectReason && (
+          <div className='mb-4 animate__animated animate__fadeIn'>
+            <textarea
+              className="form-control form-control-sm form-control-solid fs-7"
+              rows={2}
+              defaultValue={statusForm.data.reason?.toString()}
+              onChange={(e) => {
+                statusForm.setData('reason', e.target.value);
+              }}
+              placeholder={t('reason')}
+            />
           </div>
         )}
 

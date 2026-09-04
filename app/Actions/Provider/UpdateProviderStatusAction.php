@@ -30,6 +30,16 @@ class UpdateProviderStatusAction
             $this->repository->block($provider, $dto->blockDays ?: 0, $dto->blockReason);
         }
 
+        if (in_array($dto->status, [
+            ProviderStatusEnum::Suspended->value,
+            ProviderStatusEnum::Rejected->value,
+        ], true)) {
+            $provider = $this->repository->saveReason($provider, $dto->reason);
+        } elseif ($dto->status !== ProviderStatusEnum::Blocked->value) {
+            // Clear suspend/reject reason when leaving those statuses (Blocked uses block_histories).
+            $provider = $this->repository->saveReason($provider, null);
+        }
+
         // Welcome bonus only on first approval (Pending → Approved), never on re-approval
         // from Suspended / Rejected / Blocked, and never on non-approval status writes.
         if ($wasPending && $becomingApproved) {

@@ -1243,5 +1243,21 @@
     "order_payment_failed": "Order payment failed",
     "order_payment_failed_body": "Your payment for this order could not be completed. Please try again or contact support if the issue persists.",
     "order_payment_amount_mismatch": "Order payment needs review",
-    "order_payment_amount_mismatch_body": "We received a payment of :paid_amount SAR but expected :expected_total SAR. Your payment needs review — please contact support."
+    "order_payment_amount_mismatch_body": "We received a payment of :paid_amount SAR but expected :expected_total SAR. Your payment needs review — please contact support.",
+    "provider_status_gate_pending_title": "Account under review",
+    "provider_status_gate_pending_body": "Your registration is being reviewed. You will be able to sign in once an admin approves your account.",
+    "provider_status_gate_suspended_title": "Account suspended",
+    "provider_status_gate_suspended_body": "Your account has been temporarily suspended and you cannot access the provider dashboard right now.",
+    "provider_status_gate_rejected_title": "Registration rejected",
+    "provider_status_gate_rejected_body": "Your provider registration was not approved. Review the reason below if one was provided.",
+    "provider_status_gate_blocked_title": "Account temporarily blocked",
+    "provider_status_gate_blocked_body": "Your account is temporarily blocked. Access will be restored after the block period ends.",
+    "provider_status_gate_banned_title": "Account permanently banned",
+    "provider_status_gate_banned_body": "Your account has been permanently banned and cannot access the provider dashboard.",
+    "provider_status_gate_self_deactivated_title": "Account deactivated",
+    "provider_status_gate_self_deactivated_body": "You deactivated this account. Contact support if you need help restoring access once a channel is available.",
+    "provider_status_gate_reason_label": "Reason",
+    "provider_status_gate_blocked_until": "Blocked until :date",
+    "provider_status_gate_contact_support": "Contact support",
+    "provider_status_gate_back_to_login": "Back to login"
 }

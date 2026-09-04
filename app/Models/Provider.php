@@ -59,6 +59,7 @@ use Storage;
  * @property int $region_id
  * @property Region $region
  * @property ProviderStatusEnum $status
+ * @property ?string $reason
  * @property string $language
  */
 class Provider extends Authenticatable implements HasConversation, HasMedia, InteractWithFirebase
@@ -67,7 +68,7 @@ class Provider extends Authenticatable implements HasConversation, HasMedia, Int
 
     protected $fillable = [
         'name', 'code', 'iban', 'about', 'logo', 'tax_number', 'phone', 'email', 'website', 'address',
-        'latitude', 'longitude', 'provider_type_id', 'region_id', 'city_id', 'status', 'password', 'language', 'blocked_at', 'blocked_until',
+        'latitude', 'longitude', 'provider_type_id', 'region_id', 'city_id', 'status', 'reason', 'password', 'language', 'blocked_at', 'blocked_until',
     ];
 
     protected $hidden = [

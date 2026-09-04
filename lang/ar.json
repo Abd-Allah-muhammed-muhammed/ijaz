@@ -1134,5 +1134,21 @@
     "order_payment_failed": "فشل دفع الطلب",
     "order_payment_failed_body": "تعذر إكمال الدفع لهذا الطلب. يرجى المحاولة مرة أخرى أو التواصل مع الدعم إذا استمرت المشكلة.",
     "order_payment_amount_mismatch": "دفع الطلب يحتاج إلى مراجعة",
-    "order_payment_amount_mismatch_body": "استلمنا دفعة بقيمة :paid_amount ريال بينما كان المتوقع :expected_total ريال. يحتاج دفعك إلى مراجعة — يرجى التواصل مع الدعم."
+    "order_payment_amount_mismatch_body": "استلمنا دفعة بقيمة :paid_amount ريال بينما كان المتوقع :expected_total ريال. يحتاج دفعك إلى مراجعة — يرجى التواصل مع الدعم.",
+    "provider_status_gate_pending_title": "الحساب قيد المراجعة",
+    "provider_status_gate_pending_body": "جارٍ مراجعة تسجيلك. ستتمكن من تسجيل الدخول بعد موافقة المسؤول على حسابك.",
+    "provider_status_gate_suspended_title": "تم تعليق الحساب",
+    "provider_status_gate_suspended_body": "تم تعليق حسابك مؤقتًا ولا يمكنك الوصول إلى لوحة مزود الخدمة الآن.",
+    "provider_status_gate_rejected_title": "تم رفض التسجيل",
+    "provider_status_gate_rejected_body": "لم تتم الموافقة على تسجيل مزود الخدمة. راجع السبب أدناه إن وُجد.",
+    "provider_status_gate_blocked_title": "الحساب محظور مؤقتًا",
+    "provider_status_gate_blocked_body": "حسابك محظور مؤقتًا. ستُستعاد إمكانية الوصول بعد انتهاء فترة الحظر.",
+    "provider_status_gate_banned_title": "الحساب محظور بشكل دائم",
+    "provider_status_gate_banned_body": "تم حظر حسابك بشكل دائم ولا يمكنه الوصول إلى لوحة مزود الخدمة.",
+    "provider_status_gate_self_deactivated_title": "تم إلغاء تفعيل الحساب",
+    "provider_status_gate_self_deactivated_body": "لقد قمت بإلغاء تفعيل هذا الحساب. تواصل مع الدعم إذا احتجت مساعدة لاستعادة الوصول عندما يتوفر قناة تواصل.",
+    "provider_status_gate_reason_label": "السبب",
+    "provider_status_gate_blocked_until": "محظور حتى :date",
+    "provider_status_gate_contact_support": "تواصل مع الدعم",
+    "provider_status_gate_back_to_login": "العودة لتسجيل الدخول"
 }

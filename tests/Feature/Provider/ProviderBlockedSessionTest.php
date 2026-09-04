@@ -16,7 +16,7 @@ beforeEach(function () {
  * blocking must terminate any already-active session, not just gate the next
  * login attempt (LoginRequest::authenticate()).
  */
-test('blocking a provider revokes their active session', function () {
+test('blocking a provider revokes their active session and redirects to the signed account-status gate', function () {
     $provider = createWalletProvider();
 
     $this->actingAs($provider, 'provider')
@@ -29,10 +29,15 @@ test('blocking a provider revokes their active session', function () {
         blockReason: 'policy violation',
     ));
 
-    $this->get(action(HomeController::class))
-        ->assertRedirect(route('provider.login'));
+    $response = $this->get(action(HomeController::class));
 
-    expect(auth('provider')->check())->toBeFalse();
+    $response->assertRedirect();
+    $location = (string) $response->headers->get('Location');
+
+    expect($location)
+        ->toContain('/provider/account-status/'.$provider->id)
+        ->toContain('signature=')
+        ->and(auth('provider')->check())->toBeFalse();
 });
 
 test('an approved provider keeps their session across requests', function () {

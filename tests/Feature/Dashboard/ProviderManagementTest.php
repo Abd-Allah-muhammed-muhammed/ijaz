@@ -240,6 +240,37 @@ it('deletes a provider', function (): void {
     expect(Provider::query()->whereKey($provider->getKey())->exists())->toBeFalse();
 });
 
+it('persists a reason when suspending or rejecting a provider', function (): void {
+    $admin = createProviderManagementAdmin(['process providers']);
+    $provider = createWalletProvider(['status' => ProviderStatusEnum::Approved]);
+
+    $this->actingAs($admin, 'admin')
+        ->put(route('dashboard.providers.update-status', $provider), [
+            'status' => ProviderStatusEnum::Suspended->value,
+            'reason' => 'Quality review',
+        ])
+        ->assertRedirect(route('dashboard.providers.index'));
+
+    expect($provider->fresh()->reason)->toBe('Quality review');
+
+    $this->actingAs($admin, 'admin')
+        ->put(route('dashboard.providers.update-status', $provider), [
+            'status' => ProviderStatusEnum::Rejected->value,
+            'reason' => 'Docs incomplete',
+        ])
+        ->assertRedirect(route('dashboard.providers.index'));
+
+    expect($provider->fresh()->reason)->toBe('Docs incomplete');
+
+    $this->actingAs($admin, 'admin')
+        ->put(route('dashboard.providers.update-status', $provider), [
+            'status' => ProviderStatusEnum::Approved->value,
+        ])
+        ->assertRedirect(route('dashboard.providers.index'));
+
+    expect($provider->fresh()->reason)->toBeNull();
+});
+
 it('blocks a provider when the status becomes blocked', function (): void {
     $admin = createProviderManagementAdmin(['process providers']);
     $provider = createWalletProvider();

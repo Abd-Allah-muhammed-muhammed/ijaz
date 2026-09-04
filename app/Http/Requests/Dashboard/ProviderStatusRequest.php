@@ -23,6 +23,7 @@ class ProviderStatusRequest extends FormRequest
             'status' => ['required', new Enum(ProviderStatusEnum::class)],
             'block_days' => 'nullable|integer',
             'block_reason' => 'nullable|string',
+            'reason' => 'nullable|string',
         ];
     }
 }
