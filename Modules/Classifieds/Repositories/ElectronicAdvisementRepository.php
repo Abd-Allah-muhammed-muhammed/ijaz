@@ -101,6 +101,7 @@ final class ElectronicAdvisementRepository implements ElectronicAdvisementReposi
                 'region.translations',
                 'user',
             ])
+            ->latest()
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();
     }

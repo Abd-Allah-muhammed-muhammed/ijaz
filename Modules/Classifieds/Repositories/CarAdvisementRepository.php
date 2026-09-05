@@ -115,6 +115,7 @@ final class CarAdvisementRepository implements CarAdvisementRepositoryInterface
                 'bank.media',
                 'user',
             ])
+            ->latest()
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();
     }

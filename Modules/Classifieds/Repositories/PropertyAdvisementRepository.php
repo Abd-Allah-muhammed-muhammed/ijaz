@@ -113,6 +113,7 @@ final class PropertyAdvisementRepository implements PropertyAdvisementRepository
                 'category.translations',
                 'user',
             ])
+            ->latest()
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();
     }

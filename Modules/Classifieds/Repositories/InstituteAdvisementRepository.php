@@ -98,6 +98,7 @@ final class InstituteAdvisementRepository implements InstituteAdvisementReposito
                 'region.translations',
                 'user',
             ])
+            ->latest()
             ->paginate($request->integer('per_page', 10))
             ->withQueryString();
     }
