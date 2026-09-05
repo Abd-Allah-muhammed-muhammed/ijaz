@@ -6,6 +6,7 @@ import AuthController from '@/actions/App/Http/Controllers/Provider/AuthControll
 import WalletQuickActions from '@/apps/provider/components/wallet/WalletQuickActions';
 import { ProviderStatusEnum } from '@/Enums/Providers';
 import type { Provider } from '@/shared/types/models';
+import { SECONDARY_BUTTON_CLASS } from '@/shared/components/ui';
 
 export type AccountHeaderProps = {
   provider: Provider;
@@ -77,7 +78,7 @@ export default function AccountHeader({ provider }: AccountHeaderProps) {
               ) : null}
             </div>
 
-            <Link href={profileUrl} className="btn btn-sm btn-light align-self-start mb-3">
+            <Link href={profileUrl} className={`${SECONDARY_BUTTON_CLASS} align-self-start mb-3`}>
               {t('edit_profile')}
             </Link>
           </div>

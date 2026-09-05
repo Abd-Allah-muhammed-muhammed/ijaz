@@ -7,6 +7,7 @@ import {
   PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS,
   SECTION_CARD_BASE_CLASS,
   SECTION_CARD_HERO_BODY_CLASS,
+  SECTION_CARD_HERO_FOOTER_CLASS,
   STATUS_BADGE_BASE_CLASS,
   STATUS_BADGE_FALLBACK_COLOR_CLASS,
   STAT_TILE_SHELL_CLASS,
@@ -33,9 +34,20 @@ describe('ui barrel', () => {
   it('keeps approved Orders/Show class constants for badge, tile, and card shells', () => {
     expect(STATUS_BADGE_BASE_CLASS).toBe('badge rounded-pill fw-bold px-3 py-2');
     expect(STATUS_BADGE_FALLBACK_COLOR_CLASS).toBe('badge-light-secondary');
-    expect(STAT_TILE_SHELL_CLASS).toContain('bg-white rounded-3 p-4 border border-gray-100');
+    expect(STAT_TILE_SHELL_CLASS).toContain('bg-body rounded-3 p-4 border border-gray-100');
+    expect(STAT_TILE_SHELL_CLASS).not.toContain('bg-white');
     expect(SECTION_CARD_BASE_CLASS).toBe('card border-0 shadow-sm rounded-4');
     expect(EMPTY_VALUE_FALLBACK).toBe('—');
+  });
+
+  it('uses theme-aware surfaces and secondary buttons for dark-mode contrast', () => {
+    const typesSrc = readFileSync(join(dir, 'types.ts'), 'utf8');
+    expect(typesSrc).toContain('export const SECONDARY_BUTTON_CLASS');
+    expect(typesSrc).toContain('btn-bg-light');
+    expect(typesSrc).toContain('btn-color-gray-900');
+    expect(SECTION_CARD_HERO_FOOTER_CLASS).toContain('bg-body');
+    expect(SECTION_CARD_HERO_FOOTER_CLASS).not.toContain('bg-white');
+    expect(barrelSrc).toContain('SECONDARY_BUTTON_CLASS');
   });
 
   it('StatusBadge stays domain-agnostic (no Order/Offer enum imports)', () => {

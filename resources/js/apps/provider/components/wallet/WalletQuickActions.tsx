@@ -1,7 +1,7 @@
 import {useState} from 'react'
-import {Button} from 'react-bootstrap'
 import {useTranslation} from 'react-i18next'
 import {KTIcon} from '@/vendor/metronic/helpers'
+import {SECONDARY_BUTTON_CLASS} from '@/shared/components/ui'
 import WithdrawModal from '@/apps/provider/components/wallet/WithdrawModal'
 // Paused (not removed) — chore/provider-topup-pause, 2026-09-04.
 // import RechargeModal from '@/apps/provider/components/wallet/RechargeModal'
@@ -19,15 +19,14 @@ export const WithdrawTrigger = ({reloadOnly = DEFAULT_RELOAD_ONLY, className}: T
 
   return (
     <>
-      <Button
-        variant="light"
-        size="sm"
-        className={className ?? 'me-2'}
+      <button
+        type="button"
+        className={[SECONDARY_BUTTON_CLASS, className ?? 'me-2'].filter(Boolean).join(' ')}
         onClick={() => setShowWithdrawModal(true)}
       >
         <KTIcon iconName='check' className='fs-3 d-none'/>
         <span className='indicator-label'>{t('withdraw')}</span>
-      </Button>
+      </button>
 
       <WithdrawModal
         show={showWithdrawModal}

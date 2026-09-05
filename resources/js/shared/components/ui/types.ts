@@ -13,7 +13,7 @@ export const STATUS_BADGE_FALLBACK_COLOR_CLASS = 'badge-light-secondary';
 export const STATUS_BADGE_LIGHT_PREFIX = 'badge-light-';
 
 export const STAT_TILE_SHELL_CLASS =
-  'bg-white rounded-3 p-4 border border-gray-100 h-100';
+  'bg-body rounded-3 p-4 border border-gray-100 h-100';
 
 export const STAT_TILE_LABEL_CLASS = 'text-muted fs-8 text-uppercase fw-bold mb-1';
 
@@ -37,7 +37,15 @@ export const SECTION_CARD_HERO_BODY_CLASS =
 
 /** Optional trailing body under the hero tint (e.g. description strip). */
 export const SECTION_CARD_HERO_FOOTER_CLASS =
-  'card-body p-6 p-lg-8 bg-white border-top border-gray-100';
+  'card-body p-6 p-lg-8 bg-body border-top border-gray-100';
+
+/**
+ * Secondary action button that stays readable under `data-bs-theme="dark"`.
+ * Prefer over raw `btn-light` (dark mode uses muted gray-on-gray via `--bs-light-inverse`).
+ * Light mode stays a light gray surface with dark text (body-white equivalent feel).
+ */
+export const SECONDARY_BUTTON_CLASS =
+  'btn btn-sm btn-bg-light btn-color-gray-900 btn-active-color-primary';
 
 export const EMPTY_STATE_DEFAULT_PADDING_CLASS = 'text-center py-12 px-4';
 

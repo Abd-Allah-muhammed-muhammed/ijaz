@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { Card } from 'react-bootstrap';
 import { KTIcon } from '@/vendor/metronic/helpers';
-import { EmptyState, StatusBadge } from '@/shared/components/ui';
+import { EmptyState, StatusBadge, SECONDARY_BUTTON_CLASS } from '@/shared/components/ui';
 import AuthController from '@/actions/App/Http/Controllers/Provider/AuthController';
 import type { WalletTransaction } from '@/shared/types/models';
 
@@ -20,7 +20,7 @@ export default function RecentActivityCard({ transactions }: RecentActivityCardP
           {t('recent_wallet_activity')}
         </h3>
         <div className="card-toolbar mb-0">
-          <Link href={AuthController.statements().url} className="btn btn-sm btn-light">
+          <Link href={AuthController.statements().url} className={SECONDARY_BUTTON_CLASS}>
             {t('view_statements')}
           </Link>
         </div>

@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { KTIcon } from '@/vendor/metronic/helpers';
-import { SectionCard, StatusBadge } from '@/shared/components/ui';
+import { SectionCard, StatusBadge, SECONDARY_BUTTON_CLASS } from '@/shared/components/ui';
 import OrderController from '@/actions/Modules/Orders/Http/Controllers/Provider/OrderController';
 import type { Order } from '@/shared/types/models';
 import type { OrderTabKey } from '@/apps/provider/pages/Home/hooks/use-order-tab-counts';
@@ -79,7 +79,7 @@ export default function HomeOrdersTable({ orders, tabKey }: HomeOrdersTableProps
               <div className="w-md-125px text-md-end">
                 <Link
                   href={showUrl}
-                  className="btn btn-sm btn-light d-inline-flex align-items-center gap-1"
+                  className={`${SECONDARY_BUTTON_CLASS} d-inline-flex align-items-center gap-1`}
                 >
                   {t('view_details')}
                   <KTIcon iconName="arrow-right" className="fs-4" />

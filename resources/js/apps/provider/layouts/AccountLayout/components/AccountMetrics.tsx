@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Col, Row } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-import { StatTile } from '@/shared/components/ui';
+import { StatTile, SECONDARY_BUTTON_CLASS } from '@/shared/components/ui';
 import type { MetricTileData } from '@/apps/provider/types/metric-tile-data';
 import type { Wallet } from '@/shared/types/models';
 
@@ -38,7 +38,7 @@ export default function AccountMetrics({ wallet }: AccountMetricsProps) {
       </Row>
       <button
         type="button"
-        className="btn btn-sm btn-light mb-3 align-self-start"
+        className={`${SECONDARY_BUTTON_CLASS} mb-3 align-self-start`}
         onClick={() => setShowWalletDetails((open) => !open)}
         aria-expanded={showWalletDetails}
       >

@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { Card, Nav, Tab } from 'react-bootstrap';
 import { KTIcon } from '@/vendor/metronic/helpers';
-import { EmptyState } from '@/shared/components/ui';
+import { EmptyState, SECONDARY_BUTTON_CLASS } from '@/shared/components/ui';
 import OrderController from '@/actions/Modules/Orders/Http/Controllers/Provider/OrderController';
 import type { Order } from '@/shared/types/models';
 import type { OrderTabCounts, OrderTabKey } from '@/apps/provider/pages/Home/hooks/use-order-tab-counts';
@@ -63,7 +63,7 @@ export default function OrderTabsSection({
       <Card.Header className="align-items-center border-bottom-0 min-h-auto pt-4 flex-wrap gap-2">
         <h3 className="card-title fs-3 fw-bold mb-0 py-0 text-gray-900">{t('my orders')}</h3>
         <div className="card-toolbar mb-0">
-          <Link href={OrderController.index().url} className="btn btn-sm btn-light">
+          <Link href={OrderController.index().url} className={SECONDARY_BUTTON_CLASS}>
             {t('show_all')}
           </Link>
         </div>
