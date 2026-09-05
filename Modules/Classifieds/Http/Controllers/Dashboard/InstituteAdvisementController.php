@@ -43,7 +43,13 @@ class InstituteAdvisementController extends Controller implements HasMiddleware
 
     public function show(InstituteAdvisement $instituteAdvisement): Response
     {
-        $instituteAdvisement->load(['specialization', 'city', 'region', 'user', 'media']);
+        $instituteAdvisement->load([
+            'specialization.translations',
+            'city.translations',
+            'region.translations',
+            'user',
+            'media',
+        ]);
 
         return inertia('Dashboard/InstituteAdvisement/Show', [
             'row' => InstituteAdvisementResource::make($instituteAdvisement),

@@ -43,7 +43,14 @@ class PropertyAdvisementController extends Controller implements HasMiddleware
 
     public function show(PropertyAdvisement $propertyAdvisement): Response
     {
-        $propertyAdvisement->load(['propertyType', 'city', 'region', 'category', 'user', 'media']);
+        $propertyAdvisement->load([
+            'propertyType.translations',
+            'city.translations',
+            'region.translations',
+            'category.translations',
+            'user',
+            'media',
+        ]);
 
         return inertia('Dashboard/PropertyAdvisement/Show', [
             'row' => PropertyAdvisementResource::make($propertyAdvisement),

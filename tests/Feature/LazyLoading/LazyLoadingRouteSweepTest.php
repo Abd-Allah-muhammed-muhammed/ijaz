@@ -91,6 +91,11 @@ test('exhaustive GET+write route sweep finds no new lazy-loading violations beyo
         'reached_response' => 0,
         'skip_reasons' => [],
     ];
+    $forbiddenCoverage = [
+        'total' => 0,
+        'by_guard' => [],
+        'sample_uris' => [],
+    ];
 
     $httpCall = function (string $method, string $uri, array $payload = []) {
         $isApi = str_starts_with($uri, '/api/') || str_contains($uri, '/api/');
@@ -122,9 +127,11 @@ test('exhaustive GET+write route sweep finds no new lazy-loading violations beyo
                 'visited' => $result['visited'],
                 'skipped' => $result['skipped'],
                 'errors' => $result['errors'],
+                'forbidden' => $result['forbidden'],
                 'write_exercised' => $result['write_exercised'],
                 'write_reached_response' => $result['write_reached_response'],
                 'unique_violations' => count($result['violations']),
+                'error_uris' => $result['error_uris'],
             ];
 
             $writeCoverage['exercised'] += $result['write_exercised'];
@@ -134,6 +141,12 @@ test('exhaustive GET+write route sweep finds no new lazy-loading violations beyo
                 $writeCoverage['skip_reasons'],
                 $result['write_skip_reasons'],
             );
+
+            $forbiddenCoverage['total'] += $result['forbidden'];
+            $forbiddenCoverage['by_guard'][$guard] = $result['forbidden'];
+            if ($guard === 'admin' && $result['forbidden_uris'] !== []) {
+                $forbiddenCoverage['sample_uris'] = array_slice($result['forbidden_uris'], 0, 20);
+            }
         }
     } finally {
         $collector->restore();
@@ -155,11 +168,13 @@ test('exhaustive GET+write route sweep finds no new lazy-loading violations beyo
     file_put_contents($reportPath, json_encode([
         'by_guard' => $byGuard,
         'write_coverage' => $writeCoverage,
+        'forbidden_coverage' => $forbiddenCoverage,
         'write_coverage_notes' => [
             'guard_multiplied' => 'exercised/skipped sums across admin+provider+user+guest',
             'out_of_scope' => LazyLoadingRouteSweeper::OUT_OF_SCOPE_REASON,
             'out_of_scope_prefixes' => LazyLoadingRouteSweeper::SKIP_URI_PREFIXES,
             'distinct_app_write_routes' => 'see artisan route:list write methods minus SKIP_URI_PREFIXES/closures',
+            'admin_root_fixture' => 'Admin.root is not mass-assignable; fixture must forceFill(root: true) or permission-gated dashboard GETs return 403 without exercising Resources',
         ],
         'found' => $foundKeys,
         'baseline' => $baseline,

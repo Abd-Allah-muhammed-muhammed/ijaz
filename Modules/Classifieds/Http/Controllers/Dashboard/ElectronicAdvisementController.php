@@ -43,7 +43,14 @@ class ElectronicAdvisementController extends Controller implements HasMiddleware
 
     public function show(ElectronicAdvisement $electronicAdvisement): Response
     {
-        $electronicAdvisement->load(['deviceCategory', 'electronicBrand', 'city', 'region', 'user', 'media']);
+        $electronicAdvisement->load([
+            'deviceCategory.translations',
+            'electronicBrand.translations',
+            'city.translations',
+            'region.translations',
+            'user',
+            'media',
+        ]);
 
         return inertia('Dashboard/ElectronicAdvisement/Show', [
             'row' => ElectronicAdvisementResource::make($electronicAdvisement),

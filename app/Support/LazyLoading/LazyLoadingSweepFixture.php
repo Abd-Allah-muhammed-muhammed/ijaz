@@ -75,8 +75,9 @@ final class LazyLoadingSweepFixture
             'email' => fake()->unique()->safeEmail(),
             'password' => Hash::make('password'),
             'language' => 'en',
-            'root' => true,
         ]);
+        // `root` is intentionally not mass-assignable on Admin — forceFill like CreateAdminAccountAction.
+        $admin->forceFill(['root' => true])->save();
 
         $providerType = ProviderType::query()->create([
             'image' => 'media/sweep-type.png',

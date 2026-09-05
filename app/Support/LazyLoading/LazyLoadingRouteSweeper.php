@@ -72,6 +72,8 @@ final class LazyLoadingRouteSweeper
      *     write_exercised: int,
      *     write_skipped: int,
      *     write_reached_response: int,
+     *     forbidden: int,
+     *     forbidden_uris: list<string>,
      *     violations: list<array{model: class-string, relation: string, uris: list<string>, guards: list<string>}>,
      *     skipped_uris: list<string>,
      *     write_skip_reasons: list<array{uri: string, method: string, reason: string}>,
@@ -92,6 +94,8 @@ final class LazyLoadingRouteSweeper
         $writeExercised = 0;
         $writeSkipped = 0;
         $writeReachedResponse = 0;
+        $forbidden = 0;
+        $forbiddenUris = [];
         $skippedUris = [];
         $writeSkipReasons = [];
         $errorUris = [];
@@ -172,6 +176,11 @@ final class LazyLoadingRouteSweeper
                         ? (int) $response->status()
                         : (int) $response->getStatusCode();
 
+                    if ($status === 403) {
+                        $forbidden++;
+                        $forbiddenUris[] = $contextLabel;
+                    }
+
                     if ($isWrite) {
                         // Any HTTP response (including domain 422s like invalid OTP) means the
                         // write stack ran under preventLazyLoading — count as reached.
@@ -222,6 +231,8 @@ final class LazyLoadingRouteSweeper
             'write_exercised' => $writeExercised,
             'write_skipped' => $writeSkipped,
             'write_reached_response' => $writeReachedResponse,
+            'forbidden' => $forbidden,
+            'forbidden_uris' => $forbiddenUris,
             'violations' => $this->collector->uniqueByModelRelation(),
             'skipped_uris' => $skippedUris,
             'write_skip_reasons' => $writeSkipReasons,
