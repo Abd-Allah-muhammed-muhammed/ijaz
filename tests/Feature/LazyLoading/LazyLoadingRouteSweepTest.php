@@ -5,6 +5,7 @@ use App\Support\LazyLoading\LazyLoadingSweepFixture;
 use App\Support\LazyLoading\LazyLoadingViolationCollector;
 use App\Support\LazyLoading\NonHttpLazyLoadingCatalog;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
@@ -55,7 +56,7 @@ test('exhaustive GET+write route sweep finds no new lazy-loading violations beyo
     $collector = new LazyLoadingViolationCollector;
     $sweeper = new LazyLoadingRouteSweeper($collector);
 
-    $collector->install(collectOnly: true);
+    $collector->install(true);
     $collector->reset();
 
     Notification::fake();
@@ -91,25 +92,30 @@ test('exhaustive GET+write route sweep finds no new lazy-loading violations beyo
         'skip_reasons' => [],
     ];
 
+    $httpCall = function (string $method, string $uri, array $payload = []) {
+        $isApi = str_starts_with($uri, '/api/') || str_contains($uri, '/api/');
+        $hasFiles = collect($payload)->flatten()->contains(
+            static fn (mixed $value): bool => $value instanceof UploadedFile
+        );
+
+        return match (strtoupper($method)) {
+            'GET' => $isApi ? test()->getJson($uri) : test()->get($uri),
+            'POST' => ($isApi && ! $hasFiles) ? test()->postJson($uri, $payload) : test()->post($uri, $payload),
+            'PUT' => ($isApi && ! $hasFiles) ? test()->putJson($uri, $payload) : test()->put($uri, $payload),
+            'PATCH' => ($isApi && ! $hasFiles) ? test()->patchJson($uri, $payload) : test()->patch($uri, $payload),
+            default => test()->get($uri),
+        };
+    };
+
     try {
         foreach ($guards as $guard => $authenticate) {
             $result = $sweeper->sweep(
-                httpCall: function (string $method, string $uri, array $payload = []) {
-                    $isApi = str_starts_with($uri, '/api/') || str_contains($uri, '/api/');
-
-                    return match (strtoupper($method)) {
-                        'GET' => $isApi ? test()->getJson($uri) : test()->get($uri),
-                        'POST' => $isApi ? test()->postJson($uri, $payload) : test()->post($uri, $payload),
-                        'PUT' => $isApi ? test()->putJson($uri, $payload) : test()->put($uri, $payload),
-                        'PATCH' => $isApi ? test()->patchJson($uri, $payload) : test()->patch($uri, $payload),
-                        default => test()->get($uri),
-                    };
-                },
-                parameterBag: $fixture['parameters'],
-                guard: $guard,
-                authenticate: $authenticate,
-                queryByUriSuffix: $queryExtras,
-                includeWrites: true,
+                $httpCall,
+                $fixture['parameters'],
+                $guard,
+                $authenticate,
+                $queryExtras,
+                true,
             );
 
             $byGuard[$guard] = [
@@ -149,6 +155,12 @@ test('exhaustive GET+write route sweep finds no new lazy-loading violations beyo
     file_put_contents($reportPath, json_encode([
         'by_guard' => $byGuard,
         'write_coverage' => $writeCoverage,
+        'write_coverage_notes' => [
+            'guard_multiplied' => 'exercised/skipped sums across admin+provider+user+guest',
+            'out_of_scope' => LazyLoadingRouteSweeper::OUT_OF_SCOPE_REASON,
+            'out_of_scope_prefixes' => LazyLoadingRouteSweeper::SKIP_URI_PREFIXES,
+            'distinct_app_write_routes' => 'see artisan route:list write methods minus SKIP_URI_PREFIXES/closures',
+        ],
         'found' => $foundKeys,
         'baseline' => $baseline,
         'violations' => $unique,
@@ -196,7 +208,7 @@ test('queued order payment listeners do not lazy-load product/order under strict
     $fresh = Payment::query()->findOrFail($payment->id);
 
     $collector = new LazyLoadingViolationCollector;
-    $collector->install(collectOnly: true);
+    $collector->install(true);
     $collector->reset();
     Notification::fake();
 

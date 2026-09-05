@@ -17,17 +17,30 @@ use ReflectionNamedType;
 /**
  * Builds minimally-valid request payloads from a route's FormRequest rules()
  * so write-route sweeps reach the response layer instead of stopping at 422.
+ *
+ * Falls back to {@see ManualWritePayloadRegistry} when there is no FormRequest
+ * or when auto-generation cannot satisfy complex domain rules.
  */
 final class FormRequestPayloadBuilder
 {
     private const SKIP_FIELD = '__skip__';
 
+    public function __construct(
+        private readonly RouteParameterBinder $binder = new RouteParameterBinder,
+        private readonly ManualWritePayloadRegistry $manual = new ManualWritePayloadRegistry,
+    ) {}
+
     /**
-     * @param  array<string, int|string>  $parameterBag
+     * @param  array<string, int|string>  $parameterMap
      * @return array{payload: array<string, mixed>}|array{skip: string}
      */
-    public function build(Route $route, array $parameterBag, string $method = 'POST', ?string $resolvedUri = null): array
+    public function build(Route $route, array $parameterMap, string $method = 'POST', ?string $resolvedUri = null): array
     {
+        $manual = $this->manual->lookup($route, $method, $parameterMap);
+        if ($manual !== null) {
+            return $manual;
+        }
+
         $formRequestClass = $this->resolveFormRequestClass($route);
 
         if ($formRequestClass === null) {
@@ -35,7 +48,7 @@ final class FormRequestPayloadBuilder
         }
 
         try {
-            $rules = $this->invokeRules($formRequestClass, $route, $parameterBag, $method, $resolvedUri);
+            $rules = $this->invokeRules($formRequestClass, $route, $parameterMap, $method, $resolvedUri);
         } catch (\Throwable $e) {
             return ['skip' => 'rules() failed: '.$e->getMessage()];
         }
@@ -55,24 +68,44 @@ final class FormRequestPayloadBuilder
                 continue;
             }
 
-            $value = $this->valueFor($field, $normalized, $parameterBag);
+            $value = $this->valueFor($field, $normalized, $parameterMap);
             if ($value === self::SKIP_FIELD) {
+                $fallback = $this->manual->lookup($route, $method, $parameterMap);
+                if ($fallback !== null) {
+                    return $fallback;
+                }
+
                 return ['skip' => "cannot synthesize field [{$field}]"];
             }
 
             Arr::set($payload, $field, $value);
         }
 
-        try {
-            $validator = Validator::make($payload, $rules);
-            if ($validator->fails()) {
-                return [
-                    'skip' => 'synthetic payload failed validation: '.
-                        implode('; ', $validator->errors()->all()),
-                ];
+        // Only pre-validate simple string-rule sets. Object/closure rules (Unique,
+        // SufficientAvailableBalance, ValidPhoneRule, …) need a live Request/user
+        // and throw or false-fail under Validator::make() outside HTTP.
+        if ($this->rulesAreSimpleStrings($rules)) {
+            try {
+                $validator = Validator::make($payload, $rules);
+                if ($validator->fails()) {
+                    $fallback = $this->manual->lookup($route, $method, $parameterMap);
+                    if ($fallback !== null) {
+                        return $fallback;
+                    }
+
+                    return [
+                        'skip' => 'synthetic payload failed validation: '.
+                            implode('; ', $validator->errors()->all()),
+                    ];
+                }
+            } catch (\Throwable $e) {
+                $fallback = $this->manual->lookup($route, $method, $parameterMap);
+                if ($fallback !== null) {
+                    return $fallback;
+                }
+
+                return ['skip' => 'validator threw: '.$e->getMessage()];
             }
-        } catch (\Throwable $e) {
-            return ['skip' => 'validator threw: '.$e->getMessage()];
         }
 
         return ['payload' => $payload];
@@ -125,34 +158,20 @@ final class FormRequestPayloadBuilder
 
     /**
      * @param  class-string<FormRequest>  $formRequestClass
-     * @param  array<string, int|string>  $parameterBag
+     * @param  array<string, int|string>  $parameterMap
      * @return array<string, mixed>
      */
     private function invokeRules(
         string $formRequestClass,
         Route $route,
-        array $parameterBag,
+        array $parameterMap,
         string $method = 'POST',
         ?string $resolvedUri = null,
     ): array {
         $uri = $resolvedUri ?? '/'.ltrim($route->uri(), '/');
         $request = Request::create($uri, $method);
 
-        try {
-            $route->bind($request);
-        } catch (\Throwable) {
-            // continue with manual params
-        }
-
-        foreach ($parameterBag as $key => $value) {
-            try {
-                if (in_array($key, $route->parameterNames(), true)) {
-                    $route->setParameter($key, $value);
-                }
-            } catch (\Throwable) {
-                // unbound
-            }
-        }
+        $this->binder->bind($route, $request, $parameterMap);
 
         /** @var FormRequest $instance */
         $instance = $formRequestClass::createFromBase($request);
@@ -183,34 +202,124 @@ final class FormRequestPayloadBuilder
     }
 
     /**
+     * @param  array<string, mixed>  $rules
+     */
+    private function rulesAreSimpleStrings(array $rules): bool
+    {
+        foreach ($rules as $ruleSet) {
+            foreach ($this->normalizeRules($ruleSet) as $rule) {
+                if (! is_string($rule)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * @param  list<mixed>  $rules
      */
     private function shouldOmit(array $rules): bool
     {
         $names = $this->ruleNames($rules);
 
-        if (in_array('required', $names, true) || in_array('required_if', $names, true)) {
-            return false;
+        foreach ($names as $name) {
+            if (str_starts_with($name, 'required')) {
+                return false;
+            }
         }
 
         return in_array('nullable', $names, true)
             || in_array('sometimes', $names, true)
-            || ! in_array('required', $names, true);
+            || true;
     }
 
     /**
      * @param  list<mixed>  $rules
-     * @param  array<string, int|string>  $parameterBag
+     * @param  array<string, int|string>  $parameterMap
      */
-    private function valueFor(string $field, array $rules, array $parameterBag): mixed
+    private function valueFor(string $field, array $rules, array $parameterMap): mixed
     {
         $names = $this->ruleNames($rules);
         $fieldKey = str_replace(['_id', '.'], ['', '_'], $field);
 
-        foreach ($parameterBag as $param => $value) {
+        foreach ($parameterMap as $param => $value) {
             if ($field === $param || $field === $param.'_id' || $fieldKey === $param) {
                 return $value;
             }
+        }
+
+        if (str_starts_with($field, 'translations.')) {
+            return 'Sweep '.uniqid('', true);
+        }
+
+        if ($field === 'translations') {
+            return [
+                'en' => ['name' => 'Sweep EN '.uniqid(), 'title' => 'Sweep EN '.uniqid()],
+                'ar' => ['name' => 'كنس AR '.uniqid(), 'title' => 'كنس AR '.uniqid()],
+                'ur' => ['name' => 'Sweep UR '.uniqid(), 'title' => 'Sweep UR '.uniqid()],
+                'hi' => ['name' => 'Sweep HI '.uniqid(), 'title' => 'Sweep HI '.uniqid()],
+            ];
+        }
+
+        if ($field === 'year') {
+            return (int) date('Y');
+        }
+
+        if ($field === 'amount') {
+            return 200;
+        }
+
+        if ($field === 'socket_id') {
+            return 'user-1';
+        }
+
+        if (str_contains($field, 'iban')) {
+            return 'SA0380000000608010167519';
+        }
+
+        if ($field === 'expired_at') {
+            return now()->addDays(10)->toDateString();
+        }
+
+        if (str_ends_with($field, '_confirmation') || $field === 'password_confirmation') {
+            return 'Password1!';
+        }
+
+        if ($field === 'guarantor_request_id' && isset($parameterMap['guarantorRequest'])) {
+            return $parameterMap['guarantorRequest'];
+        }
+
+        if ($field === 'verification_id' && isset($parameterMap['verification'])) {
+            return $parameterMap['verification'];
+        }
+
+        if ($field === 'permissions' && isset($parameterMap['permission'])) {
+            return [(int) $parameterMap['permission']];
+        }
+
+        if ($field === 'roles' && isset($parameterMap['role'])) {
+            return [(int) $parameterMap['role']];
+        }
+
+        if ($field === 'categories' && isset($parameterMap['category'])) {
+            return [[
+                'id' => $parameterMap['category'],
+                'skills' => isset($parameterMap['skill']) ? [(int) $parameterMap['skill']] : [],
+            ]];
+        }
+
+        if ($field === 'values') {
+            return ['min_withdraw_amount' => '200'];
+        }
+
+        if ($field === 'events') {
+            return [['name' => 'lazy-sweep', 'type' => 'click']];
+        }
+
+        if ($field === 'confirmed') {
+            return true;
         }
 
         foreach ($rules as $rule) {
@@ -240,12 +349,12 @@ final class FormRequestPayloadBuilder
             if (is_string($rule) && str_starts_with($rule, 'exists:')) {
                 $parts = explode(',', substr($rule, 7));
                 $column = $parts[1] ?? 'id';
-                if ($column === 'id' && isset($parameterBag[str_replace('_id', '', $field)])) {
-                    return $parameterBag[str_replace('_id', '', $field)];
+                if ($column === 'id' && isset($parameterMap[str_replace('_id', '', $field)])) {
+                    return $parameterMap[str_replace('_id', '', $field)];
                 }
-                foreach ($parameterBag as $value) {
-                    if (is_int($value) || ctype_digit((string) $value)) {
-                        return $value;
+                foreach (['city', 'region', 'nationality', 'category', 'skill', 'bank', 'order', 'user', 'provider'] as $key) {
+                    if (isset($parameterMap[$key])) {
+                        return $parameterMap[$key];
                     }
                 }
 
@@ -274,22 +383,22 @@ final class FormRequestPayloadBuilder
         }
 
         if (in_array('date', $names, true) || in_array('date_format:Y-m-d', $names, true)) {
-            return now()->toDateString();
+            return now()->addDays(7)->toDateString();
         }
 
         if (str_contains($field, 'password')) {
             return 'Password1!';
         }
 
-        if (str_contains($field, 'phone')) {
-            return '0501234567';
+        if (str_contains($field, 'phone') || str_contains($field, 'contact_number')) {
+            return '5'.str_pad((string) random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
         }
 
         if (str_contains($field, 'email')) {
             return 'sweep@example.test';
         }
 
-        return 'sweep-value';
+        return 'sweep-value-'.uniqid();
     }
 
     /**

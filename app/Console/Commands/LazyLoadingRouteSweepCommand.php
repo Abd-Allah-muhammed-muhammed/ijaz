@@ -136,12 +136,17 @@ class LazyLoadingRouteSweepCommand extends Command
         ));
 
         if ($includeWrites) {
+            $writeTotal = $summary['write_exercised'] + $summary['write_skipped'];
             $this->info(sprintf(
-                'Write coverage: exercised=%d reached_response=%d skipped=%d (see JSON for reasons).',
+                'Write coverage (guard-multiplied): exercised=%d/%d (%.1f%%) reached_response=%d skipped=%d.',
                 $summary['write_exercised'],
+                $writeTotal,
+                $writeTotal > 0 ? (100 * $summary['write_exercised'] / $writeTotal) : 0,
                 $summary['write_reached_response'],
                 $summary['write_skipped'],
             ));
+            $this->line('Out-of-scope write skips (not app domain routes): '.LazyLoadingRouteSweeper::OUT_OF_SCOPE_REASON);
+            $this->line('Prefixes: '.implode(', ', LazyLoadingRouteSweeper::SKIP_URI_PREFIXES));
         }
 
         foreach ($unique as $row) {

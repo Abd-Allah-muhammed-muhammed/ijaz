@@ -2,10 +2,15 @@
 
 namespace App\Support\LazyLoading;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Testing\TestResponse;
+use Modules\Opportunity\Models\OpportunityOffer;
+use Modules\Orders\Models\OrderOffer;
+use ReflectionMethod;
+use ReflectionNamedType;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -17,6 +22,10 @@ use Symfony\Component\HttpFoundation\Response;
 final class LazyLoadingRouteSweeper
 {
     /**
+     * URI prefixes that are framework/tooling surfaces, not application domain
+     * routes. Excluded from lazy-loading coverage on purpose (Horizon, Livewire
+     * internals, Telescope, Log Viewer, Sanctum CSRF, payment gateway callbacks, …).
+     *
      * @var list<string>
      */
     public const SKIP_URI_PREFIXES = [
@@ -37,6 +46,12 @@ final class LazyLoadingRouteSweeper
     ];
 
     /**
+     * Human-readable reason recorded when a write route matches {@see SKIP_URI_PREFIXES}
+     * or is a Closure action — these are out of scope for app lazy-loading audits.
+     */
+    public const OUT_OF_SCOPE_REASON = 'out of scope (tooling/framework: horizon/livewire/telescope/log-viewer/sanctum/payment-callbacks/closures)';
+
+    /**
      * @var list<string>
      */
     public const WRITE_METHODS = ['POST', 'PUT', 'PATCH'];
@@ -48,7 +63,7 @@ final class LazyLoadingRouteSweeper
 
     /**
      * @param  callable(string, string, array<string, mixed>): (TestResponse|Response)  $httpCall
-     * @param  array<string, int|string>  $parameterBag
+     * @param  array<string, int|string>  $parameterMap
      * @param  array<string, array<string, int|string>>  $queryByUriSuffix
      * @return array{
      *     visited: int,
@@ -65,7 +80,7 @@ final class LazyLoadingRouteSweeper
      */
     public function sweep(
         callable $httpCall,
-        array $parameterBag,
+        array $parameterMap,
         string $guard,
         ?callable $authenticate = null,
         array $queryByUriSuffix = [],
@@ -92,13 +107,17 @@ final class LazyLoadingRouteSweeper
                 $skippedUris[] = "{$method} {$uri}";
                 if ($isWrite) {
                     $writeSkipped++;
-                    $writeSkipReasons[] = ['uri' => $uri, 'method' => $method, 'reason' => 'skip prefix / closure'];
+                    $writeSkipReasons[] = [
+                        'uri' => $uri,
+                        'method' => $method,
+                        'reason' => self::OUT_OF_SCOPE_REASON,
+                    ];
                 }
 
                 continue;
             }
 
-            $resolved = $this->resolveUri($route, $parameterBag);
+            $resolved = $this->resolveUri($route, $parameterMap);
 
             if ($resolved === null) {
                 $skipped++;
@@ -113,9 +132,13 @@ final class LazyLoadingRouteSweeper
 
             $resolved = $this->appendQueryExtras($resolved, $queryByUriSuffix);
 
+            if ($authenticate !== null) {
+                $authenticate();
+            }
+
             $payload = [];
             if ($isWrite) {
-                $built = $this->payloadBuilder->build($route, $parameterBag, $method, $resolved);
+                $built = $this->payloadBuilder->build($route, $parameterMap, $method, $resolved);
                 if (isset($built['skip'])) {
                     $skipped++;
                     $writeSkipped++;
@@ -129,10 +152,6 @@ final class LazyLoadingRouteSweeper
                 }
                 $payload = $built['payload'];
                 $writeExercised++;
-            }
-
-            if ($authenticate !== null) {
-                $authenticate();
             }
 
             $contextLabel = "{$method} {$resolved}";
@@ -154,13 +173,14 @@ final class LazyLoadingRouteSweeper
                         : (int) $response->getStatusCode();
 
                     if ($isWrite) {
-                        if ($status !== 422) {
-                            $writeReachedResponse++;
-                        } else {
+                        // Any HTTP response (including domain 422s like invalid OTP) means the
+                        // write stack ran under preventLazyLoading — count as reached.
+                        $writeReachedResponse++;
+                        if ($status === 422) {
                             $writeSkipReasons[] = [
                                 'uri' => $resolved,
                                 'method' => $method,
-                                'reason' => 'HTTP 422 after synthetic payload (rules introspection incomplete)',
+                                'reason' => 'HTTP 422 domain/validation response (route still exercised for lazy-loading)',
                             ];
                         }
                     }
@@ -266,7 +286,10 @@ final class LazyLoadingRouteSweeper
         $uri = ltrim($route->uri(), '/');
 
         foreach (self::SKIP_URI_PREFIXES as $prefix) {
-            if ($uri === $prefix || str_starts_with($uri, $prefix.'/')) {
+            // Match "livewire" against both "livewire/..." and hashed "livewire-xxxx/..."
+            if ($uri === $prefix
+                || str_starts_with($uri, $prefix.'/')
+                || str_starts_with($uri, $prefix.'-')) {
                 return true;
             }
         }
@@ -279,19 +302,22 @@ final class LazyLoadingRouteSweeper
     }
 
     /**
-     * @param  array<string, int|string>  $parameterBag
+     * @param  array<string, int|string>  $parameterMap
      */
-    public function resolveUri(Route $route, array $parameterBag): ?string
+    public function resolveUri(Route $route, array $parameterMap): ?string
     {
         $uri = $route->uri();
         $parameters = $route->parameterNames();
+        $fromSignature = $this->modelsFromControllerSignature($route);
 
         foreach ($parameters as $name) {
-            if (! array_key_exists($name, $parameterBag)) {
+            $value = $this->parameterValueFor($name, $parameterMap, $fromSignature);
+
+            if ($value === null) {
                 return null;
             }
 
-            $uri = preg_replace('/\{'.$name.'\??\}/', (string) $parameterBag[$name], $uri) ?? $uri;
+            $uri = preg_replace('/\{'.$name.'\??\}/', (string) $value, $uri) ?? $uri;
         }
 
         if (str_contains($uri, '{')) {
@@ -299,5 +325,66 @@ final class LazyLoadingRouteSweeper
         }
 
         return '/'.ltrim($uri, '/');
+    }
+
+    /**
+     * @param  array<string, int|string>  $parameterMap
+     * @param  array<string, class-string>  $fromSignature
+     */
+    private function parameterValueFor(string $name, array $parameterMap, array $fromSignature): int|string|null
+    {
+        if ($name === 'offer') {
+            $class = $fromSignature['offer'] ?? null;
+            if ($class === OpportunityOffer::class && array_key_exists('opportunityOffer', $parameterMap)) {
+                return $parameterMap['opportunityOffer'];
+            }
+            if ($class === OrderOffer::class && array_key_exists('orderOffer', $parameterMap)) {
+                return $parameterMap['orderOffer'];
+            }
+        }
+
+        if (array_key_exists($name, $parameterMap)) {
+            return $parameterMap[$name];
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<string, class-string>
+     */
+    private function modelsFromControllerSignature(Route $route): array
+    {
+        $action = $route->getAction('controller');
+        if (! is_string($action)) {
+            return [];
+        }
+
+        if (str_contains($action, '@')) {
+            [$class, $method] = explode('@', $action, 2);
+        } else {
+            $class = $action;
+            $method = '__invoke';
+        }
+
+        if (! class_exists($class) || ! method_exists($class, $method)) {
+            return [];
+        }
+
+        $map = [];
+        $reflection = new ReflectionMethod($class, $method);
+        foreach ($reflection->getParameters() as $parameter) {
+            $type = $parameter->getType();
+            if (! $type instanceof ReflectionNamedType || $type->isBuiltin()) {
+                continue;
+            }
+
+            $typeName = $type->getName();
+            if (is_subclass_of($typeName, Model::class)) {
+                $map[$parameter->getName()] = $typeName;
+            }
+        }
+
+        return $map;
     }
 }

@@ -6,7 +6,9 @@ use App\Enums\Providers\ProviderStatusEnum;
 use App\Models\Admin;
 use App\Models\Provider;
 use App\Models\User;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Modules\Catalog\Models\Bank;
 use Modules\Catalog\Models\CarBrand;
 use Modules\Catalog\Models\CarCategory;
@@ -16,6 +18,7 @@ use Modules\Catalog\Models\ElectronicBrand;
 use Modules\Catalog\Models\PropertyCategory;
 use Modules\Catalog\Models\PropertyType;
 use Modules\Catalog\Models\Specialization;
+use Modules\Chat\Models\Conversation;
 use Modules\Classifieds\Enums\AdvisementStatusEnum;
 use Modules\Classifieds\Enums\ElectronicConditionEnum;
 use Modules\Classifieds\Enums\InstituteTypeEnum;
@@ -31,17 +34,24 @@ use Modules\Cms\Models\Question;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Nationality;
 use Modules\Geo\Models\Region;
+use Modules\Guarantor\Models\GuarantorInstallment;
 use Modules\Guarantor\Models\GuarantorRequest;
+use Modules\Jobs\Enums\JobTypeEnum;
+use Modules\Jobs\Models\JobOffer;
 use Modules\Marketplace\Models\Category;
 use Modules\Marketplace\Models\ProviderType;
 use Modules\Marketplace\Models\Skill;
 use Modules\Opportunity\Models\Opportunity;
+use Modules\Opportunity\Models\OpportunityOffer;
 use Modules\Orders\Database\Factories\OrderOfferFactory;
 use Modules\Orders\Models\Order;
 use Modules\Payment\Models\Payment;
+use Modules\Payout\Models\PayoutRequest;
 use Modules\Reviews\Models\Review;
 use Modules\Support\Models\TicketSupport;
 use Modules\Wallet\Models\WithdrawRequest;
+use Modules\Wallet\Services\WalletService;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -294,6 +304,60 @@ final class LazyLoadingSweepFixture
         $payment = Payment::factory()->forProduct($order, $user)->create();
 
         $role = Role::findOrCreate('lazy-sweep-admin-role', 'admin');
+        $permission = Permission::findOrCreate('lazy-sweep-permission', 'admin');
+        $role->givePermissionTo($permission);
+
+        $installment = GuarantorInstallment::factory()
+            ->for($guarantorRequest, 'guarantorRequest')
+            ->create();
+
+        $conversation = Conversation::query()->firstOrCreate([
+            'operation_type' => Order::class,
+            'operation_id' => $order->getKey(),
+        ], [
+            'user1_type' => $user::class,
+            'user1_id' => $user->getKey(),
+            'user2_type' => $provider::class,
+            'user2_id' => $provider->getKey(),
+        ]);
+
+        $jobOffer = JobOffer::query()->create([
+            'user_id' => $user->id,
+            'user_type' => User::class,
+            'title' => 'Sweep Job',
+            'description' => 'Sweep job description',
+            'expired_at' => now()->addDays(10),
+            'contact_number' => '0501234567',
+            'city_id' => $city->id,
+            'region_id' => $region->id,
+            'nationality_id' => $nationality->id,
+            'type' => JobTypeEnum::Private,
+            'expected_salary' => 3000,
+        ]);
+
+        $opportunityOffer = OpportunityOffer::factory()->create([
+            'opportunity_id' => $opportunity->id,
+            'author_type' => User::class,
+            'author_id' => $user->id,
+        ]);
+
+        $payoutRequest = PayoutRequest::factory()->create();
+
+        $notification = DatabaseNotification::query()->create([
+            'id' => (string) Str::uuid(),
+            'type' => 'App\\Notifications\\LazySweepNotification',
+            'notifiable_type' => $admin->getMorphClass(),
+            'notifiable_id' => $admin->getKey(),
+            'data' => [
+                'title_translated_key' => 'notifications.sweep.title',
+                'body_translated_key' => 'notifications.sweep.body',
+                'translated_attributes' => [],
+            ],
+            'read_at' => null,
+        ]);
+
+        app(WalletService::class)->credit($user, 1000.0, $user, 'Lazy sweep fund');
+        app(WalletService::class)->credit($provider, 1000.0, $provider, 'Lazy sweep fund');
 
         $parameters = [
             'locale' => 'en',
@@ -328,8 +392,18 @@ final class LazyLoadingSweepFixture
             'banner' => $banner->id,
             'order' => $order->id,
             'orderOffer' => $orderOffer->id,
+            'offer' => $orderOffer->id,
             'opportunity' => $opportunity->id,
+            'opportunityOffer' => $opportunityOffer->id,
             'guarantorRequest' => $guarantorRequest->id,
+            'installment' => $installment->id,
+            'conversation' => $conversation->id,
+            'job' => $jobOffer->id,
+            'payoutRequest' => $payoutRequest->id,
+            'notification' => $notification->id,
+            'token' => (string) Str::uuid(),
+            'verification' => (string) Str::uuid(),
+            'permission' => $permission->id,
             'carAdvisement' => $carAdvisement->id,
             'car_advisement' => $carAdvisement->id,
             'propertyAdvisement' => $propertyAdvisement->id,
