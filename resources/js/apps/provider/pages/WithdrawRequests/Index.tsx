@@ -13,6 +13,7 @@ import {OperationStatusEnum} from "@/Enums/Enums";
 import WithdrawController from "@/actions/Modules/Wallet/Http/Controllers/Provider/WithdrawController";
 import {WithdrawTrigger} from '@/apps/provider/components/wallet/WalletQuickActions';
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
+import { StatusBadge } from '@/shared/components/ui';
 
 
 type Props = {
@@ -95,14 +96,14 @@ const Index = (
                 title: t('status'),
                 property: 'status',
                 render: (row) => (
-                  <span className={`badge badge-light-${row.status.color}`}> {row.status.label}</span>
+                  <StatusBadge status={row.status} />
                 )
               },
               {
                 title: t('transfer_status'),
                 property: 'transfer_status',
                 render: (row) => (
-                  <span className={`badge badge-light-${row.transfer_status.color}`}>{row.transfer_status.label}</span>
+                  <StatusBadge status={row.transfer_status} />
                 )
               },
               {

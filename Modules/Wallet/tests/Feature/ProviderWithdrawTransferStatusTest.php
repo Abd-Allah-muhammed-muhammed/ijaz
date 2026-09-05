@@ -213,16 +213,15 @@ test('provider withdraw Index and Show pages always render transfer_status badge
 
     expect($indexSource)->not->toBeFalse()
         ->and($indexSource)->toContain('transfer_status')
-        ->and($indexSource)->toContain('row.transfer_status')
-        ->and($indexSource)->toContain('badge-light-${row.transfer_status.color}')
-        ->and($indexSource)->toContain('row.transfer_status.label')
+        ->and($indexSource)->toContain('StatusBadge')
+        ->and($indexSource)->toContain('status={row.transfer_status}')
+        ->and($indexSource)->toContain('status={row.status}')
         ->and($showSource)->not->toBeFalse()
         ->and($showSource)->toContain('transfer_status')
-        ->and($showSource)->toContain('row.transfer_status')
-        ->and($showSource)->toContain('badge-light-${row.transfer_status.color}')
-        ->and($showSource)->toContain('row.transfer_status.label')
-        // Show status badge must use Metronic semantic classes, not CSS color names as backgroundColor
-        ->and($showSource)->toContain('badge-light-${row.status?.color || \'secondary\'}')
+        ->and($showSource)->toContain('StatusBadge')
+        ->and($showSource)->toContain('status={row.transfer_status}')
+        ->and($showSource)->toContain('status={row.status}')
+        // Status badges use shared StatusBadge (Metronic semantic classes via status.color)
         ->and($showSource)->not->toContain('backgroundColor: row.status?.color');
 
     $provider = createWalletProvider();
