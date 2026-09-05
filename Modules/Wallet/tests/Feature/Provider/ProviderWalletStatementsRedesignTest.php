@@ -89,8 +89,8 @@ test('wallet statements rows always expose a non-null transfer_status badge on t
 
     expect($source)->not->toBeFalse()
         ->and($source)->toContain('transfer_status')
-        ->and($source)->toContain('row.transfer_status.color')
-        ->and($source)->toContain('row.transfer_status.label')
+        ->and($source)->toContain('StatusBadge')
+        ->and($source)->toContain('status={row.transfer_status}')
         ->and($source)->not->toContain('text-muted">—');
 });
 

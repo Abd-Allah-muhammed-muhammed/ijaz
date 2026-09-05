@@ -10,6 +10,7 @@ import Table from "@/shared/components/Table";
 import { useTranslation } from 'react-i18next';
 import AuthController from '@/actions/App/Http/Controllers/Provider/AuthController';
 import {applyFilterParam, visitWithFilters} from '@/shared/lib/filters';
+import { StatusBadge } from '@/shared/components/ui';
 
 type Props = {
   transactions: PaginationResource<WalletTransaction>,
@@ -86,7 +87,11 @@ const Wallet = ({transactions, prams}: Props) => {
                       return (
                         <span className="d-flex align-items-center gap-2 flex-wrap">
                           <span className="fw-bold text-gray-500">{amount.toFixed(2)}</span>
-                          <span className="badge badge-light-warning fs-8">{t('pending')}</span>
+                          <StatusBadge
+                            label={t('pending')}
+                            color="warning"
+                            className="fs-8"
+                          />
                         </span>
                       )
                     }
@@ -108,7 +113,10 @@ const Wallet = ({transactions, prams}: Props) => {
                   title: t('status'),
                   property: 'transfer_status',
                   render: (row) => (
-                    <span className={`badge badge-light-${row.transfer_status.color}`}>{row.transfer_status.label}</span>
+                    <StatusBadge
+                      status={row.transfer_status}
+                      className="fs-8"
+                    />
                   )
                 },
                 {
