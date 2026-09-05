@@ -1259,5 +1259,18 @@
     "provider_status_gate_reason_label": "Reason",
     "provider_status_gate_blocked_until": "Blocked until :date",
     "provider_status_gate_contact_support": "Contact support",
-    "provider_status_gate_back_to_login": "Back to login"
+    "provider_status_gate_back_to_login": "Back to login",
+    "provider_registration": {
+        "tray_uploading": "{{count}} uploading",
+        "tray_done": "{{count}} done",
+        "tray_failed": "{{count}} failed",
+        "status_compressing": "Compressing…",
+        "status_uploading": "Uploading",
+        "status_done": "Uploaded",
+        "status_failed": "Failed",
+        "retry": "Retry",
+        "finishing_upload": "Finishing upload…",
+        "fix_upload_before_submit": "Please wait for uploads to finish or fix failed uploads before submitting.",
+        "reupload_required": "Please re-upload the highlighted file(s)."
+    }
 }

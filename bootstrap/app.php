@@ -2,12 +2,12 @@
 
 use App\Exceptions\ApiException;
 use App\Http\Middleware\AuthenticateBroadcasting;
-use App\Support\Api\ApiErrorResponse;
 use App\Http\Middleware\EnsureAcceptJsonMiddleware;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\LocalizationMiddleware;
+use App\Support\Api\ApiErrorResponse;
 use App\Support\Api\ApiVersionRegistry;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -116,6 +116,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('orders:expire-pending-offers')->dailyAt('00:30');
         $schedule->command('guarantor:check-overdue')->dailyAt('00:00');
         $schedule->command('auth:prune-expired-otp-sessions')->hourly();
+        $schedule->command('auth:prune-provider-registration-uploads')->hourly();
         // Telescope is toggle-based (off by default); prune daily with 48h retention.
         $schedule->command('telescope:prune --hours=48')->daily();
     })

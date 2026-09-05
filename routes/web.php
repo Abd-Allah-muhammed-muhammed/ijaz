@@ -3,6 +3,7 @@
 use App\Http\Controllers\FirebaseWebConfigController;
 use App\Http\Controllers\Frontend\AuthController;
 use App\Http\Controllers\Frontend\GeneralController;
+use App\Http\Controllers\Frontend\ProviderRegistrationUploadController;
 use App\Http\Controllers\General\AjaxController;
 use App\Http\Controllers\General\MediaController;
 use App\Http\Controllers\General\ReactSelectController;
@@ -51,6 +52,19 @@ Route::group(
             Route::post('/register', 'store')->middleware('precognitive')->name('register.submit');
             Route::post('/otp/register', 'otp')->name('register.otp');
         });
+
+        Route::prefix('provider/register/uploads')
+            ->as('provider.register.uploads.')
+            ->middleware('throttle:provider-registration-uploads')
+            ->group(function () {
+                Route::post('/{token}', [ProviderRegistrationUploadController::class, 'store'])
+                    ->whereUuid('token')
+                    ->name('store');
+                Route::delete('/{token}/{upload}', [ProviderRegistrationUploadController::class, 'destroy'])
+                    ->whereUuid('token')
+                    ->whereNumber('upload')
+                    ->name('destroy');
+            });
         Route::controller(ReactSelectController::class)->prefix('general')->as('general.')->group(function () {
             Route::get('/skills', 'skills')->name('skills');
             Route::get('/categories', 'categories')->name('categories');

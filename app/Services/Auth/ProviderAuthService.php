@@ -73,9 +73,9 @@ class ProviderAuthService
      *
      * @throws Throwable
      */
-    public function register(array $validatedData, Request $request): ProviderRegisterResult
+    public function register(array $validatedData): ProviderRegisterResult
     {
-        $result = DB::transaction(fn () => $this->registerProviderAction->handle($validatedData, $request));
+        $result = DB::transaction(fn () => $this->registerProviderAction->handle($validatedData));
 
         if ($result->success && $result->provider instanceof Provider) {
             $this->notifyAdminsOfProviderPendingApprovalAction->handle($result->provider);

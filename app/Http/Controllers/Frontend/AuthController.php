@@ -10,6 +10,7 @@ use App\Services\Auth\ProviderAuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Modules\Geo\Http\Resources\Dashboard\CityResource;
 use Modules\Geo\Http\Resources\Dashboard\RegionResource;
 use Modules\Geo\Services\CityService;
@@ -34,7 +35,9 @@ class AuthController extends Controller
     public function store(ProviderRegisterRequest $request): RedirectResponse
     {
         try {
-            $result = $this->providerAuthService->register($request->validated(), $request);
+            $result = $this->providerAuthService->register($request->validated());
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (Throwable $e) {
             report($e);
 

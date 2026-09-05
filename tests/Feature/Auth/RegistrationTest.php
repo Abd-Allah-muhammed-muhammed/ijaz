@@ -4,12 +4,15 @@ use App\Enums\Auth\OtpPurposeEnum;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Models\Otp;
 use App\Models\Provider;
+use App\Models\ProviderRegistrationUpload;
+use App\Support\Auth\ProviderRegistrationFileRules;
 use App\Support\Phone;
 use Carbon\CarbonInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
@@ -34,6 +37,7 @@ beforeEach(function () {
 
     Storage::fake('public');
     Storage::fake('local');
+    Storage::fake(config('provider_registration.temp_disk'));
 });
 
 /**
@@ -81,6 +85,25 @@ function seedRegistrationOtp(string $rawPhone, string $token = '1234', ?CarbonIn
     );
 }
 
+function createRegistrationLogoUpload(?string $token = null): ProviderRegistrationUpload
+{
+    $token ??= (string) Str::uuid();
+    $disk = (string) config('provider_registration.temp_disk');
+    $directory = (string) config('provider_registration.temp_directory');
+    $file = UploadedFile::fake()->image('logo.png', 120, 120);
+    $path = $file->store($directory, $disk);
+
+    return ProviderRegistrationUpload::query()->create([
+        'token' => $token,
+        'field' => ProviderRegistrationFileRules::LOGO_FIELD,
+        'path' => $path,
+        'original_name' => 'logo.png',
+        'mime_type' => 'image/png',
+        'size' => $file->getSize() ?: 1024,
+        'created_at' => now(),
+    ]);
+}
+
 /**
  * @param  array<string, mixed>  $overrides
  * @return array<string, mixed>
@@ -97,6 +120,10 @@ function validRegistrationPayload(array $overrides = []): array
         seedRegistrationOtp($phone, '1234', $otpExpiresAt);
     }
 
+    $uploadToken = $overrides['upload_token'] ?? (string) Str::uuid();
+    $logoUpload = $overrides['logo_upload'] ?? createRegistrationLogoUpload($uploadToken);
+    unset($overrides['logo_upload']);
+
     return [
         'name' => 'Acme Services',
         'provider_type_id' => $fixtures['type']->id,
@@ -107,13 +134,16 @@ function validRegistrationPayload(array $overrides = []): array
         'email' => 'provider@example.com',
         'iban' => 'SA0380000000608010167519',
         'about' => 'We provide professional services across the kingdom.',
-        'logo' => UploadedFile::fake()->image('logo.png'),
         'password' => 'password',
         'password_confirmation' => 'password',
         'categories' => [
             ['id' => $fixtures['category']->id],
         ],
         'otp' => '1234',
+        'upload_token' => $uploadToken,
+        'uploads' => [
+            'logo' => $logoUpload->id,
+        ],
         ...$overrides,
         '_category' => $fixtures['category'],
     ];
@@ -253,14 +283,15 @@ test('newly registered provider does not receive bonus when setting disabled', f
         ->and(WalletTransaction::query()->where('wallet_id', $provider->wallet->id)->count())->toBe(0);
 });
 
-test('registration fails and rolls back when logo upload is invalid', function () {
+test('registration fails and rolls back when logo upload reference is missing', function () {
     $payload = validRegistrationPayload();
-    unset($payload['_category'], $payload['logo']);
+    unset($payload['_category']);
+    $payload['uploads'] = [];
 
     $this->from(route('auth.register'))
         ->post(route('auth.register.submit'), $payload)
         ->assertRedirect(route('auth.register'))
-        ->assertSessionHasErrors('logo');
+        ->assertSessionHasErrors('uploads.logo');
 
     expect(Provider::query()->count())->toBe(0);
 });

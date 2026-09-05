@@ -7,6 +7,7 @@ import { LocaleNavArrow } from './LocaleNavArrow';
 export type RegistrationFooterControlsProps = {
   currentStep: number;
   processing: boolean;
+  finishingUploads?: boolean;
   stepIs: (step: number) => boolean;
   stepBetween: (first: number, second: number) => boolean;
   onPrevious: () => void;
@@ -20,6 +21,7 @@ export type RegistrationFooterControlsProps = {
 export default function RegistrationFooterControls({
   currentStep,
   processing,
+  finishingUploads = false,
   stepIs,
   stepBetween,
   onPrevious,
@@ -53,7 +55,7 @@ export default function RegistrationFooterControls({
             data-pan={`register-step-${currentStep}-submit-button`}
             text={(
               <>
-                {t('submit')}
+                {finishingUploads ? t('provider_registration.finishing_upload') : t('submit')}
                 <LocaleNavArrow position="end" />
               </>
             )}

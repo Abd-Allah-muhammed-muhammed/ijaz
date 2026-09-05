@@ -38,6 +38,13 @@ return [
             'report' => false,
         ],
 
+        'provider_registration_temp' => [
+            'driver' => 'local',
+            'root' => storage_path('app/provider-registration-temp'),
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

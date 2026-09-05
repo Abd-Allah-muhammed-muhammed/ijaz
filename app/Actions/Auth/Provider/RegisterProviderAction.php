@@ -3,103 +3,128 @@
 namespace App\Actions\Auth\Provider;
 
 use App\Actions\Provider\SyncProviderCategoriesAndSkillsAction as SyncProviderCategoriesAndSkills;
+use App\Contracts\Auth\ProviderRegistrationUploadRepositoryInterface;
 use App\Contracts\Auth\ProviderRepositoryInterface;
 use App\DTOs\Auth\ProviderRegisterResult;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Enums\ProviderTypeFilesEnum;
-use App\Support\HandlesTransactionalFileUpload;
+use App\Models\ProviderRegistrationUpload;
+use App\Support\Auth\ProviderRegistrationFileRules;
 use App\Support\Phone;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use Throwable;
 
 class RegisterProviderAction
 {
-    use HandlesTransactionalFileUpload;
-
     public function __construct(
         private readonly ProviderRepositoryInterface $providerRepository,
         private readonly SyncProviderCategoriesAndSkills $syncProviderCategoriesAndSkillsAction,
+        private readonly ResolveProviderRegistrationUploadsAction $resolveProviderRegistrationUploadsAction,
+        private readonly DeleteProviderRegistrationUploadAction $deleteProviderRegistrationUploadAction,
+        private readonly ProviderRegistrationUploadRepositoryInterface $providerRegistrationUploadRepository,
     ) {}
 
     /**
-     * Reproduces Frontend\AuthController::store()'s exact current body.
-     *
-     * Called from WITHIN a DB transaction (boundary stays at the Service level,
-     * mirroring UserAuthService::register()). Two distinct failure paths are
-     * preserved verbatim:
-     *  - Invalid logo upload: reports the RuntimeException itself (matching the
-     *    controller's inline report() for this case) and returns a failed()
-     *    result carrying the specific message. It does NOT throw, so the caller
-     *    can surface the specific 'logo upload failed' message rather than the
-     *    generic one. Nothing is persisted before this check, so committing an
-     *    empty transaction is observationally identical to the controller's
-     *    original explicit DB::rollBack() here.
-     *  - Any other Throwable: propagates uncaught so the Service's transaction
-     *    wrapper rolls back and re-throws for the controller to report() and map
-     *    to the generic failure response (matching the original outer catch).
-     *
-     * Phone normalization runs here (top of the transaction) rather than before
-     * it as in the original controller. It is a pure string transform with no DB
-     * or other side effects and happens before any write, so the placement is
-     * observationally identical.
+     * @param  array<string, mixed>  $validatedData
      *
      * @throws Throwable
+     * @throws ValidationException
      */
-    public function handle(array $validatedData, Request $request): ProviderRegisterResult
+    public function handle(array $validatedData): ProviderRegisterResult
     {
         $validatedData['phone'] = Phone::make($validatedData['phone'])->toString();
 
-        $logoFile = $request->file('logo');
+        $token = (string) $validatedData['upload_token'];
+        /** @var array<string, int|string> $uploadRefs */
+        $uploadRefs = $validatedData['uploads'] ?? [];
 
-        if (
-            ! $logoFile
-            || ! $logoFile->isValid()
-            || $logoFile->getError() !== UPLOAD_ERR_OK
-            || ! $logoFile->getRealPath()
-        ) {
+        $resolved = $this->resolveProviderRegistrationUploadsAction->handle($token, $uploadRefs);
+
+        $logoUpload = $resolved[ProviderRegistrationFileRules::LOGO_FIELD] ?? null;
+
+        if (! $logoUpload instanceof ProviderRegistrationUpload) {
+            throw ValidationException::withMessages([
+                'uploads.logo' => [__('provider_registration.upload_reference_missing', [
+                    'field' => __('logo'),
+                ])],
+            ]);
+        }
+
+        $tempDisk = (string) config('provider_registration.temp_disk');
+        $logoAbsolutePath = Storage::disk($tempDisk)->path($logoUpload->path);
+
+        if (! is_file($logoAbsolutePath)) {
             report(new RuntimeException(
-                'Provider registration: logo upload invalid or temp file missing. '
-                .'isValid='.var_export($logoFile?->isValid(), true)
-                .' error='.$logoFile?->getError()
-                .' realPath='.$logoFile?->getRealPath()
-                .' size='.$logoFile?->getSize()
+                'Provider registration: temp logo missing at path '.$logoUpload->path
             ));
 
             return ProviderRegisterResult::failed(__('logo upload failed, please try again'));
         }
 
-        return $this->storeFileWithCleanup(
-            file: $logoFile,
-            directory: 'providers',
-            disk: 'public',
-            dbWork: function (?string $logoPath) use ($validatedData, $request): ProviderRegisterResult {
-                $validatedData['logo'] = $logoPath;
-                $provider = $this->providerRepository->create([
-                    ...$validatedData,
-                    'status' => ProviderStatusEnum::Pending,
-                ]);
-                $provider->code = date('dmy').$provider->id;
-                $provider->save();
-                if ($request->hasFile(ProviderTypeFilesEnum::ID_IMAGE->value)) {
-                    $provider->addMediaFromRequest(ProviderTypeFilesEnum::ID_IMAGE->value)->toMediaCollection(ProviderTypeFilesEnum::ID_IMAGE->value, 'local');
-                }
-                if ($request->hasFile(ProviderTypeFilesEnum::COMMERCIAL_RECORD->value)) {
-                    $provider->addMediaFromRequest(ProviderTypeFilesEnum::COMMERCIAL_RECORD->value)->toMediaCollection(ProviderTypeFilesEnum::COMMERCIAL_RECORD->value, 'local');
-                }
-                if ($request->hasFile(ProviderTypeFilesEnum::IBAN_CERTIFICATION->value)) {
-                    $provider->addMediaFromRequest(ProviderTypeFilesEnum::IBAN_CERTIFICATION->value)->toMediaCollection(ProviderTypeFilesEnum::IBAN_CERTIFICATION->value, 'local');
-                }
-                if ($request->hasFile(ProviderTypeFilesEnum::FREELANCER_CERTIFICATION->value)) {
-                    $provider->addMediaFromRequest(ProviderTypeFilesEnum::FREELANCER_CERTIFICATION->value)->toMediaCollection(ProviderTypeFilesEnum::FREELANCER_CERTIFICATION->value, 'local');
-                }
-                $this->syncProviderCategoriesAndSkillsAction->handle(
-                    $provider,
-                    $validatedData['categories'],
-                );
+        $publicDisk = Storage::disk('public');
+        $logoStoredPath = 'providers/'.basename($logoUpload->path);
+        $logoContents = Storage::disk($tempDisk)->get($logoUpload->path);
 
-                return ProviderRegisterResult::success($provider);
-            },
-        );
+        if ($logoContents === null) {
+            return ProviderRegisterResult::failed(__('logo upload failed, please try again'));
+        }
+
+        $publicDisk->put($logoStoredPath, $logoContents);
+
+        try {
+            $validatedData['logo'] = $logoStoredPath;
+            unset($validatedData['upload_token'], $validatedData['uploads']);
+
+            $provider = $this->providerRepository->create([
+                ...$validatedData,
+                'status' => ProviderStatusEnum::Pending,
+            ]);
+            $provider->code = date('dmy').$provider->id;
+            $provider->save();
+
+            foreach (ProviderTypeFilesEnum::cases() as $file) {
+                $certificate = $resolved[$file->value] ?? null;
+
+                if (! $certificate instanceof ProviderRegistrationUpload) {
+                    continue;
+                }
+
+                $absolute = Storage::disk($tempDisk)->path($certificate->path);
+
+                if (! is_file($absolute)) {
+                    throw ValidationException::withMessages([
+                        "uploads.{$file->value}" => [__('provider_registration.upload_reference_missing', [
+                            'field' => __($file->value),
+                        ])],
+                    ]);
+                }
+
+                $provider
+                    ->addMedia($absolute)
+                    ->usingName(pathinfo($certificate->original_name, PATHINFO_FILENAME))
+                    ->usingFileName($certificate->original_name)
+                    ->toMediaCollection($file->value, 'local');
+            }
+
+            $this->syncProviderCategoriesAndSkillsAction->handle(
+                $provider,
+                $validatedData['categories'],
+            );
+
+            foreach ($resolved as $upload) {
+                $this->deleteProviderRegistrationUploadAction->deleteTempFile($upload);
+                $this->providerRegistrationUploadRepository->delete($upload);
+            }
+
+            return ProviderRegisterResult::success($provider);
+        } catch (Throwable $throwable) {
+            if ($publicDisk->exists($logoStoredPath)) {
+                $publicDisk->delete($logoStoredPath);
+            }
+
+            throw $throwable;
+        }
     }
 }

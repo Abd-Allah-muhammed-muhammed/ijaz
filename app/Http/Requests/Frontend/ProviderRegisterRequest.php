@@ -5,6 +5,8 @@ namespace App\Http\Requests\Frontend;
 use App\Models\Provider;
 use App\Rules\SaudiIban;
 use App\Rules\ValidProviderRegistrationOtpRule;
+use App\Rules\ValidProviderRegistrationUploadReference;
+use App\Support\Auth\ProviderRegistrationFileRules;
 use App\Support\Phone;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -13,17 +15,12 @@ use Modules\Marketplace\Models\ProviderType;
 
 class ProviderRegisterRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
@@ -56,19 +53,42 @@ class ProviderRegisterRequest extends FormRequest
             'categories.*.skills.*' => ['sometimes', 'exists:skills,id'],
         ];
 
-        // File uploads and OTP are final-submit concerns. Precognition uses
+        // Upload references + OTP are final-submit concerns. Precognition uses
         // Precognition-Validate-Only for field filtering; also skip these
         // entirely on any precognitive request so an unscoped validate never
-        // demands logo/OTP mid-wizard.
+        // demands uploads/OTP mid-wizard.
+        //
+        // File size/mime rules for the raw bytes live on the eager-upload
+        // endpoint via ProviderRegistrationFileRules — keep those in sync.
         if (! $this->isPrecognitive()) {
-            $rules['logo'] = ['required', 'image', 'max:8192'];
             $rules['otp'] = ['required', new ValidProviderRegistrationOtpRule];
+            $rules['upload_token'] = ['required', 'uuid'];
+            $rules['uploads'] = ['required', 'array'];
 
-            $providerType = $this->get('provider_type_id') ? ProviderType::find($this->get('provider_type_id')) : null;
+            $token = (string) $this->input('upload_token', '');
+
+            $rules['uploads.logo'] = [
+                'required',
+                'integer',
+                new ValidProviderRegistrationUploadReference($token, ProviderRegistrationFileRules::LOGO_FIELD),
+            ];
+
+            $providerType = $this->get('provider_type_id')
+                ? ProviderType::find($this->get('provider_type_id'))
+                : null;
+
             if ($providerType) {
                 $files = array_keys(array_filter($providerType->files));
                 foreach ($files as $file) {
-                    $rules[$file] = ['required', 'mimetypes:image/*,application/pdf', 'max:8192'];
+                    if (! ProviderRegistrationFileRules::isAllowedField($file) || ProviderRegistrationFileRules::isLogoField($file)) {
+                        continue;
+                    }
+
+                    $rules["uploads.{$file}"] = [
+                        'required',
+                        'integer',
+                        new ValidProviderRegistrationUploadReference($token, $file),
+                    ];
                 }
             }
         }
@@ -85,6 +105,8 @@ class ProviderRegisterRequest extends FormRequest
             'phone' => __('phone'),
             'email' => __('email'),
             'iban' => __('iban'),
+            'uploads.logo' => __('logo'),
+            'upload_token' => __('provider_registration.upload_token'),
         ];
     }
 }

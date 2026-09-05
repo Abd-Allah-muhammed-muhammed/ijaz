@@ -1150,5 +1150,18 @@
     "provider_status_gate_reason_label": "السبب",
     "provider_status_gate_blocked_until": "محظور حتى :date",
     "provider_status_gate_contact_support": "تواصل مع الدعم",
-    "provider_status_gate_back_to_login": "العودة لتسجيل الدخول"
+    "provider_status_gate_back_to_login": "العودة لتسجيل الدخول",
+    "provider_registration": {
+        "tray_uploading": "{{count}} قيد الرفع",
+        "tray_done": "{{count}} مكتمل",
+        "tray_failed": "{{count}} فشل",
+        "status_compressing": "جاري الضغط…",
+        "status_uploading": "جاري الرفع",
+        "status_done": "تم الرفع",
+        "status_failed": "فشل",
+        "retry": "إعادة المحاولة",
+        "finishing_upload": "جاري إنهاء الرفع…",
+        "fix_upload_before_submit": "يرجى انتظار اكتمال الرفع أو إصلاح الملفات الفاشلة قبل الإرسال.",
+        "reupload_required": "يرجى إعادة رفع الملف/الملفات المميزة."
+    }
 }

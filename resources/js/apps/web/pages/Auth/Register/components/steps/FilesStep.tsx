@@ -5,6 +5,8 @@ import ImageInput from '@/shared/components/inputs/ImageInput';
 import InputError from '@/shared/components/inputs/InputError';
 import { PROVIDER_CERTIFICATE_ACCEPT, type Inputs } from '../../providerSchema';
 import type { RegistrationForm } from '../../hooks/use-registration-form';
+import { useRegistrationUploads } from '../../hooks/registration-uploads-context';
+import type { RegistrationUploadField } from '../../registration-upload-constants';
 import type { RequiredFilesState } from '../../types';
 import StepShell from '../StepShell';
 
@@ -20,10 +22,17 @@ export default function FilesStep({
   requiredFiles,
 }: FilesStepProps) {
   const { t } = useTranslation();
+  const uploads = useRegistrationUploads();
 
   const requiredFileNames = (Object.keys(requiredFiles) as Array<keyof RequiredFilesState>).filter(
     (key) => requiredFiles[key],
   );
+
+  const onFileSelected = (field: RegistrationUploadField, file: File) => {
+    form.setData(field as keyof Inputs, file);
+    form.clearErrors(field as keyof Inputs);
+    void uploads.selectAndUpload(field, file);
+  };
 
   return (
     <StepShell
@@ -45,11 +54,20 @@ export default function FilesStep({
               if (! event.currentTarget.files || event.currentTarget.files.length === 0) {
                 return;
               }
-              form.setData('logo', event.currentTarget.files[0]);
+              onFileSelected('logo', event.currentTarget.files[0]);
             }}
           />
         </div>
         <InputError message={form.errors.logo} />
+        {uploads.entries.logo ? (
+          <div className="text-muted fs-7 mt-1" data-pan="registration-logo-upload-status">
+            {uploads.entries.logo.status === 'uploading'
+              ? `${t('provider_registration.status_uploading')} ${uploads.entries.logo.progress}%`
+              : null}
+            {uploads.entries.logo.status === 'done' ? t('provider_registration.status_done') : null}
+            {uploads.entries.logo.status === 'failed' ? t('provider_registration.status_failed') : null}
+          </div>
+        ) : null}
       </Form.Group>
 
       {requiredFileNames.map((fileName, index) => (
@@ -67,10 +85,25 @@ export default function FilesStep({
                 if (! event.currentTarget.files || event.currentTarget.files.length === 0) {
                   return;
                 }
-                form.setData(fileName as keyof Inputs, event.currentTarget.files[0]);
+                onFileSelected(fileName as RegistrationUploadField, event.currentTarget.files[0]);
               }}
             />
             <InputError message={form.errors[fileName as keyof Inputs]} />
+            {uploads.entries[fileName as RegistrationUploadField]?.fileName ? (
+              <div className="text-muted fs-7 mt-1">
+                {uploads.entries[fileName as RegistrationUploadField]?.fileName}
+                {' · '}
+                {uploads.entries[fileName as RegistrationUploadField]?.status === 'done'
+                  ? t('provider_registration.status_done')
+                  : null}
+                {uploads.entries[fileName as RegistrationUploadField]?.status === 'uploading'
+                  ? `${uploads.entries[fileName as RegistrationUploadField]?.progress ?? 0}%`
+                  : null}
+                {uploads.entries[fileName as RegistrationUploadField]?.status === 'failed'
+                  ? t('provider_registration.status_failed')
+                  : null}
+              </div>
+            ) : null}
           </Form.Group>
         </Fragment>
       ))}

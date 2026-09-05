@@ -8,6 +8,7 @@ use App\Contracts\Admin\RoleRepositoryInterface;
 use App\Contracts\Auth\AdminRepositoryInterface;
 use App\Contracts\Auth\OtpRepositoryInterface;
 use App\Contracts\Auth\OtpSessionRepositoryInterface;
+use App\Contracts\Auth\ProviderRegistrationUploadRepositoryInterface;
 use App\Contracts\Auth\ProviderRepositoryInterface;
 use App\Contracts\Auth\UserRepositoryInterface;
 use App\Contracts\PanAnalytics\PanAnalyticsRepositoryInterface;
@@ -23,6 +24,7 @@ use App\Repositories\Admin\RoleRepository;
 use App\Repositories\Auth\AdminRepository;
 use App\Repositories\Auth\OtpRepository;
 use App\Repositories\Auth\OtpSessionRepository;
+use App\Repositories\Auth\ProviderRegistrationUploadRepository;
 use App\Repositories\Auth\ProviderRepository;
 use App\Repositories\Auth\UserRepository;
 use App\Repositories\PanAnalytics\PanAnalyticsRepository;
@@ -40,14 +42,15 @@ use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Auth\Access\Gate as GateContract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Routing\Route;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
@@ -91,6 +94,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             UserRepositoryInterface::class,
             UserRepository::class,
+        );
+
+        $this->app->bind(
+            ProviderRegistrationUploadRepositoryInterface::class,
+            ProviderRegistrationUploadRepository::class,
         );
 
         $this->app->bind(
@@ -161,6 +169,8 @@ class AppServiceProvider extends ServiceProvider
     {
         Model::preventLazyLoading(! app()->isProduction());
 
+        $this->configureRateLimiting();
+
         $apiPrefix = app(ApiVersionRegistry::class)->default()->prefix;
 
         Scramble::configure()
@@ -227,5 +237,19 @@ class AppServiceProvider extends ServiceProvider
         });
         Notification::extend('firebase', static fn ($app) => $app->make(FirebaseChannel::class));
         Notification::extend('event', static fn ($app) => $app->make(EventChannel::class));
+    }
+
+    private function configureRateLimiting(): void
+    {
+        RateLimiter::for('provider-registration-uploads', function (Request $request) {
+            $maxAttempts = (int) config('provider_registration.throttle.max_attempts', 30);
+            $decayMinutes = (int) config('provider_registration.throttle.decay_minutes', 1);
+            $token = (string) $request->route('token', '');
+
+            return [
+                Limit::perMinutes($decayMinutes, $maxAttempts)->by('ip:'.$request->ip()),
+                Limit::perMinutes($decayMinutes, $maxAttempts)->by('token:'.$token),
+            ];
+        });
     }
 }

@@ -10,16 +10,18 @@ import { ProviderTypeFilesEnum } from '@/Enums/Enums';
 import type { City, ProviderType, Region } from '@/shared/types/models';
 import { availableSteps, type CategoryOption } from './providerSchema';
 import {
-  clearStoredRegistrationStep,
+  clearRegistrationSessionStorage,
   resolveInitialRegistrationStep,
   writeStoredRegistrationStep,
 } from './registration-step-storage';
 import { useRegistrationForm } from './hooks/use-registration-form';
 import { useOtp } from './hooks/use-otp';
 import { useRegistrationAdvance } from './hooks/use-registration-advance';
+import { RegistrationUploadsProvider } from './hooks/registration-uploads-context';
 import type { RequiredFilesState } from './types';
 import RegistrationStepper from './components/RegistrationStepper';
 import RegistrationFooterControls from './components/RegistrationFooterControls';
+import RegistrationUploadTray from './components/RegistrationUploadTray';
 import AccountTypeStep from './components/steps/AccountTypeStep';
 import AccountInfoStep from './components/steps/AccountInfoStep';
 import CategoriesStep from './components/steps/CategoriesStep';
@@ -35,7 +37,7 @@ type RegisterProps = {
   cities: City[];
 };
 
-export default function Register_({ types, regions, cities }: RegisterProps) {
+function RegisterWizard({ types, regions, cities }: RegisterProps) {
   const form = useRegistrationForm();
   const [categoriesOptions, setCategoriesOptions] = useState<Map<number, CategoryOption>>(new Map());
   const [requiredFiles, setRequiredFiles] = useState<RequiredFilesState>(
@@ -61,7 +63,7 @@ export default function Register_({ types, regions, cities }: RegisterProps) {
     },
   });
 
-  const { handleSubmit, handleNext } = useRegistrationAdvance({
+  const { handleSubmit, handleNext, finishingUploads } = useRegistrationAdvance({
     form,
     steps,
     requiredFiles,
@@ -74,7 +76,7 @@ export default function Register_({ types, regions, cities }: RegisterProps) {
 
   useEffect(() => {
     if (steps.stepIs(availableSteps.length)) {
-      clearStoredRegistrationStep();
+      clearRegistrationSessionStorage();
     }
   }, [steps.currentStep, steps]);
 
@@ -83,6 +85,7 @@ export default function Register_({ types, regions, cities }: RegisterProps) {
       <ToastContainer />
       <ToastEffect />
       <Head title={t('register')} />
+      <RegistrationUploadTray />
       <div className="d-flex flex-column flex-lg-row flex-column-fluid stepper stepper-pills stepper-column stepper-multistep">
         <RegistrationStepper currentStep={steps.currentStep} stepIs={steps.stepIs} />
         <div className="d-flex flex-column flex-lg-row-fluid">
@@ -91,7 +94,9 @@ export default function Register_({ types, regions, cities }: RegisterProps) {
               className="w-100 my-auto pb-3 pb-lg-5"
               noValidate
               id="kt_create_account_form"
-              onSubmit={handleSubmit}
+              onSubmit={(event) => {
+                void handleSubmit(event);
+              }}
             >
               <div className={`${REGISTRATION_STEP_CONTAINER_CLASS} p-3 p-md-4 p-lg-10 p-xl-15 mx-auto`}>
                 <AccountTypeStep
@@ -136,7 +141,8 @@ export default function Register_({ types, regions, cities }: RegisterProps) {
                 />
                 <RegistrationFooterControls
                   currentStep={steps.currentStep}
-                  processing={form.processing}
+                  processing={form.processing || finishingUploads}
+                  finishingUploads={finishingUploads}
                   stepIs={steps.stepIs}
                   stepBetween={steps.stepBetween}
                   onPrevious={steps.prevStep}
@@ -148,5 +154,13 @@ export default function Register_({ types, regions, cities }: RegisterProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Register_({ types, regions, cities }: RegisterProps) {
+  return (
+    <RegistrationUploadsProvider>
+      <RegisterWizard types={types} regions={regions} cities={cities} />
+    </RegistrationUploadsProvider>
   );
 }

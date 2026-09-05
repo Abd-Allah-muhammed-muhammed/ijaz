@@ -1056,5 +1056,18 @@
     "provider_status_gate_reason_label": "وجہ",
     "provider_status_gate_blocked_until": ":date تک بلاک",
     "provider_status_gate_contact_support": "سپورٹ سے رابطہ کریں",
-    "provider_status_gate_back_to_login": "لاگ اِن پر واپس جائیں"
+    "provider_status_gate_back_to_login": "لاگ اِن پر واپس جائیں",
+    "provider_registration": {
+        "tray_uploading": "{{count}} uploading",
+        "tray_done": "{{count}} done",
+        "tray_failed": "{{count}} failed",
+        "status_compressing": "Compressing…",
+        "status_uploading": "Uploading",
+        "status_done": "Uploaded",
+        "status_failed": "Failed",
+        "retry": "Retry",
+        "finishing_upload": "Finishing upload…",
+        "fix_upload_before_submit": "Please wait for uploads to finish or fix failed uploads before submitting.",
+        "reupload_required": "Please re-upload the highlighted file(s)."
+    }
 }

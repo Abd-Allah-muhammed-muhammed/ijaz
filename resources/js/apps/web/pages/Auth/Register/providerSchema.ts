@@ -1,7 +1,8 @@
 import {z} from "zod";
 import i18n from "@/lang/i18next";
+import { REGISTRATION_MAX_FILE_SIZE_MB } from './registration-upload-constants';
 
-const fileSize = 8; // 8 MB
+const fileSize = REGISTRATION_MAX_FILE_SIZE_MB; // MB — must match backend max_file_kilobytes / 1024
 
 /** Longest valid KSA mobile input: `00966` + `5` + 8 digits. */
 export const SAUDI_PHONE_MAX_LENGTH = 14;
@@ -46,6 +47,7 @@ export const formSchema = z.object({
     commercial_record: z.boolean(),
     freelancer_certification: z.boolean(),
     iban_certification: z.boolean(),
+    license_to_practice_law: z.boolean(),
   }),
 
   name: z.string()
@@ -250,7 +252,13 @@ export const formSchema = z.object({
 
   freelancer_certification: z.file().optional(),
 
+  license_to_practice_law: z.file().optional(),
+
   logo: z.file().optional(),
+
+  upload_token: z.string().uuid().optional(),
+
+  uploads: z.record(z.string(), z.number()).optional(),
 });
 
 
@@ -288,7 +296,10 @@ export type Inputs = {
   commercial_record?: File;
   iban_certification?: File;
   freelancer_certification?: File;
+  license_to_practice_law?: File;
   logo: File | undefined;
+  upload_token?: string;
+  uploads?: Partial<Record<string, number>>;
 }
 
 export const accountInformationStepRules = formSchema.pick({
@@ -318,6 +329,7 @@ const filesStepRules = formSchema.pick({
   commercial_record: true,
   iban_certification: true,
   freelancer_certification: true,
+  license_to_practice_law: true,
   logo: true,
 }).superRefine((data, ctx) => {
   const maxBytes = fileSize * 1024 * 1024;
@@ -366,6 +378,7 @@ const filesStepRules = formSchema.pick({
   validateCertificateFile(data.commercial_record, 'commercial_record', 'commercial_record', data.requiredFiles.commercial_record);
   validateCertificateFile(data.iban_certification, 'iban_certification', 'iban_certification', data.requiredFiles.iban_certification);
   validateCertificateFile(data.freelancer_certification, 'freelancer_certification', 'freelancer_certification', data.requiredFiles.freelancer_certification);
+  validateCertificateFile(data.license_to_practice_law, 'license_to_practice_law', 'license_to_practice_law', data.requiredFiles.license_to_practice_law);
 
   if (!data.logo) {
     ctx.addIssue({
@@ -388,10 +401,10 @@ const filesStepRules = formSchema.pick({
     });
   }
 
-  if (!['image/jpeg', 'image/png'].includes(data.logo.type)) {
+  if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(data.logo.type)) {
     ctx.addIssue({
       code: 'custom',
-      message: i18n.t('validation.mimes', {attribute: i18n.t('logo'), values: 'png,jpeg'}),
+      message: i18n.t('validation.mimes', {attribute: i18n.t('logo'), values: 'png,jpeg,webp,gif'}),
       path: ['logo'],
     });
   }
