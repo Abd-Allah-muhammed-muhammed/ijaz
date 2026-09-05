@@ -35,7 +35,7 @@ class ProviderTypeRequest extends FormRequest
                 'max:2048', // 2MB
             ],
             'categories' => ['required', 'array', 'min:1'],
-            'categories.*' => ['required', 'exists:categories,id'],
+            'categories.*' => ['required', 'integer', 'exists:categories,id'],
             'translations' => ['required', 'array'],
         ];
         foreach ($fils as $file) {

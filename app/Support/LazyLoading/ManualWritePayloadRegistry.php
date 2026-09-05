@@ -325,6 +325,28 @@ final class ManualWritePayloadRegistry
                     'license_to_practice_law' => false,
                 ],
             ],
+            'PUT /dashboard/provider-types/{provider_type}' => fn (array $p): array => [
+                'translations' => $this->translations('name'),
+                'categories' => [(int) ($p['category'] ?? 0)],
+                'files' => [
+                    'id_image' => true,
+                    'commercial_record' => true,
+                    'freelancer_certification' => false,
+                    'iban_certification' => false,
+                    'license_to_practice_law' => false,
+                ],
+            ],
+            'PATCH /dashboard/provider-types/{provider_type}' => fn (array $p): array => [
+                'translations' => $this->translations('name'),
+                'categories' => [(int) ($p['category'] ?? 0)],
+                'files' => [
+                    'id_image' => true,
+                    'commercial_record' => true,
+                    'freelancer_certification' => false,
+                    'iban_certification' => false,
+                    'license_to_practice_law' => false,
+                ],
+            ],
             'PUT /dashboard/settings' => [
                 'group' => 'wallet',
                 'values' => ['min_withdraw_amount' => '200'],

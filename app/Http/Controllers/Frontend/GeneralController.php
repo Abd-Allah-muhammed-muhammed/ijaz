@@ -26,6 +26,11 @@ class GeneralController extends Controller
         return inertia('Frontend/AboutUs', []);
     }
 
+    public function help(): Response
+    {
+        return inertia('Frontend/Help', []);
+    }
+
     public function ourServices()
     {
         return inertia('Frontend/OurServices', []);
