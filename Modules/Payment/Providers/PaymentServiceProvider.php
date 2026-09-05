@@ -3,7 +3,9 @@
 namespace Modules\Payment\Providers;
 
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route;
 use Modules\Payment\Contracts\Repositories\PaymentRepositoryInterface;
+use Modules\Payment\Http\Middleware\RequirePaytabsIpnSignatureHeader;
 use Modules\Payment\Repositories\PaymentRepository;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 
@@ -40,6 +42,16 @@ class PaymentServiceProvider extends ModuleServiceProvider
         $this->loadViewsFrom(module_path('Payment', 'resources/views'), 'payment');
 
         Blade::anonymousComponentPath(module_path('Payment', 'resources/views/components'), 'payment');
+
+        $this->app->booted(function (): void {
+            $route = Route::getRoutes()->getByName('payment_ipn');
+
+            if ($route === null) {
+                return;
+            }
+
+            $route->middleware(RequirePaytabsIpnSignatureHeader::class);
+        });
     }
 
     private function bridgePaytabsConfig(): void
