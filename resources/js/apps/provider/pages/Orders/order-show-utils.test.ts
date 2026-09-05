@@ -137,12 +137,14 @@ describe('Offers list page', () => {
     expect(indexSrc).toContain('visitWithFilters');
     expect(offersSrc).toContain('applyFilterParam');
     expect(offersSrc).toContain('visitWithFilters');
-    expect(offersSrc).toContain("searchPramsChanged('search'");
-    expect(offersSrc).toContain("searchPramsChanged('status'");
+    expect(offersSrc).toContain('PageFilterBar');
+    expect(offersSrc).toContain("name: 'search'");
+    expect(offersSrc).toContain("name: 'status'");
     expect(offersSrc).toContain('OfferStatusEnum');
     expect(offersSrc).toContain('OrderController.offers().url');
-    expect(offersSrc).toMatch(/type=['"]text['"]/);
-    expect(offersSrc).toMatch(/<select[\s\S]*name=['"]status['"]/);
+    expect(offersSrc).toContain('StatusBadge');
+    expect(offersSrc).toContain('getOfferStatusBadgeClass');
+    expect(offersSrc).toContain('colorClass={offerBadge}');
   });
 
   it('Offers list cards show the order title as the primary label, not the raw order UUID', () => {
@@ -159,10 +161,12 @@ describe('Offers list page', () => {
 
   it('Offers list empty state matches the established pattern (icon + message), consistent with Orders Index\'s empty state', () => {
     expect(indexSrc).toContain("t('no_orders_found')");
-    expect(indexSrc).toContain('KTIcon');
+    expect(indexSrc).toContain('EmptyState');
+    expect(indexSrc).toContain('SectionCard');
     expect(offersSrc).toContain("t('no_offers')");
-    expect(offersSrc).toContain('KTIcon');
-    expect(offersSrc).toMatch(/card border-0 shadow-sm[\s\S]*text-center[\s\S]*no_offers/);
+    expect(offersSrc).toContain('EmptyState');
+    expect(offersSrc).toContain('SectionCard');
+    expect(offersSrc).toContain('price-tag');
   });
 });
 

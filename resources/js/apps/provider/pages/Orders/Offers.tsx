@@ -14,6 +14,13 @@ import { OfferStatusEnum } from '@/Enums/Order';
 import { applyFilterParam, visitWithFilters } from '@/shared/lib/filters';
 import { formatCurrency, formatDateTime } from '@/shared/lib/formatters';
 import { getOfferStatusBadgeClass } from '@/apps/provider/pages/Orders/order-show-utils';
+import {
+  EmptyState,
+  PageFilterBar,
+  SectionCard,
+  StatusBadge,
+  type PageFilterField,
+} from '@/shared/components/ui';
 
 type Props = {
   rows: PaginationResource<OrderOffer>;
@@ -43,6 +50,33 @@ const Offers = ({ rows, prams }: Props) => {
     visitWithFilters(OrderController.offers().url, next, { only: ['rows', 'prams'] });
   };
 
+  const filterFields: PageFilterField[] = [
+    {
+      name: 'search',
+      type: 'search',
+      value: searchPrams.search,
+      placeholder: t('search'),
+    },
+    {
+      name: 'status',
+      type: 'select',
+      value: searchPrams.status ?? '',
+      options: [
+        { value: '', label: t('all') },
+        ...Object.values(OfferStatusEnum).map((status) => ({
+          value: status,
+          label: (t as (key: string) => string)(status),
+        })),
+      ],
+    },
+  ];
+
+  const handleFilterChange = (name: string, value: string) => {
+    if (name === 'search' || name === 'status') {
+      searchPramsChanged(name, value);
+    }
+  };
+
   return (
     <>
       <Head title={t('offers')} />
@@ -60,53 +94,18 @@ const Offers = ({ rows, prams }: Props) => {
       </PageTitle>
       <ToolbarWrapper />
       <Content>
-        <div className="d-flex flex-wrap flex-stack mb-6">
-          <h3 className="fw-bolder my-2">
-            <div className="d-flex align-items-center position-relative my-1">
-              <KTIcon iconName="magnifier" className="fs-1 position-absolute ms-6" />
-              <input
-                type="text"
-                defaultValue={searchPrams.search}
-                data-kt-user-table-filter="search"
-                className="form-control  ps-14"
-                placeholder={t('search')}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    searchPramsChanged('search', e.currentTarget.value);
-                  }
-                }}
-              />
-            </div>
-          </h3>
-
-          <div className="d-flex align-items-center my-2 gap-2">
-            <div className="w-200px">
-              <select
-                name="status"
-                data-control="select2"
-                data-hide-search="true"
-                className="form-select form-select-white form-select-sm"
-                defaultValue={searchPrams.status}
-                onChange={(e) => searchPramsChanged('status', e.target.value)}
-              >
-                <option value="">{t('all')}</option>
-                {Object.values(OfferStatusEnum).map((status) => (
-                  <option key={status} value={status}>
-                    {t(status)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
+        <PageFilterBar
+          filters={filterFields}
+          onFilterChange={handleFilterChange}
+        />
 
         {rows.data.length === 0 ? (
-          <div className="card border-0 shadow-sm">
-            <div className="card-body py-20 text-center">
-              <KTIcon iconName="price-tag" className="fs-5x mb-5 text-gray-300" />
-              <p className="text-muted fw-semibold fs-5">{t('no_offers')}</p>
-            </div>
-          </div>
+          <SectionCard>
+            <EmptyState
+              icon={<KTIcon iconName="price-tag" className="fs-5x mb-5 text-gray-300" />}
+              title={t('no_offers')}
+            />
+          </SectionCard>
         ) : (
           <Row>
             {rows.data.map((row) => {
@@ -128,11 +127,11 @@ const Offers = ({ rows, prams }: Props) => {
                           >
                             {orderTitle}
                           </h5>
-                          <span
-                            className={`badge ${offerBadge} rounded-pill fw-bold px-3 py-2 flex-shrink-0`}
-                          >
-                            {row.status?.label}
-                          </span>
+                          <StatusBadge
+                            label={row.status?.label}
+                            colorClass={offerBadge}
+                            className="flex-shrink-0"
+                          />
                         </div>
 
                         {row.order?.user?.name && (
