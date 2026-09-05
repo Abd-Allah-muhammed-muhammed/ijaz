@@ -134,6 +134,8 @@ class OrderRepository implements OrderRepositoryInterface
         ];
 
         return $this->providerHomeScopedOrdersQuery($provider)
+            ->with(['user', 'city.translation', 'region.translation', 'category.translation'])
+            ->withCount(['offers', 'media'])
             ->orderByRaw('ROW_NUMBER() OVER (PARTITION BY status ORDER BY created_at DESC)')
             ->limit(count($orderStatuses) * 3)
             ->get()

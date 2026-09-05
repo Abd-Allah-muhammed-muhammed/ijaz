@@ -1,4 +1,4 @@
-import { OrderStatusEnum } from '@/Enums/Order';
+import { OrderStatusEnum, OfferStatusEnum } from '@/Enums/Order';
 import {
   mapBackendOrderTabCounts,
   type BackendOrderTabCounts,
@@ -7,12 +7,20 @@ import {
 } from './use-order-tab-counts';
 
 /**
- * Home "needs response" attention maps to orders in New status where the
- * provider has a pending offer awaiting client approval (pending tab).
+ * Home "needs attention" maps to the pending tab: New orders where this provider
+ * has a pending offer awaiting client approval (see providerHomeScopedOrdersQuery).
  */
 export const NEEDS_ATTENTION_TAB: OrderTabKey = 'pending';
 
-export const NEEDS_ATTENTION_STATUS = OrderStatusEnum.New;
+/** Order status bucket used for the Home tab / count (not the CTA page filter). */
+export const NEEDS_ATTENTION_ORDER_STATUS = OrderStatusEnum.New;
+
+/**
+ * Destination filter for the attention CTA — My Offers, pending offer status.
+ * Index `?status=new` is wrong: those orders usually have provider_id null and
+ * only appear via the provider's pending offers.
+ */
+export const NEEDS_ATTENTION_OFFERS_STATUS = OfferStatusEnum.Pending;
 
 export function getNeedsAttentionCount(counts: OrderTabCounts): number {
   return counts[NEEDS_ATTENTION_TAB];

@@ -32,6 +32,7 @@ class OrderResource extends JsonResource
             'created_at' => $this->created_at,
             'histories_count' => $this->whenCounted('histories', $this->histories_count),
             'offers_count' => $this->whenCounted('offers', $this->offers_count),
+            'media_count' => $this->whenCounted('media', $this->media_count),
 
             $this->mergeWhen(! $this->relationLoaded('user'), function () {
                 return [

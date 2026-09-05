@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import OrderController from '@/actions/Modules/Orders/Http/Controllers/Provider/OrderController';
-import { NEEDS_ATTENTION_STATUS } from '@/apps/provider/pages/Home/hooks/use-needs-attention-count';
+import { NEEDS_ATTENTION_OFFERS_STATUS } from '@/apps/provider/pages/Home/hooks/use-needs-attention-count';
 import { shouldRenderAttentionBanner } from '@/apps/provider/pages/Home/components/attention-banner-utils';
 
 export type AttentionBannerProps = {
@@ -18,8 +18,8 @@ export default function AttentionBanner({ count }: AttentionBannerProps) {
     return null;
   }
 
-  const href = OrderController.index.url({
-    query: { status: NEEDS_ATTENTION_STATUS },
+  const href = OrderController.offers.url({
+    query: { status: NEEDS_ATTENTION_OFFERS_STATUS },
   });
 
   return (

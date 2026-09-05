@@ -1,12 +1,12 @@
 import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import { Card, Nav, Tab } from 'react-bootstrap';
+import { Card, Col, Nav, Row, Tab } from 'react-bootstrap';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import { EmptyState } from '@/shared/components/ui';
+import OrderCard from '@/shared/components/order/order-card';
 import OrderController from '@/actions/Modules/Orders/Http/Controllers/Provider/OrderController';
 import type { Order } from '@/shared/types/models';
 import type { OrderTabCounts, OrderTabKey } from '@/apps/provider/pages/Home/hooks/use-order-tab-counts';
-import HomeOrderRow from '@/apps/provider/pages/Home/components/HomeOrderRow';
 
 export type OrderTabsSectionProps = {
   counts: OrderTabCounts;
@@ -100,18 +100,20 @@ export default function OrderTabsSection({
               <Tab.Pane key={tab.key} eventKey={tab.key}>
                 {tab.orders.length === 0 ? (
                   <EmptyState
-                    compact
-                    icon={<KTIcon iconName="clipboard" className="fs-3x text-gray-300 mb-3" />}
+                    icon={<KTIcon iconName="basket" className="fs-5x mb-5 text-gray-300" />}
                     title={t('no_orders_found')}
                   />
                 ) : (
-                  tab.orders.map((order, index) => (
-                    <HomeOrderRow
-                      key={order.id}
-                      order={order}
-                      showSeparator={index !== tab.orders.length - 1}
-                    />
-                  ))
+                  <Row className="g-5">
+                    {tab.orders.map((order) => (
+                      <Col key={order.id} xs={12} sm={6} xl={tab.orders.length === 1 ? 12 : 6}>
+                        <OrderCard
+                          order={order}
+                          url={OrderController.show(order.id as string).url}
+                        />
+                      </Col>
+                    ))}
+                  </Row>
                 )}
               </Tab.Pane>
             ))}

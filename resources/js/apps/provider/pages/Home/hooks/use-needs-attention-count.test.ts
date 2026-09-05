@@ -1,17 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { OrderStatusEnum } from '@/Enums/Order';
+import { OfferStatusEnum, OrderStatusEnum } from '@/Enums/Order';
 import {
   getNeedsAttentionCount,
-  NEEDS_ATTENTION_STATUS,
+  NEEDS_ATTENTION_OFFERS_STATUS,
+  NEEDS_ATTENTION_ORDER_STATUS,
   NEEDS_ATTENTION_TAB,
   useNeedsAttentionCount,
 } from './use-needs-attention-count';
 import { mapBackendOrderTabCounts } from './use-order-tab-counts';
 
 describe('needs attention count', () => {
-  it('uses the pending / New status bucket', () => {
+  it('uses the pending / New status bucket for the Home tab count', () => {
     expect(NEEDS_ATTENTION_TAB).toBe('pending');
-    expect(NEEDS_ATTENTION_STATUS).toBe(OrderStatusEnum.New);
+    expect(NEEDS_ATTENTION_ORDER_STATUS).toBe(OrderStatusEnum.New);
+  });
+
+  it('points the review CTA at My Offers filtered by pending offer status', () => {
+    expect(NEEDS_ATTENTION_OFFERS_STATUS).toBe(OfferStatusEnum.Pending);
   });
 
   it('reads the pending tab count from mapped tab counts', () => {

@@ -18,4 +18,11 @@ describe('AttentionBanner', () => {
     expect(src).toContain('shouldRenderAttentionBanner(count)');
     expect(src).toContain('return null');
   });
+
+  it('links Review orders to My Offers with the pending-offer filter, not Orders Index', () => {
+    const src = readFileSync(join(__dirname, 'AttentionBanner.tsx'), 'utf8');
+    expect(src).toContain('OrderController.offers.url');
+    expect(src).toContain('NEEDS_ATTENTION_OFFERS_STATUS');
+    expect(src).not.toContain('OrderController.index.url');
+  });
 });
