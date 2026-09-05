@@ -6,22 +6,53 @@ use App\Enums\Providers\ProviderStatusEnum;
 use App\Http\Requests\Provider\Auth\LoginRequest;
 use App\Models\Otp;
 use App\Models\Provider;
+use App\Models\ProviderRegistrationUpload;
 use App\Services\Auth\ProviderAuthService;
+use App\Support\Auth\ProviderRegistrationFileRules;
 use App\Support\Phone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Modules\Geo\Models\City;
 use Modules\Geo\Models\Region;
 use Modules\Marketplace\Models\ProviderType;
 use Modules\Sms\DTOs\SmsResult;
 use Modules\Sms\Services\SmsService;
 
+/**
+ * @return array{token: string, upload: ProviderRegistrationUpload}
+ */
+function providerRegistrationLogoUpload(): array
+{
+    Storage::fake(config('provider_registration.temp_disk'));
+
+    $token = (string) Str::uuid();
+    $disk = (string) config('provider_registration.temp_disk');
+    $directory = (string) config('provider_registration.temp_directory');
+    $file = UploadedFile::fake()->image('logo.png', 120, 120);
+    $path = $file->store($directory, $disk);
+
+    $upload = ProviderRegistrationUpload::query()->create([
+        'token' => $token,
+        'field' => ProviderRegistrationFileRules::LOGO_FIELD,
+        'path' => $path,
+        'original_name' => 'logo.png',
+        'mime_type' => 'image/png',
+        'size' => $file->getSize() ?: 1024,
+        'created_at' => now(),
+    ]);
+
+    return compact('token', 'upload');
+}
+
 function providerRegistrationData(array $overrides = []): array
 {
     $type = ProviderType::query()->create(['image' => 'media/test-type.png']);
     $region = Region::factory()->create();
     $city = City::factory()->create(['region_id' => $region->id]);
+    $logo = providerRegistrationLogoUpload();
 
     return [
         'name' => 'Reg Co',
@@ -33,16 +64,12 @@ function providerRegistrationData(array $overrides = []): array
         'city_id' => $city->id,
         'password' => 'password',
         'categories' => [],
-        'logo' => UploadedFile::fake()->image('logo.png'),
+        'upload_token' => $logo['token'],
+        'uploads' => [
+            'logo' => $logo['upload']->id,
+        ],
         ...$overrides,
     ];
-}
-
-function providerRegistrationRequest(bool $withLogo = true): Request
-{
-    $files = $withLogo ? ['logo' => UploadedFile::fake()->image('logo.png')] : [];
-
-    return Request::create('/register', 'POST', [], [], $files);
 }
 
 test('login regenerates session, updates language, and returns provider home redirect result', function () {
@@ -95,10 +122,7 @@ test('register creates provider with pending status inside a transaction', funct
     Storage::fake('public');
     Storage::fake('local');
 
-    $result = app(ProviderAuthService::class)->register(
-        providerRegistrationData(),
-        providerRegistrationRequest(),
-    );
+    $result = app(ProviderAuthService::class)->register(providerRegistrationData());
 
     expect($result->success)->toBeTrue()
         ->and($result->provider->status)->toBe(ProviderStatusEnum::Pending)
@@ -112,28 +136,25 @@ test('register does not credit registration bonus while provider is still pendin
     setWalletSetting('provider_registration_bonus_enabled', '1');
     setWalletSetting('provider_registration_bonus_amount', '50');
 
-    $result = app(ProviderAuthService::class)->register(
-        providerRegistrationData(),
-        providerRegistrationRequest(),
-    );
+    $result = app(ProviderAuthService::class)->register(providerRegistrationData());
 
     expect($result->success)->toBeTrue()
         ->and($result->provider->status)->toBe(ProviderStatusEnum::Pending)
         ->and((float) $result->provider->wallet->fresh()->balance)->toBe(0.0);
 });
 
-test('register returns failed result with specific message on invalid logo upload', function () {
+test('register fails validation when logo upload reference is missing', function () {
     Storage::fake('public');
     Storage::fake('local');
 
-    $result = app(ProviderAuthService::class)->register(
-        providerRegistrationData(),
-        providerRegistrationRequest(withLogo: false),
+    $register = fn () => app(ProviderAuthService::class)->register(
+        providerRegistrationData([
+            'uploads' => [],
+        ]),
     );
 
-    expect($result->success)->toBeFalse()
-        ->and($result->errorMessage)->toBe(__('logo upload failed, please try again'))
-        ->and(Provider::query()->count())->toBe(0);
+    expect($register)->toThrow(ValidationException::class);
+    expect(Provider::query()->count())->toBe(0);
 });
 
 test('register rolls back transaction on generic failure', function () {
@@ -144,10 +165,7 @@ test('register rolls back transaction on generic failure', function () {
     $repo->shouldReceive('create')->andThrow(new RuntimeException('boom'));
     app()->instance(ProviderRepositoryInterface::class, $repo);
 
-    $register = fn () => app(ProviderAuthService::class)->register(
-        providerRegistrationData(),
-        providerRegistrationRequest(),
-    );
+    $register = fn () => app(ProviderAuthService::class)->register(providerRegistrationData());
 
     expect($register)->toThrow(RuntimeException::class);
     expect(Provider::query()->count())->toBe(0);
