@@ -2,14 +2,17 @@
 
 use App\Actions\DeviceToken\RegisterDeviceTokenAction;
 use App\Models\DeviceToken;
+use App\Models\ProviderRegistrationUpload;
 use App\Notifications\ProviderPendingApprovalNotification;
 use App\Services\Auth\AdminAuthService;
 use App\Services\Auth\ProviderAuthService;
+use App\Support\Auth\ProviderRegistrationFileRules;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Modules\Chat\Contracts\Repositories\SystemRepositoryInterface;
 use Modules\Chat\Infrastructure\Events\ChatUpdatedEvent;
 use Modules\Geo\Models\City;
@@ -110,6 +113,7 @@ test('a pending offline top-up request notifies all admins', function () {
 test('a provider pending approval notifies all admins', function () {
     Notification::fake();
     Storage::fake('public');
+    Storage::fake((string) config('provider_registration.temp_disk'));
 
     $providerAdmin = createSupportDashboardAdmin(['show providers', 'process providers']);
     $otherProviderAdmin = createSupportDashboardAdmin(['show providers']);
@@ -119,8 +123,20 @@ test('a provider pending approval notifies all admins', function () {
     $region = Region::factory()->create();
     $city = City::factory()->create(['region_id' => $region->id]);
 
-    $request = Request::create('/provider/register', 'POST', [], [], [
-        'logo' => UploadedFile::fake()->image('logo.png'),
+    $uploadToken = (string) Str::uuid();
+    $tempDisk = (string) config('provider_registration.temp_disk');
+    $tempDirectory = (string) config('provider_registration.temp_directory');
+    $logoFile = UploadedFile::fake()->image('logo.png');
+    $logoPath = $logoFile->store($tempDirectory, $tempDisk);
+
+    $logoUpload = ProviderRegistrationUpload::query()->create([
+        'token' => $uploadToken,
+        'field' => ProviderRegistrationFileRules::LOGO_FIELD,
+        'path' => $logoPath,
+        'original_name' => 'logo.png',
+        'mime_type' => 'image/png',
+        'size' => $logoFile->getSize() ?: 1024,
+        'created_at' => now(),
     ]);
 
     $result = app(ProviderAuthService::class)->register([
@@ -133,7 +149,11 @@ test('a provider pending approval notifies all admins', function () {
         'city_id' => $city->id,
         'password' => 'password',
         'categories' => [],
-    ], $request);
+        'upload_token' => $uploadToken,
+        'uploads' => [
+            'logo' => $logoUpload->id,
+        ],
+    ]);
 
     expect($result->success)->toBeTrue();
 
