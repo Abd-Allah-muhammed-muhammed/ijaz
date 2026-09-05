@@ -1,12 +1,12 @@
 import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import { Card, Col, Nav, Row, Tab } from 'react-bootstrap';
+import { Card, Nav, Tab } from 'react-bootstrap';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import { EmptyState } from '@/shared/components/ui';
-import OrderCard from '@/shared/components/order/order-card';
 import OrderController from '@/actions/Modules/Orders/Http/Controllers/Provider/OrderController';
 import type { Order } from '@/shared/types/models';
 import type { OrderTabCounts, OrderTabKey } from '@/apps/provider/pages/Home/hooks/use-order-tab-counts';
+import HomeOrdersTable from '@/apps/provider/pages/Home/components/HomeOrdersTable';
 
 export type OrderTabsSectionProps = {
   counts: OrderTabCounts;
@@ -19,7 +19,7 @@ export type OrderTabsSectionProps = {
 type TabDefinition = {
   key: OrderTabKey;
   labelKey:
-    | 'waiting_for_offer_approval'
+    | 'offers_awaiting_client_approval'
     | 'waiting_for_payment'
     | 'in_progress'
     | 'waiting_for_client_review';
@@ -38,7 +38,7 @@ export default function OrderTabsSection({
   const tabs: TabDefinition[] = [
     {
       key: 'pending',
-      labelKey: 'waiting_for_offer_approval',
+      labelKey: 'offers_awaiting_client_approval',
       orders: pendingOrders,
     },
     {
@@ -104,16 +104,7 @@ export default function OrderTabsSection({
                     title={t('no_orders_found')}
                   />
                 ) : (
-                  <Row className="g-5">
-                    {tab.orders.map((order) => (
-                      <Col key={order.id} xs={12} sm={6} xl={tab.orders.length === 1 ? 12 : 6}>
-                        <OrderCard
-                          order={order}
-                          url={OrderController.show(order.id as string).url}
-                        />
-                      </Col>
-                    ))}
-                  </Row>
+                  <HomeOrdersTable orders={tab.orders} tabKey={tab.key} />
                 )}
               </Tab.Pane>
             ))}

@@ -1278,5 +1278,10 @@
     "no_recent_wallet_activity": "No recent wallet activity",
     "no_recent_wallet_activity_description": "Withdrawals and earnings will show up here once you start getting paid.",
     "verified_provider": "Verified provider",
-    "edit_profile": "Edit profile"
+    "edit_profile": "Edit profile",
+    "offers_awaiting_client_approval": "Offers awaiting approval",
+    "offers_awaiting_client_approval_count": ":count offers awaiting client approval",
+    "offers_awaiting_client_approval_description": "Your submitted offers are waiting for the client to respond.",
+    "review_pending_offers": "Review offers",
+    "client": "Client"
 }

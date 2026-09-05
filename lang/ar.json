@@ -1169,5 +1169,10 @@
     "no_recent_wallet_activity": "لا يوجد نشاط حديث للمحفظة",
     "no_recent_wallet_activity_description": "ستظهر عمليات السحب والأرباح هنا بعد بدء استلام المدفوعات.",
     "verified_provider": "مزود خدمة موثق",
-    "edit_profile": "تعديل الملف الشخصي"
+    "edit_profile": "تعديل الملف الشخصي",
+    "offers_awaiting_client_approval": "عروض بانتظار الموافقة",
+    "offers_awaiting_client_approval_count": ":count عروض بانتظار موافقة العميل",
+    "offers_awaiting_client_approval_description": "عروضك المقدّمة بانتظار رد العميل.",
+    "review_pending_offers": "مراجعة العروض",
+    "client": "العميل"
 }

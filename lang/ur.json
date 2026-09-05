@@ -1075,5 +1075,10 @@
     "no_recent_wallet_activity": "حالیہ والیٹ سرگرمی نہیں",
     "no_recent_wallet_activity_description": "ادائیگی شروع ہونے پر نکلوائی اور کمائی یہاں دکھائی دے گی۔",
     "verified_provider": "تصدیق شدہ فراہم کنندہ",
-    "edit_profile": "پروفائل میں ترمیم کریں"
+    "edit_profile": "پروفائل میں ترمیم کریں",
+    "offers_awaiting_client_approval": "منظوری کے منتظر آفرز",
+    "offers_awaiting_client_approval_count": ":count آفرز کلائنٹ کی منظوری کے منتظر",
+    "offers_awaiting_client_approval_description": "آپ کی جمع کرائی گئی آفرز کلائنٹ کے جواب کی منتظر ہیں۔",
+    "review_pending_offers": "آفرز دیکھیں",
+    "client": "کلائنٹ"
 }

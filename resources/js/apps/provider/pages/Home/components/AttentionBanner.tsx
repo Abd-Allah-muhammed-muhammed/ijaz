@@ -25,7 +25,7 @@ export default function AttentionBanner({ count }: AttentionBannerProps) {
   return (
     <aside
       className="card mb-5 border border-warning border-dashed"
-      aria-label={t('orders_awaiting_offer_approval', { count })}
+      aria-label={t('offers_awaiting_client_approval_count', { count })}
     >
       <div className="card-body py-4 px-4 px-md-6">
         <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
@@ -37,10 +37,10 @@ export default function AttentionBanner({ count }: AttentionBannerProps) {
             </span>
             <div>
               <p className="fw-bold text-gray-900 mb-1 fs-6">
-                {t('orders_awaiting_offer_approval', { count })}
+                {t('offers_awaiting_client_approval_count', { count })}
               </p>
               <p className="text-muted fs-7 mb-0">
-                {t('waiting_for_offer_approval')}
+                {t('offers_awaiting_client_approval_description')}
               </p>
             </div>
           </div>
@@ -48,7 +48,7 @@ export default function AttentionBanner({ count }: AttentionBannerProps) {
             href={href}
             className="btn btn-sm btn-warning align-self-stretch align-self-sm-center text-nowrap"
           >
-            {t('review_awaiting_orders')}
+            {t('review_pending_offers')}
           </Link>
         </div>
       </div>
