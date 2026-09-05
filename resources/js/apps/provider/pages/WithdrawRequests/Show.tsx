@@ -3,12 +3,16 @@ import { PageTitle } from "@/vendor/metronic/layout/core";
 import { ToolbarWrapper } from "@/vendor/metronic/layout/components/toolbar";
 import { Content } from "@/vendor/metronic/layout/components/content";
 import { Head } from "@inertiajs/react";
-import { KTCard } from "@/vendor/metronic/helpers";
 import { WithdrawRequest } from "@/shared/types/models";
 import { ReactNode } from "react";
 import WithdrawController from "@/actions/Modules/Wallet/Http/Controllers/Provider/WithdrawController";
 import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
 import { build_date } from "@/shared/helpers/general";
+import {
+  DetailSection,
+  SectionCard,
+  StatusBadge,
+} from '@/shared/components/ui';
 
 
 type Props = {
@@ -39,37 +43,25 @@ const Show = ({ row }: Props) => {
       <ToolbarWrapper />
       <Content>
         <div className="row justify-content-center g-4">
-          {/* Details Card */}
           <div className="col-12">
-            <KTCard className="p-4 h-100">
-              <h2 className="text-xl font-bold mb-6">{t('withdraw_request_details')}</h2>
-              <dl className="divide-y divide-gray-200 dark:divide-gray-700">
-                <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
-                  <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('amount')}</dt>
-                  <dd className="text-gray-900 dark:text-white">{row.amount}</dd>
-                </div>
-                <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
-                  <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('status')}</dt>
-                  <dd>
-                    <span className={`badge badge-light-${row.status?.color || 'secondary'}`}>
-                      {row.status?.label || t('not_available')}
-                    </span>
-                  </dd>
-                </div>
-                <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
-                  <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('transfer_status')}</dt>
-                  <dd>
-                    <span className={`badge badge-light-${row.transfer_status.color}`}>
-                      {row.transfer_status.label}
-                    </span>
-                  </dd>
-                </div>
-                <div className="py-3 flex flex-col sm:flex-row sm:items-center gap-2">
-                  <dt className="font-medium text-gray-600 dark:text-gray-300 w-40">{t('created_at')}</dt>
-                  <dd className="text-gray-900 dark:text-white">{build_date(row.created_at)}</dd>
-                </div>
-              </dl>
-            </KTCard>
+            <SectionCard title={t('withdraw_request_details')}>
+              <div className="d-flex flex-column gap-6">
+                <DetailSection label={t('amount')} value={row.amount} />
+                <DetailSection label={t('status')}>
+                  <StatusBadge
+                    status={row.status}
+                    label={row.status?.label ?? t('not_available')}
+                  />
+                </DetailSection>
+                <DetailSection label={t('transfer_status')}>
+                  <StatusBadge status={row.transfer_status} />
+                </DetailSection>
+                <DetailSection
+                  label={t('created_at')}
+                  value={build_date(row.created_at)}
+                />
+              </div>
+            </SectionCard>
           </div>
         </div>
       </Content>
