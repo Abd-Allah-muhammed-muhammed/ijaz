@@ -12,6 +12,12 @@ import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/
 import OrderCard from "@/shared/components/order/order-card";
 import {Col, Row} from "react-bootstrap";
 import {applyFilterParam, visitWithFilters} from "@/shared/lib/filters";
+import {
+  EmptyState,
+  PageFilterBar,
+  SectionCard,
+  type PageFilterField,
+} from '@/shared/components/ui';
 
 type Props = {
   rows: PaginationResource<Order>,
@@ -50,6 +56,31 @@ const Recommended = (
     );
     visitWithFilters(OrderController.new().url, next, { only: ['rows', 'prams'] });
   };
+
+  const filterFields: PageFilterField[] = [
+    {
+      name: 'search',
+      type: 'search',
+      value: searchPrams.search,
+      placeholder: t('search'),
+    },
+    {
+      name: 'period',
+      type: 'select',
+      value: searchPrams.period ?? '30',
+      options: PERIOD_OPTIONS.map((option) => ({
+        value: option.value,
+        label: t(option.labelKey),
+      })),
+    },
+  ];
+
+  const handleFilterChange = (name: string, value: string) => {
+    if (name === 'search' || name === 'period') {
+      searchPramsChanged(name, value);
+    }
+  };
+
   return (
     <>
       <Head title={t('providers')}/>
@@ -65,51 +96,17 @@ const Recommended = (
       </PageTitle>
       <ToolbarWrapper/>
       <Content>
-        <div className='d-flex flex-wrap flex-stack mb-6'>
-          <h3 className='fw-bolder my-2'>
-            <div className='d-flex align-items-center position-relative my-1'>
-              <KTIcon iconName='magnifier' className='fs-1 position-absolute ms-6'/>
-              <input
-                type='text'
-                defaultValue={searchPrams.search}
-                data-kt-user-table-filter='search'
-                className='form-control  ps-14'
-                placeholder={t('search')}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    searchPramsChanged('search', e.currentTarget.value)
-                  }
-                }}
-              />
-            </div>
-          </h3>
-
-          <div className='d-flex align-items-center my-2'>
-            <div className=' me-5'>
-              <select
-                name='period'
-                data-control='select2'
-                data-hide-search='true'
-                className='form-select form-select-white form-select-sm'
-                defaultValue={searchPrams.period ?? '30'}
-                onChange={(e) => searchPramsChanged('period', e.target.value)}
-              >
-                {PERIOD_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {t(option.labelKey)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
+        <PageFilterBar
+          filters={filterFields}
+          onFilterChange={handleFilterChange}
+        />
         {rows.data.length === 0 ? (
-          <div className="card border-0 shadow-sm">
-            <div className="card-body py-20 text-center">
-              <KTIcon iconName="basket" className="fs-5x mb-5 text-gray-300" />
-              <p className="text-muted fw-semibold fs-5">{t('no_orders_found')}</p>
-            </div>
-          </div>
+          <SectionCard>
+            <EmptyState
+              icon={<KTIcon iconName="basket" className="fs-5x mb-5 text-gray-300" />}
+              title={t('no_orders_found')}
+            />
+          </SectionCard>
         ) : (
           <Row>
             {rows.data.map((row) => (
