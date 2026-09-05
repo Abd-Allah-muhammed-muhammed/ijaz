@@ -106,6 +106,10 @@
             "Composer\\Config::disableProcessTimeout",
             "@php artisan test --compact --group=serial"
         ],
+        "test:lazy-loading": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan test --compact tests/Feature/LazyLoading"
+        ],
         "test:all": [
             "@test",
             "@test:serial"

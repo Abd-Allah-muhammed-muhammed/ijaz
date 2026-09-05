@@ -3,24 +3,30 @@
 use App\Support\LazyLoading\LazyLoadingRouteSweeper;
 use App\Support\LazyLoading\LazyLoadingSweepFixture;
 use App\Support\LazyLoading\LazyLoadingViolationCollector;
+use App\Support\LazyLoading\NonHttpLazyLoadingCatalog;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use Laravel\Sanctum\Sanctum;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRoutes;
 use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationViewPath;
 use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
+use Modules\Orders\Database\Factories\OrderOfferFactory;
+use Modules\Orders\Listeners\NotifyOrderPaymentCompleted;
+use Modules\Orders\Listeners\NotifyOrderPaymentFailed;
+use Modules\Orders\Models\Order;
+use Modules\Payment\Enums\PaymentStatusEnum;
+use Modules\Payment\Events\PaymentCompleted;
+use Modules\Payment\Events\PaymentFailed;
+use Modules\Payment\Models\Payment;
 
 /**
- * Permanent regression harness: exhaustive GET-route sweep under
- * Model::preventLazyLoading(true). Collects every LazyLoadingViolationException
- * without aborting mid-request so one hit can surface multiple offenders.
+ * Permanent regression harness: GET + POST/PUT/PATCH route sweep under
+ * Model::preventLazyLoading(true), plus non-HTTP queued-listener probes.
  *
- * Re-run: php artisan test --compact tests/Feature/LazyLoading/LazyLoadingRouteSweepTest.php
- * CLI:    php artisan app:lazy-loading-route-sweep --fail-on-violation --json=storage/logs/lazy-loading-sweep.json
- *
- * Baseline: known model::relation pairs still awaiting fix. NEW pairs fail CI.
- * Shrink tests/Feature/LazyLoading/lazy_loading_baseline.php as fixes land;
- * empty array = full green.
+ * CLI: php artisan app:lazy-loading-route-sweep --fail-on-violation --writes
+ * Composer: composer test:lazy-loading
  */
 beforeEach(function (): void {
     $this->withoutMiddleware([
@@ -43,7 +49,7 @@ function lazyLoadingViolationKeys(array $violations): array
     ));
 }
 
-test('exhaustive GET route sweep finds no new lazy-loading violations beyond baseline', function (): void {
+test('exhaustive GET+write route sweep finds no new lazy-loading violations beyond baseline', function (): void {
     $fixture = LazyLoadingSweepFixture::seed();
 
     $collector = new LazyLoadingViolationCollector;
@@ -51,6 +57,8 @@ test('exhaustive GET route sweep finds no new lazy-loading violations beyond bas
 
     $collector->install(collectOnly: true);
     $collector->reset();
+
+    Notification::fake();
 
     $guards = [
         'admin' => function () use ($fixture): void {
@@ -76,29 +84,50 @@ test('exhaustive GET route sweep finds no new lazy-loading violations beyond bas
     ];
 
     $byGuard = [];
+    $writeCoverage = [
+        'exercised' => 0,
+        'skipped' => 0,
+        'reached_response' => 0,
+        'skip_reasons' => [],
+    ];
 
     try {
         foreach ($guards as $guard => $authenticate) {
             $result = $sweeper->sweep(
-                httpGet: function (string $uri) {
-                    if (str_starts_with($uri, '/api/') || str_contains($uri, '/api/')) {
-                        return test()->getJson($uri);
-                    }
+                httpCall: function (string $method, string $uri, array $payload = []) {
+                    $isApi = str_starts_with($uri, '/api/') || str_contains($uri, '/api/');
 
-                    return test()->get($uri);
+                    return match (strtoupper($method)) {
+                        'GET' => $isApi ? test()->getJson($uri) : test()->get($uri),
+                        'POST' => $isApi ? test()->postJson($uri, $payload) : test()->post($uri, $payload),
+                        'PUT' => $isApi ? test()->putJson($uri, $payload) : test()->put($uri, $payload),
+                        'PATCH' => $isApi ? test()->patchJson($uri, $payload) : test()->patch($uri, $payload),
+                        default => test()->get($uri),
+                    };
                 },
                 parameterBag: $fixture['parameters'],
                 guard: $guard,
                 authenticate: $authenticate,
                 queryByUriSuffix: $queryExtras,
+                includeWrites: true,
             );
 
             $byGuard[$guard] = [
                 'visited' => $result['visited'],
                 'skipped' => $result['skipped'],
                 'errors' => $result['errors'],
+                'write_exercised' => $result['write_exercised'],
+                'write_reached_response' => $result['write_reached_response'],
                 'unique_violations' => count($result['violations']),
             ];
+
+            $writeCoverage['exercised'] += $result['write_exercised'];
+            $writeCoverage['skipped'] += $result['write_skipped'];
+            $writeCoverage['reached_response'] += $result['write_reached_response'];
+            $writeCoverage['skip_reasons'] = array_merge(
+                $writeCoverage['skip_reasons'],
+                $result['write_skip_reasons'],
+            );
         }
     } finally {
         $collector->restore();
@@ -119,6 +148,7 @@ test('exhaustive GET route sweep finds no new lazy-loading violations beyond bas
     }
     file_put_contents($reportPath, json_encode([
         'by_guard' => $byGuard,
+        'write_coverage' => $writeCoverage,
         'found' => $foundKeys,
         'baseline' => $baseline,
         'violations' => $unique,
@@ -133,11 +163,55 @@ test('exhaustive GET route sweep finds no new lazy-loading violations beyond bas
         implode("\n", $new)."\n\nFull report: {$reportPath}"
     );
 
-    // When a baseline entry is fixed, shrink the baseline file so CI stays honest.
     if ($resolved !== []) {
         expect($resolved)->toBeEmpty(
             "Baseline entries no longer reproduce — remove them from lazy_loading_baseline.php:\n".
             implode("\n", $resolved)
         );
     }
+});
+
+test('queued order payment listeners do not lazy-load product/order under strict mode', function (): void {
+    expect(NonHttpLazyLoadingCatalog::queuedOrderPaymentListeners())->toContain(
+        NotifyOrderPaymentCompleted::class,
+        NotifyOrderPaymentFailed::class,
+    );
+
+    // Strict mode is configured app-wide in AppServiceProvider for non-production,
+    // including queue workers (same bootstrap; no Queue::before override).
+    expect(Model::preventsLazyLoading())->toBeTrue();
+
+    $fixture = LazyLoadingSweepFixture::seed();
+    $order = Order::query()->findOrFail($fixture['parameters']['order']);
+    $offer = OrderOfferFactory::new()
+        ->forOrder($order)
+        ->forProvider($fixture['provider'])
+        ->create();
+
+    $payment = Payment::factory()->forProduct($offer, $fixture['user'])->create([
+        'status' => PaymentStatusEnum::Accepted,
+    ]);
+
+    // Fresh payment without relations — mirrors queued listener deserialization.
+    $fresh = Payment::query()->findOrFail($payment->id);
+
+    $collector = new LazyLoadingViolationCollector;
+    $collector->install(collectOnly: true);
+    $collector->reset();
+    Notification::fake();
+
+    try {
+        $collector->setContext('listener:NotifyOrderPaymentCompleted', 'queue');
+        (new NotifyOrderPaymentCompleted)->handle(new PaymentCompleted($fresh));
+
+        $freshFailed = Payment::query()->findOrFail($payment->id);
+        $collector->setContext('listener:NotifyOrderPaymentFailed', 'queue');
+        (new NotifyOrderPaymentFailed)->handle(new PaymentFailed($freshFailed));
+    } finally {
+        $collector->restore();
+    }
+
+    expect($collector->uniqueByModelRelation())->toBeEmpty(
+        'Queued payment listeners still lazy-load: '.json_encode($collector->uniqueByModelRelation())
+    );
 });

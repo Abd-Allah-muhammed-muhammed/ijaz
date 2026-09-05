@@ -10,10 +10,11 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use Symfony\Component\HttpFoundation\Response;
 
-#[Signature('app:lazy-loading-route-sweep {--guard=* : Guards to authenticate as (admin, provider, user, guest). Default: all} {--json= : Write full report JSON to this path} {--fail-on-violation : Exit 1 when any unique violation is found}')]
-#[Description('Exhaustive GET-route sweep that collects Eloquent lazy-loading violations under preventLazyLoading')]
+#[Signature('app:lazy-loading-route-sweep {--guard=* : Guards to authenticate as (admin, provider, user, guest). Default: all} {--json= : Write full report JSON to this path} {--fail-on-violation : Exit 1 when any unique violation is found} {--writes : Also exercise POST/PUT/PATCH with synthetic FormRequest payloads (rolled back)} {--get-only : Skip write routes}')]
+#[Description('Exhaustive route sweep that collects Eloquent lazy-loading violations under preventLazyLoading')]
 class LazyLoadingRouteSweepCommand extends Command
 {
     public function handle(): int
@@ -29,18 +30,28 @@ class LazyLoadingRouteSweepCommand extends Command
             $guards = ['admin', 'provider', 'user', 'guest'];
         }
 
+        $includeWrites = ! $this->option('get-only');
+        if ($this->option('writes')) {
+            $includeWrites = true;
+        }
+
         $fixture = LazyLoadingSweepFixture::seed();
         $collector = new LazyLoadingViolationCollector;
         $sweeper = new LazyLoadingRouteSweeper($collector);
         $collector->install(collectOnly: true);
         $collector->reset();
 
-        $combined = [];
+        Notification::fake();
+
         $summary = [
             'visited' => 0,
             'skipped' => 0,
             'errors' => 0,
+            'write_exercised' => 0,
+            'write_skipped' => 0,
+            'write_reached_response' => 0,
             'by_guard' => [],
+            'write_skip_reasons' => [],
         ];
 
         try {
@@ -64,13 +75,17 @@ class LazyLoadingRouteSweepCommand extends Command
                 };
 
                 $result = $sweeper->sweep(
-                    httpGet: function (string $uri) use ($guard, $fixture): Response {
+                    httpCall: function (string $method, string $uri, array $payload = []) use ($guard, $fixture): Response {
                         $path = parse_url($uri, PHP_URL_PATH) ?: $uri;
-                        $request = Request::create($uri, 'GET');
-                        $request->headers->set('Accept', str_starts_with(ltrim($path, '/'), 'api/') ? 'application/json' : 'text/html');
+                        $isApi = str_starts_with(ltrim($path, '/'), 'api/');
+                        $request = Request::create($uri, $method, $payload);
+                        $request->headers->set('Accept', $isApi ? 'application/json' : 'text/html');
 
-                        if ($guard === 'user' && str_starts_with(ltrim($path, '/'), 'api/')) {
-                            $request->headers->set('Authorization', 'Bearer '.$fixture['user']->createToken('lazy-sweep')->plainTextToken);
+                        if ($guard === 'user' && $isApi) {
+                            $request->headers->set(
+                                'Authorization',
+                                'Bearer '.$fixture['user']->createToken('lazy-sweep')->plainTextToken
+                            );
                         }
 
                         return app()->handle($request);
@@ -82,19 +97,28 @@ class LazyLoadingRouteSweepCommand extends Command
                         'api/v1/catalog/providers' => ['phone' => $fixture['provider']->phone],
                         'api/v1/user/providers/get' => ['provider_id' => $fixture['provider']->id],
                     ],
+                    includeWrites: $includeWrites,
                 );
 
                 $summary['visited'] += $result['visited'];
                 $summary['skipped'] += $result['skipped'];
                 $summary['errors'] += $result['errors'];
+                $summary['write_exercised'] += $result['write_exercised'];
+                $summary['write_skipped'] += $result['write_skipped'];
+                $summary['write_reached_response'] += $result['write_reached_response'];
+                $summary['write_skip_reasons'] = array_merge(
+                    $summary['write_skip_reasons'],
+                    $result['write_skip_reasons'],
+                );
                 $summary['by_guard'][$guard] = [
                     'visited' => $result['visited'],
                     'skipped' => $result['skipped'],
                     'errors' => $result['errors'],
+                    'write_exercised' => $result['write_exercised'],
+                    'write_reached_response' => $result['write_reached_response'],
                     'unique_violations' => count($result['violations']),
                     'error_uris' => $result['error_uris'],
                 ];
-                $combined = array_merge($combined, $result['violations']);
             }
         } finally {
             $collector->restore();
@@ -110,6 +134,15 @@ class LazyLoadingRouteSweepCommand extends Command
             $summary['errors'],
             count($unique),
         ));
+
+        if ($includeWrites) {
+            $this->info(sprintf(
+                'Write coverage: exercised=%d reached_response=%d skipped=%d (see JSON for reasons).',
+                $summary['write_exercised'],
+                $summary['write_reached_response'],
+                $summary['write_skipped'],
+            ));
+        }
 
         foreach ($unique as $row) {
             $this->line(sprintf(

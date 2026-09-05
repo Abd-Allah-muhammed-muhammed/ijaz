@@ -17,9 +17,10 @@ class NotifyOrderPaymentFailed implements ShouldQueue
             return;
         }
 
+        $payment->loadMissing(['product.order.user']);
+
         $offer = $payment->product;
         $order = $offer->order;
-        $order->loadMissing('user');
 
         $order->user->notify(new OrderPaymentFailedNotification($order, $offer));
     }

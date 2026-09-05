@@ -3,22 +3,20 @@
 namespace App\Support\LazyLoading;
 
 use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Testing\TestResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Exhaustive GET-route sweeper for Eloquent lazy-loading violations.
+ * Exhaustive route sweeper for Eloquent lazy-loading violations (GET + write methods).
  *
- * Used by the permanent Pest regression test and the artisan command.
- * Substitutes seeded model keys into route parameters where possible;
- * skips routes whose required params cannot be resolved.
+ * Write routes run inside a DB transaction that is always rolled back after the
+ * response is inspected so the audit does not persist mutations.
  */
 final class LazyLoadingRouteSweeper
 {
     /**
-     * URI prefixes / exact names always skipped (devtools, health, webhooks, assets).
-     *
      * @var list<string>
      */
     public const SKIP_URI_PREFIXES = [
@@ -38,42 +36,64 @@ final class LazyLoadingRouteSweeper
         'vendor',
     ];
 
+    /**
+     * @var list<string>
+     */
+    public const WRITE_METHODS = ['POST', 'PUT', 'PATCH'];
+
     public function __construct(
         private readonly LazyLoadingViolationCollector $collector,
+        private readonly FormRequestPayloadBuilder $payloadBuilder = new FormRequestPayloadBuilder,
     ) {}
 
     /**
-     * @param  array<string, int|string>  $parameterBag  parameter name => substitute value
-     * @param  array<string, array<string, int|string>>  $queryByUriSuffix  uri path suffix => query string map
-     *                                                                      e.g. ['api/v1/catalog/providers' => ['phone' => '...']]
+     * @param  callable(string, string, array<string, mixed>): (TestResponse|Response)  $httpCall
+     * @param  array<string, int|string>  $parameterBag
+     * @param  array<string, array<string, int|string>>  $queryByUriSuffix
      * @return array{
      *     visited: int,
      *     skipped: int,
      *     errors: int,
+     *     write_exercised: int,
+     *     write_skipped: int,
+     *     write_reached_response: int,
      *     violations: list<array{model: class-string, relation: string, uris: list<string>, guards: list<string>}>,
      *     skipped_uris: list<string>,
+     *     write_skip_reasons: list<array{uri: string, method: string, reason: string}>,
      *     error_uris: list<array{uri: string, status: int|null, message: string}>
      * }
      */
     public function sweep(
-        callable $httpGet,
+        callable $httpCall,
         array $parameterBag,
         string $guard,
         ?callable $authenticate = null,
         array $queryByUriSuffix = [],
+        bool $includeWrites = true,
     ): array {
         $visited = 0;
         $skipped = 0;
         $errors = 0;
+        $writeExercised = 0;
+        $writeSkipped = 0;
+        $writeReachedResponse = 0;
         $skippedUris = [];
+        $writeSkipReasons = [];
         $errorUris = [];
 
-        foreach ($this->candidateGetRoutes() as $route) {
+        $methods = $includeWrites ? ['GET', ...self::WRITE_METHODS] : ['GET'];
+
+        foreach ($this->candidateMethodRoutes($methods) as [$method, $route]) {
             $uri = '/'.ltrim($route->uri(), '/');
+            $isWrite = in_array($method, self::WRITE_METHODS, true);
 
             if ($this->shouldSkip($route)) {
                 $skipped++;
-                $skippedUris[] = $uri;
+                $skippedUris[] = "{$method} {$uri}";
+                if ($isWrite) {
+                    $writeSkipped++;
+                    $writeSkipReasons[] = ['uri' => $uri, 'method' => $method, 'reason' => 'skip prefix / closure'];
+                }
 
                 continue;
             }
@@ -82,47 +102,92 @@ final class LazyLoadingRouteSweeper
 
             if ($resolved === null) {
                 $skipped++;
-                $skippedUris[] = $uri.' (unresolved params)';
+                $skippedUris[] = "{$method} {$uri} (unresolved params)";
+                if ($isWrite) {
+                    $writeSkipped++;
+                    $writeSkipReasons[] = ['uri' => $uri, 'method' => $method, 'reason' => 'unresolved route params'];
+                }
 
                 continue;
             }
 
             $resolved = $this->appendQueryExtras($resolved, $queryByUriSuffix);
 
+            $payload = [];
+            if ($isWrite) {
+                $built = $this->payloadBuilder->build($route, $parameterBag, $method, $resolved);
+                if (isset($built['skip'])) {
+                    $skipped++;
+                    $writeSkipped++;
+                    $writeSkipReasons[] = [
+                        'uri' => $resolved,
+                        'method' => $method,
+                        'reason' => $built['skip'],
+                    ];
+
+                    continue;
+                }
+                $payload = $built['payload'];
+                $writeExercised++;
+            }
+
             if ($authenticate !== null) {
                 $authenticate();
             }
 
-            $this->collector->setContext($resolved, $guard);
+            $contextLabel = "{$method} {$resolved}";
+            $this->collector->setContext($contextLabel, $guard);
             $violationsBefore = $this->collector->count();
 
             try {
-                /** @var TestResponse|Response $response */
-                $response = $httpGet($resolved);
-                $visited++;
+                if ($isWrite) {
+                    DB::beginTransaction();
+                }
 
-                $status = method_exists($response, 'status')
-                    ? (int) $response->status()
-                    : (int) $response->getStatusCode();
+                try {
+                    /** @var TestResponse|Response $response */
+                    $response = $httpCall($method, $resolved, $payload);
+                    $visited++;
 
-                // Auth/permission misses are expected for some combinations; they are
-                // not lazy-load findings. 5xx without a recorded violation still counts
-                // as an infrastructure error for the sweep report.
-                if ($status >= 500 && $this->collector->count() === $violationsBefore) {
-                    $errors++;
-                    $errorUris[] = [
-                        'uri' => $resolved,
-                        'status' => $status,
-                        'message' => 'HTTP '.$status,
-                    ];
+                    $status = method_exists($response, 'status')
+                        ? (int) $response->status()
+                        : (int) $response->getStatusCode();
+
+                    if ($isWrite) {
+                        if ($status !== 422) {
+                            $writeReachedResponse++;
+                        } else {
+                            $writeSkipReasons[] = [
+                                'uri' => $resolved,
+                                'method' => $method,
+                                'reason' => 'HTTP 422 after synthetic payload (rules introspection incomplete)',
+                            ];
+                        }
+                    }
+
+                    if ($status >= 500 && $this->collector->count() === $violationsBefore) {
+                        $errors++;
+                        $errorUris[] = [
+                            'uri' => $contextLabel,
+                            'status' => $status,
+                            'message' => 'HTTP '.$status,
+                        ];
+                    }
+                } finally {
+                    if ($isWrite && DB::transactionLevel() > 0) {
+                        DB::rollBack();
+                    }
                 }
             } catch (\Throwable $throwable) {
                 $visited++;
-                // Violations are collected via the handler; other throwables are errors.
+                if ($isWrite && DB::transactionLevel() > 0) {
+                    DB::rollBack();
+                }
+
                 if (! str_contains($throwable::class, 'LazyLoading')) {
                     $errors++;
                     $errorUris[] = [
-                        'uri' => $resolved,
+                        'uri' => $contextLabel,
                         'status' => null,
                         'message' => $throwable::class.': '.$throwable->getMessage(),
                     ];
@@ -134,8 +199,12 @@ final class LazyLoadingRouteSweeper
             'visited' => $visited,
             'skipped' => $skipped,
             'errors' => $errors,
+            'write_exercised' => $writeExercised,
+            'write_skipped' => $writeSkipped,
+            'write_reached_response' => $writeReachedResponse,
             'violations' => $this->collector->uniqueByModelRelation(),
             'skipped_uris' => $skippedUris,
+            'write_skip_reasons' => $writeSkipReasons,
             'error_uris' => $errorUris,
         ];
     }
@@ -161,21 +230,35 @@ final class LazyLoadingRouteSweeper
     }
 
     /**
+     * Expand each route into one entry per HTTP method we care about.
+     *
+     * @param  list<string>  $methods
+     * @return list<array{0: string, 1: Route}>
+     */
+    public function candidateMethodRoutes(array $methods): array
+    {
+        $out = [];
+
+        foreach (RouteFacade::getRoutes() as $route) {
+            foreach ($methods as $method) {
+                if (in_array($method, $route->methods(), true)) {
+                    $out[] = [$method, $route];
+                }
+            }
+        }
+
+        return $out;
+    }
+
+    /**
      * @return list<Route>
      */
     public function candidateGetRoutes(): array
     {
-        $routes = [];
-
-        foreach (RouteFacade::getRoutes() as $route) {
-            if (! in_array('GET', $route->methods(), true)) {
-                continue;
-            }
-
-            $routes[] = $route;
-        }
-
-        return $routes;
+        return array_values(array_map(
+            static fn (array $pair): Route => $pair[1],
+            $this->candidateMethodRoutes(['GET']),
+        ));
     }
 
     public function shouldSkip(Route $route): bool
@@ -188,9 +271,7 @@ final class LazyLoadingRouteSweeper
             }
         }
 
-        // Skip closure fallbacks and ignitions.
-        $action = $route->getActionName();
-        if ($action === 'Closure') {
+        if ($route->getActionName() === 'Closure') {
             return true;
         }
 
@@ -213,7 +294,6 @@ final class LazyLoadingRouteSweeper
             $uri = preg_replace('/\{'.$name.'\??\}/', (string) $parameterBag[$name], $uri) ?? $uri;
         }
 
-        // Drop any remaining optional empty segments.
         if (str_contains($uri, '{')) {
             return null;
         }

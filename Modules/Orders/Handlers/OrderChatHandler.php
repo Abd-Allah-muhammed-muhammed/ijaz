@@ -54,6 +54,8 @@ class OrderChatHandler implements ChatTypeHandlerInterface
 
     public function findOperation(int|string $id): Model
     {
-        return Order::query()->findOrFail($id);
+        return Order::query()
+            ->with(['user', 'provider'])
+            ->findOrFail($id);
     }
 }

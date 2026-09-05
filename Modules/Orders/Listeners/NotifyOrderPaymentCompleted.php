@@ -17,9 +17,10 @@ class NotifyOrderPaymentCompleted implements ShouldQueue
             return;
         }
 
+        $payment->loadMissing(['product.order.user', 'product.order.provider']);
+
         $offer = $payment->product;
         $order = $offer->order;
-        $order->loadMissing(['user', 'provider']);
 
         $notification = new OrderPaymentCompletedNotification($order);
 
