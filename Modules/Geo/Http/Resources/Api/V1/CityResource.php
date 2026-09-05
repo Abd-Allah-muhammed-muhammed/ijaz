@@ -2,19 +2,22 @@
 
 namespace Modules\Geo\Http\Resources\Api\V1;
 
+use App\Http\Resources\Concerns\MergesWhenTranslationLoaded;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Geo\Models\Region;
+use Modules\Geo\Models\City;
 
-/** @mixin Region */
+/** @mixin City */
 class CityResource extends JsonResource
 {
+    use MergesWhenTranslationLoaded;
+
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
             'cities_count' => $this->whenCounted('cities'),
-            $this->mergeWhen($this->whenLoaded('translation'), [
+            $this->mergeWhenTranslationLoaded(fn () => [
                 'title' => $this->title,
             ]),
             'translations' => $this->whenLoaded('translations', function () {

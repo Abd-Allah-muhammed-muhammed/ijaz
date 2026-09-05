@@ -77,7 +77,7 @@ class ProviderManagementRepository implements ProviderManagementRepositoryInterf
 
     public function loadForApiGet(Provider $provider): Provider
     {
-        $provider->load(['categories.translation', 'skills.translation', 'reviews.reviewer']);
+        $provider->load(['categories.translation', 'skills.translation', 'reviews.reviewer', 'reviews.reviewee']);
         $provider->loadAvg('reviews', 'rating');
 
         return $provider;

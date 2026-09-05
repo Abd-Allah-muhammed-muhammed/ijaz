@@ -19,9 +19,9 @@ final class InstituteAdvisementRepository implements InstituteAdvisementReposito
 
         return $query
             ->with([
-                'specialization',
-                'city',
-                'region',
+                'specialization.translations',
+                'city.translations',
+                'region.translations',
                 'media',
             ])
             ->latest()
@@ -35,9 +35,9 @@ final class InstituteAdvisementRepository implements InstituteAdvisementReposito
 
         return $query
             ->with([
-                'specialization',
-                'city',
-                'region',
+                'specialization.translations',
+                'city.translations',
+                'region.translations',
                 'user',
                 'media',
             ])
@@ -93,9 +93,9 @@ final class InstituteAdvisementRepository implements InstituteAdvisementReposito
             ->when($request->city_id, fn ($query, $v) => $query->where('city_id', $v))
             ->when($request->region_id, fn ($query, $v) => $query->where('region_id', $v))
             ->with([
-                'specialization',
-                'city',
-                'region',
+                'specialization.translations',
+                'city.translations',
+                'region.translations',
                 'user',
             ])
             ->paginate($request->integer('per_page', 10))

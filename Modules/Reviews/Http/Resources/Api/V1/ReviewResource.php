@@ -13,22 +13,30 @@ class ReviewResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            $this->mergeWhen($this->relationLoaded('reviewer'), [
-                'reviewer' => [
-                    'id' => $this->reviewer->id,
-                    'name' => $this->reviewer->name,
-                    'image' => $this->reviewer->image_url,
-                    'socket_id' => $this->reviewer->getAuthIdentifierForBroadcasting(),
+            // Closures are required: PHP evaluates array-args before mergeWhen runs, so an
+            // eager ['reviewer' => $this->reviewer->…] always lazy-loads when unloaded.
+            $this->mergeWhen(
+                $this->relationLoaded('reviewer'),
+                fn () => [
+                    'reviewer' => [
+                        'id' => $this->reviewer->id,
+                        'name' => $this->reviewer->name,
+                        'image' => $this->reviewer->image_url,
+                        'socket_id' => $this->reviewer->getAuthIdentifierForBroadcasting(),
+                    ],
                 ],
-            ]),
-            $this->mergeWhen($this->relationLoaded('reviewee'), [
-                'reviewee' => [
-                    'id' => $this->reviewee->id,
-                    'name' => $this->reviewee->name,
-                    'image' => $this->reviewee->image_url,
-                    'socket_id' => $this->reviewee->getAuthIdentifierForBroadcasting(),
+            ),
+            $this->mergeWhen(
+                $this->relationLoaded('reviewee'),
+                fn () => [
+                    'reviewee' => [
+                        'id' => $this->reviewee->id,
+                        'name' => $this->reviewee->name,
+                        'image' => $this->reviewee->image_url,
+                        'socket_id' => $this->reviewee->getAuthIdentifierForBroadcasting(),
+                    ],
                 ],
-            ]),
+            ),
             'operation_id' => $this->operation_id,
             'operation_type' => str($this->operation_type)->afterLast('\\')->toString(),
             'rating' => $this->rating,
