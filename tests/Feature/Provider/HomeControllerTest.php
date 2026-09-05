@@ -40,7 +40,7 @@ it('renders provider home with order stats and recommendations', function () {
         ->get(action(HomeController::class))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Home')
+            ->component('Provider/Home/Home')
             ->where('totalOrders', 1)
             ->has('recommendOrders')
             ->has('pendingOrders')
@@ -69,7 +69,7 @@ test('provider home page exposes real wallet balance and amount_in_transfer, not
         ->get(action(HomeController::class))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Home')
+            ->component('Provider/Home/Home')
             ->where('wallet.balance', number_format(4321.75, 2))
             ->where('wallet.amount_in_transfer', '150.00')
         );
@@ -95,7 +95,7 @@ test('provider home page exposes real totalOrders and totalFinishedOrders counts
         ->get(action(HomeController::class))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Home')
+            ->component('Provider/Home/Home')
             ->where('totalOrders', 3)
             ->where('totalFinishedOrders', 2)
         );
@@ -108,7 +108,7 @@ test('provider home page no longer includes any conversations-card-specific prop
         ->get(action(HomeController::class))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Home')
+            ->component('Provider/Home/Home')
             ->missing('conversations')
             ->missing('conversationOrders')
             ->has('endedByProviderOrders')
@@ -137,7 +137,7 @@ test('provider home page exposes recent wallet transactions, limited to 5, most 
         ->get(action(HomeController::class))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Home')
+            ->component('Provider/Home/Home')
             ->has('recentTransactions', 5)
             ->where('recentTransactions.0.id', $ordered[5]->id)
             ->where('recentTransactions.4.id', $ordered[1]->id)
@@ -166,7 +166,7 @@ test('Home recent wallet activity now shows 5 transactions, not 2, most recent f
         ->get(action(HomeController::class))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Home')
+            ->component('Provider/Home/Home')
             ->has('recentTransactions', 5)
             ->where('recentTransactions.0.id', $transactions[5]->id)
             ->where('recentTransactions.4.id', $transactions[1]->id)
@@ -188,7 +188,7 @@ test('provider home page recent transactions only include the authenticated prov
         ->get(action(HomeController::class))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Home')
+            ->component('Provider/Home/Home')
             ->has('recentTransactions', 2)
             ->where('recentTransactions', function ($transactions) use ($provider, $otherTransactionIds) {
                 $ids = collect($transactions)->pluck('id');
@@ -234,7 +234,7 @@ test('provider home page still exposes balance, amount_in_transfer, totalOrders,
         ->get(action(HomeController::class))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Home')
+            ->component('Provider/Home/Home')
             ->where('wallet.balance', number_format(4321.75, 2))
             ->where('wallet.amount_in_transfer', '150.00')
             ->where('totalOrders', 3)
@@ -255,7 +255,7 @@ test('Home recent wallet activity shows the pending_debit amount, labeled as on 
         ->get(action(HomeController::class))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Home')
+            ->component('Provider/Home/Home')
             ->has('recentTransactions', 2)
             ->where('recentTransactions.0.amount', 200)
             ->where('recentTransactions.0.is_pending', true)
@@ -273,7 +273,7 @@ test('Home recent wallet activity shows a normal credit/debit amount unchanged f
         ->get(action(HomeController::class))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Home')
+            ->component('Provider/Home/Home')
             ->has('recentTransactions', 1)
             ->where('recentTransactions.0.amount', 75)
             ->where('recentTransactions.0.is_pending', false)
@@ -327,7 +327,7 @@ test('Home recent wallet activity applies the same internal-row filtering as the
         ->get(action(HomeController::class))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Home')
+            ->component('Provider/Home/Home')
             ->where('recentTransactions', function ($transactions) use ($holdReleasedIds, $approvedRequestedId, $approvedId, $pendingRequestedId) {
                 $itemIds = collect($transactions)->pluck('id');
 

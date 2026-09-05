@@ -39,7 +39,7 @@ class HomeController extends Controller
         $orders = $this->orderService->listWindowedForProviderHome($auth);
         $banners = $this->bannerService->all();
 
-        return inertia('Provider/Home', [
+        return inertia('Provider/Home/Home', [
             'totalOrders' => $stats['totalOrders'],
             'totalFinishedOrders' => $stats['totalFinishedOrders'],
             'orderTabCounts' => $stats['tabCounts'],

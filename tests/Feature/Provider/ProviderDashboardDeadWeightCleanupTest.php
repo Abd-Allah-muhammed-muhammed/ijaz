@@ -51,7 +51,7 @@ function providerDeadWeightDeletedRelativePaths(): array
 function providerLiveInertiaPageRelativePaths(): array
 {
     return [
-        'pages/Home.tsx',
+        'pages/Home/Home.tsx',
         'pages/Auth/LoginPage.tsx',
         'pages/Auth/Profile/Index.tsx',
         'pages/Auth/Profile/wallet.tsx',
@@ -86,7 +86,7 @@ test('the Provider app builds and every sidebar route still renders correctly af
     // Sidebar destinations
     $this->get(action(HomeController::class))
         ->assertSuccessful()
-        ->assertInertia(fn ($page) => $page->component('Provider/Home'));
+        ->assertInertia(fn ($page) => $page->component('Provider/Home/Home'));
 
     $this->get(action([OrderController::class, 'new']))
         ->assertSuccessful()

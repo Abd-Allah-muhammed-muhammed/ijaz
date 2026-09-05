@@ -3,7 +3,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 /**
  * Inertia page resolution for the apps/{admin,provider,web} layout.
  *
- * Backend still renders names like `Dashboard/Users/Index`, `Provider/Home`,
+ * Backend still renders names like `Dashboard/Users/Index`, `Provider/Home/Home`,
  * `Frontend/LandingPage`, `Errors/ErrorPage` — those strings are NOT changed.
  * Physical files live under apps/<shell>/pages (Inertia prefix removed). This
  * helper remaps Vite glob keys to virtual `./pages/{BackendName}.tsx` paths so
