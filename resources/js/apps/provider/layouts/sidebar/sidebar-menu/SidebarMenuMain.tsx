@@ -32,19 +32,19 @@ const SidebarMenuMain = () => {
         to={OrderController.index().url}
         title={t('my_orders')}
         isActive={matchUrl(OrderController.index().url)}
-        icon='search-list'
+        icon='clipboard'
       />
       <SidebarMenuItem
         to={OrderController.new().url}
         title={t('new_orders')}
-        icon='handcart'
+        icon='magnifier'
         isActive={matchUrl(OrderController.new().url)}
       />
       <SidebarMenuItem
         to={OrderController.offers().url}
         title={t('my offers')}
         isActive={matchUrl(OrderController.offers().url)}
-        icon='office-bag'
+        icon='price-tag'
       />
 
       <div className='menu-item'>
