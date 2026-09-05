@@ -12,7 +12,16 @@ class GetProviderHomeOrderStatsAction
     ) {}
 
     /**
-     * @return array{totalOrders: int, totalFinishedOrders: int}
+     * @return array{
+     *     totalOrders: int,
+     *     totalFinishedOrders: int,
+     *     tabCounts: array{
+     *         new: int,
+     *         offer_provided: int,
+     *         in_progress: int,
+     *         ended_by_provider: int
+     *     }
+     * }
      */
     public function handle(Provider $provider): array
     {

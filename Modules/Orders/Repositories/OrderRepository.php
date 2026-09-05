@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Support\LookupCache;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -132,17 +133,8 @@ class OrderRepository implements OrderRepositoryInterface
             OrderStatusEnum::InProgress,
         ];
 
-        return Order::query()
+        return $this->providerHomeScopedOrdersQuery($provider)
             ->orderByRaw('ROW_NUMBER() OVER (PARTITION BY status ORDER BY created_at DESC)')
-            ->whereIn('status', $orderStatuses)
-            ->where(function ($query) use ($provider) {
-                return $query
-                    ->where(function ($query) use ($provider) {
-                        return $query->whereHas('offers', fn ($q) => $q->where('provider_id', $provider->id)->where('status', OfferStatusEnum::Pending))
-                            ->where('status', OrderStatusEnum::New);
-                    })
-                    ->orWhere('provider_id', $provider->id);
-            })
             ->limit(count($orderStatuses) * 3)
             ->get()
             ->groupBy(fn ($i) => $i->status->value);
@@ -190,7 +182,16 @@ class OrderRepository implements OrderRepositoryInterface
     }
 
     /**
-     * @return array{totalOrders: int, totalFinishedOrders: int}
+     * @return array{
+     *     totalOrders: int,
+     *     totalFinishedOrders: int,
+     *     tabCounts: array{
+     *         new: int,
+     *         offer_provided: int,
+     *         in_progress: int,
+     *         ended_by_provider: int
+     *     }
+     * }
      */
     public function providerHomeStats(Provider $provider): array
     {
@@ -201,10 +202,52 @@ class OrderRepository implements OrderRepositoryInterface
             )
             ->first();
 
+        $grouped = $this->providerHomeScopedOrdersQuery($provider)
+            ->select('status', DB::raw('COUNT(*) as aggregate'))
+            ->groupBy('status')
+            ->get()
+            ->mapWithKeys(fn ($row) => [$row->status->value => (int) $row->aggregate])
+            ->all();
+
         return [
             'totalOrders' => (int) ($stats->total_orders ?? 0),
             'totalFinishedOrders' => (int) ($stats->total_finished_orders ?? 0),
+            'tabCounts' => [
+                OrderStatusEnum::New->value => $grouped[OrderStatusEnum::New->value] ?? 0,
+                OrderStatusEnum::OfferProvided->value => $grouped[OrderStatusEnum::OfferProvided->value] ?? 0,
+                OrderStatusEnum::InProgress->value => $grouped[OrderStatusEnum::InProgress->value] ?? 0,
+                OrderStatusEnum::EndedByProvider->value => $grouped[OrderStatusEnum::EndedByProvider->value] ?? 0,
+            ],
         ];
+    }
+
+    /**
+     * Same scope as the home windowed order lists (pending-offer New + assigned buckets).
+     *
+     * @return Builder<Order>
+     */
+    private function providerHomeScopedOrdersQuery(Provider $provider)
+    {
+        $orderStatuses = [
+            OrderStatusEnum::New,
+            OrderStatusEnum::OfferProvided,
+            OrderStatusEnum::EndedByProvider,
+            OrderStatusEnum::InProgress,
+        ];
+
+        return Order::query()
+            ->whereIn('status', $orderStatuses)
+            ->where(function ($query) use ($provider) {
+                return $query
+                    ->where(function ($query) use ($provider) {
+                        return $query->whereHas(
+                            'offers',
+                            fn ($q) => $q->where('provider_id', $provider->id)
+                                ->where('status', OfferStatusEnum::Pending),
+                        )->where('status', OrderStatusEnum::New);
+                    })
+                    ->orWhere('provider_id', $provider->id);
+            });
     }
 
     /**

@@ -79,6 +79,8 @@ class AuthController extends Controller
             'providerType',
             'media',
         ]);
+        $provider->loadAvg('reviews', 'rating');
+        $provider->loadCount('reviews');
         $this->attachAmountInTransfer($provider);
 
         return inertia('Provider/Auth/Profile/Index', [

@@ -1069,5 +1069,11 @@
         "finishing_upload": "Finishing upload…",
         "fix_upload_before_submit": "Please wait for uploads to finish or fix failed uploads before submitting.",
         "reupload_required": "Please re-upload the highlighted file(s)."
-    }
+    },
+    "orders_awaiting_offer_approval": ":count ऑर्डर ऑफ़र अनुमोदन की प्रतीक्षा में",
+    "review_awaiting_orders": "ऑर्डर देखें",
+    "no_recent_wallet_activity": "हाल की वॉलेट गतिविधि नहीं",
+    "no_recent_wallet_activity_description": "भुगतान मिलना शुरू होने पर निकासी और कमाई यहाँ दिखेगी।",
+    "verified_provider": "सत्यापित प्रदाता",
+    "edit_profile": "प्रोफ़ाइल संपादित करें"
 }

@@ -42,6 +42,7 @@ class HomeController extends Controller
         return inertia('Provider/Home', [
             'totalOrders' => $stats['totalOrders'],
             'totalFinishedOrders' => $stats['totalFinishedOrders'],
+            'orderTabCounts' => $stats['tabCounts'],
             'wallet' => WalletResource::make($auth->wallet),
             'recentTransactions' => WalletTransactionResource::collection(
                 $this->walletService->listRecentForWallet($auth->wallet, 5),

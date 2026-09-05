@@ -2,7 +2,6 @@
 
 use App\Enums\OperationStatusEnum;
 use App\Http\Controllers\Provider\HomeController;
-use Illuminate\Support\Facades\DB;
 use Modules\Marketplace\Models\Category;
 use Modules\Orders\Actions\Provider\GetProviderHomeOrderStatsAction;
 use Modules\Orders\Enums\OrderStatusEnum;
@@ -46,6 +45,8 @@ it('renders provider home with order stats and recommendations', function () {
             ->has('recommendOrders')
             ->has('pendingOrders')
             ->has('inProgressOrders')
+            ->has('orderTabCounts')
+            ->where('orderTabCounts.in_progress', 1)
         );
 });
 
@@ -338,7 +339,7 @@ test('Home recent wallet activity applies the same internal-row filtering as the
         );
 });
 
-test('totalOrders and totalFinishedOrders are now produced by a single query, not two', function () {
+test('provider home order stats include live tab counts alongside totals', function () {
     $provider = createWalletProvider();
 
     Order::factory()->create([
@@ -349,18 +350,21 @@ test('totalOrders and totalFinishedOrders are now produced by a single query, no
         'provider_id' => $provider->id,
         'status' => OrderStatusEnum::EndedByClient,
     ]);
-
-    DB::enableQueryLog();
+    Order::factory()->count(4)->create([
+        'provider_id' => $provider->id,
+        'status' => OrderStatusEnum::OfferProvided,
+    ]);
 
     $stats = app(GetProviderHomeOrderStatsAction::class)->handle($provider);
 
-    $orderQueries = collect(DB::getQueryLog())
-        ->filter(fn (array $entry): bool => str_contains(strtolower($entry['query']), 'from `orders`')
-            || str_contains(strtolower($entry['query']), 'from "orders"'))
-        ->count();
-
     expect($stats)->toBe([
-        'totalOrders' => 3,
+        'totalOrders' => 7,
         'totalFinishedOrders' => 2,
-    ])->and($orderQueries)->toBe(1);
+        'tabCounts' => [
+            'new' => 0,
+            'offer_provided' => 4,
+            'in_progress' => 1,
+            'ended_by_provider' => 0,
+        ],
+    ]);
 });

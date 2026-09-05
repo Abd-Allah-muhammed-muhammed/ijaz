@@ -1163,5 +1163,11 @@
         "finishing_upload": "جاري إنهاء الرفع…",
         "fix_upload_before_submit": "يرجى انتظار اكتمال الرفع أو إصلاح الملفات الفاشلة قبل الإرسال.",
         "reupload_required": "يرجى إعادة رفع الملف/الملفات المميزة."
-    }
+    },
+    "orders_awaiting_offer_approval": ":count طلبات بانتظار اعتماد العرض",
+    "review_awaiting_orders": "مراجعة الطلبات",
+    "no_recent_wallet_activity": "لا يوجد نشاط حديث للمحفظة",
+    "no_recent_wallet_activity_description": "ستظهر عمليات السحب والأرباح هنا بعد بدء استلام المدفوعات.",
+    "verified_provider": "مزود خدمة موثق",
+    "edit_profile": "تعديل الملف الشخصي"
 }

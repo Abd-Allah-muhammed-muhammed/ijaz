@@ -1272,5 +1272,11 @@
         "finishing_upload": "Finishing upload…",
         "fix_upload_before_submit": "Please wait for uploads to finish or fix failed uploads before submitting.",
         "reupload_required": "Please re-upload the highlighted file(s)."
-    }
+    },
+    "orders_awaiting_offer_approval": ":count orders waiting for offer approval",
+    "review_awaiting_orders": "Review orders",
+    "no_recent_wallet_activity": "No recent wallet activity",
+    "no_recent_wallet_activity_description": "Withdrawals and earnings will show up here once you start getting paid.",
+    "verified_provider": "Verified provider",
+    "edit_profile": "Edit profile"
 }
