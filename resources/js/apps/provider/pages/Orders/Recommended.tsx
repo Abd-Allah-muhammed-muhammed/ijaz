@@ -11,13 +11,13 @@ import {Order} from "@/shared/types/models";
 import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/OrderController";
 import OrderCard from "@/shared/components/order/order-card";
 import {Col, Row} from "react-bootstrap";
-import {applyFilterParam, visitWithFilters} from "@/shared/lib/filters";
 import {
   EmptyState,
   PageFilterBar,
   SectionCard,
   type PageFilterField,
 } from '@/shared/components/ui';
+import { useOrderFilters } from '@/apps/provider/pages/Orders/hooks/use-order-filters';
 
 type Props = {
   rows: PaginationResource<Order>,
@@ -44,42 +44,29 @@ const Recommended = (
   }: Props
 ) => {
   const { t } = useTranslation();
-  const searchPrams: SearchPrams = prams || {
-    per_page: 10,
-    search: '',
-  };
-  const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    const next = applyFilterParam(
-      { ...searchPrams } as Record<string, unknown>,
-      name,
-      value,
-    );
-    visitWithFilters(OrderController.new().url, next, { only: ['rows', 'prams'] });
-  };
+  const { filters, onFilterChange } = useOrderFilters<SearchPrams>({
+    prams,
+    defaults: { per_page: 10, search: '' },
+    url: OrderController.new().url,
+  });
 
   const filterFields: PageFilterField[] = [
     {
       name: 'search',
       type: 'search',
-      value: searchPrams.search,
+      value: filters.search,
       placeholder: t('search'),
     },
     {
       name: 'period',
       type: 'select',
-      value: searchPrams.period ?? '30',
+      value: filters.period ?? '30',
       options: PERIOD_OPTIONS.map((option) => ({
         value: option.value,
         label: t(option.labelKey),
       })),
     },
   ];
-
-  const handleFilterChange = (name: string, value: string) => {
-    if (name === 'search' || name === 'period') {
-      searchPramsChanged(name, value);
-    }
-  };
 
   return (
     <>
@@ -98,7 +85,7 @@ const Recommended = (
       <Content>
         <PageFilterBar
           filters={filterFields}
-          onFilterChange={handleFilterChange}
+          onFilterChange={onFilterChange}
         />
         {rows.data.length === 0 ? (
           <SectionCard>

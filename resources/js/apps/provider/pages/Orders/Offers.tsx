@@ -11,7 +11,6 @@ import { OrderOffer } from '@/shared/types/models';
 import OrderController from '@/actions/Modules/Orders/Http/Controllers/Provider/OrderController';
 import { Card, Col, Row } from 'react-bootstrap';
 import { OfferStatusEnum } from '@/Enums/Order';
-import { applyFilterParam, visitWithFilters } from '@/shared/lib/filters';
 import { formatCurrency, formatDateTime } from '@/shared/lib/formatters';
 import { getOfferStatusBadgeClass } from '@/apps/provider/pages/Orders/order-show-utils';
 import {
@@ -21,6 +20,7 @@ import {
   StatusBadge,
   type PageFilterField,
 } from '@/shared/components/ui';
+import { useOrderFilters } from '@/apps/provider/pages/Orders/hooks/use-order-filters';
 
 type Props = {
   rows: PaginationResource<OrderOffer>;
@@ -36,31 +36,23 @@ type SearchPrams = {
 const Offers = ({ rows, prams }: Props) => {
   const { t, i18n } = useTranslation();
   const currencyLabel = t('SAR');
-  const searchPrams: SearchPrams = prams || {
-    per_page: 10,
-    search: '',
-  };
-
-  const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    const next = applyFilterParam(
-      { ...searchPrams } as Record<string, unknown>,
-      name,
-      value,
-    );
-    visitWithFilters(OrderController.offers().url, next, { only: ['rows', 'prams'] });
-  };
+  const { filters, onFilterChange } = useOrderFilters<SearchPrams>({
+    prams,
+    defaults: { per_page: 10, search: '' },
+    url: OrderController.offers().url,
+  });
 
   const filterFields: PageFilterField[] = [
     {
       name: 'search',
       type: 'search',
-      value: searchPrams.search,
+      value: filters.search,
       placeholder: t('search'),
     },
     {
       name: 'status',
       type: 'select',
-      value: searchPrams.status ?? '',
+      value: filters.status ?? '',
       options: [
         { value: '', label: t('all') },
         ...Object.values(OfferStatusEnum).map((status) => ({
@@ -70,12 +62,6 @@ const Offers = ({ rows, prams }: Props) => {
       ],
     },
   ];
-
-  const handleFilterChange = (name: string, value: string) => {
-    if (name === 'search' || name === 'status') {
-      searchPramsChanged(name, value);
-    }
-  };
 
   return (
     <>
@@ -96,7 +82,7 @@ const Offers = ({ rows, prams }: Props) => {
       <Content>
         <PageFilterBar
           filters={filterFields}
-          onFilterChange={handleFilterChange}
+          onFilterChange={onFilterChange}
         />
 
         {rows.data.length === 0 ? (

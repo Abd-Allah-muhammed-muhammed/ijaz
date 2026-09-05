@@ -132,11 +132,9 @@ describe('My Offers table', () => {
 });
 
 describe('Offers list page', () => {
-  it('Offers list page has a search input and a status filter, wired via applyFilterParam/visitWithFilters matching Orders Index', () => {
-    expect(indexSrc).toContain('applyFilterParam');
-    expect(indexSrc).toContain('visitWithFilters');
-    expect(offersSrc).toContain('applyFilterParam');
-    expect(offersSrc).toContain('visitWithFilters');
+  it('Offers list page has a search input and a status filter, wired via useOrderFilters matching Orders Index', () => {
+    expect(indexSrc).toContain('useOrderFilters');
+    expect(offersSrc).toContain('useOrderFilters');
     expect(offersSrc).toContain('PageFilterBar');
     expect(offersSrc).toContain("name: 'search'");
     expect(offersSrc).toContain("name: 'status'");

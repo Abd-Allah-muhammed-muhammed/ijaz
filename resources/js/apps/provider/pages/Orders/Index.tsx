@@ -12,7 +12,6 @@ import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/
 import OrderCard from "@/shared/components/order/order-card";
 import {Col, Row} from "react-bootstrap";
 import {OrderStatusEnum} from "@/Enums/Order";
-import {applyFilterParam, visitWithFilters} from "@/shared/lib/filters";
 import { ORDERS_PAGE_TITLE_KEY } from '@/shared/i18n/orders-label';
 import {
   EmptyState,
@@ -20,6 +19,7 @@ import {
   SectionCard,
   type PageFilterField,
 } from '@/shared/components/ui';
+import { useOrderFilters } from '@/apps/provider/pages/Orders/hooks/use-order-filters';
 
 type Props = {
   rows: PaginationResource<Order>,
@@ -41,30 +41,23 @@ const Index = (
   }: Props
 ) => {
   const { t } = useTranslation();
-  const searchPrams: SearchPrams = prams || {
-    per_page: 10,
-    search: '',
-  };
-  const searchPramsChanged = (name: keyof SearchPrams, value: string | number) => {
-    const next = applyFilterParam(
-      { ...searchPrams } as Record<string, unknown>,
-      name,
-      value,
-    );
-    visitWithFilters(OrderController.index().url, next, { only: ['rows', 'prams'] });
-  };
+  const { filters, onFilterChange } = useOrderFilters<SearchPrams>({
+    prams,
+    defaults: { per_page: 10, search: '' },
+    url: OrderController.index().url,
+  });
 
   const filterFields: PageFilterField[] = [
     {
       name: 'search',
       type: 'search',
-      value: searchPrams.search,
+      value: filters.search,
       placeholder: t('search'),
     },
     {
       name: 'status',
       type: 'select',
-      value: searchPrams.status ?? '',
+      value: filters.status ?? '',
       options: [
         { value: '', label: t('all') },
         ...Object.values(OrderStatusEnum).map((status) => ({
@@ -76,27 +69,16 @@ const Index = (
     {
       name: 'date_from',
       type: 'date',
-      value: searchPrams.date_from ?? '',
+      value: filters.date_from ?? '',
       placeholder: 'Date From',
     },
     {
       name: 'date_to',
       type: 'date',
-      value: searchPrams.date_to ?? '',
+      value: filters.date_to ?? '',
       placeholder: 'Date To',
     },
   ];
-
-  const handleFilterChange = (name: string, value: string) => {
-    if (
-      name === 'search'
-      || name === 'status'
-      || name === 'date_from'
-      || name === 'date_to'
-    ) {
-      searchPramsChanged(name, value);
-    }
-  };
 
   return (
     <>
@@ -115,7 +97,7 @@ const Index = (
       <Content>
         <PageFilterBar
           filters={filterFields}
-          onFilterChange={handleFilterChange}
+          onFilterChange={onFilterChange}
         />
         {rows.data.length === 0 ? (
           <SectionCard>
