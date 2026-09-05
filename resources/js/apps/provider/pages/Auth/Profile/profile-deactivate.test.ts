@@ -13,7 +13,9 @@ describe('Profile self-deactivation control', () => {
     expect(profileSrc).toContain('DeactivateAccount')
 
     expect(deactivateSrc).toMatch(/AuthController\.deactivate|deactivate\(\)/)
-    expect(deactivateSrc).toMatch(/Swal|swal\.fire|are_you_sure/)
+    expect(deactivateSrc).toContain('ConfirmDialog')
+    expect(deactivateSrc).toContain('are_you_sure')
+    expect(deactivateSrc).not.toMatch(/Swal|swal\.fire|withReactContent/)
     expect(deactivateSrc).toMatch(/confirmed/)
     expect(deactivateSrc).not.toMatch(/loading\] = useState\(false\)/)
   })

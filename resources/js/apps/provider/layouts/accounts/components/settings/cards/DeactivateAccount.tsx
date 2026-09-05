@@ -2,15 +2,14 @@ import {useState, FC, FormEvent} from 'react'
 import {useTranslation} from 'react-i18next'
 import {router} from '@inertiajs/react'
 import {KTIcon} from '@/vendor/metronic/helpers'
-import withReactContent from 'sweetalert2-react-content'
-import Swal from 'sweetalert2'
 import AuthController from '@/actions/App/Http/Controllers/Provider/AuthController'
+import { ConfirmDialog } from '@/shared/components/ui'
 
 const DeactivateAccount: FC = () => {
   const {t} = useTranslation()
   const [confirmed, setConfirmed] = useState(false)
   const [processing, setProcessing] = useState(false)
-  const swal = withReactContent(Swal)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   const submitDeactivation = (event: FormEvent) => {
     event.preventDefault()
@@ -19,26 +18,33 @@ const DeactivateAccount: FC = () => {
       return
     }
 
-    swal.fire({
-      title: t('are_you_sure'),
-      icon: 'warning',
-      showCancelButton: true,
-      cancelButtonText: t('cancel'),
-      confirmButtonText: t('yes'),
-    }).then((result) => {
-      if (!result.isConfirmed) {
-        return
-      }
+    setShowConfirm(true)
+  }
 
-      setProcessing(true)
-      router.post(
-        AuthController.deactivate().url,
-        {confirmed: true},
-        {
-          onFinish: () => setProcessing(false),
+  const closeConfirm = () => {
+    if (processing) {
+      return
+    }
+
+    setShowConfirm(false)
+  }
+
+  const confirmDeactivation = () => {
+    if (processing) {
+      return
+    }
+
+    setProcessing(true)
+    router.post(
+      AuthController.deactivate().url,
+      {confirmed: true},
+      {
+        onFinish: () => {
+          setProcessing(false)
+          setShowConfirm(false)
         },
-      )
-    })
+      },
+    )
   }
 
   return (
@@ -109,6 +115,18 @@ const DeactivateAccount: FC = () => {
           </div>
         </form>
       </div>
+
+      <ConfirmDialog
+        show={showConfirm}
+        title={t('are_you_sure')}
+        message={t('you_are_deactivating_your_account')}
+        confirmLabel={t('yes')}
+        cancelLabel={t('cancel')}
+        confirmVariant="danger"
+        loading={processing}
+        onCancel={closeConfirm}
+        onConfirm={confirmDeactivation}
+      />
     </div>
   )
 }
