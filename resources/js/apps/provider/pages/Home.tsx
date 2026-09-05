@@ -13,6 +13,12 @@ import AuthController from '@/actions/App/Http/Controllers/Provider/AuthControll
 import WalletQuickActions from '@/apps/provider/components/wallet/WalletQuickActions';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
+import { KTIcon } from '@/vendor/metronic/helpers';
+import {
+  EmptyState,
+  StatusBadge,
+  StatTile,
+} from '@/shared/components/ui';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
@@ -83,12 +89,7 @@ const Home = (
         <Row className="mb-5 g-5">
           {metrics.map((metric) => (
             <Col key={metric.label} xs={6} md={3}>
-              <Card className="h-100">
-                <Card.Body className="py-5">
-                  <div className="fs-2 fw-bolder text-gray-900">{metric.value}</div>
-                  <div className="fw-bold fs-6 text-gray-500">{metric.label}</div>
-                </Card.Body>
-              </Card>
+              <StatTile label={metric.label} value={metric.value} />
             </Col>
           ))}
         </Row>
@@ -186,9 +187,10 @@ const Home = (
                                     </div>
                                     <span className="fw-semibold fs-6 text-gray-500">{order.description}</span>
                                   </div>
-                                  <span className={`badge badge-lg badge-light-success fw-bold fs-7 badge-${order.status.color}`}>
-                                    {order.status.label}
-                                  </span>
+                                  <StatusBadge
+                                    status={order.status}
+                                    className="badge-lg fs-7"
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -222,9 +224,10 @@ const Home = (
                                     </div>
                                     <span className="fw-semibold fs-6 text-gray-500">{order.description}</span>
                                   </div>
-                                  <span className={`badge badge-lg badge-light-success fw-bold fs-7 badge-${order.status.color}`}>
-                                    {order.status.label}
-                                  </span>
+                                  <StatusBadge
+                                    status={order.status}
+                                    className="badge-lg fs-7"
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -258,9 +261,10 @@ const Home = (
                                     </div>
                                     <span className="fw-semibold fs-6 text-gray-500">{order.description}</span>
                                   </div>
-                                  <span className={`badge badge-lg badge-light-success fw-bold fs-7 badge-${order.status.color}`}>
-                                    {order.status.label}
-                                  </span>
+                                  <StatusBadge
+                                    status={order.status}
+                                    className="badge-lg fs-7"
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -294,9 +298,10 @@ const Home = (
                                     </div>
                                     <span className="fw-semibold fs-6 text-gray-500">{order.description}</span>
                                   </div>
-                                  <span className={`badge badge-lg badge-light-success fw-bold fs-7 badge-${order.status.color}`}>
-                                    {order.status.label}
-                                  </span>
+                                  <StatusBadge
+                                    status={order.status}
+                                    className="badge-lg fs-7"
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -352,7 +357,11 @@ const Home = (
           </Card.Header>
           <Card.Body>
             {recentTransactions.length === 0 ? (
-              <div className="text-gray-500">{t('no_data')}</div>
+              <EmptyState
+                compact
+                icon={<KTIcon iconName="time" className="fs-3x text-gray-300 mb-3" />}
+                title={t('no_data')}
+              />
             ) : (
               recentTransactions.map((transaction, i) => {
                 const amount = Number(transaction.amount) || 0
@@ -366,7 +375,11 @@ const Home = (
                       {isPending ? (
                         <span className="d-flex align-items-center gap-2">
                           <span className="fw-bold fs-6 text-gray-500">{amount}</span>
-                          <span className="badge badge-light-warning fs-8">{t('pending')}</span>
+                          <StatusBadge
+                            label={t('pending')}
+                            color="warning"
+                            className="fs-8"
+                          />
                         </span>
                       ) : (
                         <span className={`fw-bold fs-6 ${isCredit ? 'text-success' : 'text-gray-800'}`}>
