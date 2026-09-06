@@ -1,16 +1,18 @@
 import { useTranslation } from 'react-i18next';
-import { formatCurrency } from '@/shared/lib/formatters';
+import { formatCurrency, parseAmount } from '@/shared/lib/formatters';
 import { SectionCard } from '@/shared/components/ui';
 import { WithdrawTrigger } from '@/apps/provider/components/wallet/WalletQuickActions';
 
 export type WalletBalanceHeroProps = {
   balance: number | string | null | undefined;
+  pendingDebit?: number | string | null;
   currencyLabel: string;
   locale: string;
 };
 
 export default function WalletBalanceHero({
   balance,
+  pendingDebit = 0,
   currencyLabel,
   locale,
 }: WalletBalanceHeroProps) {
@@ -21,6 +23,7 @@ export default function WalletBalanceHero({
     maximumFractionDigits: 2,
     minimumFractionDigits: 0,
   });
+  const availableBalance = parseAmount(balance) - parseAmount(pendingDebit);
 
   return (
     <SectionCard variant="hero" className="mb-5">
@@ -33,7 +36,11 @@ export default function WalletBalanceHero({
             {formattedBalance}
           </div>
         </div>
-        <WithdrawTrigger reloadOnly={['provider', 'transactions']} className="me-0" />
+        <WithdrawTrigger
+          reloadOnly={['provider', 'transactions']}
+          className="me-0"
+          availableBalance={availableBalance}
+        />
       </div>
     </SectionCard>
   );

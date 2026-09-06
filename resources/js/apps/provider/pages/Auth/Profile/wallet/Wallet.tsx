@@ -138,6 +138,7 @@ const Wallet = ({ transactions, provider, prams }: WalletPageProps) => {
         <div className="min-w-0">
           <WalletBalanceHero
             balance={provider.wallet?.balance}
+            pendingDebit={provider.wallet?.pending_debit}
             currencyLabel={t('SAR')}
             locale={i18n.language}
           />

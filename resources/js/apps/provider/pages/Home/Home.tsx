@@ -14,6 +14,7 @@ import type {
 } from '@/shared/types/models';
 import { useEffect, type ReactElement } from 'react';
 import WalletQuickActions from '@/apps/provider/components/wallet/WalletQuickActions';
+import { parseAmount } from '@/shared/lib/formatters';
 import type { BackendOrderTabCounts } from '@/apps/provider/pages/Home/hooks/use-order-tab-counts';
 import { useOrderTabCounts } from '@/apps/provider/pages/Home/hooks/use-order-tab-counts';
 import { useNeedsAttentionCount } from '@/apps/provider/pages/Home/hooks/use-needs-attention-count';
@@ -97,6 +98,12 @@ const Home = ({
               <WalletQuickActions
                 className="d-flex"
                 reloadOnly={['wallet', 'recentTransactions', 'orderTabCounts']}
+                availableBalance={
+                  wallet
+                    ? parseAmount(wallet.balance) -
+                      parseAmount(wallet.pending_debit)
+                    : undefined
+                }
               />
             </div>
           </div>

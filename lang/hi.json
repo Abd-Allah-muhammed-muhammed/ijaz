@@ -885,6 +885,8 @@
     "communications": "संचार",
     "withdraw": "निकासी",
     "insufficient_available_balance": "उपलब्ध शेष राशि अपर्याप्त है। उपलब्ध: :available, अनुरोधित: :requested",
+    "available_balance": "उपलब्ध शेष: :amount",
+    "withdraw_notes_placeholder": "इस निकासी के बारे में वैकल्पिक नोट",
     "order_wallet_hold_insufficient": "वॉलेट होल्ड भुगतान को पूरी तरह उलटने के लिए अपर्याप्त हैं, इसलिए यह ऑर्डर रद्द नहीं किया जा सकता।",
     "recharge": "रिचार्ज",
     "recharge_requests": "रिचार्ज अनुरोध",

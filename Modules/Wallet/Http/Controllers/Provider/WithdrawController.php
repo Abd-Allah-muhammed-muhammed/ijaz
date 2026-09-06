@@ -28,14 +28,16 @@ class WithdrawController extends Controller
 
     public function index(Request $request): Response
     {
+        $provider = auth('provider')->user();
         $rows = $this->withdrawRequestService->listForOwner(
-            auth('provider')->user(),
+            $provider,
             $request,
         );
 
         return inertia('Provider/WithdrawRequests/Index', [
             'rows' => fn () => WithdrawCollection::make($rows),
             'prams' => fn () => $request->all() ?: [],
+            'availableBalance' => fn () => $this->walletService->getBalance($provider)->available,
         ]);
     }
 

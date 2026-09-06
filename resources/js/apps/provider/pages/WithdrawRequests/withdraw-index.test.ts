@@ -50,6 +50,10 @@ describe('Withdraw Index redesign', () => {
     expect(src).toContain('buttonClassName="btn btn-primary"');
   });
 
+  it('passes availableBalance into WithdrawTrigger for the modal', () => {
+    expect(src).toContain('availableBalance={availableBalance}');
+  });
+
   it('uses a compact kebab for mobile trailing actions and lighter mobile badges', () => {
     expect(src).toContain('compact');
     expect(src).toContain("mobile: 'badge'");

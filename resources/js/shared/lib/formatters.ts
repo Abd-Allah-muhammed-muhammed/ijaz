@@ -73,6 +73,22 @@ export function formatCurrency(
   return `${formatted} ${currencyLabel}`;
 }
 
+/** Parse API/wallet amounts that may include thousands separators. */
+export function parseAmount(value: number | string | null | undefined): number {
+  if (value === null || value === undefined || value === '') {
+    return 0;
+  }
+
+  if (typeof value === 'number') {
+    return Number.isNaN(value) ? 0 : value;
+  }
+
+  const normalized = value.replace(/,/g, '').trim();
+  const amount = Number(normalized);
+
+  return Number.isNaN(amount) ? 0 : amount;
+}
+
 export function formatDate(
   value: string | Date | null | undefined,
   locale?: string,

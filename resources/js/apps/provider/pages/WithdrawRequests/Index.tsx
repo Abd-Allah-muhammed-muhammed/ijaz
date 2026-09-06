@@ -38,6 +38,7 @@ type SearchParams = {
 export type WithdrawIndexProps = {
   rows: PaginationResource<WithdrawRequest>;
   prams: SearchParams | null;
+  availableBalance?: number | string | null;
 };
 
 function WithdrawRowActions({
@@ -71,7 +72,7 @@ function WithdrawRowActions({
   );
 }
 
-const Index = ({ rows, prams }: WithdrawIndexProps) => {
+const Index = ({ rows, prams, availableBalance }: WithdrawIndexProps) => {
   const { t, i18n } = useTranslation();
   const searchParams: SearchParams = prams || {
     per_page: STATEMENT_PAGE_SIZE,
@@ -197,9 +198,10 @@ const Index = ({ rows, prams }: WithdrawIndexProps) => {
           {/* Wrapper: mobile align-self-start (non-stretch); desktop centers via parent row. */}
           <div className="align-self-start flex-shrink-0">
             <WithdrawTrigger
-              reloadOnly={['rows']}
+              reloadOnly={['rows', 'availableBalance']}
               buttonClassName="btn btn-primary"
               className="me-0"
+              availableBalance={availableBalance}
             />
           </div>
         </div>

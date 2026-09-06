@@ -1,27 +1,29 @@
-import {useState} from 'react'
-import {useTranslation} from 'react-i18next'
-import {KTIcon} from '@/vendor/metronic/helpers'
-import {SECONDARY_BUTTON_CLASS} from '@/shared/components/ui'
-import WithdrawModal from '@/apps/provider/components/wallet/WithdrawModal'
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { KTIcon } from '@/vendor/metronic/helpers';
+import { SECONDARY_BUTTON_CLASS } from '@/shared/components/ui';
+import WithdrawModal from '@/apps/provider/components/wallet/WithdrawModal';
 // Paused (not removed) — chore/provider-topup-pause, 2026-09-04.
 // import RechargeModal from '@/apps/provider/components/wallet/RechargeModal'
 
 type TriggerProps = {
-  reloadOnly?: string[]
-  className?: string
+  reloadOnly?: string[];
+  className?: string;
   /** Replaces the default secondary surface when a stronger CTA is needed. */
-  buttonClassName?: string
-}
+  buttonClassName?: string;
+  availableBalance?: number | string | null;
+};
 
-const DEFAULT_RELOAD_ONLY = ['provider', 'transactions']
+const DEFAULT_RELOAD_ONLY = ['provider', 'transactions'];
 
 export const WithdrawTrigger = ({
   reloadOnly = DEFAULT_RELOAD_ONLY,
   className,
   buttonClassName,
+  availableBalance,
 }: TriggerProps) => {
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false)
-  const {t} = useTranslation()
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <>
@@ -32,18 +34,19 @@ export const WithdrawTrigger = ({
           .join(' ')}
         onClick={() => setShowWithdrawModal(true)}
       >
-        <KTIcon iconName='check' className='fs-3 d-none'/>
-        <span className='indicator-label'>{t('withdraw')}</span>
+        <KTIcon iconName="check" className="fs-3 d-none" />
+        <span className="indicator-label">{t('withdraw')}</span>
       </button>
 
       <WithdrawModal
         show={showWithdrawModal}
         onHide={() => setShowWithdrawModal(false)}
         reloadOnly={reloadOnly}
+        availableBalance={availableBalance}
       />
     </>
-  )
-}
+  );
+};
 
 // Paused (not removed) — Provider dashboard top-up / recharge UI.
 // Re-enable by uncommenting RechargeModal import + this export, and the
@@ -74,18 +77,25 @@ export const WithdrawTrigger = ({
 // }
 
 type Props = TriggerProps & {
-  className?: string
-}
+  className?: string;
+};
 
-const WalletQuickActions = ({reloadOnly = DEFAULT_RELOAD_ONLY, className = 'd-flex my-4'}: Props) => {
+const WalletQuickActions = ({
+  reloadOnly = DEFAULT_RELOAD_ONLY,
+  className = 'd-flex my-4',
+  availableBalance,
+}: Props) => {
   return (
     <div className={className}>
-      <WithdrawTrigger reloadOnly={reloadOnly} />
+      <WithdrawTrigger
+        reloadOnly={reloadOnly}
+        availableBalance={availableBalance}
+      />
       {/* Paused (not removed) — chore/provider-topup-pause, 2026-09-04.
       <RechargeTrigger reloadOnly={reloadOnly} />
       */}
     </div>
-  )
-}
+  );
+};
 
-export default WalletQuickActions
+export default WalletQuickActions;

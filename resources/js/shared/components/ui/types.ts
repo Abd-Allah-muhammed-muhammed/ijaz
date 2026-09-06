@@ -47,6 +47,13 @@ export const SECTION_CARD_HERO_FOOTER_CLASS =
 export const SECONDARY_BUTTON_CLASS =
   'btn btn-sm btn-bg-light btn-color-gray-900 btn-active-color-primary';
 
+/**
+ * Dark-safe secondary surface at default (non-`sm`) height — use in modal footers
+ * beside `btn btn-primary` so Cancel/Submit share one height.
+ */
+export const SECONDARY_BUTTON_DEFAULT_CLASS =
+  'btn btn-bg-light btn-color-gray-900 btn-active-color-primary';
+
 export const EMPTY_STATE_DEFAULT_PADDING_CLASS = 'text-center py-12 px-4';
 
 export const EMPTY_STATE_COMPACT_PADDING_CLASS = 'text-center py-10';

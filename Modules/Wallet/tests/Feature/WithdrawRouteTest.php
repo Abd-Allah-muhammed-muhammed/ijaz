@@ -19,6 +19,7 @@ test('provider can list their withdraw requests', function () {
         ->assertInertia(fn ($page) => $page
             ->component('Provider/WithdrawRequests/Index')
             ->has('rows.data', 1)
+            ->has('availableBalance')
         );
 });
 
