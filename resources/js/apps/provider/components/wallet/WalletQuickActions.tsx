@@ -9,11 +9,17 @@ import WithdrawModal from '@/apps/provider/components/wallet/WithdrawModal'
 type TriggerProps = {
   reloadOnly?: string[]
   className?: string
+  /** Replaces the default secondary surface when a stronger CTA is needed. */
+  buttonClassName?: string
 }
 
 const DEFAULT_RELOAD_ONLY = ['provider', 'transactions']
 
-export const WithdrawTrigger = ({reloadOnly = DEFAULT_RELOAD_ONLY, className}: TriggerProps) => {
+export const WithdrawTrigger = ({
+  reloadOnly = DEFAULT_RELOAD_ONLY,
+  className,
+  buttonClassName,
+}: TriggerProps) => {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false)
   const {t} = useTranslation()
 
@@ -21,7 +27,9 @@ export const WithdrawTrigger = ({reloadOnly = DEFAULT_RELOAD_ONLY, className}: T
     <>
       <button
         type="button"
-        className={[SECONDARY_BUTTON_CLASS, className ?? 'me-2'].filter(Boolean).join(' ')}
+        className={[buttonClassName ?? SECONDARY_BUTTON_CLASS, className ?? 'me-2']
+          .filter(Boolean)
+          .join(' ')}
         onClick={() => setShowWithdrawModal(true)}
       >
         <KTIcon iconName='check' className='fs-3 d-none'/>

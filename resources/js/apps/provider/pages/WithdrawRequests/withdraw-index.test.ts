@@ -41,7 +41,13 @@ describe('Withdraw Index redesign', () => {
 
   it('keeps the withdraw CTA from stretching full-width on mobile', () => {
     expect(src).toContain('align-self-start');
-    expect(src).toContain('align-self-md-end');
+    expect(src).not.toContain('align-self-md-end');
+  });
+
+  it('uses a primary Withdraw button inline with search on the desktop toolbar row', () => {
+    expect(src).toContain('flex-md-row');
+    expect(src).toContain('align-items-md-center');
+    expect(src).toContain('buttonClassName="btn btn-primary"');
   });
 
   it('uses a compact kebab for mobile trailing actions and lighter mobile badges', () => {

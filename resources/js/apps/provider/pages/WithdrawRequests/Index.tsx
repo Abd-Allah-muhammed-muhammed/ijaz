@@ -194,10 +194,14 @@ const Index = ({ rows, prams }: WithdrawIndexProps) => {
               className="mb-0"
             />
           </div>
-          <WithdrawTrigger
-            reloadOnly={['rows']}
-            className="me-0 align-self-start align-self-md-end"
-          />
+          {/* Wrapper: mobile align-self-start (non-stretch); desktop centers via parent row. */}
+          <div className="align-self-start flex-shrink-0">
+            <WithdrawTrigger
+              reloadOnly={['rows']}
+              buttonClassName="btn btn-primary"
+              className="me-0"
+            />
+          </div>
         </div>
         <StackedDataTable
           rows={rows.data}
