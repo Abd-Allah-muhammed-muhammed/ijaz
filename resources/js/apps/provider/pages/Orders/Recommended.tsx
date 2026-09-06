@@ -70,7 +70,7 @@ const Recommended = (
 
   return (
     <>
-      <Head title={t('providers')}/>
+      <Head title={t('new_orders')}/>
       <PageTitle breadcrumbs={[
         {
           title: '',
@@ -79,7 +79,7 @@ const Recommended = (
           isActive: false,
         },
       ]}>
-        {t('providers')}
+        {t('new_orders')}
       </PageTitle>
       <ToolbarWrapper/>
       <Content>

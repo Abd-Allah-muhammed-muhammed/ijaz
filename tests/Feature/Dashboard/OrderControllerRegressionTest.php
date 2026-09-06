@@ -28,6 +28,16 @@ it('lists orders with stats for an admin', function () {
             ->where('stats.pending', 1)
             ->where('stats.completed', 1)
             ->where('stats.cancelled', 1)
+            // OrderCard StatusBadge expects EnumWithColors-shaped status payloads.
+            ->has('rows.data.0.status.label')
+            ->has('rows.data.0.status.color')
+            ->has('rows.data.0.status.value')
+            ->where('rows.data.0.status.color', fn (string $color) => in_array($color, [
+                OrderStatusEnum::New->color(),
+                OrderStatusEnum::InProgress->color(),
+                OrderStatusEnum::EndedByClient->color(),
+                OrderStatusEnum::CancelledByClient->color(),
+            ], true))
         );
 });
 

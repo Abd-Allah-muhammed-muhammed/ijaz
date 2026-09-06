@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Card, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { Link } from "@inertiajs/react";
 import { Order } from "@/shared/types/models";
+import { StatusBadge } from '@/shared/components/ui';
 import { KTIcon } from "@/vendor/metronic/helpers";
 import { useTranslation } from "react-i18next";
 
@@ -52,9 +53,7 @@ const OrderCard = ({ order, url = '#' }: Props) => {
             </div>
 
             {/* Status Badge */}
-            <Badge bg={`light-${order.status.color}`} className={`text-${order.status.color} fw-bold px-3 py-2 rounded-pill`}>
-              {order.status.label}
-            </Badge>
+            <StatusBadge status={order.status} />
           </div>
 
           <div className="separator separator-dashed mx-5"></div>
