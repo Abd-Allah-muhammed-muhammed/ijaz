@@ -26,6 +26,29 @@ type TabDefinition = {
   orders: Order[];
 };
 
+/**
+ * Horizontal scroll + edge fade for order tabs on narrow viewports.
+ * Mirrors registration wizard mobile stepper (`overflow-auto` + hidden
+ * scrollbar) and admin Orders Show (`flex-nowrap` + overflow-auto strip),
+ * with a soft end fade so the next tab peeks as a scroll affordance.
+ */
+const HOME_ORDER_TABS_SCROLL_STYLE = `
+.home-order-tabs-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.home-order-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+.home-order-tabs-fade {
+  background: linear-gradient(to left, var(--bs-card-bg, var(--bs-body-bg)) 20%, transparent);
+  pointer-events: none;
+}
+[dir="rtl"] .home-order-tabs-fade {
+  background: linear-gradient(to right, var(--bs-card-bg, var(--bs-body-bg)) 20%, transparent);
+}
+`;
+
 export default function OrderTabsSection({
   counts,
   pendingOrders,
@@ -70,31 +93,39 @@ export default function OrderTabsSection({
       </Card.Header>
       <Card.Body className="pt-0">
         <Tab.Container defaultActiveKey="pending">
-          <Nav
-            variant="pills"
-            className="nav-pills-custom position-relative mb-6 mb-md-9 flex-nowrap overflow-auto gap-3 gap-md-5"
-            role="tablist"
-          >
-            {tabs.map((tab) => (
-              <Nav.Item key={tab.key} className="flex-shrink-0">
-                <Nav.Link
-                  className="btn btn-color-gray-600 btn-active-color-primary d-flex justify-content-center align-items-center gap-2 h-100 w-100 border-0 px-2 px-md-0"
-                  eventKey={tab.key}
-                >
-                  <span className="nav-text fw-bold fs-7 fs-md-6 text-gray-600 text-nowrap">
-                    {t(tab.labelKey)}
-                  </span>
-                  <span className="badge badge-circle badge-light-primary fw-bold">
-                    {counts[tab.key]}
-                  </span>
-                  <span
-                    className="bullet-custom position-absolute z-index-2 h-3px bottom-0 start-0 end-0 rounded bg-primary"
-                    aria-hidden="true"
-                  />
-                </Nav.Link>
-              </Nav.Item>
-            ))}
-          </Nav>
+          <style>{HOME_ORDER_TABS_SCROLL_STYLE}</style>
+          <div className="position-relative mb-6 mb-md-9">
+            <Nav
+              variant="pills"
+              className="nav-pills-custom home-order-tabs-scroll flex-nowrap overflow-auto gap-3 gap-md-5 pe-10 pe-md-0"
+              role="tablist"
+            >
+              {tabs.map((tab) => (
+                <Nav.Item key={tab.key} className="flex-shrink-0">
+                  <Nav.Link
+                    className="btn btn-color-gray-600 btn-active-color-primary d-flex justify-content-center align-items-center gap-2 h-100 border-0 px-2 px-md-0 position-relative"
+                    eventKey={tab.key}
+                  >
+                    <span className="nav-text fw-bold fs-7 fs-md-6 text-gray-600 text-nowrap">
+                      {t(tab.labelKey)}
+                    </span>
+                    <span className="badge badge-circle badge-light-primary fw-bold">
+                      {counts[tab.key]}
+                    </span>
+                    <span
+                      className="bullet-custom position-absolute z-index-2 h-3px bottom-0 start-0 end-0 rounded bg-primary"
+                      aria-hidden="true"
+                    />
+                  </Nav.Link>
+                </Nav.Item>
+              ))}
+            </Nav>
+            {/* Mobile-only edge fade: hints that more tabs scroll horizontally. */}
+            <div
+              className="home-order-tabs-fade d-md-none position-absolute top-0 end-0 bottom-0 w-40px"
+              aria-hidden="true"
+            />
+          </div>
           <Tab.Content>
             {tabs.map((tab) => (
               <Tab.Pane key={tab.key} eventKey={tab.key}>

@@ -21,6 +21,15 @@ describe('OrderTabsSection', () => {
     expect(src).toContain('iconName="basket"');
     expect(src).toContain('tab.orders.length === 0');
   });
+
+  it('scrolls order tabs horizontally on mobile with a peek/fade affordance', () => {
+    expect(src).toContain('flex-nowrap');
+    expect(src).toContain('overflow-auto');
+    expect(src).toContain('home-order-tabs-scroll');
+    expect(src).toContain('home-order-tabs-fade');
+    expect(src).toContain('pe-10 pe-md-0');
+    expect(src).toContain('d-md-none');
+  });
 });
 
 describe('HomeOrdersTable', () => {
@@ -35,5 +44,17 @@ describe('HomeOrdersTable', () => {
   it('resolves status via resolveHomeOrderRowStatus (offer status on pending tab)', () => {
     expect(src).toContain('resolveHomeOrderRowStatus');
     expect(src).toContain('StatusBadge');
+  });
+
+  it('hides the column-header shell on mobile to avoid an empty gray strip', () => {
+    expect(src).toContain('d-none d-md-flex');
+    expect(src).toContain('headerClassName');
+    expect(src).toMatch(/headerClassName="[^"]*d-none d-md-flex/);
+  });
+
+  it('uses a compact mobile row without repeated field labels', () => {
+    expect(src).toContain('d-md-none d-flex');
+    expect(src).not.toMatch(/d-md-none text-muted fs-8 text-uppercase/);
+    expect(src).toContain('d-none d-md-flex align-items-center gap-3');
   });
 });
