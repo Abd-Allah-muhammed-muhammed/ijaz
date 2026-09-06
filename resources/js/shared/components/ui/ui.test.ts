@@ -21,7 +21,7 @@ const pageFilterBarSrc = readFileSync(join(dir, 'page-filter-bar.tsx'), 'utf8');
 const sectionCardSrc = readFileSync(join(dir, 'section-card.tsx'), 'utf8');
 
 describe('ui barrel', () => {
-  it('exports all 7 components from the subdomain barrel', () => {
+  it('exports all shared UI components from the subdomain barrel', () => {
     expect(barrelSrc).toContain("export { default as StatusBadge }");
     expect(barrelSrc).toContain("export { default as StatTile }");
     expect(barrelSrc).toContain("export { default as EmptyState }");
@@ -29,6 +29,7 @@ describe('ui barrel', () => {
     expect(barrelSrc).toContain("export { default as SectionCard }");
     expect(barrelSrc).toContain("export { default as PageFilterBar }");
     expect(barrelSrc).toContain("export { default as ConfirmDialog }");
+    expect(barrelSrc).toContain("export { default as StackedDataTable }");
   });
 
   it('keeps approved Orders/Show class constants for badge, tile, and card shells', () => {

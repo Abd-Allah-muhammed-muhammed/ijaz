@@ -625,7 +625,20 @@ export interface TopUpRequest extends Model {
   created_at: Date;
 }
 
-export type TransferStatusValue = 'in_progress' | 'transferred' | 'delayed';
+/**
+ * Provider-facing transfer/ledger status on wallet + withdraw surfaces.
+ * Includes payout collapses (`in_progress` / `transferred` / `delayed`),
+ * withdraw OperationStatus passthrough (`pending` / `approved` / `rejected`),
+ * and generic ledger statuses (`pending` / `completed`).
+ */
+export type TransferStatusValue =
+  | 'in_progress'
+  | 'transferred'
+  | 'delayed'
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'completed';
 
 export interface WithdrawRequest extends Model {
   id: string;

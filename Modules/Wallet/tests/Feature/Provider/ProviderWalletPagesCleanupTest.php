@@ -42,7 +42,7 @@ test('provider withdraw requests index page can open the create/withdraw flow di
 
     expect($source)->not->toBeFalse()
         ->and($source)->toContain('WithdrawTrigger')
-        ->and($source)->toContain('addButton');
+        ->and($source)->toContain('StackedDataTable');
 });
 
 test('wallet statements rows expose transfer_status for withdraw operations, consistent with other surfaces', function (): void {

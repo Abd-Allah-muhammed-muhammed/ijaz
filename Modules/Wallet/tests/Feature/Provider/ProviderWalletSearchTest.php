@@ -67,7 +67,7 @@ test('provider can search wallet statements by reference number copied with a le
         ]))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Auth/Profile/wallet')
+            ->component('Provider/Auth/Profile/wallet/Wallet')
             ->has('transactions.data', 1)
             ->where('transactions.data.0.id', $transaction->id)
         );
@@ -91,7 +91,7 @@ test('submitting an empty search value removes the search query parameter and re
         ]))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Auth/Profile/wallet')
+            ->component('Provider/Auth/Profile/wallet/Wallet')
             ->has('transactions.data', 1)
             ->where('transactions.data.0.id', $matching->id)
         );
@@ -102,11 +102,11 @@ test('submitting an empty search value removes the search query parameter and re
         ]))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Auth/Profile/wallet')
+            ->component('Provider/Auth/Profile/wallet/Wallet')
             ->has('transactions.data', 2)
         );
 
-    $source = file_get_contents(resource_path('js/apps/provider/pages/Auth/Profile/wallet.tsx'));
+    $source = file_get_contents(resource_path('js/apps/provider/pages/Auth/Profile/wallet/Wallet.tsx'));
 
     expect($source)->not->toBeFalse()
         ->and($source)->toContain('visitWithFilters')

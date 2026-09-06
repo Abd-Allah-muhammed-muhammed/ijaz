@@ -54,7 +54,7 @@ function providerLiveInertiaPageRelativePaths(): array
         'pages/Home/Home.tsx',
         'pages/Auth/LoginPage.tsx',
         'pages/Auth/Profile/Index.tsx',
-        'pages/Auth/Profile/wallet.tsx',
+        'pages/Auth/Profile/wallet/Wallet.tsx',
         'pages/Orders/Index.tsx',
         'pages/Orders/Recommended.tsx',
         'pages/Orders/Offers.tsx',
@@ -102,7 +102,7 @@ test('the Provider app builds and every sidebar route still renders correctly af
 
     $this->get(action([AuthController::class, 'statements']))
         ->assertSuccessful()
-        ->assertInertia(fn ($page) => $page->component('Provider/Auth/Profile/wallet'));
+        ->assertInertia(fn ($page) => $page->component('Provider/Auth/Profile/wallet/Wallet'));
 
     // Paused (not removed) — chore/provider-topup-pause, 2026-09-04.
     // $this->get(action([TopUpController::class, 'index']))

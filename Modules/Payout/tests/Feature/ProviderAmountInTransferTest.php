@@ -158,7 +158,7 @@ test('the wallet statements page (Provider/Auth/Profile/wallet) also exposes amo
         ->get(action([AuthController::class, 'statements']))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Auth/Profile/wallet')
+            ->component('Provider/Auth/Profile/wallet/Wallet')
             ->where('provider.wallet.amount_in_transfer', '125.00')
         );
 });

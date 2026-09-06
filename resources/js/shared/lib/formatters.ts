@@ -85,6 +85,23 @@ export function formatDate(
   return new Date(value).toLocaleDateString(locale, options);
 }
 
+/**
+ * Compact date-only label for stacked list rows (Wallet / Withdraw Index).
+ * Example (en-GB): `15 Aug 2026`. Detail views keep `build_date` (date + time).
+ */
+export const LIST_DATE_FORMAT: Intl.DateTimeFormatOptions = {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+};
+
+export function formatListDate(
+  value: string | Date | null | undefined,
+  locale?: string,
+): string {
+  return formatDate(value, locale, LIST_DATE_FORMAT);
+}
+
 export function formatDateTime(
   value: string | Date | null | undefined,
   locale?: string,

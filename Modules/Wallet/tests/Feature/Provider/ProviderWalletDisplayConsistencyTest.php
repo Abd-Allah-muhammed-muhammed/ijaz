@@ -198,10 +198,10 @@ test('home recent transactions expose a non-null transfer_status via the shared 
 });
 
 test('the view all wallet details accordion toggles open and closed via React state', function (): void {
-    $source = file_get_contents(resource_path('js/apps/provider/layouts/AccountLayout.tsx'));
+    $source = file_get_contents(resource_path('js/apps/provider/layouts/AccountLayout/components/AccountMetrics.tsx'));
 
     expect($source)->not->toBeFalse()
         ->and($source)->toContain('showWalletDetails')
         ->and($source)->toContain('setShowWalletDetails')
-        ->and($source)->toMatch('/showWalletDetails\s*&&/');
+        ->and($source)->toMatch('/showWalletDetails\s*\?/');
 });

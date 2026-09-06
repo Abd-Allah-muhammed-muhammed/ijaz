@@ -85,7 +85,7 @@ test('wallet statements header tiles all format numbers consistently with 2 deci
 });
 
 test('wallet statements rows always expose a non-null transfer_status badge on the frontend', function (): void {
-    $source = file_get_contents(resource_path('js/apps/provider/pages/Auth/Profile/wallet.tsx'));
+    $source = file_get_contents(resource_path('js/apps/provider/pages/Auth/Profile/wallet/Wallet.tsx'));
 
     expect($source)->not->toBeFalse()
         ->and($source)->toContain('transfer_status')

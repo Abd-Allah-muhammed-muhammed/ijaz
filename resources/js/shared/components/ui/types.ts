@@ -216,3 +216,67 @@ export type ConfirmDialogProps = {
   loading?: boolean;
   centered?: boolean;
 };
+
+/** Shared stacked record table (HomeOrdersTable visual language). */
+export const STACKED_DATA_TABLE_CARD_CLASS =
+  'shadow-none border border-gray-100';
+
+export const STACKED_DATA_TABLE_BODY_CLASS = 'card-body p-0';
+
+/**
+ * Hide the entire header shell on mobile — inner `d-none` alone left an empty
+ * gray strip above the first row (~375px).
+ */
+export const STACKED_DATA_TABLE_HEADER_CLASS =
+  'card-header border-0 bg-light bg-opacity-50 py-3 px-4 px-lg-6 d-none d-md-flex';
+
+export const STACKED_DATA_TABLE_HEADER_ROW_CLASS =
+  'd-flex w-100 align-items-center gap-3 text-muted fs-8 text-uppercase fw-bold';
+
+export const STACKED_DATA_TABLE_DESKTOP_ROW_CLASS =
+  'd-none d-md-flex align-items-center gap-3 py-4 px-4 px-lg-6';
+
+export const STACKED_DATA_TABLE_MOBILE_ROW_CLASS =
+  'd-md-none d-flex align-items-center gap-3 py-3 px-4';
+
+export const STACKED_DATA_TABLE_SEPARATOR_CLASS =
+  'separator separator-dashed mx-4 mx-lg-6';
+
+export const STACKED_DATA_TABLE_META_SEPARATOR = '·';
+
+export type StackedDataTableMobileRole = 'title' | 'badge' | 'meta';
+
+export type StackedDataTableColumn<T> = {
+  id: string;
+  header: ReactNode;
+  /** Desktop fixed width (e.g. `w-125px`). Ignored when `grow` is true. */
+  widthClassName?: string;
+  /** Primary flexible column (title / operation). */
+  grow?: boolean;
+  align?: 'start' | 'end';
+  headerClassName?: string;
+  cellClassName?: string;
+  cell: (row: T) => ReactNode;
+  /**
+   * Mobile placement:
+   * - `title` — primary truncated line
+   * - `badge` — trailing chips on the primary line
+   * - `meta` — secondary line, joined with ·
+   * - omit — desktop only
+   */
+  mobile?: StackedDataTableMobileRole;
+};
+
+export type StackedDataTableProps<T> = {
+  rows: T[];
+  columns: StackedDataTableColumn<T>[];
+  getRowKey: (row: T) => string | number;
+  emptyState?: ReactNode;
+  /** When set, the mobile row becomes a Link (chevron trailing by default). */
+  mobileHref?: (row: T) => string;
+  /** Override mobile trailing affordance (actions menu, custom icon, …). */
+  mobileTrailing?: (row: T) => ReactNode;
+  className?: string;
+  /** Optional controls rendered above rows inside the card (search, CTA). */
+  toolbar?: ReactNode;
+};

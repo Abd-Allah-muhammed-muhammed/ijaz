@@ -5,6 +5,7 @@ export { default as DetailSection } from './detail-section';
 export { default as SectionCard } from './section-card';
 export { default as PageFilterBar } from './page-filter-bar';
 export { default as ConfirmDialog } from './confirm-dialog';
+export { default as StackedDataTable } from './stacked-data-table';
 
 export type {
   StatusBadgeProps,
@@ -20,6 +21,9 @@ export type {
   PageFilterOption,
   ConfirmDialogProps,
   ConfirmDialogConfirmVariant,
+  StackedDataTableProps,
+  StackedDataTableColumn,
+  StackedDataTableMobileRole,
 } from './types';
 
 export {
@@ -34,4 +38,8 @@ export {
   SECONDARY_BUTTON_CLASS,
   PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS,
   PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS,
+  STACKED_DATA_TABLE_CARD_CLASS,
+  STACKED_DATA_TABLE_HEADER_CLASS,
+  STACKED_DATA_TABLE_MOBILE_ROW_CLASS,
+  STACKED_DATA_TABLE_DESKTOP_ROW_CLASS,
 } from './types';

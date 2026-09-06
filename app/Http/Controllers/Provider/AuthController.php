@@ -136,7 +136,7 @@ class AuthController extends Controller
         ]);
         $this->attachAmountInTransfer($provider);
 
-        return inertia('Provider/Auth/Profile/wallet', [
+        return inertia('Provider/Auth/Profile/wallet/Wallet', [
             'provider' => function () use ($provider) {
                 $provider->load([
                     'providerType.translation',
