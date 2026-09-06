@@ -43,7 +43,10 @@ export default function OrderListRow({
   return (
     <Link href={href} className={ORDER_LIST_ROW_CARD_CLASS}>
       <div className="d-flex align-items-start justify-content-between gap-2 mb-1">
-        <h5 className="fw-bolder fs-6 text-gray-900 mb-0 text-truncate lh-base" title={title}>
+        <h5
+          className="fw-bolder fs-6 text-gray-900 mb-0 text-truncate lh-base min-w-0 flex-grow-1"
+          title={title}
+        >
           {title}
         </h5>
         <span className="fw-bold fs-7 text-gray-800 text-nowrap flex-shrink-0">
@@ -68,7 +71,7 @@ export default function OrderListRow({
               aria-label={`${t('location')}: ${trimmedLocation}`}
             >
               <KTIcon iconName="geolocation" className="fs-6 flex-shrink-0" />
-              <span className="text-truncate" style={{ maxWidth: '12rem' }}>
+              <span className="text-truncate mw-100" style={{ maxWidth: '12rem' }}>
                 {trimmedLocation}
               </span>
             </span>
@@ -89,8 +92,10 @@ export default function OrderListRow({
               className="d-inline-flex align-items-center gap-1 flex-shrink-0"
               aria-label={`${t('offers')}: ${offersCount}`}
             >
-              <KTIcon iconName="message-text-2" className="fs-6" />
-              <span className="fw-semibold">{offersCount}</span>
+              <KTIcon iconName="price-tag" className="fs-6" />
+              <span className="fw-semibold text-nowrap">
+                {offersCount} {t('offers')}
+              </span>
             </span>
           ) : null}
         </div>

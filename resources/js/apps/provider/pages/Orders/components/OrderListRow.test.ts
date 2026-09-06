@@ -26,12 +26,19 @@ describe('OrderListRow', () => {
   it('renders title, amount, truncated description, and StatusBadge on the meta row', () => {
     expect(src).toContain('{title}');
     expect(src).toContain('{amountLabel}');
+    expect(src).toContain('min-w-0 flex-grow-1');
     expect(src).toContain('text-truncate');
     expect(src).toContain('{trimmedDescription}');
     expect(src).toContain('StatusBadge');
     expect(src).toContain('status={status}');
     expect(src).toContain('colorClass={statusColorClass}');
     expect(src).toContain('justify-content-between');
+  });
+
+  it('uses price-tag plus visible offers label (not chat message-text-2)', () => {
+    expect(src).toContain('iconName="price-tag"');
+    expect(src).toContain("{offersCount} {t('offers')}");
+    expect(src).not.toContain('message-text-2');
   });
 
   it('uses Link for the whole row and aria-labels meta icons with counts/labels', () => {

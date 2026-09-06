@@ -1,9 +1,11 @@
 import { KTIcon } from '@/vendor/metronic/helpers';
 import {
   PAGE_FILTER_BAR_CLASS,
+  PAGE_FILTER_CONTROLS_CLASS,
   PAGE_FILTER_DATE_CLASS,
   PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS,
   PAGE_FILTER_SEARCH_COLUMN_CLASS,
+  PAGE_FILTER_SEARCH_FIELD_CLASS,
   PAGE_FILTER_SEARCH_ICON_CLASS,
   PAGE_FILTER_SEARCH_INPUT_CLASS,
   PAGE_FILTER_SELECT_CLASS,
@@ -26,7 +28,7 @@ function SearchFilterField({
   onFilterChange: PageFilterBarProps['onFilterChange'];
 }) {
   return (
-    <div className="d-flex align-items-center position-relative my-1">
+    <div className={PAGE_FILTER_SEARCH_FIELD_CLASS}>
       <KTIcon iconName="magnifier" className={PAGE_FILTER_SEARCH_ICON_CLASS} />
       <input
         type="text"
@@ -115,7 +117,7 @@ export default function PageFilterBar({
       </div>
 
       {controlFields.length > 0 ? (
-        <div className="d-flex align-items-center my-2 gap-2">
+        <div className={PAGE_FILTER_CONTROLS_CLASS}>
           {controlFields.map((field) => {
             if (field.type === 'select') {
               return (

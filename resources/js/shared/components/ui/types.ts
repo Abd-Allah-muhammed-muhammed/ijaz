@@ -59,22 +59,37 @@ export const EMPTY_STATE_COMPACT_TITLE_CLASS = 'text-muted fw-semibold fs-6 mb-1
 
 export const EMPTY_STATE_COMPACT_DESCRIPTION_CLASS = 'text-muted fs-7 mb-0';
 
-export const PAGE_FILTER_BAR_CLASS = 'd-flex flex-wrap flex-stack mb-6';
+/**
+ * Stacks full-width on small screens; search + controls sit side-by-side from `lg`.
+ * Avoids `flex-stack` alone, which left search shrink-wrapped and controls overflowing at ~375px.
+ */
+export const PAGE_FILTER_BAR_CLASS =
+  'd-flex flex-column flex-lg-row flex-wrap align-items-stretch align-items-lg-center justify-content-lg-between gap-3 mb-6';
 
-/** Visual-only search column wrapper (was an invalid `<h3>` in the source pages). */
-export const PAGE_FILTER_SEARCH_COLUMN_CLASS = 'fw-bolder my-2';
+/** Search grows to dominate the filter row; full width when stacked on mobile. */
+export const PAGE_FILTER_SEARCH_COLUMN_CLASS =
+  'flex-grow-1 min-w-0 w-100 w-lg-auto my-0';
 
-export const PAGE_FILTER_SEARCH_ICON_CLASS = 'fs-1 position-absolute ms-6';
+export const PAGE_FILTER_SEARCH_FIELD_CLASS =
+  'd-flex align-items-center position-relative my-1 w-100';
 
-export const PAGE_FILTER_SEARCH_INPUT_CLASS = 'form-control form-control-sm ps-14';
+export const PAGE_FILTER_SEARCH_ICON_CLASS =
+  'fs-1 position-absolute top-50 translate-middle-y ms-6';
+
+/** Default (non-`sm`) height + full width — prominent search matching mockup / Admin Orders. */
+export const PAGE_FILTER_SEARCH_INPUT_CLASS = 'form-control ps-14 w-100';
 
 export const PAGE_FILTER_SELECT_CLASS = 'form-select form-select-sm';
 
 export const PAGE_FILTER_DATE_CLASS = 'form-control form-control-sm';
 
-export const PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS = 'w-200px';
+/** Full width when stacked; compact fixed widths beside search from `lg`. */
+export const PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS = 'w-100 w-lg-200px';
 
-export const PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS = 'w-150px';
+export const PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS = 'w-100 w-lg-150px';
+
+export const PAGE_FILTER_CONTROLS_CLASS =
+  'd-flex flex-column flex-sm-row flex-wrap align-items-stretch align-items-sm-center gap-2 w-100 w-lg-auto';
 
 /**
  * Generic labeled status payload — matches EnumWithColors shape from shared models
