@@ -1,8 +1,9 @@
-import {Button, Form, Modal} from 'react-bootstrap'
+import {Form, Modal} from 'react-bootstrap'
 import {router, useForm} from '@inertiajs/react'
 import {useTranslation} from 'react-i18next'
 import ActionButton from '@/shared/components/action-button'
 import InputError from '@/shared/components/inputs/InputError'
+import {SECONDARY_BUTTON_CLASS} from '@/shared/components/ui'
 import {walletWithdrawFormSchema} from '@/apps/provider/pages/Auth/Profile/wallet-forms-schems'
 import WithdrawController from '@/actions/Modules/Wallet/Http/Controllers/Provider/WithdrawController'
 
@@ -37,9 +38,9 @@ const WithdrawModal = ({show, onHide, reloadOnly}: Props) => {
         </Form.Group>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="light" onClick={onHide}>
+        <button type="button" className={SECONDARY_BUTTON_CLASS} onClick={onHide}>
           {t('close')}
-        </Button>
+        </button>
         <ActionButton
           type="submit"
           isProcessing={WithdrawForm.processing}

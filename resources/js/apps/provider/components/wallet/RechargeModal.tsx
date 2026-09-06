@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react'
-import {Button, Form, Modal} from 'react-bootstrap'
+import {Form, Modal} from 'react-bootstrap'
 import {router, useForm} from '@inertiajs/react'
 import {useTranslation} from 'react-i18next'
 import {toast} from 'sonner'
@@ -8,6 +8,7 @@ import Portal from '@/shared/components/payment/portal'
 import {PaymentMethodEnum} from '@/Enums/Payment'
 import ImageInput from '@/shared/components/inputs/ImageInput'
 import InputError from '@/shared/components/inputs/InputError'
+import {SECONDARY_BUTTON_CLASS} from '@/shared/components/ui'
 import {walletDepositFormSchema} from '@/apps/provider/pages/Auth/Profile/wallet-forms-schems'
 import {useAddBalance} from '@/shared/hooks/use-top-up-query'
 
@@ -100,9 +101,9 @@ const RechargeModal = ({show, onHide, reloadOnly}: Props) => {
         )}
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="light" onClick={onHide}>
+        <button type="button" className={SECONDARY_BUTTON_CLASS} onClick={onHide}>
           {t('close')}
-        </Button>
+        </button>
         <ActionButton
           type="submit"
           isProcessing={addBalanceMutator.isPending}
