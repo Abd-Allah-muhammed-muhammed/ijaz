@@ -28,6 +28,18 @@ describe('Wallet page redesign', () => {
     expect(pageSrc).not.toContain('balance_after');
   });
 
+  it('renders search above the table card, not inside StackedDataTable toolbar', () => {
+    expect(pageSrc).toContain('PageFilterBar');
+    expect(pageSrc).not.toContain('toolbar=');
+    const filterIndex = pageSrc.indexOf('PageFilterBar');
+    const tableIndex = pageSrc.indexOf('<StackedDataTable');
+    expect(filterIndex).toBeLessThan(tableIndex);
+  });
+
+  it('uses the shared statement page size default', () => {
+    expect(pageSrc).toContain('STATEMENT_PAGE_SIZE');
+  });
+
   it('places WithdrawTrigger on the balance hero, not a profile header', () => {
     expect(heroSrc).toContain('WithdrawTrigger');
     expect(heroSrc).toContain('formatCurrency');

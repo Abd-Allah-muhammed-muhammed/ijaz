@@ -277,6 +277,4 @@ export type StackedDataTableProps<T> = {
   /** Override mobile trailing affordance (actions menu, custom icon, …). */
   mobileTrailing?: (row: T) => ReactNode;
   className?: string;
-  /** Optional controls rendered above rows inside the card (search, CTA). */
-  toolbar?: ReactNode;
 };

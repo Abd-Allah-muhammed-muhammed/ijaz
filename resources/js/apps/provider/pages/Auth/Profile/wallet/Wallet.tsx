@@ -7,7 +7,10 @@ import { Content } from '@/vendor/metronic/layout/components/content';
 import ProviderLayout from '@/apps/provider/layouts/ProviderLayout';
 import AuthController from '@/actions/App/Http/Controllers/Provider/AuthController';
 import { applyFilterParam, visitWithFilters } from '@/shared/lib/filters';
-import { formatListDate } from '@/shared/lib/formatters';
+import {
+  STATEMENT_PAGE_SIZE,
+  formatListDate,
+} from '@/shared/lib/formatters';
 import Pagination from '@/shared/components/Table/partials/Pagination';
 import {
   EmptyState,
@@ -57,7 +60,7 @@ function formatAmountCell(row: WalletTransaction, pendingLabel: string) {
 const Wallet = ({ transactions, provider, prams }: WalletPageProps) => {
   const { t, i18n } = useTranslation();
   const searchParams: SearchParams = prams || {
-    per_page: 10,
+    per_page: STATEMENT_PAGE_SIZE,
     search: '',
   };
 
@@ -138,21 +141,21 @@ const Wallet = ({ transactions, provider, prams }: WalletPageProps) => {
           locale={i18n.language}
         />
         <WalletMetrics metrics={metrics} />
+        <div className="mb-4">
+          <PageFilterBar
+            filters={filters}
+            onFilterChange={(name, value) => {
+              if (name === 'search') {
+                searchParamsChanged('search', value);
+              }
+            }}
+            className="mb-0"
+          />
+        </div>
         <StackedDataTable
           rows={transactions.data}
           columns={columns}
           getRowKey={(row) => row.id}
-          toolbar={
-            <PageFilterBar
-              filters={filters}
-              onFilterChange={(name, value) => {
-                if (name === 'search') {
-                  searchParamsChanged('search', value);
-                }
-              }}
-              className="mb-0"
-            />
-          }
           emptyState={
             <EmptyState
               title={t('no_matching_records_found')}

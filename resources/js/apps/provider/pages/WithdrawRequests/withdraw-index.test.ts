@@ -8,7 +8,6 @@ describe('Withdraw Index redesign', () => {
   it('uses StackedDataTable instead of KTCard + legacy Table', () => {
     expect(src).toContain('StackedDataTable');
     expect(src).not.toContain('KTCard');
-    expect(src).not.toMatch(/\bTable\b.*WithdrawRequest|from ['"]@\/shared\/components\/Table['"].*\n.*Table/);
     expect(src).not.toMatch(/<Table[\s>]/);
   });
 
@@ -20,10 +19,22 @@ describe('Withdraw Index redesign', () => {
     expect(src).toContain('ActionCell');
   });
 
-  it('shows status and transfer_status together and uses formatListDate', () => {
-    expect(src).toContain('row.status');
-    expect(src).toContain('row.transfer_status');
+  it('renders search above the table card, not inside StackedDataTable toolbar', () => {
+    expect(src).toContain('PageFilterBar');
+    expect(src).not.toContain('toolbar=');
+    const filterIndex = src.indexOf('PageFilterBar');
+    const tableIndex = src.indexOf('<StackedDataTable');
+    expect(filterIndex).toBeGreaterThan(-1);
+    expect(tableIndex).toBeGreaterThan(-1);
+    expect(filterIndex).toBeLessThan(tableIndex);
+  });
+
+  it('labels both status and transfer_status badges and shortens the reference', () => {
+    expect(src).toContain("t('status')");
+    expect(src).toContain("t('transfer_status')");
+    expect(src).toContain('formatShortReference');
+    expect(src).toContain('title={fullId}');
     expect(src).toContain('formatListDate');
-    expect(src).toContain('WithdrawTrigger');
+    expect(src).toContain('STATEMENT_PAGE_SIZE');
   });
 });

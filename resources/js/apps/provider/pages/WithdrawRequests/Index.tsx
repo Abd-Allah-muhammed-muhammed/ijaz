@@ -8,7 +8,11 @@ import ProviderLayout from '@/apps/provider/layouts/ProviderLayout';
 import WithdrawController from '@/actions/Modules/Wallet/Http/Controllers/Provider/WithdrawController';
 import { WithdrawTrigger } from '@/apps/provider/components/wallet/WalletQuickActions';
 import { OperationStatusEnum } from '@/Enums/Enums';
-import { formatListDate } from '@/shared/lib/formatters';
+import {
+  STATEMENT_PAGE_SIZE,
+  formatListDate,
+  formatShortReference,
+} from '@/shared/lib/formatters';
 import Pagination from '@/shared/components/Table/partials/Pagination';
 import ConfirmAction from '@/shared/components/Table/partials/confirm-action';
 import {
@@ -61,10 +65,31 @@ function WithdrawRowActions({ row }: { row: WithdrawRequest }) {
   );
 }
 
+function WithdrawStatusBadges({ row }: { row: WithdrawRequest }) {
+  const { t } = useTranslation();
+
+  return (
+    <span className="d-flex flex-column align-items-start gap-1">
+      <span className="d-flex align-items-center gap-1 flex-wrap">
+        <span className="text-muted fs-9 fw-semibold text-nowrap">
+          {t('status')}:
+        </span>
+        <StatusBadge status={row.status} className="fs-8" />
+      </span>
+      <span className="d-flex align-items-center gap-1 flex-wrap">
+        <span className="text-muted fs-9 fw-semibold text-nowrap">
+          {t('transfer_status')}:
+        </span>
+        <StatusBadge status={row.transfer_status} className="fs-8" />
+      </span>
+    </span>
+  );
+}
+
 const Index = ({ rows, prams }: WithdrawIndexProps) => {
   const { t, i18n } = useTranslation();
   const searchParams: SearchParams = prams || {
-    per_page: 10,
+    per_page: STATEMENT_PAGE_SIZE,
     search: '',
   };
 
@@ -96,11 +121,19 @@ const Index = ({ rows, prams }: WithdrawIndexProps) => {
         header: t('reference'),
         grow: true,
         mobile: 'title',
-        cell: (row) => (
-          <span className="font-monospace fw-semibold text-gray-800">
-            #{row.id}
-          </span>
-        ),
+        cell: (row) => {
+          const fullId = String(row.id);
+          const shortRef = formatShortReference(fullId);
+
+          return (
+            <span
+              className="font-monospace fw-semibold text-gray-800"
+              title={fullId}
+            >
+              #{shortRef}
+            </span>
+          );
+        },
       },
       {
         id: 'amount',
@@ -114,14 +147,9 @@ const Index = ({ rows, prams }: WithdrawIndexProps) => {
       {
         id: 'status',
         header: t('status'),
-        widthClassName: 'w-200px',
+        widthClassName: 'w-225px',
         mobile: 'badge',
-        cell: (row) => (
-          <span className="d-flex flex-wrap align-items-center gap-1">
-            <StatusBadge status={row.status} className="fs-8" />
-            <StatusBadge status={row.transfer_status} className="fs-8" />
-          </span>
-        ),
+        cell: (row) => <WithdrawStatusBadges row={row} />,
       },
       {
         id: 'date',
@@ -158,27 +186,25 @@ const Index = ({ rows, prams }: WithdrawIndexProps) => {
       </PageTitle>
       <ToolbarWrapper />
       <Content>
+        <div className="d-flex flex-column flex-md-row align-items-stretch align-items-md-center justify-content-between gap-3 mb-4">
+          <div className="flex-grow-1 min-w-0">
+            <PageFilterBar
+              filters={filters}
+              onFilterChange={(name, value) => {
+                if (name === 'search') {
+                  searchParamsChanged('search', value);
+                }
+              }}
+              className="mb-0"
+            />
+          </div>
+          <WithdrawTrigger reloadOnly={['rows']} className="me-0 align-self-md-end" />
+        </div>
         <StackedDataTable
           rows={rows.data}
           columns={columns}
           getRowKey={(row) => row.id}
           mobileTrailing={(row) => <WithdrawRowActions row={row} />}
-          toolbar={
-            <div className="d-flex flex-column flex-md-row align-items-stretch align-items-md-center justify-content-between gap-3">
-              <div className="flex-grow-1 min-w-0">
-                <PageFilterBar
-                  filters={filters}
-                  onFilterChange={(name, value) => {
-                    if (name === 'search') {
-                      searchParamsChanged('search', value);
-                    }
-                  }}
-                  className="mb-0"
-                />
-              </div>
-              <WithdrawTrigger reloadOnly={['rows']} className="me-0 align-self-md-end" />
-            </div>
-          }
           emptyState={
             <EmptyState title={t('no_matching_records_found')} compact />
           }

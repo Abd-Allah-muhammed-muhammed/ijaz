@@ -59,7 +59,7 @@ class WithdrawRequestRepository implements WithdrawRequestRepositoryInterface
                 });
             })
             ->latest()
-            ->paginate($request->integer('perPage', 16));
+            ->paginate($request->integer('per_page', $request->integer('perPage', 10)));
     }
 
     public function paginateAll(Request $request): LengthAwarePaginator

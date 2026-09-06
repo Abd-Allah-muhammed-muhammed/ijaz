@@ -159,7 +159,7 @@ class AuthController extends Controller
                                 ->orWhere('payment_id', 'like', "%{$search}%");
                         });
                     })
-                    ->paginate($request->integer('per_page', 25))
+                    ->paginate($request->integer('per_page', 10))
                     ->withQueryString()
             ),
             'prams' => fn () => $request->all() ?: [],

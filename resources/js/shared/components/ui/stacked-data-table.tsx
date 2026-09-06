@@ -30,7 +30,6 @@ export default function StackedDataTable<T>({
   mobileHref,
   mobileTrailing,
   className,
-  toolbar,
 }: StackedDataTableProps<T>) {
   const titleColumns = columns.filter((column) => column.mobile === 'title');
   const badgeColumns = columns.filter((column) => column.mobile === 'badge');
@@ -62,8 +61,6 @@ export default function StackedDataTable<T>({
       }
       headerClassName={STACKED_DATA_TABLE_HEADER_CLASS}
     >
-      {toolbar ? <div className="px-4 px-lg-6 pt-4 pb-2">{toolbar}</div> : null}
-
       {rows.length === 0 ? (
         <div className="px-4 px-lg-6 py-6">{emptyState}</div>
       ) : (

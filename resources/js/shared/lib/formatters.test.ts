@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { formatListDate, LIST_DATE_FORMAT } from './formatters';
+import {
+  STATEMENT_PAGE_SIZE,
+  SHORT_REFERENCE_LENGTH,
+  formatListDate,
+  formatShortReference,
+  LIST_DATE_FORMAT,
+} from './formatters';
 
 describe('formatListDate', () => {
   it('formats a compact date-only list label without a time component', () => {
@@ -24,5 +30,28 @@ describe('formatListDate', () => {
       month: 'short',
       year: 'numeric',
     });
+  });
+});
+
+describe('formatShortReference', () => {
+  it('uppercases the last 8 characters to match WalletTransactionDisplay::operationReference', () => {
+    expect(SHORT_REFERENCE_LENGTH).toBe(8);
+    expect(formatShortReference('01a04be2-af9e-711c-b309-b0d02e1e6792')).toBe(
+      '2E1E6792',
+    );
+    expect(formatShortReference('abcdefgh')).toBe('ABCDEFGH');
+    expect(formatShortReference('short')).toBe('SHORT');
+  });
+
+  it('returns an empty string for empty values', () => {
+    expect(formatShortReference(null)).toBe('');
+    expect(formatShortReference(undefined)).toBe('');
+    expect(formatShortReference('')).toBe('');
+  });
+});
+
+describe('STATEMENT_PAGE_SIZE', () => {
+  it('keeps statement tables at a scannable default page size', () => {
+    expect(STATEMENT_PAGE_SIZE).toBe(10);
   });
 });

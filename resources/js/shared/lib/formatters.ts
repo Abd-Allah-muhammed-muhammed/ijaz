@@ -102,6 +102,25 @@ export function formatListDate(
   return formatDate(value, locale, LIST_DATE_FORMAT);
 }
 
+/**
+ * Matches PHP `WalletTransactionDisplay::operationReference` —
+ * last 8 characters of an operation / withdraw id, uppercased.
+ */
+export const SHORT_REFERENCE_LENGTH = 8;
+
+export function formatShortReference(
+  value: string | number | null | undefined,
+): string {
+  if (value === null || value === undefined || value === '') {
+    return '';
+  }
+
+  return String(value).slice(-SHORT_REFERENCE_LENGTH).toUpperCase();
+}
+
+/** Default page size for provider Wallet / Withdraw statement tables. */
+export const STATEMENT_PAGE_SIZE = 10;
+
 export function formatDateTime(
   value: string | Date | null | undefined,
   locale?: string,

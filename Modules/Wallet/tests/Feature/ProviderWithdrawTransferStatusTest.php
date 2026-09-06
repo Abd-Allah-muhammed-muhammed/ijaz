@@ -188,7 +188,7 @@ test('the web dashboard withdraw-requests list query does not introduce N+1 quer
         DB::enableQueryLog();
 
         $this->actingAs($provider, 'provider')
-            ->get(action([WithdrawController::class, 'index'], ['perPage' => 16]))
+            ->get(action([WithdrawController::class, 'index'], ['per_page' => 10]))
             ->assertSuccessful()
             ->assertInertia(fn ($page) => $page
                 ->component('Provider/WithdrawRequests/Index')
