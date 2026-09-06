@@ -9,6 +9,7 @@ import {
   STACKED_DATA_TABLE_HEADER_ROW_CLASS,
   STACKED_DATA_TABLE_DESKTOP_ROW_CLASS,
   STACKED_DATA_TABLE_MOBILE_ROW_CLASS,
+  STACKED_DATA_TABLE_MOBILE_TITLE_CLASS,
   STACKED_DATA_TABLE_SEPARATOR_CLASS,
   STACKED_DATA_TABLE_META_SEPARATOR,
   type StackedDataTableProps,
@@ -19,7 +20,7 @@ function columnShellClass(widthClassName: string | undefined, grow: boolean | un
     return 'flex-grow-1 min-w-0';
   }
 
-  return [widthClassName, 'min-w-0'].filter(Boolean).join(' ');
+  return [widthClassName, 'min-w-0 flex-shrink-0'].filter(Boolean).join(' ');
 }
 
 export default function StackedDataTable<T>({
@@ -79,15 +80,15 @@ export default function StackedDataTable<T>({
 
           const mobileBody = (
             <>
-              <div className="flex-grow-1 min-w-0">
-                <div className="d-flex align-items-center justify-content-between gap-2 mb-1">
-                  <span className="fw-semibold fs-6 text-gray-800 text-truncate">
+              <div className="flex-grow-1 min-w-0 overflow-hidden">
+                <div className="d-flex align-items-center gap-2 mb-1 min-w-0">
+                  <span className={STACKED_DATA_TABLE_MOBILE_TITLE_CLASS}>
                     {titleColumns.map((column) => (
                       <Fragment key={column.id}>{column.cell(row)}</Fragment>
                     ))}
                   </span>
                   {badgeColumns.length > 0 ? (
-                    <span className="d-flex align-items-center gap-1 flex-shrink-0 flex-wrap justify-content-end">
+                    <span className="d-flex align-items-center gap-1 flex-shrink-0">
                       {badgeColumns.map((column) => (
                         <Fragment key={column.id}>{column.cell(row)}</Fragment>
                       ))}
@@ -95,24 +96,26 @@ export default function StackedDataTable<T>({
                   ) : null}
                 </div>
                 {metaColumns.length > 0 ? (
-                  <div className="d-flex flex-wrap align-items-center column-gap-2 row-gap-1 fs-8 text-muted">
+                  <div className="d-flex flex-wrap align-items-center column-gap-2 row-gap-1 fs-8 text-muted min-w-0">
                     {metaColumns.map((column, metaIndex) => (
                       <Fragment key={column.id}>
                         {metaIndex > 0 ? (
                           <span aria-hidden="true">{STACKED_DATA_TABLE_META_SEPARATOR}</span>
                         ) : null}
-                        {column.cell(row)}
+                        <span className="min-w-0">{column.cell(row)}</span>
                       </Fragment>
                     ))}
                   </div>
                 ) : null}
               </div>
-              {trailing}
+              {trailing ? (
+                <div className="flex-shrink-0">{trailing}</div>
+              ) : null}
             </>
           );
 
           return (
-            <div key={key}>
+            <div key={key} className="min-w-0">
               {href ? (
                 <Link
                   href={href}

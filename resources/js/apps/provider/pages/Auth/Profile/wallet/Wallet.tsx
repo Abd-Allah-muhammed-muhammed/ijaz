@@ -135,40 +135,42 @@ const Wallet = ({ transactions, provider, prams }: WalletPageProps) => {
       <PageTitle breadcrumbs={[]}>{t('wallet')}</PageTitle>
       <ToolbarWrapper />
       <Content>
-        <WalletBalanceHero
-          balance={provider.wallet?.balance}
-          currencyLabel={t('SAR')}
-          locale={i18n.language}
-        />
-        <WalletMetrics metrics={metrics} />
-        <div className="mb-4">
-          <PageFilterBar
-            filters={filters}
-            onFilterChange={(name, value) => {
-              if (name === 'search') {
-                searchParamsChanged('search', value);
-              }
-            }}
-            className="mb-0"
+        <div className="min-w-0">
+          <WalletBalanceHero
+            balance={provider.wallet?.balance}
+            currencyLabel={t('SAR')}
+            locale={i18n.language}
           />
-        </div>
-        <StackedDataTable
-          rows={transactions.data}
-          columns={columns}
-          getRowKey={(row) => row.id}
-          emptyState={
-            <EmptyState
-              title={t('no_matching_records_found')}
-              compact
+          <WalletMetrics metrics={metrics} />
+          <div className="mb-4">
+            <PageFilterBar
+              filters={filters}
+              onFilterChange={(name, value) => {
+                if (name === 'search') {
+                  searchParamsChanged('search', value);
+                }
+              }}
+              className="mb-0"
             />
-          }
-        />
-        <div className="mt-4">
-          <Pagination
-            paginationMeta={transactions.meta}
-            only={['transactions', 'prams']}
-            preserveScroll
+          </div>
+          <StackedDataTable
+            rows={transactions.data}
+            columns={columns}
+            getRowKey={(row) => row.id}
+            emptyState={
+              <EmptyState
+                title={t('no_matching_records_found')}
+                compact
+              />
+            }
           />
+          <div className="mt-4">
+            <Pagination
+              paginationMeta={transactions.meta}
+              only={['transactions', 'prams']}
+              preserveScroll
+            />
+          </div>
         </div>
       </Content>
     </>

@@ -3,10 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { SECONDARY_BUTTON_CLASS } from '@/shared/components/ui/types';
 
-const src = readFileSync(
-  join(__dirname, 'action-cell.tsx'),
-  'utf8',
-);
+const src = readFileSync(join(__dirname, 'action-cell.tsx'), 'utf8');
 
 describe('ActionCell dark-mode trigger', () => {
   it('uses SECONDARY_BUTTON_CLASS instead of btn-light washout', () => {
@@ -20,5 +17,11 @@ describe('ActionCell dark-mode trigger', () => {
     expect(src).toContain('aria-label');
     expect(src).toContain("t('actions')");
     expect(src).toContain('type="button"');
+  });
+
+  it('supports a compact icon-only mobile trigger', () => {
+    expect(src).toContain('compact');
+    expect(src).toContain('btn-icon');
+    expect(src).toContain('dots-vertical');
   });
 });

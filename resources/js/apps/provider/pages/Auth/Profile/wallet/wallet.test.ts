@@ -26,6 +26,12 @@ describe('Wallet page redesign', () => {
     expect(pageSrc).toContain('formatListDate');
     expect(pageSrc).not.toContain('reference_short');
     expect(pageSrc).not.toContain('balance_after');
+    // Withdraw-only compact trailing — Wallet stays on the lighter mobile path.
+    expect(pageSrc).not.toContain('mobileTrailing');
+  });
+
+  it('wraps page content in min-w-0 so long titles cannot force page overflow', () => {
+    expect(pageSrc).toContain('className="min-w-0"');
   });
 
   it('renders search above the table card, not inside StackedDataTable toolbar', () => {

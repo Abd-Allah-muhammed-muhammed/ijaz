@@ -161,7 +161,7 @@ export default function ProviderLayout({children, head}: Props) {
           <div className='app-wrapper flex-column flex-row-fluid' id='kt_app_wrapper'
                style={{minHeight: 'calc(100vh - 74px)'}}>
             <Sidebar/>
-            <div className='app-main flex-column flex-row-fluid' id='kt_app_main'>
+            <div className='app-main flex-column flex-row-fluid min-w-0' id='kt_app_main'>
               <div className='d-flex flex-column flex-column-fluid'>
                 {children}
               </div>

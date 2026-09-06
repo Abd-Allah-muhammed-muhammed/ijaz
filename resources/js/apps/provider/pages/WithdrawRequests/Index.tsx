@@ -40,11 +40,17 @@ export type WithdrawIndexProps = {
   prams: SearchParams | null;
 };
 
-function WithdrawRowActions({ row }: { row: WithdrawRequest }) {
+function WithdrawRowActions({
+  row,
+  compact = false,
+}: {
+  row: WithdrawRequest;
+  compact?: boolean;
+}) {
   const { t } = useTranslation();
 
   return (
-    <ActionCell>
+    <ActionCell compact={compact}>
       <div className="menu-item px-3">
         <LinkAction
           href={WithdrawController.show(row.id as string).url}
@@ -127,6 +133,7 @@ const Index = ({ rows, prams }: WithdrawIndexProps) => {
         id: 'status',
         header: t('status'),
         widthClassName: 'w-125px',
+        // Request approval is the primary signal on the withdraw list.
         mobile: 'badge',
         cell: (row) => <StatusBadge status={row.status} className="fs-8" />,
       },
@@ -134,7 +141,8 @@ const Index = ({ rows, prams }: WithdrawIndexProps) => {
         id: 'transfer_status',
         header: t('transfer_status'),
         widthClassName: 'w-150px',
-        mobile: 'badge',
+        // Keep transfer progress on the meta line so line 1 stays scannable.
+        mobile: 'meta',
         cell: (row) => (
           <StatusBadge status={row.transfer_status} className="fs-8" />
         ),
@@ -186,13 +194,16 @@ const Index = ({ rows, prams }: WithdrawIndexProps) => {
               className="mb-0"
             />
           </div>
-          <WithdrawTrigger reloadOnly={['rows']} className="me-0 align-self-md-end" />
+          <WithdrawTrigger
+            reloadOnly={['rows']}
+            className="me-0 align-self-start align-self-md-end"
+          />
         </div>
         <StackedDataTable
           rows={rows.data}
           columns={columns}
           getRowKey={(row) => row.id}
-          mobileTrailing={(row) => <WithdrawRowActions row={row} />}
+          mobileTrailing={(row) => <WithdrawRowActions row={row} compact />}
           emptyState={
             <EmptyState title={t('no_matching_records_found')} compact />
           }

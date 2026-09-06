@@ -219,9 +219,9 @@ export type ConfirmDialogProps = {
 
 /** Shared stacked record table (HomeOrdersTable visual language). */
 export const STACKED_DATA_TABLE_CARD_CLASS =
-  'shadow-none border border-gray-100';
+  'shadow-none border border-gray-100 min-w-0 overflow-hidden';
 
-export const STACKED_DATA_TABLE_BODY_CLASS = 'card-body p-0';
+export const STACKED_DATA_TABLE_BODY_CLASS = 'card-body p-0 min-w-0';
 
 /**
  * Hide the entire header shell on mobile — inner `d-none` alone left an empty
@@ -234,10 +234,13 @@ export const STACKED_DATA_TABLE_HEADER_ROW_CLASS =
   'd-flex w-100 align-items-center gap-3 text-muted fs-8 text-uppercase fw-bold';
 
 export const STACKED_DATA_TABLE_DESKTOP_ROW_CLASS =
-  'd-none d-md-flex align-items-center gap-3 py-4 px-4 px-lg-6';
+  'd-none d-md-flex align-items-center gap-3 py-4 px-4 px-lg-6 min-w-0';
 
 export const STACKED_DATA_TABLE_MOBILE_ROW_CLASS =
-  'd-md-none d-flex align-items-center gap-3 py-3 px-4';
+  'd-md-none d-flex align-items-center gap-3 py-3 px-4 w-100 min-w-0';
+
+export const STACKED_DATA_TABLE_MOBILE_TITLE_CLASS =
+  'fw-semibold fs-6 text-gray-800 text-truncate min-w-0 flex-grow-1';
 
 export const STACKED_DATA_TABLE_SEPARATOR_CLASS =
   'separator separator-dashed mx-4 mx-lg-6';

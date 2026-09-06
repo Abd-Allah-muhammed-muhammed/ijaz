@@ -37,8 +37,17 @@ describe('Withdraw Index redesign', () => {
     expect(src).toContain('status={row.status}');
     expect(src).toContain('status={row.transfer_status}');
     expect(src).not.toContain('WithdrawStatusBadges');
-    expect(src).not.toMatch(/t\('status'\):/);
-    expect(src).not.toMatch(/t\('transfer_status'\):/);
+  });
+
+  it('keeps the withdraw CTA from stretching full-width on mobile', () => {
+    expect(src).toContain('align-self-start');
+    expect(src).toContain('align-self-md-end');
+  });
+
+  it('uses a compact kebab for mobile trailing actions and lighter mobile badges', () => {
+    expect(src).toContain('compact');
+    expect(src).toContain("mobile: 'badge'");
+    expect(src).toMatch(/transfer_status[\s\S]*mobile: 'meta'/);
     expect(src).toContain('formatShortReference');
     expect(src).toContain('STATEMENT_PAGE_SIZE');
   });
