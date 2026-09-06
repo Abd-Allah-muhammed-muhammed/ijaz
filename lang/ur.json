@@ -1088,6 +1088,8 @@
     "manage_categories": "منظم کریں",
     "danger_zone": "خطرناک زون",
     "change_logo": "لوگو تبدیل کریں",
+    "replace_file": "تبدیل کریں",
+    "no_file_uploaded": "ابھی کوئی فائل اپ لوڈ نہیں ہوئی",
     "logo_upload_hint": "JPEG یا PNG، زیادہ سے زیادہ :max",
     "provider_logo_alt": ":name کا لوگو",
     "no_categories_selected": "ابھی کوئی زمرہ منتخب نہیں",

@@ -71,10 +71,11 @@ class UpdateProviderAction
                 continue;
             }
 
-            $provider
-                ->clearMediaCollection($file->value)
-                ->addMedia($mediaFiles[$file->value])
-                ->toMediaCollection($file->value, 'local');
+            $this->repository->replaceTypeFileMedia(
+                $provider,
+                $file->value,
+                $mediaFiles[$file->value],
+            );
         }
     }
 }

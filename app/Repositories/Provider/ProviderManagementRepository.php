@@ -12,8 +12,10 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ProviderManagementRepository implements ProviderManagementRepositoryInterface
 {
@@ -187,5 +189,14 @@ class ProviderManagementRepository implements ProviderManagementRepositoryInterf
             ->limit($limit)
             ->orderByDesc('created_at')
             ->get();
+    }
+
+    public function replaceTypeFileMedia(Provider $provider, string $collection, UploadedFile $file): Media
+    {
+        $provider->clearMediaCollection($collection);
+
+        return $provider
+            ->addMedia($file)
+            ->toMediaCollection($collection, 'local');
     }
 }

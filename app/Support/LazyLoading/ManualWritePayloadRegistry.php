@@ -464,6 +464,11 @@ final class ManualWritePayloadRegistry
                 'file' => $this->fakeImage(),
             ],
 
+            'POST /provider/profile/files' => fn (): array => [
+                'field' => 'id_image',
+                'file' => $this->fakePdf(),
+            ],
+
             'POST /api/v1/guarantor/individual' => fn (array $p): array => [
                 'user_id' => $p['provider'] ?? null,
                 'user_type' => 'provider',

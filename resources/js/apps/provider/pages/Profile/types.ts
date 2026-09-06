@@ -29,6 +29,7 @@ export type ProfileFormCategory = {
   skills: number[];
 };
 
+/** Main Save payload — required type-files upload independently. */
 export type ProfileFormData = {
   provider_type_id: number | null;
   name: string | null;
@@ -43,16 +44,6 @@ export type ProfileFormData = {
   about: string | null;
   categories: ProfileFormCategory[];
   logo?: File;
-  id_image?: File;
-  commercial_record?: File;
-  freelancer_certification?: File;
-  iban_certification?: File;
-  license_to_practice_law?: File;
 };
 
 export type ProfileRequiredFiles = Record<ProviderTypeFileKeys, boolean>;
-
-export type ProfileFileFieldKey = Extract<
-  keyof ProfileFormData,
-  ProviderTypeFileKeys
->;

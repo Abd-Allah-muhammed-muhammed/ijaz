@@ -8,7 +8,9 @@ use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection as SupportCollection;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 interface ProviderManagementRepositoryInterface
 {
@@ -72,4 +74,9 @@ interface ProviderManagementRepositoryInterface
      * @return Collection<int, Provider>
      */
     public function latestForDashboard(int $limit = 4): Collection;
+
+    /**
+     * Clear the collection then attach a single replacement file (not singleFile()).
+     */
+    public function replaceTypeFileMedia(Provider $provider, string $collection, UploadedFile $file): Media;
 }

@@ -13,6 +13,7 @@ import CategoriesCard from '@/apps/provider/pages/Profile/components/CategoriesC
 import RequiredFilesCard from '@/apps/provider/pages/Profile/components/RequiredFilesCard';
 import DangerZoneCard from '@/apps/provider/pages/Profile/components/DangerZoneCard';
 import { useProfileForm } from '@/apps/provider/pages/Profile/hooks/use-profile-form';
+import { useProfileFileUploads } from '@/apps/provider/pages/Profile/hooks/use-profile-file-uploads';
 import type { ProfilePageProps } from '@/apps/provider/pages/Profile/types';
 
 export default function Profile({
@@ -31,6 +32,7 @@ export default function Profile({
     removeCategory,
     submit,
   } = useProfileForm({ provider, types });
+  const uploads = useProfileFileUploads();
 
   const categoriesError =
     form.errors.categories ??
@@ -70,9 +72,9 @@ export default function Profile({
           />
 
           <RequiredFilesCard
-            form={form}
             requiredFiles={requiredFiles}
             provider={provider}
+            uploads={uploads}
           />
 
           <div className="d-flex justify-content-end mb-5">

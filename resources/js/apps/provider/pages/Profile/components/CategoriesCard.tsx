@@ -55,47 +55,23 @@ export default function CategoriesCard({
       <div
         className="overflow-auto pe-1"
         style={{ maxHeight: PROFILE_CATEGORIES_SCROLL_MAX_HEIGHT_PX }}
+        data-pan="profile-categories-scroll"
       >
         {selectingCategory.length === 0 ? (
           <p className="text-muted fs-7 mb-0">{T('no_categories_selected')}</p>
         ) : (
-          <ul className="list-unstyled mb-0 d-flex flex-column gap-3">
+          <ul className="list-unstyled mb-0">
             {selectingCategory.map((item) => (
               <li
                 key={`category-${item.category.id}`}
-                className="d-flex align-items-start justify-content-between gap-3"
+                className="d-flex align-items-center justify-content-between gap-3 py-3 border-bottom border-gray-100"
               >
-                <div className="d-flex align-items-center gap-3 min-w-0">
-                  <span className="symbol symbol-40px flex-shrink-0">
-                    <span className="symbol-label bg-light-primary">
-                      {item.category.icon ? (
-                        <img
-                          src={item.category.icon}
-                          alt=""
-                          className="w-100 h-100"
-                        />
-                      ) : null}
-                    </span>
-                  </span>
-                  <div className="min-w-0">
-                    <div className="fw-bolder fs-6 text-gray-900 text-break">
-                      {item.category.title}
-                    </div>
-                    <div className="d-flex flex-wrap gap-2 mt-1">
-                      {item.skills.map((skill) => (
-                        <span
-                          className="badge badge-light-primary"
-                          key={`skill-${skill.value}`}
-                        >
-                          {skill.label}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                <span className="fw-semibold text-gray-900 text-break min-w-0">
+                  {item.category.title}
+                </span>
                 <button
                   type="button"
-                  className="btn btn-sm btn-icon btn-light-danger"
+                  className="btn btn-sm btn-icon btn-light-danger flex-shrink-0"
                   aria-label={T('remove')}
                   onClick={() => onRemoveCategory(item.category.id as number)}
                 >

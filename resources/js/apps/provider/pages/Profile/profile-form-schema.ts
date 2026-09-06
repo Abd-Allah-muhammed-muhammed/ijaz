@@ -6,8 +6,6 @@ import {
   PROFILE_LOGO_MIME_TYPES,
 } from '@/apps/provider/pages/Profile/constants';
 
-const pdfMaxBytes = 5 * 1024 * 1024;
-
 export const profileFormSchema = z
   .object({
     id: z.coerce.number().optional(),
@@ -79,91 +77,6 @@ export const profileFormSchema = z
         1,
         i18next.t('validation.required', { attribute: i18next.t('categories') }),
       ),
-    id_image: z
-      .file()
-      .max(
-        pdfMaxBytes,
-        i18next.t('validation.max.file', {
-          attribute: i18next.t('id_image'),
-          max: '5MB',
-        }),
-      )
-      .mime(
-        ['application/pdf'],
-        i18next.t('validation.mimes', {
-          attribute: i18next.t('id_image'),
-          values: 'pdf',
-        }),
-      )
-      .optional(),
-    commercial_record: z
-      .file()
-      .max(
-        pdfMaxBytes,
-        i18next.t('validation.max.file', {
-          attribute: i18next.t('commercial_record'),
-          max: '5MB',
-        }),
-      )
-      .mime(
-        ['application/pdf'],
-        i18next.t('validation.mimes', {
-          attribute: i18next.t('commercial_record'),
-          values: 'pdf',
-        }),
-      )
-      .optional(),
-    iban_certification: z
-      .file()
-      .max(
-        pdfMaxBytes,
-        i18next.t('validation.max.file', {
-          attribute: i18next.t('iban_certification'),
-          max: '5MB',
-        }),
-      )
-      .mime(
-        ['application/pdf'],
-        i18next.t('validation.mimes', {
-          attribute: i18next.t('iban_certification'),
-          values: 'pdf',
-        }),
-      )
-      .optional(),
-    freelancer_certification: z
-      .file()
-      .max(
-        pdfMaxBytes,
-        i18next.t('validation.max.file', {
-          attribute: i18next.t('freelancer_certification'),
-          max: '5MB',
-        }),
-      )
-      .mime(
-        ['application/pdf'],
-        i18next.t('validation.mimes', {
-          attribute: i18next.t('freelancer_certification'),
-          values: 'pdf',
-        }),
-      )
-      .optional(),
-    license_to_practice_law: z
-      .file()
-      .max(
-        pdfMaxBytes,
-        i18next.t('validation.max.file', {
-          attribute: i18next.t('license_to_practice_law'),
-          max: '5MB',
-        }),
-      )
-      .mime(
-        ['application/pdf'],
-        i18next.t('validation.mimes', {
-          attribute: i18next.t('license_to_practice_law'),
-          values: 'pdf',
-        }),
-      )
-      .optional(),
     logo: z
       .file(i18next.t('validation.required', { attribute: i18next.t('logo') }))
       .max(

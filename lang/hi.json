@@ -1088,6 +1088,8 @@
     "manage_categories": "प्रबंधित करें",
     "danger_zone": "खतरनाक क्षेत्र",
     "change_logo": "लोगो बदलें",
+    "replace_file": "बदलें",
+    "no_file_uploaded": "अभी कोई फ़ाइल अपलोड नहीं हुई",
     "logo_upload_hint": "JPEG या PNG, अधिकतम :max",
     "provider_logo_alt": ":name का लोगो",
     "no_categories_selected": "अभी कोई श्रेणी चयनित नहीं है",

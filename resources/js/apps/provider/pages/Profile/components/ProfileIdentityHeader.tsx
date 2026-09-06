@@ -4,6 +4,10 @@ import RatingStars from '@/shared/components/RatingStars';
 import { ProviderStatusEnum } from '@/Enums/Providers';
 import type { Provider } from '@/shared/types/models';
 import { SectionCard } from '@/shared/components/ui';
+import {
+  PROFILE_AVATAR_CLASS,
+  PROFILE_AVATAR_SIZE_PX,
+} from '@/apps/provider/pages/Profile/constants';
 
 export type ProfileIdentityHeaderProps = {
   provider: Provider;
@@ -14,19 +18,37 @@ export default function ProfileIdentityHeader({
 }: ProfileIdentityHeaderProps) {
   const { t } = useTranslation();
   const isVerified = provider.status?.value === ProviderStatusEnum.Approved;
+  const avatarStyle = {
+    width: PROFILE_AVATAR_SIZE_PX,
+    height: PROFILE_AVATAR_SIZE_PX,
+  } as const;
 
   return (
     <SectionCard variant="hero" className="mb-5">
       <div className="d-flex align-items-center flex-wrap gap-3">
-        <div className="symbol symbol-70px symbol-fixed overflow-hidden rounded-3 border border-gray-100 flex-shrink-0">
+        <div
+          className={PROFILE_AVATAR_CLASS}
+          style={avatarStyle}
+          data-pan="profile-identity-avatar"
+        >
           {provider.logo ? (
             <img
               src={provider.logo}
               alt={provider.name}
-              className="object-fit-cover w-100 h-100"
+              data-pan="profile-identity-avatar-img"
+              style={{
+                width: PROFILE_AVATAR_SIZE_PX,
+                height: PROFILE_AVATAR_SIZE_PX,
+                objectFit: 'cover',
+                display: 'block',
+                borderRadius: '50%',
+              }}
             />
           ) : (
-            <span className="symbol-label fs-2 fw-bold text-primary">
+            <span
+              className="d-flex align-items-center justify-content-center w-100 h-100 fs-4 fw-bold text-primary"
+              aria-hidden="true"
+            >
               {(provider.name ?? '').charAt(0)}
             </span>
           )}

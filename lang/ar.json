@@ -1183,6 +1183,8 @@
     "manage_categories": "إدارة",
     "danger_zone": "منطقة الخطر",
     "change_logo": "تغيير الشعار",
+    "replace_file": "استبدال",
+    "no_file_uploaded": "لم يتم رفع ملف بعد",
     "logo_upload_hint": "JPEG أو PNG، بحد أقصى :max",
     "provider_logo_alt": "شعار :name",
     "no_categories_selected": "لم يتم اختيار فئات بعد",

@@ -30,22 +30,27 @@ export const PROFILE_EMAIL_MAX_LENGTH = 255;
 export const PROFILE_ADDRESS_MAX_LENGTH = 500;
 export const PROFILE_ABOUT_MAX_LENGTH = 1000;
 
-/**
- * Categories chip list: tall enough for ~4–5 rows before internal scroll.
- * (Previously 110px — only ~2 rows visible.)
- */
+/** Categories list: ~4–5 rows before internal scroll. */
 export const PROFILE_CATEGORIES_SCROLL_MAX_HEIGHT_PX = 240;
 
 /**
- * Fixed logo thumb size (px). Do NOT use Metronic `symbol-*` + Bootstrap `w-100`
- * together — `w-100` is `width: 100% !important` and overrides symbol sizing,
- * expanding the preview to the card width.
+ * Identity header avatar — hard 56×56 circle (mockup).
+ * Sized via inline style; never Metronic symbol + Bootstrap w-100.
  */
-export const PROFILE_LOGO_THUMB_SIZE_PX = 64;
+export const PROFILE_AVATAR_SIZE_PX = 56;
 
-/** Decorative classes only — size comes from PROFILE_LOGO_THUMB_SIZE_PX inline style. */
+/**
+ * Logo card thumb — matching mockup ~56px rounded square.
+ */
+export const PROFILE_LOGO_THUMB_SIZE_PX = 56;
+
+/** Decorative classes only — size from PROFILE_LOGO_THUMB_SIZE_PX. */
 export const PROFILE_LOGO_THUMB_CLASS =
   'overflow-hidden rounded-3 border border-gray-100 flex-shrink-0 bg-light';
+
+/** Decorative classes only — size from PROFILE_AVATAR_SIZE_PX. */
+export const PROFILE_AVATAR_CLASS =
+  'overflow-hidden rounded-circle border border-gray-100 flex-shrink-0 bg-light';
 
 export const PROFILE_CARD_CLASS = 'mb-5';
 
@@ -56,3 +61,8 @@ export const PROFILE_FIELD_LABEL_REQUIRED_CLASS = `${PROFILE_FIELD_LABEL_CLASS} 
 
 export const PROFILE_DANGER_ZONE_CARD_CLASS =
   'card border border-danger border-opacity-50 shadow-sm rounded-4 mb-5';
+
+/** Matches `UpdateProfileRequest` type-file max (8192 KB). */
+export const PROFILE_TYPE_FILE_MAX_BYTES = 8192 * 1024;
+
+export const PROFILE_TYPE_FILE_ACCEPT = 'application/pdf';

@@ -1291,6 +1291,8 @@
     "manage_categories": "Manage",
     "danger_zone": "Danger zone",
     "change_logo": "Change logo",
+    "replace_file": "Replace",
+    "no_file_uploaded": "No file uploaded yet",
     "logo_upload_hint": "JPEG or PNG, max :max",
     "provider_logo_alt": "Logo for :name",
     "no_categories_selected": "No categories selected yet",

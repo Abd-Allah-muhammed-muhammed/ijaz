@@ -8,16 +8,19 @@ use App\Actions\Auth\Provider\ResolveProviderAccountStatusGateAction;
 use App\Actions\Auth\Provider\SendProviderRegistrationOtpAction;
 use App\Actions\DeviceToken\ClearDeviceTokenByTokenAction;
 use App\Actions\Provider\NotifyAdminsOfProviderPendingApprovalAction;
+use App\Actions\Provider\ReplaceProviderProfileFileAction;
 use App\Actions\Provider\SelfDeactivateProviderAction;
 use App\Actions\Provider\UpdateProviderAction;
 use App\DTOs\Auth\ProviderAccountStatusGateDTO;
 use App\DTOs\Auth\ProviderLoginResult;
 use App\DTOs\Auth\ProviderRegisterResult;
+use App\DTOs\Provider\ProviderProfileFileUploadResult;
 use App\DTOs\Provider\UpdateProviderDTO;
 use App\Http\Requests\Provider\Auth\LoginRequest;
 use App\Models\Provider;
 use App\Services\Provider\ProviderDeviceTokenService;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Random\RandomException;
 use Throwable;
@@ -29,6 +32,7 @@ class ProviderAuthService
         private readonly RegisterProviderAction $registerProviderAction,
         private readonly SendProviderRegistrationOtpAction $sendProviderRegistrationOtpAction,
         private readonly UpdateProviderAction $updateProviderAction,
+        private readonly ReplaceProviderProfileFileAction $replaceProviderProfileFileAction,
         private readonly SelfDeactivateProviderAction $selfDeactivateProviderAction,
         private readonly ClearDeviceTokenByTokenAction $clearDeviceTokenByTokenAction,
         private readonly NotifyAdminsOfProviderPendingApprovalAction $notifyAdminsOfProviderPendingApprovalAction,
@@ -95,6 +99,26 @@ class ProviderAuthService
         DB::transaction(function () use ($provider, $dto): void {
             $this->updateProviderAction->handle($provider, $dto);
         });
+    }
+
+    /**
+     * Authenticated per-field required-file upload — attaches directly to the
+     * Provider Media Library collection (replaces any existing file).
+     *
+     * @throws Throwable
+     */
+    public function uploadProfileFile(
+        Provider $provider,
+        string $field,
+        UploadedFile $file,
+    ): ProviderProfileFileUploadResult {
+        return DB::transaction(
+            fn (): ProviderProfileFileUploadResult => $this->replaceProviderProfileFileAction->handle(
+                $provider,
+                $field,
+                $file,
+            ),
+        );
     }
 
     /**

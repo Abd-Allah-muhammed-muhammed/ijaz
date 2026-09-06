@@ -9,13 +9,16 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Provider\Auth\LoginRequest;
 use App\Http\Requests\Provider\Auth\SelfDeactivateProviderRequest;
 use App\Http\Requests\Provider\Auth\UpdateProfileRequest;
+use App\Http\Requests\Provider\Auth\UploadProviderProfileFileRequest;
 use App\Http\Resources\Dashboard\ProviderResource;
 use App\Models\Provider;
 use App\Services\Auth\ProviderAuthService;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use MMAE\ApiResponse\Traits\HasApiResponse;
 use Modules\Geo\Http\Resources\Dashboard\CityResource;
 use Modules\Geo\Http\Resources\Dashboard\RegionResource;
 use Modules\Geo\Services\CityService;
@@ -30,6 +33,8 @@ use Throwable;
 
 class AuthController extends Controller
 {
+    use HasApiResponse;
+
     public function __construct(
         private readonly ProviderAuthService $providerAuthService,
         private readonly SwitchLocaleAction $switchLocaleAction,
@@ -114,6 +119,25 @@ class AuthController extends Controller
 
             return redirect()->back()->with('error', __('something went wrong'));
         }
+    }
+
+    /**
+     * Authenticated background upload for one required-file field.
+     *
+     * @throws Throwable
+     */
+    public function uploadProfileFile(UploadProviderProfileFileRequest $request): JsonResponse
+    {
+        /** @var Provider $provider */
+        $provider = auth('provider')->user();
+
+        $result = $this->providerAuthService->uploadProfileFile(
+            $provider,
+            $request->string('field')->toString(),
+            $request->file('file'),
+        );
+
+        return $this->successResponse($result->toArray());
     }
 
     public function deactivate(SelfDeactivateProviderRequest $request): RedirectResponse

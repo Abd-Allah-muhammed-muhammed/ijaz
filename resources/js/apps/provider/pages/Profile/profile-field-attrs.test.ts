@@ -4,6 +4,8 @@ import { join } from 'node:path';
 import {
   PROFILE_ABOUT_MAX_LENGTH,
   PROFILE_ADDRESS_MAX_LENGTH,
+  PROFILE_AVATAR_CLASS,
+  PROFILE_AVATAR_SIZE_PX,
   PROFILE_CATEGORIES_SCROLL_MAX_HEIGHT_PX,
   PROFILE_FIELD_LABEL_CLASS,
   PROFILE_IBAN_MAX_LENGTH,
@@ -23,6 +25,22 @@ const passwordSrc = readFileSync(
   'utf8',
 );
 const logoSrc = readFileSync(join(__dirname, 'components/LogoCard.tsx'), 'utf8');
+const identitySrc = readFileSync(
+  join(__dirname, 'components/ProfileIdentityHeader.tsx'),
+  'utf8',
+);
+const categoriesSrc = readFileSync(
+  join(__dirname, 'components/CategoriesCard.tsx'),
+  'utf8',
+);
+const requiredSrc = readFileSync(
+  join(__dirname, 'components/RequiredFilesCard.tsx'),
+  'utf8',
+);
+const formHookSrc = readFileSync(
+  join(__dirname, 'hooks/use-profile-form.ts'),
+  'utf8',
+);
 const constantsSrc = readFileSync(join(__dirname, 'constants.ts'), 'utf8');
 
 describe('Profile HTML validation + layout constants', () => {
@@ -46,8 +64,8 @@ describe('Profile HTML validation + layout constants', () => {
     expect(PROFILE_PASSWORD_MAX_LENGTH).toBe(64);
   });
 
-  it('keeps the logo thumb as an explicit 64px box (no Metronic symbol + w-100)', () => {
-    expect(PROFILE_LOGO_THUMB_SIZE_PX).toBe(64);
+  it('keeps the logo thumb as an explicit 56px box (no Metronic symbol + w-100)', () => {
+    expect(PROFILE_LOGO_THUMB_SIZE_PX).toBe(56);
     expect(PROFILE_LOGO_THUMB_CLASS).not.toContain('symbol');
     expect(logoSrc).toContain('PROFILE_LOGO_THUMB_SIZE_PX');
     expect(logoSrc).toContain('data-pan="profile-logo-img"');
@@ -56,5 +74,31 @@ describe('Profile HTML validation + layout constants', () => {
     expect(constantsSrc).toContain('REGISTRATION_LOGO_COMPRESSION');
     expect(constantsSrc).toContain(PROFILE_FIELD_LABEL_CLASS.split(' ')[0]);
     expect(PROFILE_CATEGORIES_SCROLL_MAX_HEIGHT_PX).toBe(240);
+  });
+
+  it('constrains identity avatar to a hard 56px circle', () => {
+    expect(PROFILE_AVATAR_SIZE_PX).toBe(56);
+    expect(PROFILE_AVATAR_CLASS).toContain('rounded-circle');
+    expect(PROFILE_AVATAR_CLASS).toContain('overflow-hidden');
+    expect(identitySrc).toContain('PROFILE_AVATAR_SIZE_PX');
+    expect(identitySrc).toContain("borderRadius: '50%'");
+    expect(identitySrc).toContain("objectFit: 'cover'");
+    expect(identitySrc).not.toContain('symbol-70px');
+    expect(identitySrc).not.toContain('w-100 h-100 object-fit-cover');
+  });
+
+  it('renders categories as a scrollable vertical list of rows', () => {
+    expect(categoriesSrc).toContain('PROFILE_CATEGORIES_SCROLL_MAX_HEIGHT_PX');
+    expect(categoriesSrc).toContain('list-unstyled');
+    expect(categoriesSrc).toContain('onRemoveCategory');
+    expect(categoriesSrc).not.toContain('badge');
+  });
+
+  it('uploads required files in the background outside the Save payload', () => {
+    expect(requiredSrc).toContain('BackgroundUploadTray');
+    expect(requiredSrc).toContain('selectAndUpload');
+    expect(requiredSrc).toContain('replace_file');
+    expect(formHookSrc).not.toContain('id_image: undefined');
+    expect(formHookSrc).not.toContain('setFileField');
   });
 });

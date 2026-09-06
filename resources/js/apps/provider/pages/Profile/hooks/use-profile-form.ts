@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import AuthController from '@/actions/App/Http/Controllers/Provider/AuthController';
 import { zodValidate } from '@/shared/helpers/general';
-import type { ProviderTypeFileKeys } from '@/shared/types/models';
 import type { Data as SelectCategoryModalData } from '@/shared/components/categories/category-selector/select-category-modal';
 import { profileFormSchema } from '@/apps/provider/pages/Profile/profile-form-schema';
 import type {
@@ -77,11 +76,6 @@ export function useProfileForm({
           category.provider_skills?.map((skill) => skill.id as number) ?? [],
       })) ?? [],
     logo: undefined,
-    id_image: undefined,
-    commercial_record: undefined,
-    freelancer_certification: undefined,
-    iban_certification: undefined,
-    license_to_practice_law: undefined,
   });
 
   const setProviderType = (providerTypeId: number | null) => {
@@ -146,10 +140,6 @@ export function useProfileForm({
     }));
   };
 
-  const setFileField = (key: ProviderTypeFileKeys, file: File | undefined) => {
-    form.setData(key, file);
-  };
-
   const submit = (event: FormEvent) => {
     event.preventDefault();
 
@@ -176,16 +166,7 @@ export function useProfileForm({
         toast.error(t('something went wrong'));
       },
       onSuccess: () => {
-        form.reset(
-          'password',
-          'password_confirmation',
-          'logo',
-          'id_image',
-          'commercial_record',
-          'freelancer_certification',
-          'iban_certification',
-          'license_to_practice_law',
-        );
+        form.reset('password', 'password_confirmation', 'logo');
       },
     });
   };
@@ -197,7 +178,6 @@ export function useProfileForm({
     setProviderType,
     mergeCategoriesFromModal,
     removeCategory,
-    setFileField,
     submit,
   };
 }
