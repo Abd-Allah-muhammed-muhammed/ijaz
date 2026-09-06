@@ -3,6 +3,12 @@ import { useTranslation } from 'react-i18next';
 import type { InertiaFormProps } from '@inertiajs/react';
 import InputError from '@/shared/components/inputs/InputError';
 import { SectionCard } from '@/shared/components/ui';
+import {
+  PROFILE_CARD_CLASS,
+  PROFILE_FIELD_LABEL_CLASS,
+  PROFILE_PASSWORD_MAX_LENGTH,
+  PROFILE_PASSWORD_MIN_LENGTH,
+} from '@/apps/provider/pages/Profile/constants';
 import type { ProfileFormData } from '@/apps/provider/pages/Profile/types';
 
 export type PasswordCardProps = {
@@ -11,20 +17,24 @@ export type PasswordCardProps = {
 
 export default function PasswordCard({ form }: PasswordCardProps) {
   const { t } = useTranslation();
+  const passwordValue = form.data.password ?? '';
+  const enforceMinLength = passwordValue.length > 0;
 
   return (
-    <SectionCard title={t('change_password')} className="mb-5">
-      <p className="text-muted fs-7 mb-4">{t('leave_blank_to_keep_current_password')}</p>
-      <Row className="g-3">
+    <SectionCard title={t('change_password')} className={PROFILE_CARD_CLASS}>
+      <p className="text-muted fs-7 mb-3">{t('leave_blank_to_keep_current_password')}</p>
+      <Row className="g-4">
         <Col xs={12} md={6}>
-          <FormGroup>
-            <FormLabel>{t('password')}</FormLabel>
+          <FormGroup className="mb-0">
+            <FormLabel className={PROFILE_FIELD_LABEL_CLASS}>{t('password')}</FormLabel>
             <FormControl
               className="form-control-solid"
               placeholder={t('password')}
               type="password"
               autoComplete="new-password"
-              value={form.data.password ?? ''}
+              minLength={enforceMinLength ? PROFILE_PASSWORD_MIN_LENGTH : undefined}
+              maxLength={PROFILE_PASSWORD_MAX_LENGTH}
+              value={passwordValue}
               onChange={(event) =>
                 form.setData('password', event.currentTarget.value || null)
               }
@@ -33,13 +43,17 @@ export default function PasswordCard({ form }: PasswordCardProps) {
           </FormGroup>
         </Col>
         <Col xs={12} md={6}>
-          <FormGroup>
-            <FormLabel>{t('password_confirmation')}</FormLabel>
+          <FormGroup className="mb-0">
+            <FormLabel className={PROFILE_FIELD_LABEL_CLASS}>
+              {t('password_confirmation')}
+            </FormLabel>
             <FormControl
               className="form-control-solid"
               placeholder={t('password_confirmation')}
               type="password"
               autoComplete="new-password"
+              minLength={enforceMinLength ? PROFILE_PASSWORD_MIN_LENGTH : undefined}
+              maxLength={PROFILE_PASSWORD_MAX_LENGTH}
               value={form.data.password_confirmation ?? ''}
               onChange={(event) =>
                 form.setData(

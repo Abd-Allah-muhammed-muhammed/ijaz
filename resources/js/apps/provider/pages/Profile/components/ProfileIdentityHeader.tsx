@@ -17,13 +17,13 @@ export default function ProfileIdentityHeader({
 
   return (
     <SectionCard variant="hero" className="mb-5">
-      <div className="d-flex align-items-center flex-wrap gap-4">
-        <div className="symbol symbol-80px symbol-fixed overflow-hidden">
+      <div className="d-flex align-items-center flex-wrap gap-3">
+        <div className="symbol symbol-70px symbol-fixed overflow-hidden rounded-3 border border-gray-100 flex-shrink-0">
           {provider.logo ? (
             <img
               src={provider.logo}
               alt={provider.name}
-              className="object-fit-contain"
+              className="object-fit-cover w-100 h-100"
             />
           ) : (
             <span className="symbol-label fs-2 fw-bold text-primary">

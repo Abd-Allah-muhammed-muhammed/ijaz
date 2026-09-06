@@ -3,6 +3,16 @@ import { useTranslation } from 'react-i18next';
 import type { InertiaFormProps } from '@inertiajs/react';
 import InputError from '@/shared/components/inputs/InputError';
 import { SectionCard } from '@/shared/components/ui';
+import {
+  PROFILE_ABOUT_MAX_LENGTH,
+  PROFILE_ADDRESS_MAX_LENGTH,
+  PROFILE_CARD_CLASS,
+  PROFILE_EMAIL_MAX_LENGTH,
+  PROFILE_FIELD_LABEL_REQUIRED_CLASS,
+  PROFILE_IBAN_MAX_LENGTH,
+  PROFILE_NAME_MAX_LENGTH,
+  PROFILE_PHONE_MAX_LENGTH,
+} from '@/apps/provider/pages/Profile/constants';
 import { useRegionCityCascade } from '@/apps/provider/pages/Profile/hooks/use-region-city-cascade';
 import type { ProfileFormData } from '@/apps/provider/pages/Profile/types';
 import type { City, ProviderType, Region } from '@/shared/types/models';
@@ -30,15 +40,16 @@ export default function GeneralInfoCard({
   );
 
   return (
-    <SectionCard title={T('general.information')} className="mb-5">
-      <Row className="g-3">
+    <SectionCard title={T('general.information')} className={PROFILE_CARD_CLASS}>
+      <Row className="g-4">
         <Col xs={12} md={6} lg={4}>
-          <FormGroup>
-            <FormLabel className="required">{t('name')}</FormLabel>
+          <FormGroup className="mb-0">
+            <FormLabel className={PROFILE_FIELD_LABEL_REQUIRED_CLASS}>{t('name')}</FormLabel>
             <FormControl
               className="form-control-solid"
               placeholder={t('name')}
               type="text"
+              maxLength={PROFILE_NAME_MAX_LENGTH}
               value={form.data.name ?? ''}
               onChange={(event) => form.setData('name', event.currentTarget.value)}
             />
@@ -46,12 +57,13 @@ export default function GeneralInfoCard({
           </FormGroup>
         </Col>
         <Col xs={12} md={6} lg={4}>
-          <FormGroup>
-            <FormLabel className="required">{t('email')}</FormLabel>
+          <FormGroup className="mb-0">
+            <FormLabel className={PROFILE_FIELD_LABEL_REQUIRED_CLASS}>{t('email')}</FormLabel>
             <FormControl
               className="form-control-solid"
               placeholder={t('email')}
               type="email"
+              maxLength={PROFILE_EMAIL_MAX_LENGTH}
               value={form.data.email ?? ''}
               onChange={(event) => form.setData('email', event.currentTarget.value)}
             />
@@ -59,12 +71,13 @@ export default function GeneralInfoCard({
           </FormGroup>
         </Col>
         <Col xs={12} md={6} lg={4}>
-          <FormGroup>
-            <FormLabel className="required">{t('phone')}</FormLabel>
+          <FormGroup className="mb-0">
+            <FormLabel className={PROFILE_FIELD_LABEL_REQUIRED_CLASS}>{t('phone')}</FormLabel>
             <FormControl
               className="form-control-solid"
               placeholder={t('phone')}
               type="tel"
+              maxLength={PROFILE_PHONE_MAX_LENGTH}
               value={form.data.phone ?? ''}
               onChange={(event) => form.setData('phone', event.currentTarget.value)}
             />
@@ -72,12 +85,13 @@ export default function GeneralInfoCard({
           </FormGroup>
         </Col>
         <Col xs={12} md={6} lg={4}>
-          <FormGroup>
-            <FormLabel className="required">{t('iban')}</FormLabel>
+          <FormGroup className="mb-0">
+            <FormLabel className={PROFILE_FIELD_LABEL_REQUIRED_CLASS}>{t('iban')}</FormLabel>
             <FormControl
               className="form-control-solid"
               placeholder={t('iban')}
               type="text"
+              maxLength={PROFILE_IBAN_MAX_LENGTH}
               value={form.data.iban ?? ''}
               onChange={(event) => form.setData('iban', event.currentTarget.value)}
             />
@@ -85,12 +99,13 @@ export default function GeneralInfoCard({
           </FormGroup>
         </Col>
         <Col xs={12} md={6} lg={4}>
-          <FormGroup>
-            <FormLabel className="required">{t('address')}</FormLabel>
+          <FormGroup className="mb-0">
+            <FormLabel className={PROFILE_FIELD_LABEL_REQUIRED_CLASS}>{t('address')}</FormLabel>
             <FormControl
               className="form-control-solid"
               placeholder={t('address')}
               type="text"
+              maxLength={PROFILE_ADDRESS_MAX_LENGTH}
               value={form.data.address ?? ''}
               onChange={(event) => form.setData('address', event.currentTarget.value)}
             />
@@ -98,8 +113,10 @@ export default function GeneralInfoCard({
           </FormGroup>
         </Col>
         <Col xs={12} md={6} lg={4}>
-          <FormGroup>
-            <FormLabel className="required">{t('provider_types')}</FormLabel>
+          <FormGroup className="mb-0">
+            <FormLabel className={PROFILE_FIELD_LABEL_REQUIRED_CLASS}>
+              {t('provider_types')}
+            </FormLabel>
             <FormSelect
               className="form-select-solid"
               value={form.data.provider_type_id ?? ''}
@@ -119,8 +136,8 @@ export default function GeneralInfoCard({
           </FormGroup>
         </Col>
         <Col xs={12} md={6} lg={4}>
-          <FormGroup>
-            <FormLabel className="required">{t('region')}</FormLabel>
+          <FormGroup className="mb-0">
+            <FormLabel className={PROFILE_FIELD_LABEL_REQUIRED_CLASS}>{t('region')}</FormLabel>
             <FormSelect
               className="form-select-solid"
               value={form.data.region_id ?? ''}
@@ -145,8 +162,8 @@ export default function GeneralInfoCard({
           </FormGroup>
         </Col>
         <Col xs={12} md={6} lg={4}>
-          <FormGroup>
-            <FormLabel className="required">{t('city')}</FormLabel>
+          <FormGroup className="mb-0">
+            <FormLabel className={PROFILE_FIELD_LABEL_REQUIRED_CLASS}>{t('city')}</FormLabel>
             <FormSelect
               className="form-select-solid"
               value={form.data.city_id ?? ''}
@@ -166,12 +183,13 @@ export default function GeneralInfoCard({
           </FormGroup>
         </Col>
         <Col xs={12}>
-          <FormGroup>
-            <FormLabel className="required">{t('about')}</FormLabel>
+          <FormGroup className="mb-0">
+            <FormLabel className={PROFILE_FIELD_LABEL_REQUIRED_CLASS}>{t('about')}</FormLabel>
             <textarea
               rows={3}
               className="form-control form-control-solid"
               placeholder={t('about')}
+              maxLength={PROFILE_ABOUT_MAX_LENGTH}
               value={form.data.about ?? ''}
               onChange={(event) => form.setData('about', event.currentTarget.value)}
             />

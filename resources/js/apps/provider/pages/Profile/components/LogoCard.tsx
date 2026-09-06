@@ -5,13 +5,11 @@ import {
   SECONDARY_BUTTON_CLASS,
 } from '@/shared/components/ui';
 import {
+  PROFILE_CARD_CLASS,
   PROFILE_LOGO_MAX_LABEL,
   PROFILE_LOGO_THUMB_CLASS,
 } from '@/apps/provider/pages/Profile/constants';
-import {
-  useLogoUpload,
-  validateLogoFile,
-} from '@/apps/provider/pages/Profile/hooks/use-logo-upload';
+import { useLogoUpload } from '@/apps/provider/pages/Profile/hooks/use-logo-upload';
 
 export type LogoCardProps = {
   providerName: string;
@@ -40,34 +38,38 @@ export default function LogoCard({
             attribute: t('logo'),
             values: 'png,jpeg',
           })
-        : serverError;
+        : logo.errorCode === 'compression_failed'
+          ? t('something went wrong')
+          : serverError;
 
   return (
-    <SectionCard title={t('logo')} className="mb-5">
-      <div className="d-flex flex-column flex-sm-row align-items-sm-center gap-4">
+    <SectionCard title={t('logo')} className={PROFILE_CARD_CLASS}>
+      <div className="d-flex align-items-center gap-3 flex-wrap">
         <div className={PROFILE_LOGO_THUMB_CLASS}>
           {logo.previewUrl ? (
             <img
               src={logo.previewUrl}
               alt={t('provider_logo_alt', { name: providerName })}
-              className="w-100 h-100 object-fit-contain"
+              className="w-100 h-100 object-fit-cover"
             />
           ) : (
-            <span className="symbol-label fs-2 fw-bold text-primary">
+            <span className="symbol-label fs-3 fw-bold text-primary">
               {(providerName ?? '').charAt(0)}
             </span>
           )}
         </div>
 
-        <div className="d-flex flex-column gap-2">
+        <div className="d-flex flex-column gap-2 min-w-0">
           <p className="text-muted fs-7 mb-0">
             {t('logo_upload_hint', { max: PROFILE_LOGO_MAX_LABEL })}
+            {logo.compressing ? ` — ${t('provider_registration.status_compressing')}` : null}
           </p>
           <div className="d-flex flex-wrap gap-2">
             <button
               type="button"
               className={SECONDARY_BUTTON_CLASS}
               onClick={logo.openPicker}
+              disabled={logo.compressing}
               aria-label={t('change_logo')}
             >
               {t('change_logo')}
@@ -79,7 +81,7 @@ export default function LogoCard({
                 logo.remove();
                 onFileChange(undefined);
               }}
-              disabled={!logo.file}
+              disabled={!logo.file || logo.compressing}
               aria-label={t('remove')}
             >
               {t('remove')}
@@ -94,14 +96,9 @@ export default function LogoCard({
         type="file"
         className="d-none"
         accept={logo.accept}
-        onChange={(event) => {
-          const next = event.target.files?.[0];
-          logo.onInputChange(event);
-          if (!next || validateLogoFile(next)) {
-            onFileChange(undefined);
-            return;
-          }
-          onFileChange(next);
+        onChange={async (event) => {
+          const prepared = await logo.onInputChange(event);
+          onFileChange(prepared);
         }}
       />
     </SectionCard>

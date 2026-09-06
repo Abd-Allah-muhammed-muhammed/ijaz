@@ -10,7 +10,10 @@ import {
   SelectCategoryModal,
   type Data as SelectCategoryModalData,
 } from '@/shared/components/categories/category-selector/select-category-modal';
-import { PROFILE_CATEGORIES_SCROLL_MAX_HEIGHT_PX } from '@/apps/provider/pages/Profile/constants';
+import {
+  PROFILE_CARD_CLASS,
+  PROFILE_CATEGORIES_SCROLL_MAX_HEIGHT_PX,
+} from '@/apps/provider/pages/Profile/constants';
 import type { ProfileCategorySelection } from '@/apps/provider/pages/Profile/types';
 
 export type CategoriesCardProps = {
@@ -34,7 +37,7 @@ export default function CategoriesCard({
 
   return (
     <SectionCard
-      className="mb-5"
+      className={PROFILE_CARD_CLASS}
       title={T('categories & skills')}
       headerExtra={
         <button

@@ -4,6 +4,10 @@ import type { InertiaFormProps } from '@inertiajs/react';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import InputError from '@/shared/components/inputs/InputError';
 import { SectionCard } from '@/shared/components/ui';
+import {
+  PROFILE_CARD_CLASS,
+  PROFILE_FIELD_LABEL_REQUIRED_CLASS,
+} from '@/apps/provider/pages/Profile/constants';
 import type { ProfileFormData, ProfileRequiredFiles } from '@/apps/provider/pages/Profile/types';
 import type { Provider, ProviderTypeFileKeys } from '@/shared/types/models';
 
@@ -28,19 +32,19 @@ export default function RequiredFilesCard({
   const T = t as (key: string, options?: Record<string, string>) => string;
 
   return (
-    <SectionCard title={T('required files')} className="mb-5">
+    <SectionCard title={T('required files')} className={PROFILE_CARD_CLASS}>
       {visibleKeys.length === 0 ? (
         <p className="text-muted fs-7 mb-0">{T('no_required_files_for_type')}</p>
       ) : (
-        <Row className="g-3">
+        <Row className="g-4">
           {visibleKeys.map((key) => {
             const existing = provider.media?.find(
               (media) => media.collection_name === key,
             );
             return (
               <Col xs={12} md={6} lg={4} key={`file-${key}`}>
-                <FormGroup>
-                  <FormLabel className="required">{T(key)}</FormLabel>
+                <FormGroup className="mb-0">
+                  <FormLabel className={PROFILE_FIELD_LABEL_REQUIRED_CLASS}>{T(key)}</FormLabel>
                   <FormControl
                     accept="application/pdf"
                     className="form-control-solid"

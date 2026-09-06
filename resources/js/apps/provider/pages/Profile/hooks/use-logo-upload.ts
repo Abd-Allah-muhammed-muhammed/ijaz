@@ -1,18 +1,18 @@
 import { useRef, useState, type ChangeEvent, type RefObject } from 'react';
+import { compressRegistrationFile } from '@/apps/web/pages/Auth/Register/compress-registration-image';
+import { REGISTRATION_UPLOAD_FIELD_LOGO } from '@/apps/web/pages/Auth/Register/registration-upload-constants';
 import {
   PROFILE_LOGO_ACCEPT,
   PROFILE_LOGO_MAX_BYTES,
   PROFILE_LOGO_MIME_TYPES,
 } from '@/apps/provider/pages/Profile/constants';
 
-export type LogoValidationErrorCode = 'too_large' | 'invalid_type';
+export type LogoValidationErrorCode =
+  | 'too_large'
+  | 'invalid_type'
+  | 'compression_failed';
 
-/** Pure size/mime check — source of truth matches server `max:2048`. */
-export function validateLogoFile(file: File): LogoValidationErrorCode | null {
-  if (file.size > PROFILE_LOGO_MAX_BYTES) {
-    return 'too_large';
-  }
-
+export function validateLogoMime(file: File): Extract<LogoValidationErrorCode, 'invalid_type'> | null {
   if (
     !PROFILE_LOGO_MIME_TYPES.includes(
       file.type as (typeof PROFILE_LOGO_MIME_TYPES)[number],
@@ -24,14 +24,83 @@ export function validateLogoFile(file: File): LogoValidationErrorCode | null {
   return null;
 }
 
+export function validateLogoSize(
+  file: File,
+): Extract<LogoValidationErrorCode, 'too_large'> | null {
+  if (file.size > PROFILE_LOGO_MAX_BYTES) {
+    return 'too_large';
+  }
+
+  return null;
+}
+
+/**
+ * Mime-check → compress with registration logo profile → size-check.
+ * Size is enforced on the *compressed* file so phone-camera originals can exceed 2MB.
+ */
+export async function prepareLogoFile(file: File): Promise<{
+  file: File | null;
+  errorCode: LogoValidationErrorCode | null;
+  originalSize: number;
+  compressedSize: number | null;
+}> {
+  const originalSize = file.size;
+  const mimeError = validateLogoMime(file);
+  if (mimeError) {
+    return {
+      file: null,
+      errorCode: mimeError,
+      originalSize,
+      compressedSize: null,
+    };
+  }
+
+  try {
+    const compressed = await compressRegistrationFile(
+      file,
+      REGISTRATION_UPLOAD_FIELD_LOGO,
+    );
+    const sizeError = validateLogoSize(compressed);
+    if (sizeError) {
+      return {
+        file: null,
+        errorCode: sizeError,
+        originalSize,
+        compressedSize: compressed.size,
+      };
+    }
+
+    return {
+      file: compressed,
+      errorCode: null,
+      originalSize,
+      compressedSize: compressed.size,
+    };
+  } catch {
+    return {
+      file: null,
+      errorCode: 'compression_failed',
+      originalSize,
+      compressedSize: null,
+    };
+  }
+}
+
+/** @deprecated Prefer validateLogoMime + prepareLogoFile; kept for simple sync mime/size checks in tests. */
+export function validateLogoFile(file: File): LogoValidationErrorCode | null {
+  return validateLogoMime(file) ?? validateLogoSize(file);
+}
+
 export type UseLogoUploadResult = {
   previewUrl: string | null;
   file: File | null;
   errorCode: LogoValidationErrorCode | null;
+  compressing: boolean;
+  lastCompression: { originalSize: number; compressedSize: number } | null;
   inputRef: RefObject<HTMLInputElement | null>;
   accept: string;
   openPicker: () => void;
-  onInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onInputChange: (event: ChangeEvent<HTMLInputElement>) => Promise<File | undefined>;
   remove: () => void;
   resetAfterSuccess: () => void;
 };
@@ -47,39 +116,59 @@ export function useLogoUpload(
   const [errorCode, setErrorCode] = useState<LogoValidationErrorCode | null>(
     null,
   );
+  const [compressing, setCompressing] = useState(false);
+  const [lastCompression, setLastCompression] = useState<{
+    originalSize: number;
+    compressedSize: number;
+  } | null>(null);
 
   const openPicker = () => {
     inputRef.current?.click();
   };
 
-  const onInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const onInputChange = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ): Promise<File | undefined> => {
     const next = event.target.files?.[0];
     if (!next) {
-      return;
+      return undefined;
     }
 
-    const code = validateLogoFile(next);
-    if (code) {
-      setErrorCode(code);
-      setFile(null);
-      event.target.value = '';
-      return;
-    }
-
+    setCompressing(true);
     setErrorCode(null);
-    setFile(next);
+
+    const result = await prepareLogoFile(next);
+    setCompressing(false);
+
+    if (result.errorCode || !result.file) {
+      setErrorCode(result.errorCode);
+      setFile(null);
+      setLastCompression(null);
+      event.target.value = '';
+      return undefined;
+    }
+
+    setFile(result.file);
+    setLastCompression({
+      originalSize: result.originalSize,
+      compressedSize: result.compressedSize ?? result.file.size,
+    });
+
     const reader = new FileReader();
     reader.onload = () => {
       if (reader.readyState === 2) {
         setPreviewUrl(reader.result as string);
       }
     };
-    reader.readAsDataURL(next);
+    reader.readAsDataURL(result.file);
+
+    return result.file;
   };
 
   const remove = () => {
     setFile(null);
     setErrorCode(null);
+    setLastCompression(null);
     setPreviewUrl(initialUrl ?? null);
     if (inputRef.current) {
       inputRef.current.value = '';
@@ -89,6 +178,7 @@ export function useLogoUpload(
   const resetAfterSuccess = () => {
     setFile(null);
     setErrorCode(null);
+    setLastCompression(null);
     if (inputRef.current) {
       inputRef.current.value = '';
     }
@@ -98,6 +188,8 @@ export function useLogoUpload(
     previewUrl,
     file,
     errorCode,
+    compressing,
+    lastCompression,
     inputRef,
     accept: PROFILE_LOGO_ACCEPT,
     openPicker,
