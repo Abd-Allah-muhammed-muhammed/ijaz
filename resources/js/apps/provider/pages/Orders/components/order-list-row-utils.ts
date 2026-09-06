@@ -1,6 +1,10 @@
 import type { Order } from '@/shared/types/models';
 import { formatShortAbsoluteDiff, parseChatAbsoluteTime } from '@/shared/chat/utils/format-short-absolute-diff';
 
+/** Individual spaced card shell — border + radius live on the row itself. */
+export const ORDER_LIST_ROW_CARD_CLASS =
+  'd-block py-4 px-4 px-lg-5 text-decoration-none text-gray-900 border border-gray-200 rounded-3 bg-body bg-hover-light';
+
 /** City – region label for list meta; uses Dashboard Resource flattened `title`. */
 export function formatOrderLocation(
   order: Pick<Order, 'city' | 'region'>,

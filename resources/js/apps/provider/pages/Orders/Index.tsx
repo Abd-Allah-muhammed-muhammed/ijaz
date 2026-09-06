@@ -106,7 +106,7 @@ const Index = ({ rows, prams }: Props) => {
             />
           </SectionCard>
         ) : (
-          <SectionCard className="mb-5" bodyClassName="card-body p-0">
+          <div className="d-flex flex-column gap-3 mb-5">
             {rows.data.map((row) => (
               <OrderListRow
                 key={row.id}
@@ -120,7 +120,7 @@ const Index = ({ rows, prams }: Props) => {
                 status={row.status}
               />
             ))}
-          </SectionCard>
+          </div>
         )}
         <Pagination paginationMeta={rows.meta} preserveScroll />
       </Content>

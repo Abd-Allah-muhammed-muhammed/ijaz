@@ -6,11 +6,22 @@ import {
   formatOrderBudgetRange,
   formatOrderListTime,
   formatOrderLocation,
+  ORDER_LIST_ROW_CARD_CLASS,
 } from './order-list-row-utils';
 import type { Order } from '@/shared/types/models';
 
 describe('OrderListRow', () => {
   const src = readFileSync(join(__dirname, 'OrderListRow.tsx'), 'utf8');
+
+  it('renders an individual bordered card with hover tint, no View Details affordance', () => {
+    expect(ORDER_LIST_ROW_CARD_CLASS).toContain('border border-gray-200');
+    expect(ORDER_LIST_ROW_CARD_CLASS).toContain('rounded-3');
+    expect(ORDER_LIST_ROW_CARD_CLASS).toContain('bg-hover-light');
+    expect(src).toContain('ORDER_LIST_ROW_CARD_CLASS');
+    expect(src).not.toContain('view_details');
+    expect(src).not.toContain('whenLocale');
+    expect(src).not.toContain('border-bottom');
+  });
 
   it('renders title, amount, truncated description, and StatusBadge on the meta row', () => {
     expect(src).toContain('{title}');
@@ -21,9 +32,6 @@ describe('OrderListRow', () => {
     expect(src).toContain('status={status}');
     expect(src).toContain('colorClass={statusColorClass}');
     expect(src).toContain('justify-content-between');
-    expect(src).toContain("t('view_details')");
-    expect(src).toContain('whenLocale');
-    expect(src).not.toContain('align-self-center');
   });
 
   it('uses Link for the whole row and aria-labels meta icons with counts/labels', () => {
@@ -64,15 +72,17 @@ describe('order-list-row-utils', () => {
   });
 });
 
-describe('Order list pages use OrderListRow not OrderCard grid', () => {
+describe('Order list pages use spaced OrderListRow cards', () => {
   const pages = ['Index.tsx', 'Recommended.tsx', 'Offers.tsx'] as const;
 
-  it.each(pages)('%s stacks OrderListRow inside SectionCard', (file) => {
+  it.each(pages)('%s stacks OrderListRow in a gap column, not a SectionCard list shell', (file) => {
     const src = readFileSync(join(__dirname, '..', file), 'utf8');
     expect(src).toContain('OrderListRow');
+    expect(src).toContain('d-flex flex-column gap-3 mb-5');
     expect(src).not.toContain('OrderCard');
     expect(src).not.toContain('order-card');
     expect(src).not.toContain('<Col');
+    expect(src).not.toContain('bodyClassName="card-body p-0"');
   });
 
   it('Index/Recommended pass EnumWithColors status; Offers uses offer colorClass map', () => {

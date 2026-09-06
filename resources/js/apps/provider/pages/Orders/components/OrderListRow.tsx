@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import { StatusBadge, type StatusBadgeStatus } from '@/shared/components/ui';
-import { whenLocale } from '@/shared/helpers/general';
+import { ORDER_LIST_ROW_CARD_CLASS } from '@/apps/provider/pages/Orders/components/order-list-row-utils';
 
 export type OrderListRowProps = {
   href: string;
@@ -21,6 +21,8 @@ export type OrderListRowProps = {
   statusColorClass?: string | null;
 };
 
+export { ORDER_LIST_ROW_CARD_CLASS };
+
 export default function OrderListRow({
   href,
   title,
@@ -37,13 +39,9 @@ export default function OrderListRow({
   const trimmedDescription = description?.trim() ?? '';
   const trimmedLocation = locationLabel?.trim() ?? '';
   const showOffersCount = offersCount !== undefined && offersCount !== null;
-  const detailsArrow = whenLocale<string>('ar', 'arrow-left', 'arrow-right');
 
   return (
-    <Link
-      href={href}
-      className="d-block py-4 px-4 px-lg-6 text-decoration-none text-gray-900 border-bottom border-gray-100"
-    >
+    <Link href={href} className={ORDER_LIST_ROW_CARD_CLASS}>
       <div className="d-flex align-items-start justify-content-between gap-2 mb-1">
         <h5 className="fw-bolder fs-6 text-gray-900 mb-0 text-truncate lh-base" title={title}>
           {title}
@@ -97,18 +95,12 @@ export default function OrderListRow({
           ) : null}
         </div>
 
-        <div className="d-flex align-items-center gap-2 flex-shrink-0 ms-auto">
-          <StatusBadge
-            status={status}
-            label={statusLabel}
-            colorClass={statusColorClass}
-            className="fs-8"
-          />
-          <span className="d-inline-flex align-items-center gap-1 text-primary fw-bold fs-8 text-nowrap">
-            {t('view_details')}
-            <KTIcon iconName={detailsArrow} className="fs-4" />
-          </span>
-        </div>
+        <StatusBadge
+          status={status}
+          label={statusLabel}
+          colorClass={statusColorClass}
+          className="fs-8 flex-shrink-0 ms-auto"
+        />
       </div>
     </Link>
   );
