@@ -8,6 +8,7 @@ import {
   PROFILE_CARD_CLASS,
   PROFILE_LOGO_MAX_LABEL,
   PROFILE_LOGO_THUMB_CLASS,
+  PROFILE_LOGO_THUMB_SIZE_PX,
 } from '@/apps/provider/pages/Profile/constants';
 import { useLogoUpload } from '@/apps/provider/pages/Profile/hooks/use-logo-upload';
 
@@ -42,18 +43,36 @@ export default function LogoCard({
           ? t('something went wrong')
           : serverError;
 
+  const thumbStyle = {
+    width: PROFILE_LOGO_THUMB_SIZE_PX,
+    height: PROFILE_LOGO_THUMB_SIZE_PX,
+  } as const;
+
   return (
     <SectionCard title={t('logo')} className={PROFILE_CARD_CLASS}>
       <div className="d-flex align-items-center gap-3 flex-wrap">
-        <div className={PROFILE_LOGO_THUMB_CLASS}>
+        <div
+          className={PROFILE_LOGO_THUMB_CLASS}
+          style={thumbStyle}
+          data-pan="profile-logo-thumb"
+        >
           {logo.previewUrl ? (
             <img
               src={logo.previewUrl}
               alt={t('provider_logo_alt', { name: providerName })}
-              className="w-100 h-100 object-fit-cover"
+              data-pan="profile-logo-img"
+              style={{
+                width: PROFILE_LOGO_THUMB_SIZE_PX,
+                height: PROFILE_LOGO_THUMB_SIZE_PX,
+                objectFit: 'cover',
+                display: 'block',
+              }}
             />
           ) : (
-            <span className="symbol-label fs-3 fw-bold text-primary">
+            <span
+              className="d-flex align-items-center justify-content-center w-100 h-100 fs-4 fw-bold text-primary"
+              aria-hidden="true"
+            >
               {(providerName ?? '').charAt(0)}
             </span>
           )}

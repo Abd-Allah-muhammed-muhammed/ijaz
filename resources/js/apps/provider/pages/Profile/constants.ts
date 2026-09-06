@@ -30,12 +30,22 @@ export const PROFILE_EMAIL_MAX_LENGTH = 255;
 export const PROFILE_ADDRESS_MAX_LENGTH = 500;
 export const PROFILE_ABOUT_MAX_LENGTH = 1000;
 
-/** Bounded internal scroll for selected category chips (not page-growing). */
-export const PROFILE_CATEGORIES_SCROLL_MAX_HEIGHT_PX = 110;
+/**
+ * Categories chip list: tall enough for ~4–5 rows before internal scroll.
+ * (Previously 110px — only ~2 rows visible.)
+ */
+export const PROFILE_CATEGORIES_SCROLL_MAX_HEIGHT_PX = 240;
 
-/** Compact thumb — proportional to other settings cards (not full-bleed). */
+/**
+ * Fixed logo thumb size (px). Do NOT use Metronic `symbol-*` + Bootstrap `w-100`
+ * together — `w-100` is `width: 100% !important` and overrides symbol sizing,
+ * expanding the preview to the card width.
+ */
+export const PROFILE_LOGO_THUMB_SIZE_PX = 64;
+
+/** Decorative classes only — size comes from PROFILE_LOGO_THUMB_SIZE_PX inline style. */
 export const PROFILE_LOGO_THUMB_CLASS =
-  'symbol symbol-70px symbol-fixed overflow-hidden rounded-3 border border-gray-100 flex-shrink-0';
+  'overflow-hidden rounded-3 border border-gray-100 flex-shrink-0 bg-light';
 
 export const PROFILE_CARD_CLASS = 'mb-5';
 

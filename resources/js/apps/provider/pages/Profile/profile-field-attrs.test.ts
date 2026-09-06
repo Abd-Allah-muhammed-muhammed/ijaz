@@ -4,9 +4,11 @@ import { join } from 'node:path';
 import {
   PROFILE_ABOUT_MAX_LENGTH,
   PROFILE_ADDRESS_MAX_LENGTH,
+  PROFILE_CATEGORIES_SCROLL_MAX_HEIGHT_PX,
   PROFILE_FIELD_LABEL_CLASS,
   PROFILE_IBAN_MAX_LENGTH,
   PROFILE_LOGO_THUMB_CLASS,
+  PROFILE_LOGO_THUMB_SIZE_PX,
   PROFILE_PASSWORD_MAX_LENGTH,
   PROFILE_PASSWORD_MIN_LENGTH,
   PROFILE_PHONE_MAX_LENGTH,
@@ -44,12 +46,15 @@ describe('Profile HTML validation + layout constants', () => {
     expect(PROFILE_PASSWORD_MAX_LENGTH).toBe(64);
   });
 
-  it('keeps the logo thumb compact and reuses registration compression', () => {
-    expect(PROFILE_LOGO_THUMB_CLASS).toContain('symbol-70px');
-    expect(PROFILE_LOGO_THUMB_CLASS).not.toContain('symbol-100px');
-    expect(logoSrc).toContain('PROFILE_LOGO_THUMB_CLASS');
-    expect(logoSrc).toContain('object-fit-cover');
+  it('keeps the logo thumb as an explicit 64px box (no Metronic symbol + w-100)', () => {
+    expect(PROFILE_LOGO_THUMB_SIZE_PX).toBe(64);
+    expect(PROFILE_LOGO_THUMB_CLASS).not.toContain('symbol');
+    expect(logoSrc).toContain('PROFILE_LOGO_THUMB_SIZE_PX');
+    expect(logoSrc).toContain('data-pan="profile-logo-img"');
+    expect(logoSrc).not.toContain('w-100 h-100 object-fit-cover');
+    expect(logoSrc).not.toContain('symbol-70px');
     expect(constantsSrc).toContain('REGISTRATION_LOGO_COMPRESSION');
     expect(constantsSrc).toContain(PROFILE_FIELD_LABEL_CLASS.split(' ')[0]);
+    expect(PROFILE_CATEGORIES_SCROLL_MAX_HEIGHT_PX).toBe(240);
   });
 });
