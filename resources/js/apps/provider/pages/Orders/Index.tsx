@@ -1,17 +1,15 @@
-import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
-import {Head} from "@inertiajs/react";
+import ProviderLayout from '@/apps/provider/layouts/ProviderLayout';
+import { Head } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import {PageTitle} from "@/vendor/metronic/layout/core";
-import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
-import {Content} from "@/vendor/metronic/layout/components/content";
-import {KTIcon} from "@/vendor/metronic/helpers";
-import Pagination from "@/shared/components/Table/partials/Pagination";
-import {PaginationResource} from "@/shared/types";
-import {Order} from "@/shared/types/models";
-import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/OrderController";
-import OrderCard from "@/shared/components/order/order-card";
-import {Col, Row} from "react-bootstrap";
-import {OrderStatusEnum} from "@/Enums/Order";
+import { PageTitle } from '@/vendor/metronic/layout/core';
+import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
+import { Content } from '@/vendor/metronic/layout/components/content';
+import { KTIcon } from '@/vendor/metronic/helpers';
+import Pagination from '@/shared/components/Table/partials/Pagination';
+import { PaginationResource } from '@/shared/types';
+import { Order } from '@/shared/types/models';
+import OrderController from '@/actions/Modules/Orders/Http/Controllers/Provider/OrderController';
+import { OrderStatusEnum } from '@/Enums/Order';
 import { ORDERS_PAGE_TITLE_KEY } from '@/shared/i18n/orders-label';
 import {
   EmptyState,
@@ -20,9 +18,16 @@ import {
   type PageFilterField,
 } from '@/shared/components/ui';
 import { useOrderFilters } from '@/apps/provider/pages/Orders/hooks/use-order-filters';
+import OrderListRow from '@/apps/provider/pages/Orders/components/OrderListRow';
+import {
+  formatOrderBudgetRange,
+  formatOrderListTime,
+  formatOrderLocation,
+} from '@/apps/provider/pages/Orders/components/order-list-row-utils';
+import type { ReactElement } from 'react';
 
 type Props = {
-  rows: PaginationResource<Order>,
+  rows: PaginationResource<Order>;
   prams: SearchPrams | null;
 };
 
@@ -34,13 +39,8 @@ type SearchPrams = {
   date_to?: string;
 };
 
-const Index = (
-  {
-    rows,
-    prams,
-  }: Props
-) => {
-  const { t } = useTranslation();
+const Index = ({ rows, prams }: Props) => {
+  const { t, i18n } = useTranslation();
   const { filters, onFilterChange } = useOrderFilters<SearchPrams>({
     prams,
     defaults: { per_page: 10, search: '' },
@@ -70,35 +70,34 @@ const Index = (
       name: 'date_from',
       type: 'date',
       value: filters.date_from ?? '',
-      placeholder: 'Date From',
+      label: t('from'),
     },
     {
       name: 'date_to',
       type: 'date',
       value: filters.date_to ?? '',
-      placeholder: 'Date To',
+      label: t('to'),
     },
   ];
 
   return (
     <>
-      <Head title={t(ORDERS_PAGE_TITLE_KEY)}/>
-      <PageTitle breadcrumbs={[
-        {
-          title: '',
-          path: '',
-          isSeparator: true,
-          isActive: false,
-        },
-      ]}>
+      <Head title={t(ORDERS_PAGE_TITLE_KEY)} />
+      <PageTitle
+        breadcrumbs={[
+          {
+            title: '',
+            path: '',
+            isSeparator: true,
+            isActive: false,
+          },
+        ]}
+      >
         {t(ORDERS_PAGE_TITLE_KEY)}
       </PageTitle>
-      <ToolbarWrapper/>
+      <ToolbarWrapper />
       <Content>
-        <PageFilterBar
-          filters={filterFields}
-          onFilterChange={onFilterChange}
-        />
+        <PageFilterBar filters={filterFields} onFilterChange={onFilterChange} />
         {rows.data.length === 0 ? (
           <SectionCard>
             <EmptyState
@@ -107,23 +106,28 @@ const Index = (
             />
           </SectionCard>
         ) : (
-          <Row className='row'>
+          <div className="d-flex flex-column gap-3 mb-5">
             {rows.data.map((row) => (
-              <Col sm={6} xl={3} key={'order-' + row.id}>
-                <OrderCard url={OrderController.show(row.id as string).url} order={row}/>
-              </Col>
+              <OrderListRow
+                key={row.id}
+                href={OrderController.show(row.id as string).url}
+                title={row.title}
+                amountLabel={formatOrderBudgetRange(row.budget_start, row.budget_end)}
+                description={row.description}
+                locationLabel={formatOrderLocation(row)}
+                timeLabel={formatOrderListTime(row.created_at, i18n.language)}
+                offersCount={row.offers_count ?? 0}
+                status={row.status}
+              />
             ))}
-          </Row>
+          </div>
         )}
-        <Pagination paginationMeta={rows.meta} preserveScroll/>
+        <Pagination paginationMeta={rows.meta} preserveScroll />
       </Content>
     </>
-  )
-}
+  );
+};
 
+Index.layout = (page: ReactElement) => <ProviderLayout>{page}</ProviderLayout>;
 
-Index.layout = (page: any) => {
-  return <ProviderLayout {...page.props}>{page}</ProviderLayout>
-}
-
-export default Index
+export default Index;

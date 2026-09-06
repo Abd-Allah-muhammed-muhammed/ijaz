@@ -64,7 +64,7 @@ class OrderRepository implements OrderRepositoryInterface
     public function paginateForProvider(Provider $provider, array $filters, int $perPage): LengthAwarePaginator
     {
         return $provider->orders()
-            ->with(['user'])
+            ->with(['user', 'city.translation', 'region.translation'])
             ->withCount(['offers', 'media'])
             ->when(isset($filters['status']), fn ($q) => $q->where('status', $filters['status']))
             ->when(isset($filters['date_from']), fn ($q) => $q->whereDate('created_at', '>=', $filters['date_from']))
@@ -85,7 +85,7 @@ class OrderRepository implements OrderRepositoryInterface
     {
         return Order::whereIntegerInRaw('category_id', $provider->providerCategories()->pluck('category_id'))
             ->where('status', OrderStatusEnum::New)
-            ->with(['user'])
+            ->with(['user', 'city.translation', 'region.translation'])
             ->withCount(['offers', 'media'])
             ->whereNull('accepted_offer_id')
             ->when(isset($filters['date_from']), fn ($q) => $q->whereDate('created_at', '>=', $filters['date_from']))

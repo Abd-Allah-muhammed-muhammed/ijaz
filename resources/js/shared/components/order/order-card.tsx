@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Card, Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Card, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { Link } from "@inertiajs/react";
 import { Order } from "@/shared/types/models";
+import { StatusBadge } from '@/shared/components/ui';
 import { KTIcon } from "@/vendor/metronic/helpers";
 import { useTranslation } from "react-i18next";
 
@@ -52,9 +53,7 @@ const OrderCard = ({ order, url = '#' }: Props) => {
             </div>
 
             {/* Status Badge */}
-            <Badge bg={`light-${order.status.color}`} className={`text-${order.status.color} fw-bold px-3 py-2 rounded-pill`}>
-              {order.status.label}
-            </Badge>
+            <StatusBadge status={order.status} />
           </div>
 
           <div className="separator separator-dashed mx-5"></div>
@@ -110,13 +109,19 @@ const OrderCard = ({ order, url = '#' }: Props) => {
           <div className="card-footer bg-light-primary py-3 px-5 border-0 d-flex justify-content-between align-items-center">
             <div className="d-flex align-items-center gap-4">
               <OverlayTrigger overlay={<Tooltip id={`offers-${order.id}`}>{t('offers')}</Tooltip>}>
-                <div className="d-flex align-items-center text-primary">
+                <div
+                  className="d-flex align-items-center text-primary"
+                  aria-label={`${t('offers')}: ${order.offers_count || 0}`}
+                >
                   <KTIcon iconName="message-text-2" className="fs-4 me-1" />
                   <span className="fw-bolder">{order.offers_count || 0}</span>
                 </div>
               </OverlayTrigger>
               <OverlayTrigger overlay={<Tooltip id={`media-${order.id}`}>{t('files')}</Tooltip>}>
-                <div className="d-flex align-items-center text-gray-600">
+                <div
+                  className="d-flex align-items-center text-gray-600"
+                  aria-label={`${t('files')}: ${order.media_count || 0}`}
+                >
                   <KTIcon iconName="paper-clip" className="fs-4 me-1" />
                   <span className="fw-bolder">{order.media_count || 0}</span>
                 </div>

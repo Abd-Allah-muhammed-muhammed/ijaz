@@ -59,22 +59,45 @@ export const EMPTY_STATE_COMPACT_TITLE_CLASS = 'text-muted fw-semibold fs-6 mb-1
 
 export const EMPTY_STATE_COMPACT_DESCRIPTION_CLASS = 'text-muted fs-7 mb-0';
 
-export const PAGE_FILTER_BAR_CLASS = 'd-flex flex-wrap flex-stack mb-6';
+/**
+ * Stacks full-width on small screens; search + controls sit side-by-side from `lg`.
+ * Bottom-align (`align-items-*-end`) so unlabeled search/select inputs share the
+ * same baseline as date fields that render a From/To label above the input.
+ */
+export const PAGE_FILTER_BAR_CLASS =
+  'd-flex flex-column flex-lg-row flex-wrap align-items-stretch align-items-lg-end justify-content-lg-between gap-3 mb-6';
 
-/** Visual-only search column wrapper (was an invalid `<h3>` in the source pages). */
-export const PAGE_FILTER_SEARCH_COLUMN_CLASS = 'fw-bolder my-2';
+/** Search grows to dominate the filter row; full width when stacked on mobile. */
+export const PAGE_FILTER_SEARCH_COLUMN_CLASS =
+  'flex-grow-1 min-w-0 w-100 w-lg-auto my-0';
 
-export const PAGE_FILTER_SEARCH_ICON_CLASS = 'fs-1 position-absolute ms-6';
+export const PAGE_FILTER_SEARCH_FIELD_CLASS =
+  'd-flex align-items-center position-relative w-100';
 
-export const PAGE_FILTER_SEARCH_INPUT_CLASS = 'form-control  ps-14';
+export const PAGE_FILTER_SEARCH_ICON_CLASS =
+  'fs-1 position-absolute top-50 translate-middle-y ms-6';
 
-export const PAGE_FILTER_SELECT_CLASS = 'form-select form-select-white form-select-sm';
+/** Default (non-`sm`) height + full width — prominent search matching mockup / Admin Orders. */
+export const PAGE_FILTER_SEARCH_INPUT_CLASS = 'form-control ps-14 pe-12 w-100';
 
-export const PAGE_FILTER_DATE_CLASS = 'form-control form-control-white form-control-sm';
+/** Trailing clear (X) control — visible only when the search input has text. */
+export const PAGE_FILTER_SEARCH_CLEAR_BUTTON_CLASS =
+  'btn btn-sm btn-icon btn-active-color-primary position-absolute top-50 end-0 translate-middle-y me-2';
 
-export const PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS = 'w-200px';
+export const PAGE_FILTER_SELECT_CLASS = 'form-select form-select-sm';
 
-export const PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS = 'w-150px';
+export const PAGE_FILTER_DATE_CLASS = 'form-control form-control-sm';
+
+export const PAGE_FILTER_DATE_LABEL_CLASS = 'form-label text-muted fs-8 mb-1';
+
+/** Full width when stacked; compact fixed widths beside search from `lg`. */
+export const PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS = 'w-100 w-lg-200px';
+
+export const PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS = 'w-100 w-lg-150px';
+
+/** Bottom-align so unlabeled selects line up with labeled date inputs. */
+export const PAGE_FILTER_CONTROLS_CLASS =
+  'd-flex flex-column flex-sm-row flex-wrap align-items-stretch align-items-sm-end gap-2 w-100 w-lg-auto';
 
 /**
  * Generic labeled status payload — matches EnumWithColors shape from shared models
@@ -165,6 +188,8 @@ export type PageFilterField = {
   type: PageFilterFieldType;
   value?: string;
   placeholder?: string;
+  /** Visible label above the control (used for date From/To). */
+  label?: string;
   options?: readonly PageFilterOption[];
   /** e.g. `w-200px` / `w-150px` */
   widthClassName?: string;

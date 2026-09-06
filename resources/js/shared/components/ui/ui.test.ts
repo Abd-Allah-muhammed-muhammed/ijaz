@@ -73,14 +73,50 @@ describe('ui barrel', () => {
   });
 
   it('PageFilterBar uses named width constants instead of inline magic strings', () => {
-    expect(PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS).toBe('w-200px');
-    expect(PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS).toBe('w-150px');
+    expect(PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS).toBe('w-100 w-lg-200px');
+    expect(PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS).toBe('w-100 w-lg-150px');
     expect(pageFilterBarSrc).toContain('PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS');
     expect(pageFilterBarSrc).toContain('PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS');
     expect(pageFilterBarSrc).not.toContain("'w-200px'");
     expect(pageFilterBarSrc).not.toContain("'w-150px'");
     expect(barrelSrc).toContain('PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS');
     expect(barrelSrc).toContain('PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS');
+  });
+
+  it('PageFilterBar select/date classes use light bordered controls, not solid fill or dead *-white', () => {
+    const typesSrc = readFileSync(join(dir, 'types.ts'), 'utf8');
+    expect(typesSrc).toContain(
+      "export const PAGE_FILTER_SELECT_CLASS = 'form-select form-select-sm'",
+    );
+    expect(typesSrc).toContain(
+      "export const PAGE_FILTER_DATE_CLASS = 'form-control form-control-sm'",
+    );
+    expect(typesSrc).toContain(
+      "export const PAGE_FILTER_SEARCH_INPUT_CLASS = 'form-control ps-14 pe-12 w-100'",
+    );
+    expect(typesSrc).not.toContain('form-control-sm ps-14');
+    expect(typesSrc).not.toContain('form-select-solid');
+    expect(typesSrc).not.toContain('form-control-solid');
+    expect(typesSrc).not.toContain('form-select-white');
+    expect(typesSrc).not.toContain('form-control-white');
+  });
+
+  it('PageFilterBar search dominates width and stacks controls full-width on mobile', () => {
+    const typesSrc = readFileSync(join(dir, 'types.ts'), 'utf8');
+    expect(PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS).toBe('w-100 w-lg-200px');
+    expect(PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS).toBe('w-100 w-lg-150px');
+    expect(typesSrc).toContain('flex-grow-1 min-w-0 w-100 w-lg-auto');
+    expect(typesSrc).toContain('flex-column flex-lg-row');
+    expect(typesSrc).toContain('align-items-lg-end');
+    expect(typesSrc).toContain('align-items-sm-end');
+    expect(typesSrc).not.toContain('align-items-lg-center');
+    expect(typesSrc).toContain('PAGE_FILTER_CONTROLS_CLASS');
+    expect(typesSrc).toContain('PAGE_FILTER_SEARCH_CLEAR_BUTTON_CLASS');
+    expect(typesSrc).toContain('PAGE_FILTER_DATE_LABEL_CLASS');
+    expect(pageFilterBarSrc).toContain('PAGE_FILTER_CONTROLS_CLASS');
+    expect(pageFilterBarSrc).toContain('PAGE_FILTER_SEARCH_FIELD_CLASS');
+    expect(pageFilterBarSrc).toContain('PAGE_FILTER_SEARCH_CLEAR_BUTTON_CLASS');
+    expect(typesSrc).not.toContain("flex-stack mb-6");
   });
 
   it('SectionCard hero variant wraps children in the tinted body shell', () => {

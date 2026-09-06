@@ -1,9 +1,18 @@
+import { useEffect, useState } from 'react';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import {
+  clearSearchFilterValue,
+  shouldShowSearchClearButton,
+} from './page-filter-bar-utils';
+import {
   PAGE_FILTER_BAR_CLASS,
+  PAGE_FILTER_CONTROLS_CLASS,
   PAGE_FILTER_DATE_CLASS,
   PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS,
+  PAGE_FILTER_DATE_LABEL_CLASS,
+  PAGE_FILTER_SEARCH_CLEAR_BUTTON_CLASS,
   PAGE_FILTER_SEARCH_COLUMN_CLASS,
+  PAGE_FILTER_SEARCH_FIELD_CLASS,
   PAGE_FILTER_SEARCH_ICON_CLASS,
   PAGE_FILTER_SEARCH_INPUT_CLASS,
   PAGE_FILTER_SELECT_CLASS,
@@ -16,7 +25,7 @@ import {
  * Search submits on Enter; select/date fire immediately on change.
  * Matches the pre-existing Provider Orders Index / Recommended / Offers
  * filter bars (Enter-only search + onChange selects/dates) — not a
- * generalization invent.
+ * generalization invent. Clear (X) is the exception: it applies immediately.
  */
 function SearchFilterField({
   field,
@@ -25,22 +34,46 @@ function SearchFilterField({
   field: PageFilterField;
   onFilterChange: PageFilterBarProps['onFilterChange'];
 }) {
+  const [value, setValue] = useState(field.value ?? '');
+
+  useEffect(() => {
+    setValue(field.value ?? '');
+  }, [field.value]);
+
+  const showClear = shouldShowSearchClearButton(value);
+
   return (
-    <div className="d-flex align-items-center position-relative my-1">
+    <div className={PAGE_FILTER_SEARCH_FIELD_CLASS}>
       <KTIcon iconName="magnifier" className={PAGE_FILTER_SEARCH_ICON_CLASS} />
       <input
         type="text"
         name={field.name}
-        defaultValue={field.value ?? ''}
+        value={value}
         data-kt-user-table-filter="search"
         className={field.className ?? PAGE_FILTER_SEARCH_INPUT_CLASS}
         placeholder={field.placeholder}
+        onChange={(event) => {
+          setValue(event.currentTarget.value);
+        }}
         onKeyDown={(event) => {
           if (event.key === 'Enter') {
             onFilterChange(field.name, event.currentTarget.value);
           }
         }}
       />
+      {showClear ? (
+        <button
+          type="button"
+          className={PAGE_FILTER_SEARCH_CLEAR_BUTTON_CLASS}
+          aria-label="Clear"
+          data-kt-search-element="clear"
+          onClick={() => {
+            setValue(clearSearchFilterValue(field.name, onFilterChange));
+          }}
+        >
+          <KTIcon iconName="cross" className="fs-2" />
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -79,9 +112,17 @@ function DateFilterField({
   field: PageFilterField;
   onFilterChange: PageFilterBarProps['onFilterChange'];
 }) {
+  const label = field.label?.trim() ?? '';
+
   return (
     <div className={field.widthClassName ?? PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS}>
+      {label !== '' ? (
+        <label className={PAGE_FILTER_DATE_LABEL_CLASS} htmlFor={`page-filter-${field.name}`}>
+          {label}
+        </label>
+      ) : null}
       <input
+        id={`page-filter-${field.name}`}
         type="date"
         name={field.name}
         className={field.className ?? PAGE_FILTER_DATE_CLASS}
@@ -115,7 +156,7 @@ export default function PageFilterBar({
       </div>
 
       {controlFields.length > 0 ? (
-        <div className="d-flex align-items-center my-2 gap-2">
+        <div className={PAGE_FILTER_CONTROLS_CLASS}>
           {controlFields.map((field) => {
             if (field.type === 'select') {
               return (
