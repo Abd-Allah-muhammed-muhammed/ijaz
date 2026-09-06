@@ -1287,6 +1287,8 @@
     "review_pending_offers": "Review offers",
     "client": "Client",
     "change_password": "Change password",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
     "leave_blank_to_keep_current_password": "Leave blank to keep your current password",
     "manage_categories": "Manage",
     "danger_zone": "Danger zone",

@@ -1179,6 +1179,8 @@
     "review_pending_offers": "مراجعة العروض",
     "client": "العميل",
     "change_password": "تغيير كلمة المرور",
+    "show_password": "إظهار كلمة المرور",
+    "hide_password": "إخفاء كلمة المرور",
     "leave_blank_to_keep_current_password": "اتركه فارغًا للإبقاء على كلمة المرور الحالية",
     "manage_categories": "إدارة",
     "danger_zone": "منطقة الخطر",

@@ -40,9 +40,9 @@ export const PROFILE_CATEGORIES_SCROLL_MAX_HEIGHT_PX = 240;
 export const PROFILE_AVATAR_SIZE_PX = 56;
 
 /**
- * Logo card thumb — matching mockup ~56px rounded square.
+ * Logo card thumb — 80×80 rounded square (readable preview, not card-dominating).
  */
-export const PROFILE_LOGO_THUMB_SIZE_PX = 56;
+export const PROFILE_LOGO_THUMB_SIZE_PX = 80;
 
 /** Decorative classes only — size from PROFILE_LOGO_THUMB_SIZE_PX. */
 export const PROFILE_LOGO_THUMB_CLASS =

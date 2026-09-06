@@ -1084,6 +1084,8 @@
     "review_pending_offers": "آفرز دیکھیں",
     "client": "کلائنٹ",
     "change_password": "پاس ورڈ تبدیل کریں",
+    "show_password": "پاس ورڈ دکھائیں",
+    "hide_password": "پاس ورڈ چھپائیں",
     "leave_blank_to_keep_current_password": "موجودہ پاس ورڈ رکھنے کے لیے خالی چھوڑیں",
     "manage_categories": "منظم کریں",
     "danger_zone": "خطرناک زون",

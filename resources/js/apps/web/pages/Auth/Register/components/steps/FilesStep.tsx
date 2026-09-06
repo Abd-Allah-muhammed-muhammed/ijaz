@@ -10,6 +10,10 @@ import type { RegistrationUploadField } from '../../registration-upload-constant
 import type { RequiredFilesState } from '../../types';
 import StepShell from '../StepShell';
 
+/**
+ * Files step — selects files and hands them to the shared eager-upload state
+ * machine (via RegistrationUploadsProvider → useEagerFileUpload).
+ */
 export type FilesStepProps = {
   isCurrent: boolean;
   form: RegistrationForm;

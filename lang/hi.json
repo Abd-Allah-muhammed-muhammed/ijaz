@@ -1084,6 +1084,8 @@
     "review_pending_offers": "ऑफ़र देखें",
     "client": "क्लाइंट",
     "change_password": "पासवर्ड बदलें",
+    "show_password": "पासवर्ड दिखाएँ",
+    "hide_password": "पासवर्ड छिपाएँ",
     "leave_blank_to_keep_current_password": "वर्तमान पासवर्ड रखने के लिए खाली छोड़ें",
     "manage_categories": "प्रबंधित करें",
     "danger_zone": "खतरनाक क्षेत्र",

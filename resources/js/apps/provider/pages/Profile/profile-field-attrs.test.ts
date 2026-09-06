@@ -64,8 +64,8 @@ describe('Profile HTML validation + layout constants', () => {
     expect(PROFILE_PASSWORD_MAX_LENGTH).toBe(64);
   });
 
-  it('keeps the logo thumb as an explicit 56px box (no Metronic symbol + w-100)', () => {
-    expect(PROFILE_LOGO_THUMB_SIZE_PX).toBe(56);
+  it('keeps the logo thumb as an explicit 80px box (no Metronic symbol + w-100)', () => {
+    expect(PROFILE_LOGO_THUMB_SIZE_PX).toBe(80);
     expect(PROFILE_LOGO_THUMB_CLASS).not.toContain('symbol');
     expect(logoSrc).toContain('PROFILE_LOGO_THUMB_SIZE_PX');
     expect(logoSrc).toContain('data-pan="profile-logo-img"');
@@ -100,5 +100,15 @@ describe('Profile HTML validation + layout constants', () => {
     expect(requiredSrc).toContain('replace_file');
     expect(formHookSrc).not.toContain('id_image: undefined');
     expect(formHookSrc).not.toContain('setFileField');
+  });
+
+  it('adds password visibility toggles with Keenicons eye / eye-slash', () => {
+    expect(passwordSrc).toContain("iconName={showPassword ? 'eye-slash' : 'eye'}");
+    expect(passwordSrc).toContain(
+      "iconName={showPasswordConfirmation ? 'eye-slash' : 'eye'}",
+    );
+    expect(passwordSrc).toContain('show_password');
+    expect(passwordSrc).toContain('hide_password');
+    expect(passwordSrc).toContain('profile-password-visibility');
   });
 });
