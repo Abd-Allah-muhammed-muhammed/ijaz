@@ -46,8 +46,26 @@ export function homeOrderYourPriceLabelKey(
   return HOME_ORDER_YOUR_PRICE_LABEL_KEY[tabKey];
 }
 
-function isPresentPrice(value: number | null | undefined): value is number {
-  return typeof value === 'number' && !Number.isNaN(value);
+/**
+ * Order/Offer `price` is uncast in Eloquent and arrives over Inertia/JSON as a
+ * string (e.g. `"179.19"`). Show uses `formatCurrency`, which accepts strings;
+ * this helper must coerce the same way or the Home column falls back to `—`.
+ */
+export function coerceHomeOrderPrice(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+
+  if (typeof value === 'number') {
+    return Number.isNaN(value) ? null : value;
+  }
+
+  if (typeof value === 'string') {
+    const amount = Number(value);
+    return Number.isNaN(amount) ? null : amount;
+  }
+
+  return null;
 }
 
 /**
@@ -62,12 +80,12 @@ export function resolveHomeOrderYourPrice(
   tabKey: OrderTabKey,
 ): number | null {
   if (tabKey === 'pending') {
-    const offerPrice = getProviderOfferOnOrder(order)?.price;
-    return isPresentPrice(offerPrice) ? offerPrice : null;
+    return coerceHomeOrderPrice(getProviderOfferOnOrder(order)?.price);
   }
 
-  if (isPresentPrice(order.price) && order.price > 0) {
-    return order.price;
+  const orderPrice = coerceHomeOrderPrice(order.price);
+  if (orderPrice !== null && orderPrice > 0) {
+    return orderPrice;
   }
 
   const acceptedOffer =
@@ -75,12 +93,12 @@ export function resolveHomeOrderYourPrice(
       ACCEPTED_OFFER_STATUS_VALUES.has(offer.status?.value ?? ''),
     ) ?? order.accepted_offer;
 
-  if (isPresentPrice(acceptedOffer?.price)) {
-    return acceptedOffer.price;
+  const acceptedPrice = coerceHomeOrderPrice(acceptedOffer?.price);
+  if (acceptedPrice !== null) {
+    return acceptedPrice;
   }
 
-  const fallbackPrice = getProviderOfferOnOrder(order)?.price;
-  return isPresentPrice(fallbackPrice) ? fallbackPrice : null;
+  return coerceHomeOrderPrice(getProviderOfferOnOrder(order)?.price);
 }
 
 export function formatHomeOrderYourPrice(

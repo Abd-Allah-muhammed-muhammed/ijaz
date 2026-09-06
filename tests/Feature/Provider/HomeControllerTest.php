@@ -398,7 +398,8 @@ test('provider home windowed orders expose this provider offer price (pending) a
             ->component('Provider/Home/Home')
             ->has('pendingOrders', 1)
             ->where('pendingOrders.0.id', $pendingOrder->id)
-            ->where('pendingOrders.0.offers.0.price', 175.5)
+            // Wire format may be string or number; Home must coerce either (see Vitest string regression).
+            ->where('pendingOrders.0.offers.0.price', fn ($price) => (float) $price === 175.5)
         );
 
     $this->actingAs($approvedProvider, 'provider')
@@ -408,7 +409,7 @@ test('provider home windowed orders expose this provider offer price (pending) a
             ->component('Provider/Home/Home')
             ->has('approvedOrders', 1)
             ->where('approvedOrders.0.id', $approvedOrder->id)
-            ->where('approvedOrders.0.price', 320)
-            ->where('approvedOrders.0.offers.0.price', 320)
+            ->where('approvedOrders.0.price', fn ($price) => (float) $price === 320.0)
+            ->where('approvedOrders.0.offers.0.price', fn ($price) => (float) $price === 320.0)
         );
 });

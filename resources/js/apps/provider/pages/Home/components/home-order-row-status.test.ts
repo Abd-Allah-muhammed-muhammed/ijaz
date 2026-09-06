@@ -180,6 +180,52 @@ describe('resolveHomeOrderYourPrice', () => {
     expect(resolveHomeOrderYourPrice(order, 'pending')).toBeNull();
     expect(resolveHomeOrderYourPrice(order, 'in_progress')).toBeNull();
   });
+
+  it('coerces Inertia/JSON string prices so the column does not render — (regression)', () => {
+    // Real OrderResource payload: uncast decimal columns serialize as strings.
+    const pendingOrder = makeOrder({
+      price: '0.00' as unknown as number,
+      offers: [
+        makeOffer({
+          price: '179.19' as unknown as number,
+          status: {
+            value: OfferStatusEnum.Pending,
+            label: 'Pending',
+            color: 'primary',
+          },
+        }),
+      ],
+    });
+
+    const pendingResolved = resolveHomeOrderYourPrice(pendingOrder, 'pending');
+    expect(pendingResolved).toBe(179.19);
+    expect(
+      formatHomeOrderYourPrice(pendingResolved, (value) => `${value} SAR`),
+    ).toBe('179.19 SAR');
+
+    const approvedOrder = makeOrder({
+      price: '320.50' as unknown as number,
+      offers: [
+        makeOffer({
+          price: '300.00' as unknown as number,
+          status: {
+            value: OfferStatusEnum.Accepted,
+            label: 'Accepted',
+            color: 'success',
+          },
+        }),
+      ],
+    });
+
+    const approvedResolved = resolveHomeOrderYourPrice(approvedOrder, 'approved');
+    expect(approvedResolved).toBe(320.5);
+    expect(
+      formatHomeOrderYourPrice(approvedResolved, (value) => `${value} SAR`),
+    ).toBe('320.5 SAR');
+    expect(
+      formatHomeOrderYourPrice(approvedResolved, (value) => `${value} SAR`),
+    ).not.toBe(EMPTY_VALUE_FALLBACK);
+  });
 });
 
 describe('homeOrderYourPriceLabelKey', () => {
