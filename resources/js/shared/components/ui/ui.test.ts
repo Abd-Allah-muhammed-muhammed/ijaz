@@ -107,7 +107,9 @@ describe('ui barrel', () => {
     expect(PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS).toBe('w-100 w-lg-150px');
     expect(typesSrc).toContain('flex-grow-1 min-w-0 w-100 w-lg-auto');
     expect(typesSrc).toContain('flex-column flex-lg-row');
+    expect(typesSrc).toContain('align-items-lg-end');
     expect(typesSrc).toContain('align-items-sm-end');
+    expect(typesSrc).not.toContain('align-items-lg-center');
     expect(typesSrc).toContain('PAGE_FILTER_CONTROLS_CLASS');
     expect(typesSrc).toContain('PAGE_FILTER_SEARCH_CLEAR_BUTTON_CLASS');
     expect(typesSrc).toContain('PAGE_FILTER_DATE_LABEL_CLASS');

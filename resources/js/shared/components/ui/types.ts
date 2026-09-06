@@ -61,17 +61,18 @@ export const EMPTY_STATE_COMPACT_DESCRIPTION_CLASS = 'text-muted fs-7 mb-0';
 
 /**
  * Stacks full-width on small screens; search + controls sit side-by-side from `lg`.
- * Avoids `flex-stack` alone, which left search shrink-wrapped and controls overflowing at ~375px.
+ * Bottom-align (`align-items-*-end`) so unlabeled search/select inputs share the
+ * same baseline as date fields that render a From/To label above the input.
  */
 export const PAGE_FILTER_BAR_CLASS =
-  'd-flex flex-column flex-lg-row flex-wrap align-items-stretch align-items-lg-center justify-content-lg-between gap-3 mb-6';
+  'd-flex flex-column flex-lg-row flex-wrap align-items-stretch align-items-lg-end justify-content-lg-between gap-3 mb-6';
 
 /** Search grows to dominate the filter row; full width when stacked on mobile. */
 export const PAGE_FILTER_SEARCH_COLUMN_CLASS =
   'flex-grow-1 min-w-0 w-100 w-lg-auto my-0';
 
 export const PAGE_FILTER_SEARCH_FIELD_CLASS =
-  'd-flex align-items-center position-relative my-1 w-100';
+  'd-flex align-items-center position-relative w-100';
 
 export const PAGE_FILTER_SEARCH_ICON_CLASS =
   'fs-1 position-absolute top-50 translate-middle-y ms-6';

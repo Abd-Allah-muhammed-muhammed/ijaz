@@ -60,4 +60,11 @@ describe('PageFilterBar search clear + date labels wiring', () => {
     expect(recommendedSrc).not.toContain("type: 'date'");
     expect(offersSrc).not.toContain("type: 'date'");
   });
+
+  it('bottom-aligns the filter row so unlabeled search/select share the date inputs baseline', () => {
+    const typesSrc = readFileSync(join(__dirname, 'types.ts'), 'utf8');
+    expect(typesSrc).toContain('align-items-lg-end');
+    expect(typesSrc).toContain('align-items-sm-end');
+    expect(typesSrc).not.toContain('align-items-lg-center');
+  });
 });
