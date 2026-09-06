@@ -10,13 +10,14 @@ import apiClient, { FORM_DATA_TIMEOUT_MS } from '@/shared/lib/api-client';
 import type { SingleApiResponse } from '@/shared/types/api';
 import ProviderRegistrationUploadController from '@/actions/App/Http/Controllers/Frontend/ProviderRegistrationUploadController';
 import {
+  compressUploadFile,
   useEagerFileUpload,
   type EagerUploadEntry,
   type EagerUploadStatus,
-} from '@/shared/hooks/use-eager-file-upload';
-import { compressRegistrationFile } from '../compress-registration-image';
+  UPLOAD_FIELD_LOGO,
+  UPLOAD_MAX_FILE_SIZE_BYTES,
+} from '@/shared/uploads';
 import {
-  REGISTRATION_MAX_FILE_SIZE_BYTES,
   type RegistrationUploadField,
 } from '../registration-upload-constants';
 import { readOrCreateRegistrationUploadToken } from '../registration-step-storage';
@@ -142,8 +143,9 @@ export function RegistrationUploadsProvider({ children }: { children: ReactNode 
   );
 
   const eager = useEagerFileUpload<RegistrationUploadField, RegistrationUploadMeta>({
-    prepareFile: (field, file) => compressRegistrationFile(file, field),
-    maxFileBytes: REGISTRATION_MAX_FILE_SIZE_BYTES,
+    prepareFile: (field, file) =>
+      compressUploadFile(file, field === UPLOAD_FIELD_LOGO ? 'logo' : 'document'),
+    maxFileBytes: UPLOAD_MAX_FILE_SIZE_BYTES,
     upload,
     deletePrevious: deleteRemote,
     emptyMeta: EMPTY_META,

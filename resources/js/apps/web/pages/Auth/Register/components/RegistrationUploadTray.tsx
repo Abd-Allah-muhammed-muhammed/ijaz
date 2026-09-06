@@ -3,7 +3,7 @@ import {
   useRegistrationUploads,
   type RegistrationUploadEntry,
 } from '../hooks/registration-uploads-context';
-import BackgroundUploadTray from '@/shared/components/uploads/BackgroundUploadTray';
+import BackgroundUploadTray from '@/shared/uploads/components/BackgroundUploadTray';
 import type { RegistrationUploadField } from '../registration-upload-constants';
 
 /**

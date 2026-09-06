@@ -10,6 +10,7 @@ use App\Enums\Providers\ProviderStatusEnum;
 use App\Enums\ProviderTypeFilesEnum;
 use App\Models\ProviderRegistrationUpload;
 use App\Support\Auth\ProviderRegistrationFileRules;
+use App\Support\Media\ReplaceMediaOnModel;
 use App\Support\Phone;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -24,6 +25,7 @@ class RegisterProviderAction
         private readonly ResolveProviderRegistrationUploadsAction $resolveProviderRegistrationUploadsAction,
         private readonly DeleteProviderRegistrationUploadAction $deleteProviderRegistrationUploadAction,
         private readonly ProviderRegistrationUploadRepositoryInterface $providerRegistrationUploadRepository,
+        private readonly ReplaceMediaOnModel $replaceMediaOnModel,
     ) {}
 
     /**
@@ -101,11 +103,15 @@ class RegisterProviderAction
                     ]);
                 }
 
-                $provider
-                    ->addMedia($absolute)
-                    ->usingName(pathinfo($certificate->original_name, PATHINFO_FILENAME))
-                    ->usingFileName($certificate->original_name)
-                    ->toMediaCollection($file->value, 'local');
+                $this->replaceMediaOnModel->attach(
+                    model: $provider,
+                    collection: $file->value,
+                    file: $absolute,
+                    disk: 'local',
+                    replace: false,
+                    fileName: $certificate->original_name,
+                    name: pathinfo($certificate->original_name, PATHINFO_FILENAME),
+                );
             }
 
             $this->syncProviderCategoriesAndSkillsAction->handle(

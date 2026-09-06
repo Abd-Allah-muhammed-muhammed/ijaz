@@ -81,7 +81,7 @@ export default function LogoCard({
         <div className="d-flex flex-column gap-2 min-w-0">
           <p className="text-muted fs-7 mb-0">
             {t('logo_upload_hint', { max: PROFILE_LOGO_MAX_LABEL })}
-            {logo.compressing ? ` — ${t('provider_registration.status_compressing')}` : null}
+            {logo.compressing ? ` — ${t('uploads.status_compressing')}` : null}
           </p>
           <div className="d-flex flex-wrap gap-2">
             <button

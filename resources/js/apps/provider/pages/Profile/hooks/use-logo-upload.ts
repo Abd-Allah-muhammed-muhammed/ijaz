@@ -1,18 +1,20 @@
 import { useRef, useState, type ChangeEvent, type RefObject } from 'react';
-import { compressRegistrationFile } from '@/apps/web/pages/Auth/Register/compress-registration-image';
-import { REGISTRATION_UPLOAD_FIELD_LOGO } from '@/apps/web/pages/Auth/Register/registration-upload-constants';
+import {
+  prepareLocalImage,
+  UPLOAD_LOGO_COMPRESSION,
+  type LocalImagePrepareErrorCode,
+} from '@/shared/uploads';
 import {
   PROFILE_LOGO_ACCEPT,
   PROFILE_LOGO_MAX_BYTES,
   PROFILE_LOGO_MIME_TYPES,
 } from '@/apps/provider/pages/Profile/constants';
 
-export type LogoValidationErrorCode =
-  | 'too_large'
-  | 'invalid_type'
-  | 'compression_failed';
+export type LogoValidationErrorCode = LocalImagePrepareErrorCode;
 
-export function validateLogoMime(file: File): Extract<LogoValidationErrorCode, 'invalid_type'> | null {
+export function validateLogoMime(
+  file: File,
+): Extract<LogoValidationErrorCode, 'invalid_type'> | null {
   if (
     !PROFILE_LOGO_MIME_TYPES.includes(
       file.type as (typeof PROFILE_LOGO_MIME_TYPES)[number],
@@ -35,7 +37,7 @@ export function validateLogoSize(
 }
 
 /**
- * Mime-check → compress with registration logo profile → size-check.
+ * Mime-check → compress with shared logo profile → size-check.
  * Size is enforced on the *compressed* file so phone-camera originals can exceed 2MB.
  */
 export async function prepareLogoFile(file: File): Promise<{
@@ -44,46 +46,11 @@ export async function prepareLogoFile(file: File): Promise<{
   originalSize: number;
   compressedSize: number | null;
 }> {
-  const originalSize = file.size;
-  const mimeError = validateLogoMime(file);
-  if (mimeError) {
-    return {
-      file: null,
-      errorCode: mimeError,
-      originalSize,
-      compressedSize: null,
-    };
-  }
-
-  try {
-    const compressed = await compressRegistrationFile(
-      file,
-      REGISTRATION_UPLOAD_FIELD_LOGO,
-    );
-    const sizeError = validateLogoSize(compressed);
-    if (sizeError) {
-      return {
-        file: null,
-        errorCode: sizeError,
-        originalSize,
-        compressedSize: compressed.size,
-      };
-    }
-
-    return {
-      file: compressed,
-      errorCode: null,
-      originalSize,
-      compressedSize: compressed.size,
-    };
-  } catch {
-    return {
-      file: null,
-      errorCode: 'compression_failed',
-      originalSize,
-      compressedSize: null,
-    };
-  }
+  return prepareLocalImage(file, {
+    allowedMimeTypes: PROFILE_LOGO_MIME_TYPES,
+    maxBytes: PROFILE_LOGO_MAX_BYTES,
+    compressionProfile: UPLOAD_LOGO_COMPRESSION,
+  });
 }
 
 /** @deprecated Prefer validateLogoMime + prepareLogoFile; kept for simple sync mime/size checks in tests. */

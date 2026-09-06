@@ -1,10 +1,10 @@
 import imageCompression from 'browser-image-compression';
 import {
-  REGISTRATION_CERTIFICATE_IMAGE_COMPRESSION,
-  REGISTRATION_LOGO_COMPRESSION,
-  REGISTRATION_UPLOAD_FIELD_LOGO,
-  type RegistrationUploadField,
-} from './registration-upload-constants';
+  UPLOAD_DOCUMENT_IMAGE_COMPRESSION,
+  UPLOAD_LOGO_COMPRESSION,
+  type ImageCompressionProfile,
+  type UploadCompressionKind,
+} from '@/shared/uploads/constants';
 
 export function isPdfFile(file: File): boolean {
   return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
@@ -15,20 +15,15 @@ export function isImageFile(file: File): boolean {
 }
 
 /**
- * Compress images before eager upload. PDFs pass through unchanged.
- * Logo uses a smaller max edge; certificate images stay conservative for KYC legibility.
+ * Compress an image with an explicit profile. PDFs / non-images pass through.
  */
-export async function compressRegistrationFile(
+export async function compressImageFile(
   file: File,
-  field: RegistrationUploadField,
+  profile: ImageCompressionProfile,
 ): Promise<File> {
-  if (isPdfFile(file) || ! isImageFile(file)) {
+  if (isPdfFile(file) || !isImageFile(file)) {
     return file;
   }
-
-  const profile = field === REGISTRATION_UPLOAD_FIELD_LOGO
-    ? REGISTRATION_LOGO_COMPRESSION
-    : REGISTRATION_CERTIFICATE_IMAGE_COMPRESSION;
 
   const compressed = await imageCompression(file, {
     maxWidthOrHeight: profile.maxWidthOrHeight,
@@ -42,4 +37,17 @@ export async function compressRegistrationFile(
     type: compressed.type || file.type,
     lastModified: Date.now(),
   });
+}
+
+/**
+ * Compress before eager upload using the logo or document (KYC) profile.
+ */
+export async function compressUploadFile(
+  file: File,
+  kind: UploadCompressionKind,
+): Promise<File> {
+  const profile =
+    kind === 'logo' ? UPLOAD_LOGO_COMPRESSION : UPLOAD_DOCUMENT_IMAGE_COMPRESSION;
+
+  return compressImageFile(file, profile);
 }

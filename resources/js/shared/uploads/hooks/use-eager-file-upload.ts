@@ -5,9 +5,9 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { BackgroundUploadTrayStatus } from '@/shared/components/uploads/BackgroundUploadTray';
+import type { UploadStatus } from '@/shared/uploads/types';
 
-export type EagerUploadStatus = BackgroundUploadTrayStatus;
+export type EagerUploadStatus = UploadStatus;
 
 export type EagerUploadEntry<TField extends string, TMeta> = {
   field: TField;

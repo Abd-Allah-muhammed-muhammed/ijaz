@@ -6,6 +6,7 @@ use App\Contracts\Provider\ProviderManagementRepositoryInterface;
 use App\Enums\Providers\ProviderStatusEnum;
 use App\Models\Provider;
 use App\Support\LookupCache;
+use App\Support\Media\ReplaceMediaOnModel;
 use App\Support\Phone;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Database\Eloquent\Builder;
@@ -19,6 +20,10 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ProviderManagementRepository implements ProviderManagementRepositoryInterface
 {
+    public function __construct(
+        private readonly ReplaceMediaOnModel $replaceMediaOnModel,
+    ) {}
+
     public function paginate(Request $request): LengthAwarePaginator
     {
         return Provider::query()
@@ -193,10 +198,12 @@ class ProviderManagementRepository implements ProviderManagementRepositoryInterf
 
     public function replaceTypeFileMedia(Provider $provider, string $collection, UploadedFile $file): Media
     {
-        $provider->clearMediaCollection($collection);
-
-        return $provider
-            ->addMedia($file)
-            ->toMediaCollection($collection, 'local');
+        return $this->replaceMediaOnModel->attach(
+            model: $provider,
+            collection: $collection,
+            file: $file,
+            disk: 'local',
+            replace: true,
+        );
     }
 }

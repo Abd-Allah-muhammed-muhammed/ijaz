@@ -1,19 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { BackgroundUploadTrayEntry, UploadStatus } from '@/shared/uploads/types';
 
-export type BackgroundUploadTrayStatus =
-  | 'idle'
-  | 'compressing'
-  | 'uploading'
-  | 'done'
-  | 'failed';
+export type BackgroundUploadTrayStatus = UploadStatus;
 
-export type BackgroundUploadTrayEntry = {
-  id: string;
-  fileName: string;
-  status: BackgroundUploadTrayStatus;
-  progress: number;
-};
+export type { BackgroundUploadTrayEntry };
 
 export type BackgroundUploadTrayProps = {
   entries: BackgroundUploadTrayEntry[];
@@ -51,13 +42,13 @@ export default function BackgroundUploadTray({
 
   const summaryParts: string[] = [];
   if (uploading > 0) {
-    summaryParts.push(t('provider_registration.tray_uploading', { count: uploading }));
+    summaryParts.push(t('uploads.tray_uploading', { count: uploading }));
   }
   if (done > 0) {
-    summaryParts.push(t('provider_registration.tray_done', { count: done }));
+    summaryParts.push(t('uploads.tray_done', { count: done }));
   }
   if (failed > 0) {
-    summaryParts.push(t('provider_registration.tray_failed', { count: failed }));
+    summaryParts.push(t('uploads.tray_failed', { count: failed }));
   }
 
   return (
@@ -95,14 +86,11 @@ export default function BackgroundUploadTray({
                     {entry.fileName}
                   </div>
                   <div className="text-muted fs-8">
-                    {entry.status === 'compressing' &&
-                      t('provider_registration.status_compressing')}
+                    {entry.status === 'compressing' && t('uploads.status_compressing')}
                     {entry.status === 'uploading' &&
-                      `${t('provider_registration.status_uploading')} ${entry.progress}%`}
-                    {entry.status === 'done' &&
-                      t('provider_registration.status_done')}
-                    {entry.status === 'failed' &&
-                      t('provider_registration.status_failed')}
+                      `${t('uploads.status_uploading')} ${entry.progress}%`}
+                    {entry.status === 'done' && t('uploads.status_done')}
+                    {entry.status === 'failed' && t('uploads.status_failed')}
                   </div>
                 </div>
                 <div className="flex-shrink-0">
@@ -119,7 +107,7 @@ export default function BackgroundUploadTray({
                         onRetry(entry.id);
                       }}
                     >
-                      {t('provider_registration.retry')}
+                      {t('uploads.retry')}
                     </button>
                   ) : null}
                   {entry.status === 'uploading' || entry.status === 'compressing' ? (

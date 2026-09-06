@@ -71,7 +71,7 @@ describe('Profile HTML validation + layout constants', () => {
     expect(logoSrc).toContain('data-pan="profile-logo-img"');
     expect(logoSrc).not.toContain('w-100 h-100 object-fit-cover');
     expect(logoSrc).not.toContain('symbol-70px');
-    expect(constantsSrc).toContain('REGISTRATION_LOGO_COMPRESSION');
+    expect(constantsSrc).toContain('UPLOAD_LOGO_COMPRESSION');
     expect(constantsSrc).toContain(PROFILE_FIELD_LABEL_CLASS.split(' ')[0]);
     expect(PROFILE_CATEGORIES_SCROLL_MAX_HEIGHT_PX).toBe(240);
   });

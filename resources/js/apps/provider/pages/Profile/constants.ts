@@ -1,10 +1,10 @@
+import { UPLOAD_LOGO_COMPRESSION } from '@/shared/uploads/constants';
 import {
   PASSWORD_MAX_LENGTH,
   PASSWORD_MIN_LENGTH,
   SAUDI_IBAN_MAX_LENGTH,
   SAUDI_PHONE_MAX_LENGTH,
 } from '@/apps/web/pages/Auth/Register/providerSchema';
-import { REGISTRATION_LOGO_COMPRESSION } from '@/apps/web/pages/Auth/Register/registration-upload-constants';
 
 /** Server-authoritative logo limit (`UpdateProfileRequest` `max:2048` = 2MB). */
 export const PROFILE_LOGO_MAX_BYTES = 2 * 1024 * 1024;
@@ -15,8 +15,8 @@ export const PROFILE_LOGO_ACCEPT = 'image/jpeg,image/png';
 
 export const PROFILE_LOGO_MIME_TYPES = ['image/jpeg', 'image/png'] as const;
 
-/** Re-export registration logo compression profile (1024px / ~80% quality). */
-export const PROFILE_LOGO_COMPRESSION = REGISTRATION_LOGO_COMPRESSION;
+/** Shared logo compression profile (1024px / ~80% quality). */
+export const PROFILE_LOGO_COMPRESSION = UPLOAD_LOGO_COMPRESSION;
 
 /** Re-export registration field limits for HTML attributes. */
 export const PROFILE_PHONE_MAX_LENGTH = SAUDI_PHONE_MAX_LENGTH;

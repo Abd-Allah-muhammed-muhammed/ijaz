@@ -66,10 +66,10 @@ export default function FilesStep({
         {uploads.entries.logo ? (
           <div className="text-muted fs-7 mt-1" data-pan="registration-logo-upload-status">
             {uploads.entries.logo.status === 'uploading'
-              ? `${t('provider_registration.status_uploading')} ${uploads.entries.logo.progress}%`
+              ? `${t('uploads.status_uploading')} ${uploads.entries.logo.progress}%`
               : null}
-            {uploads.entries.logo.status === 'done' ? t('provider_registration.status_done') : null}
-            {uploads.entries.logo.status === 'failed' ? t('provider_registration.status_failed') : null}
+            {uploads.entries.logo.status === 'done' ? t('uploads.status_done') : null}
+            {uploads.entries.logo.status === 'failed' ? t('uploads.status_failed') : null}
           </div>
         ) : null}
       </Form.Group>
@@ -98,13 +98,13 @@ export default function FilesStep({
                 {uploads.entries[fileName as RegistrationUploadField]?.fileName}
                 {' · '}
                 {uploads.entries[fileName as RegistrationUploadField]?.status === 'done'
-                  ? t('provider_registration.status_done')
+                  ? t('uploads.status_done')
                   : null}
                 {uploads.entries[fileName as RegistrationUploadField]?.status === 'uploading'
                   ? `${uploads.entries[fileName as RegistrationUploadField]?.progress ?? 0}%`
                   : null}
                 {uploads.entries[fileName as RegistrationUploadField]?.status === 'failed'
-                  ? t('provider_registration.status_failed')
+                  ? t('uploads.status_failed')
                   : null}
               </div>
             ) : null}

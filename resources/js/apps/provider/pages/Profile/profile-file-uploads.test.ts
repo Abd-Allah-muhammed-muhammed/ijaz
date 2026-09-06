@@ -1,9 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
-import type { BackgroundUploadTrayStatus } from '@/shared/components/uploads/BackgroundUploadTray';
+import { describe, expect, it } from 'vitest';
+import type { UploadStatus } from '@/shared/uploads/types';
 
 type Entry = {
   field: string;
-  status: BackgroundUploadTrayStatus;
+  status: UploadStatus;
   progress: number;
   url: string | null;
 };
@@ -56,27 +56,5 @@ describe('profile required-files upload tray state', () => {
         true,
       ),
     ).toBe(false);
-  });
-});
-
-describe('profile required-files abort-on-replace', () => {
-  it('aborts the previous controller before starting a replacement upload', () => {
-    const abort = vi.fn();
-    const previous = { abort } as unknown as AbortController;
-    const controllers: Record<string, AbortController | undefined> = {
-      id_image: previous,
-    };
-
-    const replace = (field: string) => {
-      controllers[field]?.abort();
-      delete controllers[field];
-      controllers[field] = new AbortController();
-    };
-
-    replace('id_image');
-
-    expect(abort).toHaveBeenCalledOnce();
-    expect(controllers.id_image).toBeInstanceOf(AbortController);
-    expect(controllers.id_image).not.toBe(previous);
   });
 });

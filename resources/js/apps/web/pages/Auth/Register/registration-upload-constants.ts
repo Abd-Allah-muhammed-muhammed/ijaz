@@ -1,32 +1,27 @@
-/** Max file size in MB — must match config/provider_registration.php max_file_kilobytes / 1024. */
-export const REGISTRATION_MAX_FILE_SIZE_MB = 8;
+import {
+  UPLOAD_DOCUMENT_IMAGE_COMPRESSION,
+  UPLOAD_FIELD_LOGO,
+  UPLOAD_LOGO_COMPRESSION,
+  UPLOAD_MAX_FILE_SIZE_BYTES,
+  UPLOAD_MAX_FILE_SIZE_MB,
+} from '@/shared/uploads/constants';
 
-export const REGISTRATION_MAX_FILE_SIZE_BYTES = REGISTRATION_MAX_FILE_SIZE_MB * 1024 * 1024;
+/** @deprecated Prefer UPLOAD_MAX_FILE_SIZE_MB from shared/uploads. */
+export const REGISTRATION_MAX_FILE_SIZE_MB = UPLOAD_MAX_FILE_SIZE_MB;
+
+/** @deprecated Prefer UPLOAD_MAX_FILE_SIZE_BYTES from shared/uploads. */
+export const REGISTRATION_MAX_FILE_SIZE_BYTES = UPLOAD_MAX_FILE_SIZE_BYTES;
 
 /** sessionStorage key for the per-attempt upload token (UUID). */
 export const REGISTRATION_UPLOAD_TOKEN_STORAGE_KEY = 'provider-registration-upload-token';
 
-/**
- * Logo compression: aggressive resize is safe (no document legibility concern).
- * Must stay in sync with admin expectations for provider logos.
- */
-export const REGISTRATION_LOGO_COMPRESSION = {
-  maxWidthOrHeight: 1024,
-  initialQuality: 0.8,
-  maxSizeMB: 1.5,
-} as const;
+/** @deprecated Prefer UPLOAD_LOGO_COMPRESSION from shared/uploads. */
+export const REGISTRATION_LOGO_COMPRESSION = UPLOAD_LOGO_COMPRESSION;
 
-/**
- * KYC / certificate image compression: conservative — protect admin review legibility.
- * PDFs skip compression entirely.
- */
-export const REGISTRATION_CERTIFICATE_IMAGE_COMPRESSION = {
-  maxWidthOrHeight: 2500,
-  initialQuality: 0.92,
-  maxSizeMB: REGISTRATION_MAX_FILE_SIZE_MB,
-} as const;
+/** @deprecated Prefer UPLOAD_DOCUMENT_IMAGE_COMPRESSION from shared/uploads. */
+export const REGISTRATION_CERTIFICATE_IMAGE_COMPRESSION = UPLOAD_DOCUMENT_IMAGE_COMPRESSION;
 
-export const REGISTRATION_UPLOAD_FIELD_LOGO = 'logo' as const;
+export const REGISTRATION_UPLOAD_FIELD_LOGO = UPLOAD_FIELD_LOGO;
 
 export type RegistrationUploadField =
   | typeof REGISTRATION_UPLOAD_FIELD_LOGO

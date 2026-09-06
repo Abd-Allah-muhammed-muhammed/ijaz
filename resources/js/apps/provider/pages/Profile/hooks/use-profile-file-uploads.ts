@@ -3,12 +3,12 @@ import { uploadProfileFile } from '@/actions/App/Http/Controllers/Provider/AuthC
 import apiClient, { FORM_DATA_TIMEOUT_MS } from '@/shared/lib/api-client';
 import type { SingleApiResponse } from '@/shared/types/api';
 import type { ProviderTypeFileKeys } from '@/shared/types/models';
-import type { BackgroundUploadTrayStatus } from '@/shared/components/uploads/BackgroundUploadTray';
 import {
+  isPdfFile,
   useEagerFileUpload,
   type EagerUploadEntry,
-} from '@/shared/hooks/use-eager-file-upload';
-import { isPdfFile } from '@/apps/web/pages/Auth/Register/compress-registration-image';
+  type UploadStatus,
+} from '@/shared/uploads';
 import {
   PROFILE_TYPE_FILE_ACCEPT,
   PROFILE_TYPE_FILE_MAX_BYTES,
@@ -17,7 +17,7 @@ import {
 export type ProfileFileUploadEntry = {
   field: ProviderTypeFileKeys;
   fileName: string;
-  status: BackgroundUploadTrayStatus;
+  status: UploadStatus;
   progress: number;
   error: string | null;
   selectedFile: File | null;

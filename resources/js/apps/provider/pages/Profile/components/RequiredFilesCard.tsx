@@ -6,7 +6,7 @@ import {
   SectionCard,
   SECONDARY_BUTTON_CLASS,
 } from '@/shared/components/ui';
-import BackgroundUploadTray from '@/shared/components/uploads/BackgroundUploadTray';
+import BackgroundUploadTray from '@/shared/uploads/components/BackgroundUploadTray';
 import {
   PROFILE_CARD_CLASS,
   PROFILE_FIELD_LABEL_REQUIRED_CLASS,
@@ -84,7 +84,7 @@ export default function RequiredFilesCard({
                     {uploaded && !uploading ? (
                       <div className="d-flex align-items-center gap-2 flex-wrap">
                         <span className="text-success fw-semibold fs-7">
-                          ✓ {T('provider_registration.status_done')}
+                          ✓ {T('uploads.status_done')}
                         </span>
                         {url ? (
                           <a
@@ -101,13 +101,13 @@ export default function RequiredFilesCard({
                     ) : null}
                     {uploading ? (
                       <span className="text-muted fs-7">
-                        {T('provider_registration.status_uploading')}{' '}
+                        {T('uploads.status_uploading')}{' '}
                         {entry?.progress ?? 0}%
                       </span>
                     ) : null}
                     {failed ? (
                       <span className="text-danger fs-7">
-                        {T('provider_registration.status_failed')}
+                        {T('uploads.status_failed')}
                       </span>
                     ) : null}
                     {!uploaded && !uploading && !failed ? (
