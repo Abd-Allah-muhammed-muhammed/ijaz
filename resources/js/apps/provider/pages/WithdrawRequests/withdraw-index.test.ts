@@ -29,12 +29,17 @@ describe('Withdraw Index redesign', () => {
     expect(filterIndex).toBeLessThan(tableIndex);
   });
 
-  it('labels both status and transfer_status badges and shortens the reference', () => {
-    expect(src).toContain("t('status')");
-    expect(src).toContain("t('transfer_status')");
+  it('splits status and transfer_status into separate columns without inline labels', () => {
+    expect(src).toContain("id: 'status'");
+    expect(src).toContain("id: 'transfer_status'");
+    expect(src).toContain("header: t('status')");
+    expect(src).toContain("header: t('transfer_status')");
+    expect(src).toContain('status={row.status}');
+    expect(src).toContain('status={row.transfer_status}');
+    expect(src).not.toContain('WithdrawStatusBadges');
+    expect(src).not.toMatch(/t\('status'\):/);
+    expect(src).not.toMatch(/t\('transfer_status'\):/);
     expect(src).toContain('formatShortReference');
-    expect(src).toContain('title={fullId}');
-    expect(src).toContain('formatListDate');
     expect(src).toContain('STATEMENT_PAGE_SIZE');
   });
 });

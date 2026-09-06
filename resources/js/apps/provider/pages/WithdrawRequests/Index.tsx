@@ -65,27 +65,6 @@ function WithdrawRowActions({ row }: { row: WithdrawRequest }) {
   );
 }
 
-function WithdrawStatusBadges({ row }: { row: WithdrawRequest }) {
-  const { t } = useTranslation();
-
-  return (
-    <span className="d-flex flex-column align-items-start gap-1">
-      <span className="d-flex align-items-center gap-1 flex-wrap">
-        <span className="text-muted fs-9 fw-semibold text-nowrap">
-          {t('status')}:
-        </span>
-        <StatusBadge status={row.status} className="fs-8" />
-      </span>
-      <span className="d-flex align-items-center gap-1 flex-wrap">
-        <span className="text-muted fs-9 fw-semibold text-nowrap">
-          {t('transfer_status')}:
-        </span>
-        <StatusBadge status={row.transfer_status} className="fs-8" />
-      </span>
-    </span>
-  );
-}
-
 const Index = ({ rows, prams }: WithdrawIndexProps) => {
   const { t, i18n } = useTranslation();
   const searchParams: SearchParams = prams || {
@@ -147,9 +126,18 @@ const Index = ({ rows, prams }: WithdrawIndexProps) => {
       {
         id: 'status',
         header: t('status'),
-        widthClassName: 'w-225px',
+        widthClassName: 'w-125px',
         mobile: 'badge',
-        cell: (row) => <WithdrawStatusBadges row={row} />,
+        cell: (row) => <StatusBadge status={row.status} className="fs-8" />,
+      },
+      {
+        id: 'transfer_status',
+        header: t('transfer_status'),
+        widthClassName: 'w-150px',
+        mobile: 'badge',
+        cell: (row) => (
+          <StatusBadge status={row.transfer_status} className="fs-8" />
+        ),
       },
       {
         id: 'date',
