@@ -1,11 +1,20 @@
 import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { KTIcon } from '@/vendor/metronic/helpers';
-import { SectionCard, StatusBadge, SECONDARY_BUTTON_CLASS } from '@/shared/components/ui';
+import {
+  SectionCard,
+  StatusBadge,
+  SECONDARY_BUTTON_CLASS,
+} from '@/shared/components/ui';
+import { formatCurrency } from '@/shared/lib/formatters';
 import OrderController from '@/actions/Modules/Orders/Http/Controllers/Provider/OrderController';
 import type { Order } from '@/shared/types/models';
 import type { OrderTabKey } from '@/apps/provider/pages/Home/hooks/use-order-tab-counts';
-import { resolveHomeOrderRowStatus } from '@/apps/provider/pages/Home/components/home-order-row-status';
+import {
+  formatHomeOrderYourPrice,
+  resolveHomeOrderRowStatus,
+  resolveHomeOrderYourPrice,
+} from '@/apps/provider/pages/Home/components/home-order-row-status';
 
 export type HomeOrdersTableProps = {
   orders: Order[];
@@ -13,7 +22,19 @@ export type HomeOrdersTableProps = {
 };
 
 export default function HomeOrdersTable({ orders, tabKey }: HomeOrdersTableProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currencyLabel = t('SAR');
+  // Literal keys keep i18next's typed `t()` happy; mapping lives in HOME_ORDER_YOUR_PRICE_LABEL_KEY.
+  const yourPriceColumnLabel =
+    tabKey === 'pending' ? t('your_offer') : t('agreed_price');
+
+  const formatPrice = (value: number) =>
+    formatCurrency(value, {
+      locale: i18n.language,
+      currencyLabel,
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
+    });
 
   return (
     <SectionCard
@@ -24,6 +45,7 @@ export default function HomeOrdersTable({ orders, tabKey }: HomeOrdersTableProps
           <span className="flex-grow-1 min-w-0">{t('order')}</span>
           <span className="w-150px">{t('client')}</span>
           <span className="w-125px">{t('budget')}</span>
+          <span className="w-125px">{yourPriceColumnLabel}</span>
           <span className="w-100px">{t('date')}</span>
           <span className="w-125px">{t('status')}</span>
           <span className="w-125px text-end">{t('actions')}</span>
@@ -39,6 +61,10 @@ export default function HomeOrdersTable({ orders, tabKey }: HomeOrdersTableProps
         const clientName = order.user?.name ?? '—';
         const budgetLabel = `${order.budget_start} – ${order.budget_end}`;
         const dateLabel = new Date(order.created_at).toLocaleDateString();
+        const yourPriceLabel = formatHomeOrderYourPrice(
+          resolveHomeOrderYourPrice(order, tabKey),
+          formatPrice,
+        );
 
         return (
           <div key={order.id}>
@@ -57,7 +83,9 @@ export default function HomeOrdersTable({ orders, tabKey }: HomeOrdersTableProps
                 <div className="d-flex flex-wrap align-items-center column-gap-2 row-gap-1 fs-8 text-muted">
                   <span className="text-truncate text-gray-700 fw-semibold">{clientName}</span>
                   <span aria-hidden="true">·</span>
-                  <span className="fw-bold text-gray-800">{budgetLabel}</span>
+                  <span>{budgetLabel}</span>
+                  <span aria-hidden="true">·</span>
+                  <span className="fw-bold text-gray-800">{yourPriceLabel}</span>
                   <span aria-hidden="true">·</span>
                   <span>{dateLabel}</span>
                 </div>
@@ -68,7 +96,7 @@ export default function HomeOrdersTable({ orders, tabKey }: HomeOrdersTableProps
               />
             </Link>
 
-            {/* Desktop: stacked table columns (unchanged). */}
+            {/* Desktop: stacked table columns. */}
             <div className="d-none d-md-flex align-items-center gap-3 py-4 px-4 px-lg-6">
               <div className="flex-grow-1 min-w-0">
                 <span className="fw-semibold fs-6 text-gray-800 text-break">
@@ -81,7 +109,10 @@ export default function HomeOrdersTable({ orders, tabKey }: HomeOrdersTableProps
                 </span>
               </div>
               <div className="w-125px">
-                <span className="fw-bold fs-7 text-gray-800">{budgetLabel}</span>
+                <span className="fw-semibold fs-7 text-gray-600">{budgetLabel}</span>
+              </div>
+              <div className="w-125px">
+                <span className="fw-bold fs-7 text-gray-800">{yourPriceLabel}</span>
               </div>
               <div className="w-100px">
                 <span className="fw-semibold fs-7 text-gray-600">{dateLabel}</span>

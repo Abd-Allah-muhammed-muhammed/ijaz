@@ -57,4 +57,12 @@ describe('HomeOrdersTable', () => {
     expect(src).not.toMatch(/d-md-none text-muted fs-8 text-uppercase/);
     expect(src).toContain('d-none d-md-flex align-items-center gap-3');
   });
+
+  it('shows a consistent your-price column across tabs via resolveHomeOrderYourPrice', () => {
+    expect(src).toContain('resolveHomeOrderYourPrice');
+    expect(src).toContain('formatHomeOrderYourPrice');
+    expect(src).toContain('your_offer');
+    expect(src).toContain('agreed_price');
+    expect(src).toContain("tabKey === 'pending'");
+  });
 });

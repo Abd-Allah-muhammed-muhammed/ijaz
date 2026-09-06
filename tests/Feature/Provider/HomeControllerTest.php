@@ -4,6 +4,7 @@ use App\Enums\OperationStatusEnum;
 use App\Http\Controllers\Provider\HomeController;
 use Modules\Marketplace\Models\Category;
 use Modules\Orders\Actions\Provider\GetProviderHomeOrderStatsAction;
+use Modules\Orders\Enums\OfferStatusEnum;
 use Modules\Orders\Enums\OrderStatusEnum;
 use Modules\Orders\Models\Order;
 use Modules\Payout\Enums\PayoutStatusEnum;
@@ -367,4 +368,47 @@ test('provider home order stats include live tab counts alongside totals', funct
             'ended_by_provider' => 0,
         ],
     ]);
+});
+
+test('provider home windowed orders expose this provider offer price (pending) and order price (accepted stages)', function () {
+    ['provider' => $pendingProvider, 'order' => $pendingOrder, 'offer' => $pendingOffer] = createOrderWithOffer(
+        offerAttrs: ['price' => 175.5],
+    );
+
+    ['provider' => $approvedProvider, 'order' => $approvedOrder, 'offer' => $acceptedOffer] = createOrderWithOffer(
+        orderAttrs: [
+            'status' => OrderStatusEnum::OfferProvided,
+            'price' => 320,
+        ],
+        offerAttrs: [
+            'price' => 320,
+            'status' => OfferStatusEnum::Accepted,
+        ],
+    );
+
+    $approvedOrder->update([
+        'provider_id' => $approvedProvider->id,
+        'accepted_offer_id' => $acceptedOffer->id,
+    ]);
+
+    $this->actingAs($pendingProvider, 'provider')
+        ->get(action(HomeController::class))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Provider/Home/Home')
+            ->has('pendingOrders', 1)
+            ->where('pendingOrders.0.id', $pendingOrder->id)
+            ->where('pendingOrders.0.offers.0.price', 175.5)
+        );
+
+    $this->actingAs($approvedProvider, 'provider')
+        ->get(action(HomeController::class))
+        ->assertSuccessful()
+        ->assertInertia(fn ($page) => $page
+            ->component('Provider/Home/Home')
+            ->has('approvedOrders', 1)
+            ->where('approvedOrders.0.id', $approvedOrder->id)
+            ->where('approvedOrders.0.price', 320)
+            ->where('approvedOrders.0.offers.0.price', 320)
+        );
 });

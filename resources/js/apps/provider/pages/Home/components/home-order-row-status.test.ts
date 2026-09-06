@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { OfferStatusEnum, OrderStatusEnum } from '@/Enums/Order';
 import type { Order, OrderOffer } from '@/shared/types/models';
+import { EMPTY_VALUE_FALLBACK } from '@/shared/components/ui/types';
 import {
+  formatHomeOrderYourPrice,
   getProviderOfferOnOrder,
+  HOME_ORDER_YOUR_PRICE_LABEL_KEY,
+  homeOrderYourPriceLabelKey,
   resolveHomeOrderRowStatus,
+  resolveHomeOrderYourPrice,
 } from './home-order-row-status';
 
 function makeOffer(
@@ -109,6 +114,95 @@ describe('resolveHomeOrderRowStatus', () => {
 
     expect(getProviderOfferOnOrder(order)?.status?.value).toBe(
       OfferStatusEnum.Pending,
+    );
+  });
+});
+
+describe('resolveHomeOrderYourPrice', () => {
+  it('uses the provider offer price on the pending tab', () => {
+    const order = makeOrder({
+      price: 0,
+      offers: [
+        makeOffer({
+          price: 175,
+          status: {
+            value: OfferStatusEnum.Pending,
+            label: 'Pending',
+            color: 'primary',
+          },
+        }),
+      ],
+    });
+
+    expect(resolveHomeOrderYourPrice(order, 'pending')).toBe(175);
+  });
+
+  it('prefers order.price on accepted-stage tabs', () => {
+    const order = makeOrder({
+      price: 320,
+      offers: [
+        makeOffer({
+          price: 300,
+          status: {
+            value: OfferStatusEnum.Accepted,
+            label: 'Accepted',
+            color: 'success',
+          },
+        }),
+      ],
+    });
+
+    expect(resolveHomeOrderYourPrice(order, 'approved')).toBe(320);
+    expect(resolveHomeOrderYourPrice(order, 'in_progress')).toBe(320);
+    expect(resolveHomeOrderYourPrice(order, 'ended_by_provider')).toBe(320);
+  });
+
+  it('falls back to the accepted offer price when order.price is unset', () => {
+    const order = makeOrder({
+      price: 0,
+      offers: [
+        makeOffer({
+          price: 410,
+          status: {
+            value: OfferStatusEnum.Accepted,
+            label: 'Accepted',
+            color: 'success',
+          },
+        }),
+      ],
+    });
+
+    expect(resolveHomeOrderYourPrice(order, 'approved')).toBe(410);
+  });
+
+  it('returns null when no offer amount is available', () => {
+    const order = makeOrder({ price: 0, offers: [] });
+    expect(resolveHomeOrderYourPrice(order, 'pending')).toBeNull();
+    expect(resolveHomeOrderYourPrice(order, 'in_progress')).toBeNull();
+  });
+});
+
+describe('homeOrderYourPriceLabelKey', () => {
+  it('labels pending as your_offer and accepted-stage tabs as agreed_price', () => {
+    expect(homeOrderYourPriceLabelKey('pending')).toBe(
+      HOME_ORDER_YOUR_PRICE_LABEL_KEY.pending,
+    );
+    expect(homeOrderYourPriceLabelKey('approved')).toBe('agreed_price');
+    expect(homeOrderYourPriceLabelKey('in_progress')).toBe('agreed_price');
+    expect(homeOrderYourPriceLabelKey('ended_by_provider')).toBe('agreed_price');
+  });
+});
+
+describe('formatHomeOrderYourPrice', () => {
+  it('uses the shared empty-value fallback when price is missing', () => {
+    expect(formatHomeOrderYourPrice(null, (value) => `${value}`)).toBe(
+      EMPTY_VALUE_FALLBACK,
+    );
+  });
+
+  it('formats present prices via the provided formatter', () => {
+    expect(formatHomeOrderYourPrice(99, (value) => `${value} SAR`)).toBe(
+      '99 SAR',
     );
   });
 });
