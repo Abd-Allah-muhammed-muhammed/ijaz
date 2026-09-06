@@ -1,44 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { bannerAffordanceLabel } from './home-banner-strip-utils';
-import type { Banner } from '@/shared/types/models';
 
 describe('HomeBannerStrip', () => {
   const src = readFileSync(join(__dirname, 'HomeBannerStrip.tsx'), 'utf8');
 
-  it('renders a compact SectionCard strip with thumbnail + Swiper pagination', () => {
-    expect(src).toContain('SectionCard');
-    expect(src).toContain('home-banner-strip-thumb');
+  it('renders a full-width image-only strip with overlay Swiper dots', () => {
+    expect(src).toContain('aspect-ratio: 5 / 1');
+    expect(src).toContain('object-fit: cover');
+    expect(src).toContain('home-banner-strip-image');
     expect(src).toContain('Swiper');
     expect(src).toContain('Pagination');
-    expect(src).toContain("t('view_more')");
-    expect(src).not.toContain('aspectRatio');
+    expect(src).toContain('bottom: 0.5rem');
+    expect(src).toContain('rgba(255, 255, 255');
+    expect(src).not.toContain("from '@/shared/components/ui'");
+    expect(src).not.toContain('home-banner-strip-thumb');
+    expect(src).not.toContain('view_more');
+    expect(src).not.toContain('bannerAffordanceLabel');
+    expect(src).not.toContain('KTIcon');
   });
 
-  it('keeps click-through via banner.link with hash fallback', () => {
+  it('keeps click-through via banner.link with hash fallback and no visible text', () => {
     expect(src).toContain("href={banner.link ?? '#'}");
-  });
-});
-
-describe('bannerAffordanceLabel', () => {
-  const viewMore = 'View More';
-
-  it('uses the link when present instead of inventing a title field', () => {
-    const banner = { id: 1, image: '/x.png', link: 'https://example.com/promo' } as Banner;
-    expect(bannerAffordanceLabel(banner, viewMore)).toBe('https://example.com/promo');
-  });
-
-  it('falls back to view_more when link is missing or hash-only', () => {
-    expect(bannerAffordanceLabel({ id: 2, image: '/x.png', link: null } as Banner, viewMore)).toBe(
-      viewMore,
-    );
-    expect(bannerAffordanceLabel({ id: 3, image: '/x.png', link: '#' } as Banner, viewMore)).toBe(
-      viewMore,
-    );
-    expect(bannerAffordanceLabel({ id: 4, image: '/x.png', link: '  ' } as Banner, viewMore)).toBe(
-      viewMore,
-    );
+    expect(src).toContain('aria-label={ariaLabel}');
+    expect(src).not.toContain('<span');
   });
 });
 

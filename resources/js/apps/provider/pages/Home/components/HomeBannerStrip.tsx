@@ -2,10 +2,7 @@ import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
-import { KTIcon } from '@/vendor/metronic/helpers';
-import { SectionCard } from '@/shared/components/ui';
 import type { Banner } from '@/shared/types/models';
-import { bannerAffordanceLabel } from '@/apps/provider/pages/Home/components/home-banner-strip-utils';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
@@ -14,36 +11,48 @@ export type HomeBannerStripProps = {
   banners: Banner[];
 };
 
-export { bannerAffordanceLabel };
-
+/**
+ * Full-width image strip — card padding would inset the art,
+ * so this uses a plain rounded overflow wrapper instead.
+ */
 const HOME_BANNER_STRIP_STYLE = `
+.home-banner-strip {
+  position: relative;
+}
+.home-banner-strip .swiper {
+  overflow: hidden;
+  border-radius: 0.75rem;
+}
+.home-banner-strip-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 5 / 1;
+  object-fit: cover;
+}
 .home-banner-strip .swiper-pagination {
-  position: static;
-  margin-top: 0.5rem;
-  min-height: 0.75rem;
+  bottom: 0.5rem;
+  left: 0;
+  right: 0;
+  width: 100%;
 }
 .home-banner-strip .swiper-pagination-bullet {
   width: 6px;
   height: 6px;
-  background: var(--bs-gray-400);
+  background: rgba(255, 255, 255, 0.55);
   opacity: 1;
 }
 .home-banner-strip .swiper-pagination-bullet-active {
-  background: var(--bs-primary);
-}
-.home-banner-strip-thumb {
-  width: 80px;
-  height: 45px;
+  background: rgba(255, 255, 255, 0.95);
 }
 `;
 
 export default function HomeBannerStrip({ banners }: HomeBannerStripProps) {
   const { t } = useTranslation();
-  const viewMoreLabel = t('view_more');
   const showPagination = banners.length > 1;
+  const ariaLabel = t('banners');
 
   return (
-    <SectionCard className="mb-5 home-banner-strip" bodyClassName="card-body py-3 px-4 px-lg-6">
+    <div className="mb-5 home-banner-strip">
       <style>{HOME_BANNER_STRIP_STYLE}</style>
       <Swiper
         slidesPerView={1}
@@ -51,29 +60,22 @@ export default function HomeBannerStrip({ banners }: HomeBannerStripProps) {
         pagination={showPagination ? { clickable: true } : false}
         className="d-block"
       >
-        {banners.map((banner) => {
-          const label = bannerAffordanceLabel(banner, viewMoreLabel);
-
-          return (
-            <SwiperSlide key={banner.id}>
-              <Link
-                href={banner.link ?? '#'}
-                className="d-flex align-items-center gap-3 text-decoration-none text-gray-900"
-              >
-                <img
-                  src={banner.image ?? undefined}
-                  alt=""
-                  className="home-banner-strip-thumb object-fit-cover rounded flex-shrink-0"
-                />
-                <span className="fw-semibold fs-7 text-truncate min-w-0 flex-grow-1" title={label}>
-                  {label}
-                </span>
-                <KTIcon iconName="arrow-right" className="fs-3 text-primary flex-shrink-0" />
-              </Link>
-            </SwiperSlide>
-          );
-        })}
+        {banners.map((banner) => (
+          <SwiperSlide key={banner.id}>
+            <Link
+              href={banner.link ?? '#'}
+              className="d-block text-decoration-none"
+              aria-label={ariaLabel}
+            >
+              <img
+                src={banner.image ?? undefined}
+                alt=""
+                className="home-banner-strip-image"
+              />
+            </Link>
+          </SwiperSlide>
+        ))}
       </Swiper>
-    </SectionCard>
+    </div>
   );
 }
