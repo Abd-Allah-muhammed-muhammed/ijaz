@@ -1082,5 +1082,14 @@
     "offers_awaiting_client_approval_count": ":count آفرز کلائنٹ کی منظوری کے منتظر",
     "offers_awaiting_client_approval_description": "آپ کی جمع کرائی گئی آفرز کلائنٹ کے جواب کی منتظر ہیں۔",
     "review_pending_offers": "آفرز دیکھیں",
-    "client": "کلائنٹ"
+    "client": "کلائنٹ",
+    "change_password": "پاس ورڈ تبدیل کریں",
+    "leave_blank_to_keep_current_password": "موجودہ پاس ورڈ رکھنے کے لیے خالی چھوڑیں",
+    "manage_categories": "منظم کریں",
+    "danger_zone": "خطرناک زون",
+    "change_logo": "لوگو تبدیل کریں",
+    "logo_upload_hint": "JPEG یا PNG، زیادہ سے زیادہ :max",
+    "provider_logo_alt": ":name کا لوگو",
+    "no_categories_selected": "ابھی کوئی زمرہ منتخب نہیں",
+    "no_required_files_for_type": "اس فراہم کنندہ کی قسم کے لیے کوئی مطلوبہ فائلیں نہیں"
 }

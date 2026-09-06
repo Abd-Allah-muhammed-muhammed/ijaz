@@ -1285,5 +1285,14 @@
     "offers_awaiting_client_approval_count": ":count offers awaiting client approval",
     "offers_awaiting_client_approval_description": "Your submitted offers are waiting for the client to respond.",
     "review_pending_offers": "Review offers",
-    "client": "Client"
+    "client": "Client",
+    "change_password": "Change password",
+    "leave_blank_to_keep_current_password": "Leave blank to keep your current password",
+    "manage_categories": "Manage",
+    "danger_zone": "Danger zone",
+    "change_logo": "Change logo",
+    "logo_upload_hint": "JPEG or PNG, max :max",
+    "provider_logo_alt": "Logo for :name",
+    "no_categories_selected": "No categories selected yet",
+    "no_required_files_for_type": "No required files for this provider type"
 }

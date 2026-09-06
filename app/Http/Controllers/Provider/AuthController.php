@@ -83,7 +83,7 @@ class AuthController extends Controller
         $provider->loadCount('reviews');
         $this->attachAmountInTransfer($provider);
 
-        return inertia('Provider/Auth/Profile/Index', [
+        return inertia('Provider/Profile/Profile', [
             'provider' => fn () => ProviderResource::make($provider),
             'types' => fn () => ProviderTypeResource::collection($this->providerTypeService->listForApi()),
             'regions' => fn () => RegionResource::collection($this->regionService->listForSelect()),

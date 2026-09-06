@@ -34,7 +34,7 @@ test('provider profile wallet payload exposes amount_in_transfer summing pending
         ->get(action([AuthController::class, 'profile']))
         ->assertSuccessful()
         ->assertInertia(fn ($page) => $page
-            ->component('Provider/Auth/Profile/Index')
+            ->component('Provider/Profile/Profile')
             ->where('provider.wallet.amount_in_transfer', '150.00')
         );
 });

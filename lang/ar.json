@@ -1177,5 +1177,14 @@
     "offers_awaiting_client_approval_count": ":count عروض بانتظار موافقة العميل",
     "offers_awaiting_client_approval_description": "عروضك المقدّمة بانتظار رد العميل.",
     "review_pending_offers": "مراجعة العروض",
-    "client": "العميل"
+    "client": "العميل",
+    "change_password": "تغيير كلمة المرور",
+    "leave_blank_to_keep_current_password": "اتركه فارغًا للإبقاء على كلمة المرور الحالية",
+    "manage_categories": "إدارة",
+    "danger_zone": "منطقة الخطر",
+    "change_logo": "تغيير الشعار",
+    "logo_upload_hint": "JPEG أو PNG، بحد أقصى :max",
+    "provider_logo_alt": "شعار :name",
+    "no_categories_selected": "لم يتم اختيار فئات بعد",
+    "no_required_files_for_type": "لا توجد ملفات مطلوبة لهذا النوع"
 }

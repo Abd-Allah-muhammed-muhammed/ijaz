@@ -53,7 +53,7 @@ function providerLiveInertiaPageRelativePaths(): array
     return [
         'pages/Home/Home.tsx',
         'pages/Auth/LoginPage.tsx',
-        'pages/Auth/Profile/Index.tsx',
+        'pages/Profile/Profile.tsx',
         'pages/Auth/Profile/wallet/Wallet.tsx',
         'pages/Orders/Index.tsx',
         'pages/Orders/Recommended.tsx',
@@ -120,7 +120,7 @@ test('the Provider app builds and every sidebar route still renders correctly af
     // Non-sidebar but real Inertia pages that must keep working
     $this->get(action([AuthController::class, 'profile']))
         ->assertSuccessful()
-        ->assertInertia(fn ($page) => $page->component('Provider/Auth/Profile/Index'));
+        ->assertInertia(fn ($page) => $page->component('Provider/Profile/Profile'));
 
     $this->get(action([OrderController::class, 'show'], ['order' => $order->id]))
         ->assertSuccessful()
@@ -214,8 +214,8 @@ test('ProviderLayout, AccountLayout, and all 15 real Inertia pages have zero rem
         }
 
         foreach ($deletedBasenames as $basename) {
-            // Avoid false positives on short names that appear in prose/CSS — only flag import-style refs.
-            if (preg_match('/from\s+[\'"][^\'"]*'.preg_quote($basename, '/').'[\'"]/', $source) === 1) {
+            // Avoid false positives on compound names (e.g. ProfileIdentityHeader vs Header).
+            if (preg_match('/from\s+[\'"](?:[^\'"]*\/)?'.preg_quote($basename, '/').'[\'"]/', $source) === 1) {
                 expect(false)->toBeTrue("{$relative} still imports deleted basename {$basename}");
             }
         }

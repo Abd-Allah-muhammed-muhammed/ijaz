@@ -1082,5 +1082,14 @@
     "offers_awaiting_client_approval_count": ":count ऑफ़र क्लाइंट अनुमोदन की प्रतीक्षा में",
     "offers_awaiting_client_approval_description": "आपके सबमिट किए गए ऑफ़र क्लाइंट की प्रतिक्रिया की प्रतीक्षा में हैं।",
     "review_pending_offers": "ऑफ़र देखें",
-    "client": "क्लाइंट"
+    "client": "क्लाइंट",
+    "change_password": "पासवर्ड बदलें",
+    "leave_blank_to_keep_current_password": "वर्तमान पासवर्ड रखने के लिए खाली छोड़ें",
+    "manage_categories": "प्रबंधित करें",
+    "danger_zone": "खतरनाक क्षेत्र",
+    "change_logo": "लोगो बदलें",
+    "logo_upload_hint": "JPEG या PNG, अधिकतम :max",
+    "provider_logo_alt": ":name का लोगो",
+    "no_categories_selected": "अभी कोई श्रेणी चयनित नहीं है",
+    "no_required_files_for_type": "इस प्रदाता प्रकार के लिए कोई आवश्यक फ़ाइल नहीं"
 }
