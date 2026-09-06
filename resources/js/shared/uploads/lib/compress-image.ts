@@ -1,10 +1,10 @@
-import imageCompression from 'browser-image-compression';
 import {
   UPLOAD_DOCUMENT_IMAGE_COMPRESSION,
   UPLOAD_LOGO_COMPRESSION,
   type ImageCompressionProfile,
   type UploadCompressionKind,
 } from '@/shared/uploads/constants';
+import imageCompression from 'browser-image-compression';
 
 export function isPdfFile(file: File): boolean {
   return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
@@ -17,10 +17,7 @@ export function isImageFile(file: File): boolean {
 /**
  * Compress an image with an explicit profile. PDFs / non-images pass through.
  */
-export async function compressImageFile(
-  file: File,
-  profile: ImageCompressionProfile,
-): Promise<File> {
+export async function compressImageFile(file: File, profile: ImageCompressionProfile): Promise<File> {
   if (isPdfFile(file) || !isImageFile(file)) {
     return file;
   }
@@ -42,12 +39,8 @@ export async function compressImageFile(
 /**
  * Compress before eager upload using the logo or document (KYC) profile.
  */
-export async function compressUploadFile(
-  file: File,
-  kind: UploadCompressionKind,
-): Promise<File> {
-  const profile =
-    kind === 'logo' ? UPLOAD_LOGO_COMPRESSION : UPLOAD_DOCUMENT_IMAGE_COMPRESSION;
+export async function compressUploadFile(file: File, kind: UploadCompressionKind): Promise<File> {
+  const profile = kind === 'logo' ? UPLOAD_LOGO_COMPRESSION : UPLOAD_DOCUMENT_IMAGE_COMPRESSION;
 
   return compressImageFile(file, profile);
 }

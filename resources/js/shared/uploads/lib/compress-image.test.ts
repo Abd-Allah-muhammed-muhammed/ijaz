@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
 import { compressUploadFile, isPdfFile } from '@/shared/uploads/lib/compress-image';
+import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('browser-image-compression', () => ({
   default: async (file: File) => {

@@ -1,4 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
+import {
+  isDoneStatus,
+  isFailedStatus,
+  isInFlightStatus,
+} from '@/shared/uploads/lib/eager-upload-status';
+import type { UploadStatus } from '@/shared/uploads/types';
 
 /**
  * Mirrors abort-on-replace + tray summary semantics from useEagerFileUpload
@@ -6,17 +12,15 @@ import { describe, expect, it, vi } from 'vitest';
  */
 type Entry = {
   field: string;
-  status: 'idle' | 'compressing' | 'uploading' | 'done' | 'failed';
+  status: UploadStatus;
   progress: number;
 };
 
 function summarize(entries: Entry[]) {
   return {
-    uploading: entries.filter(
-      (e) => e.status === 'compressing' || e.status === 'uploading',
-    ).length,
-    done: entries.filter((e) => e.status === 'done').length,
-    failed: entries.filter((e) => e.status === 'failed').length,
+    uploading: entries.filter((e) => isInFlightStatus(e.status)).length,
+    done: entries.filter((e) => isDoneStatus(e.status)).length,
+    failed: entries.filter((e) => isFailedStatus(e.status)).length,
   };
 }
 
