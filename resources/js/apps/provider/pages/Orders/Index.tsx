@@ -70,13 +70,13 @@ const Index = ({ rows, prams }: Props) => {
       name: 'date_from',
       type: 'date',
       value: filters.date_from ?? '',
-      placeholder: 'Date From',
+      label: t('from'),
     },
     {
       name: 'date_to',
       type: 'date',
       value: filters.date_to ?? '',
-      placeholder: 'Date To',
+      label: t('to'),
     },
   ];
 

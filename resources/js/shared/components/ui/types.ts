@@ -77,19 +77,26 @@ export const PAGE_FILTER_SEARCH_ICON_CLASS =
   'fs-1 position-absolute top-50 translate-middle-y ms-6';
 
 /** Default (non-`sm`) height + full width — prominent search matching mockup / Admin Orders. */
-export const PAGE_FILTER_SEARCH_INPUT_CLASS = 'form-control ps-14 w-100';
+export const PAGE_FILTER_SEARCH_INPUT_CLASS = 'form-control ps-14 pe-12 w-100';
+
+/** Trailing clear (X) control — visible only when the search input has text. */
+export const PAGE_FILTER_SEARCH_CLEAR_BUTTON_CLASS =
+  'btn btn-sm btn-icon btn-active-color-primary position-absolute top-50 end-0 translate-middle-y me-2';
 
 export const PAGE_FILTER_SELECT_CLASS = 'form-select form-select-sm';
 
 export const PAGE_FILTER_DATE_CLASS = 'form-control form-control-sm';
+
+export const PAGE_FILTER_DATE_LABEL_CLASS = 'form-label text-muted fs-8 mb-1';
 
 /** Full width when stacked; compact fixed widths beside search from `lg`. */
 export const PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS = 'w-100 w-lg-200px';
 
 export const PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS = 'w-100 w-lg-150px';
 
+/** Bottom-align so unlabeled selects line up with labeled date inputs. */
 export const PAGE_FILTER_CONTROLS_CLASS =
-  'd-flex flex-column flex-sm-row flex-wrap align-items-stretch align-items-sm-center gap-2 w-100 w-lg-auto';
+  'd-flex flex-column flex-sm-row flex-wrap align-items-stretch align-items-sm-end gap-2 w-100 w-lg-auto';
 
 /**
  * Generic labeled status payload — matches EnumWithColors shape from shared models
@@ -180,6 +187,8 @@ export type PageFilterField = {
   type: PageFilterFieldType;
   value?: string;
   placeholder?: string;
+  /** Visible label above the control (used for date From/To). */
+  label?: string;
   options?: readonly PageFilterOption[];
   /** e.g. `w-200px` / `w-150px` */
   widthClassName?: string;
