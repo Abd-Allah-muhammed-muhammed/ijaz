@@ -109,13 +109,19 @@ const OrderCard = ({ order, url = '#' }: Props) => {
           <div className="card-footer bg-light-primary py-3 px-5 border-0 d-flex justify-content-between align-items-center">
             <div className="d-flex align-items-center gap-4">
               <OverlayTrigger overlay={<Tooltip id={`offers-${order.id}`}>{t('offers')}</Tooltip>}>
-                <div className="d-flex align-items-center text-primary">
+                <div
+                  className="d-flex align-items-center text-primary"
+                  aria-label={`${t('offers')}: ${order.offers_count || 0}`}
+                >
                   <KTIcon iconName="message-text-2" className="fs-4 me-1" />
                   <span className="fw-bolder">{order.offers_count || 0}</span>
                 </div>
               </OverlayTrigger>
               <OverlayTrigger overlay={<Tooltip id={`media-${order.id}`}>{t('files')}</Tooltip>}>
-                <div className="d-flex align-items-center text-gray-600">
+                <div
+                  className="d-flex align-items-center text-gray-600"
+                  aria-label={`${t('files')}: ${order.media_count || 0}`}
+                >
                   <KTIcon iconName="paper-clip" className="fs-4 me-1" />
                   <span className="fw-bolder">{order.media_count || 0}</span>
                 </div>

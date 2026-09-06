@@ -18,4 +18,11 @@ describe('OrderCard', () => {
     expect(src).toContain('bg-light-${order.status.color}');
     expect(src).toContain('text-${order.status.color}');
   });
+
+  it('labels footer offers/files counts with aria-label including the count and existing i18n keys', () => {
+    expect(src).toContain("aria-label={`${t('offers')}: ${order.offers_count || 0}`}");
+    expect(src).toContain("aria-label={`${t('files')}: ${order.media_count || 0}`}");
+    expect(src).toContain("overlay={<Tooltip id={`offers-${order.id}`}>{t('offers')}</Tooltip>}");
+    expect(src).toContain("overlay={<Tooltip id={`media-${order.id}`}>{t('files')}</Tooltip>}");
+  });
 });
