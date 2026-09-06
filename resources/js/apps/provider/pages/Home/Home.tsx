@@ -2,9 +2,8 @@ import { PageTitle } from '@/vendor/metronic/layout/core';
 import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
 import { Content } from '@/vendor/metronic/layout/components/content';
 import { useTranslation } from 'react-i18next';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import ProviderLayout from '@/apps/provider/layouts/ProviderLayout';
-import { Card, Col, Image, Row } from 'react-bootstrap';
 import { useRecommendedOrdersContext } from '@/store/recommend-orders-context';
 import type {
   Banner,
@@ -15,19 +14,15 @@ import type {
 } from '@/shared/types/models';
 import { useEffect, type ReactElement } from 'react';
 import WalletQuickActions from '@/apps/provider/components/wallet/WalletQuickActions';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination } from 'swiper/modules';
 import type { BackendOrderTabCounts } from '@/apps/provider/pages/Home/hooks/use-order-tab-counts';
 import { useOrderTabCounts } from '@/apps/provider/pages/Home/hooks/use-order-tab-counts';
 import { useNeedsAttentionCount } from '@/apps/provider/pages/Home/hooks/use-needs-attention-count';
 import AttentionBanner from '@/apps/provider/pages/Home/components/AttentionBanner';
+import HomeBannerStrip from '@/apps/provider/pages/Home/components/HomeBannerStrip';
 import HomeMetrics from '@/apps/provider/pages/Home/components/HomeMetrics';
 import OrderTabsSection from '@/apps/provider/pages/Home/components/OrderTabsSection';
 import RecentActivityCard from '@/apps/provider/pages/Home/components/RecentActivityCard';
 import type { MetricTileData } from '@/apps/provider/types/metric-tile-data';
-
-import 'swiper/css';
-import 'swiper/css/pagination';
 
 export type HomePageProps = {
   totalOrders: number;
@@ -111,44 +106,17 @@ const Home = ({
 
         <HomeMetrics metrics={metrics} />
 
-        <Row className="mb-5 g-5">
-          <Col md={hasBanners ? 6 : 12}>
-            <OrderTabsSection
-              counts={tabCounts}
-              pendingOrders={pendingOrders}
-              approvedOrders={approvedOrders}
-              inProgressOrders={inProgressOrders}
-              endedByProviderOrders={endedByProviderOrders}
-            />
-          </Col>
-          {hasBanners ? (
-            <Col md={6}>
-              <Card>
-                <Card.Body>
-                  <Swiper
-                    slidesPerView={1}
-                    modules={[Pagination]}
-                    pagination={{ clickable: true }}
-                    className="mySwiper d-block"
-                  >
-                    {displayBanners.map((banner) => (
-                      <SwiperSlide key={banner.id}>
-                        <Link href={banner.link ?? '#'}>
-                          <Image
-                            src={banner.image ?? undefined}
-                            alt={`banner-${banner.id}`}
-                            className="w-100 object-fit-cover"
-                            style={{ aspectRatio: '16 / 9' }}
-                          />
-                        </Link>
-                      </SwiperSlide>
-                    ))}
-                  </Swiper>
-                </Card.Body>
-              </Card>
-            </Col>
-          ) : null}
-        </Row>
+        {hasBanners ? <HomeBannerStrip banners={displayBanners} /> : null}
+
+        <div className="mb-5">
+          <OrderTabsSection
+            counts={tabCounts}
+            pendingOrders={pendingOrders}
+            approvedOrders={approvedOrders}
+            inProgressOrders={inProgressOrders}
+            endedByProviderOrders={endedByProviderOrders}
+          />
+        </div>
 
         <RecentActivityCard transactions={recentTransactions} />
       </Content>
