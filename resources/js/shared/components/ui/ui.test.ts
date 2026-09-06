@@ -83,6 +83,18 @@ describe('ui barrel', () => {
     expect(barrelSrc).toContain('PAGE_FILTER_DATE_DEFAULT_WIDTH_CLASS');
   });
 
+  it('PageFilterBar select/date classes use compiled Metronic solid variants, not dead *-white', () => {
+    const typesSrc = readFileSync(join(dir, 'types.ts'), 'utf8');
+    expect(typesSrc).toContain(
+      "export const PAGE_FILTER_SELECT_CLASS = 'form-select form-select-solid form-select-sm'",
+    );
+    expect(typesSrc).toContain(
+      "export const PAGE_FILTER_DATE_CLASS = 'form-control form-control-solid form-control-sm'",
+    );
+    expect(typesSrc).not.toContain('form-select-white');
+    expect(typesSrc).not.toContain('form-control-white');
+  });
+
   it('SectionCard hero variant wraps children in the tinted body shell', () => {
     expect(SECTION_CARD_HERO_BODY_CLASS).toContain('bg-light-primary');
     expect(sectionCardSrc).toContain('SECTION_CARD_HERO_BODY_CLASS');

@@ -1,11 +1,11 @@
 import type { Order } from '@/shared/types/models';
 import { formatShortAbsoluteDiff, parseChatAbsoluteTime } from '@/shared/chat/utils/format-short-absolute-diff';
 
-/** City – region label for list meta; empty when neither translation is loaded. */
+/** City – region label for list meta; uses Dashboard Resource flattened `title`. */
 export function formatOrderLocation(
   order: Pick<Order, 'city' | 'region'>,
 ): string {
-  return [order.city?.translation?.title, order.region?.translation?.title]
+  return [order.city?.title, order.region?.title]
     .filter(Boolean)
     .join(' - ');
 }

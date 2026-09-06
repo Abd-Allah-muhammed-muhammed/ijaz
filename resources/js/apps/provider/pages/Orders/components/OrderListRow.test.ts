@@ -12,7 +12,7 @@ import type { Order } from '@/shared/types/models';
 describe('OrderListRow', () => {
   const src = readFileSync(join(__dirname, 'OrderListRow.tsx'), 'utf8');
 
-  it('renders title, amount, truncated description, and StatusBadge', () => {
+  it('renders title, amount, truncated description, and StatusBadge on the meta row', () => {
     expect(src).toContain('{title}');
     expect(src).toContain('{amountLabel}');
     expect(src).toContain('text-truncate');
@@ -20,6 +20,10 @@ describe('OrderListRow', () => {
     expect(src).toContain('StatusBadge');
     expect(src).toContain('status={status}');
     expect(src).toContain('colorClass={statusColorClass}');
+    expect(src).toContain('justify-content-between');
+    expect(src).toContain("t('view_details')");
+    expect(src).toContain('whenLocale');
+    expect(src).not.toContain('align-self-center');
   });
 
   it('uses Link for the whole row and aria-labels meta icons with counts/labels', () => {
@@ -36,13 +40,19 @@ describe('order-list-row-utils', () => {
     expect(formatOrderBudgetRange(100, 500)).toBe('100 – 500');
   });
 
-  it('builds location from city/region translations when present', () => {
+  it('builds location from Dashboard Resource flattened city/region title', () => {
     const order = {
-      city: { translation: { title: 'Riyadh' } },
-      region: { translation: { title: 'North' } },
+      city: { title: 'Riyadh' },
+      region: { title: 'North' },
     } as Order;
 
     expect(formatOrderLocation(order)).toBe('Riyadh - North');
+    expect(
+      formatOrderLocation({
+        city: { translation: { title: 'Ignored' } },
+        region: { translation: { title: 'Ignored' } },
+      } as Order),
+    ).toBe('');
     expect(formatOrderLocation({} as Order)).toBe('');
   });
 

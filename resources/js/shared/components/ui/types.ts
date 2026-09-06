@@ -68,9 +68,9 @@ export const PAGE_FILTER_SEARCH_ICON_CLASS = 'fs-1 position-absolute ms-6';
 
 export const PAGE_FILTER_SEARCH_INPUT_CLASS = 'form-control  ps-14';
 
-export const PAGE_FILTER_SELECT_CLASS = 'form-select form-select-white form-select-sm';
+export const PAGE_FILTER_SELECT_CLASS = 'form-select form-select-solid form-select-sm';
 
-export const PAGE_FILTER_DATE_CLASS = 'form-control form-control-white form-control-sm';
+export const PAGE_FILTER_DATE_CLASS = 'form-control form-control-solid form-control-sm';
 
 export const PAGE_FILTER_SELECT_DEFAULT_WIDTH_CLASS = 'w-200px';
 

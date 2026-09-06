@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { KTIcon } from '@/vendor/metronic/helpers';
 import { StatusBadge, type StatusBadgeStatus } from '@/shared/components/ui';
+import { whenLocale } from '@/shared/helpers/general';
 
 export type OrderListRowProps = {
   href: string;
@@ -36,32 +37,33 @@ export default function OrderListRow({
   const trimmedDescription = description?.trim() ?? '';
   const trimmedLocation = locationLabel?.trim() ?? '';
   const showOffersCount = offersCount !== undefined && offersCount !== null;
+  const detailsArrow = whenLocale<string>('ar', 'arrow-left', 'arrow-right');
 
   return (
     <Link
       href={href}
-      className="d-flex align-items-start gap-3 py-4 px-4 px-lg-6 text-decoration-none text-gray-900 border-bottom border-gray-100"
+      className="d-block py-4 px-4 px-lg-6 text-decoration-none text-gray-900 border-bottom border-gray-100"
     >
-      <div className="flex-grow-1 min-w-0">
-        <div className="d-flex align-items-start justify-content-between gap-2 mb-1">
-          <h5 className="fw-bolder fs-6 text-gray-900 mb-0 text-truncate lh-base" title={title}>
-            {title}
-          </h5>
-          <span className="fw-bold fs-7 text-gray-800 text-nowrap flex-shrink-0">
-            {amountLabel}
-          </span>
-        </div>
+      <div className="d-flex align-items-start justify-content-between gap-2 mb-1">
+        <h5 className="fw-bolder fs-6 text-gray-900 mb-0 text-truncate lh-base" title={title}>
+          {title}
+        </h5>
+        <span className="fw-bold fs-7 text-gray-800 text-nowrap flex-shrink-0">
+          {amountLabel}
+        </span>
+      </div>
 
-        {trimmedDescription !== '' ? (
-          <p
-            className="text-muted fs-7 mb-2 text-truncate"
-            title={trimmedDescription}
-          >
-            {trimmedDescription}
-          </p>
-        ) : null}
+      {trimmedDescription !== '' ? (
+        <p
+          className="text-muted fs-7 mb-2 text-truncate"
+          title={trimmedDescription}
+        >
+          {trimmedDescription}
+        </p>
+      ) : null}
 
-        <div className="d-flex flex-wrap align-items-center column-gap-3 row-gap-1 fs-8 text-muted">
+      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div className="d-flex flex-wrap align-items-center column-gap-3 row-gap-1 fs-8 text-muted min-w-0">
           {trimmedLocation !== '' ? (
             <span
               className="d-inline-flex align-items-center gap-1 min-w-0"
@@ -94,14 +96,20 @@ export default function OrderListRow({
             </span>
           ) : null}
         </div>
-      </div>
 
-      <StatusBadge
-        status={status}
-        label={statusLabel}
-        colorClass={statusColorClass}
-        className="fs-8 flex-shrink-0 align-self-center"
-      />
+        <div className="d-flex align-items-center gap-2 flex-shrink-0 ms-auto">
+          <StatusBadge
+            status={status}
+            label={statusLabel}
+            colorClass={statusColorClass}
+            className="fs-8"
+          />
+          <span className="d-inline-flex align-items-center gap-1 text-primary fw-bold fs-8 text-nowrap">
+            {t('view_details')}
+            <KTIcon iconName={detailsArrow} className="fs-4" />
+          </span>
+        </div>
+      </div>
     </Link>
   );
 }
