@@ -31,6 +31,12 @@ it('lists provider assigned orders on index', function () {
         ->assertInertia(fn ($page) => $page
             ->component('Provider/Orders/Index')
             ->has('rows.data', 1)
+            ->has('rows.data.0.description')
+            ->has('rows.data.0.offers_count')
+            ->has('rows.data.0.status.label')
+            ->has('rows.data.0.status.color')
+            ->has('rows.data.0.city')
+            ->has('rows.data.0.region')
         );
 });
 

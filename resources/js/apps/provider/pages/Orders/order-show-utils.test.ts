@@ -140,21 +140,21 @@ describe('Offers list page', () => {
     expect(offersSrc).toContain("name: 'status'");
     expect(offersSrc).toContain('OfferStatusEnum');
     expect(offersSrc).toContain('OrderController.offers().url');
-    expect(offersSrc).toContain('StatusBadge');
+    expect(offersSrc).toContain('OrderListRow');
     expect(offersSrc).toContain('getOfferStatusBadgeClass');
-    expect(offersSrc).toContain('colorClass={offerBadge}');
+    expect(offersSrc).toContain('statusColorClass={offerBadge}');
   });
 
-  it('Offers list cards show the order title as the primary label, not the raw order UUID', () => {
+  it('Offers list rows show the order title as the primary label, not the raw order UUID', () => {
     expect(offersSrc).toContain('row.order?.title');
-    expect(offersSrc).toContain('title={row.order_id}');
+    expect(offersSrc).toContain("t('Order ID')");
     expect(offersSrc).not.toMatch(/\{t\(['"]Order ID['"]\)\}:\s*\{row\.order_id\}/);
   });
 
-  it('Offers list cards use formatCurrency for price and formatDateTime for the date', () => {
+  it('Offers list rows use formatCurrency for price and formatOrderListTime for the date', () => {
     expect(offersSrc).toContain('formatCurrency');
-    expect(offersSrc).toContain('formatDateTime');
-    expect(offersSrc).not.toContain('toLocaleDateString');
+    expect(offersSrc).toContain('formatOrderListTime');
+    expect(offersSrc).not.toContain('formatDateTime');
   });
 
   it('Offers list empty state matches the established pattern (icon + message), consistent with Orders Index\'s empty state', () => {

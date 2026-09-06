@@ -1,16 +1,14 @@
-import ProviderLayout from "@/apps/provider/layouts/ProviderLayout";
-import {Head} from "@inertiajs/react";
+import ProviderLayout from '@/apps/provider/layouts/ProviderLayout';
+import { Head } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import {PageTitle} from "@/vendor/metronic/layout/core";
-import {ToolbarWrapper} from "@/vendor/metronic/layout/components/toolbar";
-import {Content} from "@/vendor/metronic/layout/components/content";
-import {KTIcon} from "@/vendor/metronic/helpers";
-import Pagination from "@/shared/components/Table/partials/Pagination";
-import {PaginationResource} from "@/shared/types";
-import {Order} from "@/shared/types/models";
-import OrderController from "@/actions/Modules/Orders/Http/Controllers/Provider/OrderController";
-import OrderCard from "@/shared/components/order/order-card";
-import {Col, Row} from "react-bootstrap";
+import { PageTitle } from '@/vendor/metronic/layout/core';
+import { ToolbarWrapper } from '@/vendor/metronic/layout/components/toolbar';
+import { Content } from '@/vendor/metronic/layout/components/content';
+import { KTIcon } from '@/vendor/metronic/helpers';
+import Pagination from '@/shared/components/Table/partials/Pagination';
+import { PaginationResource } from '@/shared/types';
+import { Order } from '@/shared/types/models';
+import OrderController from '@/actions/Modules/Orders/Http/Controllers/Provider/OrderController';
 import {
   EmptyState,
   PageFilterBar,
@@ -18,9 +16,16 @@ import {
   type PageFilterField,
 } from '@/shared/components/ui';
 import { useOrderFilters } from '@/apps/provider/pages/Orders/hooks/use-order-filters';
+import OrderListRow from '@/apps/provider/pages/Orders/components/OrderListRow';
+import {
+  formatOrderBudgetRange,
+  formatOrderListTime,
+  formatOrderLocation,
+} from '@/apps/provider/pages/Orders/components/order-list-row-utils';
+import type { ReactElement } from 'react';
 
 type Props = {
-  rows: PaginationResource<Order>,
+  rows: PaginationResource<Order>;
   prams: SearchPrams | null;
 };
 
@@ -37,13 +42,8 @@ const PERIOD_OPTIONS = [
   { value: '365', labelKey: 'period_1_year' },
 ] as const;
 
-const Recommended = (
-  {
-    rows,
-    prams,
-  }: Props
-) => {
-  const { t } = useTranslation();
+const Recommended = ({ rows, prams }: Props) => {
+  const { t, i18n } = useTranslation();
   const { filters, onFilterChange } = useOrderFilters<SearchPrams>({
     prams,
     defaults: { per_page: 10, search: '' },
@@ -70,23 +70,22 @@ const Recommended = (
 
   return (
     <>
-      <Head title={t('new_orders')}/>
-      <PageTitle breadcrumbs={[
-        {
-          title: '',
-          path: '',
-          isSeparator: true,
-          isActive: false,
-        },
-      ]}>
+      <Head title={t('new_orders')} />
+      <PageTitle
+        breadcrumbs={[
+          {
+            title: '',
+            path: '',
+            isSeparator: true,
+            isActive: false,
+          },
+        ]}
+      >
         {t('new_orders')}
       </PageTitle>
-      <ToolbarWrapper/>
+      <ToolbarWrapper />
       <Content>
-        <PageFilterBar
-          filters={filterFields}
-          onFilterChange={onFilterChange}
-        />
+        <PageFilterBar filters={filterFields} onFilterChange={onFilterChange} />
         {rows.data.length === 0 ? (
           <SectionCard>
             <EmptyState
@@ -95,23 +94,28 @@ const Recommended = (
             />
           </SectionCard>
         ) : (
-          <Row>
+          <SectionCard className="mb-5" bodyClassName="card-body p-0">
             {rows.data.map((row) => (
-              <Col sm={12} md={6} lg={4} xl={3} key={'order-' + row.id}>
-                <OrderCard url={OrderController.show(row.id as string).url} order={row}/>
-              </Col>
+              <OrderListRow
+                key={row.id}
+                href={OrderController.show(row.id as string).url}
+                title={row.title}
+                amountLabel={formatOrderBudgetRange(row.budget_start, row.budget_end)}
+                description={row.description}
+                locationLabel={formatOrderLocation(row)}
+                timeLabel={formatOrderListTime(row.created_at, i18n.language)}
+                offersCount={row.offers_count ?? 0}
+                status={row.status}
+              />
             ))}
-          </Row>
+          </SectionCard>
         )}
-        <Pagination paginationMeta={rows.meta} preserveScroll/>
+        <Pagination paginationMeta={rows.meta} preserveScroll />
       </Content>
     </>
-  )
-}
+  );
+};
 
+Recommended.layout = (page: ReactElement) => <ProviderLayout>{page}</ProviderLayout>;
 
-Recommended.layout = (page: any) => {
-  return <ProviderLayout {...page.props}>{page}</ProviderLayout>
-}
-
-export default Recommended
+export default Recommended;
